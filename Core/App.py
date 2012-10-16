@@ -4,6 +4,7 @@ import tornado.web
 import tornado.httpserver
 from DIRAC import S_OK, S_ERROR, gLogger
 from WebAppDIRAC.Core.Routes import Routes
+from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
 from WebAppDIRAC.Core import Conf
 
 class App( object ):
@@ -24,8 +25,12 @@ class App( object ):
     result = self.__routes.bootstrap()
     if not result[ 'OK' ]:
       return result
-    self.__app = tornado.web.Application( self.__routes.getRoutes(), debug = debug )
+    #Create the app
+    tLoader = TemplateLoader( self.__routes.getPaths( "template" ) )
+    kw = dict( debug = debug, template_loader = tLoader )
+    self.__app = tornado.web.Application( self.__routes.getRoutes(), **kw )
     self.log.always( "Configuring HTTP on port %s" % Conf.HTTPPort() )
+    #Create the web servers
     srv = tornado.httpserver.HTTPServer( self.__app )
     port = Conf.HTTPPort()
     srv.listen( port )
