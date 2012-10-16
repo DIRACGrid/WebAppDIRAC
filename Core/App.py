@@ -14,6 +14,17 @@ class App( object ):
     self.__servers = {}
     self.log = gLogger.getSubLogger( "Web" )
 
+  def _logRequest( self, handler ):
+    status = handler.get_status()
+    if status < 400:
+      logm = self.log.notice
+    elif status < 500:
+      logm = self.log.warn
+    else:
+      logm = self.log.error
+    request_time = 1000.0 * handler.request.request_time()
+    logm( "%d %s %.2fms" % ( status, handler._request_summary(), request_time ) )
+
   def bootstrap( self ):
     """
     Configure and create web app
@@ -27,7 +38,8 @@ class App( object ):
       return result
     #Create the app
     tLoader = TemplateLoader( self.__routes.getPaths( "template" ) )
-    kw = dict( debug = debug, template_loader = tLoader )
+    kw = dict( debug = debug, template_loader = tLoader, cookie_secret = Conf.cookieSecret(),
+               log_function = self._logRequest )
     self.__app = tornado.web.Application( self.__routes.getRoutes(), **kw )
     self.log.always( "Configuring HTTP on port %s" % Conf.HTTPPort() )
     #Create the web servers

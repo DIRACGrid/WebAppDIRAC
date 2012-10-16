@@ -1,5 +1,6 @@
 
 import os
+import uuid
 from DIRAC import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Security import Locations, X509Chain
 
@@ -41,6 +42,10 @@ def HTTPSKey():
 
 def setup():
   return gConfig.getValue( "/DIRAC/Setup" )
+
+def cookieSecret():
+  #TODO: Store the secret somewhere
+  return gConfig.getValue( "CookieSecret", uuid.getnode() )
 
 def generateCAFile():
   """

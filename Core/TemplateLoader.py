@@ -9,8 +9,6 @@ class TemplateLoader( BaseLoader ):
     self.pathList = pathList
 
   def resolve_path( self, name, parent_path = None ):
-    print name, parent_path, "<<<<<<<<"
-    print
     if parent_path and not parent_path.startswith("<") and \
         not parent_path.startswith("/") and \
         not name.startswith("/"):
