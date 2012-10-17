@@ -15,6 +15,7 @@ if __name__ == "__main__":
   localCfg.addMandatoryEntry( "/DIRAC/Setup" )
   localCfg.addDefaultEntry( "/DIRAC/Security/UseServerCertificate", "yes" )
   localCfg.addDefaultEntry( "LogLevel", "INFO" )
+  localCfg.addDefaultEntry( "LogColor", True )
 
   result = localCfg.loadUserData()
   if not result[ 'OK' ]:

@@ -52,7 +52,9 @@ class Routes( object ):
     self.__handlers = result[ 'Value' ]
     staticPaths = self.getPaths( "static" )
     self.log.verbose( "Static paths found:\n - %s" % "\n - ".join( staticPaths ) )
-    self.__routes = [ ( "/static/(.*)", StaticHandler, dict( pathList = staticPaths ) ) ]
+    self.__routes = []
+    for pattern in ( ( r"/static/(.*)", r"/(favicon\.ico)", r"/(robots\.txt)" ) ):
+      self.__routes.append( ( pattern, StaticHandler, dict( pathList = staticPaths ) ) )
     for hn in self.__handlers:
       self.log.info( "Found handler %s" % hn  )
       handler = self.__handlers[ hn ]

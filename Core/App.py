@@ -41,14 +41,14 @@ class App( object ):
     kw = dict( debug = debug, template_loader = tLoader, cookie_secret = Conf.cookieSecret(),
                log_function = self._logRequest )
     self.__app = tornado.web.Application( self.__routes.getRoutes(), **kw )
-    self.log.always( "Configuring HTTP on port %s" % Conf.HTTPPort() )
+    self.log.notice( "Configuring HTTP on port %s" % Conf.HTTPPort() )
     #Create the web servers
     srv = tornado.httpserver.HTTPServer( self.__app )
     port = Conf.HTTPPort()
     srv.listen( port )
     self.__servers[ ( 'http', port ) ] = srv
     if Conf.HTTPS():
-      self.log.always( "Configuring HTTPS on port %s" % Conf.HTTPSPort() )
+      self.log.notice( "Configuring HTTPS on port %s" % Conf.HTTPSPort() )
       sslops = dict( certfile = Conf.HTTPSCert(),
                      keyfile = Conf.HTTPSKey(),
                      cert_reqs = ssl.CERT_OPTIONAL,

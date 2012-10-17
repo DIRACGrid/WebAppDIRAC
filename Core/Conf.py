@@ -67,7 +67,8 @@ def generateCAFile():
       if not result[ 'OK' ]:
         continue
       chain = result[ 'Value' ]
-      if chain.hasExpired():
+      expired = chain.hasExpired()
+      if not expired[ 'OK' ] or expired[ 'Value' ]:
         continue
       fd.write( chain.dumpAllToString()[ 'Value' ] )
     fd.close()

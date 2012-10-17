@@ -36,12 +36,25 @@ class WebHandler( tornado.web.RequestHandler ):
     if not derCert:
       return
     pemCert = ssl.DER_cert_to_PEM_cert( derCert )
-    cert = X509Chain()
-    result = cert.getCredentials()
+    chain = X509Chain()
+    chain.loadChainFromString( pemCert )
+    result = chain.getCredentials()
     if not result[ 'OK' ]:
       self.log.error( "Could not get client credentials %s" % result[ 'Message' ] )
+      return
     self.__credDict = result[ 'Value' ]
 
+  def _request_summary( self ):
+    summ = super( WebHandler, self )._request_summary()
+    if self.__credDict:
+      cl = []
+      if self.__credDict[ 'validDN' ]:
+        cl.append( self.__credDict[ 'username' ] )
+        if self.__credDict[ 'validGroup' ]:
+          cl.append( "@%s" % self.__credDict[ 'group' ] )
+        cl.append( " (%s)" % self.__credDict[ 'subject' ] )
+      summ = "%s %s" % ( summ, "".join( cl ) )
+    return summ
 
   @property
   def log( self ):
@@ -65,15 +78,22 @@ class WebHandler( tornado.web.RequestHandler ):
     Authenticate request
     """
     userDN = self.getUserDN()
-    if not group:
+    if group:
+      self.__credDict[ 'group' ] = group
+    else:
       if userDN:
-        self.__credDict[ 'group' ] = Registry.findDefaultGroupForDN( userDN )
+        result = Registry.findDefaultGroupForDN( userDN )
+        if result[ 'OK' ]:
+          self.__credDict[ 'group' ] = result[ 'Value' ]
     auth = AuthManager( Conf.getAuthSectionForRoute( handlerRoute ) )
     try:
       defProps = getattr( self, "auth_%s" % methodName )
     except AttributeError:
       defProps = [ 'all' ]
-    return auth.authQuery( methodName, self.__credDict, defProps )
+    ok = auth.authQuery( methodName, self.__credDict, defProps )
+    if ok and userDN:
+      self.__credDict[ 'validGroup' ] = True
+    return ok
 
   def __setThreadConfig( self, setup ):
     DN = self.getUserDN()
