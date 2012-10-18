@@ -5,7 +5,7 @@ from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.DISET.AuthManager import AuthManager
-from WebAppDIRAC.Core import Conf
+from WebAppDIRAC.Lib import Conf
 
 import ssl
 import functools
@@ -15,11 +15,68 @@ import tornado.ioloop
 import tornado.gen
 import tornado.stack_context
 
+class WErr( tornado.web.HTTPError ):
+  def __init__( self, code, msg = "", **kwargs ):
+    super( WErr, self ).__init__( code, msg or None )
+    for k in kwargs:
+      setattr( self, k, kwargs[ k ] )
+    self.ok = False
+    self.msg = msg
+    self.kwargs = kwargs
+
+  def __str__( self ):
+    return super( tornado.web.HTTPError, self ).__str__()
+
+class WOK( object ):
+  def __init__( self, data = False, **kwargs ):
+    for k in kwargs:
+      setattr( self, k, kwargs[ k ] )
+    self.ok = True
+    self.data = data
+
+
 class WebHandler( tornado.web.RequestHandler ):
 
   __threadPool = getGlobalThreadPool()
   __disetConfig = ThreadConfig()
   __log = False
+
+  #Helper function to create threaded gen.Tasks with automatic callback and execption handling
+  @classmethod
+  def threadTask( cls, method, *args, **kwargs ):
+    """
+    Helper method to generate a gen.Task and automatically call the callback when the real
+    method ends. THIS IS SPARTAAAAAAAAAA
+    """
+    #Save the task to access the runner
+    genTask = False
+
+    #This runs in the separate thread, calls the callback on finish and takes into account exceptions
+    def cbMethod( *cargs, **ckwargs ):
+      cb = ckwargs.pop( 'callback' )
+      method = cargs[0]
+      disetConf = cargs[1]
+      cargs = cargs[2]
+      cls__disetConfig.load( disetConf )
+      ioloop = tornado.ioloop.IOLoop.instance()
+      try:
+        result = method( *cargs, **ckwargs )
+        ioloop.add_callback( functools.partial( cb, result ) )
+      except Exception, excp:
+        exc_info = sys.exc_info()
+        ioloop.add_callback( lambda : genTask.runner.handle_exception( *exc_info ) )
+
+
+    #Put the task in the thread :)
+    def threadJob( tmethod, *targs, **tkwargs ):
+      tkwargs[ 'callback' ] = tornado.stack_context.wrap( tkwargs[ 'callback' ] )
+      targs = ( tmethod, self.__disetConfig.dump(), targs )
+      cls.__threadPool.generateJobAndQueueIt( cbMethod, args = targs, kwargs = tkwargs )
+
+    #Return a YieldPoint
+    genTask = tornado.gen.Task( threadJob, method, *args, **kwargs )
+    return genTask
+
 
   def __init__( self, *args, **kwargs ):
     super( WebHandler, self ).__init__( *args, **kwargs )

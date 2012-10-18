@@ -1,5 +1,5 @@
 
-from WebAppDIRAC.Core.WebHandler import WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 class RootHandler( WebHandler ):
 

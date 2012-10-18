@@ -5,7 +5,7 @@ import tornado.httpserver
 from DIRAC import S_OK, S_ERROR, gLogger
 from WebAppDIRAC.Core.Routes import Routes
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
-from WebAppDIRAC.Core import Conf
+from WebAppDIRAC.Lib import Conf
 
 class App( object ):
 

@@ -6,7 +6,7 @@ from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 import WebAppDIRAC
-from WebAppDIRAC.Core.WebHandler import WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 

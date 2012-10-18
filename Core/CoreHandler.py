@@ -1,6 +1,6 @@
 
 import tornado.web
-from WebAppDIRAC.Core import Conf
+from WebAppDIRAC.Lib import Conf
 
 class CoreHandler( tornado.web.RequestHandler ):
 
