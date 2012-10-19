@@ -38,9 +38,11 @@ class App( object ):
     debug = Conf.debug()
     if debug:
       self.log.info( "Configuring in debug mode..." )
-    result = self.__routes.bootstrap()
+    #Calculating routes
+    result = self.__routes.getRoutes()
     if not result[ 'OK' ]:
       return result
+    routes = result[ 'Value' ]
     #Create the app
     tLoader = TemplateLoader( self.__routes.getPaths( "template" ) )
     kw = dict( debug = debug, template_loader = tLoader, cookie_secret = Conf.cookieSecret(),
@@ -50,7 +52,7 @@ class App( object ):
       tornado.process.fork_processes( Conf.numProcesses(), max_restarts=0 )
       kw[ 'debug' ] = False
     #Configure tornado app
-    self.__app = tornado.web.Application( self.__routes.getRoutes(), **kw )
+    self.__app = tornado.web.Application( routes, **kw )
     self.log.notice( "Configuring HTTP on port %s" % ( Conf.HTTPPort() ) )
     #Create the web servers
     srv = tornado.httpserver.HTTPServer( self.__app )

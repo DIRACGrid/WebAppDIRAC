@@ -41,6 +41,9 @@ class WebHandler( tornado.web.RequestHandler ):
   __disetConfig = ThreadConfig()
   __log = False
 
+  LOCATION = ""
+  URLSCHEMA = ""
+
   #Helper function to create threaded gen.Tasks with automatic callback and execption handling
   @classmethod
   def threadTask( cls, method, *args, **kwargs ):
@@ -79,6 +82,9 @@ class WebHandler( tornado.web.RequestHandler ):
 
 
   def __init__( self, *args, **kwargs ):
+    """
+    Initialize the handler
+    """
     super( WebHandler, self ).__init__( *args, **kwargs )
     if not WebHandler.__log:
       WebHandler.__log = gLogger.getSubLogger( self.__class__.__name__ )
@@ -86,6 +92,9 @@ class WebHandler( tornado.web.RequestHandler ):
     self.__disetConfig.reset()
 
   def __processCredentials( self ):
+    """
+    Extract the user credentials based on the certificate or what comes from the balancer
+    """
     self.__credDict = {}
     #NGINX
     if Conf.balancer() == "nginx":
@@ -117,6 +126,9 @@ class WebHandler( tornado.web.RequestHandler ):
     self.__credDict = result[ 'Value' ]
 
   def _request_summary( self ):
+    """
+    Return a string returning the summary of the request
+    """
     summ = super( WebHandler, self )._request_summary()
     cl = []
     if self.__credDict.get( 'validDN', False ):
@@ -144,6 +156,27 @@ class WebHandler( tornado.web.RequestHandler ):
   def getUserGroup( self ):
     return self.__credDict.get( 'group', '' )
 
+  def getUserSetup( self ):
+    return self.__setup
+
+  def actionURL( self, action = "" ):
+    """
+    Given an action name for the handler, return the URL
+    """
+    if action == "index":
+      action = ""
+    group = self.getUserGroup()
+    if group:
+      group = "/g:%s" % group
+    setup = self.getUserSetup()
+    if setup:
+      setup = "/s:%s" % setup
+    location = self.LOCATION
+    if location:
+      location = "/%s" % location
+    ats = dict( action = action, group = group, setup = setup, location = location )
+    return self.URLSCHEMA % ats
+
   def __auth( self, handlerRoute, methodName, group ):
     """
     Authenticate request
@@ -167,17 +200,21 @@ class WebHandler( tornado.web.RequestHandler ):
     return ok
 
   def __setThreadConfig( self, setup ):
+    """
+    Set DISET config
+    """
     DN = self.getUserDN()
     if DN:
       self.__disetConfig.setDN( DN )
     group = self.getUserGroup()
     if group:
       self.__disetConfig.setGroup( group )
-    if not setup:
-      setup = Conf.setup()
     self.__disetConfig.setSetup( setup )
 
   def __checkRequest( self, setup, group, route ):
+    """
+    Check the request, auth, credentials and DISET config
+    """
     if route[-1] == "/":
       methodName = "index"
       handlerRoute = route
@@ -185,9 +222,11 @@ class WebHandler( tornado.web.RequestHandler ):
       iP = route.rfind( "/" )
       methodName = route[ iP + 1: ]
       handlerRoute = route[ :iP ]
+    if not setup:
+      setup = Conf.setup()
+    self.__setup = setup
     if not self.__auth( handlerRoute, methodName, group ):
       raise tornado.web.HTTPError( 401 )
-    self.__setThreadConfig( setup )
     return methodName
 
 
@@ -200,5 +239,6 @@ class WebHandler( tornado.web.RequestHandler ):
       raise tornado.web.HTTPError( 404 )
     return mObj()
 
-
+  def post( self, *args, **kwargs ):
+    return get( *args, **kwargs)
 

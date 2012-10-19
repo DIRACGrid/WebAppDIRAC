@@ -32,7 +32,8 @@ def HTTPPort():
     default = 8000
   else:
     default = 8080
-  return getCSValue( "HTTP/Port", default ) + tornado.process.task_id()
+  procAdd = tornado.process.task_id() or 0
+  return getCSValue( "HTTP/Port", default ) + procAdd
 
 def HTTPSPort():
   return getCSValue( "HTTPS/Port", 8443 )

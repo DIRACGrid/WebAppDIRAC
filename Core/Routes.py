@@ -40,7 +40,7 @@ class Routes( object ):
     pathList.append( os.path.join( WebAppDIRAC.rootPath, "WebApp", dirName ) )
     return pathList
 
-  def bootstrap( self ):
+  def __calculateRoutes( self ):
     """
     Load all handlers and generate the routes
     """
@@ -68,6 +68,9 @@ class Routes( object ):
       #IF theres a base url like /DIRAC add it
       if self.__baseURL:
         baseRoute = "/%s%s" % ( self.__baseURL, baseRoute )
+      #Set properly the LOCATION after calculating where it is with helpers to add group and setup later
+      handler.LOCATION = handlerRoute
+      handler.URLSCHEMA = "/%s%%(setup)s%%(group)s%%(location)s/%%(action)s" % ( self.__baseURL )
       #Look for methods that are exported
       for mName, mObj in inspect.getmembers( handler ):
         if inspect.ismethod( mObj ) and mName.find( "web_" ) == 0:
@@ -91,4 +94,8 @@ class Routes( object ):
     return S_OK()
 
   def getRoutes( self ):
-    return self.__routes
+    if not self.__routes:
+      result = self.__calculateRoutes()
+      if not result[ 'OK' ]:
+        return result
+    return S_OK( self.__routes )
