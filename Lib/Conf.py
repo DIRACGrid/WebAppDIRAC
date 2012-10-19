@@ -1,6 +1,7 @@
 
 import os
 import uuid
+import tornado.process
 from DIRAC import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Security import Locations, X509Chain
 
@@ -15,11 +16,23 @@ def debug():
 def rootURL():
   return getCSValue( "RootURL", "/DIRAC" )
 
+def balancer():
+  return getCSValue( "Balancer", "" )
+
+def numProcesses():
+  return getCSValue( "NumProcesses", -1 )
+
 def HTTPS():
+  if balancer():
+    return False
   return getCSValue( "HTTPS/Enabled", True )
 
 def HTTPPort():
-  return getCSValue( "HTTP/Port", 8080 )
+  if balancer():
+    default = 8000
+  else:
+    default = 8080
+  return getCSValue( "HTTP/Port", default ) + tornado.process.task_id()
 
 def HTTPSPort():
   return getCSValue( "HTTPS/Port", 8443 )

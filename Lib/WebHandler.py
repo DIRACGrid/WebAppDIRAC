@@ -87,6 +87,21 @@ class WebHandler( tornado.web.RequestHandler ):
 
   def __processCredentials( self ):
     self.__credDict = {}
+    #NGINX
+    if Conf.balancer() == "nginx":
+      headers = self.request.headers
+      if headers[ 'X-Scheme' ] == "https" and headers[ 'X-Ssl_client_verify' ] == 'SUCCESS':
+        DN = headers[ 'X-Ssl_client_s_dn' ]
+        self.__credDict[ 'subject' ] = DN
+        self.__credDict[ 'issuer' ] = headers[ 'X-Ssl_client_i_dn' ]
+        result = Registry.getUsernameForDN( DN )
+        if not result[ 'OK' ]:
+          self.__credDict[ 'validDN' ] = False
+        else:
+          self.__credDict[ 'validDN' ] = True
+          self.__credDict[ 'username' ] = result[ 'Value' ]
+      return
+    #TORNADO
     if not self.request.protocol == "https":
       return
     derCert = self.request.get_ssl_certificate( binary_form = True )
@@ -103,14 +118,13 @@ class WebHandler( tornado.web.RequestHandler ):
 
   def _request_summary( self ):
     summ = super( WebHandler, self )._request_summary()
-    if self.__credDict:
-      cl = []
-      if self.__credDict[ 'validDN' ]:
-        cl.append( self.__credDict[ 'username' ] )
-        if self.__credDict[ 'validGroup' ]:
-          cl.append( "@%s" % self.__credDict[ 'group' ] )
-        cl.append( " (%s)" % self.__credDict[ 'subject' ] )
-      summ = "%s %s" % ( summ, "".join( cl ) )
+    cl = []
+    if self.__credDict.get( 'validDN', False ):
+      cl.append( self.__credDict[ 'username' ] )
+      if self.__credDict.get( 'validGroup', False ):
+        cl.append( "@%s" % self.__credDict[ 'group' ] )
+      cl.append( " (%s)" % self.__credDict[ 'subject' ] )
+    summ = "%s %s" % ( summ, "".join( cl ) )
     return summ
 
   @property

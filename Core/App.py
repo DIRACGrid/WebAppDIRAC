@@ -2,6 +2,8 @@
 import ssl
 import tornado.web
 import tornado.httpserver
+import tornado.autoreload
+import tornado.process
 from DIRAC import S_OK, S_ERROR, gLogger
 from WebAppDIRAC.Core.Routes import Routes
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
@@ -25,6 +27,9 @@ class App( object ):
     request_time = 1000.0 * handler.request.request_time()
     logm( "%d %s %.2fms" % ( status, handler._request_summary(), request_time ) )
 
+  def __reloadAppCB( self ):
+    gLogger.notice( "\n !!!!!! Reloading web app...\n" )
+
   def bootstrap( self ):
     """
     Configure and create web app
@@ -40,8 +45,13 @@ class App( object ):
     tLoader = TemplateLoader( self.__routes.getPaths( "template" ) )
     kw = dict( debug = debug, template_loader = tLoader, cookie_secret = Conf.cookieSecret(),
                log_function = self._logRequest )
+    #Check processes if we're under a load balancert
+    if Conf.balancer() and Conf.numProcesses() not in ( 0, 1 ):
+      tornado.process.fork_processes( Conf.numProcesses(), max_restarts=0 )
+      kw[ 'debug' ] = False
+    #Configure tornado app
     self.__app = tornado.web.Application( self.__routes.getRoutes(), **kw )
-    self.log.notice( "Configuring HTTP on port %s" % Conf.HTTPPort() )
+    self.log.notice( "Configuring HTTP on port %s" % ( Conf.HTTPPort() ) )
     #Create the web servers
     srv = tornado.httpserver.HTTPServer( self.__app )
     port = Conf.HTTPPort()
@@ -69,5 +79,6 @@ class App( object ):
     for proto, port in self.__servers:
       urls.append("%s://0.0.0.0:%s/%s/" % ( proto, port, bu ) )
     self.log.always( "Listening on %s" % " and ".join( urls ) )
+    tornado.autoreload.add_reload_hook( self.__reloadAppCB )
     tornado.ioloop.IOLoop.instance().start()
 

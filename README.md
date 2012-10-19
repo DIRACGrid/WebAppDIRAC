@@ -1,4 +1,4 @@
-WIRAC
-=====
+DIRAC WebApp
+=============
 
-Web framework for DIRAC
+Web app for DIRAC
