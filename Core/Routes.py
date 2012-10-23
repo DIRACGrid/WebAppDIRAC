@@ -57,7 +57,6 @@ class Routes( object ):
     for pattern in ( ( r"/static/(.*)", r"/(favicon\.ico)", r"/(robots\.txt)" ) ):
       if self.__baseURL:
         pattern = "/%s%s" % ( self.__baseURL, pattern )
-      print pattern
       self.__routes.append( ( pattern, StaticHandler, dict( pathList = staticPaths ) ) )
     for hn in self.__handlers:
       self.log.info( "Found handler %s" % hn  )
