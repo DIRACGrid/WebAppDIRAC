@@ -31,7 +31,7 @@ class UPHandler( WebHandler ):
     up = UserProfileClient( "Web/App/%s" % app )
     result = yield self.threadTask( up.storeVar, name, data )
     if not result[ 'OK' ]:
-      raise WErr.fromSERROR( result)
+      raise WErr.fromSERROR( result )
     self.set_status( 200 )
     self.finish()
 

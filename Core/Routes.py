@@ -55,6 +55,9 @@ class Routes( object ):
     self.log.verbose( "Static paths found:\n - %s" % "\n - ".join( staticPaths ) )
     self.__routes = []
     for pattern in ( ( r"/static/(.*)", r"/(favicon\.ico)", r"/(robots\.txt)" ) ):
+      if self.__baseURL:
+        pattern = "/%s%s" % ( self.__baseURL, pattern )
+      print pattern
       self.__routes.append( ( pattern, StaticHandler, dict( pathList = staticPaths ) ) )
     for hn in self.__handlers:
       self.log.info( "Found handler %s" % hn  )
@@ -78,13 +81,13 @@ class Routes( object ):
         if inspect.ismethod( mObj ) and mName.find( "web_" ) == 0:
           if mName == "web_index":
             #Index methods have the bare url
-            self.log.verbose( " - Route %s -> %s.index" % ( handlerRoute, hn ) )
+            self.log.verbose( " - Route %s -> %s.web_index" % ( handlerRoute, hn ) )
             route = "%s(%s/)" % ( baseRoute, handlerRoute )
             self.__routes.append( ( route, handler ) )
             self.__routes.append( ( route.rstrip( "/" ), CoreHandler, dict( action = 'addSlash' ) ) )
           else:
             #Normal methods get the method appeded without web_
-            self.log.verbose( " - Route %s%s ->  %s.%s" % ( handlerRoute, mName[4:], hn, mName ) )
+            self.log.verbose( " - Route %s/%s ->  %s.%s" % ( handlerRoute, mName[4:], hn, mName ) )
             route = "%s(%s/%s)" % ( baseRoute, handlerRoute, mName[4:] )
             self.__routes.append( ( route, handler ) )
           self.log.debug( "  * %s" % route )

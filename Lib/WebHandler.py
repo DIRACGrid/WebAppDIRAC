@@ -39,7 +39,7 @@ class WOK( object ):
     self.data = data
 
 def asyncWithCallback( method ):
-  return tornaod.web.asynchronous( method )
+  return tornado.web.asynchronous( method )
 
 def asyncGen( method ):
   return tornado.web.asynchronous( tornado.gen.engine( method ) )
