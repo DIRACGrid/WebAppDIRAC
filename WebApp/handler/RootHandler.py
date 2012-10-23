@@ -7,8 +7,7 @@ class RootHandler( WebHandler ):
   LOCATION = "/"
 
   def web_index( self ):
-    self.render( "jar/jor.html", title = "HELLO", potato = self.actionURL( "potato" ) )
+    #Render base template
+    self.render( "root.tpl" )
 
-  def web_potato( self ):
-    raise HTTPError( 534 )
 

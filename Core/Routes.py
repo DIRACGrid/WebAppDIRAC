@@ -2,6 +2,7 @@
 import inspect
 import imp
 import os
+import re
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
@@ -59,9 +60,9 @@ class Routes( object ):
       self.log.info( "Found handler %s" % hn  )
       handler = self.__handlers[ hn ]
       #Get the root for the handler
-      try:
-        handlerRoute = getattr( handler, "LOCATION" ).strip( "/")
-      except AttributeError:
+      if handler.LOCATION:
+        handlerRoute = handler.LOCATION.strip( "/")
+      else:
         handlerRoute = hn[ len( origin ): ].lower().replace( ".", "/" ).replace( "handler", "" )
       #Add the setup group RE before
       baseRoute = self.__setupGroupRE
@@ -70,6 +71,7 @@ class Routes( object ):
         baseRoute = "/%s%s" % ( self.__baseURL, baseRoute )
       #Set properly the LOCATION after calculating where it is with helpers to add group and setup later
       handler.LOCATION = handlerRoute
+      handler.PATH_RE = re.compile( "%s(%s/.*)" % ( baseRoute, handlerRoute ) )
       handler.URLSCHEMA = "/%s%%(setup)s%%(group)s%%(location)s/%%(action)s" % ( self.__baseURL )
       #Look for methods that are exported
       for mName, mObj in inspect.getmembers( handler ):

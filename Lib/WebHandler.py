@@ -27,12 +27,22 @@ class WErr( tornado.web.HTTPError ):
   def __str__( self ):
     return super( tornado.web.HTTPError, self ).__str__()
 
+  @classmethod
+  def fromSERROR( cls, result ):
+    return cls( 500, result[ 'Message' ] )
+
 class WOK( object ):
   def __init__( self, data = False, **kwargs ):
     for k in kwargs:
       setattr( self, k, kwargs[ k ] )
     self.ok = True
     self.data = data
+
+def asyncWithCallback( method ):
+  return tornaod.web.asynchronous( method )
+
+def asyncGen( method ):
+  return tornado.web.asynchronous( tornado.gen.engine( method ) )
 
 
 class WebHandler( tornado.web.RequestHandler ):
@@ -41,8 +51,12 @@ class WebHandler( tornado.web.RequestHandler ):
   __disetConfig = ThreadConfig()
   __log = False
 
+  #Location of the handler in the URL
   LOCATION = ""
+  #URL Schema with holders to generate handler urls
   URLSCHEMA = ""
+  #RE to extract group and setup
+  PATH_RE = ""
 
   #Helper function to create threaded gen.Tasks with automatic callback and execption handling
   @classmethod
@@ -60,7 +74,7 @@ class WebHandler( tornado.web.RequestHandler ):
       method = cargs[0]
       disetConf = cargs[1]
       cargs = cargs[2]
-      cls__disetConfig.load( disetConf )
+      cls.__disetConfig.load( disetConf )
       ioloop = tornado.ioloop.IOLoop.instance()
       try:
         result = method( *cargs, **ckwargs )
@@ -73,7 +87,7 @@ class WebHandler( tornado.web.RequestHandler ):
     #Put the task in the thread :)
     def threadJob( tmethod, *targs, **tkwargs ):
       tkwargs[ 'callback' ] = tornado.stack_context.wrap( tkwargs[ 'callback' ] )
-      targs = ( tmethod, self.__disetConfig.dump(), targs )
+      targs = ( tmethod, cls.__disetConfig.dump(), targs )
       cls.__threadPool.generateJobAndQueueIt( cbMethod, args = targs, kwargs = tkwargs )
 
     #Return a YieldPoint
@@ -90,6 +104,8 @@ class WebHandler( tornado.web.RequestHandler ):
       WebHandler.__log = gLogger.getSubLogger( self.__class__.__name__ )
     self.__processCredentials()
     self.__disetConfig.reset()
+    match = self.PATH_RE.match( self.request.path )
+    self.__pathResult = self.__checkPath( *match.groups() )
 
   def __processCredentials( self ):
     """
@@ -159,6 +175,9 @@ class WebHandler( tornado.web.RequestHandler ):
   def getUserSetup( self ):
     return self.__setup
 
+  def isRegisteredUser( self ):
+    return self.__credDict.get( 'validDN', "" ) and self.__credDict.get( 'validGroup', "" )
+
   def actionURL( self, action = "" ):
     """
     Given an action name for the handler, return the URL
@@ -199,19 +218,7 @@ class WebHandler( tornado.web.RequestHandler ):
       self.__credDict[ 'validGroup' ] = True
     return ok
 
-  def __setThreadConfig( self, setup ):
-    """
-    Set DISET config
-    """
-    DN = self.getUserDN()
-    if DN:
-      self.__disetConfig.setDN( DN )
-    group = self.getUserGroup()
-    if group:
-      self.__disetConfig.setGroup( group )
-    self.__disetConfig.setSetup( setup )
-
-  def __checkRequest( self, setup, group, route ):
+  def __checkPath( self, setup, group, route ):
     """
     Check the request, auth, credentials and DISET config
     """
@@ -226,12 +233,23 @@ class WebHandler( tornado.web.RequestHandler ):
       setup = Conf.setup()
     self.__setup = setup
     if not self.__auth( handlerRoute, methodName, group ):
-      raise tornado.web.HTTPError( 401 )
-    return methodName
+      return WErr( 401 )
+
+    DN = self.getUserDN()
+    if DN:
+      self.__disetConfig.setDN( DN )
+    group = self.getUserGroup()
+    if group:
+      self.__disetConfig.setGroup( group )
+    self.__disetConfig.setSetup( setup )
+
+    return WOK( methodName )
 
 
   def get( self, setup, group, route ):
-    methodName = "web_%s" % self.__checkRequest( setup, group, route )
+    if not self.__pathResult.ok:
+      raise self.__pathResult
+    methodName = "web_%s" % self.__pathResult.data
     try:
       mObj = getattr( self, methodName )
     except AttributeError as e:
