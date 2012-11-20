@@ -31,12 +31,12 @@ class RootHandler(WebHandler):
       group = self.getUserGroup() or 'anon'
     url = [ Conf.rootURL().strip( "/" ), "s:%s" % setup, "g:%s" % group ]
     self.redirect( "/%s" % "/".join( url ) )
-  
+
   def web_getConfigData( self ):
     self.write(json.dumps(SessionData().getData()))
 
   def web_index(self):
     # Render base template
     data = SessionData().getData()
-    self.render( "root.tpl", base_url = data["baseURL"], _dev = 1 )#, base = json.dumps(SessionData().getData()))
-    
+    self.render( "root.tpl", base_url = data["baseURL"], _dev = Conf.devMode(), ext_version = data[ 'extVersion' ] )
+
