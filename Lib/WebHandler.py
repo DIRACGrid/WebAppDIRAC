@@ -258,5 +258,5 @@ class WebHandler( tornado.web.RequestHandler ):
     return mObj()
 
   def post( self, *args, **kwargs ):
-    return get( *args, **kwargs)
+    return self.get( *args, **kwargs )
 
