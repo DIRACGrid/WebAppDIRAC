@@ -17,6 +17,7 @@ Ext.define(
 					extend : 'Ext.window.Window',
 					requires : [ "Ext.ux.desktop.ToolButton", 
 					             "Ext.menu.Menu",
+					             "Ext.menu.Item",
 					             "Ext.form.*",
 					             "Ext.LoadMask"],
 
@@ -34,7 +35,6 @@ Ext.define(
 						var me=this;
 						
 						me.loadMask = new Ext.LoadMask(me,{msg:"Loading ..."});
-						
 						
 						me.saveForm = Ext.widget(
 								'form',
@@ -75,18 +75,19 @@ Ext.define(
 
 									buttons : [
 											{
+												text : 'Save',
+												handler : me.oprSaveAsAppState,
+												scope: me
+											},   
+											{
 												text : 'Cancel',
 												handler : function() {
 													me.saveForm.getForm().reset();						
 													me.saveWindow.hide();
 												},
 												scope: me
-											},
-											{
-												text : 'Save',
-												handler : me.oprSaveAppState,
-												scope: me
-											} ]
+											}
+											 ]
 								});
 						
 						me.saveWindow = Ext.create('widget.window', {
@@ -98,43 +99,108 @@ Ext.define(
 							items : me.saveForm
 						});
 						
+						
+						
 						me.callParent();
+						
 						
 					},
 					
 					setLoadedObject:function(loadedObject){
 						
-						this.loadedObject=loadedObject;
+						var me = this;
 						
-						if(this.currentState == ""){
+						me.loadedObject=loadedObject;
+						
+						if(me.currentState == ""){
 							
-							this.title = this.loadedObject.launcher.text+" [Untitled]";
+							me.title = me.loadedObject.launcher.text+" [Untitled]";
 							
 						}
 						
-						this.iconCls = this.loadedObject.launcher.iconCls;
+						me.appClassName = me.loadedObject.self.getName();
+						
+						me.iconCls = me.loadedObject.launcher.iconCls;
+						
+					},
+					
+					getAppClassName: function(){
+						
+						return this.appClassName;
 						
 					},
 					
 					addTools : function() {
 
 						var me = this;
+						me.statesMenu = new Ext.menu.Menu();
+						
+						/*
+						 * if the cache for the state of the started application exist
+						 */
+						if(me.appClassName in me.loadedObject.app.getDesktop().cache.windows){
+							
+							for (var stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName]) {	
+								
+								var newItem = Ext.create('Ext.menu.Item', {
+					    			  text: stateName,
+					    			  handler: Ext.bind(me.oprLoadAppState, me, [stateName], false),
+					    			  scope:me
+					    		});
+	
+								me.statesMenu.add(newItem);
+								
+							}
+													
+						}else{
+							
+							/*
+							 * if the cache does not exist
+							 */
+							
+							Ext.Ajax.request({
+							    url: 'up/listAppState',
+							    params: {
+							        app: 	me.appClassName,
+							        obj: 	"application"
+							    },
+							    scope:me,
+							    success: function(response){
+							    	
+							    	var me = this;
+							    	var states = Ext.JSON.decode(response.responseText);
+							    	me.loadedObject.app.getDesktop().cache.windows[me.appClassName]={};
+							    	
+							    	for (var stateName in states) {	
+							    		
+							    		var newItem = Ext.create('Ext.menu.Item', {
+														    			  text: stateName,
+														    			  handler: Ext.bind(me.oprLoadAppState, me, [stateName], false),
+														    			  scope:me
+														    		});
+							    		
+							    		me.statesMenu.add(newItem);
+							    		
+							    		me.loadedObject.app.getDesktop().cache.windows[me.appClassName][stateName]=states[stateName];
+							    		
+							    	}
+							    	
+							    	
+							    }
+							});
 
-						var statesMenu = new Ext.menu.Menu({
-							items : [ {
-								text : "State 1"
-							}, {
-								text : "State 2"
-							} ]
-						});
+							
+						}
+												
 						var mainMenu = new Ext.menu.Menu({
 							items : [ {
 								text : "Load state",
 								iconCls : "toolbar-other-load",
-								menu : statesMenu
+								menu : me.statesMenu
 							}, {
 								text : "Save",
 								iconCls : "toolbar-other-save",
+								handler:me.oprSaveAppState,
 								scope: me
 							},{
 								text : "Save As ...",
@@ -156,7 +222,21 @@ Ext.define(
 						me.callParent();
 
 					},
+					
+					addNewState: function(stateName){
+						
+						var me = this;
+						
+						var newItem = Ext.create('Ext.menu.Item', {
+			    			  text: stateName,
+			    			  handler: Ext.bind(me.oprLoadAppState, me, [stateName], false),
+			    			  scope:me
+			    		});
 
+						me.statesMenu.add(newItem);
+						
+					},
+					
 					formSaveState : function() {
 						
 						var me = this;
@@ -165,50 +245,88 @@ Ext.define(
 
 					},
 
-					oprSaveAppState : function() {
+					oprSaveAsAppState : function() {
 						
 						var me = this;
-						
-//						alert(me.saveForm.getForm().findField("state_name").getValue());
-//						return;
-						
+												
 						if (me.saveForm.getForm().isValid()) {
-						
-							var sendData = this.loadedObject.getStateData();
-							/*
-							 * We save those data in the database
-							 */
-							if(!Ext.isObject(sendData)){
-								/*
-								 * Here the data to be sent is not an object
-								 */	
-								return;
+							
+							var stateName = me.saveForm.getForm().findField("state_name").getValue();
+							
+							if(!me.isExistingState(stateName)){
+								
+								me.oprSendDataForSave(stateName,true);
+								
+							}else{
+								
+								Ext.MessageBox.alert('Message','State name already exists !');
+								
 							}
 							
-							Ext.Ajax.request({
-							    url: 'up/saveAppState',
-							    params: {
-							        app: 	this.loadedObject.self.getName(),
-							        name: 	me.saveForm.getForm().findField("state_name").getValue(),
-							        state: 	Ext.JSON.encode(sendData)
-							    },
-							    scope:me,
-							    success: function(response){
-							    	Ext.MessageBox.alert('Message','State saved successfully !');
-							    	this.refreshSavedStatesLists();
-							    }
-							});
-							
-							me.saveForm.getForm().reset();
-							me.saveWindow.hide();
 						}
 						
 					},
 					
-					refreshSavedStatesLists:function(){
+					isExistingState:function(stateName){
+						var me = this;
+
+						if( stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName])
+							return true;
+						else
+							return false;
 						
+					},
+					oprSaveAppState : function() {
 						
+						var me = this;
 						
+						if(me.currentState == ""){
+							
+							me.formSaveState();
+							
+						}else{
+							
+							me.oprSendDataForSave(me.currentState,false);
+						}
+					},
+					
+					oprSendDataForSave: function (stateName,isNewItem){
+						
+						var me = this;
+						
+						var sendData = me.loadedObject.getStateData();
+						/*
+						 * We save those data in the database
+						 */
+						if(!Ext.isObject(sendData)){
+							/*
+							 * Here the data to be sent is not an object
+							 */	
+							return;
+						}
+						
+						Ext.Ajax.request({
+						    url: 'up/saveAppState',
+						    params: {
+						        app: 	me.appClassName,
+						        name: 	stateName,
+						        state: 	Ext.JSON.encode(sendData),
+						        obj: "application"
+						    },
+						    scope:me,
+						    success: function(response){
+						    	var me = this;
+						    	Ext.MessageBox.alert('Message','State saved successfully !');
+						    	if(isNewItem)
+						    		me.loadedObject.app.getDesktop().addStateToExistingWindows(stateName,me.appClassName,sendData);
+						    	else
+						    		me.loadedObject.app.getDesktop().cache.windows[me.appClassName][stateName]=sendData;
+						    	me.saveForm.getForm().reset();
+						    	me.currentState = stateName;
+								me.setTitle(me.loadedObject.launcher.text+" ["+me.currentState+"]");
+								me.saveWindow.hide();
+						    }
+						});
 						
 					},
 
@@ -218,25 +336,27 @@ Ext.define(
 						
 						me.loadMask.show();
 						
-						/*
-						 * We read the data saved in the database 
-						 * 
-						 */
-						Ext.Ajax.request({
-						    url: 'up/loadAppState',
-						    params: {
-						        app: 	me.loadedObject.self.getName(),
-						        name:	stateName
-						    },
-						    scope:me,
-						    success: function(response){
-						    	var me = this;
-						    	me.loadedObject.loadState(Ext.JSON.decode(response.responseText));
-								me.currentState = stateName;
-								me.title = me.loadedObject.launcher.text+" ["+stateName+"]";
-								me.loadMask.hide();
-						    }
-						});
+						me.loadedObject.loadState(me.loadedObject.app.getDesktop().cache.windows[me.appClassName][stateName]);
+						me.currentState = stateName;
+						me.setTitle(me.loadedObject.launcher.text+" ["+stateName+"]");
+						me.loadMask.hide();
+						
+//						Ext.Ajax.request({
+//						    url: 'up/loadAppState',
+//						    params: {
+//						        app: 	me.appClassName,
+//						        name:	stateName,
+//						        obj: "application"
+//						    },
+//						    scope:me,
+//						    success: function(response){
+//						    	var me = this;
+//						    	me.loadedObject.loadState(Ext.JSON.decode(response.responseText));
+//								me.currentState = stateName;
+//								me.setTitle(me.loadedObject.launcher.text+" ["+stateName+"]");
+//								me.loadMask.hide();
+//						    }
+//						});
 
 					},
 

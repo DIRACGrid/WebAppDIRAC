@@ -31,6 +31,7 @@ Ext.define(
 		layout : 'fit',
 		xTickSize : 1,
 		yTickSize : 1,
+		cache:{windows:{}},
 
 		/**
 		 * @property {Ext.ux.desktop.app} app This is the reference
@@ -598,5 +599,18 @@ Ext.define(
 
 			me.taskbar.setActiveButton(activeWindow
 					&& activeWindow.taskButton);
+		},
+		
+		addStateToExistingWindows: function(stateName, appName, stateData){
+			
+			var me=this;
+			
+			me.cache.windows[appName][stateName]=stateData;
+			
+			me.windows.each(function(item,index,len){
+				if(item.getAppClassName() == appName)
+					item.addNewState(stateName);
+			});
+			
 		}
 	});
