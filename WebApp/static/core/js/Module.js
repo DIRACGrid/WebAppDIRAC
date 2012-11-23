@@ -51,7 +51,12 @@ Ext.define('Ext.ux.desktop.Module', {
 		
 		return id+this._UID;
 		
-	}
+	},
 	
+	getStateData : function(){
+		
+						return {};
+					},
+	loadState : function(data){},
 	
 });

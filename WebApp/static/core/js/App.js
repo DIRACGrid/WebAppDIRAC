@@ -231,47 +231,15 @@ Ext.define(
 		 */
 		createWindow : function(moduleName) {
 
-			var jsLoaded = false;
-			var moduleIndex = -1;
-
-			for ( var i = 0; i < this.modules.length; i++) {
-
-				if (this.modules[i].name == moduleName) {
-
-					moduleIndex = i;
-					
-					if (this.modules[i].jsLoaded == 1)
-						jsLoaded = true;
-					
-					break;	
-				}
-
-			}
-
-			/*
-			 * If there is no object it also means that probably the
-			 * script has not been loaded yet
-			 */
-			if (!jsLoaded) {
-				
-				Ext.require(moduleName, function() {
-					var controller = Ext.create(moduleName);
-					controller.init(this);
-					controller.setUID(++this._uid_counter);
-					this.modules[moduleIndex].jsLoaded = 1;
-					var window = controller.createWindow();
-					window.show();
-				}, this);
-				
-			} else {
-
+			Ext.require(moduleName, function() {
 				var controller = Ext.create(moduleName);
 				controller.init(this);
-				controller.setUID(++this._uid_counter);
+				controller.setUID(++this._uid_counter);	
 				var window = controller.createWindow();
+				window.setLoadedObject(controller);
 				window.show();
-
-			}
+			}, this);
+				
 		},
 
 		/**

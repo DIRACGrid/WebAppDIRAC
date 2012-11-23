@@ -20,13 +20,32 @@ Ext
 						this.launcher = {
 							text : 'Notepad',
 							iconCls : 'notepad'
-						}
+						};
+						this.editor = new Ext.form.field.HtmlEditor({value : [
+						    												'Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>',
+						    												'Give it a try!' ].join('')
+						    										});
 					},
-
+					
+					loadState: function(data){
+						
+						var me=this;
+						me.editor.setValue(data["text"]); 
+						
+					},
+					
+					getStateData:function(){
+						
+						var me=this;
+						return {text:me.editor.getValue()};
+						
+					},
 					createWindow : function() {
 						
+						var me = this;
+						
 						var desktop = this.app.getDesktop();
-
+							
 						win = desktop
 								.createWindow({
 									title : 'Notepad',
@@ -47,12 +66,8 @@ Ext
 									hideMode : 'offsets',
 
 									layout : 'fit',
-									items : [ {
-										xtype : 'htmleditor',
-										value : [
-												'Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>',
-												'Give it a try!' ].join('')
-									} ]
+
+									items : [ me.editor ]
 								});
 
 						return win;

@@ -19,7 +19,7 @@ Ext.define(
 		alias : 'widget.desktop',
 		uses : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu',
 				'Ext.view.View', // dataview
-				'Ext.window.Window', 'Ext.ux.desktop.TaskBar',
+				'Ext.ux.desktop.Window', 'Ext.ux.desktop.TaskBar',
 				'Ext.ux.desktop.Wallpaper' ],
 
 		activeWindowCls : 'ux-desktop-active-win',
@@ -530,7 +530,7 @@ Ext.define(
 				maximizable : true
 			});
 
-			cls = cls || Ext.window.Window;
+			cls = cls || Ext.ux.desktop.Window;
 			win = me.add(new cls(cfg));
 
 			me.windows.add(win);

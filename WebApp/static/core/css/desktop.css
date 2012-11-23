@@ -323,3 +323,18 @@
 .user-suit {
     background-image:url(../icons/fam/user_suit.gif) !important;
 }
+
+.toolbar-other-save {
+    background-image:url(../icons/other/_tool_save.png) !important;
+    background-size:16px 16px;
+}
+
+.toolbar-other-load {
+    background-image:url(../icons/other/_tool_load.png) !important;
+    background-size:16px 16px;
+}
+
+.toolbar-other-manage {
+    background-image:url(../icons/other/_tool_manage.png) !important;
+    background-size:16px 16px;
+}
