@@ -1,6 +1,7 @@
 
 import base64
 import zlib
+import json
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
@@ -16,19 +17,28 @@ class UPHandler( WebHandler ):
       raise WErr( 401, "Not a registered user" )
     self.set_header( "Pragma", "no-cache" )
     self.set_header( "Cache-Control", "max-age=0, no-store, no-cache, must-revalidate" )
+    #Do not use the defined user setup. Use the web one to show the same profile independenly of
+    # user setup
+    self.__tc.setSetup( False )
+
+  def __getUP( self ):
+    try:
+      obj = self.request.arguments[ 'obj' ][-1]
+      app = self.request.arguments[ 'app' ][-1]
+    except KeyError as excp:
+      raise WErr( 400, "Missing %s" % excp )
+    return UserProfileClient( "Web/%s/%s" % ( obj, app ) )
 
 
   @asyncGen
   def web_saveAppState( self ):
-    self.__tc.setSetup( False )
+    up = self.__getUP()
     try:
-      app = self.request.arguments[ 'app' ][-1]
       name = self.request.arguments[ 'name' ][-1]
       state = self.request.arguments[ 'state' ][-1]
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
     data = base64.b64encode( zlib.compress( DEncode.encode( state ), 9 ) )
-    up = UserProfileClient( "Web/App/%s" % app )
     result = yield self.threadTask( up.storeVar, name, data )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
@@ -37,32 +47,39 @@ class UPHandler( WebHandler ):
 
   @asyncGen
   def web_loadAppState( self ):
-    self.__tc.setSetup( False )
+    up = self.__getUP()
     try:
-      app = self.request.arguments[ 'app' ][-1]
       name = self.request.arguments[ 'name' ][-1]
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
-    up = UserProfileClient( "Web/App/%s" % app )
     result = yield self.threadTask( up.retrieveVar, name )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result)
     data = result[ 'Value' ]
     data, count = DEncode.decode( zlib.decompress( base64.b64decode( data ) ) )
-    self.set_header( "Content-Type", "application/json" )
     self.finish( data )
 
   @asyncGen
   def web_listAppState( self ):
-    self.__tc.setSetup( False )
-    try:
-      app = self.request.arguments[ 'app' ][-1]
-    except KeyError as excp:
-      raise WErr( 400, "Missing %s" % excp )
-    up = UserProfileClient( "Web/App/%s" % app )
-    result = yield self.threadTask( up.listAvailableVars, { 'UserName' : [ self.getUserName() ] } )
+    up = self.__getUP()
+    result = yield self.threadTask( up.retrieveAllVars )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result)
     data = result[ 'Value' ]
-    self.finish( { 'app': [ e[-1] for e in data ] } )
+    for k in data:
+      #Unpack data
+      data[ k ] = json.loads( DEncode.decode( zlib.decompress( base64.b64decode( data[ k ] ) ) )[0] )
+    self.finish( data )
+
+  @asyncGen
+  def web_delAppState( self ):
+    up = self.__getUP()
+    try:
+      name = self.request.arguments[ 'name' ][-1]
+    except KeyError as excp:
+      raise WErr( 400, "Missing %s" % excp )
+    result = yield self.threadTask( up.deleteVar, name )
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result)
+    self.finish()
 

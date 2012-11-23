@@ -8,6 +8,7 @@
 				$.ajax({ 
 					url: '/DIRAC/up/saveAppState',
 					data: {
+            obj: 'App',
 						app : 'potato',
 						name: 'asda',
 						state: JSON.stringify( { 'a': [1,2,3] } )
@@ -17,14 +18,20 @@
 					datadiv.append( "initial<br/" );
 					$.ajax({
 						url: '/DIRAC/up/listAppState',
-						data: { app: 'potato' }
+						data: { obj: 'App', app: 'potato' }
 					}).done(function( data ){
 						datadiv.append( " | " +JSON.stringify( data ) );
 						$.ajax({
 							url: '/DIRAC/up/loadAppState',
-							data: { app: 'potato', name: 'asda' }
+							data: { obj: 'App', app: 'potato', name: 'asda' }
 						}).done(function( data ){
 							datadiv.append( " | " +JSON.stringify( data ) );
+   						$.ajax({
+	   						url: '/DIRAC/up/delAppState',
+		  					data: { obj: 'App', app: 'potato', name: 'asda' }
+			  			}).done(function( data ){
+								datadiv.append( " | deleted" );
+							});
 						});
 					});
 				});
