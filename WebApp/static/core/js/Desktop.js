@@ -612,5 +612,92 @@ Ext.define(
 					item.addNewState(stateName);
 			});
 			
+		},
+		
+		refreshAppStates: function(appName){
+			
+			var me = this;
+			
+			me.cache.windows[appName]=null;
+			
+			Ext.Ajax.request({
+			    url: 'up/listAppState',
+			    params: {
+			        app: 	appName,
+			        obj: 	"application"
+			    },
+			    scope:me,
+			    success: function(response){
+			    	
+			    	var me = this;
+			    	var states = Ext.JSON.decode(response.responseText);
+			    	
+			    	me.cache.windows[appName]=states;
+			    	
+			    }
+			});
+			
+		},
+		
+		oprRefreshAllAppStates: function(appName){
+			
+			var me = this;
+			
+			me.cache.windows[appName]=null;
+			
+			Ext.Ajax.request({
+			    url: 'up/listAppState',
+			    params: {
+			        app: 	appName,
+			        obj: 	"application"
+			    },
+			    scope:me,
+			    success: function(response){
+			    	
+			    	var me = this;
+			    	var states = Ext.JSON.decode(response.responseText);
+			    	
+			    	me.cache.windows[appName]=states;
+			    	
+			    	me.windows.each(function(item,index,len){
+						if(item.getAppClassName() == appName)
+							item.oprRefreshAppStates();
+					});
+			    	
+			    }
+			});
+			
+		},
+		isAnyActiveState: function(stateName,appName){
+			
+			var me = this;
+			var oFound = false;
+			
+			for(var i=0,len=me.windows.getCount();i<len;i++){
+				
+				if((me.windows.getAt(i).getCurrentState() == stateName) && (me.windows.getAt(i).getAppClassName() == appName)){
+					
+					oFound = true;
+					break;
+					
+				}
+				
+			}
+			
+			return oFound;
+			
+		},
+		removeStateFromWindows: function(stateName, appName){
+			
+			var me=this;
+			
+			delete me.cache.windows[appName][stateName]; 
+		
+			me.windows.each(function(item,index,len){
+				if(item.getAppClassName() == appName)
+					item.removeState(stateName);
+			});
+			
 		}
+		
 	});

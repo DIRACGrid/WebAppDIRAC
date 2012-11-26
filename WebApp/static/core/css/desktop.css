@@ -338,3 +338,8 @@
     background-image:url(../icons/other/_tool_manage.png) !important;
     background-size:16px 16px;
 }
+
+.toolbar-other-refresh {
+    background-image:url(../icons/other/_tool_refresh.png) !important;
+    background-size:16px 16px;
+}

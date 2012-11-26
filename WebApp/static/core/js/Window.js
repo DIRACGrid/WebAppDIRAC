@@ -35,74 +35,8 @@ Ext.define(
 						var me=this;
 						
 						me.loadMask = new Ext.LoadMask(me,{msg:"Loading ..."});
-						
-						me.saveForm = Ext.widget(
-								'form',
-								{
-									layout : {
-										type : 'vbox',
-										align : 'stretch'
-									},
-									border : false,
-									bodyPadding : 10,
 
-									fieldDefaults : {
-										labelAlign : 'top',
-										labelWidth : 100,
-										labelStyle : 'font-weight:bold'
-									},
-									defaults : {
-										margins : '0 0 10 0'
-									},
-									items : [
-											{
-												xtype : 'fieldcontainer',
-												fieldLabel : 'State Name',
-												labelStyle : 'font-weight:bold;padding:0',
-												layout : 'hbox',
-												defaultType : 'textfield',
-
-												fieldDefaults : {
-													labelAlign : 'top'
-												},
-
-												items : [{
-															flex : 1,
-															name : 'state_name',
-															allowBlank : false
-														}]
-											}],
-
-									buttons : [
-											{
-												text : 'Save',
-												handler : me.oprSaveAsAppState,
-												scope: me
-											},   
-											{
-												text : 'Cancel',
-												handler : function() {
-													me.saveForm.getForm().reset();						
-													me.saveWindow.hide();
-												},
-												scope: me
-											}
-											 ]
-								});
-						
-						me.saveWindow = Ext.create('widget.window', {
-							height : 200,
-							width : 500,
-							title : 'Save state',
-							layout : 'fit',
-							modal: true,
-							items : me.saveForm
-						});
-						
-						
-						
 						me.callParent();
-						
 						
 					},
 					
@@ -127,6 +61,12 @@ Ext.define(
 					getAppClassName: function(){
 						
 						return this.appClassName;
+						
+					},
+					
+					getCurrentState: function(){
+						
+						return this.currentState;
 						
 					},
 					
@@ -188,6 +128,8 @@ Ext.define(
 							    	
 							    }
 							});
+							
+							
 
 							
 						}
@@ -208,8 +150,15 @@ Ext.define(
 								handler : me.formSaveState,
 								scope: me
 							},{
+								text : "Refresh states",
+								iconCls : "toolbar-other-refresh",
+								handler:me.oprRefreshAllAppStates,
+								scope: me
+							},{
 								text : "Manage states ...",
-								iconCls : "toolbar-other-manage"
+								iconCls : "toolbar-other-manage",
+								handler : me.formManageStates2,//function(){alert("TDMMMMM");},//me.formManageStates,
+								scope: me
 							} ]
 						});
 
@@ -223,6 +172,14 @@ Ext.define(
 
 					},
 					
+					oprRefreshAllAppStates: function(){
+						
+						var me = this;
+						
+						me.loadedObject.app.getDesktop().oprRefreshAllAppStates(me.appClassName);
+						
+						
+					},
 					addNewState: function(stateName){
 						
 						var me = this;
@@ -237,14 +194,184 @@ Ext.define(
 						
 					},
 					
+					removeState: function(stateName){
+						
+						var me = this;
+						
+						for(var i=0;i<me.statesMenu.items.length;i++){
+							
+							if(me.statesMenu.items.getAt(i).text==stateName){
+								
+								me.statesMenu.remove(me.statesMenu.items.getAt(i));
+								break;
+								
+							}
+							
+						}
+						
+					},
+					
 					formSaveState : function() {
 						
 						var me = this;
-						me.saveForm.getForm().reset();						
+	
+						me.saveForm = Ext.widget(
+								'form',
+								{
+									layout : {
+										type : 'vbox',
+										align : 'stretch'
+									},
+									border : false,
+									bodyPadding : 10,
+
+									fieldDefaults : {
+										labelAlign : 'top',
+										labelWidth : 100,
+										labelStyle : 'font-weight:bold'
+									},
+									defaults : {
+										margins : '0 0 5 0'
+									},
+									items : [
+											{
+												xtype : 'fieldcontainer',
+												/*fieldLabel : 'State Name',
+												labelStyle : 'font-weight:bold;padding:0',*/
+												layout : 'hbox',
+												defaultType : 'textfield',
+
+												fieldDefaults : {
+													labelAlign : 'left'
+												},
+
+												items : [{
+															flex : 1,
+															fieldLabel: 'State Name',
+															name : 'state_name',
+															allowBlank : false
+														}]
+											}],
+
+									buttons : [
+											{
+												text : 'Save',
+												handler : me.oprSaveAsAppState,
+												scope: me
+											},   
+											{
+												text : 'Cancel',
+												handler : function() {
+													me.saveForm.getForm().reset();						
+													me.saveWindow.hide();
+												},
+												scope: me
+											}
+											 ]
+								});
+						
+						me.saveWindow = Ext.create('widget.window', {
+							height : 120,
+							width : 500,
+							title : 'Save state',
+							layout : 'fit',
+							modal: true,
+							items : me.saveForm
+						});
+						
+						
 						me.saveWindow.show();
 
+					},	
+					formManageStates2: function(){
+						
+						var me = this;
+
+						me.manageForm = Ext.widget(
+								'form',
+								{
+									layout : {
+										type : 'vbox',
+										align : 'stretch'
+									},
+									border : false,
+									bodyPadding : 10,
+
+									fieldDefaults : {
+										labelAlign : 'top',
+										labelWidth : 100,
+										labelStyle : 'font-weight:bold'
+									},
+									defaults : {
+										margins : '0 0 10 0'
+									},
+									items : [
+												{
+													 html: "Application: <b>"+me.loadedObject.launcher.text+"</b>",
+												    xtype: "box"
+												},
+												{
+													 html: "<select size='10' multiple='multiple' style='width:100%'></select>",
+											         xtype: "box"
+												}
+											],
+
+									buttons : [
+											{
+												text : 'Delete selected states',
+												handler : me.oprDeleteSelectedStates,
+												scope: me
+											},   
+											{
+												text : 'Cancel',
+												handler : function() {
+													me.manageWindow.hide();
+												},
+												scope: me
+											}
+											 ]
+								});
+						
+						me.manageWindow = Ext.create('widget.window', {
+							height : 300,
+							width : 500,
+							title : 'Manage states',
+							layout : 'fit',
+							modal: true,
+							items : me.manageForm
+						});
+						
+						me.manageWindow.show();
+						me.fillSelectFieldWithStates();
+						
+						
 					},
 
+					fillSelectFieldWithStates: function(){
+						
+						var me = this;
+						var oSelectEl = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
+						
+						for (i = oSelectEl.length - 1; i>=0; i--) 
+							oSelectEl.remove(i);
+						
+						for(var stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName]){
+							
+							  var elOptNew = document.createElement('option');
+							  elOptNew.text = stateName;
+							  elOptNew.value = stateName;
+		
+							  try {
+								  oSelectEl.add(elOptNew, null); // standards compliant; doesn't work in IE
+							  }
+							  catch(ex) {
+								  oSelectEl.add(elOptNew); // IE only
+							  }
+							  
+						}
+						  
+					},
+					
 					oprSaveAsAppState : function() {
 						
 						var me = this;
@@ -267,6 +394,55 @@ Ext.define(
 						
 					},
 					
+					oprDeleteSelectedStates: function(){
+						
+						var me = this;
+						var oSelectField = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
+						
+						for (var i = oSelectField.length - 1; i>=0; i--) {
+						    if (oSelectField.options[i].selected) {
+						    	
+						    /*
+						     * First we check whether there are instances of that 
+						     * state that are active
+						     */	
+
+						      var oStateName=oSelectField.options[i].value;	
+						    	
+						      if(! me.loadedObject.app.getDesktop().isAnyActiveState(oStateName,me.appClassName)){
+						    	  
+						    	  
+						    	  Ext.Ajax.request({
+									    url: 'up/delAppState',
+									    params: {
+									    	app: me.appClassName,
+									    	name: 	oStateName,
+									        obj: "application"
+									    },
+									    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField], false) 
+									});
+						    	  
+						      }else
+						    	  Ext.MessageBox.alert('Message','The state <b>'+oSelectField.options[i].value+'</b> you are willing to delete is curently in use !');
+						    	
+						    	
+						      
+						    }
+						}
+						
+					},
+					
+					oprDeleteSelectedStates_s: function(index,oSelectEl){
+						
+						var me = this;
+						
+						var oStateName = oSelectEl.options[index].value;
+						
+						me.loadedObject.app.getDesktop().removeStateFromWindows(oStateName,me.appClassName);
+						
+						oSelectEl.remove(index);
+						
+					},
 					isExistingState:function(stateName){
 						var me = this;
 
@@ -329,7 +505,26 @@ Ext.define(
 						});
 						
 					},
+					
+					oprRefreshAppStates:function(){
+						
+						var me = this;
+						
+						me.statesMenu.removeAll();
+						
+						for (var stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName]) {	
+							
+							var newItem = Ext.create('Ext.menu.Item', {
+				    			  text: stateName,
+				    			  handler: Ext.bind(me.oprLoadAppState, me, [stateName], false),
+				    			  scope:me
+				    		});
 
+							me.statesMenu.add(newItem);
+							
+						}
+						
+					},
 					oprLoadAppState : function(stateName) {
 						
 						var me = this;
