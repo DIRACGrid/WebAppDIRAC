@@ -1,3 +1,4 @@
+{% import pprint %}
 <html>
   <head>
     <title>{% block title %}Default title{% end %}</title>
@@ -40,6 +41,11 @@
   </head>
   <body>
    <h1> Placeholder for DIRAC </h1>
+   <div id='sdat'>
+     <pre>
+       {{ escape( pprint.pformat( data ) ) }}
+     </pre>
+   </div>
    <div id='data'></div>
   </body>
 </html>

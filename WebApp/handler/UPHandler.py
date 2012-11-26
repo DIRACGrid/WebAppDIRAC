@@ -9,8 +9,8 @@ from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 
 class UPHandler( WebHandler ):
 
+  AUTH_PROPS = "authenticated"
   __tc = ThreadConfig()
-
 
   def prepare( self ):
     if not self.isRegisteredUser():
