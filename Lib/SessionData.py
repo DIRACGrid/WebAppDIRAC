@@ -3,10 +3,13 @@ from DIRAC.Core.Utilities import List
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 from DIRAC.Core.DISET.AuthManager import AuthManager
+from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from WebAppDIRAC.Lib import Conf
 
 class SessionData( object ):
 
+
+  __disetConfig = ThreadConfig()
   __handlers = {}
   __groupMenu = {}
   __extensions = []
@@ -98,18 +101,26 @@ class SessionData( object ):
       self.__groupMenu[ group ] = self.__generateSchema( base, "", credDict )
     return self.__groupMenu[ group ]
 
-  def getData( self, DN, group ):
+  def getData( self ):
+    DN = self.__disetConfig.getDN()
+    group = self.__disetConfig.getGroup()
     credDict = self.__getCredDict( DN, group )
     data = { 'menu' : self.__getGroupMenu( credDict, group ),
              'user' :  credDict,
              'validGroups' : [],
-             'setup' : gConfig.getValue( "/DIRAC/Setup", "" ),
+             'setup' : self.__disetConfig.getSetup() or gConfig.getValue( "/DIRAC/Setup", "" ),
              'validSetups' : gConfig.getSections( "/DIRAC/Setups" )[ 'Value' ],
              'ext' : self.__extensions }
+    if 'properties' in credDict:
+      credDict.pop( 'properties' )
+    #Add valid groups if known
     if DN:
       result = Registry.getGroupsForDN( DN )
       if result[ 'OK' ]:
         data[ 'validGroups' ] = result[ 'Value' ]
-    if 'properties' in credDict:
-      credDict.pop( 'properties' )
+    #Calculate baseURL
+    baseURL = [ Conf.rootURL().strip( "/" ),
+                "s:%s" % data[ 'setup' ],
+                "g:%s" % credDict.get( 'group', 'anon' )  ]
+    data[ 'baseURL' ] = "/%s" % "/".join( baseURL )
     return data

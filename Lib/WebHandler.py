@@ -29,7 +29,8 @@ class WErr( tornado.web.HTTPError ):
 
   @classmethod
   def fromSERROR( cls, result ):
-    return cls( 500, result[ 'Message' ] )
+    #Prevent major fuckups with % in the message
+    return cls( 500, result[ 'Message' ].replace( "%", "" ) )
 
 class WOK( object ):
   def __init__( self, data = False, **kwargs ):
@@ -142,6 +143,11 @@ class WebHandler( tornado.web.RequestHandler ):
       self.log.error( "Could not get client credentials %s" % result[ 'Message' ] )
       return
     self.__credDict = result[ 'Value' ]
+    #Hack. Data coming from OSSL directly and DISET difer in DN/subject
+    try:
+      self.__credDict[ 'DN' ] = self.__credDict[ 'subject' ]
+    except KeyError:
+      pass
 
   def _request_summary( self ):
     """
@@ -242,7 +248,6 @@ class WebHandler( tornado.web.RequestHandler ):
     self.__disetConfig.setSetup( setup )
 
     return WOK( methodName )
-
 
   def get( self, setup, group, route ):
     if not self.__pathResult.ok:
