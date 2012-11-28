@@ -3,15 +3,18 @@ import inspect
 import imp
 import os
 import re
+import types
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
+from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 import WebAppDIRAC
 from WebAppDIRAC.Lib.WebHandler import WebHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
-class Routes( object ):
+class HandlerMgr( object ):
+  __metaclass__ = DIRACSingleton
 
   def __init__( self, baseURL = "" ):
     self.__baseURL = baseURL.strip( "/" )
@@ -61,11 +64,14 @@ class Routes( object ):
     for hn in self.__handlers:
       self.log.info( "Found handler %s" % hn  )
       handler = self.__handlers[ hn ]
+      #CHeck it has AUTH_PROPS
+      if type( handler.AUTH_PROPS ) == None:
+        return S_ERROR( "Handler %s does not have AUTH_PROPS defined. Fix it!" % hn )
       #Get the root for the handler
       if handler.LOCATION:
         handlerRoute = handler.LOCATION.strip( "/")
       else:
-        handlerRoute = hn[ len( origin ): ].lower().replace( ".", "/" ).replace( "handler", "" )
+        handlerRoute = hn[ len( origin ): ].replace( ".", "/" ).replace( "Handler", "" )
       #Add the setup group RE before
       baseRoute = self.__setupGroupRE
       #IF theres a base url like /DIRAC add it
@@ -96,6 +102,13 @@ class Routes( object ):
       self.__routes.append( ( "/%s%s()" % ( self.__baseURL, self.__setupGroupRE ),
                               CoreHandler, dict( action = "sendToRoot" ) ) )
     return S_OK()
+
+  def getHandlers( self ):
+    if not self.__handlers:
+      result = self.__calculateRoutes()
+      if not result[ 'OK' ]:
+        return result
+    return S_OK( self.__handlers )
 
   def getRoutes( self ):
     if not self.__routes:
