@@ -89,7 +89,9 @@ def generateCAFile():
     return fn
   return False
 
-def getAuthSectionForRoute( route ):
+def getAuthSectionForHandler( route ):
   return "%s/Access/%s" % ( BASECS, route )
+
+
 
 

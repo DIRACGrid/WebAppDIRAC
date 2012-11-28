@@ -29,7 +29,8 @@ class WErr( tornado.web.HTTPError ):
 
   @classmethod
   def fromSERROR( cls, result ):
-    return cls( 500, result[ 'Message' ] )
+    #Prevent major fuckups with % in the message
+    return cls( 500, result[ 'Message' ].replace( "%", "" ) )
 
 class WOK( object ):
   def __init__( self, data = False, **kwargs ):
@@ -51,6 +52,8 @@ class WebHandler( tornado.web.RequestHandler ):
   __disetConfig = ThreadConfig()
   __log = False
 
+  #Auth requirements
+  AUTH_PROPS = None
   #Location of the handler in the URL
   LOCATION = ""
   #URL Schema with holders to generate handler urls
@@ -140,6 +143,11 @@ class WebHandler( tornado.web.RequestHandler ):
       self.log.error( "Could not get client credentials %s" % result[ 'Message' ] )
       return
     self.__credDict = result[ 'Value' ]
+    #Hack. Data coming from OSSL directly and DISET difer in DN/subject
+    try:
+      self.__credDict[ 'DN' ] = self.__credDict[ 'subject' ]
+    except KeyError:
+      pass
 
   def _request_summary( self ):
     """
@@ -196,7 +204,7 @@ class WebHandler( tornado.web.RequestHandler ):
     ats = dict( action = action, group = group, setup = setup, location = location )
     return self.URLSCHEMA % ats
 
-  def __auth( self, handlerRoute, methodName, group ):
+  def __auth( self, handlerRoute, group ):
     """
     Authenticate request
     """
@@ -208,12 +216,8 @@ class WebHandler( tornado.web.RequestHandler ):
         result = Registry.findDefaultGroupForDN( userDN )
         if result[ 'OK' ]:
           self.__credDict[ 'group' ] = result[ 'Value' ]
-    auth = AuthManager( Conf.getAuthSectionForRoute( handlerRoute ) )
-    try:
-      defProps = getattr( self, "auth_%s" % methodName )
-    except AttributeError:
-      defProps = [ 'all' ]
-    ok = auth.authQuery( methodName, self.__credDict, defProps )
+    auth = AuthManager( Conf.getAuthSectionForHandler( handlerRoute ) )
+    ok = auth.authQuery( "", self.__credDict, self.AUTH_PROPS )
     if ok and userDN:
       self.__credDict[ 'validGroup' ] = True
     return ok
@@ -232,7 +236,7 @@ class WebHandler( tornado.web.RequestHandler ):
     if not setup:
       setup = Conf.setup()
     self.__setup = setup
-    if not self.__auth( handlerRoute, methodName, group ):
+    if not self.__auth( handlerRoute, group ):
       return WErr( 401 )
 
     DN = self.getUserDN()
@@ -244,7 +248,6 @@ class WebHandler( tornado.web.RequestHandler ):
     self.__disetConfig.setSetup( setup )
 
     return WOK( methodName )
-
 
   def get( self, setup, group, route ):
     if not self.__pathResult.ok:
