@@ -7,6 +7,7 @@ from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 
+
 class UPHandler( WebHandler ):
 
   AUTH_PROPS = "authenticated"

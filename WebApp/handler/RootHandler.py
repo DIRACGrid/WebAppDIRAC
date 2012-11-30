@@ -3,6 +3,7 @@ from DIRAC import gConfig
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 from WebAppDIRAC.Lib.SessionData import SessionData
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 
 class RootHandler(WebHandler):
 

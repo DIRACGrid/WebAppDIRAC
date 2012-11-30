@@ -99,7 +99,7 @@ Ext.define(
 							 */
 							
 							Ext.Ajax.request({
-							    url: 'up/listAppState',
+							    url: 'UP/listAppState',
 							    params: {
 							        app: 	me.appClassName,
 							        obj: 	"application"
@@ -413,7 +413,7 @@ Ext.define(
 						    	  
 						    	  
 						    	  Ext.Ajax.request({
-									    url: 'up/delAppState',
+									    url: 'UP/delAppState',
 									    params: {
 									    	app: me.appClassName,
 									    	name: 	oStateName,
@@ -482,7 +482,7 @@ Ext.define(
 						}
 						
 						Ext.Ajax.request({
-						    url: 'up/saveAppState',
+						    url: 'UP/saveAppState',
 						    params: {
 						        app: 	me.appClassName,
 						        name: 	stateName,
@@ -535,23 +535,6 @@ Ext.define(
 						me.currentState = stateName;
 						me.setTitle(me.loadedObject.launcher.text+" ["+stateName+"]");
 						me.loadMask.hide();
-						
-//						Ext.Ajax.request({
-//						    url: 'up/loadAppState',
-//						    params: {
-//						        app: 	me.appClassName,
-//						        name:	stateName,
-//						        obj: "application"
-//						    },
-//						    scope:me,
-//						    success: function(response){
-//						    	var me = this;
-//						    	me.loadedObject.loadState(Ext.JSON.decode(response.responseText));
-//								me.currentState = stateName;
-//								me.setTitle(me.loadedObject.launcher.text+" ["+stateName+"]");
-//								me.loadMask.hide();
-//						    }
-//						});
 
 					},
 

@@ -204,21 +204,35 @@ Ext.define(
 				items : me.contextMenuItems || []
 			};
 
-			if (ret.items.length) {
-				ret.items.push('-');
-			}
+//			if (ret.items.length) {
+//				ret.items.push('-');
+//			}
 
-			ret.items.push({
-				text : 'Tile',
-				handler : me.tileWindows,
-				scope : me,
-				minWindows : 1
-			}, {
-				text : 'Cascade',
-				handler : me.cascadeWindows,
-				scope : me,
-				minWindows : 1
-			})
+			ret.items.push(
+				{
+					text : 'Tile',
+					handler : me.tileWindows,
+					scope : me,
+					minWindows : 1
+				}, {
+					text : 'Cascade',
+					handler : me.cascadeWindows,
+					scope : me,
+					minWindows : 1
+				},	
+				'-',
+				{
+					text : 'Tile',
+					handler : me.tileWindows,
+					scope : me,
+					minWindows : 1
+				}, {
+					text : 'Cascade',
+					handler : me.cascadeWindows,
+					scope : me,
+					minWindows : 1
+				}
+			)
 
 			return ret;
 		},
