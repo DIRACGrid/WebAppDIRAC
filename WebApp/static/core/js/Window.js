@@ -505,7 +505,6 @@ Ext.define(
 						});
 						
 					},
-					
 					oprRefreshAppStates:function(){
 						
 						var me = this;

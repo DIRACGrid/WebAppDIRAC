@@ -93,7 +93,8 @@ Ext.define(
 				'</div>',
 				'<span class="ux-desktop-shortcut-text">{name}</span>',
 				'</div>', '</tpl>', '<div class="x-clear"></div>' ],
-
+				
+		currentDesktopState: "",
 		/**
 		 * @cfg {Object} taskbarConfig The config object for the
 		 *      TaskBar.
@@ -203,12 +204,43 @@ Ext.define(
 			var me = this, ret = {
 				items : me.contextMenuItems || []
 			};
-
-//			if (ret.items.length) {
-//				ret.items.push('-');
-//			}
-
+			
+			//reading the existing states of the desktop for that user
+			me.statesMenu = new Ext.menu.Menu();
+			
+			Ext.Ajax.request({
+			    url: 'UP/listAppState',
+			    params: {
+			        app: 	"desktop",
+			        obj: 	"desktop"
+			    },
+			    scope:me,
+			    success: function(response){
+			    	
+			    	var me = this;
+			    	var states = Ext.JSON.decode(response.responseText);
+			    	me.cache.desktop={};
+			    	
+			    	for (var stateName in states) {	
+			    		
+			    		var newItem = Ext.create('Ext.menu.Item', {
+										    			  text: stateName,
+										    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
+										    			  scope:me
+										    		});
+			    		
+			    		me.statesMenu.add(newItem);
+			    		
+			    		//me.cache.desktop[stateName]=states[stateName];
+			    		
+			    	}
+			    	
+			    	
+			    }
+			});
+			
 			ret.items.push(
+				
 				{
 					text : 'Tile',
 					handler : me.tileWindows,
@@ -219,24 +251,229 @@ Ext.define(
 					handler : me.cascadeWindows,
 					scope : me,
 					minWindows : 1
-				},	
+				},
 				'-',
 				{
-					text : 'Tile',
-					handler : me.tileWindows,
-					scope : me,
-					minWindows : 1
+					text : "Load state",
+					iconCls : "toolbar-other-load",
+					menu : me.statesMenu
 				}, {
-					text : 'Cascade',
-					handler : me.cascadeWindows,
-					scope : me,
-					minWindows : 1
+					text : "Save",
+					iconCls : "toolbar-other-save",
+					handler:me.oprSaveAppState,
+					minWindows : 1,
+					scope: me
+				},{
+					text : "Save As ...",
+					iconCls : "toolbar-other-save",
+					handler : me.formSaveState,
+					minWindows : 1,
+					scope: me
+				},{
+					text : "Refresh states",
+					iconCls : "toolbar-other-refresh",
+					handler:me.oprRefreshAllDesktopStates,
+					scope: me
+				},{
+					text : "Manage states ...",
+					iconCls : "toolbar-other-manage",
+					handler : me.formManageStates2,//function(){alert("TDMMMMM");},//me.formManageStates,
+					scope: me
 				}
 			)
 
 			return ret;
 		},
+		
+		oprLoadDesktopState: function(){
+			
+			
+			
+		},
+		
+		formManageStates2: function(){
+			
+			var me = this;
 
+			me.manageForm = Ext.widget(
+					'form',
+					{
+						layout : {
+							type : 'vbox',
+							align : 'stretch'
+						},
+						border : false,
+						bodyPadding : 10,
+
+						fieldDefaults : {
+							labelAlign : 'top',
+							labelWidth : 100,
+							labelStyle : 'font-weight:bold'
+						},
+						defaults : {
+							margins : '0 0 10 0'
+						},
+						items : [
+									{
+										 html: "<b>DESKTOP</b> states",
+									    xtype: "box"
+									},
+									{
+										 html: "<select size='10' multiple='multiple' style='width:100%'></select>",
+								         xtype: "box"
+									}
+								],
+
+						buttons : [
+								{
+									text : 'Delete selected states',
+									handler : me.oprDeleteSelectedStates,
+									scope: me
+								},   
+								{
+									text : 'Cancel',
+									handler : function() {
+										me.manageWindow.hide();
+									},
+									scope: me
+								}
+								 ]
+					});
+			
+			me.manageWindow = Ext.create('widget.window', {
+				height : 300,
+				width : 500,
+				title : 'Manage states',
+				layout : 'fit',
+				modal: true,
+				items : me.manageForm
+			});
+			
+			me.manageWindow.show();
+			me.fillSelectFieldWithStates();
+			
+			
+		},
+		
+		oprDeleteSelectedStates: function(){
+			
+			var me = this;
+			var oSelectField = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
+			
+			for (var i = oSelectField.length - 1; i>=0; i--) {
+			    if (oSelectField.options[i].selected) {
+			    	
+			    /*
+			     * First we check whether there are instances of that 
+			     * state that are active
+			     */	
+
+			      var oStateName=oSelectField.options[i].value;	
+			    	
+			      if(! (me.currentDesktopState=oStateName) ){
+			    	  
+			    	  
+			    	  Ext.Ajax.request({
+						    url: 'UP/delAppState',
+						    params: {
+						    	app: "desktop",
+						    	name: 	oStateName,
+						        obj: "desktop"
+						    },
+						    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField], false) 
+						});
+			    	  
+			      }else
+			    	  Ext.MessageBox.alert('Message','The state <b>'+oSelectField.options[i].value+'</b> you are willing to delete is curently in use !');
+			    	
+			    	
+			      
+			    }
+			}
+			
+		},
+		
+		oprDeleteSelectedStates_s: function(index,oSelectEl){
+			
+			var me = this;
+			
+			var oStateName = oSelectEl.options[index].value;
+			
+			for(var i=0;i<me.statesMenu.items.length;i++){
+				
+				if(me.statesMenu.items.getAt(i).text==oStateName){
+					
+					me.statesMenu.remove(me.statesMenu.items.getAt(i));
+					break;
+					
+				}
+				
+			}
+			
+			oSelectEl.remove(index);
+			
+		},
+		
+		fillSelectFieldWithStates: function(){
+			
+			var me = this;
+			var oSelectEl = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
+			
+			for (i = oSelectEl.length - 1; i>=0; i--) 
+				oSelectEl.remove(i);
+			
+			for(var stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName]){
+				
+				  var elOptNew = document.createElement('option');
+				  elOptNew.text = stateName;
+				  elOptNew.value = stateName;
+
+				  try {
+					  oSelectEl.add(elOptNew, null); // standards compliant; doesn't work in IE
+				  }
+				  catch(ex) {
+					  oSelectEl.add(elOptNew); // IE only
+				  }
+				  
+			}
+			  
+		},
+		oprRefreshAllDesktopStates: function(){
+			
+			var me = this;
+			
+			me.statesMenu.removeAll();
+			
+			Ext.Ajax.request({
+			    url: 'UP/listAppState',
+			    params: {
+			        app: 	"desktop",
+			        obj: 	"desktop"
+			    },
+			    scope:me,
+			    success: function(response){
+			    	
+			    	var me = this;
+			    	var states = Ext.JSON.decode(response.responseText);
+			    	me.cache.desktop={};
+			    	
+			    	for (var stateName in states) {	
+			    		
+			    		var newItem = Ext.create('Ext.menu.Item', {
+										    			  text: stateName,
+										    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
+										    			  scope:me
+										    		});
+			    		
+			    		me.statesMenu.add(newItem);
+			    		
+			    	}
+			    	
+			    	
+			    }
+			});
+			
+		},
 		/**
 		 * Function to tile the windows within the available desktop
 		 * space
