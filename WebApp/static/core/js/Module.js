@@ -14,7 +14,7 @@
  */
 Ext.define('Ext.ux.desktop.Module', {
 	mixins : {
-		observable : 'Ext.util.Observable'
+		observable : 'Ext.container.Container'
 	},
 	/**
 	 * @property {int} _UID The unique number assigned to the module, used as part of the defined id-s within the module
