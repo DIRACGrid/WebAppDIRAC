@@ -29,13 +29,16 @@ Ext.define(
 					currentState : "",
 					loadedObject:null,
 					loadMask:null,
+					desktop:null,
 					
 					initComponent:function(){
 						
 						var me=this;
 						
 						me.loadMask = new Ext.LoadMask(me,{msg:"Loading ..."});
-
+						
+						alert(this.initialConfig);
+						
 						me.callParent();
 						
 					},
@@ -84,7 +87,7 @@ Ext.define(
 								
 								var newItem = Ext.create('Ext.menu.Item', {
 					    			  text: stateName,
-					    			  handler: Ext.bind(me.oprLoadAppState, me, [stateName], false),
+					    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
 					    			  scope:me
 					    		});
 	
@@ -115,7 +118,7 @@ Ext.define(
 							    		
 							    		var newItem = Ext.create('Ext.menu.Item', {
 														    			  text: stateName,
-														    			  handler: Ext.bind(me.oprLoadAppState, me, [stateName], false),
+														    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
 														    			  scope:me
 														    		});
 							    		
@@ -157,7 +160,7 @@ Ext.define(
 							},{
 								text : "Manage states ...",
 								iconCls : "toolbar-other-manage",
-								handler : me.formManageStates2,//function(){alert("TDMMMMM");},//me.formManageStates,
+								handler : me.formManageStates,
 								scope: me
 							} ]
 						});
@@ -186,7 +189,7 @@ Ext.define(
 						
 						var newItem = Ext.create('Ext.menu.Item', {
 			    			  text: stateName,
-			    			  handler: Ext.bind(me.oprLoadAppState, me, [stateName], false),
+			    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
 			    			  scope:me
 			    		});
 
@@ -283,7 +286,7 @@ Ext.define(
 						me.saveWindow.show();
 
 					},	
-					formManageStates2: function(){
+					formManageStates: function(){
 						
 						var me = this;
 
@@ -515,7 +518,7 @@ Ext.define(
 							
 							var newItem = Ext.create('Ext.menu.Item', {
 				    			  text: stateName,
-				    			  handler: Ext.bind(me.oprLoadAppState, me, [stateName], false),
+				    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
 				    			  scope:me
 				    		});
 
@@ -524,7 +527,7 @@ Ext.define(
 						}
 						
 					},
-					oprLoadAppState : function(stateName) {
+					oprLoadAppStateFromCache : function(stateName) {
 						
 						var me = this;
 						
@@ -536,9 +539,23 @@ Ext.define(
 						me.loadMask.hide();
 
 					},
-
-					formManageStates : function() {
-
+					oprLoadAppStateForDesktop: function(setupData){
+						
+						var me = this;
+						
+						if(setupData != null){
+							
+							me.setPosition(setupData.x,setupData.y);
+							
+							me.setWidth(setupData.width);
+							me.setHeight(setupData.height);
+							
+							me.currentState = setupData.currentState;
+							
+							me.loadedObject.loadState(setupData.data);
+							
+						}
+						
 					}
 
 				});

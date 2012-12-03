@@ -192,7 +192,7 @@ Ext.define(
 				if (launcher) {
 					launcher.handler = launcher.handler
 							|| Ext.bind(me.createWindow, me,
-									[ module.name ]);
+									[ module.name,null ]);
 					cfg.menu.push(module.launcher);
 				}
 			});
@@ -229,17 +229,19 @@ Ext.define(
 		 *            moduleName The name of the module (the
 		 *            JavaScript class) to be loaded
 		 */
-		createWindow : function(moduleName) {
-
+		createWindow : function(moduleName,setupData) {
+			
 			Ext.require(moduleName, function() {
+				var me = this;
 				var controller = Ext.create(moduleName);
 				controller.init(this);
 				controller.setUID(++this._uid_counter);	
 				var window = controller.createWindow();
 				window.setLoadedObject(controller);
 				window.show();
-			}, this);
-				
+				window.oprLoadAppStateForDesktop(setupData);
+			},this);
+			
 		},
 
 		/**
