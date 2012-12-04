@@ -13,17 +13,17 @@
  * 
  */
 Ext.define('Ext.ux.desktop.Module', {
-	mixins : {
-		observable : 'Ext.container.Container'
-	},
+	
+	extend: 'Ext.container.Container',
+	
 	/**
 	 * @property {int} _UID The unique number assigned to the module, used as part of the defined id-s within the module
 	 */
 	_UID:0,
 	
 	constructor : function(config) {
-		this.mixins.observable.constructor.call(this, config);
 		this.init();
+		this.callParent();
 	},
 
 	init : Ext.emptyFn,

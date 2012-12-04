@@ -285,261 +285,7 @@ Ext.define(
 			return ret;
 		},
 		
-		oprLoadDesktopState: function(stateName){
-			
-			/*
-			 * First we have to check whether some other state is currently in use
-			 * so we have to give possibility to choose whether they want to continue to the chosen 
-			 * state or not
-			 */
-			
-			
-			var me = this;
-			var count = me.windows.getCount();
-			
-			if(count >0){
-				var ret=Ext.MessageBox.confirm('Confirm', 'Are you sure you want to do this?',function(button) {
-						
-						var me = this;
-					    if (button === 'yes') {
-					    	
-					    	me.closeAllActiveWindows();
-					    	
-					    	//get the state from the cache
-							var stateData = me.cache.desktop[stateName];
-							
-							for(var i=0,len=stateData["data"].length;i<len;i++){
-								
-								var appStateData = stateData["data"][i];
-								
-								me.app.createWindow(appStateData.name,appStateData);
-								
-							}
-							
-							me.currentDesktopState = stateName;
-					    	
-					    }
-				    },me);
-			}else{
-				
-				//get the state from the cache
-				var stateData = me.cache.desktop[stateName];
-				
-				for(var i=0,len=stateData["data"].length;i<len;i++){
-					
-					var appStateData = stateData["data"][i];
-					
-					me.app.createWindow(appStateData.name,appStateData);
-					
-					
-				}
-				
-				me.currentDesktopState = stateName;
-				
-			}
-			
-		},
 		
-		closeAllActiveWindows: function(){
-			
-			var me = this;
-			
-			me.windows.each(function(win) {
-				
-				win.close();
-				
-			});
-	
-			
-		},
-		formManageStates: function(){
-			
-			var me = this;
-
-			me.manageForm = Ext.widget(
-					'form',
-					{
-						layout : {
-							type : 'vbox',
-							align : 'stretch'
-						},
-						border : false,
-						bodyPadding : 10,
-
-						fieldDefaults : {
-							labelAlign : 'top',
-							labelWidth : 100,
-							labelStyle : 'font-weight:bold'
-						},
-						defaults : {
-							margins : '0 0 10 0'
-						},
-						items : [
-									{
-										 html: "<b>DESKTOP</b> states",
-									    xtype: "box"
-									},
-									{
-										 html: "<select size='10' multiple='multiple' style='width:100%'></select>",
-								         xtype: "box"
-									}
-								],
-
-						buttons : [
-								{
-									text : 'Delete selected states',
-									handler : me.oprDeleteSelectedStates,
-									scope: me
-								},   
-								{
-									text : 'Cancel',
-									handler : function() {
-										me.manageWindow.hide();
-									},
-									scope: me
-								}
-								 ]
-					});
-			
-			me.manageWindow = Ext.create('widget.window', {
-				height : 300,
-				width : 500,
-				title : 'Manage states',
-				layout : 'fit',
-				modal: true,
-				items : me.manageForm
-			});
-			
-			me.manageWindow.show();
-			me.fillSelectFieldWithStates();
-			
-			
-		},
-		
-		oprDeleteSelectedStates: function(){
-			
-			var me = this;
-			var oSelectField = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
-			
-			for (var i = oSelectField.length - 1; i>=0; i--) {
-			    if (oSelectField.options[i].selected) {
-			    	
-			    /*
-			     * First we check whether there are instances of that 
-			     * state that are active
-			     */	
-
-			      var oStateName=oSelectField.options[i].value;	
-			    	
-			      if(! (me.currentDesktopState=oStateName) ){
-			    	  
-			    	  
-			    	  Ext.Ajax.request({
-						    url: 'UP/delAppState',
-						    params: {
-						    	app: "desktop",
-						    	name: 	oStateName,
-						        obj: "desktop"
-						    },
-						    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField], false) 
-						});
-			    	  
-			      }else
-			    	  Ext.MessageBox.alert('Message','The state <b>'+oSelectField.options[i].value+'</b> you are willing to delete is curently in use !');
-			    	
-			    	
-			      
-			    }
-			}
-			
-		},
-		
-		oprDeleteSelectedStates_s: function(index,oSelectEl){
-			
-			var me = this;
-			
-			var oStateName = oSelectEl.options[index].value;
-			
-			for(var i=0;i<me.statesMenu.items.length;i++){
-				
-				if(me.statesMenu.items.getAt(i).text==oStateName){
-					
-					me.statesMenu.remove(me.statesMenu.items.getAt(i));
-					break;
-					
-				}
-				
-			}
-			
-			oSelectEl.remove(index);
-			
-		},
-		
-		fillSelectFieldWithStates: function(){
-			
-			var me = this;
-			var oSelectEl = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
-			
-			for (i = oSelectEl.length - 1; i>=0; i--) 
-				oSelectEl.remove(i);
-			
-			for(var stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName]){
-				
-				  var elOptNew = document.createElement('option');
-				  elOptNew.text = stateName;
-				  elOptNew.value = stateName;
-
-				  try {
-					  oSelectEl.add(elOptNew, null); // standards compliant; doesn't work in IE
-				  }
-				  catch(ex) {
-					  oSelectEl.add(elOptNew); // IE only
-				  }
-				  
-			}
-			  
-		},
-		oprRefreshAllDesktopStates: function(){
-			
-			
-			var me = this;
-			
-			me.statesMenu.removeAll();
-			delete me.cache.desktop;//[stateName]=states[stateName];
-			me.cache.desktop = {};
-			
-			Ext.Ajax.request({
-			    url: 'UP/listAppState',
-			    params: {
-			        app: 	"desktop",
-			        obj: 	"desktop"
-			    },
-			    scope:me,
-			    success: function(response){
-			    	
-			    	var me = this;
-			    	var states = Ext.JSON.decode(response.responseText);
-			    	me.cache.desktop={};
-			    	
-			    	for (var stateName in states) {	
-			    		
-			    		var newItem = Ext.create('Ext.menu.Item', {
-										    			  text: stateName,
-										    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
-										    			  scope:me
-										    		});
-			    		
-			    		me.cache.desktop[stateName]=states[stateName];
-			    		
-			    		me.statesMenu.add(newItem);
-			    		
-			    	}
-			    	
-			    	
-			    }
-			});
-			
-		},
 		/**
 		 * Function to tile the windows within the available desktop
 		 * space
@@ -839,6 +585,7 @@ Ext.define(
 		 * @param {Object}
 		 *            cls
 		 */
+		
 		createWindow : function(config, cls) {
 			var me = this, win, cfg = Ext.applyIf(config || {}, {
 				stateful : false,
@@ -880,7 +627,7 @@ Ext.define(
 			// replace normal window close
 			win.doClose = function() {
 				win.el.disableShadow();
-				//here we have to remove the object from the array of module objects
+
 				win.destroy();
 				win.doClose = Ext.emptyFn;
 			};
@@ -918,6 +665,9 @@ Ext.define(
 					&& activeWindow.taskButton);
 		},
 		
+		/*
+		 * -------------------------BROADCAST METHODS FOR THE ACTIVE WINDOWS-------------------------
+		 */
 		addStateToExistingWindows: function(stateName, appName, stateData){
 			
 			var me=this;
@@ -1016,6 +766,326 @@ Ext.define(
 			});
 			
 		},
+		
+		/*
+		 * -------------------------END: BROADCAST METHODS FOR THE ACTIVE WINDOWS-------------------------
+		 */
+		
+		/*
+		 * ---------------------------------MANAGEMENT OF DESKTOP STATES--------------------------------------------
+		 */
+		
+		oprSaveAsDesktopState : function() {
+			
+			var me = this;
+									
+			if (me.saveForm.getForm().isValid()) {
+				
+				var stateName = me.saveForm.getForm().findField("state_name").getValue();
+				
+				if(!me.isExistingState(stateName)){
+					
+					me.oprSendDataForSave(stateName,true);
+					
+				}else{
+					
+					Ext.MessageBox.alert('Message','State name already exists !');
+					
+				}
+				
+			}
+			
+		},
+		
+		isExistingState:function(stateName){
+			var me = this;
+
+			if( stateName in me.cache.desktop)
+				return true;
+			else
+				return false;
+			
+		},
+		
+		
+		oprLoadDesktopState: function(stateName){
+			
+			/*
+			 * First we have to check whether some other state is currently in use
+			 * so we have to give possibility to choose whether they want to continue to the chosen 
+			 * state or not
+			 */
+			
+			
+			var me = this;
+			var count = me.windows.getCount();
+			
+			if(count >0){
+				
+				/*
+				 * Two cases:
+				 * 	- There is an active desktop state
+				 *  - There is no active desktop state 
+				 */
+				if(me.currentDesktopState == ''){
+				
+					var ret=Ext.MessageBox.confirm('Confirm', 'Are you sure you want to close windows without saving them ?',
+						function(button) {
+							
+							var me = this;
+						    if (button === 'yes') {
+						    	
+						    	me.closeAllActiveWindows();
+						    	
+						    	me.loadDesktopStateData(stateName);
+						    	
+						    }
+					    },me);
+					
+				}else{
+					
+					var ret=Ext.MessageBox.confirm('Confirm', 'There is an active desktop state. Do you want to save the state before we load the new one ?',
+							function(button) {
+								
+								var me = this;
+							    if (button === 'yes') {
+							    	me.oprSendDataForSave(me.currentDesktopState,false);
+							    }
+							    
+							    me.closeAllActiveWindows();
+						    	me.loadDesktopStateData(stateName);
+						    	
+						    },me);
+					
+				}
+			}else{
+				
+				me.loadDesktopStateData(stateName);
+				
+			}
+			
+		},
+		
+		loadDesktopStateData:function(stateName){
+			
+			var me = this;
+			
+			//get the state from the cache
+			var stateData = me.cache.desktop[stateName];
+			
+			for(var i=0,len=stateData["data"].length;i<len;i++){
+				
+				var appStateData = stateData["data"][i];
+				
+				me.app.createWindow(appStateData.name,appStateData);
+				
+				
+			}
+			
+			me.currentDesktopState = stateName;
+			
+		},
+		
+		closeAllActiveWindows: function(){
+			
+			var me = this;
+			
+			me.windows.each(function(win) {
+				
+				win.close();
+				
+			});
+	
+			
+		},
+		formManageStates: function(){
+			
+			var me = this;
+
+			me.manageForm = Ext.widget(
+					'form',
+					{
+						layout : {
+							type : 'vbox',
+							align : 'stretch'
+						},
+						border : false,
+						bodyPadding : 10,
+
+						fieldDefaults : {
+							labelAlign : 'top',
+							labelWidth : 100,
+							labelStyle : 'font-weight:bold'
+						},
+						defaults : {
+							margins : '0 0 10 0'
+						},
+						items : [
+									{
+										 html: "<b>DESKTOP</b> states",
+									    xtype: "box"
+									},
+									{
+										 html: "<select size='10' multiple='multiple' style='width:100%'></select>",
+								         xtype: "box"
+									}
+								],
+
+						buttons : [
+								{
+									text : 'Delete selected states',
+									handler : me.oprDeleteSelectedStates,
+									scope: me
+								},   
+								{
+									text : 'Cancel',
+									handler : function() {
+										me.manageWindow.hide();
+									},
+									scope: me
+								}
+								 ]
+					});
+			
+			me.manageWindow = Ext.create('widget.window', {
+				height : 300,
+				width : 500,
+				title : 'Manage states',
+				layout : 'fit',
+				modal: true,
+				items : me.manageForm
+			});
+			
+			me.manageWindow.show();
+			me.fillSelectFieldWithStates();
+			
+			
+		},
+		
+		oprDeleteSelectedStates: function(){
+			
+			var me = this;
+			var oSelectField = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
+			
+			for (var i = oSelectField.length - 1; i>=0; i--) {
+			    if (oSelectField.options[i].selected) {
+			    	
+			    /*
+			     * First we check whether there are instances of that 
+			     * state that are active
+			     */	
+
+			      var oStateName=oSelectField.options[i].value;	
+			    	
+			      if(! (me.currentDesktopState=oStateName) ){
+			    	  
+			    	  
+			    	  Ext.Ajax.request({
+						    url: 'UP/delAppState',
+						    params: {
+						    	app: "desktop",
+						    	name: 	oStateName,
+						        obj: "desktop"
+						    },
+						    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField], false) 
+						});
+			    	  
+			      }else
+			    	  Ext.MessageBox.alert('Message','The state <b>'+oSelectField.options[i].value+'</b> you are willing to delete is curently in use !');
+			    	
+			    	
+			      
+			    }
+			}
+			
+		},
+		
+		oprDeleteSelectedStates_s: function(index,oSelectEl){
+			
+			var me = this;
+			
+			var oStateName = oSelectEl.options[index].value;
+			
+			for(var i=0;i<me.statesMenu.items.length;i++){
+				
+				if(me.statesMenu.items.getAt(i).text==oStateName){
+					
+					me.statesMenu.remove(me.statesMenu.items.getAt(i));
+					break;
+					
+				}
+				
+			}
+			
+			oSelectEl.remove(index);
+			
+		},
+		
+		fillSelectFieldWithStates: function(){
+			
+			var me = this;
+			var oSelectEl = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
+			
+			for (i = oSelectEl.length - 1; i>=0; i--) 
+				oSelectEl.remove(i);
+			
+			for(var stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName]){
+				
+				  var elOptNew = document.createElement('option');
+				  elOptNew.text = stateName;
+				  elOptNew.value = stateName;
+
+				  try {
+					  oSelectEl.add(elOptNew, null); // standards compliant; doesn't work in IE
+				  }
+				  catch(ex) {
+					  oSelectEl.add(elOptNew); // IE only
+				  }
+				  
+			}
+			  
+		},
+		oprRefreshAllDesktopStates: function(){
+			
+			
+			var me = this;
+			
+			me.statesMenu.removeAll();
+			delete me.cache.desktop;//[stateName]=states[stateName];
+			me.cache.desktop = {};
+			
+			Ext.Ajax.request({
+			    url: 'UP/listAppState',
+			    params: {
+			        app: 	"desktop",
+			        obj: 	"desktop"
+			    },
+			    scope:me,
+			    success: function(response){
+			    	
+			    	var me = this;
+			    	var states = Ext.JSON.decode(response.responseText);
+			    	me.cache.desktop={};
+			    	
+			    	for (var stateName in states) {	
+			    		
+			    		var newItem = Ext.create('Ext.menu.Item', {
+										    			  text: stateName,
+										    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
+										    			  scope:me
+										    		});
+			    		
+			    		me.cache.desktop[stateName]=states[stateName];
+			    		
+			    		me.statesMenu.add(newItem);
+			    		
+			    	}
+			    	
+			    	
+			    }
+			});
+			
+		},
 		oprSaveAppState : function() {
 			
 			var me = this;
@@ -1095,10 +1165,10 @@ Ext.define(
 				items : me.saveForm
 			});
 			
-			
 			me.saveWindow.show();
 
 		},	
+		
 		oprSendDataForSave: function (stateName,isNewItem){
 			
 			var me = this;
@@ -1158,38 +1228,9 @@ Ext.define(
 			    }
 			});
 			
-		},
+		}
 		
-		oprSaveAsDesktopState : function() {
-			
-			var me = this;
-									
-			if (me.saveForm.getForm().isValid()) {
-				
-				var stateName = me.saveForm.getForm().findField("state_name").getValue();
-				
-				if(!me.isExistingState(stateName)){
-					
-					me.oprSendDataForSave(stateName,true);
-					
-				}else{
-					
-					Ext.MessageBox.alert('Message','State name already exists !');
-					
-				}
-				
-			}
-			
-		},
-		
-		isExistingState:function(stateName){
-			var me = this;
-
-			if( stateName in me.cache.desktop)
-				return true;
-			else
-				return false;
-			
-		},
-		
+		/*
+		 * ---------------------------------END: MANAGEMENT OF DESKTOP STATES--------------------------------------------
+		 */
 	});

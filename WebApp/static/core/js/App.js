@@ -232,14 +232,24 @@ Ext.define(
 		createWindow : function(moduleName,setupData) {
 			
 			Ext.require(moduleName, function() {
+				
 				var me = this;
-				var controller = Ext.create(moduleName);
-				controller.init(this);
-				controller.setUID(++this._uid_counter);	
-				var window = controller.createWindow();
-				window.setLoadedObject(controller);
+				var instance = Ext.create(moduleName);
+				instance.setUID(++me._uid_counter);	
+				var window = me.desktop.createWindow({
+					width : 600,
+					height : 400,
+					animCollapse : false,
+					border : false,
+					hideMode : 'offsets',
+					layout : 'fit',
+					desktop: me.desktop,
+					setupData: setupData,
+					loadedObject:instance
+				});
+				
 				window.show();
-				window.oprLoadAppStateForDesktop(setupData);
+				
 			},this);
 			
 		},

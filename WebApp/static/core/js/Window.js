@@ -36,28 +36,54 @@ Ext.define(
 						var me=this;
 						
 						me.loadMask = new Ext.LoadMask(me,{msg:"Loading ..."});
-						
-						alert(this.initialConfig);
-						
+						me.items=[me.loadedObject];
 						me.callParent();
+						me.setLoadedObject(me.setupData);
 						
 					},
 					
-					setLoadedObject:function(loadedObject){
+					setLoadedObject:function(setupData){
 						
 						var me = this;
 						
-						me.loadedObject=loadedObject;
+						if(setupData != null){
+							
+							me.setPosition(setupData.x,setupData.y);
+							
+							me.setWidth(setupData.width);
+							me.setHeight(setupData.height);
+							
+							me.currentState = setupData.currentState;
+						
+							//me.loadedObject=loadedObject;
+							
+							me.loadedObject.loadState(setupData.data);
+							
+						}//else
+							//me.loadedObject=loadedObject;
 						
 						if(me.currentState == ""){
 							
-							me.title = me.loadedObject.launcher.text+" [Untitled]";
+							me.setTitle(me.loadedObject.launcher.text+" [Untitled]");
 							
-						}
+						}else
+							me.setTitle(me.loadedObject.launcher.text+" ["+me.currentState+"]");
 						
 						me.appClassName = me.loadedObject.self.getName();
 						
-						me.iconCls = me.loadedObject.launcher.iconCls;
+						me.setIconCls(me.loadedObject.launcher.iconCls);
+						
+						if("width" in me.loadedObject.launcher){
+							
+							me.setWidth(me.loadedObject.launcher.width);
+							
+						}
+						
+						if("height" in me.loadedObject.launcher){
+							
+							me.setWidth(me.loadedObject.launcher.height);
+							
+						}
 						
 					},
 					
@@ -81,9 +107,9 @@ Ext.define(
 						/*
 						 * if the cache for the state of the started application exist
 						 */
-						if(me.appClassName in me.loadedObject.app.getDesktop().cache.windows){
+						if(me.appClassName in me.desktop.cache.windows){
 							
-							for (var stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName]) {	
+							for (var stateName in me.desktop.cache.windows[me.appClassName]) {	
 								
 								var newItem = Ext.create('Ext.menu.Item', {
 					    			  text: stateName,
@@ -112,7 +138,7 @@ Ext.define(
 							    	
 							    	var me = this;
 							    	var states = Ext.JSON.decode(response.responseText);
-							    	me.loadedObject.app.getDesktop().cache.windows[me.appClassName]={};
+							    	me.desktop.cache.windows[me.appClassName]={};
 							    	
 							    	for (var stateName in states) {	
 							    		
@@ -124,17 +150,14 @@ Ext.define(
 							    		
 							    		me.statesMenu.add(newItem);
 							    		
-							    		me.loadedObject.app.getDesktop().cache.windows[me.appClassName][stateName]=states[stateName];
+							    		me.desktop.cache.windows[me.appClassName][stateName]=states[stateName];
 							    		
 							    	}
 							    	
 							    	
 							    }
 							});
-							
-							
 
-							
 						}
 												
 						var mainMenu = new Ext.menu.Menu({
@@ -179,7 +202,7 @@ Ext.define(
 						
 						var me = this;
 						
-						me.loadedObject.app.getDesktop().oprRefreshAllAppStates(me.appClassName);
+						me.desktop.oprRefreshAllAppStates(me.appClassName);
 						
 						
 					},
@@ -358,7 +381,7 @@ Ext.define(
 						for (i = oSelectEl.length - 1; i>=0; i--) 
 							oSelectEl.remove(i);
 						
-						for(var stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName]){
+						for(var stateName in me.desktop.cache.windows[me.appClassName]){
 							
 							  var elOptNew = document.createElement('option');
 							  elOptNew.text = stateName;
@@ -412,7 +435,7 @@ Ext.define(
 
 						      var oStateName=oSelectField.options[i].value;	
 						    	
-						      if(! me.loadedObject.app.getDesktop().isAnyActiveState(oStateName,me.appClassName)){
+						      if(! me.desktop.isAnyActiveState(oStateName,me.appClassName)){
 						    	  
 						    	  
 						    	  Ext.Ajax.request({
@@ -441,7 +464,7 @@ Ext.define(
 						
 						var oStateName = oSelectEl.options[index].value;
 						
-						me.loadedObject.app.getDesktop().removeStateFromWindows(oStateName,me.appClassName);
+						me.desktop.removeStateFromWindows(oStateName,me.appClassName);
 						
 						oSelectEl.remove(index);
 						
@@ -449,7 +472,7 @@ Ext.define(
 					isExistingState:function(stateName){
 						var me = this;
 
-						if( stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName])
+						if( stateName in me.desktop.cache.windows[me.appClassName])
 							return true;
 						else
 							return false;
@@ -497,9 +520,9 @@ Ext.define(
 						    	var me = this;
 						    	Ext.MessageBox.alert('Message','State saved successfully !');
 						    	if(isNewItem)
-						    		me.loadedObject.app.getDesktop().addStateToExistingWindows(stateName,me.appClassName,sendData);
+						    		me.desktop.addStateToExistingWindows(stateName,me.appClassName,sendData);
 						    	else
-						    		me.loadedObject.app.getDesktop().cache.windows[me.appClassName][stateName]=sendData;
+						    		me.desktop.cache.windows[me.appClassName][stateName]=sendData;
 						    	me.saveForm.getForm().reset();
 						    	me.currentState = stateName;
 								me.setTitle(me.loadedObject.launcher.text+" ["+me.currentState+"]");
@@ -514,7 +537,7 @@ Ext.define(
 						
 						me.statesMenu.removeAll();
 						
-						for (var stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName]) {	
+						for (var stateName in me.desktop.cache.windows[me.appClassName]) {	
 							
 							var newItem = Ext.create('Ext.menu.Item', {
 				    			  text: stateName,
@@ -533,29 +556,11 @@ Ext.define(
 						
 						me.loadMask.show();
 						
-						me.loadedObject.loadState(me.loadedObject.app.getDesktop().cache.windows[me.appClassName][stateName]);
+						me.loadedObject.loadState(me.desktop.cache.windows[me.appClassName][stateName]);
 						me.currentState = stateName;
 						me.setTitle(me.loadedObject.launcher.text+" ["+stateName+"]");
 						me.loadMask.hide();
 
-					},
-					oprLoadAppStateForDesktop: function(setupData){
-						
-						var me = this;
-						
-						if(setupData != null){
-							
-							me.setPosition(setupData.x,setupData.y);
-							
-							me.setWidth(setupData.width);
-							me.setHeight(setupData.height);
-							
-							me.currentState = setupData.currentState;
-							
-							me.loadedObject.loadState(setupData.data);
-							
-						}
-						
 					}
 
 				});
