@@ -6,9 +6,9 @@
  */
 
 /**
- * @class Ext.ux.desktop.Desktop This is an abstract class that has to be
- *        inherited by every module.
- * @mixin Ext.util.Observable
+ * @class Ext.ux.desktop.Window This is a window widget with extended functionality
+ * 								such as state management
+ * @extend Ext.window.Window
  * 
  */
 Ext.define(
@@ -20,15 +20,22 @@ Ext.define(
 					             "Ext.menu.Item",
 					             "Ext.form.*",
 					             "Ext.LoadMask"],
-
-					/*
-					 * This window has to have a reference to the module object
-					 * so that it can take its state, or load its state
-					 */
-
+					
+					/**
+					 * @property {String} currentState The name of the current active desktop state
+					 */             
 					currentState : "",
+					/**
+					 * @property {Object} loadedObject The object of the module loaded within the window
+					 */
 					loadedObject:null,
+					/**
+					 * @property {Ext.LoadMask} loadMask The load mask used when a state is being loaded
+					 */
 					loadMask:null,
+					/**
+					 * @property {Ext.ux.desktop.Desktop} desktop Reference to the desktop object
+					 */
 					desktop:null,
 					
 					initComponent:function(){
@@ -37,11 +44,22 @@ Ext.define(
 						
 						me.loadMask = new Ext.LoadMask(me,{msg:"Loading ..."});
 						me.items=[me.loadedObject];
+						me.appClassName = me.loadedObject.self.getName();
 						me.callParent();
-						me.setLoadedObject(me.setupData);
+						//me.setLoadedObject(me.setupData);
 						
 					},
 					
+					afterRender:function(){
+						var me = this;
+						me.callParent();
+						me.setLoadedObject(me.setupData);
+					},
+					
+					/**
+					 * Function to set a state of the loaded object and a state of the window itself
+					 * @param {Object} setupData Setup data
+					 */
 					setLoadedObject:function(setupData){
 						
 						var me = this;
@@ -54,22 +72,20 @@ Ext.define(
 							me.setHeight(setupData.height);
 							
 							me.currentState = setupData.currentState;
-						
-							//me.loadedObject=loadedObject;
 							
 							me.loadedObject.loadState(setupData.data);
 							
-						}//else
-							//me.loadedObject=loadedObject;
+						}
 						
 						if(me.currentState == ""){
 							
 							me.setTitle(me.loadedObject.launcher.text+" [Untitled]");
+							me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.text+" [Untitled]",20));
 							
-						}else
+						}else{
 							me.setTitle(me.loadedObject.launcher.text+" ["+me.currentState+"]");
-						
-						me.appClassName = me.loadedObject.self.getName();
+							me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.text+" ["+me.currentState+"]",20));
+						}
 						
 						me.setIconCls(me.loadedObject.launcher.iconCls);
 						
@@ -87,18 +103,30 @@ Ext.define(
 						
 					},
 					
+					/**
+					 * Getter function for the class of the loaded object
+					 * @return {String} The name of the class
+					 */
 					getAppClassName: function(){
 						
 						return this.appClassName;
 						
 					},
 					
+					/**
+					 * Getter function for the current state of the loaded object
+					 * @return {String} The name of the class
+					 */
 					getCurrentState: function(){
 						
 						return this.currentState;
 						
 					},
 					
+					/**
+					 * Overriden function, inherited from Ext.window.Window
+					 * used to set up the buttons at the top right corner of the window
+					 */
 					addTools : function() {
 
 						var me = this;
@@ -126,7 +154,6 @@ Ext.define(
 							/*
 							 * if the cache does not exist
 							 */
-							
 							Ext.Ajax.request({
 							    url: 'UP/listAppState',
 							    params: {
@@ -197,7 +224,9 @@ Ext.define(
 						me.callParent();
 
 					},
-					
+					/**
+					 * Function that is called when the refresh button of the SAVE window menu is clicked
+					 */
 					oprRefreshAllAppStates: function(){
 						
 						var me = this;
@@ -206,6 +235,10 @@ Ext.define(
 						
 						
 					},
+					/**
+					 * Function for adding new state within the list of existing states
+					 * @param {String} stateName The name of the state
+					 */
 					addNewState: function(stateName){
 						
 						var me = this;
@@ -219,7 +252,10 @@ Ext.define(
 						me.statesMenu.add(newItem);
 						
 					},
-					
+					/**
+					 * Function for removing a state from the list of existing states
+					 * @param {String} stateName The name of the state
+					 */
 					removeState: function(stateName){
 						
 						var me = this;
@@ -236,7 +272,10 @@ Ext.define(
 						}
 						
 					},
-					
+					/**
+					 * Function called when the Save As ... button
+					 * from the SAVE window menu is clicked
+					 */
 					formSaveState : function() {
 						
 						var me = this;
@@ -309,6 +348,11 @@ Ext.define(
 						me.saveWindow.show();
 
 					},	
+					
+					/**
+					 * Function to create and open the 
+					 * form for managing the desktop states
+					 */
 					formManageStates: function(){
 						
 						var me = this;
@@ -372,7 +416,11 @@ Ext.define(
 						
 						
 					},
-
+					
+					/**
+					 * Function to fill the select element 
+					 * with the existing module states
+					 */
 					fillSelectFieldWithStates: function(){
 						
 						var me = this;
@@ -398,6 +446,10 @@ Ext.define(
 						  
 					},
 					
+					/**
+					 * Function that is executed when the Save button 
+					 * of the Save As form is clicked 
+					 */
 					oprSaveAsAppState : function() {
 						
 						var me = this;
@@ -420,6 +472,9 @@ Ext.define(
 						
 					},
 					
+					/**
+					 * Function to delete selected desktop states 
+					 */
 					oprDeleteSelectedStates: function(){
 						
 						var me = this;
@@ -458,6 +513,11 @@ Ext.define(
 						
 					},
 					
+					/**
+					 * Callback of the oprDeleteSelectedStates function
+					 * @param {Integer} index index of the selected element
+					 * @param {DOMObject} oSelectEl the select element of the management form 
+					 */
 					oprDeleteSelectedStates_s: function(index,oSelectEl){
 						
 						var me = this;
@@ -469,6 +529,12 @@ Ext.define(
 						oSelectEl.remove(index);
 						
 					},
+					
+					/**
+					 * Function to check if a state exists 
+					 * among the list of desktop states
+					 * @param {String} stateName The name of the state
+					 */
 					isExistingState:function(stateName){
 						var me = this;
 
@@ -478,6 +544,11 @@ Ext.define(
 							return false;
 						
 					},
+					
+					/**
+					 * Function called when the Save button 
+					 * from the SAVE window menu is clicked 
+					 */
 					oprSaveAppState : function() {
 						
 						var me = this;
@@ -492,6 +563,12 @@ Ext.define(
 						}
 					},
 					
+					/**
+					 * Function that is used to prepare and send 
+					 * the data of the desktop state to the server.
+					 * @param {String} stateName The name of the state
+					 * @param {Boolean} isNewItem Parameter that says whether the state already exists or not 
+					 */
 					oprSendDataForSave: function (stateName,isNewItem){
 						
 						var me = this;
@@ -526,11 +603,15 @@ Ext.define(
 						    	me.saveForm.getForm().reset();
 						    	me.currentState = stateName;
 								me.setTitle(me.loadedObject.launcher.text+" ["+me.currentState+"]");
+								me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.text+" ["+stateName+"]",20));
 								me.saveWindow.hide();
 						    }
 						});
 						
 					},
+					/**
+					 * Function to refresh the states of a module. The states are read from the cash.
+					 */
 					oprRefreshAppStates:function(){
 						
 						var me = this;
@@ -550,6 +631,10 @@ Ext.define(
 						}
 						
 					},
+					/**
+					 * Function to load module state with data from the cache
+					 * @param {String} stateName The name of the state
+					 */
 					oprLoadAppStateFromCache : function(stateName) {
 						
 						var me = this;
@@ -559,6 +644,7 @@ Ext.define(
 						me.loadedObject.loadState(me.desktop.cache.windows[me.appClassName][stateName]);
 						me.currentState = stateName;
 						me.setTitle(me.loadedObject.launcher.text+" ["+stateName+"]");
+						me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.text+" ["+stateName+"]",20));
 						me.loadMask.hide();
 
 					}

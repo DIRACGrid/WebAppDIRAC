@@ -9,7 +9,9 @@
  * @class Ext.ux.desktop.Desktop
  * @extends Ext.panel.Panel
  * 
- * This class manages the wallpaper, shortcuts and taskbar.
+ * This class manages the wallpaper, shortcuts, 
+ * taskbar, desktop states, 
+ * and the broadcast part for the window states.
  *          
  */
 Ext.define(
@@ -93,7 +95,10 @@ Ext.define(
 				'</div>',
 				'<span class="ux-desktop-shortcut-text">{name}</span>',
 				'</div>', '</tpl>', '<div class="x-clear"></div>' ],
-				
+		
+		/**
+		 * @property {String} currentDesktopState Name of the current active desktop state
+		 */		
 		currentDesktopState: "",
 		/**
 		 * @cfg {Object} taskbarConfig The config object for the
@@ -164,7 +169,7 @@ Ext.define(
 				me.app.createWindow(record.data.module);
 
 		},
-
+		
 		afterRender : function() {
 			var me = this;
 			me.callParent();
@@ -245,11 +250,13 @@ Ext.define(
 					text : 'Tile',
 					handler : me.tileWindows,
 					scope : me,
+					iconCls : "toolbar-other-tile",
 					minWindows : 1
 				}, {
 					text : 'Cascade',
 					handler : me.cascadeWindows,
 					scope : me,
+					iconCls : "toolbar-other-cascade",
 					minWindows : 1
 				},
 				'-',
@@ -260,7 +267,7 @@ Ext.define(
 				}, {
 					text : "Save",
 					iconCls : "toolbar-other-save",
-					handler:me.oprSaveAppState,
+					handler:me.oprSaveDesktopState,
 					minWindows : 1,
 					scope: me
 				},{
@@ -432,7 +439,7 @@ Ext.define(
 		// ----------------------------------------------------------------------------------------
 
 		/**
-		 * @private Handler called before the menu is shown (?)
+		 * @private Handler called before the desktop context menu 
 		 * @param e
 		 */
 		onDesktopMenu : function(e) {
@@ -447,8 +454,10 @@ Ext.define(
 		},
 
 		/**
-		 * @private Handler called before the menu is shown (?)
-		 * @param menu
+		 * @private Handler called before the desktop context menu is shown
+		 * 			This function serves to disable or enable some 
+		 * 			operations that have minWindows property defined 
+		 * @param menu This parametear can be used in other menus as well.
 		 */
 		onDesktopMenuBeforeShow : function(menu) {
 			var me = this, count = me.windows.getCount();
@@ -571,6 +580,12 @@ Ext.define(
 		onWindowClose : function(win) {
 			var me = this;
 			me.windows.remove(win);
+			/*
+			 * If the number of windows get 0, 
+			 * the current desktop state is cleared
+			 */
+			if(me.windows.getCount()==0)
+				me.currentDesktopState='';
 			me.taskbar.removeTaskButton(win.taskButton);
 			me.updateActiveWindow();
 		},
@@ -668,6 +683,13 @@ Ext.define(
 		/*
 		 * -------------------------BROADCAST METHODS FOR THE ACTIVE WINDOWS-------------------------
 		 */
+		
+		/**
+		 * Function to add new state to the instances of the same module
+		 * @param {String} stateName This is the name od the state
+		 * @param {String} appName Name of the module 
+		 * @param {Object} stateData Data of the module that define its state 
+		 */
 		addStateToExistingWindows: function(stateName, appName, stateData){
 			
 			var me=this;
@@ -681,31 +703,11 @@ Ext.define(
 			
 		},
 		
-		refreshAppStates: function(appName){
-			
-			var me = this;
-			
-			me.cache.windows[appName]=null;
-			
-			Ext.Ajax.request({
-			    url: 'up/listAppState',
-			    params: {
-			        app: 	appName,
-			        obj: 	"application"
-			    },
-			    scope:me,
-			    success: function(response){
-			    	
-			    	var me = this;
-			    	var states = Ext.JSON.decode(response.responseText);
-			    	
-			    	me.cache.windows[appName]=states;
-			    	
-			    }
-			});
-			
-		},
-		
+		/**
+		 * Function used to refresh the states of a certain module (application)
+		 * and to update all instances of the module that are active at the moment
+		 * @param {String} appName Name of the module (application)
+		 */
 		oprRefreshAllAppStates: function(appName){
 			
 			var me = this;
@@ -713,7 +715,7 @@ Ext.define(
 			me.cache.windows[appName]=null;
 			
 			Ext.Ajax.request({
-			    url: 'up/listAppState',
+			    url: 'UP/listAppState',
 			    params: {
 			        app: 	appName,
 			        obj: 	"application"
@@ -735,6 +737,14 @@ Ext.define(
 			});
 			
 		},
+		
+		/**
+		 * Function to check if a  
+		 * state of a module is currently active (has been loaded)
+		 * @param {String} stateName Name of the state
+		 * @param {String} appName Name of the module (application)
+		 * @return {Boolean}
+		 */
 		isAnyActiveState: function(stateName,appName){
 			
 			var me = this;
@@ -754,6 +764,13 @@ Ext.define(
 			return oFound;
 			
 		},
+		
+		/**
+		 * Function to remove a state from the state lists of the 
+		 * instances of the same module
+		 * @param {String} stateName Name of the state
+		 * @param {String} appName Name of the module (application) 
+		 */
 		removeStateFromWindows: function(stateName, appName){
 			
 			var me=this;
@@ -775,6 +792,10 @@ Ext.define(
 		 * ---------------------------------MANAGEMENT OF DESKTOP STATES--------------------------------------------
 		 */
 		
+		/**
+		 * Function that is executed when the Save button 
+		 * of the Save As form is pressed 
+		 */
 		oprSaveAsDesktopState : function() {
 			
 			var me = this;
@@ -797,6 +818,11 @@ Ext.define(
 			
 		},
 		
+		/**
+		 * Function to check if a state exists 
+		 * among the list of desktop states
+		 * @param {String} stateName The name of the state
+		 */
 		isExistingState:function(stateName){
 			var me = this;
 
@@ -804,10 +830,13 @@ Ext.define(
 				return true;
 			else
 				return false;
-			
+	
 		},
 		
-		
+		/**
+		 * Function to load a desktop state 
+		 * @param {String} stateName The name of the state
+		 */
 		oprLoadDesktopState: function(stateName){
 			
 			/*
@@ -866,6 +895,10 @@ Ext.define(
 			
 		},
 		
+		/**
+		 * Function to create all windows from a desktop state
+		 * @param {String} stateName The name of the state 
+		 */
 		loadDesktopStateData:function(stateName){
 			
 			var me = this;
@@ -886,6 +919,9 @@ Ext.define(
 			
 		},
 		
+		/**
+		 * Function to close all active windows
+		 */
 		closeAllActiveWindows: function(){
 			
 			var me = this;
@@ -898,6 +934,11 @@ Ext.define(
 	
 			
 		},
+		
+		/**
+		 * Function to create and open the 
+		 * form for managing the desktop states
+		 */
 		formManageStates: function(){
 			
 			var me = this;
@@ -959,9 +1000,11 @@ Ext.define(
 			me.manageWindow.show();
 			me.fillSelectFieldWithStates();
 			
-			
 		},
 		
+		/**
+		 * Function to delete selected desktop states 
+		 */
 		oprDeleteSelectedStates: function(){
 			
 			var me = this;
@@ -977,7 +1020,7 @@ Ext.define(
 
 			      var oStateName=oSelectField.options[i].value;	
 			    	
-			      if(! (me.currentDesktopState=oStateName) ){
+			      if(! (me.currentDesktopState==oStateName) ){
 			    	  
 			    	  
 			    	  Ext.Ajax.request({
@@ -1000,6 +1043,11 @@ Ext.define(
 			
 		},
 		
+		/**
+		 * Callback of the oprDeleteSelectedStates function
+		 * @param {Integer} index index of the selected element
+		 * @param {DOMObject} oSelectEl the select element of the management form 
+		 */
 		oprDeleteSelectedStates_s: function(index,oSelectEl){
 			
 			var me = this;
@@ -1021,6 +1069,10 @@ Ext.define(
 			
 		},
 		
+		/**
+		 * Function to fill the select element 
+		 * with the existing desktop states
+		 */
 		fillSelectFieldWithStates: function(){
 			
 			var me = this;
@@ -1045,8 +1097,11 @@ Ext.define(
 			}
 			  
 		},
+		
+		/**
+		 * Function to refresh the list of desktop states
+		 */
 		oprRefreshAllDesktopStates: function(){
-			
 			
 			var me = this;
 			
@@ -1086,7 +1141,11 @@ Ext.define(
 			});
 			
 		},
-		oprSaveAppState : function() {
+		/**
+		 * Function called when the Save button 
+		 * from the desktop context menu is clicked 
+		 */
+		oprSaveDesktopState : function() {
 			
 			var me = this;
 			
@@ -1099,6 +1158,10 @@ Ext.define(
 				me.oprSendDataForSave(me.currentDesktopState,false);
 			}
 		},
+		/**
+		 * Function called when the Save As ... button
+		 * from the desktop context menu is clicked
+		 */
 		formSaveState : function() {
 			
 			var me = this;
@@ -1168,7 +1231,12 @@ Ext.define(
 			me.saveWindow.show();
 
 		},	
-		
+		/**
+		 * Function that is used to prepare and send 
+		 * the data of the desktop state to the server.
+		 * @param {String} stateName The name of the state
+		 * @param {Boolean} isNewItem Parameter that says whether the state already exists or not 
+		 */
 		oprSendDataForSave: function (stateName,isNewItem){
 			
 			var me = this;

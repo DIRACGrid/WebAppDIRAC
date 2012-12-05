@@ -9,7 +9,7 @@
  * @class Ext.ux.desktop.Desktop
  * This is an abstract class that has 
  * to be inherited by every module.
- * @mixin Ext.util.Observable
+ * @mixin Ext.container.Container
  * 
  */
 Ext.define('Ext.ux.desktop.Module', {
@@ -47,16 +47,32 @@ Ext.define('Ext.ux.desktop.Module', {
 		
 	},
 	
+	/**
+	 * This function can be used by 
+	 * the developers of the module, so that they can use 
+	 * id-s across the modules without worry of duplicating id-s 
+	 */
 	D_ID: function(id){
 		
-		return id+this._UID;
+		return id+this._UID+this.id;
 		
 	},
 	
+	/**
+	 * Function that can be overriden by a module
+	 * and it is used to get the data defining 
+	 * the current state of a module instance
+	 * @return {Object} 
+	 */
 	getStateData : function(){
-		
 						return {};
 					},
+	/**
+	 * Function that can be overriden by a module
+	 * and it is used to load saved state of a 
+	 * module
+	 * @param {Object} data Data used to set up the state
+	 */
 	loadState : function(data){},
 	
 });

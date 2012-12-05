@@ -43,7 +43,7 @@
 
 .ux-start-button-icon {
     background-image: url(../images/taskbar/sencha.gif) !important;
-    background-color: transparent;
+    background-color: transparent;dpkg -i
 }
 
 .ux-start-button .x-btn-arrow {
@@ -341,5 +341,15 @@
 
 .toolbar-other-refresh {
     background-image:url(../icons/other/_tool_refresh.png) !important;
+    background-size:16px 16px;
+}
+
+.toolbar-other-tile {
+    background-image:url(../icons/other/_tool_tile.png) !important;
+    background-size:16px 16px;
+}
+
+.toolbar-other-cascade {
+    background-image:url(../icons/other/_tool_cascade.png) !important;
     background-size:16px 16px;
 }

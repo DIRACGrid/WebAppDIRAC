@@ -222,7 +222,6 @@ Ext.define('Ext.ux.desktop.TaskBar', {
             },
             win: win
         };
-
         var cmp = this.windowBar.add(config);
         cmp.toggle(true);
         return cmp;
