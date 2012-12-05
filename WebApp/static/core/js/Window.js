@@ -46,7 +46,6 @@ Ext.define(
 						me.items=[me.loadedObject];
 						me.appClassName = me.loadedObject.self.getName();
 						me.callParent();
-						//me.setLoadedObject(me.setupData);
 						
 					},
 					
