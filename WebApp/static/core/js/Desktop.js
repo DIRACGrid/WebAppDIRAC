@@ -1223,7 +1223,7 @@ Ext.define(
 			me.saveWindow = Ext.create('widget.window', {
 				height : 120,
 				width : 500,
-				title : 'Save state',
+				title : 'Save desktop state',
 				layout : 'fit',
 				modal: true,
 				items : me.saveForm
