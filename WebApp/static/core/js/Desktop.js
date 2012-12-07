@@ -1053,6 +1053,7 @@ Ext.define(
 			var me = this;
 			
 			var oStateName = oSelectEl.options[index].value;
+			delete me.cache.desktop[oStateName];
 			
 			for(var i=0;i<me.statesMenu.items.length;i++){
 				

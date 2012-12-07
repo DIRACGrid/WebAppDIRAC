@@ -595,15 +595,15 @@ Ext.define(
 						    success: function(response){
 						    	var me = this;
 						    	Ext.MessageBox.alert('Message','State saved successfully !');
-						    	if(isNewItem)
+						    	if(isNewItem){
 						    		me.desktop.addStateToExistingWindows(stateName,me.appClassName,sendData);
-						    	else
+						    		me.saveWindow.hide();
+						    	}else
 						    		me.desktop.cache.windows[me.appClassName][stateName]=sendData;
-						    	me.saveForm.getForm().reset();
+						    	
 						    	me.currentState = stateName;
 								me.setTitle(me.loadedObject.launcher.text+" ["+me.currentState+"]");
 								me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.text+" ["+stateName+"]",20));
-								me.saveWindow.hide();
 						    }
 						});
 						
