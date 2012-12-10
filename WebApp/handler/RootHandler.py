@@ -27,9 +27,9 @@ class RootHandler(WebHandler):
       '''
         Reading the configuration for the START menu
       '''
-      result["desktop_config"]["start_menu_config"].append({"name":'DIRAC.GridWindow', "launcher": {"text": 'Grid Window', "iconCls":'icon-grid'}, "jsLoaded":0})
-      result["desktop_config"]["start_menu_config"].append({"name":'DIRAC.TabWindow', "launcher": {"text": 'Tab Windows', "iconCls":'tabs'}, "jsLoaded":0})
-      result["desktop_config"]["start_menu_config"].append({"name":'DIRAC.AccordionWindow', "launcher": {"text": 'Accordion Window', "iconCls":"accordion"}, "jsLoaded":0})
+#      result["desktop_config"]["start_menu_config"].append({"name":'DIRAC.GridWindow', "launcher": {"text": 'Grid Window', "iconCls":'icon-grid'}, "jsLoaded":0})
+#      result["desktop_config"]["start_menu_config"].append({"name":'DIRAC.TabWindow', "launcher": {"text": 'Tab Windows', "iconCls":'tabs'}, "jsLoaded":0})
+#      result["desktop_config"]["start_menu_config"].append({"name":'DIRAC.AccordionWindow', "launcher": {"text": 'Accordion Window', "iconCls":"accordion"}, "jsLoaded":0})
       result["desktop_config"]["start_menu_config"].append({"name":'DIRAC.Notepad', "launcher": {"text": 'Notepad', "iconCls":'notepad'}, "jsLoaded":0}) 
       
       '''

@@ -353,3 +353,30 @@
     background-image:url(../icons/other/_tool_cascade.png) !important;
     background-size:16px 16px;
 }
+
+#msg-div {
+    position:absolute;
+    left:10px;
+    top:10px;
+    width:300px;
+    z-index:20000;
+}
+#msg-div .msg {
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    background: #F6F6F6;
+    border: 1px solid #ccc;
+    margin-top: 2px;
+    padding: 10px 15px;
+    color: #555;
+    opacity:0.80;
+	filter:alpha(opacity=80);
+}
+#msg-div .msg h3 {
+    margin: 0 0 8px;
+    font-weight: bold;
+    font-size: 15px;
+}
+#msg-div .msg p {
+    margin: 0;
+}

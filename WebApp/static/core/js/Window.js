@@ -87,6 +87,7 @@ Ext.define(
 						}
 						
 						me.setIconCls(me.loadedObject.launcher.iconCls);
+						me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
 						
 						if("width" in me.loadedObject.launcher){
 							
@@ -313,7 +314,34 @@ Ext.define(
 															flex : 1,
 															fieldLabel: 'State Name',
 															name : 'state_name',
-															allowBlank : false
+															validateOnChange: true,
+															parentWindow:me,
+															validateValue:function(value){
+																
+																value = Ext.util.Format.trim(value);
+																
+																if(value.length < 1){
+													                 this.markInvalid("You must specify a name !");
+													                 return false;
+														             
+														        }else{
+														        	
+														        	if(this.parentWindow.isExistingState(value)){
+														        		
+														        		this.markInvalid("The name you enetered already exists !");
+														                return false;
+														        		
+														        	}else{
+														        		
+														        		this.clearInvalid();
+														                return true;
+														        		
+														        	}
+														        	
+														        	
+														        }
+																
+															}
 														}]
 											}],
 
@@ -456,16 +484,8 @@ Ext.define(
 						if (me.saveForm.getForm().isValid()) {
 							
 							var stateName = me.saveForm.getForm().findField("state_name").getValue();
-							
-							if(!me.isExistingState(stateName)){
 								
-								me.oprSendDataForSave(stateName,true);
-								
-							}else{
-								
-								Ext.MessageBox.alert('Message','State name already exists !');
-								
-							}
+							me.oprSendDataForSave(stateName,true);
 							
 						}
 						
@@ -594,7 +614,7 @@ Ext.define(
 						    scope:me,
 						    success: function(response){
 						    	var me = this;
-						    	Ext.MessageBox.alert('Message','State saved successfully !');
+						    	Ext.example.msg("Notification", 'State saved successfully !');
 						    	if(isNewItem){
 						    		me.desktop.addStateToExistingWindows(stateName,me.appClassName,sendData);
 						    		me.saveWindow.hide();

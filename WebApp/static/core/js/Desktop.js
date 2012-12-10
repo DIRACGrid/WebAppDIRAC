@@ -803,17 +803,9 @@ Ext.define(
 			if (me.saveForm.getForm().isValid()) {
 				
 				var stateName = me.saveForm.getForm().findField("state_name").getValue();
-				
-				if(!me.isExistingState(stateName)){
 					
-					me.oprSendDataForSave(stateName,true);
-					
-				}else{
-					
-					Ext.MessageBox.alert('Message','State name already exists !');
-					
-				}
-				
+				me.oprSendDataForSave(stateName,true);
+			
 			}
 			
 		},
@@ -1081,8 +1073,8 @@ Ext.define(
 			
 			for (i = oSelectEl.length - 1; i>=0; i--) 
 				oSelectEl.remove(i);
-			
-			for(var stateName in me.loadedObject.app.getDesktop().cache.windows[me.appClassName]){
+		
+			for(var stateName in me.cache.desktop){
 				
 				  var elOptNew = document.createElement('option');
 				  elOptNew.text = stateName;
@@ -1199,7 +1191,34 @@ Ext.define(
 												flex : 1,
 												fieldLabel: 'State Name',
 												name : 'state_name',
-												allowBlank : false
+												validateOnChange: true,
+												parentDesktop:me,
+												validateValue:function(value){
+													
+													value = Ext.util.Format.trim(value);
+													
+													if(value.length < 1){
+										                 this.markInvalid("You must specify a name !");
+										                 return false;
+											             
+											        }else{
+											        	
+											        	if(this.parentDesktop.isExistingState(value)){
+											        		
+											        		this.markInvalid("The name you enetered already exists !");
+											                return false;
+											        		
+											        	}else{
+											        		
+											        		this.clearInvalid();
+											                return true;
+											        		
+											        	}
+											        	
+											        	
+											        }
+													
+												}
 											}]
 								}],
 
@@ -1276,7 +1295,7 @@ Ext.define(
 			    scope:me,
 			    success: function(response){
 			    	var me = this;
-			    	Ext.MessageBox.alert('Message','State saved successfully !');
+			    	Ext.example.msg("Notification", 'State saved successfully !');
 			    	if(isNewItem){
 			    		var newItem = Ext.create('Ext.menu.Item', {
 			    			  text: stateName,
