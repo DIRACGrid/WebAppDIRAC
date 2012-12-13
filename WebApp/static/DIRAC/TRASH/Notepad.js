@@ -7,7 +7,7 @@
 
 Ext
 		.define(
-				'DIRAC.Notepad',
+				'DIRAC.Notepad.classes.Notepad',
 				{
 					extend : 'Ext.ux.desktop.Module',
 

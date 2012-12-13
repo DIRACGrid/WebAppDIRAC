@@ -33,7 +33,7 @@ Ext.define(
 		layout : 'fit',
 		xTickSize : 1,
 		yTickSize : 1,
-		cache:{windows:{}},
+		cache:{windows:{},desktop:{}},
 
 		/**
 		 * @property {Ext.ux.desktop.app} app This is the reference

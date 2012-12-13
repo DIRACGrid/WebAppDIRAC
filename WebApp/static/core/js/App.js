@@ -231,10 +231,17 @@ Ext.define(
 		 */
 		createWindow : function(moduleName,setupData) {
 			
-			Ext.require(moduleName, function() {
+			var oParts = moduleName.split(".");
+			var sStartClass="";
+			if(oParts.length==2)
+				sStartClass=moduleName+".classes."+oParts[1];
+			else
+				sStartClass=moduleName;
+			
+			Ext.require(sStartClass, function() {
 				
 				var me = this;
-				var instance = Ext.create(moduleName);
+				var instance = Ext.create(sStartClass);
 				instance.setUID(++me._uid_counter);	
 				var window = me.desktop.createWindow({
 					width : 600,

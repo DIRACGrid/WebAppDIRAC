@@ -13,7 +13,7 @@
  * 
  */
 Ext.define('Ext.ux.desktop.Module', {
-	
+	mixins:["Ext.ux.desktop.Stateful"],
 	extend: 'Ext.container.Container',
 	
 	/**
@@ -56,23 +56,6 @@ Ext.define('Ext.ux.desktop.Module', {
 		
 		return id+this._UID+this.id;
 		
-	},
-	
-	/**
-	 * Function that can be overriden by a module
-	 * and it is used to get the data defining 
-	 * the current state of a module instance
-	 * @return {Object} 
-	 */
-	getStateData : function(){
-						return {};
-					},
-	/**
-	 * Function that can be overriden by a module
-	 * and it is used to load saved state of a 
-	 * module
-	 * @param {Object} data Data used to set up the state
-	 */
-	loadState : function(data){},
+	}
 	
 });
