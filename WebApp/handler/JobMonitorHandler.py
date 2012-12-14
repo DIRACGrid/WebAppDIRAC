@@ -3,11 +3,11 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 import json
 
-class JobMonitorHandler( WebHandler ):
+class JobMonitorHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
 
-  def index( self ):
+  def index(self):
     pass
   
   def web_getJobData(self):
@@ -15,7 +15,7 @@ class JobMonitorHandler( WebHandler ):
 #              {'JobID':2, 'Status':'failed', 'Site':'LCG', 'LastUpdateTime':'12.12.2012 12:12'}]}
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
     
-    result = RPC.getJobPageSummaryWeb({},[["JobID","DESC"]],0,25)
+    result = RPC.getJobPageSummaryWeb({}, [["JobID", "DESC"]], 0, 25)
    
     if result["OK"]:
       result = result["Value"]
@@ -31,7 +31,7 @@ class JobMonitorHandler( WebHandler ):
                 headLength = len(head)
                 for i in jobs:
                   tmp = {}
-                  for j in range(0,headLength):
+                  for j in range(0, headLength):
                     tmp[head[j]] = i[j]
                   callback.append(tmp)
                 total = result["TotalRecords"]
@@ -39,28 +39,28 @@ class JobMonitorHandler( WebHandler ):
                 if result.has_key("Extras"):
                   st = self.__dict2string({})
                   extra = result["Extras"]
-                  callback = {"success":"true","result":callback,"total":total,"extra":extra,"request":st,"date":None}
+                  callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":None}
                 else:
-                  callback = {"success":"true","result":callback,"total":total,"date":None}
+                  callback = {"success":"true", "result":callback, "total":total, "date":None}
               else:
-                callback = {"success":"false","result":"","error":"There are no data to display"}
+                callback = {"success":"false", "result":"", "error":"There are no data to display"}
             else:
-              callback = {"success":"false","result":"","error":"ParameterNames field is missing"}
+              callback = {"success":"false", "result":"", "error":"ParameterNames field is missing"}
           else:
-            callback = {"success":"false","result":"","error":"Data structure is corrupted"}
+            callback = {"success":"false", "result":"", "error":"Data structure is corrupted"}
         else:
-          callback = {"success":"false","result":"","error":"There were no data matching your selection"}
+          callback = {"success":"false", "result":"", "error":"There were no data matching your selection"}
       else:
-        callback = {"success":"false","result":"","error":"Data structure is corrupted"}
+        callback = {"success":"false", "result":"", "error":"Data structure is corrupted"}
     else:
-      callback = {"success":"false","error":result["Message"]}
+      callback = {"success":"false", "error":result["Message"]}
     
     self.write(json.dumps(callback))
 
-  def __dict2string(self,req):
+  def __dict2string(self, req):
     result = ""
     try:
-      for key,value in req.iteritems():
+      for key, value in req.iteritems():
         result = result + str(key) + ": " + ", ".join(value) + "; "
     except Exception, x:
       pass

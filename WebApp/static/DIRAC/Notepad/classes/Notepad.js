@@ -13,16 +13,11 @@ Ext
 
 					requires : [ 'Ext.form.field.HtmlEditor'],
 
-					launcher: {
-						
-						text : 'Notepad',
-						iconCls : 'notepad'
-						
-					},
-
 					initComponent : function() {
 
 						var me = this;
+						
+						me.launcher.title = "Notepad";
 						
 						me.editor = new Ext.form.field.HtmlEditor(
 								{

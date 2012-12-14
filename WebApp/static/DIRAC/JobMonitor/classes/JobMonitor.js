@@ -11,15 +11,10 @@ Ext
 				{
 					extend : 'Ext.ux.desktop.Module',
 
-					requires : [ 'Ext.data.JsonStore','Ext.util.*'],
-
-					launcher: {
-						
-						text : 'Job Monitor',
-						iconCls : 'notepad'
-						
-					},
-					
+					requires : [ 'Ext.data.JsonStore',
+					             'Ext.util.*', 
+					             'Ext.panel.Panel',
+					             "Ext.ux.desktop.ToolButton"],					
 
 					loadState : function(data) {
 						
@@ -34,7 +29,27 @@ Ext
 							else
 								col.show();
 							
+							var sortState = data.columns[col.getSortParam()].sortState;
+							
+							if(sortState!=null)
+								col.setSortState(sortState);
+							
 						}
+						
+						
+						for(var i=0;i<me.selectorMenu.items.length;i++){
+							
+							var item=me.selectorMenu.items.getAt(i);
+							
+							item.setChecked(!data.selectors[item.relatedCmbField]);
+							
+							if(!data.selectors[item.relatedCmbField])
+								me.cmbSelectors[item.relatedCmbField].show();
+							else
+								me.cmbSelectors[item.relatedCmbField].hide();
+							
+						}
+						
 						
 						
 					},
@@ -51,19 +66,22 @@ Ext
 						
 							var col=me.grid.columns[i];
 							var oName = col.getSortParam();
-							oReturn.columns[oName]={"width":col.width,"hidden":col.isHidden()};
+							oReturn.columns[oName]={"width":col.width,"hidden":col.isHidden(),"sortState":col.sortState};
 							
+						}
 						
+						oReturn.selectors={};
+						
+						for(var cmb in me.cmbSelectors){
+							
+							oReturn.selectors[cmb]=me.cmbSelectors[cmb].isHidden();
+							
 						}
 						
 						return oReturn;
 
 					},
-					examplem:function(val){
-						
-						return "OK";
-						
-					},
+					
 					dataColumns : [
 //					               {header:'',name:'checkBox',id:'checkBox',width:26,sortable:false,dataIndex:'JobIDcheckBox',renderer:chkBox,hideable:false,fixed:true,menuDisabled:true},
 								    {header:'JobId',sortable:true,dataIndex:'JobID',align:'left',hideable:false},
@@ -133,8 +151,97 @@ Ext
 					initComponent : function() {
 
 						var me = this;
+						me.launcher.title = "Job Monitor";
+						
+						/*
+						 * Definition of containers
+						 */
+						
+						me.leftPanel = new Ext.create('Ext.panel.Panel',{
+						    title: 'Selectors',
+						    region:'west',
+						    floatable: false,
+						    margins: '0',
+						    width: 250,
+						    minWidth: 230,
+						    maxWidth: 350,
+						    bodyPadding: 5
+						});
 						
 						
+						
+						/*
+						 * Definition of combo boxes
+						 */
+						
+						me.cmbSelectors={};
+						
+						me.cmbSelectors.site = Ext.create('Ext.form.ComboBox', {
+						    fieldLabel: 'Site',
+						    store:[],
+						    queryMode: 'local',
+						    labelAlign:'top',
+						    width:220
+						});
+						
+						me.cmbSelectors.status = Ext.create('Ext.form.ComboBox', {
+						    fieldLabel: 'Status',
+						    store:[],
+						    queryMode: 'local',
+						    labelAlign:'top',
+						    width:220
+						});
+						
+						me.cmbSelectors.minorStatus = Ext.create('Ext.form.ComboBox', {
+						    fieldLabel: 'Minor Status',
+						    store:[],
+						    queryMode: 'local',
+						    labelAlign:'top',
+						    width:220
+						});
+						
+						me.cmbSelectors.appStatus = Ext.create('Ext.form.ComboBox', {
+						    fieldLabel: 'Application Status',
+						    store:[],
+						    queryMode: 'local',
+						    labelAlign:'top',
+						    width:220
+						});
+						
+						me.cmbSelectors.owner = Ext.create('Ext.form.ComboBox', {
+						    fieldLabel: 'Owner',
+						    store:[],
+						    queryMode: 'local',
+						    labelAlign:'top',
+						    width:220
+						});
+						
+						me.cmbSelectors.jobGroup = Ext.create('Ext.form.ComboBox', {
+						    fieldLabel: 'Job Group',
+						    store:[],
+						    queryMode: 'local',
+						    labelAlign:'top',
+						    width:220
+						});
+						
+						me.cmbSelectors.jobType = Ext.create('Ext.form.ComboBox', {
+						    fieldLabel: 'Job Type',
+						    store:[],
+						    queryMode: 'local',
+						    labelAlign:'top',
+						    width:220
+						});
+						
+						me.leftPanel.add([me.cmbSelectors.site,
+						                  me.cmbSelectors.status, 
+						                  me.cmbSelectors.minorStatus, 
+						                  me.cmbSelectors.appStatus,
+						                  me.cmbSelectors.owner, 
+						                  me.cmbSelectors.jobGroup, 
+						                  me.cmbSelectors.jobType]);
+						/*
+						 * Definition of grid
+						 */
 						me.dataStore = new Ext.data.JsonStore({
 						    proxy: {
 						        type: 'ajax',
@@ -151,17 +258,66 @@ Ext
 						});
 						
 						me.grid = Ext.create('Ext.grid.Panel', {
+							region: 'center',
 						    store: me.dataStore,
 						    columns: me.dataColumns
 						});
 						
+						
+						/*
+						 * Structuring the main container
+						 */
 						Ext.apply(me, {
-							layout : 'fit',
-							items : [ me.grid ]
+							layout : 'border',
+							bodyBorder: false,
+							defaults: {
+							    collapsible: true,
+							    split: true
+							},
+							items : [ me.leftPanel,me.grid ]
 						});
 
 						me.callParent(arguments);
-
+						
 					},
+					
+					afterRender:function(){
+						var me=this;
+						
+						var menuItems=[];
+						for(var cmb in me.cmbSelectors){
+							
+							menuItems.push({
+						        xtype: 'menucheckitem',
+						        text: me.cmbSelectors[cmb].getFieldLabel(),
+						        relatedCmbField:cmb,
+						        checked:true,
+						        handler: function(item,e){
+						        	
+						        	var me=this;
+						        	
+						        	if(item.checked)
+						        		me.cmbSelectors[item.relatedCmbField].show();
+						        	else
+						        		me.cmbSelectors[item.relatedCmbField].hide();
+						        	
+						        },
+						        scope:me
+						    });
+							
+						}
+						
+						me.selectorMenu = new Ext.menu.Menu({
+							items : menuItems
+						});
+						
+						me.leftPanel.getHeader().addTool({
+							xtype : "toolButton",
+							type : "save",
+							menu : me.selectorMenu
+						});
+						
+						this.callParent();
+					}
 
 				});

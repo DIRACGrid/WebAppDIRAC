@@ -21,6 +21,16 @@ Ext.define('Ext.ux.desktop.Module', {
 	 */
 	_UID:0,
 	
+	launcher: {
+		
+		title : 'Module',
+		iconCls : 'notepad',
+		width:0,
+		height:0,
+		maximized:true
+		
+	},
+	
 	constructor : function(config) {
 		this.init();
 		this.callParent();

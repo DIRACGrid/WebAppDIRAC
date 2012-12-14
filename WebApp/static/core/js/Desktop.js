@@ -556,6 +556,13 @@ Ext.define(
 			win.minimized = true;
 			win.hide();
 		},
+		
+		maximizeWindow:function(win){
+			
+			win.getHeader().hide();
+			win.maximize();
+			
+		},
 
 		/**
 		 * @private Handler called when the window gets restored
@@ -564,6 +571,10 @@ Ext.define(
 		 */
 		restoreWindow : function(win) {
 			if (win.isVisible()) {
+				win.getHeader().show();
+				win.setWidth(this.getWidth()/2);
+				win.setHeight(this.getHeight()/2);
+				win.setPosition(50,50);
 				win.restore();
 				win.toFront();
 			} else {
@@ -622,6 +633,8 @@ Ext.define(
 				beforeshow : me.updateActiveWindow,
 				deactivate : me.updateActiveWindow,
 				minimize : me.minimizeWindow,
+				maximize:me.maximizeWindow,
+				restore:me.restoreWindow,
 				destroy : me.onWindowClose,
 				scope : me
 			});

@@ -243,17 +243,25 @@ Ext.define(
 				var me = this;
 				var instance = Ext.create(sStartClass);
 				instance.setUID(++me._uid_counter);	
-				var window = me.desktop.createWindow({
-					width : 600,
-					height : 400,
-					animCollapse : false,
-					border : false,
-					hideMode : 'offsets',
-					layout : 'fit',
-					desktop: me.desktop,
-					setupData: setupData,
-					loadedObject:instance
-				});
+				var config = {
+						animCollapse : false,
+						border : false,
+						hideMode : 'offsets',
+						layout : 'fit',
+						desktop: me.desktop,
+						setupData: setupData,
+						loadedObject:instance
+					};
+				
+				if(!instance.launcher.maximized){
+					
+					config.width =instance.launcher.width;
+					config.height =instance.launcher.height;
+					
+				}else
+					config.maximized =instance.launcher.maximized;
+				
+				var window = me.desktop.createWindow(config);
 				
 				window.show();
 				

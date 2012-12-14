@@ -78,12 +78,12 @@ Ext.define(
 						
 						if(me.currentState == ""){
 							
-							me.setTitle(me.loadedObject.launcher.text+" [Untitled]");
-							me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.text+" [Untitled]",20));
+							me.setTitle(me.loadedObject.launcher.title+" [Untitled]");
+							me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" [Untitled]",20));
 							
 						}else{
-							me.setTitle(me.loadedObject.launcher.text+" ["+me.currentState+"]");
-							me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.text+" ["+me.currentState+"]",20));
+							me.setTitle(me.loadedObject.launcher.title+" ["+me.currentState+"]");
+							me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+me.currentState+"]",20));
 						}
 						
 						me.setIconCls(me.loadedObject.launcher.iconCls);
@@ -404,7 +404,7 @@ Ext.define(
 									},
 									items : [
 												{
-													 html: "Application: <b>"+me.loadedObject.launcher.text+"</b>",
+													 html: "Application: <b>"+me.loadedObject.launcher.title+"</b>",
 												    xtype: "box"
 												},
 												{
@@ -622,8 +622,8 @@ Ext.define(
 						    		me.desktop.cache.windows[me.appClassName][stateName]=sendData;
 						    	
 						    	me.currentState = stateName;
-								me.setTitle(me.loadedObject.launcher.text+" ["+me.currentState+"]");
-								me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.text+" ["+stateName+"]",20));
+								me.setTitle(me.loadedObject.launcher.title+" ["+me.currentState+"]");
+								me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+stateName+"]",20));
 						    }
 						});
 						
@@ -662,8 +662,8 @@ Ext.define(
 						
 						me.loadedObject.loadState(me.desktop.cache.windows[me.appClassName][stateName]);
 						me.currentState = stateName;
-						me.setTitle(me.loadedObject.launcher.text+" ["+stateName+"]");
-						me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.text+" ["+stateName+"]",20));
+						me.setTitle(me.loadedObject.launcher.title+" ["+stateName+"]");
+						me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+stateName+"]",20));
 						me.loadMask.hide();
 
 					}
