@@ -345,9 +345,17 @@ Ext.define(
 		 */
 		createWindowMenu : function() {
 			var me = this;
+						
 			return {
 				defaultAlign : 'br-tr',
-				items : [ {
+				items : [
+				{
+					text : 'Save/Load state',
+					scope : me,
+					menu: new Ext.menu.Menu()
+				},         
+				"-",
+				{
 					text : 'Restore',
 					handler : me.onWindowMenuRestore,
 					scope : me
@@ -379,11 +387,14 @@ Ext.define(
 		 */
 		onWindowMenuBeforeShow : function(menu) {
 			var items = menu.items.items, win = menu.theWin;
-			items[0].setDisabled(win.maximized !== true
+			items[2].setDisabled(win.maximized !== true
 					&& win.hidden !== true); // Restore
-			items[1].setDisabled(win.minimized === true); // Minimize
-			items[2].setDisabled(win.maximized === true
+			items[3].setDisabled(win.minimized === true); // Minimize
+			items[4].setDisabled(win.maximized === true
 					|| win.hidden === true); // Maximize
+			
+			//We copy the menu from the window
+			items[0].menu = win.loadMenu;
 		},
 
 		/**

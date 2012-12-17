@@ -187,7 +187,7 @@ Ext.define(
 
 						}
 												
-						var mainMenu = new Ext.menu.Menu({
+						me.loadMenu = new Ext.menu.Menu({
 							items : [ {
 								text : "Load state",
 								iconCls : "toolbar-other-load",
@@ -218,7 +218,7 @@ Ext.define(
 						me.addTool({
 							xtype : "toolButton",
 							type : "save",
-							menu : mainMenu
+							menu : me.loadMenu
 						});
 
 						me.callParent();

@@ -23,8 +23,8 @@ Ext
 								{
 									value : [
 											'Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>',
-											'Give it a try!' ].join(''),
-									layout : 'fit'
+											'Give it a try!' ].join('')
+									
 								});
 
 						Ext.apply(me, {

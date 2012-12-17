@@ -44,10 +44,7 @@ Ext.define('Ext.ux.desktop.TaskBar', {
 
         me.windowBar = new Ext.toolbar.Toolbar(me.getWindowBarConfig());
         
-        var button_data={
-        		"text":me.app.configData["user_config"]["group"],
-        		"menu":[]
-        };
+        
         
         me.items = [
                     {
@@ -68,30 +65,35 @@ Ext.define('Ext.ux.desktop.TaskBar', {
                    ];
         
         
-        if(me.app.configData["user_config"]){
-        	
+        if(me.app.configData.user.username){
         	/*
              * If the user is registered
              */
-	        for(var i=0;i<me.app.configData["user_config"]["groups"].length;i++)
-	        	button_data.menu.push({	text:me.app.configData["user_config"]["groups"][i]});
+        	
+        	var button_data={
+            		"text":me.app.configData["user"]["group"],
+            		"menu":[]
+            };
+        	
+	        for(var i=0;i<me.app.configData["validGroups"].length;i++)
+	        	button_data.menu.push({	text:me.app.configData["validGroups"][i]});
 	        
 	        me.group_button = new Ext.button.Button(button_data);
 	        
 	        
 	        var setup_data={
-	        		"text":me.app.configData["user_config"]["setup"],
+	        		"text":me.app.configData["setup"],
 	        		"menu":[]
 	        };
 	        
-	        for(var i=0;i<me.app.configData["user_config"]["setups"].length;i++)
-	        	setup_data.menu.push({	text:me.app.configData["user_config"]["setups"][i]});
+	        for(var i=0;i<me.app.configData["validSetups"].length;i++)
+	        	setup_data.menu.push({	text:me.app.configData["validSetups"][i]});
 	        
 	        me.setup_button = new Ext.button.Button(setup_data);
 	        me.items.push('-');
 	        me.items.push({
 	              xtype: 'tbtext', 
-	              text:me.app.configData["user_config"]["username"]+"@"
+	              text:me.app.configData["user"]["username"]+"@"
 	          });
 	        me.items.push(me.group_button);
 	        me.items.push('-');

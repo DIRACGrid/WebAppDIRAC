@@ -174,63 +174,34 @@ Ext
 						 * Definition of combo boxes
 						 */
 						
-						me.cmbSelectors={};
+						me.cmbSelectors={site:null,
+										status:null,
+										minorStatus:null,
+										appStatus:null,
+										owner:null,
+										jobGroup:null,
+										jobType:null};
 						
-						me.cmbSelectors.site = Ext.create('Ext.form.ComboBox', {
-						    fieldLabel: 'Site',
-						    store:[],
-						    queryMode: 'local',
-						    labelAlign:'top',
-						    width:220
-						});
+						var cmbTitles={site:"Site",
+								status:"Status",
+								minorStatus:"Minor Status",
+								appStatus:"Application Status",
+								owner:"Owner",
+								jobGroup:"Job Group",
+								jobType:"Job Type"};
 						
-						me.cmbSelectors.status = Ext.create('Ext.form.ComboBox', {
-						    fieldLabel: 'Status',
-						    store:[],
-						    queryMode: 'local',
-						    labelAlign:'top',
-						    width:220
-						});
-						
-						me.cmbSelectors.minorStatus = Ext.create('Ext.form.ComboBox', {
-						    fieldLabel: 'Minor Status',
-						    store:[],
-						    queryMode: 'local',
-						    labelAlign:'top',
-						    width:220
-						});
-						
-						me.cmbSelectors.appStatus = Ext.create('Ext.form.ComboBox', {
-						    fieldLabel: 'Application Status',
-						    store:[],
-						    queryMode: 'local',
-						    labelAlign:'top',
-						    width:220
-						});
-						
-						me.cmbSelectors.owner = Ext.create('Ext.form.ComboBox', {
-						    fieldLabel: 'Owner',
-						    store:[],
-						    queryMode: 'local',
-						    labelAlign:'top',
-						    width:220
-						});
-						
-						me.cmbSelectors.jobGroup = Ext.create('Ext.form.ComboBox', {
-						    fieldLabel: 'Job Group',
-						    store:[],
-						    queryMode: 'local',
-						    labelAlign:'top',
-						    width:220
-						});
-						
-						me.cmbSelectors.jobType = Ext.create('Ext.form.ComboBox', {
-						    fieldLabel: 'Job Type',
-						    store:[],
-						    queryMode: 'local',
-						    labelAlign:'top',
-						    width:220
-						});
+						for(var cmb in me.cmbSelectors){
+							
+							me.cmbSelectors[cmb] = Ext.create('Ext.form.ComboBox', {
+							    fieldLabel: cmbTitles[cmb],
+							    store:[],
+							    queryMode: 'local',
+							    labelAlign:'top',
+							    width:220
+							});
+							
+							
+						}
 						
 						me.leftPanel.add([me.cmbSelectors.site,
 						                  me.cmbSelectors.status, 

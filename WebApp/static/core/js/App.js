@@ -34,7 +34,16 @@ Ext.define(
 
 		/**
 		 * @property {List} useQuickTips ?
-		 */
+		 *///			Ext.each(me.modules, function(module) {
+//		launcher = module.launcher;
+//		if (launcher) {
+//			launcher.handler = launcher.handler
+//					|| Ext.bind(me.createWindow, me,
+//							[ module.name,null ]);
+//			cfg.menu.push(module.launcher);
+//		}
+//	});
+
 		useQuickTips : true,
 		
 		/**
@@ -57,7 +66,7 @@ Ext.define(
 			}
 
 			me.configData = configData;
-
+			console.log(configData);
 			me.callParent();
 
 		},
@@ -72,11 +81,6 @@ Ext.define(
 			if (me.useQuickTips) {
 				Ext.QuickTips.init();
 			}
-
-			/*
-			 * 
-			 */
-			me.modules = this.configData["desktop_config"]["start_menu_config"];
 
 			/*
 			 * Creating the main desktop obbject
@@ -128,7 +132,7 @@ Ext.define(
 												'Ext.data.Store',
 												{
 													model : 'Ext.ux.desktop.ShortcutModel',
-													data : me.configData["desktop_config"]["shortcut_config"]
+													data : {}
 												}),
 
 								wallpaper : '/DIRAC/static/core/wallpapers/desktop.jpg',
@@ -172,33 +176,54 @@ Ext.define(
 
 			return cfg;
 		},
-
+		/**
+		 * This method is used to recursively read the data about the start menu
+		 * @return {Object}
+		 */
+		getMenuStructureRec:function(item){
+			
+			var me=this;
+			
+			if(item.length==2){
+				
+				var result = {text:item[0],menu:[]};
+				
+				for(var i=0;i<item[1].length;i++)
+					result.menu.push(me.getMenuStructureRec(item[1][i]));
+				
+				return result;
+				
+			}else{
+		
+				return {
+							text:item[1],
+							diracHandleType:item[0],
+							handler:Ext.bind(me.createWindow, me,[item[2],null])
+						};
+				
+			}
+			
+		},
+		
 		/**
 		 * This method returns the configuration object for the
 		 * Start Button.
 		 * 
-		 * @return Object
+		 * @return {Object}
 		 */
 		getStartConfig : function() {
 			var me = this, cfg = {
 				app : me,
 				menu : []
 			}, launcher;
-
+			
 			Ext.apply(cfg, me.startConfig);
-
-			Ext.each(me.modules, function(module) {
-				launcher = module.launcher;
-				if (launcher) {
-					launcher.handler = launcher.handler
-							|| Ext.bind(me.createWindow, me,
-									[ module.name,null ]);
-					cfg.menu.push(module.launcher);
-				}
-			});
-
+			
+			for(var j=0;j<me.configData["menu"].length;j++)
+				cfg.menu.push(me.getMenuStructureRec(me.configData["menu"][j]));
+			
 			return Ext.apply(cfg, {
-				title : ((me.configData["user_config"])?me.configData["user_config"]["username"]+"@"+me.configData["user_config"]["group"]:"Anonymous"),
+				title : ((me.configData.user.username)?me.configData["user"]["username"]+"@"+me.configData["user"]["group"]:"Anonymous"),
 				iconCls : 'user',
 				height : 300,
 				toolConfig : {
