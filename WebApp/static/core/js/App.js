@@ -197,8 +197,7 @@ Ext.define(
 		
 				return {
 							text:item[1],
-							diracHandleType:item[0],
-							handler:Ext.bind(me.createWindow, me,[item[2],null])
+							handler:Ext.bind(me.createWindow, me,[item[0],item[2],null])
 						};
 				
 			}
@@ -254,43 +253,59 @@ Ext.define(
 		 *            moduleName The name of the module (the
 		 *            JavaScript class) to be loaded
 		 */
-		createWindow : function(moduleName,setupData) {
+		createWindow : function(loadedObjectType,moduleName,setupData) {
 			
-			var oParts = moduleName.split(".");
-			var sStartClass="";
-			if(oParts.length==2)
-				sStartClass=moduleName+".classes."+oParts[1];
-			else
-				sStartClass=moduleName;
 			
-			Ext.require(sStartClass, function() {
+			if(loadedObjectType =="app"){
+				var oParts = moduleName.split(".");
+				var sStartClass="";
+				if(oParts.length==2)
+					sStartClass=moduleName+".classes."+oParts[1];
+				else
+					sStartClass=moduleName;
 				
-				var me = this;
-				var instance = Ext.create(sStartClass);
-				instance.setUID(++me._uid_counter);	
-				var config = {
-						animCollapse : false,
-						border : false,
-						hideMode : 'offsets',
-						layout : 'fit',
-						desktop: me.desktop,
-						setupData: setupData,
-						loadedObject:instance
-					};
-				
-				if(!instance.launcher.maximized){
+				Ext.require(sStartClass, function() {
 					
-					config.width =instance.launcher.width;
-					config.height =instance.launcher.height;
+					var me = this;
+					var instance = Ext.create(sStartClass);
+					instance.setUID(++me._uid_counter);	
+					var config = {
+							animCollapse : false,
+							border : false,
+							hideMode : 'offsets',
+							layout : 'fit',
+							desktop: me.desktop,
+							setupData: setupData,
+							loadedObject:instance,
+							loadedObjectType:"app"
+						};
+					/*
+					 * Here we must distinguish two cases
+					 * 1 case: setupData is null (which is new instance)
+					 * 2 case: setupData is not null (saved instance)
+					 *  
+					 */
+					if(!instance.launcher.maximized){
+						
+						config.width =instance.launcher.width;
+						config.height =instance.launcher.height;
+						
+					}else
+						config.maximized =instance.launcher.maximized;
 					
-				}else
-					config.maximized =instance.launcher.maximized;
+					var window = me.desktop.createWindow(config);
+					
+					window.show();
+					
+				},this);
+			
+			}else if(loadedObjectType == "link"){
 				
-				var window = me.desktop.createWindow(config);
 				
-				window.show();
 				
-			},this);
+				
+				
+			}
 			
 		},
 

@@ -926,7 +926,7 @@ Ext.define(
 				
 				var appStateData = stateData["data"][i];
 				
-				me.app.createWindow(appStateData.name,appStateData);
+				me.app.createWindow(appStateData.loadedObjectType,appStateData.name,appStateData);
 				
 				
 			}
@@ -1289,7 +1289,9 @@ Ext.define(
 			
 			me.windows.each(function(win) {
 				
-				
+				/*
+				 * Depends on the loadedObjectType 
+				 */
 				dataToSend.data.push(
 						{
 							name: win.getAppClassName(),
@@ -1298,8 +1300,9 @@ Ext.define(
 							x: win.x,
 							y: win.y,
 							width: win.getWidth(),
-							height: win.getHeight()
-							
+							height: win.getHeight(),
+							maximized: win.maximized,
+							loadedObjectType: win.loadedObjectType
 						}
 				
 				
