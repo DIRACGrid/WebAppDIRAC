@@ -15,6 +15,7 @@
     <script type="text/javascript" src="/DIRAC/static/core/js/HelpFunctions.js"></script>
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
+		
         Ext.Loader.setPath({
             'Ext.ux.desktop': '/DIRAC/static/core/js',
             'DIRAC': '/DIRAC/static/DIRAC'

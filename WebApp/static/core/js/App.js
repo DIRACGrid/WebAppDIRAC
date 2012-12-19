@@ -11,6 +11,7 @@
  * @mixins Ext.util.Observable
  * 
  */
+
 Ext.define(
 	'Ext.ux.desktop.App',
 	{
