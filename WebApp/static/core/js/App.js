@@ -34,15 +34,7 @@ Ext.define(
 
 		/**
 		 * @property {List} useQuickTips ?
-		 *///			Ext.each(me.modules, function(module) {
-//		launcher = module.launcher;
-//		if (launcher) {
-//			launcher.handler = launcher.handler
-//					|| Ext.bind(me.createWindow, me,
-//							[ module.name,null ]);
-//			cfg.menu.push(module.launcher);
-//		}
-//	});
+		 */			
 
 		useQuickTips : true,
 		
