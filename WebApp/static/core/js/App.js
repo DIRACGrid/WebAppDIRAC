@@ -186,10 +186,10 @@ Ext.define(
 				return result;
 				
 			}else{
-		
+				
 				return {
 							text:item[1],
-							handler:Ext.bind(me.createWindow, me,[item[0],item[2],null])
+							handler:Ext.bind(me.createWindow, me,[item[0],item[2],((item[0]=="app")?null:{title:item[1]})])
 						};
 				
 			}
@@ -262,29 +262,12 @@ Ext.define(
 					var instance = Ext.create(sStartClass);
 					instance.setUID(++me._uid_counter);	
 					var config = {
-							animCollapse : false,
-							border : false,
-							hideMode : 'offsets',
-							layout : 'fit',
 							desktop: me.desktop,
 							setupData: setupData,
 							loadedObject:instance,
 							loadedObjectType:"app"
 						};
-					/*
-					 * Here we must distinguish two cases
-					 * 1 case: setupData is null (which is new instance)
-					 * 2 case: setupData is not null (saved instance)
-					 *  
-					 */
-					if(!instance.launcher.maximized){
-						
-						config.width =instance.launcher.width;
-						config.height =instance.launcher.height;
-						
-					}else
-						config.maximized =instance.launcher.maximized;
-					
+
 					var window = me.desktop.createWindow(config);
 					
 					window.show();
@@ -293,9 +276,13 @@ Ext.define(
 			
 			}else if(loadedObjectType == "link"){
 				
-				
-				
-				
+				var win = this.desktop.createWindow({
+				  setupData:setupData,
+                  loadedObjectType:"link",
+                  linkToLoad:moduleName
+                });
+
+				win.show();
 				
 			}
 			

@@ -43,8 +43,21 @@ Ext.define(
 						var me=this;
 						
 						me.loadMask = new Ext.LoadMask(me,{msg:"Loading ..."});
-						me.items=[me.loadedObject];
-						me.appClassName = me.loadedObject.self.getName();
+						
+						if(me.loadedObjectType == "app"){
+							me.items=[me.loadedObject];
+							me.appClassName = me.loadedObject.self.getName();
+						}else if(me.loadedObjectType == "link"){
+							me.items = [{
+						        xtype : "component",
+						        autoEl : {
+						            tag : "iframe",
+						            src : me.linkToLoad
+						        }
+						    }];
+							me.appClassName = "link";
+						}
+
 						me.callParent();
 						
 					},
@@ -52,7 +65,10 @@ Ext.define(
 					afterRender:function(){
 						var me = this;
 						me.callParent();
-						me.setLoadedObject(me.setupData);
+						if(me.loadedObjectType == "app")
+							me.setLoadedObject(me.setupData);
+						else if(me.loadedObjectType == "link")
+							me.setPropertiesWhenLink(me.setupData);
 					},
 					
 					/**
@@ -67,14 +83,47 @@ Ext.define(
 							
 							me.setPosition(setupData.x,setupData.y);
 							
-							me.setWidth(setupData.width);
-							me.setHeight(setupData.height);
-							
 							me.currentState = setupData.currentState;
 							
+							if(!setupData.maximized){
+								me.setWidth(setupData.width);
+								me.setHeight(setupData.height);
+							}else{
+								me.maximize();
+							}
+							
+							me.setZIndex(setupData.zIndex);
 							me.loadedObject.loadState(setupData.data);
 							
+						}else{
+							
+							if(!me.loadedObject.launcher.maximized){
+								if("width" in me.loadedObject.launcher){
+									
+									me.setWidth(me.loadedObject.launcher.width);
+									
+								}else{
+									
+									me.setWidth(600);
+									
+								}
+								
+								if("height" in me.loadedObject.launcher){
+									
+									me.setHeight(me.loadedObject.launcher.height);
+									
+								}else{
+									
+									me.setHeight(400);
+									
+								}
+							}else{
+								me.maximize();
+							}
+							
+							
 						}
+						
 						
 						if(me.currentState == ""){
 							
@@ -89,17 +138,39 @@ Ext.define(
 						me.setIconCls(me.loadedObject.launcher.iconCls);
 						me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
 						
-						if("width" in me.loadedObject.launcher){
-							
-							me.setWidth(me.loadedObject.launcher.width);
-							
+						
+						
+					},
+					
+					setPropertiesWhenLink:function(setupData){
+						
+						var me=this;
+
+						if(setupData.x && setupData.y)
+							me.setPosition(setupData.x,setupData.y);
+						else{
+							me.setPosition(0,0);
 						}
 						
-						if("height" in me.loadedObject.launcher){
-							
-							me.setWidth(me.loadedObject.launcher.height);
-							
+						
+						if(!setupData.width && !setupData.height)
+							me.maximize();
+						else{
+							if(setupData.width)
+								me.setWidth(setupData.width);
+						
+							if(setupData.height)
+								me.setHeight(setupData.height);
 						}
+						
+						me.setTitle(setupData.title);
+						me.taskButton.setIconCls("notepad");
+						me.taskButton.setText(Ext.util.Format.ellipsis(me.title,20));
+						me.setIconCls("notepad");
+						
+						if(setupData.zIndex)
+							me.setZIndex(setupData.zIndex);
+						
 						
 					},
 					
@@ -130,97 +201,111 @@ Ext.define(
 					addTools : function() {
 
 						var me = this;
-						me.statesMenu = new Ext.menu.Menu();
 						
-						/*
-						 * if the cache for the state of the started application exist
-						 */
-						if(me.appClassName in me.desktop.cache.windows){
-							
-							for (var stateName in me.desktop.cache.windows[me.appClassName]) {	
-								
-								var newItem = Ext.create('Ext.menu.Item', {
-					    			  text: stateName,
-					    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-					    			  scope:me
-					    		});
-	
-								me.statesMenu.add(newItem);
-								
-							}
-													
-						}else{
+						if(me.loadedObjectType=="app"){
+						
+							me.statesMenu = new Ext.menu.Menu();
 							
 							/*
-							 * if the cache does not exist
+							 * if the cache for the state of the started application exist
 							 */
-							Ext.Ajax.request({
-							    url: 'UP/listAppState',
-							    params: {
-							        app: 	me.appClassName,
-							        obj: 	"application"
-							    },
-							    scope:me,
-							    success: function(response){
-							    	
-							    	var me = this;
-							    	var states = Ext.JSON.decode(response.responseText);
-							    	me.desktop.cache.windows[me.appClassName]={};
-							    	
-							    	for (var stateName in states) {	
-							    		
-							    		var newItem = Ext.create('Ext.menu.Item', {
-														    			  text: stateName,
-														    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-														    			  scope:me
-														    		});
-							    		
-							    		me.statesMenu.add(newItem);
-							    		
-							    		me.desktop.cache.windows[me.appClassName][stateName]=states[stateName];
-							    		
-							    	}
-							    	
-							    	
-							    }
+							if(me.appClassName in me.desktop.cache.windows){
+								
+								for (var stateName in me.desktop.cache.windows[me.appClassName]) {	
+									
+									var newItem = Ext.create('Ext.menu.Item', {
+						    			  text: stateName,
+						    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
+						    			  scope:me
+						    		});
+		
+									me.statesMenu.add(newItem);
+									
+								}
+														
+							}else{
+								
+								/*
+								 * if the cache does not exist
+								 */
+								/*
+								 * If the Ajax is not successful then no items 
+								 * will be created within the cache and the list of states
+								 */
+								Ext.Ajax.request({
+								    url: 'UP/listAppState',
+								    params: {
+								        app: 	me.appClassName,
+								        obj: 	"application"
+								    },
+								    scope:me,
+								    success: function(response){
+								    	
+								    	var me = this;
+								    	var states = Ext.JSON.decode(response.responseText);
+								    	me.desktop.cache.windows[me.appClassName]={};
+								    	
+								    	for (var stateName in states) {	
+								    		
+								    		var newItem = Ext.create('Ext.menu.Item', {
+															    			  text: stateName,
+															    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
+															    			  scope:me
+															    		});
+								    		
+								    		me.statesMenu.add(newItem);
+								    		
+								    		me.desktop.cache.windows[me.appClassName][stateName]=states[stateName];
+								    		
+								    	}
+								    	
+								    	
+								    },
+								    failure:function(response){
+								    	
+								    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+								    }
+								});
+	
+							}
+													
+							me.loadMenu = new Ext.menu.Menu({
+								items : [ {
+									text : "Load state",
+									iconCls : "toolbar-other-load",
+									menu : me.statesMenu
+								}, {
+									text : "Save",
+									iconCls : "toolbar-other-save",
+									handler:me.oprSaveAppState,
+									scope: me
+								},{
+									text : "Save As ...",
+									iconCls : "toolbar-other-save",
+									handler : me.formSaveState,
+									scope: me
+								},{
+									text : "Refresh states",
+									iconCls : "toolbar-other-refresh",
+									handler:me.oprRefreshAllAppStates,
+									scope: me
+								},{
+									text : "Manage states ...",
+									iconCls : "toolbar-other-manage",
+									handler : me.formManageStates,
+									scope: me
+								} ]
+							});
+	
+							me.addTool({
+								xtype : "toolButton",
+								type : "save",
+								menu : me.loadMenu
 							});
 
+						
 						}
-												
-						me.loadMenu = new Ext.menu.Menu({
-							items : [ {
-								text : "Load state",
-								iconCls : "toolbar-other-load",
-								menu : me.statesMenu
-							}, {
-								text : "Save",
-								iconCls : "toolbar-other-save",
-								handler:me.oprSaveAppState,
-								scope: me
-							},{
-								text : "Save As ...",
-								iconCls : "toolbar-other-save",
-								handler : me.formSaveState,
-								scope: me
-							},{
-								text : "Refresh states",
-								iconCls : "toolbar-other-refresh",
-								handler:me.oprRefreshAllAppStates,
-								scope: me
-							},{
-								text : "Manage states ...",
-								iconCls : "toolbar-other-manage",
-								handler : me.formManageStates,
-								scope: me
-							} ]
-						});
-
-						me.addTool({
-							xtype : "toolButton",
-							type : "save",
-							menu : me.loadMenu
-						});
-
+						
 						me.callParent();
 
 					},
@@ -511,7 +596,9 @@ Ext.define(
 						    	
 						      if(! me.desktop.isAnyActiveState(oStateName,me.appClassName)){
 						    	  
-						    	  
+						    	  /*
+						    	   * If the Ajax is not successful then the item wont be deleted.
+						    	   */
 						    	  Ext.Ajax.request({
 									    url: 'UP/delAppState',
 									    params: {
@@ -519,7 +606,11 @@ Ext.define(
 									    	name: 	oStateName,
 									        obj: "application"
 									    },
-									    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField], false) 
+									    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField], false),
+									    failure:function(response){
+									    	
+									    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+									    }
 									});
 						    	  
 						      }else
@@ -603,6 +694,9 @@ Ext.define(
 							return;
 						}
 						
+						/*
+						 * If the Ajax is not successful the state wont be saved.
+						 */
 						Ext.Ajax.request({
 						    url: 'UP/saveAppState',
 						    params: {
@@ -624,6 +718,10 @@ Ext.define(
 						    	me.currentState = stateName;
 								me.setTitle(me.loadedObject.launcher.title+" ["+me.currentState+"]");
 								me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+stateName+"]",20));
+						    },
+						    failure:function(response){
+						    	
+						    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 						    }
 						});
 						

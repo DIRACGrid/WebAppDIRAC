@@ -213,6 +213,10 @@ Ext.define(
 			//reading the existing states of the desktop for that user
 			me.statesMenu = new Ext.menu.Menu();
 			
+			/*
+			 * if the Ajax is not successful then no items will be listed
+			 * within the list of states
+			 */ 
 			Ext.Ajax.request({
 			    url: 'UP/listAppState',
 			    params: {
@@ -241,6 +245,10 @@ Ext.define(
 			    	}
 			    	
 			    	
+			    },
+			    failure:function(response){
+			    	
+			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			    }
 			});
 			
@@ -387,14 +395,28 @@ Ext.define(
 		 */
 		onWindowMenuBeforeShow : function(menu) {
 			var items = menu.items.items, win = menu.theWin;
-			items[2].setDisabled(win.maximized !== true
-					&& win.hidden !== true); // Restore
-			items[3].setDisabled(win.minimized === true); // Minimize
-			items[4].setDisabled(win.maximized === true
-					|| win.hidden === true); // Maximize
 			
-			//We copy the menu from the window
-			items[0].menu = win.loadMenu;
+			
+				items[2].setDisabled(win.maximized !== true
+						&& win.hidden !== true); // Restore
+				items[3].setDisabled(win.minimized === true); // Minimize
+				items[4].setDisabled(win.maximized === true
+						|| win.hidden === true); // Maximize
+				
+				//We copy the menu from the window
+				
+			if(win.loadedObjectType == "link"){
+				
+				items[0].hide();
+				items[1].hide();
+				
+			}else if(win.loadedObjectType == "app"){
+				
+				items[0].show();
+				items[1].show();
+				
+				items[0].menu = win.loadMenu;
+			}
 		},
 
 		/**
@@ -569,7 +591,6 @@ Ext.define(
 		},
 		
 		maximizeWindow:function(win){
-			
 			win.getHeader().hide();
 			win.maximize();
 			
@@ -629,7 +650,11 @@ Ext.define(
 				isWindow : true,
 				constrainHeader : true,
 				minimizable : true,
-				maximizable : true
+				maximizable : true,
+				animCollapse : false,
+				border : false,
+				hideMode : 'offsets',
+				layout : 'fit'
 			});
 
 			cls = cls || Ext.ux.desktop.Window;
@@ -736,8 +761,9 @@ Ext.define(
 			
 			var me = this;
 			
-			me.cache.windows[appName]=null;
-			
+			/*
+			 * If the Ajax is not successful then the states will remain the same
+			 */
 			Ext.Ajax.request({
 			    url: 'UP/listAppState',
 			    params: {
@@ -748,6 +774,9 @@ Ext.define(
 			    success: function(response){
 			    	
 			    	var me = this;
+			    	
+			    	delete me.cache.windows[appName];
+			    	
 			    	var states = Ext.JSON.decode(response.responseText);
 			    	
 			    	me.cache.windows[appName]=states;
@@ -757,6 +786,10 @@ Ext.define(
 							item.oprRefreshAppStates();
 					});
 			    	
+			    },
+			    failure:function(response){
+			    	
+			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			    }
 			});
 			
@@ -928,7 +961,6 @@ Ext.define(
 				
 				me.app.createWindow(appStateData.loadedObjectType,appStateData.name,appStateData);
 				
-				
 			}
 			
 			me.currentDesktopState = stateName;
@@ -1038,7 +1070,9 @@ Ext.define(
 			    	
 			      if(! (me.currentDesktopState==oStateName) ){
 			    	  
-			    	  
+			    	  /*
+			    	   * If the Ajax is not successful the item wont be deleted
+			    	   */
 			    	  Ext.Ajax.request({
 						    url: 'UP/delAppState',
 						    params: {
@@ -1046,7 +1080,11 @@ Ext.define(
 						    	name: 	oStateName,
 						        obj: "desktop"
 						    },
-						    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField], false) 
+						    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField], false),
+						    failure:function(response){
+						    	
+						    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+						    }
 						});
 			    	  
 			      }else
@@ -1122,10 +1160,10 @@ Ext.define(
 			
 			var me = this;
 			
-			me.statesMenu.removeAll();
-			delete me.cache.desktop;//[stateName]=states[stateName];
-			me.cache.desktop = {};
-			
+			/*
+			 * If the Ajax is not successful then the states wil remain the same. 
+			 * No deletion.
+			 */
 			Ext.Ajax.request({
 			    url: 'UP/listAppState',
 			    params: {
@@ -1136,6 +1174,11 @@ Ext.define(
 			    success: function(response){
 			    	
 			    	var me = this;
+			    	
+			    	me.statesMenu.removeAll();
+					delete me.cache.desktop;
+					me.cache.desktop = {};
+			    	
 			    	var states = Ext.JSON.decode(response.responseText);
 			    	me.cache.desktop={};
 			    	
@@ -1154,6 +1197,10 @@ Ext.define(
 			    	}
 			    	
 			    	
+			    },
+			    failure:function(response){
+			    	
+			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			    }
 			});
 			
@@ -1292,25 +1339,48 @@ Ext.define(
 				/*
 				 * Depends on the loadedObjectType 
 				 */
-				dataToSend.data.push(
-						{
-							name: win.getAppClassName(),
-							currentState: win.currentState,
-							data: win.loadedObject.getStateData(),
+				var oElem = null;
+				
+				
+				if(win.loadedObjectType == "app"){
+					
+					oElem = {
+						name: win.getAppClassName(),
+						currentState: win.currentState,
+						data: win.loadedObject.getStateData(),
+						x: win.x,
+						y: win.y,
+						width: win.getWidth(),
+						height: win.getHeight(),
+						maximized: win.maximized,
+						zIndex:win.zIndex,
+						loadedObjectType: win.loadedObjectType
+					};
+					
+				}else if(win.loadedObjectType == "link"){
+					
+					oElem = {
+							title: win.title,
+							linkToLoad: win.linkToLoad,
 							x: win.x,
 							y: win.y,
 							width: win.getWidth(),
 							height: win.getHeight(),
 							maximized: win.maximized,
+							zIndex:win.zIndex,
 							loadedObjectType: win.loadedObjectType
-						}
+					};
+					
+					
+				}
 				
-				
-				);
+				dataToSend.data.push(oElem);
 
 			});
 
-			
+			/*
+			 * If the Ajax is not successful the state wont be saved.
+			 */
 			Ext.Ajax.request({
 			    url: 'UP/saveAppState',
 			    params: {
@@ -1340,6 +1410,10 @@ Ext.define(
 			    	
 			    	me.currentDesktopState = stateName;
 					
+			    },
+			    failure:function(response){
+			    	
+			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			    }
 			});
 			
