@@ -18,7 +18,9 @@
 		
         Ext.Loader.setPath({
             'Ext.ux.desktop': '/DIRAC/static/core/js',
-            'DIRAC': '/DIRAC/static/DIRAC'
+            'Ext.ux.form':'/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form',
+            'DIRAC': '/DIRAC/static/DIRAC',
+            
         });
 
         Ext.require('Ext.ux.desktop.App');

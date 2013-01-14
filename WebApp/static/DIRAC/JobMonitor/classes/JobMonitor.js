@@ -14,7 +14,8 @@ Ext
 					requires : [ 'Ext.data.JsonStore',
 					             'Ext.util.*', 
 					             'Ext.panel.Panel',
-					             "Ext.ux.desktop.ToolButton"],					
+					             "Ext.ux.desktop.ToolButton",
+					             "Ext.ux.form.MultiSelect"],					
 
 					loadState : function(data) {
 						
@@ -210,6 +211,65 @@ Ext
 						                  me.cmbSelectors.owner, 
 						                  me.cmbSelectors.jobGroup, 
 						                  me.cmbSelectors.jobType]);
+						
+						/*
+						 * Multiselect with checkboxes
+						 */
+						
+						me.exampleMultiSelect = new Ext.ux.form.MultiSelect({
+							
+				            msgTarget: 'side',
+				            name: 'multiselect',
+				            width:220,
+				            allowBlank: true,
+				            store: [[123,'One Hundred Twenty Three'],
+				                    ['1', 'One'], ['2', 'Two'], ['3', 'Three'], ['4', 'Four'], ['5', 'Five'],
+				                    ['6', 'Six'], ['7', 'Seven'], ['8', 'Eight'], ['9', 'Nine']],				            
+				            //value: ['3', '4', '6'],
+				            ddReorder: true,
+				            listConfig: {
+				                // Custom rendering template for each item
+				                getInnerTpl: function(displayField) {
+				                	
+				                    return '<input type="checkbox" style="vertical-align:middle"/> {'+displayField+'}';
+
+				                },
+				                listeners : {				                	
+				                	select:function(r, record, eOpts){
+				                		
+				                		var node = this.getNode(record);
+				                		
+				                		//console.log("SELECT = "+record.raw[1]);
+				                		//console.log(record);
+				                        if (node) {
+				                        	
+				                        	var oDomElem = Ext.fly(node).dom.getElementsByTagName("input")[0];
+				                        	
+				                        	oDomElem.checked=true;
+
+				                        }
+				                        
+				                        //alert("SELECT = "+record.raw[1]);
+				                		
+				                	},
+				                	deselect:function(r, record, eOpts){
+				                		
+				                		var node = this.getNode(record);
+				                		//console.log("DE-SELECT = "+record.raw[1]);
+				                        if (node) {
+				                        	Ext.fly(node).dom.getElementsByTagName("input")[0].checked=false;
+				                        }
+				                		
+				                	}
+				                }
+			                	
+				                	
+				            },
+							
+						});
+						
+						me.leftPanel.add(me.exampleMultiSelect);
+						
 						/*
 						 * Definition of grid
 						 */
