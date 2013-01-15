@@ -226,41 +226,55 @@ Ext
 				                    ['1', 'One'], ['2', 'Two'], ['3', 'Three'], ['4', 'Four'], ['5', 'Five'],
 				                    ['6', 'Six'], ['7', 'Seven'], ['8', 'Eight'], ['9', 'Nine']],				            
 				            //value: ['3', '4', '6'],
-				            ddReorder: true,
+				            ddReorder: false,
 				            listConfig: {
 				                // Custom rendering template for each item
 				                getInnerTpl: function(displayField) {
 				                	
-				                    return '<input type="checkbox" style="vertical-align:middle"/> {'+displayField+'}';
+				                	return '<div class="multselector-checkbox" name="{'+displayField+'}"></div>';// {'+displayField+'}';
 
 				                },
 				                listeners : {				                	
 				                	select:function(r, record, eOpts){
 				                		
 				                		var node = this.getNode(record);
-				                		
-				                		//console.log("SELECT = "+record.raw[1]);
-				                		//console.log(record);
-				                        if (node) {
-				                        	
-				                        	var oDomElem = Ext.fly(node).dom.getElementsByTagName("input")[0];
-				                        	
-				                        	oDomElem.checked=true;
 
+				                        if (node) {
+				                        	var oPomElemId = Ext.fly(node).down("table").id;
+				                        	var oCheckBox = Ext.getCmp(oPomElemId);
+				                        	oCheckBox.setValue(true);
 				                        }
-				                        
-				                        //alert("SELECT = "+record.raw[1]);
-				                		
+	
 				                	},
 				                	deselect:function(r, record, eOpts){
 				                		
 				                		var node = this.getNode(record);
-				                		//console.log("DE-SELECT = "+record.raw[1]);
+				                		
 				                        if (node) {
-				                        	Ext.fly(node).dom.getElementsByTagName("input")[0].checked=false;
+				                        	var oPomElemId = Ext.fly(node).down("table").id;
+				                        	var oCheckBox = Ext.getCmp(oPomElemId);
+				                        	oCheckBox.setValue(false);	                        	
 				                        }
 				                		
-				                	}
+				                	},
+				                	refresh:function(){
+			                	        var renderSelector = Ext.query('div.multselector-checkbox'); 
+		                	            for(var i in renderSelector){
+		                	            	//console.log(renderSelector[i].getAttribute("name"));
+		                	                Ext.create('Ext.form.field.Checkbox',{
+		                	                	boxLabel:renderSelector[i].getAttribute("name"),
+		                	                	listeners:{
+		                	                		change:function(checkBoxObject, newValue, oldValue, eOpts){
+		                	                			
+		                	                			console.log(checkBoxObject);
+		                	                			console.log(checkBoxObject.up('*'));
+		                	                			
+		                	                		}
+		                	                	},
+		                	                    renderTo:renderSelector[i]
+		                	                });   
+		                	            } 
+			                	    }
 				                }
 			                	
 				                	
