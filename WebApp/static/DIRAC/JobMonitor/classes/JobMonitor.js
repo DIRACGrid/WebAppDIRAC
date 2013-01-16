@@ -215,7 +215,7 @@ Ext
 						/*
 						 * Multiselect with checkboxes
 						 */
-						
+
 						me.exampleMultiSelect = new Ext.ux.form.MultiSelect({
 							
 				            msgTarget: 'side',
@@ -266,12 +266,12 @@ Ext
 		                	                	listeners:{
 		                	                		change:function(checkBoxObject, newValue, oldValue, eOpts){
 		                	                			
-		                	                			console.log(checkBoxObject);
-		                	                			console.log(checkBoxObject.up('*'));
+		                	                			//console.log(checkBoxObject.multiListRef);
 		                	                			
 		                	                		}
 		                	                	},
-		                	                    renderTo:renderSelector[i]
+		                	                    renderTo:renderSelector[i],
+		                	                    multiListRef: me.exampleMultiSelect
 		                	                });   
 		                	            } 
 			                	    }
@@ -281,6 +281,72 @@ Ext
 				            },
 							
 						});
+						
+						var oAllButton = new Ext.Button({
+						    text: 'All',
+						    listeners:{
+						    	
+						    	click: function(btn,e,eOpt) {
+						    	
+						    				
+						    				var oBoundList=btn.multiListRef.boundList;
+						    				var oSelectionModel = oBoundList.getSelectionModel();
+						    				var oAllRecords = oBoundList.getRecords(oBoundList.getNodes());
+						    				
+						    				oSelectionModel.select(oAllRecords);
+						    				
+
+						    		   }
+						
+						    },
+						    multiListRef:me.exampleMultiSelect
+						});
+						
+						var oInverseButton = new Ext.Button({
+						    text: 'Inverse',
+						    listeners:{
+						    	
+						    	click: function(btn,e,eOpt) {
+						    		
+								    		var oBoundList=btn.multiListRef.boundList;
+						    				var oSelectionModel = oBoundList.getSelectionModel();
+						    				var oAllRecords = oBoundList.getRecords(oBoundList.getNodes());
+						    				var oSelectedRecords = oBoundList.getRecords(oBoundList.getSelectedNodes());
+						    				
+						    				var oInverseRecords=[];
+						    				
+						    				for(var i=0;i<oAllRecords.length;i++)
+						    					if(!(oSelectionModel.isSelected(oAllRecords[i])))
+						    						oInverseRecords.push(oAllRecords[i]);
+						 
+						    				oSelectionModel.select(oInverseRecords);
+						    				
+						    	
+						    	}
+						
+						    },
+						    multiListRef:me.exampleMultiSelect
+						});
+						
+						me.leftPanel.add(
+								{
+								
+									xtype:'panel',
+									width:220,
+									bodyBorder:false,
+									items:[	
+										{
+								            xtype: 'box',
+								            autoEl: {
+								                tag: 'span',
+								                html: 'Select: '
+								            }
+										},
+										oAllButton,
+										oInverseButton
+									]
+								}
+						);
 						
 						me.leftPanel.add(me.exampleMultiSelect);
 						
