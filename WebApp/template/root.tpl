@@ -68,7 +68,7 @@
 	    	<table>
 	    		<tr>
 	    			<td style="width:100px;">
-	    				<img src="/DIRAC/static/core/images/logo_waiting.gif" style="margin-right:8px;float:left;vertical-align:top;width:100%;height:100%"/>
+	    				<img src="/DIRAC/static/core/images/logo_waiting.gif" style="margin-right:8px;float:left;vertical-align:top;width:100%;"/>
 	    			</td>
 	    			<td style="width:200px;vertical-align:middle;text-align:left;padding:5px 0px 5px 15px;font-size:14px">
 	    				DIRAC

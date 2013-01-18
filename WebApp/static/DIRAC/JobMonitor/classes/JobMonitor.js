@@ -15,7 +15,8 @@ Ext
 					             'Ext.util.*', 
 					             'Ext.panel.Panel',
 					             "Ext.ux.desktop.ToolButton",
-					             "Ext.ux.form.MultiSelect"],					
+					             "Ext.ux.form.MultiSelect",
+					             "Ext.ux.form.MultiSelect2"],					
 
 					loadState : function(data) {
 						
@@ -215,7 +216,7 @@ Ext
 						/*
 						 * Multiselect with checkboxes
 						 */
-
+/*
 						me.exampleMultiSelect = new Ext.ux.form.MultiSelect({
 							
 				            msgTarget: 'side',
@@ -231,31 +232,113 @@ Ext
 				                // Custom rendering template for each item
 				                getInnerTpl: function(displayField) {
 				                	
-				                	return '<div class="multselector-checkbox" name="{'+displayField+'}"></div>';// {'+displayField+'}';
+				                	return '<div class="multselector-checkbox" name="{'+displayField+'}"></div>';
 
 				                },
 				                listeners : {				                	
 				                	select:function(r, record, eOpts){
 				                		
+				                		console.log("RECORD::SELECT");
+				                		
 				                		var node = this.getNode(record);
 
 				                        if (node) {
 				                        	var oPomElemId = Ext.fly(node).down("table").id;
 				                        	var oCheckBox = Ext.getCmp(oPomElemId);
-				                        	oCheckBox.setValue(true);
+				                        	console.log("CHECKED: "+oCheckBox.stateChecked);
+				                        	//oCheckBox.suspendEvents(false);
+				                        	
+				                        	if(oCheckBox.directClick){
+				                        		console.log("DIRECT CLICK");
+					                        	if(oCheckBox.stateChecked == 0)
+					                        		oCheckBox.setValue(false);
+					                        	else
+					                        		oCheckBox.setValue(true);
+				                        	}else{
+				                        		console.log("SHIFT SELECTION");
+				                        		//selected with SHIFT (range selection)
+				                        		if(oCheckBox.stateChecked == 0){
+					                        		oCheckBox.setValue(true);
+					                        		oCheckBox.stateChecked = 1;
+					                        	}
+				                        		
+				                        	}
+				                        		
+				                        	//oCheckBox.resumeEvents();
+				                        	oCheckBox.directClick = false;
 				                        }
-	
+
 				                	},
 				                	deselect:function(r, record, eOpts){
+				                		
+				                		console.log("RECORD::DESELECT");
 				                		
 				                		var node = this.getNode(record);
 				                		
 				                        if (node) {
 				                        	var oPomElemId = Ext.fly(node).down("table").id;
 				                        	var oCheckBox = Ext.getCmp(oPomElemId);
-				                        	oCheckBox.setValue(false);	                        	
+				                        	console.log("CHECKED: "+oCheckBox.stateChecked);
+				                        	if(oCheckBox.stateChecked == 1){
+				                        		oCheckBox.setValue(false);
+				                        		oCheckBox.stateChecked = 0;
+				                        	}
+				                        	
+				                        	if(oCheckBox.directClick){
+				                        		console.log("DIRECT CLICK");
+				                        	}else{
+				                        		console.log("SHIFT SELECTION");
+				                        	}
+				                        	
+				                        	oCheckBox.directClick = false;	                        	
 				                        }
 				                		
+				                	},
+				                	
+				                	itemclick: function(viewObject, record, item, index, e, eOpts){
+				                		
+				                		console.log("RECORD::ITEMCLICK");
+				                		var node = this.getNode(record);
+				                		
+				                		if (node) {
+				                		
+					                		var oPomElemId = Ext.fly(node).down("table").id;
+				                        	var oCheckBox = Ext.getCmp(oPomElemId);
+					                		
+				                        	console.log("CHECKED: "+oCheckBox.stateChecked);
+				                        	
+				                        	var oSelectionModel = viewObject.getSelectionModel();
+				                        	
+				                        	if(oSelectionModel.isSelected(record)){
+				                        		
+					                        		if(((oCheckBox.stateChecked == 1)&&(e.target.nodeName=="DIV"))||(e.target.nodeName=="INPUT"))
+						                        			oCheckBox.stateChecked = 0;
+
+				                        	}else{
+				                        		
+				                        		switch(oCheckBox.stateChecked){
+				                        		
+				                        			case 0: if(e.target.nodeName=="INPUT")
+							                        			oCheckBox.stateChecked = 2;
+							                        		else
+							                        			oCheckBox.stateChecked = 1;
+				                        					break;
+				                        			case 1: if(e.target.nodeName=="INPUT")
+				                        						oCheckBox.stateChecked = 0;
+			                        						break;
+				                        			case 2: if(e.target.nodeName=="INPUT")
+		                        								oCheckBox.stateChecked = 0;
+			                        						break;
+				                        		
+				                        		}
+				                        		
+				                        		
+				                        		
+				                        	}
+				                        	
+				                        	oCheckBox.directClick = true;
+				                		}
+			                        	
 				                	},
 				                	refresh:function(){
 			                	        var renderSelector = Ext.query('div.multselector-checkbox'); 
@@ -265,13 +348,29 @@ Ext
 		                	                	boxLabel:renderSelector[i].getAttribute("name"),
 		                	                	listeners:{
 		                	                		change:function(checkBoxObject, newValue, oldValue, eOpts){
+		                	                		
+		                	                			//console.log("CHECKBOX::CHANGE");
 		                	                			
-		                	                			//console.log(checkBoxObject.multiListRef);
+		                	                			var oBoundList=checkBoxObject.multiListRef.boundList;
+		                	                			var oSelectionModel = checkBoxObject.multiListRef.boundList.getSelectionModel();
+		                	                			
+		                	                			
+//		                	                			if(oldValue.toString()=="true"){
+//		                	                				oSelectionModel.suspendEvents(false);
+//		                	                				oSelectionModel.deselect(oBoundList.getRecords(checkBoxObject.renderTo.parentNode));
+//		                	                				oSelectionModel.resumeEvents();
+//		                	                			}
+//		                	                			}else{
+//		                	                				oSelectionModel.select(oBoundList.getRecords(checkBoxObject.renderTo.parentNode));
+//		                	                			}
+		                	                			
 		                	                			
 		                	                		}
 		                	                	},
 		                	                    renderTo:renderSelector[i],
-		                	                    multiListRef: me.exampleMultiSelect
+		                	                    multiListRef: me.exampleMultiSelect,
+		                	                    stateChecked:0,
+		                	                    directClick:false
 		                	                });   
 		                	            } 
 			                	    }
@@ -281,7 +380,186 @@ Ext
 				            },
 							
 						});
-						
+						*/
+						/*
+						 * Multiselect with checkboxes
+						 */
+						/*
+						me.exampleMultiSelect = new Ext.ux.form.MultiSelect({
+							
+				            msgTarget: 'side',
+				            name: 'multiselect',
+				            width:220,
+				            allowBlank: true,
+				            store: [[123,'One Hundred Twenty Three'],
+				                    ['1', 'One'], ['2', 'Two'], ['3', 'Three'], ['4', 'Four'], ['5', 'Five'],
+				                    ['6', 'Six'], ['7', 'Seven'], ['8', 'Eight'], ['9', 'Nine']],				            
+				            //value: ['3', '4', '6'],
+				            ddReorder: false,
+				            listConfig: {
+				                // Custom rendering template for each item
+				                getInnerTpl: function(displayField) {
+				                	
+				                	return '<div class="multselector-checkbox" name="{'+displayField+'}"></div>';
+
+				                },
+				                listeners : {				                	
+				                	beforeselect:function(viewModel, record, eOpts){
+				                		
+				                		console.log("RECORD::SELECT");
+				                		
+				                		var node = this.getNode(record);
+
+				                        if (node) {
+				                        	var oPomElemId = Ext.fly(node).down("table").id;
+				                        	var oCheckBox = Ext.getCmp(oPomElemId);
+				                        	console.log("CHECKED: "+oCheckBox.stateChecked);
+				                        	var oSelectionModel= oCheckBox.multiListRef.boundList.getSelectionModel();
+				                        	
+				                        	if(oSelectionModel.isSelected(record)){
+				                        		alert("prethodno e selektirano");
+				                        		oSelectionModel.deselect([record],true);
+				                        		return false;
+				                        	}else{	
+				                        		
+					                        	if(oCheckBox.directClick){
+					                        		console.log("DIRECT CLICK");
+						                        	if(oCheckBox.stateChecked == 0)
+						                        		oCheckBox.setValue(false);
+						                        	else
+						                        		oCheckBox.setValue(true);
+					                        	}else{
+					                        		console.log("SHIFT SELECTION");
+					                        		//selected with SHIFT (range selection)
+					                        		if(oCheckBox.stateChecked == 0){
+						                        		oCheckBox.setValue(true);
+						                        		oCheckBox.stateChecked = 1;
+						                        	}
+					                        		
+					                        	}
+					                        	
+				                        	}
+				                        		
+				                        	//oCheckBox.resumeEvents();
+				                        	oCheckBox.directClick = false;
+				                        }
+				                        
+				                        return true;
+
+				                	},
+				                	deselect:function(r, record, eOpts){
+				                		
+				                		console.log("RECORD::DESELECT");
+				                		
+				                		var node = this.getNode(record);
+				                		
+				                        if (node) {
+				                        	var oPomElemId = Ext.fly(node).down("table").id;
+				                        	var oCheckBox = Ext.getCmp(oPomElemId);
+				                        	console.log("CHECKED: "+oCheckBox.stateChecked);
+				                        	
+				                        	if(oCheckBox.stateChecked == 1){
+				                        		oCheckBox.setValue(false);
+				                        		oCheckBox.stateChecked = 0;
+				                        	}
+				                        	
+				                        	if(oCheckBox.directClick){
+				                        		console.log("DIRECT CLICK");
+				                        	}else{
+				                        		console.log("SHIFT SELECTION");
+				                        	}
+				                        	
+				                        	oCheckBox.directClick = false;	                        	
+				                        }
+				                		
+				                	},
+				                	
+				                	itemclick: function(viewObject, record, item, index, e, eOpts){
+				                		
+				                		console.log("RECORD::ITEMCLICK");
+				                		var node = this.getNode(record);
+				                		
+				                		if (node) {
+				                		
+					                		var oPomElemId = Ext.fly(node).down("table").id;
+				                        	var oCheckBox = Ext.getCmp(oPomElemId);
+					                		
+				                        	console.log("CHECKED: "+oCheckBox.stateChecked);
+				                        	
+				                        	var oSelectionModel = viewObject.getSelectionModel();
+				                        	
+				                        	if(oSelectionModel.isSelected(record)){
+				                        		
+					                        		if(((oCheckBox.stateChecked == 1)&&(e.target.nodeName=="DIV"))||(e.target.nodeName=="INPUT"))
+						                        			oCheckBox.stateChecked = 0;
+
+				                        	}else{
+				                        		
+				                        		switch(oCheckBox.stateChecked){
+				                        		
+				                        			case 0: if(e.target.nodeName=="INPUT")
+							                        			oCheckBox.stateChecked = 2;
+							                        		else
+							                        			oCheckBox.stateChecked = 1;
+				                        					break;
+				                        			case 1: if(e.target.nodeName=="INPUT")
+				                        						oCheckBox.stateChecked = 0;
+			                        						break;
+				                        			case 2: if(e.target.nodeName=="INPUT")
+		                        								oCheckBox.stateChecked = 0;
+			                        						break;
+				                        		
+				                        		}
+				                        		
+				                        		
+				                        		
+				                        	}
+				                        	
+				                        	oCheckBox.directClick = true;
+				                		}
+			                        	
+				                	},
+				                	refresh:function(){
+			                	        var renderSelector = Ext.query('div.multselector-checkbox'); 
+		                	            for(var i in renderSelector){
+		                	            	//console.log(renderSelector[i].getAttribute("name"));
+		                	                Ext.create('Ext.form.field.Checkbox',{
+		                	                	boxLabel:renderSelector[i].getAttribute("name"),
+		                	                	listeners:{
+		                	                		change:function(checkBoxObject, newValue, oldValue, eOpts){
+		                	                		
+		                	                			//console.log("CHECKBOX::CHANGE");
+		                	                			
+		                	                			var oBoundList=checkBoxObject.multiListRef.boundList;
+		                	                			var oSelectionModel = checkBoxObject.multiListRef.boundList.getSelectionModel();
+		                	                			
+		                	                			
+//		                	                			if(oldValue.toString()=="true"){
+//		                	                				oSelectionModel.suspendEvents(false);
+//		                	                				oSelectionModel.deselect(oBoundList.getRecords(checkBoxObject.renderTo.parentNode));
+//		                	                				oSelectionModel.resumeEvents();
+//		                	                			}
+//		                	                			}else{
+//		                	                				oSelectionModel.select(oBoundList.getRecords(checkBoxObject.renderTo.parentNode));
+//		                	                			}
+		                	                			
+		                	                			
+		                	                		}
+		                	                	},
+		                	                    renderTo:renderSelector[i],
+		                	                    multiListRef: me.exampleMultiSelect,
+		                	                    stateChecked:0,
+		                	                    directClick:false
+		                	                });   
+		                	            } 
+			                	    }
+				                }
+			                	
+				                	
+				            },
+							
+						});
+						*/
 						var oAllButton = new Ext.Button({
 						    text: 'All',
 						    listeners:{
@@ -293,7 +571,7 @@ Ext
 						    				var oSelectionModel = oBoundList.getSelectionModel();
 						    				var oAllRecords = oBoundList.getRecords(oBoundList.getNodes());
 						    				
-						    				oSelectionModel.select(oAllRecords);
+						    				oSelectionModel.select(oAllRecords,false,true);
 						    				
 
 						    		   }
@@ -319,7 +597,7 @@ Ext
 						    					if(!(oSelectionModel.isSelected(oAllRecords[i])))
 						    						oInverseRecords.push(oAllRecords[i]);
 						 
-						    				oSelectionModel.select(oInverseRecords);
+						    				oSelectionModel.select(oInverseRecords,false,true);
 						    				
 						    	
 						    	}
@@ -328,27 +606,41 @@ Ext
 						    multiListRef:me.exampleMultiSelect
 						});
 						
-						me.leftPanel.add(
-								{
-								
-									xtype:'panel',
-									width:220,
-									bodyBorder:false,
-									items:[	
-										{
-								            xtype: 'box',
-								            autoEl: {
-								                tag: 'span',
-								                html: 'Select: '
-								            }
-										},
-										oAllButton,
-										oInverseButton
-									]
-								}
-						);
+//						me.leftPanel.add(
+//								{
+//								
+//									xtype:'panel',
+//									width:220,
+//									bodyBorder:false,
+//									items:[	
+//										{
+//								            xtype: 'box',
+//								            autoEl: {
+//								                tag: 'span',
+//								                html: 'Select: '
+//								            }
+//										},
+//										oAllButton,
+//										oInverseButton
+//									]
+//								}
+//						);
 						
-						me.leftPanel.add(me.exampleMultiSelect);
+						
+						//me.leftPanel.add(me.exampleMultiSelect);
+						
+						me.exampleMultiSelect2 = new Ext.ux.form.MultiSelect2({
+							
+				            msgTarget: 'side',
+				            name: 'multiselect',
+				            width:220,
+				            allowBlank: true,
+				            store: [[123,'One Hundred Twenty Three'],
+				                    ['1', 'One'], ['2', 'Two'], ['3', 'Three'], ['4', 'Four'], ['5', 'Five'],
+				                    ['6', 'Six'], ['7', 'Seven'], ['8', 'Eight'], ['9', 'Nine']]
+						});
+						
+						me.leftPanel.add(me.exampleMultiSelect2);
 						
 						/*
 						 * Definition of grid
