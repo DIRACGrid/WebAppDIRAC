@@ -218,7 +218,7 @@ Ext.define(
 			 * within the list of states
 			 */ 
 			Ext.Ajax.request({
-			    url: 'UP/listAppState',
+			    url: me.getBaseUrl()+'UP/listAppState',
 			    params: {
 			        app: 	"desktop",
 			        obj: 	"desktop"
@@ -537,6 +537,12 @@ Ext.define(
 				resizer.heightIncrement = yt;
 			});
 		},
+		
+		getBaseUrl:function(){
+			
+			return this.app.configData.baseURL+"/"; 
+			
+		},
 
 		// ------------------------------------------------------
 		// Window management methods
@@ -765,7 +771,7 @@ Ext.define(
 			 * If the Ajax is not successful then the states will remain the same
 			 */
 			Ext.Ajax.request({
-			    url: 'UP/listAppState',
+			    url: me.getBaseUrl()+'UP/listAppState',
 			    params: {
 			        app: 	appName,
 			        obj: 	"application"
@@ -1074,7 +1080,7 @@ Ext.define(
 			    	   * If the Ajax is not successful the item wont be deleted
 			    	   */
 			    	  Ext.Ajax.request({
-						    url: 'UP/delAppState',
+						    url: me.getBaseUrl()+'UP/delAppState',
 						    params: {
 						    	app: "desktop",
 						    	name: 	oStateName,
@@ -1165,7 +1171,7 @@ Ext.define(
 			 * No deletion.
 			 */
 			Ext.Ajax.request({
-			    url: 'UP/listAppState',
+			    url: me.getBaseUrl()+'UP/listAppState',
 			    params: {
 			        app: 	"desktop",
 			        obj: 	"desktop"
@@ -1382,7 +1388,7 @@ Ext.define(
 			 * If the Ajax is not successful the state wont be saved.
 			 */
 			Ext.Ajax.request({
-			    url: 'UP/saveAppState',
+			    url: me.getBaseUrl()+'UP/saveAppState',
 			    params: {
 			        app: 	"desktop",
 			        name: 	stateName,

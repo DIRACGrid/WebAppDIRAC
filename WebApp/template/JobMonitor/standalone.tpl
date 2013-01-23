@@ -25,12 +25,16 @@
 
         Ext.require('Ext.ux.desktop.App');
 
-        var _app=null;
-        Ext.onReady(function () {
-            _app = new Ext.ux.desktop.App({{ config_data }});
+        var myDesktopApp = null;
+        
+        Ext.require('Ext.ux.desktop.App', function() {
+        
+        	myDesktopApp = new Ext.ux.desktop.App({{ config_data }});
             setTimeout(function(){ Ext.get("loading").hide(); },1000);
-            
+            setTimeout(function(){myDesktopApp.createWindow("app","DIRAC.JobMonitor",null);},2000);
+        
         });
+        
     </script>
     <!-- </x-compile> -->
     <style type="text/css">

@@ -233,7 +233,7 @@ Ext.define(
 								 * will be created within the cache and the list of states
 								 */
 								Ext.Ajax.request({
-								    url: 'UP/listAppState',
+								    url: me.desktop.getBaseUrl()+'UP/listAppState',
 								    params: {
 								        app: 	me.appClassName,
 								        obj: 	"application"
@@ -600,7 +600,7 @@ Ext.define(
 						    	   * If the Ajax is not successful then the item wont be deleted.
 						    	   */
 						    	  Ext.Ajax.request({
-									    url: 'UP/delAppState',
+									    url: me.desktop.getBaseUrl()+'UP/delAppState',
 									    params: {
 									    	app: me.appClassName,
 									    	name: 	oStateName,
@@ -698,7 +698,7 @@ Ext.define(
 						 * If the Ajax is not successful the state wont be saved.
 						 */
 						Ext.Ajax.request({
-						    url: 'UP/saveAppState',
+						    url: me.desktop.getBaseUrl()+'UP/saveAppState',
 						    params: {
 						        app: 	me.appClassName,
 						        name: 	stateName,

@@ -32,12 +32,16 @@ Ext.define('Ext.ux.desktop.Module', {
 	},
 	
 	constructor : function(config) {
+		console.log(config);
+		this._baseUrl = config._baseUrl;
 		this.init();
 		this.callParent();
 	},
 
 	init : Ext.emptyFn,
-	
+
+	_baseUrl:"",
+
 	/**
 	 * Setter function for the property _UID
 	 * @param {int} _UID

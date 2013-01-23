@@ -1,6 +1,7 @@
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from WebAppDIRAC.Lib.SessionData import SessionData
 import json
 
 class JobMonitorHandler(WebHandler):
@@ -9,6 +10,9 @@ class JobMonitorHandler(WebHandler):
 
   def index(self):
     pass
+  
+  def web_standalone(self):
+     self.render("JobMonitor/standalone.tpl", config_data = json.dumps(SessionData().getData()))
   
   def web_getJobData(self):
 #    result = {"root":[{'JobID':1, 'Status':'done', 'Site':'LCG', 'LastUpdateTime':'12.12.2012 12:12'},

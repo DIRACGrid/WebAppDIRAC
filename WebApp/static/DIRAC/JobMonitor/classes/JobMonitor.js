@@ -15,9 +15,7 @@ Ext
 					             'Ext.util.*', 
 					             'Ext.panel.Panel',
 					             "Ext.ux.desktop.ToolButton",
-					             "Ext.ux.form.MultiSelect",
-					             "Ext.ux.form.MultiSelect2",
-					             "Ext.selection.DiracDataViewModel"],					
+					             "Ext.ux.form.MultiSelect"],					
 
 					loadState : function(data) {
 						
@@ -110,7 +108,6 @@ Ext
 								    {header:'TaskQueueID',sortable:true,dataIndex:'TaskQueueID',align:'left',hidden:true},
 								    {header:'OwnerGroup',sortable:true,dataIndex:'OwnerGroup',align:'left',hidden:true}
 					             ],
-					dataUrl: 'JobMonitor/getJobData',
 					dataFields:[
 					            {name:'SystemPriority', type: 'float'},
 					            {name:'ApplicationNumStatus'},
@@ -155,7 +152,6 @@ Ext
 
 						var me = this;
 						me.launcher.title = "Job Monitor";
-						
 						/*
 						 * Definition of containers
 						 */
@@ -170,9 +166,7 @@ Ext
 						    maxWidth: 350,
 						    bodyPadding: 5
 						});
-						
-						
-						
+
 						/*
 						 * Definition of combo boxes
 						 */
@@ -229,8 +223,103 @@ Ext
 				                    ['6', 'Six'], ['7', 'Seven'], ['8', 'Eight'], ['9', 'Nine']],				            
 				            ddReorder: false,
 				            listConfig: {
-				            	selModel:new Ext.selection.DiracDataViewModel({
-					                mode: "MULTI"
+				            	selModel:new Ext.selection.DataViewModel({
+					                mode: "MULTI",
+					                selectWithEvent: function(record, e, keepExisting) {
+					                    var me = this;
+
+					                    switch (me.selectionMode) {
+					                        case 'MULTI':
+					                            if (e.ctrlKey && me.isSelected(record)) {
+					                                me.doDeselect(record, false);
+					                            } else if (e.shiftKey && me.lastFocused) {
+					                                me.selectRange(me.lastFocused, record, e.ctrlKey);
+					                            } else if (e.ctrlKey) {
+					                                me.doSelect(record, true, false);
+					                            } else if (me.isSelected(record) && !e.shiftKey && !e.ctrlKey){
+					            					me.doDeselect(record, false);
+					                            } else {
+					                                me.doSelect(record, false);
+					                            }
+					                            break;
+					                        case 'SIMPLE':
+					                            if (me.isSelected(record)) {
+					                                me.doDeselect(record);
+					                            } else {
+					                                me.doSelect(record, true);
+					                            }
+					                            break;
+					                        case 'SINGLE':
+					                            // if allowDeselect is on and this record isSelected, deselect it
+					                            if (me.allowDeselect && me.isSelected(record)) {
+					                                me.doDeselect(record);
+					                            // select the record and do NOT maintain existing selections
+					                            } else {
+					                                me.doSelect(record, false);
+					                            }
+					                            break;
+					                    }
+					                },
+					                
+					                selectRange : function(startRow, endRow, keepExisting, dir){
+					                    var me = this,
+					                        store = me.store,
+					                        selectedCount = 0,
+					                        i,
+					                        tmp,
+					                        dontDeselect,
+					                        records = [];
+
+					                    if (me.isLocked()){
+					                        return;
+					                    }
+
+
+					                    if (!keepExisting) {
+					                        me.deselectAll(false);
+					                    }
+
+
+					                    if (!Ext.isNumber(startRow)) {
+					                        startRow = store.indexOf(startRow);
+					                    }
+					                    if (!Ext.isNumber(endRow)) {
+					                        endRow = store.indexOf(endRow);
+					                    }
+
+					                    // swap values
+					                    if (startRow > endRow){
+					                        tmp = endRow;
+					                        endRow = startRow;
+					                        startRow = tmp;
+					                    }
+					                    
+					                    
+					                    for (i = startRow; i <= endRow; i++) {
+					                        if (me.isSelected(store.getAt(i))) {
+					                            selectedCount++;
+					                        }
+					                    }
+
+					                    if (!dir) {
+					                        dontDeselect = -1;
+					                    } else {
+					                        dontDeselect = (dir == 'up') ? startRow : endRow;
+					                    }
+
+					                    for (i = startRow; i <= endRow; i++){
+					                        if (selectedCount == (endRow - startRow + 1)) {
+					                            if (i != dontDeselect) {
+					                                me.doDeselect(i, true);
+					                            }
+					                        } else {
+					                            records.push(store.getAt(i));
+					                        }
+					                    }
+
+					                    me.doMultiSelect(records, true);
+					                    
+					                }
 					             }),
 				                // Custom rendering template for each item
 				                getInnerTpl: function(displayField) {
@@ -243,7 +332,7 @@ Ext
 				                	//beforeselect:function(viewModel, record, eOpts){
 				                	select:function(r, record, eOpts){
 				                						                		
-				                		console.log("RECORD::SELECT");
+				                		//console.log("RECORD::SELECT");
 				                		
 				                		var node = this.getNode(record);
 				                		
@@ -258,7 +347,7 @@ Ext
 				                	
 				                	deselect:function(r, record, eOpts){
 				                		
-				                		console.log("RECORD::DESELECT");
+				                		//console.log("RECORD::DESELECT::"+record.data.field2);
 				                		
 				                		var node = this.getNode(record);
 				                		
@@ -341,15 +430,16 @@ Ext
 						);
 						
 						
-						me.leftPanel.add(me.exampleMultiSelect);
+						//me.leftPanel.add(me.exampleMultiSelect);
 						
 						/*
 						 * Definition of grid
 						 */
+						
 						me.dataStore = new Ext.data.JsonStore({
 						    proxy: {
 						        type: 'ajax',
-						        url: me.dataUrl,
+						        url: this._baseUrl+'JobMonitor/getJobData',
 						        reader: {
 						            type: 'json',
 						            root: 'result'

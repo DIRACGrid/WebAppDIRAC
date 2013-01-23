@@ -59,7 +59,7 @@ Ext.define(
 			}
 
 			me.configData = configData;
-			console.log(configData);
+			//console.log(configData);
 			me.callParent();
 
 		},
@@ -260,8 +260,9 @@ Ext.define(
 				Ext.require(sStartClass, function() {
 					
 					var me = this;
-					var instance = Ext.create(sStartClass);
-					instance.setUID(++me._uid_counter);	
+					var instance = Ext.create(sStartClass,{_baseUrl:me.configData.baseURL+"/"});
+					instance.setUID(++me._uid_counter);
+					
 					var config = {
 							desktop: me.desktop,
 							setupData: setupData,
