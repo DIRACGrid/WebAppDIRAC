@@ -72,3 +72,143 @@ class JobMonitorHandler(WebHandler):
     result = result.strip()
     result = result[:-1]
     return result
+
+  def web_getSelectionData(self):
+    sData = SessionData().getData() 
+    callback = {}
+    group = sData["user"]["group"]
+    user = sData["user"]["username"]
+    '''
+    if len(self.request.arguments) > 0:
+      tmp = {}
+      for i in self.request.arguments:
+        tmp[i] = str(self.request.arguments[i])
+      callback["extra"] = tmp
+      if callback["extra"].has_key("prod"):
+        callback["extra"]["prod"] = callback["extra"]["prod"].zfill(8)
+        if callback["extra"]["prod"] == "00000000":
+          callback["extra"]["prod"] = ""
+    '''
+    if user == "Anonymous":
+      callback["prod"] = [["Insufficient rights"]]
+    else:
+      #RPC = getRPCClient("WorkloadManagement/JobMonitoring")
+      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      result = RPC.getProductionIds()
+      if result["OK"]:
+        prod = []
+        prods = result["Value"]
+        if len(prods)>0:
+          #prod.append([str("All")])
+          tmp = []
+          for keys in prods:
+            try:
+              id = str(int(keys)).zfill(8)
+            except:
+              id = str(keys)
+            tmp.append(str(id))
+          tmp.sort(reverse=True)
+          for i in tmp:
+            prod.append([str(i)])
+        else:
+          prod = [["Nothing to display"]]
+      else:
+        gLogger.error("RPC.getProductionIds() return error: %s" % result["Message"])
+        prod = [["Error happened on service side"]]
+      callback["prod"] = prod
+###
+    #RPC = getRPCClient("WorkloadManagement/JobMonitoring")
+    RPC = RPCClient("WorkloadManagement/JobMonitoring")
+    result = RPC.getSites()
+    if result["OK"]:
+      #tier1 = gConfig.getValue("/Website/PreferredSites",[]) # Always return a list
+      site = []
+      if len(result["Value"])>0:
+        s = list(result["Value"])
+        #site.append([str("All")])
+        for i in s:
+          site.append([str(i)])    
+      else:
+        site = [["Nothing to display"]]
+    else:
+      gLogger.error("RPC.getSites() return error: %s" % result["Message"])
+      site = [["Error happened on service side"]]
+    callback["site"] = site
+###
+    result = RPC.getStates()
+    if result["OK"]:
+      stat = []
+      if len(result["Value"])>0:
+        #stat.append([str("All")])
+        for i in result["Value"]:
+          stat.append([str(i)])
+      else:
+        stat = [["Nothing to display"]]
+    else:
+      gLogger.error("RPC.getStates() return error: %s" % result["Message"])
+      stat = [["Error happened on service side"]]
+    callback["status"] = stat
+###
+    result = RPC.getMinorStates()
+    if result["OK"]:
+      stat = []
+      if len(result["Value"])>0:
+        #stat.append([str("All")])
+        for i in result["Value"]:
+          i = i.replace(",",";")
+          stat.append([i])
+      else:
+        stat = [["Nothing to display"]]
+    else:
+      gLogger.error("RPC.getMinorStates() return error: %s" % result["Message"])
+      stat = [["Error happened on service side"]]
+    callback["minorstat"] = stat
+###
+    result = RPC.getApplicationStates()
+    if result["OK"]:
+      app = []
+      if len(result["Value"])>0:
+        #app.append([str("All")])
+        for i in result["Value"]:
+          i = i.replace(",",";")
+          app.append([i])
+      else:
+        app = [["Nothing to display"]]
+    else:
+      gLogger.error("RPC.getApplicationstates() return error: %s" % result["Message"])
+      app = [["Error happened on service side"]]
+    callback["app"] = app
+###
+    result = RPC.getJobTypes()
+    if result["OK"]:
+      types = []
+      if len(result["Value"])>0:
+        #types.append([str("All")])
+        for i in result["Value"]:
+          i = i.replace(",",";")
+          types.append([i])
+      else:
+        types = [["Nothing to display"]]
+    else:
+      gLogger.error("RPC.getJobTypes() return error: %s" % result["Message"])
+      types = [["Error happened on service side"]]
+    callback["types"] = types
+###
+    #groupProperty = credentials.getProperties(group)
+    if user == "Anonymous":
+      callback["owner"] = [["Insufficient rights"]]
+    else:
+      result = RPC.getOwners()
+      if result["OK"]:
+        owner = []
+        if len(result["Value"])>0:
+          #owner.append([str("All")])
+          for i in result["Value"]:
+            owner.append([str(i)])
+        else:
+          owner = [["Nothing to display"]]
+      else:
+        gLogger.error("RPC.getOwners() return error: %s" % result["Message"])
+        owner = [["Error happened on service side"]]
+      callback["owner"] = owner
+    self.write(json.dumps(callback))

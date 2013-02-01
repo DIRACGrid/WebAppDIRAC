@@ -5,6 +5,7 @@
     <title>ExtTop - Desktop Sample App</title>
 
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/ext-4.1.1a/resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form/field/BoxSelect.css" />
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/desktop.css" />
 	{% autoescape None %}
     <!-- GC -->
