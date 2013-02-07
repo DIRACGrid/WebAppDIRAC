@@ -17,7 +17,7 @@ Ext
 					             "Ext.ux.desktop.ToolButton",
 					             "Ext.ux.form.MultiSelect",
 					             "Ext.ux.desktop.DiracMultiSelect",
-					             "Ext.ux.form.field.BoxSelect"],					
+					             "Ext.ux.desktop.DiracBoxSelect"],					
 
 					loadState : function(data) {
 						
@@ -191,13 +191,14 @@ Ext
 						
 						for(var cmb in me.cmbSelectors){
 							
-							me.cmbSelectors[cmb] = Ext.create('Ext.ux.form.field.BoxSelect', {
+							me.cmbSelectors[cmb] = Ext.create('Ext.ux.desktop.DiracBoxSelect', {
 							    fieldLabel: cmbTitles[cmb],
 							    queryMode: 'local',
 							    labelAlign:'top',
 							    width:220,
 							    displayField: "text",
-							    valueField: "value"
+							    valueField: "value",
+							    
 							});
 							
 						}
@@ -267,14 +268,6 @@ Ext
 						
 						me.leftPanel.add(oPanelButtons);
 						
-//						me.leftPanel.add([me.cmbSelectors.site,
-//						                  me.cmbSelectors.status, 
-//						                  me.cmbSelectors.minorStatus, 
-//						                  me.cmbSelectors.appStatus,
-//						                  me.cmbSelectors.owner, 
-//						                  me.cmbSelectors.jobGroup, 
-//						                  me.cmbSelectors.jobType]);
-						
 						Ext.Ajax.request({
 						    url: me._baseUrl+'JobMonitor/getSelectionData',
 						    params: {
@@ -285,8 +278,6 @@ Ext
 						    	
 						    	var me = this;
 						    	var response = Ext.JSON.decode(response.responseText);
-						    	//console.log(response);
-						    	//site - options
 						    	
 						    	var map = [["app","appStatus"],
 						    	           ["minorstat","minorStatus"],
@@ -316,51 +307,6 @@ Ext
 						    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 						    }
 						});
-						
-//						var oInverseButton = new Ext.Button({
-//						    text: 'Inverse',
-//						    listeners:{
-//						    	
-//						    	click: function(btn,e,eOpt) {
-//						    		
-//								    		var oBoundList=btn.multiListRef.boundList;
-//						    				var oSelectionModel = oBoundList.getSelectionModel();
-//						    				var oAllRecords = oBoundList.getRecords(oBoundList.getNodes());
-//						    				var oSelectedRecords = oBoundList.getRecords(oBoundList.getSelectedNodes());
-//						    				
-//						    				var oInverseRecords=[];
-//						    				
-//						    				for(var i=0;i<oAllRecords.length;i++)
-//						    					if(!(oSelectionModel.isSelected(oAllRecords[i])))
-//						    						oInverseRecords.push(oAllRecords[i]);
-//						 
-//						    				oSelectionModel.select(oInverseRecords);
-//						    	
-//						    	}
-//						
-//						    },
-//						    multiListRef:me.exampleMultiSelect
-//						});
-		
-						
-//						me.newCombo2 = new Ext.ux.form.field.BoxSelect({
-//					         
-//					          displayField: "text",
-//					          valueField: "value",
-//					          width: 220,
-//					          store: new Ext.data.ArrayStore({
-//				                  fields : ['value', 'text'],
-//				                  data   : [
-//				                      ["AL", "Alabama"],
-//				                      ["AK", "Alaska"],
-//				                      ["AZ", "Arizona"],
-//				                      ["MK", "Makedonija"]
-//				                  ]
-//				              }),
-//					          queryMode: "local"
-//					       });
-//				
-//						me.leftPanel.add(me.newCombo2);
 						
 
 						/*

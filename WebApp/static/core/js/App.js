@@ -187,11 +187,95 @@ Ext.define(
 				return result;
 				
 			}else{
-				
-				return {
+				if(item[0]=="app"){
+					return {
 							text:item[1],
-							handler:Ext.bind(me.createWindow, me,[item[0],item[2],((item[0]=="app")?null:{title:item[1]})])
+							//handler:Ext.bind(me.createWindow, me,[item[0],item[2],((item[0]=="app")?null:{title:item[1]})]),
+							menu:[{text:"Default",handler:Ext.bind(me.createWindow, me,[item[0],item[2],null])},'-'],
+							stateMenuLoaded:false,
+							listeners:{
+								
+								focus:function(cmp,e,eOpts){
+									/*
+									 * if the cache for the state of the started application exist
+									 */
+									var oParts = item[2].split(".");
+									var sStartClass="";
+									if(oParts.length==2)
+										sStartClass=item[2]+".classes."+oParts[1];
+									else
+										sStartClass=item[2];
+								
+									if(sStartClass in me.desktop.cache.windows){
+
+										if(!cmp.isStateMenuLoaded){
+											for (var stateName in me.desktop.cache.windows[sStartClass]) {	
+												
+												var newItem = Ext.create('Ext.menu.Item', {
+									    			  text: stateName,
+									    			  handler: Ext.bind(me.createWindow, me, ["app",sStartClass,{stateToLoad:stateName}], false),
+									    			  scope:me
+									    		});
+					
+												cmp.menu.add(newItem);
+												
+											}
+											cmp.isStateMenuLoaded=true;
+										}
+																
+									}else{
+
+										Ext.Ajax.request({
+										    url: me.desktop.getBaseUrl()+'UP/listAppState',
+										    params: {
+										        app: 	sStartClass,
+										        obj: 	"application"
+										    },
+										    
+										    success: function(response){
+										    	
+										    	var states = Ext.JSON.decode(response.responseText);
+										    	me.desktop.cache.windows[sStartClass]={};
+										    	
+										    	for (var stateName in states) {	
+										    		
+										    		var newItem = Ext.create('Ext.menu.Item', {
+																	    			  text: stateName,
+																	    			  handler: Ext.bind(me.createWindow, me, ["app",sStartClass,{stateToLoad:stateName}], false),
+																	    			  scope:me
+																	    		});
+										    		
+										    		cmp.menu.add(newItem);
+										    		
+										    		me.desktop.cache.windows[sStartClass][stateName]=states[stateName];
+										    		cmp.isStateMenuLoaded=true;
+										    	}
+										    	
+										    	
+										    },
+										    failure:function(response){
+										    	
+										    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+										    }
+										});
+			
+									}
+									
+									
+								}
+								
+							}
 						};
+						
+				}else{
+					
+					return {
+						text:item[1],
+						handler:Ext.bind(me.createWindow, me,[item[0],item[2],{title:item[1]}])
+					};
+					
+					
+				}
 				
 			}
 			
@@ -248,6 +332,7 @@ Ext.define(
 		 */
 		createWindow : function(loadedObjectType,moduleName,setupData) {
 			
+			Ext.get("app-dirac-loading").show();
 			
 			if(loadedObjectType =="app"){
 				var oParts = moduleName.split(".");
@@ -278,15 +363,17 @@ Ext.define(
 			
 			}else if(loadedObjectType == "link"){
 				
-				var win = this.desktop.createWindow({
+				var window = this.desktop.createWindow({
 				  setupData:setupData,
                   loadedObjectType:"link",
                   linkToLoad:moduleName
                 });
 
-				win.show();
+				window.show();
 				
 			}
+			
+			
 			
 		},
 

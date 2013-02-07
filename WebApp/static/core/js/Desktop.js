@@ -646,11 +646,10 @@ Ext.define(
 		 * 
 		 * @param {Object}
 		 *            config Configuration and content of the window
-		 * @param {Object}
-		 *            cls
 		 */
 		
-		createWindow : function(config, cls) {
+		createWindow : function(config) {
+			
 			var me = this, win, cfg = Ext.applyIf(config || {}, {
 				stateful : false,
 				isWindow : true,
@@ -663,8 +662,7 @@ Ext.define(
 				layout : 'fit'
 			});
 
-			cls = cls || Ext.ux.desktop.Window;
-			win = me.add(new cls(cfg));
+			win = me.add(new Ext.ux.desktop.Window(cfg));
 
 			me.windows.add(win);
 
@@ -673,6 +671,7 @@ Ext.define(
 			win.on({
 				activate : me.updateActiveWindow,
 				beforeshow : me.updateActiveWindow,
+				afterrender: me.hideMessageBox,
 				deactivate : me.updateActiveWindow,
 				minimize : me.minimizeWindow,
 				maximize:me.maximizeWindow,
@@ -704,7 +703,11 @@ Ext.define(
 
 			return win;
 		},
-
+		
+		hideMessageBox:function(){
+			Ext.get("app-dirac-loading").hide();
+		},
+		
 		/**
 		 * @private Function to update the active window
 		 */
@@ -733,6 +736,7 @@ Ext.define(
 
 			me.taskbar.setActiveButton(activeWindow
 					&& activeWindow.taskButton);
+			
 		},
 		
 		/*

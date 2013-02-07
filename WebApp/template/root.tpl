@@ -5,7 +5,7 @@
     <title>ExtTop - Desktop Sample App</title>
 
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/ext-4.1.1a/resources/css/ext-all.css" />
-    <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form/field/BoxSelect.css" />
+    <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/BoxSelect.css" />
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/desktop.css" />
 	{% autoescape None %}
     <!-- GC -->
@@ -29,13 +29,15 @@
         var _app=null;
         Ext.onReady(function () {
             _app = new Ext.ux.desktop.App({{ config_data }});
-            setTimeout(function(){ Ext.get("loading").hide(); },1000);
-            
+            setTimeout(function(){ 
+            	Ext.get("app-dirac-loading").hide();
+            	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ..."); 
+            },1000);
         });
     </script>
     <!-- </x-compile> -->
     <style type="text/css">
-	    #loading{
+	    #app-dirac-loading{
 	        height:auto;
 	        position:absolute;
 	        left:45%;
@@ -43,10 +45,10 @@
 	        padding:2px;
 	        z-index:20001;
 	    }
-	    #loading a {
+	    #app-dirac-loading a {
 	        color:#225588;
 	    }
-	    #loading .loading-indicator{
+	    #app-dirac-loading .app-dirac-loading-indicator{
 	        background:none;
 	        color:#444;
 	        font:bold 13px Helvetica, Arial, sans-serif;
@@ -56,7 +58,7 @@
 	        width:300px;
 	        
 	    }
-	    #loading-msg {
+	    #app-dirac-loading-msg {
 	        font-size: 12px;
 	        font-weight: normal;
 	    }
@@ -64,8 +66,8 @@
 </head>
 
 <body>
-	<div id="loading">
-	    <div class="loading-indicator">
+	<div id="app-dirac-loading">
+	    <div class="app-dirac-loading-indicator">
 	    	<table>
 	    		<tr>
 	    			<td style="width:100px;">
@@ -74,7 +76,7 @@
 	    			<td style="width:200px;vertical-align:middle;text-align:left;padding:5px 0px 5px 15px;font-size:14px">
 	    				DIRAC
 	        			<br />
-	        			<span id="loading-msg">Loading data and resources...</span>
+	        			<span id="app-dirac-loading-msg">Loading data and resources...</span>
 	    			</td>
 	    		</tr>
 	    	</table>

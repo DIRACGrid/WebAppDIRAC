@@ -79,7 +79,9 @@ Ext.define(
 						
 						var me = this;
 						
-						if(setupData != null){
+						//da se zeme vo obzir elementot stateToLoad od setupData ako postoi
+						
+						if((setupData != null)&&(!("stateToLoad" in setupData))){
 							
 							me.setPosition(setupData.x,setupData.y);
 							
@@ -119,6 +121,12 @@ Ext.define(
 								}
 							}else{
 								me.maximize();
+							}
+							
+							if(setupData != null){
+								
+								me.oprLoadAppStateFromCache(setupData["stateToLoad"]);
+								
 							}
 							
 							

@@ -2,12 +2,13 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
+from DIRAC import gConfig
 import json
 
 class JobMonitorHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
-
+     
   def index(self):
     pass
   
@@ -15,15 +16,12 @@ class JobMonitorHandler(WebHandler):
      self.render("JobMonitor/standalone.tpl", config_data = json.dumps(SessionData().getData()))
   
   def web_getJobData(self):
-#    result = {"root":[{'JobID':1, 'Status':'done', 'Site':'LCG', 'LastUpdateTime':'12.12.2012 12:12'},
-#              {'JobID':2, 'Status':'failed', 'Site':'LCG', 'LastUpdateTime':'12.12.2012 12:12'}]}
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
+    req = self.__request()
+    result = RPC.getJobPageSummaryWeb(req, self.globalSort , self.pageNumber, self.numberOfJobs)
     
-    result = RPC.getJobPageSummaryWeb({}, [["JobID", "DESC"]], 0, 25)
-   
     if result["OK"]:
       result = result["Value"]
-#      gLogger.info("ReS",result)
       if result.has_key("TotalRecords"):
         if result["TotalRecords"] > 0:
           if result.has_key("ParameterNames") and result.has_key("Records"):
@@ -39,7 +37,6 @@ class JobMonitorHandler(WebHandler):
                     tmp[head[j]] = i[j]
                   callback.append(tmp)
                 total = result["TotalRecords"]
-#                timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
                 if result.has_key("Extras"):
                   st = self.__dict2string({})
                   extra = result["Extras"]
@@ -58,7 +55,6 @@ class JobMonitorHandler(WebHandler):
         callback = {"success":"false", "result":"", "error":"Data structure is corrupted"}
     else:
       callback = {"success":"false", "error":result["Message"]}
-    
     self.write(json.dumps(callback))
 
   def __dict2string(self, req):
@@ -212,3 +208,99 @@ class JobMonitorHandler(WebHandler):
         owner = [["Error happened on service side"]]
       callback["owner"] = owner
     self.write(json.dumps(callback))
+    
+  def __request(self):
+    self.pageNumber = 0
+    self.numberOfJobs = 25
+    self.globalSort = [["JobID","DESC"]]
+    sData = SessionData().getData() 
+    req = {}
+    group = sData["user"]["group"]
+    user = sData["user"]["username"]
+    
+    if self.request.arguments.has_key("limit") and len(self.request.arguments["limit"][0]) > 0:
+      self.numberOfJobs = int(self.request.arguments["limit"][0])
+      if self.request.arguments.has_key("start") and len(self.request.arguments["start"][0]) > 0:
+        self.pageNumber = int(self.request.arguments["start"][0])
+      else:
+        self.pageNumber = 0
+    
+    if self.request.arguments.has_key("id") and len(self.request.arguments["id"][0]) > 0:
+      testString = str(self.request.arguments["id"][0]).testString.strip(';, ').testString.split(', ');
+      if len(testString) == 1:
+        testString = testString[0].split('; ')
+        if len(testString) == 1:
+          testString = testString[0].split(' ')
+          if len(testString) == 1:
+            testString = testString[0].split(',')
+            if len(testString) == 1:
+              testString = testString[0].split(';')
+              if len(testString) == 1:
+                req["JobID"] = testString[0]
+              else:
+                req["JobID"] = testString
+            else:
+              req["JobID"] = testString
+          else:
+            req["JobID"] = testString
+        else:
+          req["JobID"] = testString
+      else:
+        req["JobID"] = testString
+      for i in req["JobID"]:
+        testI = i.split('-')
+        if len(testI) == 2:
+          testI[0] = testI[0].strip(' ')
+          testI[1] = testI[1].strip(' ')
+          rangeID = range(testI[0],testI[1])
+          req["JobID"].extend(rangeID)
+    else:
+      #groupProperty = credentials.getProperties(group)
+      result = gConfig.getOption("/Website/ListSeparator")
+      if result["OK"]:
+        separator = result["Value"]
+      else:
+        separator = ","
+      if self.request.arguments.has_key("prod") and len(self.request.arguments["prod"][0]) > 0:
+        if str(self.request.arguments["prod"][0]) != "":
+          req["JobGroup"] = str(self.request.arguments["prod"][0]).split(separator)
+      if self.request.arguments.has_key("site") and len(self.request.arguments["site"][0]) > 0:
+        if str(self.request.arguments["site"][0]) != "":
+          req["Site"] = [x.strip() for x in str(self.request.arguments["site"][0]).split(separator)]
+      if self.request.arguments.has_key("status") and len(self.request.arguments["status"][0]) > 0:
+        if str(self.request.arguments["status"][0]) != "":
+          req["Status"] = str(self.request.arguments["status"][0]).split(separator)
+      if self.request.arguments.has_key("minorstat") and len(self.request.arguments["minorstat"][0]) > 0:
+        if str(self.request.arguments["minorstat"][0]) != "":
+          req["MinorStatus"] = str(self.request.arguments["minorstat"][0]).split(separator)
+      if self.request.arguments.has_key("app") and len(self.request.arguments["app"][0]) > 0:
+        if str(self.request.arguments["app"][0]) != "":
+          req["ApplicationStatus"] = str(self.request.arguments["app"][0]).split(separator)
+      if self.request.arguments.has_key("types") and len(self.request.arguments["types"][0]) > 0:
+        if str(self.request.arguments["types"][0]) != "":
+          req["JobType"] = str(self.request.arguments["types"][0]).split(separator)
+
+      if self.request.arguments.has_key("owner") and len(self.request.arguments["owner"][0]) > 0:
+        if str(self.request.arguments["owner"][0]) != "":
+          req["Owner"] = str(self.request.arguments["owner"][0]).split(separator)
+      if self.request.arguments.has_key("startDate") and len(self.request.arguments["startDate"][0]) > 0:
+        if str(self.request.arguments["startDate"][0]) != "YYYY-mm-dd":
+          if self.request.arguments.has_key("startTime") and len(self.request.arguments["startTime"][0]) > 0:
+            req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
+          else:
+            req["FromDate"] = str(self.request.arguments["startDate"][0])
+      if self.request.arguments.has_key("endDate") and len(self.request.arguments["endDate"][0]) > 0:
+        if str(self.request.arguments["endDate"][0]) != "YYYY-mm-dd":
+          if self.request.arguments.has_key("endTime") and len(self.request.arguments["endTime"][0]) > 0:
+            req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
+          else:
+            req["ToDate"] = str(self.request.arguments["endDate"][0])
+      if self.request.arguments.has_key("date") and len(self.request.arguments["date"][0]) > 0:
+        if str(self.request.arguments["date"][0]) != "YYYY-mm-dd":
+          req["LastUpdate"] = str(self.request.arguments["date"][0])
+      if self.request.arguments.has_key("sort") and len(self.request.arguments["sort"][0]) > 0:
+        self.globalSort = str(self.request.arguments["sort"][0])
+        key,value = self.globalSort.split(" ")
+        self.globalSort = [[str(key),str(value)]]
+     
+    return req
