@@ -358,7 +358,7 @@ Ext.define(
 					sStartClass=moduleName;
 				
 				Ext.require(sStartClass, function() {
-					console.log("HERE 1-3");
+					
 					var me = this;
 					var instance = Ext.create(sStartClass,{_baseUrl:me.configData.baseURL+"/"});
 					instance.setUID(++me._uid_counter);
@@ -369,11 +369,10 @@ Ext.define(
 							loadedObject:instance,
 							loadedObjectType:"app"
 						};
-					console.log("HERE 1");
+					
 					var window = me.desktop.createWindow(config);
-					console.log("HERE 2");
 					window.show();
-					console.log("HERE 3");
+					
 					
 				},this);
 				

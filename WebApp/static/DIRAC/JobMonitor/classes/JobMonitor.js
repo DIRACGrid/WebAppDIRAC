@@ -14,11 +14,10 @@ Ext
 					requires : [ 'Ext.data.JsonStore',
 					             'Ext.util.*', 
 					             'Ext.panel.Panel',
-					             "Ext.dirac.utils.DiracToolButton",
-					             "Ext.dirac.utils.DiracBoxSelect",
 					             "Ext.form.field.Text",
 					             "Ext.button.Button",
-					             "Ext.menu.CheckItem"],					
+					             "Ext.menu.CheckItem",
+					             "Ext.menu.Menu"],					
 
 					loadState : function(data) {
 						
@@ -385,7 +384,7 @@ Ext
 						
 						me.leftPanel.getHeader().addTool({
 							xtype : "diracToolButton",
-							type : "save",
+							type : "down",
 							menu : me.selectorMenu
 						});
 						

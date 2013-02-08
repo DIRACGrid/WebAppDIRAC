@@ -299,8 +299,9 @@ class JobMonitorHandler(WebHandler):
         if str(self.request.arguments["date"][0]) != "YYYY-mm-dd":
           req["LastUpdate"] = str(self.request.arguments["date"][0])
       if self.request.arguments.has_key("sort") and len(self.request.arguments["sort"][0]) > 0:
-        self.globalSort = str(self.request.arguments["sort"][0])
-        key,value = self.globalSort.split(" ")
-        self.globalSort = [[str(key),str(value)]]
+        #self.globalSort = str(self.request.arguments["sort"][0])
+        sortValue = self.request.arguments["sort"][0]
+        print isinstance(sortValue,str)
+        #self.globalSort = [[sortValue["property"],sortValue["direction"]]]
      
     return req

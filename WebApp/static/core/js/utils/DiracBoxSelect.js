@@ -32,7 +32,7 @@
 Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     extend:'Ext.form.field.ComboBox',
     alias: ['widget.comboboxselect', 'widget.boxselect'],
-    requires: ['Ext.selection.Model', 'Ext.data.Store','Ext.selection.DataViewModel'],
+    requires: ['Ext.selection.Model', 'Ext.data.Store','Ext.selection.DataViewModel','Ext.form.field.Checkbox'],
 
     //
     // Begin configuration options related to selected values
@@ -437,7 +437,7 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
           	    },
               	  select:function(r, record, eOpts){
               		
-              		console.log("RECORD::SELECT");
+              		
               		var node = this.getNode(record);
               		
                       if (node) {
@@ -450,8 +450,6 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
               	},
               	
               	deselect:function(r, record, eOpts){
-              		
-              		console.log("RECORD::DESELECT::");
               		
               		var node = this.getNode(record);
               		
