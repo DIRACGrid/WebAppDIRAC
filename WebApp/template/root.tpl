@@ -13,7 +13,6 @@
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
     <script type="text/javascript" src="/DIRAC/static/extjs/ext-4.1.1a/ext.js"></script>
-    <script type="text/javascript" src="/DIRAC/static/core/js/core/HelpFunctions.js"></script>
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
 		
