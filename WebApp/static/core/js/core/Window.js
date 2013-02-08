@@ -6,16 +6,16 @@
  */
 
 /**
- * @class Ext.ux.desktop.Window This is a window widget with extended functionality
+ * @class Ext.dirac.core.Window This is a window widget with extended functionality
  * 								such as state management
  * @extend Ext.window.Window
  * 
  */
 Ext.define(
-			'Ext.ux.desktop.Window',
+			'Ext.dirac.core.Window',
 			{
 					extend : 'Ext.window.Window',
-					requires : [ "Ext.ux.desktop.ToolButton", 
+					requires : [ "Ext.dirac.utils.DiracToolButton", 
 					             "Ext.menu.Menu",
 					             "Ext.menu.Item",
 					             "Ext.form.*",
@@ -34,7 +34,7 @@ Ext.define(
 					 */
 					loadMask:null,
 					/**
-					 * @property {Ext.ux.desktop.Desktop} desktop Reference to the desktop object
+					 * @property {Ext.dirac.core.Desktop} desktop Reference to the desktop object
 					 */
 					desktop:null,
 					
@@ -306,7 +306,7 @@ Ext.define(
 							});
 	
 							me.addTool({
-								xtype : "toolButton",
+								xtype : "diracToolButton",
 								type : "save",
 								menu : me.loadMenu
 							});

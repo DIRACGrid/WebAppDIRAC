@@ -6,22 +6,22 @@
  */
 
 /**
- * @class Ext.ux.desktop.App
+ * @class Ext.dirac.core.App
  * This class manages the entire application platform
  * @mixins Ext.util.Observable
  * 
  */
 
 Ext.define(
-	'Ext.ux.desktop.App',
+	'Ext.dirac.core.App',
 	{
 		mixins : {
 			observable : 'Ext.util.Observable'
 		},
 
 		requires : [ 'Ext.container.Viewport',
-				'Ext.ux.desktop.Desktop', 'Ext.window.MessageBox',
-				'Ext.ux.desktop.ShortcutModel' ],
+				'Ext.dirac.core.Desktop', 'Ext.window.MessageBox',
+				'Ext.dirac.core.ShortcutModel' ],
 		/**
 		 * @property {boolean} isReady
 		 */
@@ -44,22 +44,36 @@ Ext.define(
 		 */
 		_uid_counter:0,
 
-		constructor : function(configData) {
+		constructor : function() {
 
 			var me = this;
 
 			me.addEvents('ready', 'beforeunload');
 
 			me.mixins.observable.constructor.call(this, undefined);
+		
+			Ext.Ajax.request({
+			    url: _app_base_url+'getConfigData',
+			    params: {},
+			    scope:me,
+			    success: function(response){
+			    	
+			    	var configData = Ext.JSON.decode(response.responseText);
+			    	me.configData = configData;
+			    	
+			    	if (Ext.isReady) {
+						Ext.Function.defer(me.init, 10, me);
+					} else {
+						Ext.onReady(me.init, me);
+					}
+					
+			    },
+			    failure:function(response){
+			    	
+			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+			    }
+			});
 
-			if (Ext.isReady) {
-				Ext.Function.defer(me.init, 10, me);
-			} else {
-				Ext.onReady(me.init, me);
-			}
-
-			me.configData = configData;
-			//console.log(configData);
 			me.callParent();
 
 		},
@@ -79,7 +93,7 @@ Ext.define(
 			 * Creating the main desktop obbject
 			 */
 			desktopCfg = me.getDesktopConfig();
-			me.desktop = new Ext.ux.desktop.Desktop(desktopCfg);
+			me.desktop = new Ext.dirac.core.Desktop(desktopCfg);
 
 			me.viewport = new Ext.container.Viewport({
 				layout : 'fit',
@@ -124,7 +138,7 @@ Ext.define(
 										.create(
 												'Ext.data.Store',
 												{
-													model : 'Ext.ux.desktop.ShortcutModel',
+													model : 'Ext.dirac.core.ShortcutModel',
 													data : {}
 												}),
 
@@ -335,6 +349,7 @@ Ext.define(
 			Ext.get("app-dirac-loading").show();
 			
 			if(loadedObjectType =="app"){
+				
 				var oParts = moduleName.split(".");
 				var sStartClass="";
 				if(oParts.length==2)
@@ -343,7 +358,7 @@ Ext.define(
 					sStartClass=moduleName;
 				
 				Ext.require(sStartClass, function() {
-					
+					console.log("HERE 1-3");
 					var me = this;
 					var instance = Ext.create(sStartClass,{_baseUrl:me.configData.baseURL+"/"});
 					instance.setUID(++me._uid_counter);
@@ -354,12 +369,14 @@ Ext.define(
 							loadedObject:instance,
 							loadedObjectType:"app"
 						};
-
+					console.log("HERE 1");
 					var window = me.desktop.createWindow(config);
-					
+					console.log("HERE 2");
 					window.show();
+					console.log("HERE 3");
 					
 				},this);
+				
 			
 			}else if(loadedObjectType == "link"){
 				
@@ -380,7 +397,7 @@ Ext.define(
 		/**
 		 * Getter of the desktop object
 		 * 
-		 * @return {Ext.ux.desktop.Desktop}
+		 * @return {Ext.dirac.core.Desktop}
 		 */
 		getDesktop : function() {
 			return this.desktop;

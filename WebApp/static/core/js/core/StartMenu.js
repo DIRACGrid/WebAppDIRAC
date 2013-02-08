@@ -6,14 +6,14 @@
  */
 
 /**
- * @class Ext.ux.desktop.StartMenu
+ * @class Ext.dirac.core.StartMenu
  * Startmenu as a part of the taskbar. An object of
  * this class has two main parts:
  *  - Menu (on the left side)
  *  - Toolbar (on the right side)
  * @extends Ext.panel.Panel
  */
-Ext.define('Ext.ux.desktop.StartMenu', {
+Ext.define('Ext.dirac.core.StartMenu', {
 	extend : 'Ext.panel.Panel',
 
 	requires : [ 'Ext.menu.Menu', 'Ext.toolbar.Toolbar' ],

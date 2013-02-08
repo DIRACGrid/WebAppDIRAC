@@ -9,7 +9,7 @@ Ext
 		.define(
 				'DIRAC.Notepad.classes.Notepad',
 				{
-					extend : 'Ext.ux.desktop.Module',
+					extend : 'Ext.dirac.core.Module',
 
 					requires : [ 'Ext.form.field.HtmlEditor'],
 

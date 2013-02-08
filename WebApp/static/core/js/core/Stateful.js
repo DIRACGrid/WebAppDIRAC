@@ -12,7 +12,7 @@
  * @mixin Ext.container.Container
  * 
  */
-Ext.define('Ext.ux.desktop.Stateful', {
+Ext.define('Ext.dirac.core.Stateful', {
 	
 	/**
 	 * Function that can be overriden by a module

@@ -30,7 +30,6 @@ class UPHandler( WebHandler ):
       raise WErr( 400, "Missing %s" % excp )
     return UserProfileClient( "Web/%s/%s" % ( obj, app ) )
 
-
   @asyncGen
   def web_saveAppState( self ):
     up = self.__getUP()

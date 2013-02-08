@@ -9,15 +9,16 @@ Ext
 		.define(
 				'DIRAC.JobMonitor.classes.JobMonitor',
 				{
-					extend : 'Ext.ux.desktop.Module',
+					extend : 'Ext.dirac.core.Module',
 
 					requires : [ 'Ext.data.JsonStore',
 					             'Ext.util.*', 
 					             'Ext.panel.Panel',
-					             "Ext.ux.desktop.ToolButton",
-					             "Ext.ux.form.MultiSelect",
-					             "Ext.ux.desktop.DiracMultiSelect",
-					             "Ext.ux.desktop.DiracBoxSelect"],					
+					             "Ext.dirac.utils.DiracToolButton",
+					             "Ext.dirac.utils.DiracBoxSelect",
+					             "Ext.form.field.Text",
+					             "Ext.button.Button",
+					             "Ext.menu.CheckItem"],					
 
 					loadState : function(data) {
 						
@@ -172,7 +173,7 @@ Ext
 						/*
 						 * Definition of combo boxes
 						 */
-						
+					
 						me.cmbSelectors={site:null,
 										status:null,
 										minorStatus:null,
@@ -191,7 +192,7 @@ Ext
 						
 						for(var cmb in me.cmbSelectors){
 							
-							me.cmbSelectors[cmb] = Ext.create('Ext.ux.desktop.DiracBoxSelect', {
+							me.cmbSelectors[cmb] = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
 							    fieldLabel: cmbTitles[cmb],
 							    queryMode: 'local',
 							    labelAlign:'top',
@@ -383,7 +384,7 @@ Ext
 						});
 						
 						me.leftPanel.getHeader().addTool({
-							xtype : "toolButton",
+							xtype : "diracToolButton",
 							type : "save",
 							menu : me.selectorMenu
 						});

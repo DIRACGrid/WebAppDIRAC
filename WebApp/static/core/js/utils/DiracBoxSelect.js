@@ -29,7 +29,7 @@
  * @xtype boxselect
  *
  */
-Ext.define('Ext.ux.desktop.DiracBoxSelect', {
+Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     extend:'Ext.form.field.ComboBox',
     alias: ['widget.comboboxselect', 'widget.boxselect'],
     requires: ['Ext.selection.Model', 'Ext.data.Store','Ext.selection.DataViewModel'],

@@ -13,22 +13,24 @@
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
     <script type="text/javascript" src="/DIRAC/static/extjs/ext-4.1.1a/ext.js"></script>
-    <script type="text/javascript" src="/DIRAC/static/core/js/HelpFunctions.js"></script>
+    <script type="text/javascript" src="/DIRAC/static/core/js/core/HelpFunctions.js"></script>
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
 		
         Ext.Loader.setPath({
-            'Ext.ux.desktop': '/DIRAC/static/core/js',
-            'Ext.ux.form':'/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form',
-            'DIRAC': '/DIRAC/static/DIRAC',
-            
+        	'DIRAC': '/DIRAC/static/DIRAC',
+            'Ext.dirac': '/DIRAC/static/core/js',
+            'Ext.ux.form':'/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form'
         });
 
-        Ext.require('Ext.ux.desktop.App');
+        Ext.require('Ext.dirac.core.App');
 
         var _app=null;
+        var _app_base_url = "";
+        
         Ext.onReady(function () {
-            _app = new Ext.ux.desktop.App({{ config_data }});
+        	_app_base_url = "{{base_url}}/";
+            _app = new Ext.dirac.core.App();
             setTimeout(function(){ 
             	Ext.get("app-dirac-loading").hide();
             	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ..."); 

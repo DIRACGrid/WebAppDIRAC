@@ -6,14 +6,14 @@
  */
 
 /**
- * @class Ext.ux.desktop.Wallpaper
+ * @class Ext.dirac.core.Wallpaper
  * @extends Ext.Component
  *          <p>
  *          This component renders an image that stretches to fill the
  *          component.
  *          </p>
  */
-Ext.define('Ext.ux.desktop.Wallpaper', {
+Ext.define('Ext.dirac.core.Wallpaper', {
 	extend : 'Ext.Component',
 
 	alias : 'widget.wallpaper',

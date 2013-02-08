@@ -12,9 +12,9 @@
  * @mixin Ext.util.Observable
  * 
  */
-Ext.define('Ext.ux.desktop.ToolButton', {
+Ext.define('Ext.ux.desktop.utils.DiracToolButton', {
 	extend : 'Ext.panel.Tool',
-	alias: 'widget.toolButton',
+	alias: 'widget.diracToolButton',
 	requires: [
 	           'Ext.menu.Manager',
 	           'Ext.util.ClickRepeater',

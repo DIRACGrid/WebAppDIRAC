@@ -6,7 +6,7 @@
  */
 
 /**
- * @class Ext.ux.desktop.Desktop
+ * @class Ext.dirac.core.Desktop
  * @extends Ext.panel.Panel
  * 
  * This class manages the wallpaper, shortcuts, 
@@ -15,14 +15,14 @@
  *          
  */
 Ext.define(
-	'Ext.ux.desktop.Desktop',
+	'Ext.dirac.core.Desktop',
 	{
 		extend : 'Ext.panel.Panel',
 		alias : 'widget.desktop',
 		uses : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu',
 				'Ext.view.View', // dataview
-				'Ext.ux.desktop.Window', 'Ext.ux.desktop.TaskBar',
-				'Ext.ux.desktop.Wallpaper' ],
+				'Ext.dirac.core.Window', 'Ext.dirac.core.TaskBar',
+				'Ext.dirac.core.Wallpaper' ],
 
 		activeWindowCls : 'ux-desktop-active-win',
 		inactiveWindowCls : 'ux-desktop-inactive-win',
@@ -36,7 +36,7 @@ Ext.define(
 		cache:{windows:{},desktop:{}},
 
 		/**
-		 * @property {Ext.ux.desktop.app} app This is the reference
+		 * @property {Ext.dirac.core.app} app This is the reference
 		 *           to the application object
 		 */
 		app : null,
@@ -66,7 +66,7 @@ Ext.define(
 		 *      DataView. This can be a {@link Ext.data.Store Store}
 		 *      or a simple array. Items should minimally provide
 		 *      the fields in the
-		 *      {@link Ext.ux.desktop.ShorcutModel ShortcutModel}.
+		 *      {@link Ext.dirac.core.ShorcutModel ShortcutModel}.
 		 */
 		shortcuts : null,
 
@@ -116,7 +116,7 @@ Ext.define(
 			 */
 			me.windowMenu = new Ext.menu.Menu(me.createWindowMenu());
 
-			me.bbar = me.taskbar = new Ext.ux.desktop.TaskBar(
+			me.bbar = me.taskbar = new Ext.dirac.core.TaskBar(
 					me.taskbarConfig);
 			me.taskbar.windowMenu = me.windowMenu;
 
@@ -662,7 +662,7 @@ Ext.define(
 				layout : 'fit'
 			});
 
-			win = me.add(new Ext.ux.desktop.Window(cfg));
+			win = me.add(new Ext.dirac.core.Window(cfg));
 
 			me.windows.add(win);
 

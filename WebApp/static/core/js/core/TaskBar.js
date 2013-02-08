@@ -6,7 +6,7 @@
  */
 
 /**
- * @class Ext.ux.desktop.TaskBar
+ * @class Ext.dirac.core.TaskBar
  * The taskbar class. An object of this class 
  * has three main parts: 
  *  - Start menu
@@ -14,14 +14,14 @@
  *  - Window bar (syn. task bar)
  * @extends Ext.toolbar.Toolbar
  */
-Ext.define('Ext.ux.desktop.TaskBar', {
+Ext.define('Ext.dirac.core.TaskBar', {
     extend: 'Ext.toolbar.Toolbar', // TODO - make this a basic hbox panel...
 
     requires: [
         'Ext.button.Button',
         'Ext.resizer.Splitter',
         'Ext.menu.Menu',
-        'Ext.ux.desktop.StartMenu',
+        'Ext.dirac.core.StartMenu',
         'Ext.toolbar.TextItem'
     ],
 
@@ -38,7 +38,7 @@ Ext.define('Ext.ux.desktop.TaskBar', {
     	
         var me = this;
         
-        me.startMenu = new Ext.ux.desktop.StartMenu(me.startConfig);
+        me.startMenu = new Ext.dirac.core.StartMenu(me.startConfig);
 
         me.quickStart = new Ext.toolbar.Toolbar(me.getQuickStart());
 

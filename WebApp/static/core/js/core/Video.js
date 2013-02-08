@@ -14,7 +14,7 @@
 
 Ext
 		.define(
-				'Ext.ux.desktop.Video',
+				'Ext.dirac.core.Video',
 				{
 					extend : 'Ext.panel.Panel',
 

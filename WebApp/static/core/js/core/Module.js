@@ -6,14 +6,14 @@
  */
 
 /**
- * @class Ext.ux.desktop.Desktop
+ * @class Ext.dirac.core.Desktop
  * This is an abstract class that has 
  * to be inherited by every module.
  * @mixin Ext.container.Container
  * 
  */
-Ext.define('Ext.ux.desktop.Module', {
-	mixins:["Ext.ux.desktop.Stateful"],
+Ext.define('Ext.dirac.core.Module', {
+	mixins:["Ext.dirac.core.Stateful"],
 	extend: 'Ext.container.Container',
 	
 	/**

@@ -1,7 +1,7 @@
 /**
  * A control that allows selection of multiple items in a list
  */
-Ext.define('Ext.ux.desktop.DiracMultiSelect', {
+Ext.define('Ext.ux.desktop.utils.DiracMultiSelect', {
     
     extend: 'Ext.ux.form.MultiSelect',
     alias: ['widget.diracmultiselectfield', 'widget.diracmultiselect'],
