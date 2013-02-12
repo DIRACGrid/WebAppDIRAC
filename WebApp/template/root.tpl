@@ -13,6 +13,7 @@
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
     <script type="text/javascript" src="/DIRAC/static/extjs/ext-4.1.1a/ext.js"></script>
+    <!--<script type="text/javascript" src="/DIRAC/static/core/production/all-classes.js"></script>-->
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
 		
@@ -22,8 +23,8 @@
             'Ext.ux.form':'/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form'
         });
 
-        Ext.require('Ext.dirac.core.App');
-
+        //Ext.require(['Ext.dirac.core.App','Ext.*']);
+		Ext.require('Ext.dirac.core.App');
         var _app=null;
         var _app_base_url = "";
         

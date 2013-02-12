@@ -52,3 +52,15 @@ ul.x-boxselect-list.x-boxselect-singleselect {
 .x-boxselect-hideselections .x-boundlist-selected {
     display: none;
 }
+
+.x-form-not-trigger{
+	
+	background-image:url(../images/not-trigger.gif);
+	
+}
+
+.x-form-notsel-trigger{
+	
+	background-image:url(../images/not-trigger-sel.gif);
+	
+}

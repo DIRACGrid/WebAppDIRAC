@@ -233,7 +233,7 @@ Ext.define(
 							text:item[1],
 							//handler:Ext.bind(me.createWindow, me,[item[0],item[2],((item[0]=="app")?null:{title:item[1]})]),
 							menu:[{text:"Default",handler:Ext.bind(me.createWindow, me,[item[0],item[2],null])},'-'],
-							stateMenuLoaded:false,
+							isStateMenuLoaded:0,
 							listeners:{
 								
 								focus:function(cmp,e,eOpts){
@@ -246,10 +246,10 @@ Ext.define(
 										sStartClass=item[2]+".classes."+oParts[1];
 									else
 										sStartClass=item[2];
-								
+									
 									if(sStartClass in me.desktop.cache.windows){
 
-										if(!cmp.isStateMenuLoaded){
+										if(cmp.isStateMenuLoaded != 2){
 											for (var stateName in me.desktop.cache.windows[sStartClass]) {	
 												
 												var newItem = Ext.create('Ext.menu.Item', {
@@ -261,44 +261,49 @@ Ext.define(
 												cmp.menu.add(newItem);
 												
 											}
-											cmp.isStateMenuLoaded=true;
+											cmp.isStateMenuLoaded=2;
 										}
 																
 									}else{
-
-										Ext.Ajax.request({
-										    url: me.desktop.getBaseUrl()+'UP/listAppState',
-										    params: {
-										        app: 	sStartClass,
-										        obj: 	"application"
-										    },
-										    
-										    success: function(response){
-										    	
-										    	var states = Ext.JSON.decode(response.responseText);
-										    	me.desktop.cache.windows[sStartClass]={};
-										    	
-										    	for (var stateName in states) {	
-										    		
-										    		var newItem = Ext.create('Ext.menu.Item', {
-																	    			  text: stateName,
-																	    			  handler: Ext.bind(me.createWindow, me, ["app",sStartClass,{stateToLoad:stateName}], false),
-																	    			  scope:me
-																	    		});
-										    		
-										    		cmp.menu.add(newItem);
-										    		
-										    		me.desktop.cache.windows[sStartClass][stateName]=states[stateName];
-										    		cmp.isStateMenuLoaded=true;
-										    	}
-										    	
-										    	
-										    },
-										    failure:function(response){
-										    	
-										    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-										    }
-										});
+										if(cmp.isStateMenuLoaded==0){	
+											Ext.Ajax.request({
+											    url: me.desktop.getBaseUrl()+'UP/listAppState',
+											    params: {
+											        app: 	sStartClass,
+											        obj: 	"application"
+											    },
+											    
+											    success: function(response){
+											    	
+											    	var states = Ext.JSON.decode(response.responseText);
+											    	me.desktop.cache.windows[sStartClass]={};
+											    	
+											    	for (var stateName in states) {	
+											    		
+											    		var newItem = Ext.create('Ext.menu.Item', {
+																		    			  text: stateName,
+																		    			  handler: Ext.bind(me.createWindow, me, ["app",sStartClass,{stateToLoad:stateName}], false),
+																		    			  scope:me
+																		    		});
+											    		
+											    		cmp.menu.add(newItem);
+											    		
+											    		me.desktop.cache.windows[sStartClass][stateName]=states[stateName];
+											    		
+											    	}
+											    	
+											    	cmp.isStateMenuLoaded=2;
+											    	
+											    	
+											    },
+											    failure:function(response){
+											    	
+											    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+											    }
+											});
+											
+											cmp.isStateMenuLoaded = 1;
+										}
 			
 									}
 									

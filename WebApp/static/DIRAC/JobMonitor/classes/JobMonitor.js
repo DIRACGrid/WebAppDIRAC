@@ -85,45 +85,45 @@ Ext
 
 					},
 					
-					dataColumns : [
+//					dataColumns : [
 //					               {header:'',name:'checkBox',id:'checkBox',width:26,sortable:false,dataIndex:'JobIDcheckBox',renderer:chkBox,hideable:false,fixed:true,menuDisabled:true},
-								    {header:'JobId',sortable:true,dataIndex:'JobID',align:'left',hideable:false},
-//								    {header:'',width:26,sortable:false,dataIndex:'StatusIcon',renderer:status,hideable:false,fixed:true,menuDisabled:true},
-								    {header:'Status',width:60,sortable:true,dataIndex:'Status',align:'left'},
-								    {header:'MinorStatus',sortable:true,dataIndex:'MinorStatus',align:'left'},
-								    {header:'ApplicationStatus',sortable:true,dataIndex:'ApplicationStatus',align:'left'},
-								    {header:'Site',sortable:true,dataIndex:'Site',align:'left'},
-								    {header:'JobName',sortable:true,dataIndex:'JobName',align:'left'},
-								    {header:'LastUpdate [UTC]',sortable: true,renderer:"date",dataIndex:'LastUpdateTime'},
-								    {header:'LastSignOfLife [UTC]',sortable:true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i'),dataIndex:'LastSignOfLife'},
-								    {header:'SubmissionTime [UTC]',sortable:true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i'),dataIndex:'SubmissionTime'},
-								    {header:'DIRACSetup',sortable:true,dataIndex:'DIRACSetup',align:'left',hidden:true},
-								    {header:'FailedFlag',sortable:true,dataIndex:'FailedFlag',align:'left',hidden:true},
-								    {header:'RescheduleCounter',sortable:true,dataIndex:'RescheduleCounter',align:'left',hidden:true},
-								    {header:'CPUTime',sortable:true,dataIndex:'CPUTime',align:'left',hidden:true},
-								    {header:'OwnerDN',sortable:true,dataIndex:'OwnerDN',align:'left',hidden:true},
-								    {header:'JobGroup',sortable:true,dataIndex:'JobGroup',align:'left',hidden:true},
-								    {header:'JobType',sortable:true,dataIndex:'JobType',align:'left',hidden:true},
-								    {header:'AccountedFlag',sortable:true,dataIndex:'AccountedFlag',align:'left',hidden:true},
-								    {header:'OSandboxReadyFlag',sortable:true,dataIndex:'OSandboxReadyFlag',align:'left',hidden:true},
-								    {header:'Owner',sortable:true,dataIndex:'Owner',align:'left'},
-								    {header:'TaskQueueID',sortable:true,dataIndex:'TaskQueueID',align:'left',hidden:true},
-								    {header:'OwnerGroup',sortable:true,dataIndex:'OwnerGroup',align:'left',hidden:true}
-					             ],
+//								    {header:'JobId',sortable:true,dataIndex:'JobID',align:'left',hideable:false},
+//								    {header:'',width:26,sortable:false,dataIndex:'StatusIcon',renderer:rendererStatus,hideable:false,fixed:true,menuDisabled:true},
+//								    {header:'Status',width:60,sortable:true,dataIndex:'Status',align:'left'},
+//								    {header:'MinorStatus',sortable:true,dataIndex:'MinorStatus',align:'left'},
+//								    {header:'ApplicationStatus',sortable:true,dataIndex:'ApplicationStatus',align:'left'},
+//								    {header:'Site',sortable:true,dataIndex:'Site',align:'left'},
+//								    {header:'JobName',sortable:true,dataIndex:'JobName',align:'left'},
+//								    {header:'LastUpdate [UTC]',sortable: true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i:s'),dataIndex:'LastUpdateTime'},
+//								    {header:'LastSignOfLife [UTC]',sortable:true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i:s'),dataIndex:'LastSignOfLife'},
+//								    {header:'SubmissionTime [UTC]',sortable:true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i:s'),dataIndex:'SubmissionTime'},
+//								    {header:'DIRACSetup',sortable:true,dataIndex:'DIRACSetup',align:'left',hidden:true},
+//								    {header:'FailedFlag',sortable:true,dataIndex:'FailedFlag',align:'left',hidden:true},
+//								    {header:'RescheduleCounter',sortable:true,dataIndex:'RescheduleCounter',align:'left',hidden:true},
+//								    {header:'CPUTime',sortable:true,dataIndex:'CPUTime',align:'left',hidden:true},
+//								    {header:'OwnerDN',sortable:true,dataIndex:'OwnerDN',align:'left',hidden:true},
+//								    {header:'JobGroup',sortable:true,dataIndex:'JobGroup',align:'left',hidden:true},
+//								    {header:'JobType',sortable:true,dataIndex:'JobType',align:'left',hidden:true},
+//								    {header:'AccountedFlag',sortable:true,dataIndex:'AccountedFlag',align:'left',hidden:true},
+//								    {header:'OSandboxReadyFlag',sortable:true,dataIndex:'OSandboxReadyFlag',align:'left',hidden:true},
+//								    {header:'Owner',sortable:true,dataIndex:'Owner',align:'left'},
+//								    {header:'TaskQueueID',sortable:true,dataIndex:'TaskQueueID',align:'left',hidden:true},
+//								    {header:'OwnerGroup',sortable:true,dataIndex:'OwnerGroup',align:'left',hidden:true}
+//					             ],
 					dataFields:[
 					            {name:'SystemPriority', type: 'float'},
 					            {name:'ApplicationNumStatus'},
 					            {name:'JobID', type: 'float'},
-					            {name:'LastSignOfLife',type:'date',dateFormat:'Y-n-j h:i:s'},
+					            {name:'LastSignOfLife',type:'date',dateFormat:'Y-m-d H:i:s'},
 					            {name:'VerifiedFlag'},
 					            {name:'RetrievedFlag'},
 					            {name:'Status'},
-					            {name:'StartExecTime',type:'date',dateFormat:'Y-n-j h:i:s'},
+					            {name:'StartExecTime',type:'date',dateFormat:'Y-m-d H:i:s'},
 					            {name:'RescheduleCounter'},
 					            {name:'JobSplitType'},
 					            {name:'MinorStatus'},
 					            {name:'ApplicationStatus'},
-					            {name:'SubmissionTime',type:'date',dateFormat:'Y-n-j h:i:s'},
+					            {name:'SubmissionTime',type:'date',dateFormat:'Y-m-d H:i:s'},
 					            {name:'JobType'},
 					            {name:'MasterJobID'},
 					            {name:'KilledFlag'},
@@ -136,9 +136,9 @@ Ext
 					            {name:'JobName'},
 					            {name:'AccountedFlag'},
 					            {name:'OSandboxReadyFlag'},
-					            {name:'LastUpdateTime',type:'date',dateFormat:'Y-n-j h:i:s'},
+					            {name:'LastUpdateTime',type:'date',dateFormat:'Y-m-d H:i:s'},
 					            {name:'Site'},
-					            {name:'HeartBeatTime',type:'date',dateFormat:'Y-n-j h:i:s'},
+					            {name:'HeartBeatTime',type:'date',dateFormat:'Y-m-d H:i:s'},
 					            {name:'OwnerGroup'},
 					            {name:'ISandboxReadyFlag'},
 					            {name:'UserPriority'},
@@ -331,7 +331,66 @@ Ext
 						me.grid = Ext.create('Ext.grid.Panel', {
 							region: 'center',
 						    store: me.dataStore,
-						    columns: me.dataColumns
+						    columns: [
+								{header:'',name:'checkBox',id:'checkBox',width:26,sortable:false,dataIndex:'JobIDcheckBox',renderer:function (value, metaData, record, row, col, store, gridView){return this.rendererChkBox(value);},hideable:false,fixed:true,menuDisabled:true},
+								{header:'JobId',sortable:true,dataIndex:'JobID',align:'left',hideable:false},
+								{header:'',width:26,sortable:false,dataIndex:'StatusIcon',renderer:function (value, metaData, record, row, col, store, gridView){return this.rendererStatus(value);},hideable:false,fixed:true,menuDisabled:true},
+								{header:'Status',width:70,sortable:true,dataIndex:'Status',align:'left'},
+								{header:'MinorStatus',sortable:true,dataIndex:'MinorStatus',align:'left'},
+								{header:'ApplicationStatus',sortable:true,dataIndex:'ApplicationStatus',align:'left'},
+								{header:'Site',sortable:true,dataIndex:'Site',align:'left'},
+								{header:'JobName',width:200,sortable:true,dataIndex:'JobName',align:'left'},
+								{header:'LastUpdate [UTC]',width:150,sortable: true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i:s'),dataIndex:'LastUpdateTime'},
+								{header:'LastSignOfLife [UTC]',width:150,sortable:true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i:s'),dataIndex:'LastSignOfLife'},
+								{header:'SubmissionTime [UTC]',width:150,sortable:true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i:s'),dataIndex:'SubmissionTime'},
+								{header:'DIRACSetup',sortable:true,dataIndex:'DIRACSetup',align:'left',hidden:true},
+								{header:'FailedFlag',sortable:true,dataIndex:'FailedFlag',align:'left',hidden:true},
+								{header:'RescheduleCounter',sortable:true,dataIndex:'RescheduleCounter',align:'left',hidden:true},
+								{header:'CPUTime',sortable:true,dataIndex:'CPUTime',align:'left',hidden:true},
+								{header:'OwnerDN',sortable:true,dataIndex:'OwnerDN',align:'left',hidden:true},
+								{header:'JobGroup',sortable:true,dataIndex:'JobGroup',align:'left',hidden:true},
+								{header:'JobType',sortable:true,dataIndex:'JobType',align:'left',hidden:true},
+								{header:'AccountedFlag',sortable:true,dataIndex:'AccountedFlag',align:'left',hidden:true},
+								{header:'OSandboxReadyFlag',sortable:true,dataIndex:'OSandboxReadyFlag',align:'left',hidden:true},
+								{header:'Owner',sortable:true,dataIndex:'Owner',align:'left'},
+								{header:'TaskQueueID',sortable:true,dataIndex:'TaskQueueID',align:'left',hidden:true},
+								{header:'OwnerGroup',sortable:true,dataIndex:'OwnerGroup',align:'left',hidden:true}
+							],
+						    rendererChkBox : function(val) {
+					           return '<input id="' + val + '" type="checkbox" />';
+					         },
+					        rendererStatus : function(value){
+					           if ((value == 'Done') || (value == 'Completed')
+					               || (value == 'Good') || (value == 'Active')
+					               || (value == 'Cleared') || (value == 'Completing')) {
+					             return '<img src="static/DIRAC/JobMonitor/images/done.gif"/>';
+					           } else if (value == 'Bad') {
+					             return '<img src="static/DIRAC/JobMonitor/images/bad.gif"/>';
+					           } else if ((value == 'Failed') || (value == 'Bad')
+					               || (value == 'Banned') || (value == 'Aborted')) {
+					             return '<img src="static/DIRAC/JobMonitor/images/failed.gif"/>';
+					           } else if ((value == 'Waiting') || (value == 'Stopped')
+					               || (value == 'Poor') || (value == 'Probing')) {
+					             return '<img src="static/DIRAC/JobMonitor/images/waiting.gif"/>';
+					           } else if (value == 'Deleted') {
+					             return '<img src="static/DIRAC/JobMonitor/images/deleted.gif"/>';
+					           } else if (value == 'Matched') {
+					             return '<img src="static/DIRAC/JobMonitor/images/matched.gif"/>';
+					           } else if ((value == 'Running') || (value == 'Active')
+					               || (value == 'Fair')) {
+					             return '<img src="static/DIRAC/JobMonitor/images/running.gif"/>';
+					           } else if (value == 'NoMask') {
+					             return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
+					           } else {
+					             return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
+					           }
+					         },
+						    bbar : Ext.create('Ext.toolbar.Paging', {
+					               store : me.dataStore,
+					               displayInfo : true,
+					               displayMsg : 'Displaying topics {0} - {1} of {2}',
+					               emptyMsg : "No topics to display",
+					             })
 						});
 						
 						
