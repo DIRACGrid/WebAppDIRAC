@@ -32,7 +32,6 @@ Ext.define('Ext.dirac.core.Module', {
 	},
 	
 	constructor : function(config) {
-		console.log(config);
 		this._baseUrl = config._baseUrl;
 		this.init();
 		this.callParent();

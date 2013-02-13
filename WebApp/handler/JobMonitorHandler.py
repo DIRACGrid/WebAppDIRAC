@@ -261,21 +261,27 @@ class JobMonitorHandler(WebHandler):
         separator = result["Value"]
       else:
         separator = ","
+        
       if self.request.arguments.has_key("prod") and len(self.request.arguments["prod"][0]) > 0:
         if str(self.request.arguments["prod"][0]) != "":
           req["JobGroup"] = str(self.request.arguments["prod"][0]).split(separator)
+          
       if self.request.arguments.has_key("site") and len(self.request.arguments["site"][0]) > 0:
         if str(self.request.arguments["site"][0]) != "":
           req["Site"] = [x.strip() for x in str(self.request.arguments["site"][0]).split(separator)]
+          
       if self.request.arguments.has_key("status") and len(self.request.arguments["status"][0]) > 0:
         if str(self.request.arguments["status"][0]) != "":
           req["Status"] = str(self.request.arguments["status"][0]).split(separator)
+          
       if self.request.arguments.has_key("minorstat") and len(self.request.arguments["minorstat"][0]) > 0:
         if str(self.request.arguments["minorstat"][0]) != "":
           req["MinorStatus"] = str(self.request.arguments["minorstat"][0]).split(separator)
+          
       if self.request.arguments.has_key("app") and len(self.request.arguments["app"][0]) > 0:
         if str(self.request.arguments["app"][0]) != "":
           req["ApplicationStatus"] = str(self.request.arguments["app"][0]).split(separator)
+          
       if self.request.arguments.has_key("types") and len(self.request.arguments["types"][0]) > 0:
         if str(self.request.arguments["types"][0]) != "":
           req["JobType"] = str(self.request.arguments["types"][0]).split(separator)

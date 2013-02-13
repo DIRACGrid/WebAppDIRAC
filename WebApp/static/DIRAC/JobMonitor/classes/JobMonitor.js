@@ -249,7 +249,11 @@ Ext
 						me.btnSubmit = new Ext.Button({
 							
 							text: 'Submit',
-							margin:3
+							margin:3,
+							handler: function() {
+								me.oprLoadGridData();
+							},
+							scope:me
 							
 						});
 						
@@ -314,13 +318,18 @@ Ext
 						 */
 						
 						me.dataStore = new Ext.data.JsonStore({
+							
 						    proxy: {
 						        type: 'ajax',
 						        url: this._baseUrl+'JobMonitor/getJobData',
 						        reader: {
 						            type: 'json',
 						            root: 'result'
-						        }
+						        },
+//						        extraParams : {
+//						            primer1 : '2012-04-12',
+//						            primer2 : '2012-04-15'
+//						        }
 						    },
 
 						    //alternatively, a Ext.data.Model name can be given (see Ext.data.Store for an example)
@@ -448,6 +457,29 @@ Ext
 						});
 						
 						this.callParent();
+					},
+					
+					oprLoadGridData:function(){
+						
+						var me = this;
+						
+						//Collect data for filtration
+						var extraParams = {
+								
+								site:			me.cmbSelectors.site.getValue(),
+								status:			me.cmbSelectors.status.getValue(),
+								minorstat:		me.cmbSelectors.minorStatus.getValue(),
+								app:			me.cmbSelectors.appStatus.getValue(),
+								owner:			me.cmbSelectors.owner.getValue(),
+								prod:			me.cmbSelectors.jobGroup.getValue(),
+								types:			me.cmbSelectors.jobType.getValue(),
+								
+						};
+						
+						//set those data as extraParams in 
+						me.grid.store.proxy.extraParams = extraParams;
+						me.grid.store.load();
+						
 					}
 
 				});

@@ -297,7 +297,6 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     			
     		}
     		
-    		
     	}else{
     		
     		me.trigger2Cls = me.clsNotsel;
@@ -319,7 +318,7 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     
     isInverseSelection:function(){
     	
-    	return me.inverseNotSelection;
+    	return this.inverseNotSelection;
     	
     },
     
