@@ -225,35 +225,16 @@ class JobMonitorHandler(WebHandler):
       else:
         self.pageNumber = 0
     
-    if self.request.arguments.has_key("id") and len(self.request.arguments["id"][0]) > 0:
-      testString = str(self.request.arguments["id"][0]).testString.strip(';, ').testString.split(', ');
-      if len(testString) == 1:
-        testString = testString[0].split('; ')
-        if len(testString) == 1:
-          testString = testString[0].split(' ')
-          if len(testString) == 1:
-            testString = testString[0].split(',')
-            if len(testString) == 1:
-              testString = testString[0].split(';')
-              if len(testString) == 1:
-                req["JobID"] = testString[0]
-              else:
-                req["JobID"] = testString
-            else:
-              req["JobID"] = testString
-          else:
-            req["JobID"] = testString
-        else:
-          req["JobID"] = testString
-      else:
-        req["JobID"] = testString
-      for i in req["JobID"]:
+    if self.request.arguments.has_key("ids") and len(self.request.arguments["ids"][0]) > 0:
+      req["JobID"] = []
+      reqIds = str(self.request.arguments["ids"][0]).split(',');
+      for i in reqIds:
         testI = i.split('-')
         if len(testI) == 2:
-          testI[0] = testI[0].strip(' ')
-          testI[1] = testI[1].strip(' ')
-          rangeID = range(testI[0],testI[1])
+          rangeID = range(int(testI[0].strip(' ')),int(testI[1].strip(' ')))
           req["JobID"].extend(rangeID)
+        else:
+          req["JobID"].append(i)
     else:
       #groupProperty = credentials.getProperties(group)
       result = gConfig.getOption("/Website/ListSeparator")

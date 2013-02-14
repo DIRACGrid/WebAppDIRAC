@@ -275,10 +275,12 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     onTrigger1Click:function(){
     	
     	var me = this;
+    	
     	me.getPicker().getSelectionModel().deselectAll();
     	me.setValue([]);
     	
     },
+    
     onTrigger2Click:function(){
     	
     	var me = this;
@@ -322,6 +324,59 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     	
     },
     
+    getInverseSelection:function(){
+    	
+    	var me = this;
+    	
+    	var oSelectionModel = me.getPicker().getSelectionModel();
+    	var oStore = oSelectionModel.getStore();
+    	var oCount = oStore.getCount();
+    	var oInverseValues = [];
+    	
+    	for(var i=0;i<oCount;i++)
+    		if(!oSelectionModel.isSelected(oStore.getAt(i)))
+    			oInverseValues.push(oStore.getAt(i).get(me.valueField));
+    	
+    	return oInverseValues.join(",");
+
+    },
+    
+    refreshStore:function(oNewStore){
+    	
+    	var me = this;
+    	
+    	var oStore = me.getStore();
+    	var oCount = oStore.getCount();
+    	
+    	var oCountNewStore = oNewStore.getCount();
+    	
+    	for(var i=0;i<oCountNewStore;i++){
+    		
+    		var oNewItem = oNewStore.getAt(i);
+    		var oFound = false;
+    		
+    		for(var j=0;j<oCount;j++){
+    			
+    			var oExistItem = oStore.getAt(j);
+    			
+    			if(oNewItem.get(me.valueField)==oExistItem.get(me.valueField)){
+    				
+    				oFound = true;
+    				break;
+    				
+    			}
+    			
+    		}
+    		
+    		if(!oFound)
+    			oStore.add(oNewItem);
+    		
+    	}
+    	
+    	//this is needed because we have to render check-boxes inside the new items added
+    	me.getPicker().refresh();
+    
+    },
     
     /**
      * @inheritdoc
@@ -332,8 +387,6 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     initComponent: function() {
         var me = this,
         typeAhead = me.typeAhead;
-        
-        me.inverseNotSelection = false;
         
         if (typeAhead && !me.editable) {
             Ext.Error.raise('If typeAhead is enabled the combo must be editable: true -- please change one of those settings.');
@@ -447,8 +500,6 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
         
         Ext.apply(me.listConfig, {
             getInnerTpl: function(displayField) {
-                //return '<div class="multselector-checkbox" style="float:left;margin:2px;vertical-align:middle"></div><div data-qtip="{' +me.descField +'}" class="'+ ((me.iconClsField && me.listIconCls) ? me.listIconCls :'') +' {'+me.iconClsField + '}">{' + me.displayField +'}</div><div style="clear:both"></div>';
-                //return '<div class="multselector-checkbox" style="float:left"></div><div style="float:left;padding:4px 0px 0px 5px;white-space:pre-wrap;">{'+displayField+'}</div><div style="clear:both"></div>';
                 return '<table style="padding:0;margin:0"><tr><td class="multselector-checkbox" style="padding:0px 5px 0px 0px;vertical-align:middle"></td><td style="padding:3px 0px 0px 0px;vertical-align:middle">{'+displayField+'}</td></tr></table>';
             },
             listeners : {		

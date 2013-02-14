@@ -251,7 +251,7 @@ Ext
 							text: 'Submit',
 							margin:3,
 							handler: function() {
-								me.oprLoadGridData();
+								me.oprSubmitWithSelectorsRefresh();
 							},
 							scope:me
 							
@@ -283,27 +283,7 @@ Ext
 						    	var me = this;
 						    	var response = Ext.JSON.decode(response.responseText);
 						    	
-						    	var map = [["app","appStatus"],
-						    	           ["minorstat","minorStatus"],
-						    	           ["owner","owner"],
-						    	           ["prod","jobGroup"],
-						    	           ["site","site"],
-						    	           ["status","status"],
-						    	           ["types","jobType"]];
-						    	
-						    	for(var j=0;j<map.length;j++){
-						    	
-							    	var dataOptions = [];
-							    	for(var i=0;i<response[map[j][0]].length;i++)
-							    		dataOptions.push([response[map[j][0]][i][0],response[map[j][0]][i][0]]);
-							    	
-							    	
-							    	me.cmbSelectors[map[j][1]].store=new Ext.data.ArrayStore({
-																				                  fields : ['value', 'text'],
-																				                  data   : dataOptions 
-																				              });
-						    	
-						    	}
+						    	me.__oprRefreshStoresForSelectors(response,false);
 						    	
 						    },
 						    failure:function(response){
@@ -459,6 +439,70 @@ Ext
 						this.callParent();
 					},
 					
+					__oprRefreshStoresForSelectors:function(oData,bRefreshStores){
+						
+						var me = this;
+						
+						var map = [["app","appStatus"],
+				    	           ["minorstat","minorStatus"],
+				    	           ["owner","owner"],
+				    	           ["prod","jobGroup"],
+				    	           ["site","site"],
+				    	           ["status","status"],
+				    	           ["types","jobType"]];
+				    	
+				    	for(var j=0;j<map.length;j++){
+				    	
+					    	var dataOptions = [];
+					    	for(var i=0;i<oData[map[j][0]].length;i++)
+					    		dataOptions.push([oData[map[j][0]][i][0],oData[map[j][0]][i][0]]);
+
+					    	if(bRefreshStores){
+					    		
+					    		var oNewStore = new Ext.data.ArrayStore({
+					                  fields : ['value', 'text'],
+					                  data   : dataOptions 
+					              });
+					    		
+					    		me.cmbSelectors[map[j][1]].refreshStore(oNewStore);
+					    		
+					    		
+					    	}else{
+						    	me.cmbSelectors[map[j][1]].store = new Ext.data.ArrayStore({
+																			                  fields : ['value', 'text'],
+																			                  data   : dataOptions 
+																			              });
+					    	}
+				    	
+				    	}
+						
+					},
+					oprSubmitWithSelectorsRefresh: function(){
+						
+						var me = this;
+						
+						me.leftPanel.body.mask("Wait ...");
+						Ext.Ajax.request({
+						    url: me._baseUrl+'JobMonitor/getSelectionData',
+						    params: {
+
+						    },
+						    scope:me,
+						    success: function(response){
+						    	
+						    	var me = this;
+						    	var response = Ext.JSON.decode(response.responseText);
+						    	me.__oprRefreshStoresForSelectors(response,true);
+						    	me.oprLoadGridData();
+						    	me.leftPanel.body.unmask();
+						    },
+						    failure:function(response){
+						    	
+						    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+						    }
+						});
+						
+					},
 					oprLoadGridData:function(){
 						
 						var me = this;
@@ -466,13 +510,14 @@ Ext
 						//Collect data for filtration
 						var extraParams = {
 								
-								site:			me.cmbSelectors.site.getValue(),
-								status:			me.cmbSelectors.status.getValue(),
-								minorstat:		me.cmbSelectors.minorStatus.getValue(),
-								app:			me.cmbSelectors.appStatus.getValue(),
-								owner:			me.cmbSelectors.owner.getValue(),
-								prod:			me.cmbSelectors.jobGroup.getValue(),
-								types:			me.cmbSelectors.jobType.getValue(),
+								site:			((me.cmbSelectors.site.isInverseSelection())?me.cmbSelectors.site.getInverseSelection():me.cmbSelectors.site.getValue()),
+								status:			((me.cmbSelectors.status.isInverseSelection())?me.cmbSelectors.status.getInverseSelection():me.cmbSelectors.status.getValue()),
+								minorstat:		((me.cmbSelectors.minorStatus.isInverseSelection())?me.cmbSelectors.minorStatus.getInverseSelection():me.cmbSelectors.minorStatus.getValue()),
+								app:			((me.cmbSelectors.appStatus.isInverseSelection())?me.cmbSelectors.appStatus.getInverseSelection():me.cmbSelectors.appStatus.getValue()),
+								owner:			((me.cmbSelectors.owner.isInverseSelection())?me.cmbSelectors.owner.getInverseSelection():me.cmbSelectors.owner.getValue()),
+								prod:			((me.cmbSelectors.jobGroup.isInverseSelection())?me.cmbSelectors.jobGroup.getInverseSelection():me.cmbSelectors.jobGroup.getValue()),
+								types:			((me.cmbSelectors.jobType.isInverseSelection())?me.cmbSelectors.jobType.getInverseSelection():me.cmbSelectors.jobType.getValue()),
+								ids:			me.textJobId.getValue()
 								
 						};
 						
