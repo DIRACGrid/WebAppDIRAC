@@ -17,7 +17,8 @@ Ext
 					             "Ext.form.field.Text",
 					             "Ext.button.Button",
 					             "Ext.menu.CheckItem",
-					             "Ext.menu.Menu"],					
+					             "Ext.menu.Menu",
+					             "Ext.form.field.ComboBox"],					
 
 					loadState : function(data) {
 						
@@ -84,32 +85,6 @@ Ext
 						return oReturn;
 
 					},
-					
-//					dataColumns : [
-//					               {header:'',name:'checkBox',id:'checkBox',width:26,sortable:false,dataIndex:'JobIDcheckBox',renderer:chkBox,hideable:false,fixed:true,menuDisabled:true},
-//								    {header:'JobId',sortable:true,dataIndex:'JobID',align:'left',hideable:false},
-//								    {header:'',width:26,sortable:false,dataIndex:'StatusIcon',renderer:rendererStatus,hideable:false,fixed:true,menuDisabled:true},
-//								    {header:'Status',width:60,sortable:true,dataIndex:'Status',align:'left'},
-//								    {header:'MinorStatus',sortable:true,dataIndex:'MinorStatus',align:'left'},
-//								    {header:'ApplicationStatus',sortable:true,dataIndex:'ApplicationStatus',align:'left'},
-//								    {header:'Site',sortable:true,dataIndex:'Site',align:'left'},
-//								    {header:'JobName',sortable:true,dataIndex:'JobName',align:'left'},
-//								    {header:'LastUpdate [UTC]',sortable: true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i:s'),dataIndex:'LastUpdateTime'},
-//								    {header:'LastSignOfLife [UTC]',sortable:true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i:s'),dataIndex:'LastSignOfLife'},
-//								    {header:'SubmissionTime [UTC]',sortable:true,renderer:Ext.util.Format.dateRenderer('Y-m-d H:i:s'),dataIndex:'SubmissionTime'},
-//								    {header:'DIRACSetup',sortable:true,dataIndex:'DIRACSetup',align:'left',hidden:true},
-//								    {header:'FailedFlag',sortable:true,dataIndex:'FailedFlag',align:'left',hidden:true},
-//								    {header:'RescheduleCounter',sortable:true,dataIndex:'RescheduleCounter',align:'left',hidden:true},
-//								    {header:'CPUTime',sortable:true,dataIndex:'CPUTime',align:'left',hidden:true},
-//								    {header:'OwnerDN',sortable:true,dataIndex:'OwnerDN',align:'left',hidden:true},
-//								    {header:'JobGroup',sortable:true,dataIndex:'JobGroup',align:'left',hidden:true},
-//								    {header:'JobType',sortable:true,dataIndex:'JobType',align:'left',hidden:true},
-//								    {header:'AccountedFlag',sortable:true,dataIndex:'AccountedFlag',align:'left',hidden:true},
-//								    {header:'OSandboxReadyFlag',sortable:true,dataIndex:'OSandboxReadyFlag',align:'left',hidden:true},
-//								    {header:'Owner',sortable:true,dataIndex:'Owner',align:'left'},
-//								    {header:'TaskQueueID',sortable:true,dataIndex:'TaskQueueID',align:'left',hidden:true},
-//								    {header:'OwnerGroup',sortable:true,dataIndex:'OwnerGroup',align:'left',hidden:true}
-//					             ],
 					dataFields:[
 					            {name:'SystemPriority', type: 'float'},
 					            {name:'ApplicationNumStatus'},
@@ -235,23 +210,12 @@ Ext
 						
 						me.leftPanel.add(me.textJobId);
 						
-						me.textRunNumber = Ext.create('Ext.form.field.Text',{
-							
-							fieldLabel: "RunNumber",
-						    labelAlign:'top',
-						    width:220
-
-						});
-						
-						me.leftPanel.add(me.textRunNumber);
-						
-						
 						me.btnSubmit = new Ext.Button({
 							
 							text: 'Submit',
 							margin:3,
 							handler: function() {
-								me.oprSubmitWithSelectorsRefresh();
+								me.oprSelectorsRefreshWithSubmit(true);
 							},
 							scope:me
 							
@@ -260,14 +224,29 @@ Ext
 						me.btnReset = new Ext.Button({
 							
 							text: 'Reset',
-							margin:3
+							margin:3,
+							handler: function() {
+								me.oprResetSelectionOptions();
+							},
+							scope:me
+							
+						});
+						
+						me.btnRefresh = new Ext.Button({
+							
+							text: 'Refresh',
+							margin:3,
+							handler: function() {
+								me.oprSelectorsRefreshWithSubmit(false);
+							},
+							scope:me
 							
 						});
 						
 						var oPanelButtons = new Ext.create('Ext.panel.Panel',{
 						    autoHeight:true,
 						    border:false,
-							items:[me.btnSubmit,me.btnReset]
+							items:[me.btnSubmit,me.btnReset,me.btnRefresh]
 						});
 						
 						me.leftPanel.add(oPanelButtons);
@@ -305,23 +284,106 @@ Ext
 						        reader: {
 						            type: 'json',
 						            root: 'result'
-						        },
-//						        extraParams : {
-//						            primer1 : '2012-04-12',
-//						            primer2 : '2012-04-15'
-//						        }
+						        }
 						    },
 
-						    //alternatively, a Ext.data.Model name can be given (see Ext.data.Store for an example)
+						    // alternatively, a Ext.data.Model name can be given
+							// (see Ext.data.Store for an example)
 						    fields: me.dataFields,
 						    autoLoad : true
 						});
+						
+						me.checkboxFunctionDefinition = '<input type="checkbox" value="" onchange="';
+						me.checkboxFunctionDefinition += 'var oChecked=this.checked;';
+						me.checkboxFunctionDefinition += 'var oElems=Ext.query(\'#'+me.id+' input.checkrow\');';
+						me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
+						me.checkboxFunctionDefinition += '"/>';
+						
+						
+						me.pagingToolbar = {};
+						me.pagingToolbar.updateStamp = new Ext.Button({
+														    disabled:true,
+														    // disabledClass:'my-disabled',
+														    text:'Updated: -'
+														  });
+						
+						me.pagingToolbar.btnReschedule = new Ext.Button({
+						    text:'Reschedule',
+						    handler:function(){
+						    	
+						    	var me = this;
+						    	me.__oprJobAction("reschedule","");
+						    	
+						    },
+						    scope:me
+						});
+						
+						me.pagingToolbar.btnKill = new Ext.Button({
+						    text:'Kill',
+						    handler:function(){
+						    	
+						    	var me = this;
+						    	me.__oprJobAction("kill","");
+						    	
+						    },
+						    scope:me
+						});
+						
+						me.pagingToolbar.btnDelete = new Ext.Button({
+						    text:'Delete',
+						    handler:function(){
+						    	
+						    	var me = this;
+						    	me.__oprJobAction("delete","");
+						    	
+						    },
+						    scope:me
+						});
+						
+						me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
+															    allowBlank:false,
+															    displayField:'number',
+															    editable:false,
+															    maxLength:4,
+															    maxLengthText:'The maximum value for this field is 1000',
+															    minLength:1,
+															    minLengthText:'The minimum value for this field is 1',
+															    mode:'local',
+															    store:new Ext.data.SimpleStore({
+																        fields:['number'],
+																        data:[[25],[50],[100],[200],[500],[1000]]
+																      }),
+															    triggerAction:'all',
+															    value:25,
+															    width:50
+															  });
+						
+						me.pagingToolbar.pageSizeCombo.on("change",function(combo, newValue, oldValue, eOpts){var me = this; me.oprLoadGridData();},me);
+						
+						var pagingToolbarItems = ['-',
+						                          me.pagingToolbar.updateStamp,
+						                          '-',
+						                          'Items per page: ',
+						                          me.pagingToolbar.pageSizeCombo,
+						                          '-',
+						                          me.pagingToolbar.btnReschedule,
+						                          me.pagingToolbar.btnKill,
+						                          me.pagingToolbar.btnDelete,
+						                          '-'];
+						
+						me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
+										               store : me.dataStore,
+										               displayInfo : true,
+										               displayMsg : 'Displaying topics {0} - {1} of {2}',
+										               items: pagingToolbarItems,
+										               emptyMsg : "No topics to display",
+										             });
 						
 						me.grid = Ext.create('Ext.grid.Panel', {
 							region: 'center',
 						    store: me.dataStore,
 						    columns: [
-								{header:'',name:'checkBox',id:'checkBox',width:26,sortable:false,dataIndex:'JobIDcheckBox',renderer:function (value, metaData, record, row, col, store, gridView){return this.rendererChkBox(value);},hideable:false,fixed:true,menuDisabled:true},
+								{header:me.checkboxFunctionDefinition,name:'checkBox',id:'checkBox',width:26,sortable:false,dataIndex:'JobIDcheckBox',renderer:function (value, metaData, record, row, col, store, gridView){return this.rendererChkBox(value);},hideable:false,fixed:true,menuDisabled:true},
 								{header:'JobId',sortable:true,dataIndex:'JobID',align:'left',hideable:false},
 								{header:'',width:26,sortable:false,dataIndex:'StatusIcon',renderer:function (value, metaData, record, row, col, store, gridView){return this.rendererStatus(value);},hideable:false,fixed:true,menuDisabled:true},
 								{header:'Status',width:70,sortable:true,dataIndex:'Status',align:'left'},
@@ -346,7 +408,7 @@ Ext
 								{header:'OwnerGroup',sortable:true,dataIndex:'OwnerGroup',align:'left',hidden:true}
 							],
 						    rendererChkBox : function(val) {
-					           return '<input id="' + val + '" type="checkbox" />';
+					           return '<input value="' + val + '" type="checkbox" class="checkrow"/>';
 					         },
 					        rendererStatus : function(value){
 					           if ((value == 'Done') || (value == 'Completed')
@@ -374,12 +436,7 @@ Ext
 					             return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
 					           }
 					         },
-						    bbar : Ext.create('Ext.toolbar.Paging', {
-					               store : me.dataStore,
-					               displayInfo : true,
-					               displayMsg : 'Displaying topics {0} - {1} of {2}',
-					               emptyMsg : "No topics to display",
-					             })
+						    bbar : me.pagingToolbar.toolbar
 						});
 						
 						
@@ -477,7 +534,7 @@ Ext
 				    	}
 						
 					},
-					oprSubmitWithSelectorsRefresh: function(){
+					oprSelectorsRefreshWithSubmit: function(bSubmit){
 						
 						var me = this;
 						
@@ -493,7 +550,8 @@ Ext
 						    	var me = this;
 						    	var response = Ext.JSON.decode(response.responseText);
 						    	me.__oprRefreshStoresForSelectors(response,true);
-						    	me.oprLoadGridData();
+						    	if(bSubmit)
+						    		me.oprLoadGridData();
 						    	me.leftPanel.body.unmask();
 						    },
 						    failure:function(response){
@@ -507,24 +565,94 @@ Ext
 						
 						var me = this;
 						
-						//Collect data for filtration
+						// Collect data for filtration
 						var extraParams = {
 								
-								site:			((me.cmbSelectors.site.isInverseSelection())?me.cmbSelectors.site.getInverseSelection():me.cmbSelectors.site.getValue()),
-								status:			((me.cmbSelectors.status.isInverseSelection())?me.cmbSelectors.status.getInverseSelection():me.cmbSelectors.status.getValue()),
-								minorstat:		((me.cmbSelectors.minorStatus.isInverseSelection())?me.cmbSelectors.minorStatus.getInverseSelection():me.cmbSelectors.minorStatus.getValue()),
-								app:			((me.cmbSelectors.appStatus.isInverseSelection())?me.cmbSelectors.appStatus.getInverseSelection():me.cmbSelectors.appStatus.getValue()),
-								owner:			((me.cmbSelectors.owner.isInverseSelection())?me.cmbSelectors.owner.getInverseSelection():me.cmbSelectors.owner.getValue()),
-								prod:			((me.cmbSelectors.jobGroup.isInverseSelection())?me.cmbSelectors.jobGroup.getInverseSelection():me.cmbSelectors.jobGroup.getValue()),
-								types:			((me.cmbSelectors.jobType.isInverseSelection())?me.cmbSelectors.jobType.getInverseSelection():me.cmbSelectors.jobType.getValue()),
-								ids:			me.textJobId.getValue()
+								site:			((me.cmbSelectors.site.isInverseSelection())?me.cmbSelectors.site.getInverseSelection():me.cmbSelectors.site.getValue().join(",")),
+								status:			((me.cmbSelectors.status.isInverseSelection())?me.cmbSelectors.status.getInverseSelection():me.cmbSelectors.status.getValue().join(",")),
+								minorstat:		((me.cmbSelectors.minorStatus.isInverseSelection())?me.cmbSelectors.minorStatus.getInverseSelection():me.cmbSelectors.minorStatus.getValue().join(",")),
+								app:			((me.cmbSelectors.appStatus.isInverseSelection())?me.cmbSelectors.appStatus.getInverseSelection():me.cmbSelectors.appStatus.getValue().join(",")),
+								owner:			((me.cmbSelectors.owner.isInverseSelection())?me.cmbSelectors.owner.getInverseSelection():me.cmbSelectors.owner.getValue().join(",")),
+								prod:			((me.cmbSelectors.jobGroup.isInverseSelection())?me.cmbSelectors.jobGroup.getInverseSelection():me.cmbSelectors.jobGroup.getValue().join(",")),
+								types:			((me.cmbSelectors.jobType.isInverseSelection())?me.cmbSelectors.jobType.getInverseSelection():me.cmbSelectors.jobType.getValue().join(",")),
+								ids:			me.textJobId.getValue(),
+								limit:			me.pagingToolbar.pageSizeCombo.getValue()
 								
 						};
 						
-						//set those data as extraParams in 
+						// set those data as extraParams in
 						me.grid.store.proxy.extraParams = extraParams;
 						me.grid.store.load();
 						
-					}
+					},
+					oprResetSelectionOptions: function(){
+						
+						var me = this;
+						me.cmbSelectors.site.setValue([]);
+						me.cmbSelectors.status.setValue([]);
+						me.cmbSelectors.minorStatus.setValue([]);
+						me.cmbSelectors.appStatus.setValue([]);
+						me.cmbSelectors.owner.setValue([]);
+						me.cmbSelectors.jobGroup.setValue([]);
+						me.cmbSelectors.jobType.setValue([]);
+						me.textJobId.setValue("");
+						
+						me.oprLoadGridData();
+						
+					},
+					__oprJobAction:function(oAction,oId){
+						
+						var me = this;
+						var oItems = [];
+						  
+						if((oId == null) || (oId == '') || (oId == undefined)){
+							  
+							var oElems = Ext.query("#"+me.id+" input.checkrow");
+							
+							for(var i=0;i<oElems.length;i++)
+								if(oElems[i].checked)
+									oItems.push(oElems[i].value);
+							
+						    if (oItems.length < 1){
+						    	alert('No jobs were selected');
+						    	return;
+						    }
+						    
+						}else{
+						    oItems[0] = oId;
+						}
+						  
+						var c = false;
+						  
+						if (oItems.length == 1)
+							c = confirm ('Are you sure you want to ' + oAction + ' ' + items[0] + '?');
+						else
+							c = confirm ('Are you sure you want to ' + oAction + ' these jobs?');
+						  
+						if(c === false) return;
+						  
+						Ext.Ajax.request({
+							url: me._baseUrl+'JobMonitor/jobAction',
+							method:'POST',
+						    params:{
+						    	action:oAction,
+						    	ids:oItems.join(",")
+						    },
+						    success:function(response){
+						    	var jsonData = Ext.JSON.decode(response.responseText);
+						    	if(jsonData['success'] == 'false'){
+						    		alert('Error: ' + jsonData['error']);
+						    		return;
+						    	}else{
+						    		if(jsonData.showResult){
+						    			var html = '';
+						    			for(var i = 0; i < jsonData.showResult.length; i++){
+						    				html = html + jsonData.showResult[i] + '<br>';
+						    			}
+						    			Ext.Msg.alert('Result:',html);
+							        }
+						    	}
+						    }});
+						}
 
 				});

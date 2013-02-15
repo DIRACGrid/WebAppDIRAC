@@ -270,25 +270,52 @@ class JobMonitorHandler(WebHandler):
       if self.request.arguments.has_key("owner") and len(self.request.arguments["owner"][0]) > 0:
         if str(self.request.arguments["owner"][0]) != "":
           req["Owner"] = str(self.request.arguments["owner"][0]).split(separator)
+          
       if self.request.arguments.has_key("startDate") and len(self.request.arguments["startDate"][0]) > 0:
         if str(self.request.arguments["startDate"][0]) != "YYYY-mm-dd":
           if self.request.arguments.has_key("startTime") and len(self.request.arguments["startTime"][0]) > 0:
             req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
           else:
             req["FromDate"] = str(self.request.arguments["startDate"][0])
+            
       if self.request.arguments.has_key("endDate") and len(self.request.arguments["endDate"][0]) > 0:
         if str(self.request.arguments["endDate"][0]) != "YYYY-mm-dd":
           if self.request.arguments.has_key("endTime") and len(self.request.arguments["endTime"][0]) > 0:
             req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
           else:
             req["ToDate"] = str(self.request.arguments["endDate"][0])
+            
       if self.request.arguments.has_key("date") and len(self.request.arguments["date"][0]) > 0:
         if str(self.request.arguments["date"][0]) != "YYYY-mm-dd":
           req["LastUpdate"] = str(self.request.arguments["date"][0])
+          
       if self.request.arguments.has_key("sort") and len(self.request.arguments["sort"][0]) > 0:
         #self.globalSort = str(self.request.arguments["sort"][0])
         sortValue = self.request.arguments["sort"][0]
         print isinstance(sortValue,str)
         #self.globalSort = [[sortValue["property"],sortValue["direction"]]]
-     
     return req
+  
+  def web_jobAction( self ):
+    ids = self.request.arguments["ids"][0].split(",")
+    ids = [int(i) for i in ids ]
+    
+    RPC = RPCClient("WorkloadManagement/JobMonitoring")
+    if self.request.arguments["action"][0] == "delete":
+      result = RPC.deleteJob(ids)
+    elif self.request.arguments["action"][0] == "kill":
+      result = RPC.killJob(ids)
+    elif self.request.arguments["action"][0] == "reschedule":
+      result = RPC.rescheduleJob(ids)
+      
+    callback = {}  
+    if result["OK"]:
+      callback = {"success":"true","result":""}
+    else:
+      if result.has_key("InvalidJobIDs"):
+        callback = {"success":"false","error":"Invalid JobIDs: %s" % result["InvalidJobIDs"]}
+      elif result.has_key("NonauthorizedJobIDs"):
+        callback = {"success":"false","error":"You are nonauthorized to delete jobs with JobID: %s" % result["NonauthorizedJobIDs"]}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    self.write(json.dumps(callback))
