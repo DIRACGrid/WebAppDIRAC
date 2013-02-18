@@ -11,59 +11,21 @@
 
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
-    <script type="text/javascript" src="/DIRAC/static/extjs/ext-4.1.1a/ext.js"></script>
-    <script type="text/javascript" src="/DIRAC/static/core/js/HelpFunctions.js"></script>
+   
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
 		
         Ext.Loader.setPath({
-            'Ext.ux.desktop': '/DIRAC/static/core/js',
-            'Ext.ux.form':'/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form',
             'DIRAC': '/DIRAC/static/DIRAC',
-            
+            'Ext.dirac.core': '/DIRAC/static/core/js/core',
+            'Ext.dirac.utils': '/DIRAC/static/core/js/utils',
+            'Ext.ux.form':'/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form'
         });
 
-        Ext.require('Ext.ux.desktop.App');
-
-        var myDesktopApp = null;
-        
-        Ext.require('Ext.ux.desktop.App', function() {
-        
-        	myDesktopApp = new Ext.ux.desktop.App({{ config_data }});
-            setTimeout(function(){ Ext.get("loading").hide(); },1000);
-            setTimeout(function(){myDesktopApp.createWindow("app","DIRAC.JobMonitor",null);},2000);
-        
-        });
+        Ext.require('DIRAC.JobMonitor.classes.JobMonitor');
         
     </script>
     <!-- </x-compile> -->
-    <style type="text/css">
-	    #loading{
-	        height:auto;
-	        position:absolute;
-	        left:45%;
-	        top:40%;
-	        padding:2px;
-	        z-index:20001;
-	    }
-	    #loading a {
-	        color:#225588;
-	    }
-	    #loading .loading-indicator{
-	        background:none;
-	        color:#444;
-	        font:bold 13px Helvetica, Arial, sans-serif;
-	        height:auto;
-	        margin:0;
-	        padding:10px;
-	        width:300px;
-	        
-	    }
-	    #loading-msg {
-	        font-size: 12px;
-	        font-weight: normal;
-	    }
-    </style>
 </head>
 
 <body>

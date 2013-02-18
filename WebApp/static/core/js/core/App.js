@@ -384,15 +384,31 @@ Ext.define(
 				
 				var oParts = moduleName.split(".");
 				var sStartClass="";
+				
 				if(oParts.length==2)
 					sStartClass=moduleName+".classes."+oParts[1];
 				else
 					sStartClass=moduleName;
 				
-				Ext.require(sStartClass, function() {
+				sClassFilePath = "";
+				
+				if(_dev == 0){
+					Ext.Loader.setConfig({
+						enabled: true,
+						paths: {
+							'_dirac_help': "static/DIRAC/"+oParts[1]+"/build"
+						}
+					});
+					sClassFilePath ="_dirac_help.all-classes";
+				}else
+					sClassFilePath = sStartClass; 
+				
+				Ext.require(sClassFilePath, function() {
 					
 					var me = this;
+					console.log("check point 1");
 					var instance = Ext.create(sStartClass,{_baseUrl:me.configData.baseURL+"/"});
+					console.log("check point 2");
 					instance.setUID(++me._uid_counter);
 					
 					var config = {
@@ -402,6 +418,7 @@ Ext.define(
 							loadedObjectType:"app"
 						};
 					
+					console.log("check point 3");
 					var window = me.desktop.createWindow(config);
 					window.show();
 					

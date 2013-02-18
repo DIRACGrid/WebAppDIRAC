@@ -12,59 +12,54 @@
 
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
-    <script type="text/javascript" src="/DIRAC/static/extjs/ext-4.1.1a/ext.js"></script>
-    <!--<script type="text/javascript" src="/DIRAC/static/core/production/all-classes.js"></script>-->
+ 
+    {% if _dev==1 %}
+    	<script type="text/javascript" src="/DIRAC/static/extjs/ext-4.1.1a/ext.js"></script>
+    {% else %}
+    	<script type="text/javascript" src="/DIRAC/static/core/build/all-classes.js"></script>
+    {% end %}
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
-		
-        Ext.Loader.setPath({
-        	'DIRAC': '/DIRAC/static/DIRAC',
-            'Ext.dirac': '/DIRAC/static/core/js',
-            'Ext.ux.form':'/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form'
-        });
-
-        //Ext.require(['Ext.dirac.core.App','Ext.*']);
-		Ext.require('Ext.dirac.core.App');
-        var _app=null;
-        var _app_base_url = "";
-        
-        Ext.onReady(function () {
-        	_app_base_url = "{{base_url}}/";
-            _app = new Ext.dirac.core.App();
-            setTimeout(function(){ 
-            	Ext.get("app-dirac-loading").hide();
-            	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ..."); 
-            },1000);
-        });
+		{% if _dev==1 %}
+	        Ext.Loader.setPath({
+	        	'DIRAC': '/DIRAC/static/DIRAC',
+	            'Ext.dirac.core': '/DIRAC/static/core/js/core',
+	            'Ext.dirac.utils': '/DIRAC/static/core/js/utils',
+	            'Ext.ux.form':'/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form'
+	        });
+	        
+	
+	        Ext.require(['Ext.dirac.core.App','Ext.*']);
+			
+			
+	        var _app=null;
+	        var _app_base_url = "";
+	        var _dev = 1;
+	        
+	        Ext.onReady(function () {
+	        	_app_base_url = "{{base_url}}/";
+	            _app = new Ext.dirac.core.App();
+	            setTimeout(function(){ 
+	            	Ext.get("app-dirac-loading").hide();
+	            	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ..."); 
+	            },1000);
+	        });
+	    {% else %}
+	    	var _app=null;
+	        var _app_base_url = "";
+	        var _dev = 0;
+	        
+	        Ext.onReady(function () {
+	        	_app_base_url = "{{base_url}}/";
+	            _app = new Ext.dirac.core.App();
+	            setTimeout(function(){ 
+	            	Ext.get("app-dirac-loading").hide();
+	            	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ..."); 
+	            },1000);
+	        });
+	    {% end %}
     </script>
     <!-- </x-compile> -->
-    <style type="text/css">
-	    #app-dirac-loading{
-	        height:auto;
-	        position:absolute;
-	        left:45%;
-	        top:40%;
-	        padding:2px;
-	        z-index:20001;
-	    }
-	    #app-dirac-loading a {
-	        color:#225588;
-	    }
-	    #app-dirac-loading .app-dirac-loading-indicator{
-	        background:none;
-	        color:#444;
-	        font:bold 13px Helvetica, Arial, sans-serif;
-	        height:auto;
-	        margin:0;
-	        padding:10px;
-	        width:300px;
-	        
-	    }
-	    #app-dirac-loading-msg {
-	        font-size: 12px;
-	        font-weight: normal;
-	    }
-    </style>
 </head>
 
 <body>

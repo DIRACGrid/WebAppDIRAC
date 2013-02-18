@@ -5,6 +5,32 @@
 * http://www.sencha.com/license
 */
 
+#app-dirac-loading{
+    height:auto;
+    position:absolute;
+    left:45%;
+    top:40%;
+    padding:2px;
+    z-index:20001;
+}
+#app-dirac-loading a {
+    color:#225588;
+}
+#app-dirac-loading .app-dirac-loading-indicator{
+    background:none;
+    color:#444;
+    font:bold 13px Helvetica, Arial, sans-serif;
+    height:auto;
+    margin:0;
+    padding:10px;
+    width:300px;
+    
+}
+#app-dirac-loading-msg {
+    font-size: 12px;
+    font-weight: normal;
+}
+
 #poweredby {
     position: absolute;
     bottom: 40px;

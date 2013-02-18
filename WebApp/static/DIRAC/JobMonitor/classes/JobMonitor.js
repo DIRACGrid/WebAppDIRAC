@@ -11,7 +11,7 @@ Ext
 				{
 					extend : 'Ext.dirac.core.Module',
 
-					requires : [ 'Ext.data.JsonStore',
+					requires : [ //'Ext.data.JsonStore',
 					             'Ext.util.*', 
 					             'Ext.panel.Panel',
 					             "Ext.form.field.Text",
