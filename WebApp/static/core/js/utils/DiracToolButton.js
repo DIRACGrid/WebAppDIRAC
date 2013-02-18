@@ -12,7 +12,7 @@
  * @mixin Ext.util.Observable
  * 
  */
-Ext.define('Ext.ux.desktop.utils.DiracToolButton', {
+Ext.define('Ext.dirac.utils.DiracToolButton', {
 	extend : 'Ext.panel.Tool',
 	alias: 'widget.diracToolButton',
 	requires: [
