@@ -300,7 +300,7 @@ class JobMonitorHandler(WebHandler):
     ids = self.request.arguments["ids"][0].split(",")
     ids = [int(i) for i in ids ]
     
-    RPC = RPCClient("WorkloadManagement/JobMonitoring")
+    RPC = RPCClient("WorkloadManagement/JobManager")
     if self.request.arguments["action"][0] == "delete":
       result = RPC.deleteJob(ids)
     elif self.request.arguments["action"][0] == "kill":

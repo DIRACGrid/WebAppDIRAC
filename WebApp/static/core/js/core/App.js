@@ -390,38 +390,44 @@ Ext.define(
 				else
 					sStartClass=moduleName;
 				
-				sClassFilePath = "";
-				
 				if(_dev == 0){
-					Ext.Loader.setConfig({
-						enabled: true,
-						paths: {
-							'_dirac_help': "static/DIRAC/"+oParts[1]+"/build"
-						}
-					});
-					sClassFilePath ="_dirac_help.all-classes";
-				}else
-					sClassFilePath = sStartClass; 
-				
-				Ext.require(sClassFilePath, function() {
 					
-					var me = this;
-					console.log("check point 1");
-					var instance = Ext.create(sStartClass,{_baseUrl:me.configData.baseURL+"/"});
-					console.log("check point 2");
-					instance.setUID(++me._uid_counter);
-					
-					var config = {
-							desktop: me.desktop,
-							setupData: setupData,
-							loadedObject:instance,
-							loadedObjectType:"app"
+					var oConfig = {
+							enabled: true,
+							paths: {}
 						};
 					
-					console.log("check point 3");
-					var window = me.desktop.createWindow(config);
-					window.show();
+					oConfig["paths"]["DIRAC."+oParts[1]+".classes"] = "static/DIRAC/"+oParts[1]+"/build"; 
 					
+					Ext.Loader.setConfig(oConfig);
+					
+				}
+					 
+				
+				Ext.require(sStartClass, function() {
+					
+					var me = this;
+					
+					me.load(["static/DIRAC/"+oParts[1]+"/css/"+oParts[1]+".css"],function(){
+						
+						var me = this;
+						
+						var instance = Ext.create(sStartClass,{_baseUrl:me.configData.baseURL+"/"});
+						
+						instance.setUID(++me._uid_counter);
+						
+						var config = {
+								desktop: me.desktop,
+								setupData: setupData,
+								loadedObject:instance,
+								loadedObjectType:"app"
+							};
+						
+						
+						var window = me.desktop.createWindow(config);
+						window.show();
+						
+					},me);
 					
 				},this);
 				
@@ -442,6 +448,83 @@ Ext.define(
 			
 		},
 
+		load: function(fileList, callback, scope, preserveOrder) {
+	        var scope       = scope || this,
+	            head        = document.getElementsByTagName("head")[0],
+	            fragment    = document.createDocumentFragment(),
+	            numFiles    = fileList.length,
+	            loadedFiles = 0,
+	            me          = this;
+	        
+	        // Loads a particular file from the fileList by index. This is used when preserving order
+	        var loadFileIndex = function(index) {
+	            head.appendChild(
+	                me.buildScriptTag(fileList[index], onFileLoaded)
+	            );
+	        };
+	        
+	        /**
+	        * Callback function which is called after each file has been loaded. This calls the callback
+	        * passed to load once the final file in the fileList has been loaded
+	        */
+	        var onFileLoaded = function() {
+	            loadedFiles ++;
+	            
+	            //if this was the last file, call the callback, otherwise load the next file
+	            if (numFiles == loadedFiles && typeof callback == 'function') {
+	                callback.call(scope);
+	            } else {
+	                if (preserveOrder === true) {
+	                    loadFileIndex(loadedFiles);
+	                }
+	            }
+	        };
+	        
+	        if (preserveOrder === true) {
+	            loadFileIndex.call(this, 0);
+	        } else {
+	            //load each file (most browsers will do this in parallel)
+	            Ext.each(fileList, function(file, index) {
+	                fragment.appendChild(
+	                    this.buildScriptTag(file, onFileLoaded)
+	                );
+	            }, this);
+	            
+	            head.appendChild(fragment);
+	        }
+	    },
+	    
+	    buildScriptTag: function(filename, callback) {
+	        var exten = filename.substr(filename.lastIndexOf('.')+1);
+	        //console.log('Loader.buildScriptTag: filename=[%s], exten=[%s]', filename, exten);
+	        if(exten=='js') {
+	            var script  = document.createElement('script');
+	            script.type = "text/javascript";
+	            script.src  = filename;
+	            
+	            //IE has a different way of handling <script> loads, so we need to check for it here
+	            if(script.readyState) {
+	                script.onreadystatechange = function() {
+	                    if (script.readyState == "loaded" || script.readyState == "complete") {
+	                        script.onreadystatechange = null;
+	                        callback();
+	                    }
+	                };
+	            } else {
+	                script.onload = callback;
+	            }
+	            return script;
+	        }
+	        if(exten=='css') {
+	            var style = document.createElement('link');
+	            style.rel  = 'stylesheet';
+	            style.type = 'text/css';
+	            style.href = filename;
+	            callback();
+	            return style;
+	        }
+	    },
+		
 		/**
 		 * Getter of the desktop object
 		 * 

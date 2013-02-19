@@ -18,7 +18,10 @@ Ext
 					             "Ext.button.Button",
 					             "Ext.menu.CheckItem",
 					             "Ext.menu.Menu",
-					             "Ext.form.field.ComboBox"],					
+					             "Ext.form.field.ComboBox",
+					             "Ext.layout.*",
+					             "Ext.toolbar.Paging",
+					             "Ext.grid.Panel"],					
 
 					loadState : function(data) {
 						
@@ -39,7 +42,7 @@ Ext
 								col.setSortState(sortState);
 							
 						}
-						
+						http://ntt.cc/2008/02/10/4-ways-to-dynamically-load-external-javascriptwith-source.html
 						
 						for(var i=0;i<me.selectorMenu.items.length;i++){
 							
@@ -309,6 +312,7 @@ Ext
 						
 						me.pagingToolbar.btnReschedule = new Ext.Button({
 						    text:'Reschedule',
+						    iconCls: "jm-reschedule-icon",
 						    handler:function(){
 						    	
 						    	var me = this;
@@ -320,6 +324,7 @@ Ext
 						
 						me.pagingToolbar.btnKill = new Ext.Button({
 						    text:'Kill',
+						    iconCls: "jm-kill-icon",
 						    handler:function(){
 						    	
 						    	var me = this;
@@ -331,6 +336,7 @@ Ext
 						
 						me.pagingToolbar.btnDelete = new Ext.Button({
 						    text:'Delete',
+						    iconCls: "jm-delete-icon",
 						    handler:function(){
 						    	
 						    	var me = this;
@@ -366,10 +372,13 @@ Ext
 						                          'Items per page: ',
 						                          me.pagingToolbar.pageSizeCombo,
 						                          '-',
+						                          '->',
+						                          '-',
 						                          me.pagingToolbar.btnReschedule,
 						                          me.pagingToolbar.btnKill,
 						                          me.pagingToolbar.btnDelete,
-						                          '-'];
+						                          '-'
+						                          ];
 						
 						me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
 										               store : me.dataStore,
@@ -382,6 +391,7 @@ Ext
 						me.grid = Ext.create('Ext.grid.Panel', {
 							region: 'center',
 						    store: me.dataStore,
+						    height:'600',
 						    columns: [
 								{header:me.checkboxFunctionDefinition,name:'checkBox',id:'checkBox',width:26,sortable:false,dataIndex:'JobIDcheckBox',renderer:function (value, metaData, record, row, col, store, gridView){return this.rendererChkBox(value);},hideable:false,fixed:true,menuDisabled:true},
 								{header:'JobId',sortable:true,dataIndex:'JobID',align:'left',hideable:false},
