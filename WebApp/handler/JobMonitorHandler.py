@@ -231,69 +231,68 @@ class JobMonitorHandler(WebHandler):
       for i in reqIds:
         testI = i.split('-')
         if len(testI) == 2:
-          rangeID = range(int(testI[0].strip(' ')),int(testI[1].strip(' ')))
+          rangeID = range(int(testI[0].strip(' ')),int(testI[1].strip(' '))+1)
           req["JobID"].extend(rangeID)
         else:
           req["JobID"].append(i)
+    #groupProperty = credentials.getProperties(group)
+    result = gConfig.getOption("/Website/ListSeparator")
+    if result["OK"]:
+      separator = result["Value"]
     else:
-      #groupProperty = credentials.getProperties(group)
-      result = gConfig.getOption("/Website/ListSeparator")
-      if result["OK"]:
-        separator = result["Value"]
-      else:
-        separator = ","
+      separator = ","
+      
+    if self.request.arguments.has_key("prod") and len(self.request.arguments["prod"][0]) > 0:
+      if str(self.request.arguments["prod"][0]) != "":
+        req["JobGroup"] = str(self.request.arguments["prod"][0]).split(separator)
         
-      if self.request.arguments.has_key("prod") and len(self.request.arguments["prod"][0]) > 0:
-        if str(self.request.arguments["prod"][0]) != "":
-          req["JobGroup"] = str(self.request.arguments["prod"][0]).split(separator)
-          
-      if self.request.arguments.has_key("site") and len(self.request.arguments["site"][0]) > 0:
-        if str(self.request.arguments["site"][0]) != "":
-          req["Site"] = [x.strip() for x in str(self.request.arguments["site"][0]).split(separator)]
-          
-      if self.request.arguments.has_key("status") and len(self.request.arguments["status"][0]) > 0:
-        if str(self.request.arguments["status"][0]) != "":
-          req["Status"] = str(self.request.arguments["status"][0]).split(separator)
-          
-      if self.request.arguments.has_key("minorstat") and len(self.request.arguments["minorstat"][0]) > 0:
-        if str(self.request.arguments["minorstat"][0]) != "":
-          req["MinorStatus"] = str(self.request.arguments["minorstat"][0]).split(separator)
-          
-      if self.request.arguments.has_key("app") and len(self.request.arguments["app"][0]) > 0:
-        if str(self.request.arguments["app"][0]) != "":
-          req["ApplicationStatus"] = str(self.request.arguments["app"][0]).split(separator)
-          
-      if self.request.arguments.has_key("types") and len(self.request.arguments["types"][0]) > 0:
-        if str(self.request.arguments["types"][0]) != "":
-          req["JobType"] = str(self.request.arguments["types"][0]).split(separator)
+    if self.request.arguments.has_key("site") and len(self.request.arguments["site"][0]) > 0:
+      if str(self.request.arguments["site"][0]) != "":
+        req["Site"] = [x.strip() for x in str(self.request.arguments["site"][0]).split(separator)]
+        
+    if self.request.arguments.has_key("status") and len(self.request.arguments["status"][0]) > 0:
+      if str(self.request.arguments["status"][0]) != "":
+        req["Status"] = str(self.request.arguments["status"][0]).split(separator)
+        
+    if self.request.arguments.has_key("minorstat") and len(self.request.arguments["minorstat"][0]) > 0:
+      if str(self.request.arguments["minorstat"][0]) != "":
+        req["MinorStatus"] = str(self.request.arguments["minorstat"][0]).split(separator)
+        
+    if self.request.arguments.has_key("app") and len(self.request.arguments["app"][0]) > 0:
+      if str(self.request.arguments["app"][0]) != "":
+        req["ApplicationStatus"] = str(self.request.arguments["app"][0]).split(separator)
+        
+    if self.request.arguments.has_key("types") and len(self.request.arguments["types"][0]) > 0:
+      if str(self.request.arguments["types"][0]) != "":
+        req["JobType"] = str(self.request.arguments["types"][0]).split(separator)
 
-      if self.request.arguments.has_key("owner") and len(self.request.arguments["owner"][0]) > 0:
-        if str(self.request.arguments["owner"][0]) != "":
-          req["Owner"] = str(self.request.arguments["owner"][0]).split(separator)
+    if self.request.arguments.has_key("owner") and len(self.request.arguments["owner"][0]) > 0:
+      if str(self.request.arguments["owner"][0]) != "":
+        req["Owner"] = str(self.request.arguments["owner"][0]).split(separator)
+        
+    if self.request.arguments.has_key("startDate") and len(self.request.arguments["startDate"][0]) > 0:
+      if str(self.request.arguments["startDate"][0]) != "YYYY-mm-dd":
+        if self.request.arguments.has_key("startTime") and len(self.request.arguments["startTime"][0]) > 0:
+          req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
+        else:
+          req["FromDate"] = str(self.request.arguments["startDate"][0])
           
-      if self.request.arguments.has_key("startDate") and len(self.request.arguments["startDate"][0]) > 0:
-        if str(self.request.arguments["startDate"][0]) != "YYYY-mm-dd":
-          if self.request.arguments.has_key("startTime") and len(self.request.arguments["startTime"][0]) > 0:
-            req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
-          else:
-            req["FromDate"] = str(self.request.arguments["startDate"][0])
-            
-      if self.request.arguments.has_key("endDate") and len(self.request.arguments["endDate"][0]) > 0:
-        if str(self.request.arguments["endDate"][0]) != "YYYY-mm-dd":
-          if self.request.arguments.has_key("endTime") and len(self.request.arguments["endTime"][0]) > 0:
-            req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
-          else:
-            req["ToDate"] = str(self.request.arguments["endDate"][0])
-            
-      if self.request.arguments.has_key("date") and len(self.request.arguments["date"][0]) > 0:
-        if str(self.request.arguments["date"][0]) != "YYYY-mm-dd":
-          req["LastUpdate"] = str(self.request.arguments["date"][0])
+    if self.request.arguments.has_key("endDate") and len(self.request.arguments["endDate"][0]) > 0:
+      if str(self.request.arguments["endDate"][0]) != "YYYY-mm-dd":
+        if self.request.arguments.has_key("endTime") and len(self.request.arguments["endTime"][0]) > 0:
+          req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
+        else:
+          req["ToDate"] = str(self.request.arguments["endDate"][0])
           
-      if self.request.arguments.has_key("sort") and len(self.request.arguments["sort"][0]) > 0:
-        #self.globalSort = str(self.request.arguments["sort"][0])
-        sortValue = self.request.arguments["sort"][0]
-        print isinstance(sortValue,str)
-        #self.globalSort = [[sortValue["property"],sortValue["direction"]]]
+    if self.request.arguments.has_key("date") and len(self.request.arguments["date"][0]) > 0:
+      if str(self.request.arguments["date"][0]) != "YYYY-mm-dd":
+        req["LastUpdate"] = str(self.request.arguments["date"][0])
+        
+    if self.request.arguments.has_key("sort") and len(self.request.arguments["sort"][0]) > 0:
+      #self.globalSort = str(self.request.arguments["sort"][0])
+      sortValue = self.request.arguments["sort"][0]
+      print isinstance(sortValue,str)
+      #self.globalSort = [[sortValue["property"],sortValue["direction"]]]
     return req
   
   def web_jobAction( self ):

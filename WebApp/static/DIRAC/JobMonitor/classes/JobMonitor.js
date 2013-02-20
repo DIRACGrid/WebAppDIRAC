@@ -175,8 +175,7 @@ Ext
 							    labelAlign:'top',
 							    width:220,
 							    displayField: "text",
-							    valueField: "value",
-							    
+							    valueField: "value"
 							});
 							
 						}
@@ -203,12 +202,16 @@ Ext
 							    			newValue+=value.charAt(i);
 							    	}
 							    	var regExpr     = /^(\d+|\d+-\d+)(,(\d+|\d+-\d+))*$/;
-									return String(newValue).search (regExpr) != -1;
+							    	
+							    	if(String(newValue).search (regExpr) != -1)
+							    		return true;
+							    	else
+							    		return "The IDs expression is not valid";	
+
 						    	}else
 						    		return true;
 								
 						    }
-
 						});
 						
 						me.leftPanel.add(me.textJobId);
@@ -217,6 +220,7 @@ Ext
 							
 							text: 'Submit',
 							margin:3,
+							iconCls:"jm-submit-icon",
 							handler: function() {
 								me.oprSelectorsRefreshWithSubmit(true);
 							},
@@ -228,6 +232,7 @@ Ext
 							
 							text: 'Reset',
 							margin:3,
+							iconCls:"jm-reset-icon",
 							handler: function() {
 								me.oprResetSelectionOptions();
 							},
@@ -239,6 +244,7 @@ Ext
 							
 							text: 'Refresh',
 							margin:3,
+							iconCls:"jm-refresh-icon",
 							handler: function() {
 								me.oprSelectorsRefreshWithSubmit(false);
 							},
@@ -542,9 +548,24 @@ Ext
 				    	}
 						
 					},
+					
+					__oprValidateBeforeSubmit: function(){
+						
+						var me = this;
+						var bValid = true;
+						
+						if(!me.textJobId.validate())
+							bValid = false;
+						
+						return bValid;
+					},
+					
 					oprSelectorsRefreshWithSubmit: function(bSubmit){
 						
 						var me = this;
+						
+						if(bSubmit && !me.__oprValidateBeforeSubmit())
+							return;
 						
 						me.leftPanel.body.mask("Wait ...");
 						Ext.Ajax.request({
@@ -558,9 +579,10 @@ Ext
 						    	var me = this;
 						    	var response = Ext.JSON.decode(response.responseText);
 						    	me.__oprRefreshStoresForSelectors(response,true);
+						    	me.leftPanel.body.unmask();
 						    	if(bSubmit)
 						    		me.oprLoadGridData();
-						    	me.leftPanel.body.unmask();
+						    	
 						    },
 						    failure:function(response){
 						    	
@@ -573,24 +595,27 @@ Ext
 						
 						var me = this;
 						
-						// Collect data for filtration
-						var extraParams = {
-								
-								site:			((me.cmbSelectors.site.isInverseSelection())?me.cmbSelectors.site.getInverseSelection():me.cmbSelectors.site.getValue().join(",")),
-								status:			((me.cmbSelectors.status.isInverseSelection())?me.cmbSelectors.status.getInverseSelection():me.cmbSelectors.status.getValue().join(",")),
-								minorstat:		((me.cmbSelectors.minorStatus.isInverseSelection())?me.cmbSelectors.minorStatus.getInverseSelection():me.cmbSelectors.minorStatus.getValue().join(",")),
-								app:			((me.cmbSelectors.appStatus.isInverseSelection())?me.cmbSelectors.appStatus.getInverseSelection():me.cmbSelectors.appStatus.getValue().join(",")),
-								owner:			((me.cmbSelectors.owner.isInverseSelection())?me.cmbSelectors.owner.getInverseSelection():me.cmbSelectors.owner.getValue().join(",")),
-								prod:			((me.cmbSelectors.jobGroup.isInverseSelection())?me.cmbSelectors.jobGroup.getInverseSelection():me.cmbSelectors.jobGroup.getValue().join(",")),
-								types:			((me.cmbSelectors.jobType.isInverseSelection())?me.cmbSelectors.jobType.getInverseSelection():me.cmbSelectors.jobType.getValue().join(",")),
-								ids:			me.textJobId.getValue(),
-								limit:			me.pagingToolbar.pageSizeCombo.getValue()
-								
-						};
-						
-						// set those data as extraParams in
-						me.grid.store.proxy.extraParams = extraParams;
-						me.grid.store.load();
+						if(me.__oprValidateBeforeSubmit()){
+							
+							// Collect data for filtration
+							var extraParams = {
+									
+									site:			((me.cmbSelectors.site.isInverseSelection())?me.cmbSelectors.site.getInverseSelection():me.cmbSelectors.site.getValue().join(",")),
+									status:			((me.cmbSelectors.status.isInverseSelection())?me.cmbSelectors.status.getInverseSelection():me.cmbSelectors.status.getValue().join(",")),
+									minorstat:		((me.cmbSelectors.minorStatus.isInverseSelection())?me.cmbSelectors.minorStatus.getInverseSelection():me.cmbSelectors.minorStatus.getValue().join(",")),
+									app:			((me.cmbSelectors.appStatus.isInverseSelection())?me.cmbSelectors.appStatus.getInverseSelection():me.cmbSelectors.appStatus.getValue().join(",")),
+									owner:			((me.cmbSelectors.owner.isInverseSelection())?me.cmbSelectors.owner.getInverseSelection():me.cmbSelectors.owner.getValue().join(",")),
+									prod:			((me.cmbSelectors.jobGroup.isInverseSelection())?me.cmbSelectors.jobGroup.getInverseSelection():me.cmbSelectors.jobGroup.getValue().join(",")),
+									types:			((me.cmbSelectors.jobType.isInverseSelection())?me.cmbSelectors.jobType.getInverseSelection():me.cmbSelectors.jobType.getValue().join(",")),
+									ids:			me.textJobId.getValue(),
+									limit:			me.pagingToolbar.pageSizeCombo.getValue()
+									
+							};
+							
+							// set those data as extraParams in
+							me.grid.store.proxy.extraParams = extraParams;
+							me.grid.store.load();
+						}
 						
 					},
 					oprResetSelectionOptions: function(){
