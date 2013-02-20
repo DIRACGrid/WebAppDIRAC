@@ -366,19 +366,16 @@ Ext
 						
 						me.pagingToolbar.pageSizeCombo.on("change",function(combo, newValue, oldValue, eOpts){var me = this; me.oprLoadGridData();},me);
 						
-						var pagingToolbarItems = ['-',
+						var pagingToolbarItems = [me.pagingToolbar.btnReschedule,
+						                          me.pagingToolbar.btnKill,
+						                          me.pagingToolbar.btnDelete,
+						                          '-',
+						                          '->',
 						                          me.pagingToolbar.updateStamp,
 						                          '-',
 						                          'Items per page: ',
 						                          me.pagingToolbar.pageSizeCombo,
-						                          '-',
-						                          '->',
-						                          '-',
-						                          me.pagingToolbar.btnReschedule,
-						                          me.pagingToolbar.btnKill,
-						                          me.pagingToolbar.btnDelete,
-						                          '-'
-						                          ];
+						                          '-'];
 						
 						me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
 										               store : me.dataStore,
@@ -386,6 +383,7 @@ Ext
 										               displayMsg : 'Displaying topics {0} - {1} of {2}',
 										               items: pagingToolbarItems,
 										               emptyMsg : "No topics to display",
+										               prependButtons: true
 										             });
 						
 						me.grid = Ext.create('Ext.grid.Panel', {

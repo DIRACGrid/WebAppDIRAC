@@ -307,6 +307,8 @@ class JobMonitorHandler(WebHandler):
       result = RPC.killJob(ids)
     elif self.request.arguments["action"][0] == "reschedule":
       result = RPC.rescheduleJob(ids)
+    elif self.request.arguments["action"][0] == "reset":
+      result = RPC.resetJob(ids)
       
     callback = {}  
     if result["OK"]:
@@ -315,7 +317,7 @@ class JobMonitorHandler(WebHandler):
       if result.has_key("InvalidJobIDs"):
         callback = {"success":"false","error":"Invalid JobIDs: %s" % result["InvalidJobIDs"]}
       elif result.has_key("NonauthorizedJobIDs"):
-        callback = {"success":"false","error":"You are nonauthorized to delete jobs with JobID: %s" % result["NonauthorizedJobIDs"]}
+        callback = {"success":"false","error":"You are nonauthorized to %s jobs with JobID: %s" % (self.request.arguments["action"][0],result["NonauthorizedJobIDs"])}
       else:
         callback = {"success":"false","error":result["Message"]}
     self.write(json.dumps(callback))
