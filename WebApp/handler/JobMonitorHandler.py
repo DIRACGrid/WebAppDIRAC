@@ -4,6 +4,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig
 import json
+import ast
 
 class JobMonitorHandler(WebHandler):
 
@@ -289,10 +290,10 @@ class JobMonitorHandler(WebHandler):
         req["LastUpdate"] = str(self.request.arguments["date"][0])
         
     if self.request.arguments.has_key("sort") and len(self.request.arguments["sort"][0]) > 0:
-      #self.globalSort = str(self.request.arguments["sort"][0])
       sortValue = self.request.arguments["sort"][0]
-      print isinstance(sortValue,str)
-      #self.globalSort = [[sortValue["property"],sortValue["direction"]]]
+      #converting the string into a dictionary
+      sortValue = ast.literal_eval(sortValue.strip("[]"))
+      self.globalSort = [[sortValue["property"],sortValue["direction"]]]
     return req
   
   def web_jobAction( self ):
