@@ -316,6 +316,18 @@ Ext
 														    text:'Updated: -'
 														  });
 						
+						me.pagingToolbar.btnReset = new Ext.Button({
+						    text:'Reset',
+						    iconCls: "jm-reset-button-icon",
+						    handler:function(){
+						    	
+						    	var me = this;
+						    	me.__oprJobAction("reset","");
+						    	
+						    },
+						    scope:me
+						});
+						
 						me.pagingToolbar.btnReschedule = new Ext.Button({
 						    text:'Reschedule',
 						    iconCls: "jm-reschedule-icon",
@@ -372,7 +384,8 @@ Ext
 						
 						me.pagingToolbar.pageSizeCombo.on("change",function(combo, newValue, oldValue, eOpts){var me = this; me.oprLoadGridData();},me);
 						
-						var pagingToolbarItems = [me.pagingToolbar.btnReschedule,
+						var pagingToolbarItems = [me.pagingToolbar.btnReset,
+						                          me.pagingToolbar.btnReschedule,
 						                          me.pagingToolbar.btnKill,
 						                          me.pagingToolbar.btnDelete,
 						                          '-',
@@ -658,7 +671,7 @@ Ext
 						var c = false;
 						  
 						if (oItems.length == 1)
-							c = confirm ('Are you sure you want to ' + oAction + ' ' + items[0] + '?');
+							c = confirm ('Are you sure you want to ' + oAction + ' ' + oItems[0] + '?');
 						else
 							c = confirm ('Are you sure you want to ' + oAction + ' these jobs?');
 						  
