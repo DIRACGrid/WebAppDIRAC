@@ -514,8 +514,10 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
       	                    padding:0
       	                });   
       	            } 
+      	            
           	    },
-              	  select:function(r, record, eOpts){
+          	    
+              	select:function(r, record, eOpts){
               		
               		
               		var node = this.getNode(record);
@@ -540,6 +542,7 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
                       	oCheckBox.setValue(false);
                       		                  	
                       }
+
               		
               	},
               	
@@ -547,6 +550,8 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
               			
                       if(e.target.nodeName=="INPUT")
                       	e.ctrlKey = true;
+                      
+                      
 
               	}
             	
@@ -565,7 +570,18 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
                 commitFn();
             }
         });
-
+        
+        me.on("expand",function(oField,eOpts){
+        	
+        	var me = this;
+        	
+        	var oPicker = me.getPicker();
+        	var oPos = oPicker.getPosition();
+        	oPicker.setPosition(oPos[0]+me.getWidth()-51,oPos[1]);
+        	
+        },me);
+        
+        
         if (!Ext.isEmpty(me.delimiter) && me.multiSelect) {
             me.delimiterRegexp = new RegExp(String(me.delimiter).replace(/[$%()*+.?\[\\\]{|}]/g, "\\$&"));
         }
@@ -965,20 +981,32 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
      * Overridden to preserve scroll position of pick list when list is realigned
      */
     alignPicker: function() {
-        var me = this,
-            picker = me.picker,
-            pickerScrollPos = picker.getTargetEl().dom.scrollTop;
-
+//        var me = this,
+//            picker = me.picker,
+//            pickerScrollPos = picker.getTargetEl().dom.scrollTop;
+//
+//        me.callParent(arguments);
+//
+//        if (me.isExpanded) {
+//            if (me.matchFieldWidth) {
+//                // Auto the height (it will be constrained by min and max width) unless there are no records to display.
+//                picker.setWidth(me.listWrapper.getWidth());
+//            }
+//
+//            picker.getTargetEl().dom.scrollTop = pickerScrollPos;
+//        }
+        
+    	
+    	
+        var me = this;
+    	
         me.callParent(arguments);
-
-        if (me.isExpanded) {
-            if (me.matchFieldWidth) {
-                // Auto the height (it will be constrained by min and max width) unless there are no records to display.
-                picker.setWidth(me.listWrapper.getWidth());
-            }
-
-            picker.getTargetEl().dom.scrollTop = pickerScrollPos;
-        }
+        
+    	var oPicker = me.getPicker();
+    	var oPos = oPicker.getPosition();
+    	oPicker.setPosition(oPos[0]+me.getWidth()-51,oPos[1]);
+    	
+        
     },
 
     /**

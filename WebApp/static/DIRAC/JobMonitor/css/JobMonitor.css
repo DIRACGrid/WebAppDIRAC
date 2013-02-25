@@ -46,3 +46,17 @@
      background-color: transparent;
 	
 }
+
+.jm-action-gif-icon{
+	
+	 background-image: url(../images/action.gif) !important;
+     background-color: transparent;
+	
+}
+
+.jm-addfile-gif-icon{
+	
+	 background-image: url(../images/addfile.gif) !important;
+     background-color: transparent;
+	
+}

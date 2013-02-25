@@ -21,7 +21,8 @@ Ext.define(
 
 		requires : [ 'Ext.container.Viewport',
 				'Ext.dirac.core.Desktop', 'Ext.window.MessageBox',
-				'Ext.dirac.core.ShortcutModel' ],
+				'Ext.dirac.core.ShortcutModel', 
+				'Ext.dirac.core.CommonFunctions'],
 		/**
 		 * @property {boolean} isReady
 		 */
@@ -100,7 +101,9 @@ Ext.define(
 			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			    }
 			});
-
+			
+			me._cf = new Ext.dirac.core.CommonFunctions();
+			
 			me.callParent();
 
 		},

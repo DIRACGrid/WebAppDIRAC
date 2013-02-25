@@ -190,7 +190,7 @@ Ext
 						
 						me.textJobId = Ext.create('Ext.form.field.Text',{
 							
-							fieldLabel: "JobID",
+							fieldLabel: "JobID(s)",
 						    labelAlign:'top',
 						    width:220,
 						    validator: function(value){
@@ -280,7 +280,6 @@ Ext
 						    }
 						});
 						
-
 						/*
 						 * Definition of grid
 						 */
@@ -299,7 +298,8 @@ Ext
 						    // alternatively, a Ext.data.Model name can be given
 							// (see Ext.data.Store for an example)
 						    fields: me.dataFields,
-						    autoLoad : true
+						    autoLoad : true,
+						    remoteSort:true
 						});
 						
 						me.checkboxFunctionDefinition = '<input type="checkbox" value="" onchange="';
@@ -405,6 +405,53 @@ Ext
 										               prependButtons: true
 										             });
 						
+						me.contextGridMenu = new Ext.menu.Menu({
+							items :[ 
+							        {handler:function(){},text:'JDL'},
+							        '-',
+							        {handler:function(){},text:'Attributes'},
+							        {handler:function(){},text:'Parameters'},
+							        {handler:function(){},text:'Logging info'},
+							        '-',
+							        {handler:function(){},text:'Peek StandardOutput'},
+							        {handler:function(){},text:'Get LogFile'},
+							        {handler:function(){},text:'Get PendingRequest'},
+							        {handler:function(){},text:'Get StagerReport'},
+							        '-',
+							        {text:'Actions',iconCls:"jm-action-gif-icon",
+							        	menu:{items:[
+							        	             {handler:function(){
+							        	            	 
+							        	            	 var me = this;
+													     me.__oprJobAction("kill",_app._cf.getFieldValueFromSelectedRow(me.grid,"JobID"));
+							        	            	 
+							        	             },iconCls:"jm-kill-icon",text:'Kill',scope:me},
+							        	             {handler:function(){
+							        	            	 
+							        	            	 var me = this;
+													     me.__oprJobAction("delete",_app._cf.getFieldValueFromSelectedRow(me.grid,"JobID"));
+							        	            	 
+							        	             },iconCls:"jm-delete-icon",text:'Delete',scope:me}
+							        	             ]
+							        		}
+							        },
+							        {text:'Pilot',
+							        	menu:{items:[
+							                         {handler:function(){},text:'Get StdOut'},
+							                         {handler:function(){},text:'Get StdErr'}
+							                         ]
+							        	}
+							        },
+							        {text:'Sandbox',iconCls:"jm-addfile-gif-icon",
+							        	menu:{items:[
+							        	             {handler:function(){},text:'Get input file(s)'},
+							        	             {handler:function(){},text:'Get output file(s)'}
+							        	             ]
+							        		}
+							        }
+						      ]
+						});
+						
 						me.grid = Ext.create('Ext.grid.Panel', {
 							region: 'center',
 						    store: me.dataStore,
@@ -435,7 +482,7 @@ Ext
 								{header:'OwnerGroup',sortable:true,dataIndex:'OwnerGroup',align:'left',hidden:true}
 							],
 						    rendererChkBox : function(val) {
-					           return '<input value="' + val + '" type="checkbox" class="checkrow"/>';
+					           return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
 					         },
 					        rendererStatus : function(value){
 					           if ((value == 'Done') || (value == 'Completed')
@@ -463,7 +510,16 @@ Ext
 					             return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
 					           }
 					         },
-						    bbar : me.pagingToolbar.toolbar
+						    bbar : me.pagingToolbar.toolbar,
+						    listeners:{
+						    	
+						    	itemclick: function(comp, record, item, index, e, eOpts){
+						    		
+						    		me.contextGridMenu.showAt(e.xy);
+						    		
+						    	}
+						    	
+						    }
 						});
 						
 						
