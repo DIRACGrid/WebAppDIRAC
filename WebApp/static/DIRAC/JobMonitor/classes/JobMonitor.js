@@ -21,7 +21,8 @@ Ext
 					             "Ext.form.field.ComboBox",
 					             "Ext.layout.*",
 					             "Ext.toolbar.Paging",
-					             "Ext.grid.Panel"],					
+					             "Ext.grid.Panel",
+					             "Ext.form.field.Date"],					
 
 					loadState : function(data) {
 						
@@ -42,7 +43,6 @@ Ext
 								col.setSortState(sortState);
 							
 						}
-						http://ntt.cc/2008/02/10/4-ways-to-dynamically-load-external-javascriptwith-source.html
 						
 						for(var i=0;i<me.selectorMenu.items.length;i++){
 							
@@ -127,13 +127,16 @@ Ext
 					            {name:'JobIDcheckBox',mapping:'JobID'},
 					            {name:'StatusIcon',mapping:'Status'},
 					            {name:'OwnerGroup'}],
-					
+					            
 					initComponent : function() {
 
 						var me = this;
 						me.launcher.title = "Job Monitor";
+						
 						/*
-						 * Definition of containers
+						 * -----------------------------------------------------------------------------------------------------------
+						 * DEFINITION OF THE LEFT PANEL
+						 * -----------------------------------------------------------------------------------------------------------
 						 */
 						
 						me.leftPanel = new Ext.create('Ext.panel.Panel',{
@@ -146,10 +149,6 @@ Ext
 						    maxWidth: 350,
 						    bodyPadding: 5
 						});
-
-						/*
-						 * Definition of combo boxes
-						 */
 					
 						me.cmbSelectors={site:null,
 										status:null,
@@ -175,7 +174,8 @@ Ext
 							    labelAlign:'top',
 							    width:220,
 							    displayField: "text",
-							    valueField: "value"
+							    valueField: "value",
+							    anchor: '100%'
 							});
 							
 						}
@@ -216,6 +216,117 @@ Ext
 						
 						me.leftPanel.add(me.textJobId);
 						
+						//time search sub-panel
+						
+						me.timeSearchPanel = {};
+						
+						me.timeSearchPanel.cmbTimeSpan = new Ext.create('Ext.form.field.ComboBox',{
+							labelAlign:'top',
+							width:180,
+							fieldLabel: 'Time Span',
+							store:new Ext.data.SimpleStore({
+						        fields:['value','text'],
+						        data:[[1,"Last Hour"],[2,"Last Day"],[3,"Last Week"],[4,"Last Month"],[5,"Manual Selection"]]
+						      }),
+						    displayField: "text",
+							valueField: "value"
+						});
+						
+						var oTimeData = [];
+						for(var i=0;i<24;i++){
+							oTimeData.push([((i.toString().length==1)?"0"+i.toString():i.toString())+":00"]);
+							oTimeData.push([((i.toString().length==1)?"0"+i.toString():i.toString())+":30"]);
+						}
+						
+						me.timeSearchPanel.calenFrom = new Ext.create('Ext.form.field.Date',{
+							width:100,
+							format:'Y-m-d'
+						});
+						
+						me.timeSearchPanel.cmbTimeFrom = new Ext.create('Ext.form.field.ComboBox',{
+							width:70,
+							store:new Ext.data.SimpleStore({
+						        fields:['value'],
+						        data:oTimeData
+						      }),
+						   margin:"0 0 0 10",
+						   displayField:'value'
+						});
+						
+						me.timeSearchPanel.calenTo = new Ext.create('Ext.form.field.Date',{
+							width:100,
+							format:'Y-m-d'
+						});
+						
+						me.timeSearchPanel.cmbTimeTo = new Ext.create('Ext.form.field.ComboBox',{
+							width:70,
+							store:new Ext.data.SimpleStore({
+						        fields:['value'],
+						        data:oTimeData
+						      }),
+						   margin:"0 0 0 10",
+						   displayField:'value'
+						});
+						
+						me.timeSearchPanel.btnTimeTo = new Ext.Button({
+							
+							text: 'Reset Time Panel',
+							margin:3,
+							iconCls:"jm-reset-icon",
+							handler: function() {
+								
+								me.timeSearchPanel.cmbTimeTo.setValue(null);
+								me.timeSearchPanel.cmbTimeFrom.setValue(null);
+								me.timeSearchPanel.calenTo.setRawValue("");
+								me.timeSearchPanel.calenFrom.setRawValue("");
+								me.timeSearchPanel.cmbTimeSpan.setValue(null);
+							},
+							scope:me
+							
+						});
+						
+						var oTimePanel = new Ext.create('Ext.panel.Panel',{
+							width:200,
+						    autoHeight:true,
+						    border:true,
+						    bodyPadding: 5,
+						    dockedItems: [{
+						        xtype: 'toolbar',
+						        dock: 'bottom',
+						        items: [me.timeSearchPanel.btnTimeTo]
+						    }],
+							items:[me.timeSearchPanel.cmbTimeSpan,
+							       {
+						              xtype: 'tbtext', 
+						              text: "From:",
+						              padding:"3 0 3 0"
+							       },
+							       {xtype:"panel",
+								       layout:"column",
+								       border:false,
+								       items:[
+										me.timeSearchPanel.calenFrom,
+										me.timeSearchPanel.cmbTimeFrom
+							       ]},
+							       {
+							              xtype: 'tbtext', 
+							              text: "To:",
+							              padding:"3 0 3 0"
+								   },
+							       {xtype:"panel",
+								       layout:"column",
+								       border:false,
+								       items:[
+										me.timeSearchPanel.calenTo,
+										me.timeSearchPanel.cmbTimeTo
+								   ]}
+							       ]
+						});
+
+						me.leftPanel.add(oTimePanel);
+						
+						//Buttons at the bottom of the panel
+						
 						me.btnSubmit = new Ext.Button({
 							
 							text: 'Submit',
@@ -253,6 +364,7 @@ Ext
 						});
 						
 						var oPanelButtons = new Ext.create('Ext.panel.Panel',{
+							bodyPadding: 5,
 						    autoHeight:true,
 						    border:false,
 							items:[me.btnSubmit,me.btnReset,me.btnRefresh]
@@ -280,8 +392,11 @@ Ext
 						    }
 						});
 						
+
 						/*
-						 * Definition of grid
+						 * -----------------------------------------------------------------------------------------------------------
+						 * DEFINITION OF THE GRID
+						 * -----------------------------------------------------------------------------------------------------------
 						 */
 						
 						me.dataStore = new Ext.data.JsonStore({
@@ -524,7 +639,9 @@ Ext
 						
 						
 						/*
-						 * Structuring the main container
+						 * -----------------------------------------------------------------------------------------------------------
+						 * DEFINITION OF THE MAIN CONTAINER
+						 * -----------------------------------------------------------------------------------------------------------
 						 */
 						Ext.apply(me, {
 							layout : 'border',
@@ -666,6 +783,37 @@ Ext
 						
 						if(me.__oprValidateBeforeSubmit()){
 							
+							//if a value in time span has been selected
+							var sStartDate = me.timeSearchPanel.calenFrom.getRawValue();
+							var sStartTime = me.timeSearchPanel.cmbTimeFrom.getValue();
+							var sEndDate = me.timeSearchPanel.calenTo.getRawValue();
+							var sEndTime = me.timeSearchPanel.cmbTimeTo.getValue();
+							
+							var iSpanValue = me.timeSearchPanel.cmbTimeSpan.getValue();
+							console.log("VOILA: "+iSpanValue);
+							if((iSpanValue!=null)&&(iSpanValue!=5)){
+								
+								var oNowJs = new Date();
+								var oBegin = null;
+								
+								switch(iSpanValue){
+									case 1: oBegin = Ext.Date.add(oNowJs, Ext.Date.HOUR, -1);
+											break;
+									case 2: oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -1);
+											break;
+									case 3: oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -7);
+											break;
+									case 4: oBegin = Ext.Date.add(oNowJs, Ext.Date.MONTH, -1);
+											break;
+								}
+								
+								sStartDate = Ext.Date.format(oBegin,"Y-m-d");
+								sEndDate = Ext.Date.format(oNowJs,"Y-m-d");
+								sStartTime = Ext.Date.format(oBegin,"H:i");
+								sEndTime = Ext.Date.format(oNowJs,"H:i");
+								
+							}
+							
 							// Collect data for filtration
 							var extraParams = {
 									
@@ -677,7 +825,11 @@ Ext
 									prod:			((me.cmbSelectors.jobGroup.isInverseSelection())?me.cmbSelectors.jobGroup.getInverseSelection():me.cmbSelectors.jobGroup.getValue().join(",")),
 									types:			((me.cmbSelectors.jobType.isInverseSelection())?me.cmbSelectors.jobType.getInverseSelection():me.cmbSelectors.jobType.getValue().join(",")),
 									ids:			me.textJobId.getValue(),
-									limit:			me.pagingToolbar.pageSizeCombo.getValue()
+									limit:			me.pagingToolbar.pageSizeCombo.getValue(),
+									startDate:		sStartDate,
+									startTime:		sStartTime,
+									endDate:		sEndDate,
+									endTime:		sEndTime
 									
 							};
 							

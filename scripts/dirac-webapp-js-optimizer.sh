@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASE_PATH="/home/niksa/workspace/diracRoot/WebAppDIRAC/WebApp"
-DEBUG=true
+DEBUG=false
 
 echo "START JAVASCRIPT OPTIMIZATION"
 

@@ -377,7 +377,6 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     	me.getPicker().refresh();
     
     },
-    
     /**
      * @inheritdoc
      *
@@ -571,20 +570,29 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
             }
         });
         
-        me.on("expand",function(oField,eOpts){
-        	
-        	var me = this;
-        	
-        	var oPicker = me.getPicker();
-        	var oPos = oPicker.getPosition();
-        	oPicker.setPosition(oPos[0]+me.getWidth()-51,oPos[1]);
-        	
-        },me);
+        /*
+        var oHtml='<input type="text"  style="width:150px;border:none" onchange="'+
+        "document.getElementById('"+me.id+"-inputEl').value=this.value;"+
+        '"/>';
         
+        me.panelForSearch = new Ext.create('Ext.panel.Panel',{
+			bodyPadding: 5,
+		    autoHeight:true,
+		    floating:true,
+			items:[{
+	            html: oHtml,
+	            border:false,
+	            xtype: "panel"}]
+		});
+        */
+        
+        
+        //me.on("collapse",function(comp,eOpts){var me=this; me.panelForSearch.hide();},me);
         
         if (!Ext.isEmpty(me.delimiter) && me.multiSelect) {
             me.delimiterRegexp = new RegExp(String(me.delimiter).replace(/[$%()*+.?\[\\\]{|}]/g, "\\$&"));
         }
+        
     },
 
     /**
@@ -751,8 +759,10 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
         }
 
         me.applyMultiselectItemMarkup();
-
+        me.initialHeight = me.getHeight();
+        
         me.callParent(arguments);
+      
     },
 
     /**
@@ -1003,9 +1013,26 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
         me.callParent(arguments);
         
     	var oPicker = me.getPicker();
-    	var oPos = oPicker.getPosition();
-    	oPicker.setPosition(oPos[0]+me.getWidth()-51,oPos[1]);
     	
+    	oPicker.getEl().setStyle("border-top","solid 1px #B8DBFF");
+    	var oPos = me.getPosition();
+    	oPicker.setPosition(oPos[0]+me.getWidth()-51,oPos[1]+ me.initialHeight);
+    	
+    	var para = document.getElementById(me.getPicker().id);
+        if(!document.getElementById(me.getPicker().id+"-search-input")){
+	        var imgBox = document.createElement("input"); 
+	        imgBox.type = "text";
+	        imgBox.id = me.getPicker().id+"-search-input";
+	        imgBox.style.border = 'solid 1px #DDDDDD';
+	        imgBox.style.width = '100%';
+	        imgBox.onkeyup = function(){document.getElementById(me.id+"-inputEl").value=imgBox.value;me.doRawQuery();};
+	        para.insertBefore(imgBox,para.firstChild);
+	        document.getElementById(me.id+"-inputEl").style.width="1px";
+	        document.getElementById(me.id+"-inputEl").style.visibility="hidden";
+        }
+//    	me.panelForSearch.setPosition(oPos[0]+me.getWidth()-51,oPos[1]+ me.initialHeight);
+//    	me.panelForSearch.setWidth(oPicker.getWidth());
+//    	me.panelForSearch.show();
         
     },
 
