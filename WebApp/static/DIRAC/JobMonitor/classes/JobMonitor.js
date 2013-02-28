@@ -22,7 +22,8 @@ Ext
 					             "Ext.layout.*",
 					             "Ext.toolbar.Paging",
 					             "Ext.grid.Panel",
-					             "Ext.form.field.Date"],					
+					             "Ext.form.field.Date",
+					             "Ext.form.field.TextArea"],					
 
 					loadState : function(data) {
 						
@@ -522,16 +523,16 @@ Ext
 						
 						me.contextGridMenu = new Ext.menu.Menu({
 							items :[ 
-							        {handler:function(){},text:'JDL'},
+							        {handler:function(){me.__oprGetJobData("getJDL");},text:'JDL'},
 							        '-',
-							        {handler:function(){},text:'Attributes'},
-							        {handler:function(){},text:'Parameters'},
-							        {handler:function(){},text:'Logging info'},
+							        {handler:function(){me.__oprGetJobData("getBasicInfo");},text:'Attributes'},
+							        {handler:function(){me.__oprGetJobData("getParams");},text:'Parameters'},
+							        {handler:function(){me.__oprGetJobData("getLoggingInfo");},text:'Logging info'},
 							        '-',
-							        {handler:function(){},text:'Peek StandardOutput'},
-							        {handler:function(){},text:'Get LogFile'},
-							        {handler:function(){},text:'Get PendingRequest'},
-							        {handler:function(){},text:'Get StagerReport'},
+							        {handler:function(){me.__oprGetJobData("getStandardOutput");},text:'Peek StandardOutput'},
+							        {handler:function(){me.__oprGetJobData("getLogURL");},text:'Get LogFile'},
+							        {handler:function(){me.__oprGetJobData("getPending");},text:'Get PendingRequest'},
+							        {handler:function(){me.__oprGetJobData("getStagerReport");},text:'Get StagerReport'},
 							        '-',
 							        {text:'Actions',iconCls:"jm-action-gif-icon",
 							        	menu:{items:[
@@ -552,8 +553,8 @@ Ext
 							        },
 							        {text:'Pilot',
 							        	menu:{items:[
-							                         {handler:function(){},text:'Get StdOut'},
-							                         {handler:function(){},text:'Get StdErr'}
+							                         {handler:function(){me.__oprGetJobData("getPilotStdOut");},text:'Get StdOut'},
+							                         {handler:function(){me.__oprGetJobData("getPilotStdErr");},text:'Get StdErr'}
 							                         ]
 							        	}
 							        },
@@ -907,6 +908,178 @@ Ext
 							        }
 						    	}
 						    }});
+						},
+						__oprGetJobData:function(oDataKind){
+							
+							var me = this;
+							var oId = _app._cf.getFieldValueFromSelectedRow(me.grid,"JobID");
+							me.getContainer().body.mask("Wait ...");
+							Ext.Ajax.request({
+								url: me._baseUrl+'JobMonitor/jobData',
+								method:'POST',
+							    params:{
+							    	data_kind:oDataKind,
+							    	id:oId
+							    },
+							    scope:me,
+							    success:function(response){
+							    	
+							    	me.getContainer().body.unmask();
+							    	var jsonData = Ext.JSON.decode(response.responseText);
+							    	
+							    	if(jsonData["success"]=="true"){
+							    	
+								    	if(oDataKind=="getJDL"){
+								    		//text	
+								    		me.__oprPrepareAndShowWindowText(jsonData["result"],"JDL for JobID:"+oId);
+								    		
+								    	}else if(oDataKind=="getBasicInfo"){
+								    		//grid
+								    		me.__oprPrepareAndShowWindowGrid(jsonData["result"],
+								    										"Attributes for JobID:"+oId,
+								    										["name","value"],
+								    										[{ 
+								    											text     : 'Name',
+								    							                flex     : 1,
+								    							                sortable : false,
+								    							                dataIndex: 'name'
+								    							             },
+								    							             {
+							    							                	 text     : 'Value',
+							    							                     flex     : 1,
+							    							                     sortable : false,
+							    							                     dataIndex: 'value'
+								    							             }]);
+								    		
+								    	}else if(oDataKind=="getParams"){
+								    		//grid
+								    		me.__oprPrepareAndShowWindowGrid(jsonData["result"],
+								    										"Parameters for JobID:"+oId,
+								    										["name","value"],
+								    										[{ 
+								    											text     : 'Name',
+								    							                flex     : 1,
+								    							                sortable : false,
+								    							                dataIndex: 'name'
+								    							             },
+								    							             {
+							    							                	 text     : 'Value',
+							    							                     flex     : 1,
+							    							                     sortable : false,
+							    							                     dataIndex: 'value'
+								    							             }]);
+								    		
+								    		
+								    	}else if(oDataKind=="getLoggingInfo"){
+								    		//grid
+								    		me.__oprPrepareAndShowWindowGrid(jsonData["result"],
+								    										"Attributes for JobID:"+oId,
+								    										["status","minor_status","app_status","date_time","source"],
+								    										[{ 
+								    											text     : 'Source',
+								    							                flex     : 1,
+								    							                sortable : false,
+								    							                dataIndex: 'source'
+								    							             },
+								    							             {
+							    							                	 text     : 'Status',
+							    							                     flex     : 1,
+							    							                     sortable : false,
+							    							                     dataIndex: 'status'
+								    							             },
+								    							             { 
+								    											text     : 'Minor Status',
+								    							                flex     : 1,
+								    							                sortable : false,
+								    							                dataIndex: 'minor_status'
+								    							             },
+								    							             {
+							    							                	 text     : 'Application Status',
+							    							                     flex     : 1,
+							    							                     sortable : false,
+							    							                     dataIndex: 'app_status'
+								    							             },
+								    							             { 
+								    											text     : 'Date Time',
+								    							                flex     : 1,
+								    							                sortable : false,
+								    							                dataIndex: 'date_time'
+								    							             }
+								    							             ]);
+								    		
+								    	}else if(oDataKind=="getStandardOutput"){
+								    		//text
+								    		me.__oprPrepareAndShowWindowText(jsonData["result"],"Standard output for JobID:"+oId);
+								    	}else if(oDataKind=="getLogURL"){
+								    		//?
+								    		
+								    		
+								    	}else if(oDataKind=="getPending"){
+								    		//?
+								    		
+								    		
+								    	}else if(oDataKind=="getStagerReport"){
+								    		//?
+								    		
+								    		
+								    	}else if(oDataKind=="getPilotStdOut"){
+								    		//text
+								    		me.__oprPrepareAndShowWindowText(jsonData["result"],"Pilot StdOut for JobID:"+oId);
+								    		
+								    	}else if(oDataKind=="getPilotStdErr"){
+								    		//text
+								    		me.__oprPrepareAndShowWindowText(jsonData["result"],"Pilot StdErr for JobID:"+oId);
+								    		
+								    	}
+							    	
+							    	}else{
+							    		
+							    		alert(jsonData["error"]);
+							    		
+							    	}
+							    	
+							    }});
+						},
+						__oprPrepareAndShowWindowText:function(sTextToShow,sTitle){
+							
+							var me = this;
+							
+							var oWindow = me.getContainer().oprGetChildWindow(sTitle,false,700,500);
+							
+							var oTextArea = new Ext.create('Ext.form.field.TextArea',{
+														value: sTextToShow
+											});
+							
+							oWindow.add(oTextArea);
+							oWindow.show();
+							
+						},
+						__oprPrepareAndShowWindowGrid:function(oData,sTitle,oFields,oColumns){
+							
+							var me = this;
+							
+							var oStore = new Ext.data.ArrayStore({
+				                  fields : oFields,
+				                  data   : oData 
+				            });
+							
+							var oWindow = me.getContainer().oprGetChildWindow(sTitle,false,700,500);
+							
+							var oGrid = Ext.create('Ext.grid.Panel', {
+						        store: oStore,
+						        columns: oColumns,
+						        width:'100%',
+						        viewConfig: {
+						            stripeRows: true,
+						            enableTextSelection: true
+						        }
+						    });
+							
+							oWindow.add(oGrid);
+							oWindow.show();
+							
+							
 						}
+						
 
 				});

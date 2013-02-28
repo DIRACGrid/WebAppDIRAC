@@ -20,6 +20,7 @@ Ext.define('Ext.dirac.core.Module', {
 	 * @property {int} _UID The unique number assigned to the module, used as part of the defined id-s within the module
 	 */
 	_UID:0,
+	_container:null,
 	
 	launcher: {
 		
@@ -36,7 +37,18 @@ Ext.define('Ext.dirac.core.Module', {
 		this.init();
 		this.callParent();
 	},
-
+	
+	setContainer:function(oContainer){
+		
+		this._container = oContainer;
+		
+	},
+	getContainer:function(){
+		
+		return this._container;
+		
+	},
+	
 	init : Ext.emptyFn,
 
 	_baseUrl:"",

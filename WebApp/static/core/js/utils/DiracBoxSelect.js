@@ -1020,19 +1020,18 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     	
     	var para = document.getElementById(me.getPicker().id);
         if(!document.getElementById(me.getPicker().id+"-search-input")){
-	        var imgBox = document.createElement("input"); 
-	        imgBox.type = "text";
-	        imgBox.id = me.getPicker().id+"-search-input";
-	        imgBox.style.border = 'solid 1px #DDDDDD';
-	        imgBox.style.width = '100%';
-	        imgBox.onkeyup = function(){document.getElementById(me.id+"-inputEl").value=imgBox.value;me.doRawQuery();};
-	        para.insertBefore(imgBox,para.firstChild);
+	        var inputField = document.createElement("input"); 
+	        inputField.type = "text";
+	        inputField.id = me.getPicker().id+"-search-input";
+	        inputField.style.padding = '3px';
+	        inputField.style.border = 'none';
+	        inputField.style.borderBottom = 'solid 1px #DDDDDD';
+	        inputField.style.width = '100%';
+	        inputField.onkeyup = function(){document.getElementById(me.id+"-inputEl").value=imgBox.value;me.doRawQuery();};
+	        para.insertBefore(inputField,para.firstChild);
 	        document.getElementById(me.id+"-inputEl").style.width="1px";
 	        document.getElementById(me.id+"-inputEl").style.visibility="hidden";
         }
-//    	me.panelForSearch.setPosition(oPos[0]+me.getWidth()-51,oPos[1]+ me.initialHeight);
-//    	me.panelForSearch.setWidth(oPicker.getWidth());
-//    	me.panelForSearch.show();
         
     },
 

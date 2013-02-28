@@ -57,7 +57,9 @@ Ext.define(
 						    }];
 							me.appClassName = "link";
 						}
-
+						
+						me.childWindows = [];
+						
 						me.callParent();
 						
 					},
@@ -145,7 +147,7 @@ Ext.define(
 						
 						me.setIconCls(me.loadedObject.launcher.iconCls);
 						me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
-						
+						me.loadedObject.setContainer(me);
 						
 						
 					},
@@ -772,6 +774,26 @@ Ext.define(
 						me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+stateName+"]",20));
 						me.loadMask.hide();
 
+					},
+					
+					oprGetChildWindow:function(sTitle,oModal,oWidth,oHeight){
+						
+						var me = this;
+						
+						var oWindow = Ext.create('widget.window', {
+							height : oHeight,
+							width : oWidth,
+							title : sTitle,
+							layout : 'fit',
+							modal: oModal
+						});
+						
+						me.childWindows.push(oWindow);
+						
+						return oWindow;
+						
 					}
+					
+					
 
 				});

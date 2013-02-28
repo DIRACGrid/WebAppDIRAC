@@ -321,3 +321,115 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success":"false","error":result["Message"]}
     self.write(json.dumps(callback))
+    
+  def web_jobData( self ):
+    id = int(self.request.arguments["id"][0])
+    callback = {}  
+    
+    if self.request.arguments["data_kind"][0] == "getJDL":
+      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      result = RPC.getJobJDL(id)
+      if result["OK"]:
+        callback = {"success":"true","result":result["Value"]}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    #--------------------------------------------------------------------------------    
+    elif self.request.arguments["data_kind"][0] == "getBasicInfo":
+      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      result = RPC.getJobSummary(id)
+      if result["OK"]:
+        items = []
+        for key,value in result["Value"].items():
+          items.append([key,value])
+        callback = {"success":"true","result":items}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    #--------------------------------------------------------------------------------    
+    elif self.request.arguments["data_kind"][0] == "getParams":
+      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      result = RPC.getJobParameters(id)
+      if result["OK"]:
+        attr = result["Value"]
+        items = []
+        for i in attr.items():
+          if i[0] != "StandardOutput":
+            items.append([i[0],i[1]])
+        callback = {"success":"true","result":items}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    #--------------------------------------------------------------------------------
+    elif self.request.arguments["data_kind"][0] == "getLoggingInfo":
+      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      result = RPC.getJobLoggingInfo(id)
+      if result["OK"]:
+        callback = {"success":"true","result":result["Value"]}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    #--------------------------------------------------------------------------------
+    elif self.request.arguments["data_kind"][0] == "getStandardOutput":
+      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      result = RPC.getJobParameters(id)
+      attr = result["Value"]
+      if result["OK"]:
+        if attr.has_key("StandardOutput"):
+          callback = {"success":"true","result":attr["StandardOutput"]}
+        else:
+          callback = {"success":"false","error":"Not accessible yet"}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    #--------------------------------------------------------------------------------
+    elif self.request.arguments["data_kind"][0] == "getPending":
+      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      result = RPC.getJobParameters(id)
+      if result["OK"]:
+        items = []
+        for i in result["Value"].items():
+          if i[0] != "StandardOutput":
+            items.append([i[0],i[1]])
+        callback = {"success":"true","result":items}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    #--------------------------------------------------------------------------------
+    elif self.request.arguments["data_kind"][0] == "getLogURL":
+      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      result = RPC.getJobParameters(id)
+      if result["OK"]:
+        attr = result["Value"]
+        if attr.has_key("Log URL"):
+          url = attr["Log URL"].split('"')
+          callback = {"success":"true","result":url[1]}
+        else:
+          callback = {"success":"false","error":"No URL found"}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    #--------------------------------------------------------------------------------
+    elif self.request.arguments["data_kind"][0] == "getStagerReport":
+      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      result = RPC.getJobParameters(id)
+      if result["OK"]:
+        attr = result["Value"]        
+        if attr.has_key("StagerReport"):
+          callback = {"success":"true","result":attr["StagerReport"]}
+        else:
+          callback = {"success":"false","error":"StagerReport not available"}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    #--------------------------------------------------------------------------------
+    elif self.request.arguments["data_kind"][0] == "getPilotStdOut":
+      RPC = RPCClient("WorkloadManagement/WMSAdministrator")
+      result = RPC.getJobPilotOutput(id)
+      if result["OK"]:
+        if mode == "out" and result["Value"].has_key("StdOut"):
+          callback = {"success":"true","result":result["Value"]["StdOut"]}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    #--------------------------------------------------------------------------------
+    elif self.request.arguments["data_kind"][0] == "getPilotStdErr":
+      RPC = RPCClient("WorkloadManagement/WMSAdministrator")
+      result = RPC.getJobPilotOutput(id)
+      if result["OK"]:
+        if mode == "err" and result["Value"].has_key("StdErr"):
+          callback = {"success":"true","result":result["Value"]["StdErr"]}
+      else:
+        callback = {"success":"false","error":result["Message"]}
+    self.write(json.dumps(callback))
