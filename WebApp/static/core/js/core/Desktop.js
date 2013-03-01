@@ -637,6 +637,12 @@ Ext.define(
 				me.currentDesktopState='';
 			me.taskbar.removeTaskButton(win.taskButton);
 			me.updateActiveWindow();
+			/*
+			 * Close all other child windows
+			 */
+			for(var i=0;i<win.childWindows.length;i++)
+				if(win.childWindows[i]!=null)
+					win.childWindows[i].close();
 		},
 
 		/**

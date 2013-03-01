@@ -38,5 +38,5 @@ class RootHandler(WebHandler):
   def web_index(self):
     # Render base template
     data = SessionData().getData()
-    self.render( "root.tpl", base_url = data["baseURL"], _dev = 0 )#, base = json.dumps(SessionData().getData()))
+    self.render( "root.tpl", base_url = data["baseURL"], _dev = 1 )#, base = json.dumps(SessionData().getData()))
     
