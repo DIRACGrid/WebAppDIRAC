@@ -1027,7 +1027,7 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
 	        inputField.style.border = 'none';
 	        inputField.style.borderBottom = 'solid 1px #DDDDDD';
 	        inputField.style.width = '100%';
-	        inputField.onkeyup = function(){document.getElementById(me.id+"-inputEl").value=imgBox.value;me.doRawQuery();};
+	        inputField.onkeyup = function(){document.getElementById(me.id+"-inputEl").value=inputField.value;me.doRawQuery();};
 	        para.insertBefore(inputField,para.firstChild);
 	        document.getElementById(me.id+"-inputEl").style.width="1px";
 	        document.getElementById(me.id+"-inputEl").style.visibility="hidden";

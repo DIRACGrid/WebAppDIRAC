@@ -2,7 +2,7 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
-from DIRAC import gConfig
+from DIRAC import gConfig, S_OK, S_ERROR
 import json
 import ast
 
@@ -41,11 +41,11 @@ class JobMonitorHandler(WebHandler):
                 if result.has_key("Extras"):
                   st = self.__dict2string({})
                   extra = result["Extras"]
-                  callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":None}
+                  callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":None } 
                 else:
                   callback = {"success":"true", "result":callback, "total":total, "date":None}
               else:
-                callback = {"success":"false", "result":"", "error":"There are no data to display"}
+                callback = {"success":"false", "Message":"There are no data to display"}
             else:
               callback = {"success":"false", "result":"", "error":"ParameterNames field is missing"}
           else:
