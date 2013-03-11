@@ -21,41 +21,49 @@ class JobMonitorHandler(WebHandler):
     req = self.__request()
     result = RPC.getJobPageSummaryWeb(req, self.globalSort , self.pageNumber, self.numberOfJobs)
     
-    if result["OK"]:
-      result = result["Value"]
-      if result.has_key("TotalRecords"):
-        if result["TotalRecords"] > 0:
-          if result.has_key("ParameterNames") and result.has_key("Records"):
-            if len(result["ParameterNames"]) > 0:
-              if len(result["Records"]) > 0:
-                callback = []
-                jobs = result["Records"]
-                head = result["ParameterNames"]
-                headLength = len(head)
-                for i in jobs:
-                  tmp = {}
-                  for j in range(0, headLength):
-                    tmp[head[j]] = i[j]
-                  callback.append(tmp)
-                total = result["TotalRecords"]
-                if result.has_key("Extras"):
-                  st = self.__dict2string({})
-                  extra = result["Extras"]
-                  callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":None } 
-                else:
-                  callback = {"success":"true", "result":callback, "total":total, "date":None}
-              else:
-                callback = {"success":"false", "Message":"There are no data to display"}
-            else:
-              callback = {"success":"false", "result":"", "error":"ParameterNames field is missing"}
-          else:
-            callback = {"success":"false", "result":"", "error":"Data structure is corrupted"}
-        else:
-          callback = {"success":"false", "result":"", "error":"There were no data matching your selection"}
-      else:
-        callback = {"success":"false", "result":"", "error":"Data structure is corrupted"}
+    if not result["OK"]:
+      self.write(json.dumps({"success":"false", "error":result["Message"]}))
+      pass
+    
+    result = result["Value"]
+    
+    if not result.has_key("TotalRecords"):
+      self.write(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
+      pass
+    
+    if not (result["TotalRecords"] > 0):
+      self.write(json.dumps({"success":"false", "result":"", "error":"There were no data matching your selection"}))
+      pass
+    
+    if not (result.has_key("ParameterNames") and result.has_key("Records")):
+      self.write(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
+      pass
+    
+    if not (len(result["ParameterNames"]) > 0):
+      self.write(json.dumps({"success":"false", "result":"", "error":"ParameterNames field is missing"}))
+      pass
+    
+    if not (len(result["Records"]) > 0):
+      self.write(json.dumps({"success":"false", "Message":"There are no data to display"}))
+      pass
+
+    callback = []
+    jobs = result["Records"]
+    head = result["ParameterNames"]
+    headLength = len(head)
+    for i in jobs:
+      tmp = {}
+      for j in range(0, headLength):
+        tmp[head[j]] = i[j]
+      callback.append(tmp)
+    total = result["TotalRecords"]
+    if result.has_key("Extras"):
+      st = self.__dict2string({})
+      extra = result["Extras"]
+      callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":None } 
     else:
-      callback = {"success":"false", "error":result["Message"]}
+      callback = {"success":"true", "result":callback, "total":total, "date":None}
+             
     self.write(json.dumps(callback))
 
   def __dict2string(self, req):

@@ -172,7 +172,7 @@ Ext.define(
 													data : {}
 												}),
 
-								wallpaper : '/DIRAC/static/core/img/wallpapers/desktop.jpg',
+								wallpaper : '/DIRAC/static/core/img/wallpapers/sky.jpg',
 								wallpaperStretch : true
 							});
 
