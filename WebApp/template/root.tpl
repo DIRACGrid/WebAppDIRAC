@@ -6,7 +6,7 @@
 
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/ext-4.1.1a/resources/css/ext-all.css" />
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/BoxSelect.css" />
-    <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/desktop.css" />
+    <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/css.css" />
 	{% autoescape None %}
     <!-- GC -->
 

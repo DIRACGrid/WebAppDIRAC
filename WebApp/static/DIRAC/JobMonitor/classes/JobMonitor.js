@@ -572,6 +572,10 @@ Ext
 							region: 'center',
 						    store: me.dataStore,
 						    height:'600',
+						    viewConfig: {
+					            stripeRows: true,
+					            enableTextSelection: true
+					        },
 						    columns: [
 								{header:me.checkboxFunctionDefinition,name:'checkBox',id:'checkBox',width:26,sortable:false,dataIndex:'JobIDcheckBox',renderer:function (value, metaData, record, row, col, store, gridView){return this.rendererChkBox(value);},hideable:false,fixed:true,menuDisabled:true},
 								{header:'JobId',sortable:true,dataIndex:'JobID',align:'left',hideable:false},
