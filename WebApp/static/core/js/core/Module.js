@@ -13,7 +13,8 @@
  * 
  */
 Ext.define('Ext.dirac.core.Module', {
-	mixins:["Ext.dirac.core.Stateful"],
+	mixins:["Ext.dirac.core.Stateful",
+	        "Ext.dirac.utils.DiracFileLoad"],
 	extend: 'Ext.container.Container',
 	
 	/**

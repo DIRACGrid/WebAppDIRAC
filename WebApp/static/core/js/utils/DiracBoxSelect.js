@@ -37,6 +37,7 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
                'Ext.selection.DataViewModel',
                'Ext.form.field.Checkbox',
                'Ext.dirac.utils.DiracBoxSelectField'],
+    mixins : ['Ext.dirac.utils.DiracFileLoad'],
 
     //
     // Begin configuration options related to selected values
@@ -383,7 +384,13 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
      * Initialize additional settings and enable simultaneous typeAhead and multiSelect support
      * @protected
 	 */
+    
     initComponent: function() {
+    	
+    	 var me = this;
+    	
+    	 me.loadFile(["static/core/js/utils/css/DiracBoxSelect.css"],function(){},me);	
+    	//-------------------------------------------------------------------------------------------------------------
         var me = this,
         typeAhead = me.typeAhead;
         
@@ -570,28 +577,11 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
             }
         });
         
-        /*
-        var oHtml='<input type="text"  style="width:150px;border:none" onchange="'+
-        "document.getElementById('"+me.id+"-inputEl').value=this.value;"+
-        '"/>';
-        
-        me.panelForSearch = new Ext.create('Ext.panel.Panel',{
-			bodyPadding: 5,
-		    autoHeight:true,
-		    floating:true,
-			items:[{
-	            html: oHtml,
-	            border:false,
-	            xtype: "panel"}]
-		});
-        */
-        
-        
-        //me.on("collapse",function(comp,eOpts){var me=this; me.panelForSearch.hide();},me);
-        
         if (!Ext.isEmpty(me.delimiter) && me.multiSelect) {
             me.delimiterRegexp = new RegExp(String(me.delimiter).replace(/[$%()*+.?\[\\\]{|}]/g, "\\$&"));
         }
+        //-------------------------------------------------------------------------------------------------------------
+    	
         
     },
 
