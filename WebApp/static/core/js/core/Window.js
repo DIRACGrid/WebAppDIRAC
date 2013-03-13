@@ -780,11 +780,10 @@ Ext.define(
 						
 						var me = this;
 						
-						var oWindow = Ext.create('widget.window', {
+						var oWindow = me.desktop.createWindow({
 							height : oHeight,
 							width : oWidth,
 							title : sTitle,
-							layout : 'fit',
 							modal: oModal
 						});
 						

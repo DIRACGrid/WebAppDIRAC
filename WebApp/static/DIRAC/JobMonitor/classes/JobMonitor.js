@@ -1051,7 +1051,9 @@ Ext
 							var oWindow = me.getContainer().oprGetChildWindow(sTitle,false,700,500);
 							
 							var oTextArea = new Ext.create('Ext.form.field.TextArea',{
-														value: sTextToShow
+														value: sTextToShow,
+														cls: "jm-textbox-help-window"
+														
 											});
 							
 							oWindow.add(oTextArea);

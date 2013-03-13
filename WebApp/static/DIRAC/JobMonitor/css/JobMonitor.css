@@ -60,3 +60,10 @@
      background-color: transparent;
 	
 }
+
+.jm-textbox-help-window textarea.x-form-field{
+	
+	font-family: Courier,monospace !important;	
+	
+
+}
