@@ -148,7 +148,8 @@ Ext
 						    width: 250,
 						    minWidth: 230,
 						    maxWidth: 350,
-						    bodyPadding: 5
+						    bodyPadding: 5,
+						    layout:'anchor'
 						});
 					
 						me.cmbSelectors={site:null,
@@ -173,7 +174,6 @@ Ext
 							    fieldLabel: cmbTitles[cmb],
 							    queryMode: 'local',
 							    labelAlign:'top',
-							    width:220,
 							    displayField: "text",
 							    valueField: "value",
 							    anchor: '100%'
@@ -193,7 +193,7 @@ Ext
 							
 							fieldLabel: "JobID(s)",
 						    labelAlign:'top',
-						    width:220,
+						    anchor:"100%",
 						    validator: function(value){
 						    	
 						    	if(Ext.util.Format.trim(value)!=""){
@@ -223,14 +223,14 @@ Ext
 						
 						me.timeSearchPanel.cmbTimeSpan = new Ext.create('Ext.form.field.ComboBox',{
 							labelAlign:'top',
-							width:180,
 							fieldLabel: 'Time Span',
 							store:new Ext.data.SimpleStore({
 						        fields:['value','text'],
 						        data:[[1,"Last Hour"],[2,"Last Day"],[3,"Last Week"],[4,"Last Month"],[5,"Manual Selection"]]
 						      }),
 						    displayField: "text",
-							valueField: "value"
+							valueField: "value",
+							anchor:"100%"
 						});
 						
 						var oTimeData = [];
@@ -269,7 +269,7 @@ Ext
 						   displayField:'value'
 						});
 						
-						me.timeSearchPanel.btnTimeTo = new Ext.Button({
+						me.timeSearchPanel.btnResetTimePanel = new Ext.Button({
 							
 							text: 'Reset Time Panel',
 							margin:3,
@@ -282,8 +282,8 @@ Ext
 								me.timeSearchPanel.calenFrom.setRawValue("");
 								me.timeSearchPanel.cmbTimeSpan.setValue(null);
 							},
-							scope:me
-							
+							scope:me,
+							defaultAlign:"c"
 						});
 						
 						var oTimePanel = new Ext.create('Ext.panel.Panel',{
@@ -291,10 +291,16 @@ Ext
 						    autoHeight:true,
 						    border:true,
 						    bodyPadding: 5,
+						    layout:"anchor",
+						    anchor:"100%",
 						    dockedItems: [{
 						        xtype: 'toolbar',
 						        dock: 'bottom',
-						        items: [me.timeSearchPanel.btnTimeTo]
+						        items: [me.timeSearchPanel.btnResetTimePanel],
+								layout:{
+						            type : 'hbox',
+						            pack : 'center'
+						        }
 						    }],
 							items:[me.timeSearchPanel.cmbTimeSpan,
 							       {

@@ -7,7 +7,7 @@
 
 Ext
 		.define(
-				'DIRAC.JobMonitor.classes.AccountingPlot',
+				'DIRAC.AccountingPlot.classes.AccountingPlot',
 				{
 					extend : 'Ext.dirac.core.Module',
 
@@ -21,8 +21,10 @@ Ext
 					             "Ext.layout.*",
 					             "Ext.form.field.Date",
 					             "Ext.form.field.TextArea",
-					             "Ext.form.FieldSet"],					
-
+					             "Ext.form.field.Checkbox",
+					             "Ext.form.FieldSet",
+					             "Ext.Button"],					
+					             
 					loadState : function(data) {
 						
 					},
@@ -38,7 +40,7 @@ Ext
 					},
 					            
 					initComponent : function() {
-
+						
 						var me = this;
 						me.launcher.title = "Accounting Plot";
 						
@@ -53,12 +55,13 @@ Ext
 						    region:'west',
 						    floatable: false,
 						    margins: '0',
-						    width: 250,
+						    width: 280,
 						    minWidth: 230,
 						    maxWidth: 350,
-						    bodyPadding: 5
+						    bodyPadding: 5,
+						    layout:'anchor'
 						});
-					
+						
 						me.descPlotType = {
 								data_operation:{
 										title:"Data Operation",
@@ -127,10 +130,10 @@ Ext
 						    fieldLabel: "Domain",
 						    queryMode: 'local',
 						    labelAlign:'top',
-						    width:220,
+						    //width:260,
 						    displayField: "text",
 						    valueField: "value",
-						    anchor: '100%',
+						    anchor:'100%',
 						    store:new Ext.data.SimpleStore({
 							        fields:['value','text'],
 							        data:[["data_operation","Data Operation"],
@@ -146,7 +149,6 @@ Ext
 						    fieldLabel: "Plot To Generate",
 						    queryMode: 'local',
 						    labelAlign:'top',
-						    width:220,
 						    displayField: "text",
 						    valueField: "value",
 						    anchor: '100%'
@@ -156,7 +158,6 @@ Ext
 						    fieldLabel: "Group By",
 						    queryMode: 'local',
 						    labelAlign:'top',
-						    width:220,
 						    displayField: "text",
 						    valueField: "value",
 						    anchor: '100%'
@@ -172,7 +173,6 @@ Ext
 						
 						me.cmbTimeSpan = Ext.create('Ext.form.field.ComboBox', {
 						    queryMode: 'local',
-						    width:220,
 						    displayField: "text",
 						    valueField: "value",
 						    anchor: '100%',
@@ -214,18 +214,20 @@ Ext
 							
 							fieldLabel: "Pilot Title",
 						    labelAlign:'top',
-						    width:220,
+						    anchor:"100%"
 						});
 						
-						me.advancedPin = Ext.create('Ext.form.field.Text',{
+						me.advancedPin = Ext.create('Ext.form.field.Checkbox',{
 							 boxLabel  : 'Pin Dates'
 						});
 							
-						me.advancedNotScaleUnits = Ext.create('Ext.form.field.Text',{
+						me.advancedNotScaleUnits = Ext.create('Ext.form.field.Checkbox',{
 							 boxLabel  : 'Do not scale units'
 						});
 						
-						me.fsetAdvanced.add([me.advancedPin,me.advancedNotScaleUnits]);
+						me.fsetAdvanced.add([me.advancedPilotTitle,
+						                     me.advancedPin,
+						                     me.advancedNotScaleUnits]);
 						
 						me.leftPanel.add([me.cmbDomain,
 						                  me.cmbPlotGenerate,
@@ -293,7 +295,6 @@ Ext
 						
 						me.leftPanel.add(oPanelButtons);
 						
-						
 						/*
 						 * -----------------------------------------------------------------------------------------------------------
 						 * DEFINITION OF THE MAIN CONTAINER
@@ -306,7 +307,7 @@ Ext
 							    collapsible: true,
 							    split: true
 							},
-							items : [ me.leftPanel,me.grid ]
+							items : [ me.leftPanel ]
 						});
 
 						me.callParent(arguments);
