@@ -95,9 +95,9 @@ class App( object ):
     #Load required CFG files
     self.__loadWebAppCFGFiles()
     #Debug mode?
-    debug = Conf.debug()
-    if debug:
-      self.log.info( "Configuring in debug mode..." )
+    devMode = Conf.devMode()
+    if devMode:
+      self.log.info( "Configuring in developer mode..." )
     #Calculating routes
     result = self.__handlerMgr.getRoutes()
     if not result[ 'OK' ]:
@@ -107,12 +107,12 @@ class App( object ):
     SessionData.setHandlers( self.__handlerMgr.getHandlers()[ 'Value' ] )
     #Create the app
     tLoader = TemplateLoader( self.__handlerMgr.getPaths( "template" ) )
-    kw = dict( debug = debug, template_loader = tLoader, cookie_secret = Conf.cookieSecret(),
+    kw = dict( devMode = devMode, template_loader = tLoader, cookie_secret = Conf.cookieSecret(),
                log_function = self._logRequest )
     #Check processes if we're under a load balancert
     if Conf.balancer() and Conf.numProcesses() not in ( 0, 1 ):
       tornado.process.fork_processes( Conf.numProcesses(), max_restarts=0 )
-      kw[ 'debug' ] = False
+      kw[ 'devMode' ] = False
     #Configure tornado app
     self.__app = tornado.web.Application( routes, **kw )
     self.log.notice( "Configuring HTTP on port %s" % ( Conf.HTTPPort() ) )
