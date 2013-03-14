@@ -11,19 +11,18 @@
 
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
-   
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
     
-		 Ext.Loader.setPath({
-       		'DIRAC': '/DIRAC/static/DIRAC',
+        Ext.Loader.setPath({
+        	'DIRAC': '/DIRAC/static/DIRAC',
             'Ext.dirac.core': '/DIRAC/static/core/js/core',
             'Ext.dirac.utils': '/DIRAC/static/core/js/utils',
             'Ext.ux.form':'/DIRAC/static/extjs/ext-4.1.1a/examples/ux/form'
-         });
-
-        Ext.require('DIRAC.JobMonitor.classes.JobMonitor');
+        });
         
+        Ext.require(['Ext.dirac.core.App','Ext.*']);
+
     </script>
     <!-- </x-compile> -->
 </head>

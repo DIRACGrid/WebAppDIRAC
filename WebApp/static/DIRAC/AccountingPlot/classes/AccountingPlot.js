@@ -136,11 +136,11 @@ Ext
 						    anchor:'100%',
 						    store:new Ext.data.SimpleStore({
 							        fields:['value','text'],
-							        data:[["data_operation","Data Operation"],
-							              ["job","Job"],
-							              ["wms_history","WMS History"],
-							              ["pilot","Pilot"],
-							              ["srm_space_token_dep","SRM Space Token Deployment"]]
+							        data:[["DataOperation","Data Operation"],
+							              ["Job","Job"],
+							              ["WMSHistory","WMS History"],
+							              ["Pilot","Pilot"],
+							              ["SRMSpaceTokenDeployment","SRM Space Token Deployment"]]
 							      })
 						});
 						
