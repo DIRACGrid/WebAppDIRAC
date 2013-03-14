@@ -312,5 +312,22 @@ Ext
 
 						me.callParent(arguments);
 						
+					},
+					__onChooseDomain:function(){
+						
+						Ext.Ajax.request({
+							url: me._baseUrl+'JobMonitor/jobData',
+							method:'POST',
+						    params:{
+						    	data_kind:oDataKind,
+						    	id:oId
+						    },
+						    scope:me,
+						    success:function(response){
+						    }
+						});
+						
 					}
 				});
+
+				

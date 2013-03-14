@@ -6,7 +6,7 @@ DEBUG=false
 echo "START JAVASCRIPT OPTIMIZATION"
 
 #optimizing JavaScript for the core
-sencha -sdk $BASE_PATH/static/extjs/ext-4.1.1a/src compile -classpath=$BASE_PATH/static/extjs/ext-4.1.1a/examples/ux/form,$BASE_PATH/static/core/js/utils,$BASE_PATH/static/core/js/core -debug=$DEBUG page -yui  -in $BASE_PATH/template/build/root.tpl -out $BASE_PATH/static/core/build/index.html
+sencha -sdk $BASE_PATH/static/extjs/ext-4.1.1a/src compile -classpath=$BASE_PATH/static/extjs/ext-4.1.1a/examples/ux/form,$BASE_PATH/static/core/js/utils,$BASE_PATH/static/core/js/core -debug=$DEBUG page -yui  -in $BASE_PATH/template/build_core/root.tpl -out $BASE_PATH/static/core/build/index.html
 
 #removing the generated files
 rm -r $BASE_PATH/static/core/build/index.html

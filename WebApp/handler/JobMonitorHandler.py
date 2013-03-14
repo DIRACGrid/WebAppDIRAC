@@ -14,7 +14,7 @@ class JobMonitorHandler(WebHandler):
     pass
   
   def web_standalone(self):
-     self.render("JobMonitor/standalone.tpl", config_data = json.dumps(SessionData().getData()))
+    self.render("JobMonitor/standalone.tpl", config_data = json.dumps(SessionData().getData()))
   
   def web_getJobData(self):
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
