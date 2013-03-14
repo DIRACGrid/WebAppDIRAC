@@ -13,11 +13,12 @@ class Compiler(object):
     self.__staticPaths = HandlerMgr().getPaths( "static" )
     self.__webAppPath = os.path.dirname( self.__staticPaths[-1] )
     self.__extPath = os.path.join( self.__webAppPath, "static", "extjs", self.__extVersion )
-    self.__sdkPath = os.path.join( self.__webAppPath, "static", "src" )
+    self.__sdkPath = os.path.join( self.__webAppPath, "static", "extjs", self.__extVersion, "src" )
 
-    self.__classPaths = [ os.path.join( self.__extPath, *p ) for p in ( ( "examples", "ux", "form" ),
-                                                                        ( "core", "js", "utils" ),
-                                                                        ( "core", "js", "core" ) ) ]
+    self.__classPaths = [ os.path.join( self.__webAppPath, *p ) for p in ( ("static", "core", "js", "utils" ),("static", "core", "js", "core" ))]
+    self.__classPaths.append(os.path.join( self.__extPath,"examples", "ux", "form" ))
+
+    print self.__classPaths    
     self.__debugFlag = gLogger.getLevel() in ( 'DEBUG', 'VERBOSE', 'INFO' )
     self.__inDir = os.path.join( os.path.dirname( self.__webAppPath ), "Lib", "CompileTemplates" )
 
@@ -42,13 +43,14 @@ class Compiler(object):
     senchaCmd.extend( cmd )
     env = {}
     #MEGAHACK FOR FUCKING OSX LION
-    for k in ( 'LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH' ):
-      env[ k ] = os.environ[ k ]
-      os.environ.pop(k)
+#    for k in ( 'LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH' ):
+#      env[ k ] = os.environ[ k ]
+#      os.environ.pop(k)
     gLogger.verbose( "Command is: %s" % " ".join( senchaCmd ) )
+    print "Command is: %s" % " ".join( senchaCmd )
     result = subprocess.call( senchaCmd )
-    for k in env:
-      os.environ[ k ] = env[ k ]
+#    for k in env:
+#      os.environ[ k ] = env[ k ]
     return result
 
   def run( self ):
@@ -60,15 +62,15 @@ class Compiler(object):
     outFile = os.path.join( self.__webAppPath, "static", "core", "build", "index.html" )
     gLogger.verbose( " IN file written to %s" % inFile )
 
-    cmd = [ '-sdk', self.__sdkPath, 'compile', '--classpath=%s' % ",".join( self.__classPaths ),
+    cmd = [ '-sdk', self.__sdkPath, 'compile', '-classpath=%s' % ",".join( self.__classPaths ),
             '-debug=%s' % self.__debugFlag, 'page', '-yui', '-in', inFile, '-out', outFile ]
 
     if self.__sencha( cmd ):
       gLogger.error( "Error compiling JS" )
       return S_ERROR( "Failed compiling core" )
 
-    for staticPath in staticPaths:
-      gLogger.notice( "Looing into %s" % staticPath )
+#    for staticPath in staticPaths:
+#      gLogger.notice( "Looing into %s" % staticPath )
 
     return S_OK()
 

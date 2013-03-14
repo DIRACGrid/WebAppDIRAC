@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-
 from DIRAC.Core.Base import Script
 
 Script.parseCommandLine()
