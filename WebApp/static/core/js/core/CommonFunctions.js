@@ -26,5 +26,14 @@ Ext.define(
 				oVal = oSelectedRecords[0].get(oFieldName);
 			
 			return oVal;
+		},
+		
+		doubleItemValue:function(oList){
+			
+			for(var i=0;i<oList.length;i++)
+				oList[i]=[oList[i],oList[i]];
+			
+			return oList;
+			
 		}
 	});

@@ -141,7 +141,33 @@ Ext
 							              ["WMSHistory","WMS History"],
 							              ["Pilot","Pilot"],
 							              ["SRMSpaceTokenDeployment","SRM Space Token Deployment"]]
-							      })
+							      }),
+							 listeners:{
+								 change: function(field, newValue, oldValue, eOpts){
+										
+										//var me = this;
+										
+										Ext.Ajax.request({
+											url: me._baseUrl+'AccountingPlot/getSelectionData',
+											method:'POST',
+										    params:{
+										    	type: newValue
+										    },
+										    scope:me,
+										    success:function(response){
+										    	
+										    	var oResult = Ext.JSON.decode(response.responseText);
+										    	
+										    	if(oResult["success"]=="true")
+										    		me.applyDataToSelection(oResult);
+										    	else
+										    		alert(oResult["error"]);
+										    	
+										    }
+										});
+										
+									}
+							 }
 						});
 						
 						
@@ -149,7 +175,7 @@ Ext
 						    fieldLabel: "Plot To Generate",
 						    queryMode: 'local',
 						    labelAlign:'top',
-						    displayField: "text",
+						    displayField: "value",
 						    valueField: "value",
 						    anchor: '100%'
 						});
@@ -216,7 +242,7 @@ Ext
 						    labelAlign:'top',
 						    anchor:"100%"
 						});
-						
+
 						me.advancedPin = Ext.create('Ext.form.field.Checkbox',{
 							 boxLabel  : 'Pin Dates'
 						});
@@ -313,19 +339,18 @@ Ext
 						me.callParent(arguments);
 						
 					},
-					__onChooseDomain:function(){
+					applyDataToSelection:function(oData){
 						
-						Ext.Ajax.request({
-							url: me._baseUrl+'JobMonitor/jobData',
-							method:'POST',
-						    params:{
-						    	data_kind:oDataKind,
-						    	id:oId
-						    },
-						    scope:me,
-						    success:function(response){
-						    }
-						});
+						var me = this;
+						var oList = Ext.JSON.decode(oData["result"]["plotsList"]);	
+						
+						for(var i=0;i<oList.length;i++)
+							oList[i]=[oList[i],oList[i]];
+						
+						me.cmbPlotGenerate.store = new Ext.data.SimpleStore({
+												        fields:['value'],
+												        data: oList
+												      });				
 						
 					}
 				});

@@ -55,7 +55,7 @@ class AccountingPlotHandler(WebHandler):
     retVal = self.__getUniqueKeyValues( typeName )
     if not retVal[ 'OK' ]:
       self.write(json.dumps({"success":"false", "result":"", "error":retVal[ 'Message' ]}))
-      pass
+      return
     callback["selectionValues"] = simplejson.dumps( retVal[ 'Value' ] )
     #Cache for plotsList?
     data = AccountingPlotHandler.__keysCache.get( "reportsList:%s" % typeName )
@@ -64,7 +64,7 @@ class AccountingPlotHandler(WebHandler):
       retVal = repClient.listReports( typeName )
       if not retVal[ 'OK' ]:
         self.write(json.dumps({"success":"false", "result":"", "error":retVal[ 'Message' ]}))
-        pass
+        return
       data = simplejson.dumps( retVal[ 'Value' ] )
       AccountingPlotHandler.__keysCache.add( "reportsList:%s" % typeName, 300, data )
     callback["plotsList"] = data
