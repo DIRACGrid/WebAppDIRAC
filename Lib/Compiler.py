@@ -44,8 +44,9 @@ class Compiler(object):
     env = {}
     #MEGAHACK FOR FUCKING OSX LION
     for k in ( 'LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH' ):
-      env[ k ] = os.environ[ k ]
-      os.environ.pop(k)
+      if k in os.environ:
+        env[ k ] = os.environ[ k ]
+        os.environ.pop(k)
     gLogger.verbose( "Command is: %s" % " ".join( cmd ) )
     result = subprocess.call( cmd )
     for k in env:
