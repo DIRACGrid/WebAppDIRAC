@@ -30,3 +30,6 @@ pip-log.txt
 
 #Ext
 WebApp/static/extjs
+
+#downloaded stuff
+bundles/

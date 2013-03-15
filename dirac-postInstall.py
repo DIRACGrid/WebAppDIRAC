@@ -45,7 +45,7 @@ if not os.path.isfile( extFilePath ):
 
 print "Installing ExtJS 4"
 extDir = os.path.join( staticDir, "extjs" )
-if False:
+if True:
   zFile = zipfile.ZipFile( extFilePath )
   count = 0
   biggest = 40
