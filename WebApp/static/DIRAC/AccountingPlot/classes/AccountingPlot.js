@@ -23,7 +23,9 @@ Ext
 					             "Ext.form.field.TextArea",
 					             "Ext.form.field.Checkbox",
 					             "Ext.form.FieldSet",
-					             "Ext.Button"],					
+					             "Ext.Button",
+					             "Ext.dirac.utils.DiracMultiSelect",
+					             "Ext.ux.form.MultiSelect"],					
 					             
 					loadState : function(data) {
 						
@@ -59,67 +61,72 @@ Ext
 						    minWidth: 230,
 						    maxWidth: 350,
 						    bodyPadding: 5,
-						    layout:'anchor'
+						    layout:'anchor',
+						    autoScroll : true
 						});
 						
 						me.descPlotType = {
-								data_operation:{
+								DataOperation:{
 										title:"Data Operation",
 										selectionConditions:[
-										                     "Operation Type",
-										                     "User",
-										                     "Execution Site",
-										                     "Source Site",
-										                     "Destination Site",
-										                     "Protocol",
-										                     "Final Transfer Status"
+										                     ["OperationType","Operation Type"],
+										                     ["User","User"],
+										                     ["ExecutionSite","Execution Site"],
+										                     ["Source","Source Site"],
+										                     ["Destination","Destination Site"],
+										                     ["Protocol","Protocol"],
+										                     ["FinalStatus","Final Transfer Status"]
 										                     ]
 									
 								},
-								job:{
+								Job:{
 									title:"Job",
 									selectionConditions:[
-									                     "Job Group",
-									                     "Job Type",
-									                     "Job Class",
-									                     "Site",
-									                     "Processing Type",
-									                     "Final Major Status",
-									                     "Final Minor Status"
+									                     ["JobGroup","Job Group"],
+									                     ["JobType","Job Type"],
+									                     ["JobClass","Job Class"],
+									                     ["Site","Site"],
+									                     ["ProcessingType","Processing Type"],
+									                     ["FinalMajorStatus","Final Major Status"],
+									                     ["FinalMinorStatus","Final Minor Status"],
+									                     ["User","User"],
+									                     ["UserGroup","User Group"]
 									                     ]
 								
 								},
-								wms_history:{
+								WMSHistory:{
 									title:"WMS History",
 									selectionConditions:[
-									                     "User",
-									                     "User Group",
-									                     "Major Status",
-									                     "Minor Status",
-									                     "Application Status",
-									                     "Site",
-									                     "Job Group",
-									                     "Job Split Type"
+									                     ["User","User"],
+									                     ["UserGroup","User Group"],
+									                     ["Status","Major Status"],
+									                     ["MinorStatus","Minor Status"],
+									                     ["ApplicationStatus","Application Status"],
+									                     ["Site","Site"],
+									                     ["JobGroup","Job Group"],
+									                     ["JobSplitType","Job Split Type"]
 									                     ]
 								
 								},
-								pilot:{
+								Pilot:{
 									title:"Pilot",
 									selectionConditions:[
-									                     "Site",
-									                     "Grid CE",
-									                     "Grid Middleware",
-									                     "Grid Resource Broker",
-									                     "Grid Status"
+									                     ["User","User"],
+									                     ["UserGroup","User Group"],
+									                     ["Site","Site"],
+									                     ["GridCE","Grid CE"],
+									                     ["GridMiddleware","Grid Middleware"],
+									                     ["GridResourcesBroker","Grid Resource Broker"],
+									                     ["GridStatus","Grid Status"]
 									                     ]
 								
 								},
-								srm_space_token_dep:{
+								SRMSpaceTokenDeployment:{
 									title:"SRM Space Token Deployment",
 									selectionConditions:[
-									                     "Site",
-									                     "Hostname",
-									                     "Space Token Description",
+									                     ["Site","Site"],
+									                     ["Hostname","Hostname"],									                     
+									                     ["SpaceTokenDesc","Space Token Description"],
 									                     ]
 								
 								}
@@ -159,7 +166,7 @@ Ext
 										    	var oResult = Ext.JSON.decode(response.responseText);
 										    	
 										    	if(oResult["success"]=="true")
-										    		me.applyDataToSelection(oResult);
+										    		me.applyDataToSelection(oResult,newValue);
 										    	else
 										    		alert(oResult["error"]);
 										    	
@@ -230,6 +237,13 @@ Ext
 						me.fsetTimeSpan.add([me.cmbTimeSpan,me.calendarFrom,me.calendarTo]);
 						
 						
+						me.fsetSpecialConditions = Ext.create('Ext.form.FieldSet', {
+							 title: 'Special Conditions',
+							 collapsible: true,
+							 layout: 'anchor'
+						}); 
+						
+						
 						me.fsetAdvanced = Ext.create('Ext.form.FieldSet', {
 							 title: 'Advanced Options',
 							 collapsible: true,
@@ -259,6 +273,7 @@ Ext
 						                  me.cmbPlotGenerate,
 						                  me.cmbGroupBy,
 						                  me.fsetTimeSpan, 
+						                  me.fsetSpecialConditions,
 						                  me.fsetAdvanced]);
 						
 						me.btnPlot = new Ext.Button({
@@ -339,18 +354,65 @@ Ext
 						me.callParent(arguments);
 						
 					},
-					applyDataToSelection:function(oData){
+					applyDataToSelection:function(oData,sValue){
 						
 						var me = this;
 						var oList = Ext.JSON.decode(oData["result"]["plotsList"]);	
 						
-						for(var i=0;i<oList.length;i++)
-							oList[i]=[oList[i],oList[i]];
+						me.__oprDoubleElementItemList(oList);
 						
 						me.cmbPlotGenerate.store = new Ext.data.SimpleStore({
 												        fields:['value'],
 												        data: oList
 												      });				
+						
+						var oSelectionData = Ext.JSON.decode(oData["result"]["selectionValues"]);
+						var oSelectionOptions = me.descPlotType[sValue]["selectionConditions"];
+						
+						me.fsetSpecialConditions.removeAll();
+						
+						for(var i=0;i<oSelectionOptions.length;i++){
+							
+							if((oSelectionOptions[i][0] == "User")||(oSelectionOptions[i][0] == "UserGroup")){
+								
+								//to be taken from _app._cf
+								
+								
+								
+							}else{
+								
+								var oList = oSelectionData[oSelectionOptions[i][0]];
+								me.__oprDoubleElementItemList(oList);
+								
+								//Makes problems !!!
+								
+//								var oMultiList = Ext.create('Ext.dirac.utils.DiracMultiSelect', {
+//									    fieldLabel: oSelectionOptions[i][1],
+//									    displayField: "text",
+//									    valueField: "value",
+//									    anchor:'100%',
+//									    height:140,
+//									    store:new Ext.data.SimpleStore({
+//										        fields:['value','text'],
+//										        data:oList
+//										      })
+//								});
+//								
+//								me.fsetSpecialConditions.add(oMultiList);
+								
+								
+							}
+								
+							
+						}
+						
+						
+					},
+					
+					__oprDoubleElementItemList:function(oList){
+						
+						for(var i=0;i<oList.length;i++)
+							oList[i]=[oList[i],oList[i]];
 						
 					}
 				});

@@ -118,7 +118,7 @@ class JobMonitorHandler(WebHandler):
         else:
           prod = [["Nothing to display"]]
       else:
-        gLogger.error("RPC.getProductionIds() return error: %s" % result["Message"])
+#        gLogger.error("RPC.getProductionIds() return error: %s" % result["Message"])
         prod = [["Error happened on service side"]]
       callback["prod"] = prod
 ###
@@ -180,7 +180,7 @@ class JobMonitorHandler(WebHandler):
       else:
         app = [["Nothing to display"]]
     else:
-      gLogger.error("RPC.getApplicationstates() return error: %s" % result["Message"])
+#      gLogger.error("RPC.getApplicationstates() return error: %s" % result["Message"])
       app = [["Error happened on service side"]]
     callback["app"] = app
 ###
@@ -195,7 +195,7 @@ class JobMonitorHandler(WebHandler):
       else:
         types = [["Nothing to display"]]
     else:
-      gLogger.error("RPC.getJobTypes() return error: %s" % result["Message"])
+#      gLogger.error("RPC.getJobTypes() return error: %s" % result["Message"])
       types = [["Error happened on service side"]]
     callback["types"] = types
 ###
@@ -213,7 +213,7 @@ class JobMonitorHandler(WebHandler):
         else:
           owner = [["Nothing to display"]]
       else:
-        gLogger.error("RPC.getOwners() return error: %s" % result["Message"])
+#        gLogger.error("RPC.getOwners() return error: %s" % result["Message"])
         owner = [["Error happened on service side"]]
       callback["owner"] = owner
     self.write(json.dumps(callback))

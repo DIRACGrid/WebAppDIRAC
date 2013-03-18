@@ -76,7 +76,32 @@ Ext.define('Ext.dirac.core.TaskBar', {
             };
         	
 	        for(var i=0;i<me.app.configData["validGroups"].length;i++)
-	        	button_data.menu.push({	text:me.app.configData["validGroups"][i]});
+	        	button_data.menu.push({	
+	        		text:me.app.configData["validGroups"][i],
+	        		handler:function(){
+	        			
+	        			var me = this;
+	        			
+	        			Ext.Ajax.request({
+	        			    url: _app_base_url+'changeGroup',
+	        			    params: {
+	        			    	to: me.text
+	        			    },
+	        			    scope:me,
+	        			    success: function(response){
+	        			    	document.open("text/html");
+	        			    	document.write(response.responseText);
+	        			    	document.close();
+	        			    },
+	        			    failure:function(response){
+	        			    	
+	        			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+	        			    }
+	        			});
+	        			
+	        			
+	        		}
+	        	});
 	        
 	        me.group_button = new Ext.button.Button(button_data);
 	        
@@ -87,7 +112,30 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	        };
 	        
 	        for(var i=0;i<me.app.configData["validSetups"].length;i++)
-	        	setup_data.menu.push({	text:me.app.configData["validSetups"][i]});
+	        	setup_data.menu.push({	text:me.app.configData["validSetups"][i],
+	        		handler:function(){
+	        			
+	        			var me = this;
+	        			
+	        			Ext.Ajax.request({
+	        			    url: _app_base_url+'changeSetup',
+	        			    params: {
+	        			    	to: me.text
+	        			    },
+	        			    scope:me,
+	        			    success: function(response){
+	        			    	document.open("text/html");
+	        			    	document.write(response.responseText);
+	        			    	document.close();
+	        			    },
+	        			    failure:function(response){
+	        			    	
+	        			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+	        			    }
+	        			});		
+	        			
+	        		}
+	        	});
 	        
 	        me.setup_button = new Ext.button.Button(setup_data);
 	        me.items.push('-');
