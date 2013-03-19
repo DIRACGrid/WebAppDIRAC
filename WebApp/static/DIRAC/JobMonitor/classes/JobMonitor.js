@@ -49,25 +49,51 @@ Ext
 							
 							var item=me.selectorMenu.items.getAt(i);
 							
-							item.setChecked(!data.selectors[item.relatedCmbField]);
+							item.setChecked(!data.leftMenu.selectors[item.relatedCmbField].hidden);
 							
-							if(!data.selectors[item.relatedCmbField])
+							if(!data.leftMenu.selectors[item.relatedCmbField].hidden)
 								me.cmbSelectors[item.relatedCmbField].show();
 							else
 								me.cmbSelectors[item.relatedCmbField].hide();
 							
+							/* this can be done only if the store is being loaded, otherwise has to be postponed*/
+							
+							me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField],data.leftMenu.selectors[item.relatedCmbField].data_selected);
+							
+							me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
+							
 						}
 						
+						me.textJobId.setValue(data.leftMenu.txtJobId);
+						me.timeSearchPanel.cmbTimeSpan.setValue(data.leftMenu.cmbTimeSpan);
+						me.timeSearchPanel.calenFrom.setValue(data.leftMenu.calenFrom);
 						
+						me.timeSearchPanel.cmbTimeFrom.setValue(data.leftMenu.cmbTimeFrom);
+						me.timeSearchPanel.calenTo.setValue(data.leftMenu.calenTo);
+						me.timeSearchPanel.cmbTimeTo.setValue(data.leftMenu.cmbTimeTo);
+						
+						//me.oprLoadGridData();
+						
+					},
+					
+					__oprPostponedValueSetUntilOptionsLoaded:function(oSelectionBox,oValues){
+						
+							var me = this;
+							
+							if(me.bDataSelectionLoaded){
+								oSelectionBox.setValue(oValues);
+							}else{
+								Ext.Function.defer(me.__oprPostponedValueSetUntilOptionsLoaded, 1500, me,[oSelectionBox,oValues]);
+							}
 						
 					},
 
 					getStateData : function() {
 						
-						
 						var me = this;
 						var oReturn = {};
 						
+						//data for grid columns
 						oReturn.columns={};
 						
 						for(var i=0;i<me.grid.columns.length;i++){
@@ -78,13 +104,29 @@ Ext
 							
 						}
 						
-						oReturn.selectors={};
+						//show/hide for selectors and their selected data (including NOT button)
+						oReturn.leftMenu={};
+						oReturn.leftMenu.selectors={};
 						
 						for(var cmb in me.cmbSelectors){
 							
-							oReturn.selectors[cmb]=me.cmbSelectors[cmb].isHidden();
+							oReturn.leftMenu.selectors[cmb] = { 
+										hidden:me.cmbSelectors[cmb].isHidden(),
+										data_selected:me.cmbSelectors[cmb].getValue(),
+										not_selected: me.cmbSelectors[cmb].isInverseSelection()
+							}
 							
 						}
+						
+						//the state of the selectors, text fields and time
+						oReturn.leftMenu.txtJobId = me.textJobId.getValue();
+						oReturn.leftMenu.cmbTimeSpan = me.timeSearchPanel.cmbTimeSpan.getValue();
+						oReturn.leftMenu.calenFrom = me.timeSearchPanel.calenFrom.getValue();
+						oReturn.leftMenu.cmbTimeFrom = me.timeSearchPanel.cmbTimeFrom.getValue();
+						oReturn.leftMenu.calenTo = me.timeSearchPanel.calenTo.getValue();
+						oReturn.leftMenu.cmbTimeTo = me.timeSearchPanel.cmbTimeTo.getValue();
+						
+						console.log(oReturn);
 						
 						return oReturn;
 
@@ -180,6 +222,8 @@ Ext
 							});
 							
 						}
+						
+						me.bDataSelectionLoaded = false;
 						
 						me.leftPanel.add([me.cmbSelectors.site,
 						                  me.cmbSelectors.status, 
@@ -391,6 +435,7 @@ Ext
 						    	var response = Ext.JSON.decode(response.responseText);
 						    	
 						    	me.__oprRefreshStoresForSelectors(response,false);
+						    	me.bDataSelectionLoaded = true;
 						    	
 						    },
 						    failure:function(response){
@@ -765,6 +810,8 @@ Ext
 							return;
 						
 						me.leftPanel.body.mask("Wait ...");
+						//this var is used to know whether the options in the select boxes have been loaded or not
+						me.bDataSelectionLoaded = false;
 						Ext.Ajax.request({
 						    url: me._baseUrl+'JobMonitor/getSelectionData',
 						    params: {
@@ -779,6 +826,8 @@ Ext
 						    	me.leftPanel.body.unmask();
 						    	if(bSubmit)
 						    		me.oprLoadGridData();
+						    	
+						    	me.bDataSelectionLoaded = true;
 						    	
 						    },
 						    failure:function(response){
@@ -801,7 +850,7 @@ Ext
 							var sEndTime = me.timeSearchPanel.cmbTimeTo.getValue();
 							
 							var iSpanValue = me.timeSearchPanel.cmbTimeSpan.getValue();
-							console.log("VOILA: "+iSpanValue);
+							
 							if((iSpanValue!=null)&&(iSpanValue!=5)){
 								
 								var oNowJs = new Date();

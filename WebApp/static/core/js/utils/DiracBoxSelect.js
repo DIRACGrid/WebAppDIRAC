@@ -325,12 +325,48 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     	
     },
     
+    setInverseSelection:function(bInverseSelection){
+    	
+    	var me = this;
+    	
+    	me.inverseNotSelection = bInverseSelection;
+    	
+    	if(!me.inverseNotSelection){
+    		
+    		me.trigger2Cls = me.clsNot;
+    		var oElems = Ext.query("#"+me.id+' .'+me.clsNotsel);
+    		
+    		for(var i in oElems){
+    			
+    			Ext.get(oElems[i]).removeCls(me.clsNotsel);
+    			Ext.get(oElems[i]).addCls(me.clsNot);
+    			
+    		}
+    		
+    	}else{
+    		
+    		me.trigger2Cls = me.clsNotsel;
+    		
+    		var oElems = Ext.query("#"+me.id+' .'+me.clsNot);
+    		
+    		for(var i in oElems){
+    			
+    			Ext.get(oElems[i]).removeCls(me.clsNot);
+    			Ext.get(oElems[i]).addCls(me.clsNotsel);
+    			
+    		}
+    		
+    	}
+    	
+    	
+    },
+    
     getInverseSelection:function(){
     	
     	var me = this;
     	
     	var oSelectionModel = me.getPicker().getSelectionModel();
-    	var oStore = oSelectionModel.getStore();
+    	var oStore = me.getStore();
     	var oCount = oStore.getCount();
     	var oInverseValues = [];
     	
