@@ -748,6 +748,22 @@ Ext
 							menu : me.selectorMenu
 						});
 						
+						//Change the handler of the refresh button of the paging toolbar
+						//me.pagingToolbar.toolbar.items
+						
+						for(var i=0;i<me.pagingToolbar.toolbar.items.length;i++){
+							
+							if(me.pagingToolbar.toolbar.items.getAt(i).itemId=="refresh"){
+								
+								me.pagingToolbar.toolbar.items.getAt(i).handler = function() {
+									me.oprSelectorsRefreshWithSubmit(true);
+								};
+								break;
+								
+							}
+							
+						}
+						
 						this.callParent();
 					},
 					
