@@ -191,7 +191,8 @@ Ext
 						    minWidth: 230,
 						    maxWidth: 350,
 						    bodyPadding: 5,
-						    layout:'anchor'
+						    layout:'anchor',
+						    autoScroll : true
 						});
 					
 						me.cmbSelectors={site:null,
@@ -414,14 +415,12 @@ Ext
 							
 						});
 						
-						var oPanelButtons = new Ext.create('Ext.panel.Panel',{
-							bodyPadding: 5,
-						    autoHeight:true,
-						    border:false,
-							items:[me.btnSubmit,me.btnReset,me.btnRefresh]
+						var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar',{
+							items:[me.btnSubmit,me.btnReset,me.btnRefresh],
+							dock: 'bottom'
 						});
 						
-						me.leftPanel.add(oPanelButtons);
+						me.leftPanel.addDocked(oPanelButtons);
 						
 						Ext.Ajax.request({
 						    url: me._baseUrl+'JobMonitor/getSelectionData',
@@ -681,7 +680,7 @@ Ext
 					             return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
 					           }
 					         },
-						    bbar : me.pagingToolbar.toolbar,
+						    tbar : me.pagingToolbar.toolbar,
 						    listeners:{
 						    	
 						    	itemclick: function(comp, record, item, index, e, eOpts){
