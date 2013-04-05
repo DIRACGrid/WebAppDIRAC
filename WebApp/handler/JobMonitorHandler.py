@@ -126,13 +126,20 @@ class JobMonitorHandler(WebHandler):
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
     result = RPC.getSites()
     if result["OK"]:
-      #tier1 = gConfig.getValue("/Website/PreferredSites",[]) # Always return a list
+      tier1 = gConfig.getValue("/Website/PreferredSites",[]) # Always return a list
       site = []
       if len(result["Value"])>0:
+#        s = list(result["Value"])
+#        #site.append([str("All")])
+#        for i in s:
+#          site.append([str(i)])    
         s = list(result["Value"])
-        #site.append([str("All")])
+        site.append([str("All")])
+        for i in tier1:
+          site.append([str(i)])
         for i in s:
-          site.append([str(i)])    
+          if i not in tier1:
+            site.append([str(i)]) 
       else:
         site = [["Nothing to display"]]
     else:
