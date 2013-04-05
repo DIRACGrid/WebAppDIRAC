@@ -25,3 +25,11 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+.project
+.pydevproject
+
+#Ext
+WebApp/static/extjs
+
+#downloaded stuff
+bundles/

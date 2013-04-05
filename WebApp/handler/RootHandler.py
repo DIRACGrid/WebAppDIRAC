@@ -1,9 +1,11 @@
-
+import json
+from DIRAC import gConfig
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 from WebAppDIRAC.Lib.SessionData import SessionData
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 
-class RootHandler( WebHandler ):
+class RootHandler(WebHandler):
 
   AUTH_PROPS = "all"
   LOCATION = "/"
@@ -30,8 +32,11 @@ class RootHandler( WebHandler ):
     url = [ Conf.rootURL().strip( "/" ), "s:%s" % setup, "g:%s" % group ]
     self.redirect( "/%s" % "/".join( url ) )
 
-  def web_index( self ):
-    #Render base template
-    self.render( "root.tpl", data = SessionData().getData() )
+  def web_getConfigData( self ):
+    self.write(json.dumps(SessionData().getData()))
 
+  def web_index(self):
+    # Render base template
+    data = SessionData().getData()
+    self.render( "root.tpl", base_url = data["baseURL"], _dev = Conf.devMode(), ext_version = data[ 'extVersion' ] )
 

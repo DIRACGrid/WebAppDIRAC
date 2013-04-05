@@ -5,13 +5,13 @@ import tornado.process
 from DIRAC import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Security import Locations, X509Chain
 
-BASECS = "WebApp"
+BASECS = "/WebApp"
 
 def getCSValue( opt, defValue = None ):
   return gConfig.getValue( "%s/%s" % ( BASECS, opt ), defValue )
 
-def debug():
-  return getCSValue( "Debug", False )
+def devMode():
+  return getCSValue( "DevelopMode", True )
 
 def rootURL():
   return getCSValue( "RootURL", "/DIRAC" )
@@ -91,7 +91,5 @@ def generateCAFile():
 
 def getAuthSectionForHandler( route ):
   return "%s/Access/%s" % ( BASECS, route )
-
-
 
 
