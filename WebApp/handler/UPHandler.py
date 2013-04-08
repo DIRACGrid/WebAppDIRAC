@@ -7,6 +7,7 @@ from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 
+
 class UPHandler( WebHandler ):
 
   AUTH_PROPS = "authenticated"
@@ -28,7 +29,6 @@ class UPHandler( WebHandler ):
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
     return UserProfileClient( "Web/%s/%s" % ( obj, app ) )
-
 
   @asyncGen
   def web_saveAppState( self ):

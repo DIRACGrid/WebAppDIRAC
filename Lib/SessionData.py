@@ -1,3 +1,4 @@
+import os
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Utilities import List
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
@@ -13,6 +14,7 @@ class SessionData( object ):
   __handlers = {}
   __groupMenu = {}
   __extensions = []
+  __extVersion = False
 
   @classmethod
   def setHandlers( cls, handlers ):
@@ -28,7 +30,6 @@ class SessionData( object ):
       cls.__extensions.append( ext )
     cls.__extensions.append( "DIRAC" )
     cls.__extensions.append( "WebAppDIRAC" )
-
 
   def __isGroupAuthApp( self, appLoc, credDict ):
     handlerLoc = "/".join( List.fromChar( appLoc, "." )[1:] )
@@ -101,6 +102,23 @@ class SessionData( object ):
       self.__groupMenu[ group ] = self.__generateSchema( base, "", credDict )
     return self.__groupMenu[ group ]
 
+
+  @classmethod
+  def getWebAppPath( cls ):
+    return  os.path.join( os.path.dirname( os.path.dirname( os.path.realpath( __file__ ) ) ), "WebApp" )
+
+  @classmethod
+  def getExtJSVersion( cls ):
+    if not cls.__extVersion:
+      extPath = os.path.join( cls.getWebAppPath(), "static", "extjs" )
+      extVersionPath = []
+      for entryName in os.listdir( extPath ):
+        if entryName.find( "ext-" ) == 0:
+          extVersionPath.append( entryName )
+
+      cls.__extVersion = sorted( extVersionPath )[-1]
+    return cls.__extVersion
+
   def getData( self ):
     DN = self.__disetConfig.getDN()
     group = self.__disetConfig.getGroup()
@@ -110,7 +128,8 @@ class SessionData( object ):
              'validGroups' : [],
              'setup' : self.__disetConfig.getSetup() or gConfig.getValue( "/DIRAC/Setup", "" ),
              'validSetups' : gConfig.getSections( "/DIRAC/Setups" )[ 'Value' ],
-             'ext' : self.__extensions }
+             'extensions' : self.__extensions,
+             'extVersion' : self.getExtJSVersion() }
     if 'properties' in credDict:
       credDict.pop( 'properties' )
     #Add valid groups if known
