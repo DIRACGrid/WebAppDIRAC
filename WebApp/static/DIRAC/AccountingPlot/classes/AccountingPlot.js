@@ -384,21 +384,20 @@ Ext
 								var oList = oSelectionData[oSelectionOptions[i][0]];
 								me.__oprDoubleElementItemList(oList);
 								
-								//Makes problems !!!
+								var oMultiList = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
+									    fieldLabel: oSelectionOptions[i][1],
+									    displayField: "text",
+									    valueField: "value",
+									    anchor:'100%',
+									    height:140,
+									    store:new Ext.data.SimpleStore({
+										        fields:['value','text'],
+										        data:oList
+										      }),
+										labelAlign:'top'
+								});
 								
-//								var oMultiList = Ext.create('Ext.dirac.utils.DiracMultiSelect', {
-//									    fieldLabel: oSelectionOptions[i][1],
-//									    displayField: "text",
-//									    valueField: "value",
-//									    anchor:'100%',
-//									    height:140,
-//									    store:new Ext.data.SimpleStore({
-//										        fields:['value','text'],
-//										        data:oList
-//										      })
-//								});
-//								
-//								me.fsetSpecialConditions.add(oMultiList);
+								me.fsetSpecialConditions.add(oMultiList);
 								
 								
 							}
