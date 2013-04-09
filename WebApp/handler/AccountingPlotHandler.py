@@ -1,8 +1,8 @@
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.DISET.TransferClient import TransferClient
 from WebAppDIRAC.Lib.SessionData import SessionData
-from WebAppDIRAC.Lib.TransferClient import TransferClient
 from DIRAC import gConfig, S_OK, S_ERROR
 from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities import Time, List, DictCache
@@ -75,27 +75,6 @@ class AccountingPlotHandler(WebHandler):
     callback["plotsList"] = data
     self.write(json.dumps({"success":"true", "result":callback}))
 
-  
-  def plotPage( self ):
-    try:
-      typeName = str( self.request.arguments[ 'typeName' ][0] )
-    except:
-      c.errorMessage = "Oops. missing type"
-      return render( "/error.mako" )
-
-    return self.__showPlotPage( typeName , "/systems/accounting/%s.mako" % typeName )
-
-  #OK code; DONT KNOW FOR WHAT DOES IT SERVE?
-  def getKeyValuesForType( self ):
-    try:
-      typeName = str( self.request.arguments[ 'typeName' ][0] )
-    except:
-      return S_ERROR( "Missing or invalid type name!" )
-    retVal = self.__getUniqueKeyValues( typeName )
-    if not retVal[ 'OK' ] and 'rpcStub' in retVal:
-      del( retVal[ 'rpcStub' ] )
-    return retVal
-
   def __parseFormParams(self):
     params = self.request.arguments
     pD = {}
@@ -161,6 +140,16 @@ class AccountingPlotHandler(WebHandler):
     for selName in pD:
       pD[ selName ] = List.fromChar( pD[ selName ], "," )
     return S_OK( ( typeName, reportName, start, end, pD, grouping, extraParams ) )
+
+  #OK  
+  def web_generatePlot( self ):
+    callback = {}
+    retVal =  self.__queryForPlot()
+    if retVal[ 'OK' ]:
+      callback = { 'success' : True, 'data' : retVal[ 'Value' ][ 'plot' ] }
+    else:
+      callback = { 'success' : False, 'errors' : retVal[ 'Message' ] }
+    self.write(json.dumps(callback))
   
   #OK
   def __queryForPlot( self ):
@@ -171,7 +160,65 @@ class AccountingPlotHandler(WebHandler):
     repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
     retVal = repClient.generateDelayedPlot( *params )
     return retVal
-
+  
+  #-----NOK-----
+  @asyncGen
+  def web_getPlotImg( self ):
+    """
+    Get plot image
+    """
+    callback = {}
+    if 'file' not in self.request.arguments:
+      callback = {"success":"false","error":"Maybe you forgot the file?"}
+      self.finish(json.dumps(callback))
+      pass
+    plotImageFile = str( self.request.arguments[ 'file' ][0] )
+    if plotImageFile.find( ".png" ) < -1:
+      callback = {"success":"false","error":"Not a valid image!"}
+      self.finish(json.dumps(callback))
+      pass
+    transferClient = TransferClient( "Accounting/ReportGenerator" )
+    tempFile = tempfile.TemporaryFile()
+    retVal = transferClient.receiveFile( tempFile, plotImageFile )
+    if not retVal[ 'OK' ]:
+      callback = {"success":"false","error":retVal[ 'Message' ]}
+      self.finish(json.dumps(callback))
+      pass
+    tempFile.seek( 0 )
+    data = tempFile.read()
+    self.set_header('Content-type','image/png')
+    self.set_header('Content-Disposition','attachment; filename="%s.png"' % md5( plotImageFile ).hexdigest())
+    self.set_header('Content-Length',len( data ))
+    self.set_header('Content-Transfer-Encoding','Binary')
+    self.set_header('Cache-Control',"no-cache, no-store, must-revalidate, max-age=0")
+    self.set_header('Pragma',"no-cache")
+    self.set_header('Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ))
+    self.finish(data)
+  
+  '''
+  #OK code; DONT KNOW FOR WHAT DOES IT SERVE?
+  def __getKeyValuesForType( self ):
+    try:
+      typeName = str( self.request.arguments[ 'typeName' ][0] )
+    except:
+      return S_ERROR( "Missing or invalid type name!" )
+    retVal = self.__getUniqueKeyValues( typeName )
+    if not retVal[ 'OK' ] and 'rpcStub' in retVal:
+      del( retVal[ 'rpcStub' ] )
+    return retVal
+  '''
+  
+  '''
+  #OK - used when auto refresh
+  def generatePlotAndGetHTML( self ):
+    retVal = self.__queryForPlot()
+    if not retVal[ 'OK' ]:
+      return "<h2>Can't regenerate plot: %s</h2>" % retVal[ 'Message' ]
+    return "<img src='getPlotImg?file=%s'/>" % retVal[ 'Value' ][ 'plot' ]
+  '''
+  
+  '''
+  #NOK - this is for creation od CSV file this comes later
   def getPlotData( self ):
     retVal = self.__parseFormParams()
     if not retVal[ 'OK' ]:
@@ -207,50 +254,4 @@ class AccountingPlotHandler(WebHandler):
     response.headers['Content-Disposition'] = 'attachment; filename="%s.csv"' % md5( str( params ) ).hexdigest()
     response.headers['Content-Length'] = len( strData )
     return strData
-
-  #OK
-  def __translateToExpectedExtResult( self, retVal ):
-    if retVal[ 'OK' ]:
-      return { 'success' : True, 'data' : retVal[ 'Value' ][ 'plot' ] }
-    else:
-      return { 'success' : False, 'errors' : retVal[ 'Message' ] }
-  #OK  
-  def generatePlot( self ):
-    return self.__translateToExpectedExtResult( self.__queryForPlot() )
-  
-  #OK
-  def generatePlotAndGetHTML( self ):
-    retVal = self.__queryForPlot()
-    if not retVal[ 'OK' ]:
-      return "<h2>Can't regenerate plot: %s</h2>" % retVal[ 'Message' ]
-    return "<img src='getPlotImg?file=%s'/>" % retVal[ 'Value' ][ 'plot' ]
-  
-  #-----NOK-----
-  def getPlotImg( self ):
-    """
-    Get plot image
-    """
-    if 'file' not in self.request.arguments:
-      c.error = "Maybe you forgot the file?"
-      return render( "/error.mako" )
-    plotImageFile = str( self.request.arguments[ 'file' ][0] )
-    if plotImageFile.find( ".png" ) < -1:
-      c.error = "Not a valid image!"
-      return render( "/error.mako" )
-    transferClient = TransferClient( "Accounting/ReportGenerator" )
-    tempFile = tempfile.TemporaryFile()
-    retVal = transferClient.receiveFile( tempFile, plotImageFile )
-    if not retVal[ 'OK' ]:
-      c.error = retVal[ 'Message' ]
-      return render( "/error.mako" )
-    tempFile.seek( 0 )
-    data = tempFile.read()
-    response.headers['Content-type'] = 'image/png'
-    response.headers['Content-Disposition'] = 'attachment; filename="%s.png"' % md5( plotImageFile ).hexdigest()
-    response.headers['Content-Length'] = len( data )
-    response.headers['Content-Transfer-Encoding'] = 'Binary'
-    response.headers['Cache-Control'] = "no-cache, no-store, must-revalidate, max-age=0"
-    response.headers['Pragma'] = "no-cache"
-    response.headers['Expires'] = ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" )
-    return data
-    
+  '''
