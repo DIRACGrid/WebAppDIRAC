@@ -125,7 +125,7 @@ Ext
 							}
 
 						};
-
+						
 						me.cmbDomain = Ext
 								.create(
 										'Ext.form.field.ComboBox',
@@ -159,9 +159,8 @@ Ext
 														newValue, oldValue,
 														eOpts) {
 
-													// var me = this;
-
-													Ext.Ajax
+														me.leftPanel.body.mask("Wait ...");
+														Ext.Ajax
 															.request({
 																url : me._baseUrl
 																		+ 'AccountingPlot/getSelectionData',
@@ -177,13 +176,10 @@ Ext
 																			.decode(response.responseText);
 
 																	if (oResult["success"] == "true")
-																		me
-																				.applyDataToSelection(
-																						oResult,
-																						newValue);
+																		me.applyDataToSelection(oResult,newValue);
 																	else
 																		alert(oResult["error"]);
-
+																	me.leftPanel.body.unmask();
 																}
 															});
 
@@ -196,7 +192,7 @@ Ext
 									fieldLabel : "Plot To Generate",
 									queryMode : 'local',
 									labelAlign : 'top',
-									displayField : "value",
+									displayField : "text",
 									valueField : "value",
 									anchor : '100%'
 								});
@@ -378,24 +374,30 @@ Ext
 					applyDataToSelection : function(oData, sValue) {
 
 						var me = this;
-						var oList = Ext.JSON
-								.decode(oData["result"]["plotsList"]);
-
+						var oList = Ext.JSON.decode(oData["result"]["plotsList"]);
+						
 						me.__oprDoubleElementItemList(oList);
-
-						me.cmbPlotGenerate.store = new Ext.data.SimpleStore({
-							fields : [ 'value' ],
+						
+						var oStore = new Ext.data.SimpleStore({
+							fields : [ 'value','text' ],
 							data : oList
 						});
+						
+						me.cmbPlotGenerate.bindStore(oStore);
 
-						var oSelectionData = Ext.JSON
-								.decode(oData["result"]["selectionValues"]);
+						var oSelectionData = Ext.JSON.decode(oData["result"]["selectionValues"]);
+						console.log(oSelectionData);
+						
 						var oSelectionOptions = me.descPlotType[sValue]["selectionConditions"];
 
 						me.fsetSpecialConditions.removeAll();
-
+						
+						var oListForGroup = [];
+						
 						for ( var i = 0; i < oSelectionOptions.length; i++) {
-
+							
+							oListForGroup.push([oSelectionOptions[i][0],oSelectionOptions[i][0]]);
+							
 							if ((oSelectionOptions[i][0] == "User")
 									|| (oSelectionOptions[i][0] == "UserGroup")) {
 
@@ -414,7 +416,6 @@ Ext
 													displayField : "text",
 													valueField : "value",
 													anchor : '100%',
-													height : 140,
 													store : new Ext.data.SimpleStore(
 															{
 																fields : [
@@ -431,6 +432,13 @@ Ext
 							}
 
 						}
+						
+						var oStore = new Ext.data.SimpleStore({
+							fields : [ 'value','text' ],
+							data : oListForGroup
+						});
+						
+						me.cmbGroupBy.bindStore(oStore);
 
 					},
 
