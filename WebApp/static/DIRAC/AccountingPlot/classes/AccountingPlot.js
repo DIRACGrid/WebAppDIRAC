@@ -18,7 +18,8 @@ Ext
 							"Ext.form.field.TextArea",
 							"Ext.form.field.Checkbox", "Ext.form.FieldSet",
 							"Ext.Button", "Ext.dirac.utils.DiracMultiSelect",
-							"Ext.ux.form.MultiSelect" ],
+							"Ext.ux.form.MultiSelect",
+							"Ext.util.*"],
 
 					loadState : function(data) {
 
@@ -37,6 +38,10 @@ Ext
 
 						var me = this;
 						me.launcher.title = "Accounting Plot";
+						me.launcher.width = 300;
+						me.launcher.height = 700;
+						me.launcher.maximized = false;
+						
 
 						/*
 						 * -----------------------------------------------------------------------------------------------------------
@@ -45,13 +50,10 @@ Ext
 						 */
 
 						me.leftPanel = new Ext.create('Ext.panel.Panel', {
-							title : 'Selectors',
-							region : 'west',
+							//title : 'Selectors',
 							floatable : false,
 							margins : '0',
-							width : 280,
 							minWidth : 230,
-							maxWidth : 350,
 							bodyPadding : 5,
 							layout : 'anchor',
 							autoScroll : true
@@ -220,6 +222,7 @@ Ext
 											displayField : "text",
 											valueField : "value",
 											anchor : '100%',
+											value: 86400,
 											store : new Ext.data.SimpleStore(
 													{
 														fields : [ 'value',
@@ -270,7 +273,7 @@ Ext
 							layout : 'anchor'
 						});
 
-						me.advancedPilotTitle = Ext.create(
+						me.advancedPlotTitle = Ext.create(
 								'Ext.form.field.Text', {
 
 									fieldLabel : "Pilot Title",
@@ -288,7 +291,7 @@ Ext
 									boxLabel : 'Do not scale units'
 								});
 
-						me.fsetAdvanced.add([ me.advancedPilotTitle,
+						me.fsetAdvanced.add([ me.advancedPlotTitle,
 								me.advancedPin, me.advancedNotScaleUnits ]);
 
 						me.leftPanel.add([ me.cmbDomain, me.cmbPlotGenerate,
@@ -301,19 +304,7 @@ Ext
 							margin : 3,
 							iconCls : "jm-submit-icon",
 							handler : function() {
-
-							},
-							scope : me
-
-						});
-
-						me.btnPlotNewTab = new Ext.Button({
-
-							text : 'Plot in new tab',
-							margin : 3,
-							iconCls : "jm-reset-icon",
-							handler : function() {
-
+								me.__generatePlot();	
 							},
 							scope : me
 
@@ -347,8 +338,7 @@ Ext
 							bodyPadding : 5,
 							autoHeight : true,
 							border : false,
-							items : [ me.btnPlot, me.btnPlotNewTab,
-									me.btnReset, me.btnRefresh ]
+							items : [ me.btnPlot, me.btnReset, me.btnRefresh ]
 						});
 
 						me.leftPanel.add(oPanelButtons);
@@ -359,7 +349,7 @@ Ext
 						 * -----------------------------------------------------------------------------------------------------------
 						 */
 						Ext.apply(me, {
-							layout : 'border',
+							layout : 'fit',//'border',
 							bodyBorder : false,
 							defaults : {
 								collapsible : true,
@@ -371,6 +361,7 @@ Ext
 						me.callParent(arguments);
 
 					},
+					
 					applyDataToSelection : function(oData, sValue) {
 
 						var me = this;
@@ -383,10 +374,11 @@ Ext
 							data : oList
 						});
 						
+						me.cmbPlotGenerate.setValue(null);
+						
 						me.cmbPlotGenerate.bindStore(oStore);
 
 						var oSelectionData = Ext.JSON.decode(oData["result"]["selectionValues"]);
-						console.log(oSelectionData);
 						
 						var oSelectionOptions = me.descPlotType[sValue]["selectionConditions"];
 
@@ -438,6 +430,8 @@ Ext
 							data : oListForGroup
 						});
 						
+						me.cmbGroupBy.setValue(null);
+						
 						me.cmbGroupBy.bindStore(oStore);
 
 					},
@@ -448,10 +442,40 @@ Ext
 							oList[i] = [ oList[i], oList[i] ];
 
 					},
-
-					__generatePlot : function(oDestination) {
-
+					
+					__validateConditions:function(){
+						
 						var me = this;
+						var bValid = true;
+						
+						//check if the plot type is chosen
+						if((me.cmbDomain.getValue()==null)||(Ext.util.Format.trim(me.cmbDomain.getValue())=="")){
+							
+							alert("No domain defined !");
+							bValid = false;
+							
+						}else if((me.cmbPlotGenerate.getValue()==null)||(Ext.util.Format.trim(me.cmbPlotGenerate.getValue())=="")){
+							
+							alert("No plot type defined !");
+							bValid = false;
+							
+						}else if((me.cmbGroupBy.getValue()==null)||(Ext.util.Format.trim(me.cmbGroupBy.getValue())=="")){
+							
+							alert("No data grouping defined !");
+							bValid = false;
+							
+						}
+						
+						return bValid;
+						
+					},
+					
+					__generatePlot : function(oDestination) {
+						
+						var me = this;
+						
+						if(!me.__validateConditions())
+							return;
 						
 						var sDomain = me.cmbDomain.getValue();
 						
@@ -462,6 +486,8 @@ Ext
 								_typeName:sDomain
 								
 						};
+						
+						var sTitle = me.cmbDomain.getDisplayValue()+" :: "+me.cmbPlotGenerate.getDisplayValue()+" :: GROUP BY : "+me.cmbGroupBy.getDisplayValue();
 						
 						//Time Selector
 						
@@ -492,6 +518,23 @@ Ext
 							
 						}
 						
+						if(Ext.util.Format.trim(me.advancedPlotTitle.getValue())!=""){
+							oParams["_plotTitle"] = me.advancedPlotTitle.getValue();
+							sTitle = me.advancedPlotTitle.getValue();
+						}
+						
+						if(me.advancedPin.checked){
+							
+							oParams["_pinDates"] = "true";
+							
+						}
+						
+						if(me.advancedNotScaleUnits.checked){
+							
+							oParams["_ex_staticUnits"] = "true";
+							
+						}
+						
 						Ext.Ajax
 								.request({
 									url : me._baseUrl
@@ -503,7 +546,7 @@ Ext
 										var me = this;
 										var response = Ext.JSON
 												.decode(response.responseText);
-
+										
 										if (response["success"]) {
 
 											/*
@@ -511,25 +554,114 @@ Ext
 											 * container, where we have to load
 											 * the image
 											 */
-
+											
+											
 											var oPlotWindow = me.getContainer()
 													.oprGetChildWindow(sTitle,
 															false, 700, 500);
+											
 											var oImg = Ext.create('Ext.Img', {
-												src : "getPlotImg?file="
+												src : me._baseUrl
+												+ "AccountingPlot/getPlotImg?file="
 														+ response["data"]
 														+ "&nocache="
 														+ (new Date())
-																.getTime()
+																.getTime(),
+												listeners:{
+													
+													render:function(oElem,eOpts){
+														oElem.el.on({
+												            load: function (evt, ele, opts) {
+												            	oPlotWindow.setWidth(oElem.getWidth()+30);
+												            	oPlotWindow.setHeight(oElem.getHeight()+70);
+												            	oPlotWindow.setLoading(false);
+												            }
+											            });
+														
+														
+													}
+													
+													
+												}
+												
+											});
+											var oRefreshMenu = new Ext.menu.Menu({
+									  			items : [ { text : 'Disabled', value : 0 },
+									  					  { text : 'Each 15m', value : 60000},//900000 },
+									  					  { text : 'Each hour', value : 3600000 },
+									  					  { text : 'Each day', value : 86400000 }
+									  				    ],
+									  			listeners : { 
+									  				click : function( menu, menuItem, e, eOpts ){
+									  					var oPanel = menuItem.parentMenu.up('panel');
+									  					
+									  					if( menuItem.value == 0 ){
+									  						clearInterval(oPanel.refreshTimeout);
+										  				}else{
+										  					clearInterval(oPanel.refreshTimeout);
+										  					oPanel.refreshTimeout = setInterval(function(){
+										  						
+										  						Ext.Ajax
+																.request({
+																	url : me._baseUrl
+																			+ 'AccountingPlot/generatePlot',
+																	params : oParams,
+																	success : function(responseImg) {
+																		
+																		responseImg = Ext.JSON
+																				.decode(responseImg.responseText);
+																		
+																		if (responseImg["success"]) {
+										  						
+													  						oPanel.items.getAt(1).setSrc(me._baseUrl+ "AccountingPlot/getPlotImg?file="
+																					+ responseImg["data"]+ "&nocache="+ (new Date()).getTime());
+													  						oPanel.up('window').setLoading('Loading Image ...');
+													  						
+																		}
+																	}
+																});
+										  						
+										  					},menuItem.value);
+										  				}
+									  					
+			  											menuItem.parentMenu.up('button').setText( "Auto refresh : " + menuItem.text );
+			  						 				} 
+									  			},
+									  			plotParams : {}
+									  		});
+											
+											var oHrefParams="";
+											
+											for(var oParam in oParams){
+												
+												oHrefParams+=((oHrefParams=="")?"":"&")+oParam+"="+encodeURIComponent(oParams[oParam]);
+												
+											}
+											
+											var oToolbar = new Ext.toolbar.Toolbar({
+												items:	["<a target='_blank' href='"+me._baseUrl+"AccountingPlot/getCsvPlotData?"+oHrefParams+"'>CSV data</a>"
+												      	 ,{ xtype:"button",
+															menu:oRefreshMenu,
+															text:"Auto refresh :  Disabled"
+														   }
+												      	 ]
 											});
 											
-											oPlotWindow.add(oImg);
+											
+											var oPanel = new Ext.create('Ext.panel.Panel', {
+												autoHeight : true,
+												border : false,
+												items : [ oToolbar, oImg ],
+												plotParams: oParams
+											});
+											
+											oPlotWindow.add(oPanel);
 											
 											oPlotWindow.show();
+											oPlotWindow.setLoading('Loading Image ...');
 											
 
 										} else {
-											// display response["errors"]
 											alert(response["errors"]);
 										}
 

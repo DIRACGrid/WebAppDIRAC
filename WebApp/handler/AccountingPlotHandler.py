@@ -13,6 +13,11 @@ import simplejson
 import json
 import ast
 
+try:
+  from hashlib import md5
+except:
+  from md5 import md5
+
 class AccountingPlotHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
@@ -87,6 +92,8 @@ class AccountingPlotHandler(WebHandler):
       value = params[ name ][0]
       name = name[1:]
       pD[ name ] = str( value )
+    
+    print pD
     #Personalized title?
     if 'plotTitle' in pD:
       extraParams[ 'plotTitle' ] = pD[ 'plotTitle' ]
@@ -171,19 +178,19 @@ class AccountingPlotHandler(WebHandler):
     if 'file' not in self.request.arguments:
       callback = {"success":"false","error":"Maybe you forgot the file?"}
       self.finish(json.dumps(callback))
-      pass
+      return
     plotImageFile = str( self.request.arguments[ 'file' ][0] )
     if plotImageFile.find( ".png" ) < -1:
       callback = {"success":"false","error":"Not a valid image!"}
       self.finish(json.dumps(callback))
-      pass
+      return
     transferClient = TransferClient( "Accounting/ReportGenerator" )
     tempFile = tempfile.TemporaryFile()
     retVal = transferClient.receiveFile( tempFile, plotImageFile )
     if not retVal[ 'OK' ]:
       callback = {"success":"false","error":retVal[ 'Message' ]}
       self.finish(json.dumps(callback))
-      pass
+      return
     tempFile.seek( 0 )
     data = tempFile.read()
     self.set_header('Content-type','image/png')
@@ -194,6 +201,43 @@ class AccountingPlotHandler(WebHandler):
     self.set_header('Pragma',"no-cache")
     self.set_header('Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ))
     self.finish(data)
+    
+  def web_getCsvPlotData( self ):
+    callback = {}
+    retVal = self.__parseFormParams()
+    if not retVal[ 'OK' ]:
+      callback = {"success":"false","error":retVal[ 'Message' ]}
+      return callback
+    params = retVal[ 'Value' ]
+    repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
+    retVal = repClient.getReport( *params )
+    if not retVal[ 'OK' ]:
+      callback = {"success":"false","error":retVal[ 'Message' ]}
+      return callback
+    rawData = retVal[ 'Value' ]
+    groupKeys = rawData[ 'data' ].keys()
+    groupKeys.sort()
+    if 'granularity' in rawData:
+      granularity = rawData[ 'granularity' ]
+      data = rawData['data']
+      tS = int( Time.toEpoch( params[2] ) )
+      timeStart = tS - tS % granularity
+      strData = "epoch,%s\n" % ",".join( groupKeys )
+      for timeSlot in range( timeStart, int( Time.toEpoch( params[3] ) ), granularity ):
+        lineData = [ str( timeSlot ) ]
+        for key in groupKeys:
+          if timeSlot in data[ key ]:
+            lineData.append( str( data[ key ][ timeSlot ] ) )
+          else:
+            lineData.append( "" )
+        strData += "%s\n" % ",".join( lineData )
+    else:
+      strData = "%s\n" % ",".join( groupKeys )
+      strData += ",".join( [ str( rawData[ 'data' ][ k ] ) for k in groupKeys ] )
+    self.set_header('Content-type','text/csv')
+    self.set_header('Content-Disposition', 'attachment; filename="%s.csv"' % md5( str( params ) ).hexdigest())
+    self.set_header('Content-Length', len( strData ))
+    return strData
   
   '''
   #OK code; DONT KNOW FOR WHAT DOES IT SERVE?
@@ -215,43 +259,4 @@ class AccountingPlotHandler(WebHandler):
     if not retVal[ 'OK' ]:
       return "<h2>Can't regenerate plot: %s</h2>" % retVal[ 'Message' ]
     return "<img src='getPlotImg?file=%s'/>" % retVal[ 'Value' ][ 'plot' ]
-  '''
-  
-  '''
-  #NOK - this is for creation od CSV file this comes later
-  def getPlotData( self ):
-    retVal = self.__parseFormParams()
-    if not retVal[ 'OK' ]:
-      c.error = retVal[ 'Message' ]
-      return render( "/error.mako" )
-    params = retVal[ 'Value' ]
-    repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
-    retVal = repClient.getReport( *params )
-    if not retVal[ 'OK' ]:
-      c.error = retVal[ 'Message' ]
-      return render( "/error.mako" )
-    rawData = retVal[ 'Value' ]
-    groupKeys = rawData[ 'data' ].keys()
-    groupKeys.sort()
-    if 'granularity' in rawData:
-      granularity = rawData[ 'granularity' ]
-      data = rawData['data']
-      tS = int( Time.toEpoch( params[2] ) )
-      timeStart = tS - tS % granularity
-      strData = "epoch,%s\n" % ",".join( groupKeys )
-      for timeSlot in range( timeStart, int( Time.toEpoch( params[3] ) ), granularity ):
-        lineData = [ str( timeSlot ) ]
-        for key in groupKeys:
-          if timeSlot in data[ key ]:
-            lineData.append( str( data[ key ][ timeSlot ] ) )
-          else:
-            lineData.append( "" )
-        strData += "%s\n" % ",".join( lineData )
-    else:
-      strData = "%s\n" % ",".join( groupKeys )
-      strData += ",".join( [ str( rawData[ 'data' ][ k ] ) for k in groupKeys ] )
-    response.headers['Content-type'] = 'text/csv'
-    response.headers['Content-Disposition'] = 'attachment; filename="%s.csv"' % md5( str( params ) ).hexdigest()
-    response.headers['Content-Length'] = len( strData )
-    return strData
   '''

@@ -237,8 +237,9 @@ Ext.define(
 				if(item[0]=="app"){
 					return {
 							text:item[1],
+							minWidth:200,
 							//handler:Ext.bind(me.createWindow, me,[item[0],item[2],((item[0]=="app")?null:{title:item[1]})]),
-							menu:[{text:"Default",handler:Ext.bind(me.createWindow, me,[item[0],item[2],null])},'-'],
+							menu:[{text:"Default",handler:Ext.bind(me.createWindow, me,[item[0],item[2],null]),minWidth:200},'-'],
 							isStateMenuLoaded:0,
 							listeners:{
 								
@@ -323,7 +324,8 @@ Ext.define(
 					
 					return {
 						text:item[1],
-						handler:Ext.bind(me.createWindow, me,[item[0],item[2],{title:item[1]}])
+						handler:Ext.bind(me.createWindow, me,[item[0],item[2],{title:item[1]}]),
+						minWidth:200
 					};
 					
 					
