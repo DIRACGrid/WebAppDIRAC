@@ -39,7 +39,11 @@ Ext
 						var me = this;
 						me.launcher.title = "Accounting Plot";
 						me.launcher.width = 300;
-						me.launcher.height = 700;
+						
+						var oDimensions = _app.getDesktopDimensions();
+						//console.log(oDimensions);
+						
+						me.launcher.height = oDimensions[1]-50;
 						me.launcher.maximized = false;
 						
 

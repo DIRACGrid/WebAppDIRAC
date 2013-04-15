@@ -106,6 +106,8 @@ Ext.define(
 			});
 			
 			me._cf = new Ext.dirac.core.CommonFunctions();
+			me._location_base = location.href;
+			me._url_state = "0|"
 			
 			me.callParent();
 
@@ -136,7 +138,7 @@ Ext.define(
 			Ext.EventManager.on(window, 'beforeunload',
 					me.onUnload, me);
 
-			me.isReady = true;
+			me.isReady = true;//only if there is no desktop state loaded
 			me.fireEvent('ready', me);
 		},
 
@@ -148,7 +150,7 @@ Ext.define(
 		 */
 		getDesktopConfig : function() {
 			var me = this, cfg = {
-				app : me,
+				app : me,//only if there is no desktop state loaded
 				taskbarConfig : me.getTaskbarConfig()
 			};
 
@@ -464,6 +466,115 @@ Ext.define(
 		getDesktop : function() {
 			return this.desktop;
 		},
+		
+		getDesktopDimensions: function(){
+			
+			var me=this;
+			
+			return [me.desktop.getWidth(),me.desktop.getHeight()];
+			
+		},
+		
+		
+		addUrlApp:function(sAppName,sStateName){
+			
+			//only if there is no desktop state loaded
+			var me = this;
+			var oParts = me._url_state.split("|");
+			if(parseInt(oPrats[0])==1)
+				return;
+			
+			location.hreh = me._url_state+";"+sAppName+":"+sStateName;
+			me._url_state = me._url_state+";"+sAppName+":"+sStateName;
+			
+			
+		},
+		
+		removeUrlApp:function(sAppName,sStateName){
+			
+			//only if there is no desktop state loaded
+			var me = this;
+			var oParts = me._url_state.split("|");
+			if(parseInt(oPrats[0])==1)
+				return;
+			
+			
+			var oItems = oParts[1].split(";");
+			var oId = sAppName+":"+sStateName;
+			var oNewArray = [];
+			var oOnlyOneInstance = false;
+			
+			
+			for(var i=0;i<oItems.length;i++){
+				if(oId!=oItems[i]){
+					oNewArray.push(oItems[i]);
+				}else{
+					if(oOnlyOneInstance)
+						oNewArray.push(oItems[i]);
+					else
+						oOnlyOneInstance = true;
+				}
+			}
+			
+			var oNewState = oNewArray.join(";");
+			
+			location.hreh = me._location_base+"?url_state=0|"+oNewState;
+			me._url_state = "0|"+oNewState;
+			
+			
+		},
+		
+		setUrlAppState:function(sAppName,sOldStateName,sNewStateName){
+			
+			//only if there is no desktop state loaded
+			//only if there is no desktop state loaded
+			var me = this;
+			var oParts = me._url_state.split("|");
+			if(parseInt(oPrats[0])==1)
+				return;
+			
+			
+			var oItems = oParts[1].split(";");
+			var oId = sAppName+":"+sOldStateName;
+			var oNewArray = [];
+			var oOnlyOneInstance = false;
+			
+			
+			for(var i=0;i<oItems.length;i++){
+				if(oId!=oItems[i]){
+					oNewArray.push(oItems[i]);
+				}else{
+					if(oOnlyOneInstance)
+						oNewArray.push(oItems[i]);
+					else{
+						oOnlyOneInstance = true;
+						oNewArray.push(sAppState+":"+sNewStateName);
+					}
+				}
+			}
+			
+			var oNewState = oNewArray.join(";");
+			
+			location.hreh = me._location_base+"?url_state=0|"+oNewState;
+			me._url_state = "0|"+oNewState;
+			
+		},
+		
+		setUrlDesktopState:function(sStateName){
+			var me =this;
+			location.hreh = me._location_base+"?url_state=1|"+sStateName;
+			me._url_state = "1|"+sStateName;
+			
+		},
+		
+		removeUrlDesktopState:function(){
+			
+			var me =this;
+			location.hreh = me._location_base+"?url_state=0|";
+			me._url_state = "0|";
+			
+			
+		}
 
 		onReady : function(fn, scope) {
 			if (this.isReady) {

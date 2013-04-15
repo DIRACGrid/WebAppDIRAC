@@ -38,5 +38,6 @@ class RootHandler(WebHandler):
   def web_index(self):
     # Render base template
     data = SessionData().getData()
+    print self.request.arguments
     self.render( "root.tpl", base_url = data["baseURL"], _dev = Conf.devMode(), ext_version = data[ 'extVersion' ] )
 
