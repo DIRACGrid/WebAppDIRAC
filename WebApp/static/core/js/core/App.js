@@ -475,7 +475,6 @@ Ext.define(
 			
 		},
 		
-		
 		addUrlApp:function(sAppName,sStateName){
 			
 			//only if there is no desktop state loaded
@@ -574,7 +573,7 @@ Ext.define(
 			me._url_state = "0|";
 			
 			
-		}
+		},
 
 		onReady : function(fn, scope) {
 			if (this.isReady) {

@@ -337,6 +337,23 @@ Ext
 							scope : me
 
 						});
+						
+						/*
+						 * This button is used to release any related 
+						 * plot.
+						 * 
+						 * */
+						me.btnNewPlot = new Ext.Button({
+
+							text : 'New Plot',
+							margin : 3,
+							iconCls : "jm-refresh-icon",
+							handler : function() {
+
+							},
+							scope : me
+
+						});
 
 						var oPanelButtons = new Ext.create('Ext.panel.Panel', {
 							bodyPadding : 5,
@@ -346,6 +363,9 @@ Ext
 						});
 
 						me.leftPanel.add(oPanelButtons);
+						
+						me.__childWindowFocused = null;
+						me.__additionalDataLoad = null;
 
 						/*
 						 * -----------------------------------------------------------------------------------------------------------
@@ -437,6 +457,12 @@ Ext
 						me.cmbGroupBy.setValue(null);
 						
 						me.cmbGroupBy.bindStore(oStore);
+						
+						//we call the additional function
+						if(me.__additionalDataLoad!=null){
+							me.__additionalDataLoad();
+							me.__additionalDataLoad = null;
+						}
 
 					},
 
@@ -446,7 +472,7 @@ Ext
 							oList[i] = [ oList[i], oList[i] ];
 
 					},
-					
+				
 					__validateConditions:function(){
 						
 						var me = this;
@@ -564,6 +590,19 @@ Ext
 													.oprGetChildWindow(sTitle,
 															false, 700, 500);
 											
+											/*
+											 * when the child window gets the focus,
+											 * the accounting plot is filled with
+											 * selection data stored in the panel of this window
+											 */ 
+											oPlotWindow.on("activate",function(oChildWindow,oEventObject,eOpts){
+												
+												var me = this;
+												console.log(me);
+												me.loadSelectionData(oChildWindow);
+												
+											},me);
+											
 											var oImg = Ext.create('Ext.Img', {
 												src : me._baseUrl
 												+ "AccountingPlot/getPlotImg?file="
@@ -678,6 +717,85 @@ Ext
 									}
 								});
 
+					},
+					loadSelectionData: function(oChildWindow){
+						//console.log(oChildWindow);
+						var me = this;
+						
+						me.__childWindowFocused = oChildWindow; 
+						
+						var oParams = oChildWindow.items.getAt(0).plotParams;
+						
+						me.__additionalDataLoad = function(){
+							
+							me.cmbGroupBy.setValue(oParams["_grouping"]);
+							me.cmbPlotGenerate.setValue(oParams["_plotName"]);
+							me.cmbTimeSpan.setValue(oParams["_timeSelector"]);
+							
+							if(oParams["_timeSelector"]==-1){
+								
+								me.calendarFrom.setValue(oParams["_startTime"]);
+								me.calendarTo.setValue(oParams["_endTime"]);
+								
+							}
+							
+							me.advancedPlotTitle.setValue(oParams["_plotTitle"]);
+							
+							if("_pinDates" in oParams){
+								
+								if(oParams["_pinDates"]=="true")
+									me.advancedPin.setValue(true);	
+								else
+									me.advancedPin.setValue(false);	
+								
+							}else
+								me.advancedPin.setValue(true);
+							
+							
+							if("_ex_staticUnits" in oParams){
+								
+								if(oParams["_ex_staticUnits"]=="true")
+									me.advancedPin.setValue(true);
+								else
+									me.advancedPin.setValue(false);	
+								
+							}else
+								me.advancedPin.setValue(false);
+							
+							
+							for(var oParam in oParams){
+								
+								if(oParam.charAt(0)!='_'){
+									
+									for(var i=0;i<me.fsetSpecialConditions.items.length;i++){
+										
+										if(me.fsetSpecialConditions.items.getAt(i).getName()==oParam){
+											console.log(oParams[oParam]);
+											me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam]);
+											break;
+											
+										}
+										
+									}
+
+								}
+								
+							}
+
+							
+						};
+						
+						
+						if(me.cmbDomain.getValue()==oParams["_typeName"]){
+							
+							me.__additionalDataLoad();
+							me.__additionalDataLoad = null;
+							
+							
+						}
+						
+						me.cmbDomain.setValue(oParams["_typeName"]);
+						
 					}
 
 				});
