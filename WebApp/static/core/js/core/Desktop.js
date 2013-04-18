@@ -633,8 +633,10 @@ Ext.define(
 			 * If the number of windows get 0, 
 			 * the current desktop state is cleared
 			 */
-			if(me.windows.getCount()==0)
+			if(me.windows.getCount()==0){
 				me.currentDesktopState='';
+				me.app.removeUrlDesktopState();
+			}
 			me.taskbar.removeTaskButton(win.taskButton);
 			me.updateActiveWindow();
 			/*
@@ -966,20 +968,32 @@ Ext.define(
 		 */
 		loadDesktopStateData:function(stateName){
 			
+			alert("AJDE 1");
+			
 			var me = this;
 			
 			//get the state from the cache
 			var stateData = me.cache.desktop[stateName];
 			
+			console.log(stateData);
+			
+			alert("AJDE 2");
+			
 			for(var i=0,len=stateData["data"].length;i<len;i++){
 				
+				
 				var appStateData = stateData["data"][i];
+				alert(appStateData.name);
 				
 				me.app.createWindow(appStateData.loadedObjectType,appStateData.name,appStateData);
-				
+				alert("KRAJ = "+appStateData.name);
 			}
 			
+			alert("AJDE 3");
 			me.currentDesktopState = stateName;
+			
+			alert("AJDE 4");
+			me.app.setUrlDesktopState(stateName);
 			
 		},
 		
@@ -1353,31 +1367,24 @@ Ext.define(
 			me.windows.each(function(win) {
 				
 				/*
-				 * Depends on the loadedObjectType 
+				 * First we check whether the 
+				 * window is not a child window
 				 */
-				var oElem = null;
 				
+				if(!("isChildWindow" in win)){
 				
-				if(win.loadedObjectType == "app"){
+					/*
+					 * Depends on the loadedObjectType 
+					 */
+					var oElem = null;
 					
-					oElem = {
-						name: win.getAppClassName(),
-						currentState: win.currentState,
-						data: win.loadedObject.getStateData(),
-						x: win.x,
-						y: win.y,
-						width: win.getWidth(),
-						height: win.getHeight(),
-						maximized: win.maximized,
-						zIndex:win.zIndex,
-						loadedObjectType: win.loadedObjectType
-					};
 					
-				}else if(win.loadedObjectType == "link"){
-					
-					oElem = {
-							title: win.title,
-							linkToLoad: win.linkToLoad,
+					if(win.loadedObjectType == "app"){
+						
+						oElem = {
+							name: win.getAppClassName(),
+							currentState: win.currentState,
+							data: win.loadedObject.getStateData(),
 							x: win.x,
 							y: win.y,
 							width: win.getWidth(),
@@ -1385,9 +1392,24 @@ Ext.define(
 							maximized: win.maximized,
 							zIndex:win.zIndex,
 							loadedObjectType: win.loadedObjectType
-					};
-					
-					
+						};
+						
+					}else if(win.loadedObjectType == "link"){
+						
+						oElem = {
+								title: win.title,
+								linkToLoad: win.linkToLoad,
+								x: win.x,
+								y: win.y,
+								width: win.getWidth(),
+								height: win.getHeight(),
+								maximized: win.maximized,
+								zIndex:win.zIndex,
+								loadedObjectType: win.loadedObjectType
+						};
+						
+						
+					}
 				}
 				
 				dataToSend.data.push(oElem);

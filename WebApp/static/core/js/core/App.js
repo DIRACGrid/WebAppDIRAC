@@ -107,7 +107,8 @@ Ext.define(
 			
 			me._cf = new Ext.dirac.core.CommonFunctions();
 			me._location_base = location.href;
-			me._url_state = "0|"
+			me._url_state = "0|";
+			//window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|");
 			
 			me.callParent();
 
@@ -474,7 +475,9 @@ Ext.define(
 			return [me.desktop.getWidth(),me.desktop.getHeight()];
 			
 		},
-		
+		/*
+		 * ----------------------------------URL MANAGEMENT----------------------------------
+		 */
 		addUrlApp:function(sAppName,sStateName){
 			
 			//only if there is no desktop state loaded
@@ -483,7 +486,7 @@ Ext.define(
 			if(parseInt(oPrats[0])==1)
 				return;
 			
-			location.hreh = me._url_state+";"+sAppName+":"+sStateName;
+			window.history.pushState("X","ExtTop - Desktop Sample App",me._url_state+";"+sAppName+":"+sStateName);
 			me._url_state = me._url_state+";"+sAppName+":"+sStateName;
 			
 			
@@ -517,7 +520,7 @@ Ext.define(
 			
 			var oNewState = oNewArray.join(";");
 			
-			location.hreh = me._location_base+"?url_state=0|"+oNewState;
+			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|"+oNewState);
 			me._url_state = "0|"+oNewState;
 			
 			
@@ -554,14 +557,17 @@ Ext.define(
 			
 			var oNewState = oNewArray.join(";");
 			
-			location.hreh = me._location_base+"?url_state=0|"+oNewState;
+			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|"+oNewState);
+		
 			me._url_state = "0|"+oNewState;
 			
 		},
 		
 		setUrlDesktopState:function(sStateName){
 			var me =this;
-			location.hreh = me._location_base+"?url_state=1|"+sStateName;
+			
+			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=1|"+sStateName);
+			alert("OK");
 			me._url_state = "1|"+sStateName;
 			
 		},
@@ -569,12 +575,15 @@ Ext.define(
 		removeUrlDesktopState:function(){
 			
 			var me =this;
-			location.hreh = me._location_base+"?url_state=0|";
+			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|");
 			me._url_state = "0|";
-			
 			
 		},
 
+		/*
+		 * ----------------------------------END :: URL MANAGEMENT----------------------------------
+		 */
+		
 		onReady : function(fn, scope) {
 			if (this.isReady) {
 				fn.call(scope, this);

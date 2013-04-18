@@ -19,7 +19,8 @@ Ext
 							"Ext.form.field.Checkbox", "Ext.form.FieldSet",
 							"Ext.Button", "Ext.dirac.utils.DiracMultiSelect",
 							"Ext.ux.form.MultiSelect",
-							"Ext.util.*"],
+							"Ext.util.*",
+							"Ext.toolbar.Toolbar"],
 
 					loadState : function(data) {
 
@@ -38,10 +39,9 @@ Ext
 
 						var me = this;
 						me.launcher.title = "Accounting Plot";
-						me.launcher.width = 300;
+						me.launcher.width = 350;
 						
 						var oDimensions = _app.getDesktopDimensions();
-						//console.log(oDimensions);
 						
 						me.launcher.height = oDimensions[1]-50;
 						me.launcher.maximized = false;
@@ -136,10 +136,9 @@ Ext
 								.create(
 										'Ext.form.field.ComboBox',
 										{
-											fieldLabel : "Domain",
+											fieldLabel : "Category",
 											queryMode : 'local',
 											labelAlign : 'top',
-											// width:260,
 											displayField : "text",
 											valueField : "value",
 											anchor : '100%',
@@ -164,7 +163,10 @@ Ext
 												change : function(field,
 														newValue, oldValue,
 														eOpts) {
-
+													
+														if(newValue==null)
+															return;
+														
 														me.leftPanel.body.mask("Wait ...");
 														Ext.Ajax
 															.request({
@@ -304,11 +306,11 @@ Ext
 
 						me.btnPlot = new Ext.Button({
 
-							text : 'Plot',
+							text : 'New',
 							margin : 3,
-							iconCls : "jm-submit-icon",
+							iconCls : "accp-submit-icon",
 							handler : function() {
-								me.__generatePlot();	
+								me.__generatePlot(null);	
 							},
 							scope : me
 
@@ -318,9 +320,22 @@ Ext
 
 							text : 'Reset',
 							margin : 3,
-							iconCls : "jm-refresh-icon",
+							iconCls : "accp-reset-icon",
 							handler : function() {
-
+								
+								me.cmbGroupBy.setValue(null);
+								me.cmbPlotGenerate.setValue(null);
+								me.calendarFrom.setValue(null);
+								me.calendarTo.setValue(null);
+								me.cmbTimeSpan.setValue(86400);
+								
+								me.advancedPin.setValue(false);	
+								me.advancedNotScaleUnits.setValue(false);
+								me.advancedPlotTitle.setValue("");
+								me.fsetSpecialConditions.removeAll();
+								me.cmbDomain.setValue(null);
+								
+								
 							},
 							scope : me
 
@@ -330,39 +345,59 @@ Ext
 
 							text : 'Refresh',
 							margin : 3,
-							iconCls : "jm-refresh-icon",
+							iconCls : "accp-refresh-icon",
 							handler : function() {
+								
+								me.leftPanel.body.mask("Wait ...");
+								Ext.Ajax
+									.request({
+										url : me._baseUrl
+												+ 'AccountingPlot/getSelectionData',
+										method : 'POST',
+										params : {
+											type : me.cmbDomain.getValue()
+										},
+										scope : me,
+										success : function(response) {
 
+											var oResult = Ext.JSON
+													.decode(response.responseText);
+
+											if (oResult["success"] == "true")
+												me.applySpecialConditions(oResult);
+											else
+												alert(oResult["error"]);
+											me.leftPanel.body.unmask();
+										}
+									});
+								
 							},
 							scope : me
 
 						});
 						
 						/*
-						 * This button is used to release any related 
-						 * plot.
-						 * 
+						 * This button is used to refresh any previously selected plot
+						 * that is already generated.
 						 * */
-						me.btnNewPlot = new Ext.Button({
+						me.btnRefreshPlot = new Ext.Button({
 
-							text : 'New Plot',
+							text : 'Update',
 							margin : 3,
-							iconCls : "jm-refresh-icon",
+							iconCls : "accp-refresh-icon",
 							handler : function() {
-
+								me.__generatePlot(me.__childWindowFocused);
 							},
 							scope : me
 
 						});
-
-						var oPanelButtons = new Ext.create('Ext.panel.Panel', {
-							bodyPadding : 5,
-							autoHeight : true,
-							border : false,
-							items : [ me.btnPlot, me.btnReset, me.btnRefresh ]
+						
+						var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar',{
+							items:[me.btnPlot, me.btnRefreshPlot , me.btnReset, me.btnRefresh],
+							dock: 'bottom'
 						});
-
-						me.leftPanel.add(oPanelButtons);
+						
+						me.leftPanel.addDocked(oPanelButtons);
 						
 						me.__childWindowFocused = null;
 						me.__additionalDataLoad = null;
@@ -465,6 +500,33 @@ Ext
 						}
 
 					},
+					
+					applySpecialConditions : function(oData) {
+
+						var me = this;
+
+						var oSelectionData = Ext.JSON.decode(oData["result"]["selectionValues"]);
+
+						for ( var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
+							
+							var oBox = me.fsetSpecialConditions.items.getAt(i);
+							
+							
+							var oList = oSelectionData[oBox.getName()];
+							me.__oprDoubleElementItemList(oList);
+							var oNewStore = new Ext.data.SimpleStore(
+									{
+										fields : [
+												'value',
+												'text' ],
+										data : oList
+									});
+							
+							oBox.refreshStore(oNewStore);
+							
+						}
+						
+					},
 
 					__oprDoubleElementItemList : function(oList) {
 
@@ -481,7 +543,7 @@ Ext
 						//check if the plot type is chosen
 						if((me.cmbDomain.getValue()==null)||(Ext.util.Format.trim(me.cmbDomain.getValue())=="")){
 							
-							alert("No domain defined !");
+							alert("No category defined !");
 							bValid = false;
 							
 						}else if((me.cmbPlotGenerate.getValue()==null)||(Ext.util.Format.trim(me.cmbPlotGenerate.getValue())=="")){
@@ -500,7 +562,7 @@ Ext
 						
 					},
 					
-					__generatePlot : function(oDestination) {
+					__generatePlot : function(oDestinationWindow) {
 						
 						var me = this;
 						
@@ -544,7 +606,8 @@ Ext
 						for(var i=0;i<me.fsetSpecialConditions.items.length;i++){
 							
 							var oCondItem = me.fsetSpecialConditions.items.getAt(i);
-							oParams[oCondItem.getName()] = ((oCondItem.isInverseSelection())?oCondItem.getInverseSelection():oCondItem.getValue().join(","));
+							if(oCondItem.getValue().length != 0)
+								oParams["_"+oCondItem.getName()] = ((oCondItem.isInverseSelection())?oCondItem.getInverseSelection():oCondItem.getValue().join(","));
 							
 						}
 						
@@ -585,25 +648,110 @@ Ext
 											 * the image
 											 */
 											
+											var oPlotWindow = null;
 											
-											var oPlotWindow = me.getContainer()
-													.oprGetChildWindow(sTitle,
-															false, 700, 500);
-											
-											/*
-											 * when the child window gets the focus,
-											 * the accounting plot is filled with
-											 * selection data stored in the panel of this window
-											 */ 
-											oPlotWindow.on("activate",function(oChildWindow,oEventObject,eOpts){
+											if(oDestinationWindow==null){
+												oPlotWindow = me.getContainer().oprGetChildWindow(sTitle,false, 700, 500);
+												me.__childWindowFocused = oPlotWindow;
 												
-												var me = this;
-												console.log(me);
-												me.loadSelectionData(oChildWindow);
+												/*
+												 * when the child window gets the focus,
+												 * the accounting plot is filled with
+												 * selection data stored in the panel of this window
+												 */ 
+												oPlotWindow.on("activate",function(oChildWindow,oEventObject,eOpts){
+													
+													var me = this;
+													me.loadSelectionData(oChildWindow);
+													
+													//do the indication icon
+													
+													var oWins = me.getContainer().childWindows;
+													
+													for(var i=0;i<oWins.length;i++){
+																												
+														var oToolbarImage = oWins[i].items.getAt(0).items.getAt(0).items.getAt(0);
+														oToolbarImage.setSrc("static/DIRAC/AccountingPlot/images/failed.gif");
+														
+													}
+													
+													oChildWindow.items.getAt(0).items.getAt(0).items.getAt(0).setSrc("static/DIRAC/AccountingPlot/images/done.gif");
+													
+												},me);
 												
-											},me);
+												oPlotWindow.on("resize",function(oChildWindow,iWidth,iHeight,eOpts){
+													
+													var oImg=oChildWindow.items.getAt(0).items.getAt(1);
+													
+													
+													
+													if(oImg.noResizeAtLoad<2){
+														oImg.noResizeAtLoad++;
+														return;
+													}
+													
+													
+													
+													var a = oImg.getWidth();
+													var b = oImg.getHeight();
+													
+													var a1 = iWidth-30;
+													var b1 = iHeight-70;
+													
+													if(b<=b1){
+														
+														if(a<=a1){
+															
+															if((a1/a)<=(b1/b)){
+																
+																oImg.setWidth(a1);
+																oImg.setHeight(parseInt(a1/a*b));
+																
+															}else{
+																
+																oImg.setHeight(b1);
+																oImg.setWidth(parseInt(b1/b*a));
+																
+															}
+															
+														}else{
+															
+															oImg.setWidth(a1);
+															oImg.setHeight(parseInt(a1/a*b));
+														}
+														
+														
+													}else{
+														
+														if(a<=a1){
+															
+															oImg.setHeight(b1);
+															oImg.setWidth(parseInt(b1/b*a));
+														}else{
+															
+															if((a1/a)<=(b1/b)){
+																
+																oImg.setHeight(b1);
+																oImg.setWidth(parseInt(b1/b*a));
+															}else{
+																
+																oImg.setWidth(a1);
+																oImg.setHeight(parseInt(a1/a*b));
+															}
+															
+															
+														}
+														
+														
+													}
+													
+												},me);
+												
+											}else
+												oPlotWindow = oDestinationWindow;	
 											
 											var oImg = Ext.create('Ext.Img', {
+												noResizeAtLoad:0,
 												src : me._baseUrl
 												+ "AccountingPlot/getPlotImg?file="
 														+ response["data"]
@@ -682,14 +830,24 @@ Ext
 											}
 											
 											var oToolbar = new Ext.toolbar.Toolbar({
-												items:	["<a target='_blank' href='"+me._baseUrl+"AccountingPlot/getCsvPlotData?"+oHrefParams+"'>CSV data</a>"
+												items:	[{ 	xtype:"image",
+													  		src:"static/DIRAC/AccountingPlot/images/done.gif"
+														 },
+												      	 
+												      	{ xtype:"button",
+														  text:"Refresh"
+														}
 												      	 ,{ xtype:"button",
 															menu:oRefreshMenu,
 															text:"Auto refresh :  Disabled"
-														   }
+														   },
+														   '->'
+														   ,
+														   "<a target='_blank' href='"+me._baseUrl+"AccountingPlot/getCsvPlotData?"+oHrefParams+"'>CSV data</a>"
 												      	 ]
 											});
 											
+											oPlotWindow.removeAll();
 											
 											var oPanel = new Ext.create('Ext.panel.Panel', {
 												autoHeight : true,
@@ -700,7 +858,9 @@ Ext
 											
 											oPlotWindow.add(oPanel);
 											
-											oPlotWindow.show();
+											if(oDestinationWindow==null)
+												oPlotWindow.show();
+											
 											oPlotWindow.setLoading('Loading Image ...');
 											
 
@@ -719,7 +879,7 @@ Ext
 
 					},
 					loadSelectionData: function(oChildWindow){
-						//console.log(oChildWindow);
+						
 						var me = this;
 						
 						me.__childWindowFocused = oChildWindow; 
@@ -755,22 +915,40 @@ Ext
 							if("_ex_staticUnits" in oParams){
 								
 								if(oParams["_ex_staticUnits"]=="true")
-									me.advancedPin.setValue(true);
+									me.advancedNotScaleUnits.setValue(true);
 								else
-									me.advancedPin.setValue(false);	
+									me.advancedNotScaleUnits.setValue(false);	
 								
 							}else
-								me.advancedPin.setValue(false);
+								me.advancedNotScaleUnits.setValue(false);
 							
+							
+							
+							var oStandardParamsList = ["_grouping","_plotName","_typeName","_timeSelector","_startTime","_endTime", "_plotTitle","_pinDates","_ex_staticUnits"]; 
 							
 							for(var oParam in oParams){
 								
-								if(oParam.charAt(0)!='_'){
+								//first we check whether the param is not someone form the default ones
+								var oFound = false;
+								
+								for(var i=0;i<oStandardParamsList.length;i++){
+									
+									if(oParam==oStandardParamsList[i]){
+										
+										oFound = true;
+										break;
+										
+									}
+									
+								}
+								
+								
+								if(!oFound){
 									
 									for(var i=0;i<me.fsetSpecialConditions.items.length;i++){
 										
 										if(me.fsetSpecialConditions.items.getAt(i).getName()==oParam){
-											console.log(oParams[oParam]);
+											
 											me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam]);
 											break;
 											
@@ -790,7 +968,6 @@ Ext
 							
 							me.__additionalDataLoad();
 							me.__additionalDataLoad = null;
-							
 							
 						}
 						
