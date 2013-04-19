@@ -22,19 +22,59 @@ Ext
 							"Ext.util.*",
 							"Ext.toolbar.Toolbar"],
 
-					loadState : function(data) {
+					loadState : function(oData) {
+						
+						var me = this;
+						
+						var oWins = oData.childWindows;
+						var oFirstWindow = null;
+						
+						for(var i=0;i<oWins.length;i++){
+							
+							var oItem = oWins[i];
+							
+							me.__generatePlot(null, oItem);
+							
+							
+							
+						}
 
 					},
-
+					
+					
+					
 					getStateData : function() {
 
 						var me = this;
 						var oReturn = {};
 
+						var oWins = me.getContainer().childWindows;
+						
+						oReturn.childWindows = [];
+						
+						for(var i=0;i<oWins.length;i++){
+							
+							var oPos = oWins[i].getPosition();
+							
+							var oItem = {
+									
+									params: oWins[i].items.getAt(0).plotParams,
+									position_x: oPos[0],
+									position_y: oPos[1],
+									width: oWins[i].getWidth(),
+									height: oWins[i].getHeight(),
+									title: oWins[i].title
+									
+							};
+							
+							oReturn.childWindows.push(oItem);
+							
+						}
+						
 						return oReturn;
 
 					},
-
+					
 					initComponent : function() {
 
 						var me = this;
@@ -310,7 +350,7 @@ Ext
 							margin : 3,
 							iconCls : "accp-submit-icon",
 							handler : function() {
-								me.__generatePlot(null);	
+								me.__generatePlot(null,null);	
 							},
 							scope : me
 
@@ -386,7 +426,7 @@ Ext
 							margin : 3,
 							iconCls : "accp-refresh-icon",
 							handler : function() {
-								me.__generatePlot(me.__childWindowFocused);
+								me.__generatePlot(me.__childWindowFocused,null);
 							},
 							scope : me
 
@@ -401,6 +441,7 @@ Ext
 						
 						me.__childWindowFocused = null;
 						me.__additionalDataLoad = null;
+						
 
 						/*
 						 * -----------------------------------------------------------------------------------------------------------
@@ -420,10 +461,40 @@ Ext
 						me.callParent(arguments);
 
 					},
-					
-					applyDataToSelection : function(oData, sValue) {
-
+					__resetSelectionWindow:function(){
+						
 						var me = this;
+						
+						me.cmbGroupBy.setValue(null);
+						me.cmbPlotGenerate.setValue(null);
+						me.calendarFrom.setValue(null);
+						me.calendarTo.setValue(null);
+						me.cmbTimeSpan.setValue(86400);
+						
+						me.advancedPin.setValue(false);	
+						me.advancedNotScaleUnits.setValue(false);
+						me.advancedPlotTitle.setValue("");
+						me.fsetSpecialConditions.removeAll();
+						me.cmbDomain.setValue(null);
+						
+					},
+					applyDataToSelection : function(oData, sValue) {
+						
+						var me = this;
+												
+//						var oParentWindow = me.getContainer();
+//						
+//						oParentWindow["__dirac_destroy"] = function(oParentWindow){
+//							
+//							//var me = this;
+//							var oWins = me.getContainer().childWindows;
+//							
+//							for(var i=0;i<oWins.length;i++){
+//								oWins[i].__dirac_activate = null;
+//							}
+//							
+//						};
+						
 						var oList = Ext.JSON.decode(oData["result"]["plotsList"]);
 						
 						me.__oprDoubleElementItemList(oList);
@@ -562,12 +633,9 @@ Ext
 						
 					},
 					
-					__generatePlot : function(oDestinationWindow) {
+					__getParamsFromSelectionWindow:function(){
 						
 						var me = this;
-						
-						if(!me.__validateConditions())
-							return;
 						
 						var sDomain = me.cmbDomain.getValue();
 						
@@ -628,6 +696,34 @@ Ext
 							
 						}
 						
+						return [oParams,sTitle];
+						
+						
+					},
+					
+					__generatePlot : function(oDestinationWindow,oLoadState) {
+						
+						var me = this;
+						
+						var oParams = null;
+						var sTitle = null;
+						
+						if(oLoadState == null){
+						
+							if(!me.__validateConditions())
+								return;
+							
+							var oParamsData = me.__getParamsFromSelectionWindow();
+							
+							oParams = oParamsData[0];
+							sTitle = oParamsData[1];
+						}else{
+							
+							oParams = oLoadState["params"];
+							sTitle = oLoadState["title"];
+							
+						}
+												
 						Ext.Ajax
 								.request({
 									url : me._baseUrl
@@ -654,14 +750,17 @@ Ext
 												oPlotWindow = me.getContainer().oprGetChildWindow(sTitle,false, 700, 500);
 												me.__childWindowFocused = oPlotWindow;
 												
+												
+												
 												/*
 												 * when the child window gets the focus,
 												 * the accounting plot is filled with
 												 * selection data stored in the panel of this window
 												 */ 
-												oPlotWindow.on("activate",function(oChildWindow,oEventObject,eOpts){
+												oPlotWindow.__dirac_activate=function(oChildWindow){
 													
-													var me = this;
+													//var me = this;
+													
 													me.loadSelectionData(oChildWindow);
 													
 													//do the indication icon
@@ -669,15 +768,38 @@ Ext
 													var oWins = me.getContainer().childWindows;
 													
 													for(var i=0;i<oWins.length;i++){
-																												
-														var oToolbarImage = oWins[i].items.getAt(0).items.getAt(0).items.getAt(0);
-														oToolbarImage.setSrc("static/DIRAC/AccountingPlot/images/failed.gif");
+														
+														oWins[i].setIconCls("accp-child-window-gif-notfocus");
 														
 													}
 													
-													oChildWindow.items.getAt(0).items.getAt(0).items.getAt(0).setSrc("static/DIRAC/AccountingPlot/images/done.gif");
+													oChildWindow.setIconCls("accp-child-window-gif-focus");
 													
-												},me);
+												};
+												
+												oPlotWindow.__dirac_destroy=function(oChildWindow){
+													
+													//var me = this;
+													oChildWindow.__dirac_activate = null;
+													
+//													var oWins = me.getContainer().childWindows;
+//													var oFirstNonMe = null;
+//													
+//													for(var i=0;i<oWins.length;i++){
+//														
+//														
+//														if(oWins[i].id!=oChildWindow.id){
+//															oWins[i].setIconCls("accp-child-window-gif-notfocus");
+//															if(oFirstNonMe==null)
+//																oFirstNonMe=oWins[i];
+//														}
+//														
+//													}
+//													
+//													oFirstNonMe.setIconCls("accp-child-window-gif-focus");
+													
+												};
+												
 												
 												oPlotWindow.on("resize",function(oChildWindow,iWidth,iHeight,eOpts){
 													
@@ -766,6 +888,13 @@ Ext
 												            	oPlotWindow.setWidth(oElem.getWidth()+30);
 												            	oPlotWindow.setHeight(oElem.getHeight()+70);
 												            	oPlotWindow.setLoading(false);
+												            	if(oLoadState!=null){
+																	
+																	oPlotWindow.setPosition([oLoadState["position_x"],oLoadState["position_y"]]);
+																	oPlotWindow.setWidth(oLoadState["width"]);
+																	oPlotWindow.setHeight(oLoadState["height"]);
+																	
+																}
 												            }
 											            });
 														
@@ -830,12 +959,35 @@ Ext
 											}
 											
 											var oToolbar = new Ext.toolbar.Toolbar({
-												items:	[{ 	xtype:"image",
-													  		src:"static/DIRAC/AccountingPlot/images/done.gif"
-														 },
-												      	 
+												items:	[
 												      	{ xtype:"button",
-														  text:"Refresh"
+														  text:"Refresh",
+														  handler:function(){
+															  
+															  var oThisButton = this;
+															  var oPanel = oThisButton.up('panel');
+															  
+															  Ext.Ajax
+																.request({
+																	url : me._baseUrl
+																			+ 'AccountingPlot/generatePlot',
+																	params : oPanel.plotParams,
+																	success : function(responseImg) {
+																		
+																		responseImg = Ext.JSON
+																				.decode(responseImg.responseText);
+																		
+																		if (responseImg["success"]) {
+										  						
+													  						oPanel.items.getAt(1).setSrc(me._baseUrl+ "AccountingPlot/getPlotImg?file="
+																					+ responseImg["data"]+ "&nocache="+ (new Date()).getTime());
+													  						oPanel.up('window').setLoading('Loading Image ...');
+													  						
+																		}
+																	}
+																});
+															  
+														  }
 														}
 												      	 ,{ xtype:"button",
 															menu:oRefreshMenu,
@@ -878,6 +1030,7 @@ Ext
 								});
 
 					},
+					
 					loadSelectionData: function(oChildWindow){
 						
 						var me = this;
@@ -922,6 +1075,11 @@ Ext
 							}else
 								me.advancedNotScaleUnits.setValue(false);
 							
+							for(var i=0;i<me.fsetSpecialConditions.items.length;i++){
+								
+								me.fsetSpecialConditions.items.getAt(i).setValue(null);
+								
+							}
 							
 							
 							var oStandardParamsList = ["_grouping","_plotName","_typeName","_timeSelector","_startTime","_endTime", "_plotTitle","_pinDates","_ex_staticUnits"]; 
@@ -947,7 +1105,9 @@ Ext
 									
 									for(var i=0;i<me.fsetSpecialConditions.items.length;i++){
 										
-										if(me.fsetSpecialConditions.items.getAt(i).getName()==oParam){
+									    var oNewUnderlinedName = "_"+me.fsetSpecialConditions.items.getAt(i).getName();
+										
+										if(oNewUnderlinedName==oParam){
 											
 											me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam]);
 											break;
