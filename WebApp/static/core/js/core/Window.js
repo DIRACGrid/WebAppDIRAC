@@ -793,6 +793,28 @@ Ext.define(
 						
 						return oWindow;
 						
+					},
+					
+					removeChildWindowFromList:function(oChildWindow){
+						
+						var me = this;
+						var oNewList = [];
+						
+						for(var i=0;i<me.childWindows.length;i++){
+							
+							if(oChildWindow.id!=me.childWindows[i].id)
+								oNewList.push(me.childWindows[i]);
+							
+						}
+						
+						me.childWindows = oNewList;
+//						console.log("------------------------------------");
+//						console.log("IZBRISAN = "+oChildWindow.id);
+//						
+//						console.log("NOVATA LISTA za "+me.id);
+//						console.log(me.childWindows);
+//						console.log("------------------------------------");
+						
 					}
 					
 				});

@@ -629,8 +629,27 @@ Ext.define(
 		onWindowClose : function(win) {
 			var me = this;
 			
+			/*
+			 * Close all other child windows
+			 */
+//			console.log("=============================================");
+//			console.log("Eve gi moite deca windows "+win.id+": ");
+//			
+//			for(var i=0;i<win.childWindows.length;i++){
+//				
+//				console.log(win.childWindows[i].id);
+//			}
+//			
+//			console.log("=============================================");
+			
+			//for(var i=0;i<win.childWindows.length;i++){
+			
+			
 			if (win.__dirac_destroy != null)
 				win.__dirac_destroy(win);
+			
+			if(win.parentWindow)
+				win.parentWindow.removeChildWindowFromList(win);
 			
 			me.windows.remove(win);
 			/*
@@ -644,14 +663,12 @@ Ext.define(
 			me.taskbar.removeTaskButton(win.taskButton);
 			me.updateActiveWindow();
 			
-			/*
-			 * Close all other child windows
-			 */
-			for(var i=0;i<win.childWindows.length;i++){
+			for(var i=win.childWindows.length-1;i>=0;i--){
 				if(win.childWindows[i]!=null){
 					win.childWindows[i].close();
 				}
 			}
+			
 			
 		},
 
@@ -1023,14 +1040,15 @@ Ext.define(
 			
 			//get the state from the cache
 			var stateData = me.cache.desktop[stateName];
-			
+			console.log("EVE SHO IMAME");
+			console.log(stateData);
 			for(var i=0,len=stateData["data"].length;i<len;i++){
 				
 				
 				var appStateData = stateData["data"][i];
 				
-				
-				me.app.createWindow(appStateData.loadedObjectType,appStateData.name,appStateData);
+				if(appStateData.name)
+					me.app.createWindow(appStateData.loadedObjectType,appStateData.name,appStateData);
 				
 			}
 			
@@ -1453,9 +1471,9 @@ Ext.define(
 						
 						
 					}
+					
+					dataToSend.data.push(oElem);
 				}
-				
-				dataToSend.data.push(oElem);
 
 			});
 

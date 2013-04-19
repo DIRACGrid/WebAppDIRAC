@@ -481,19 +481,6 @@ Ext
 					applyDataToSelection : function(oData, sValue) {
 						
 						var me = this;
-												
-//						var oParentWindow = me.getContainer();
-//						
-//						oParentWindow["__dirac_destroy"] = function(oParentWindow){
-//							
-//							//var me = this;
-//							var oWins = me.getContainer().childWindows;
-//							
-//							for(var i=0;i<oWins.length;i++){
-//								oWins[i].__dirac_activate = null;
-//							}
-//							
-//						};
 						
 						var oList = Ext.JSON.decode(oData["result"]["plotsList"]);
 						
@@ -789,14 +776,18 @@ Ext
 //														
 //														
 //														if(oWins[i].id!=oChildWindow.id){
-//															oWins[i].setIconCls("accp-child-window-gif-notfocus");
+//															
+//															//oWins[i].setIconCls("accp-child-window-gif-notfocus");
 //															if(oFirstNonMe==null)
 //																oFirstNonMe=oWins[i];
 //														}
 //														
 //													}
 //													
-//													oFirstNonMe.setIconCls("accp-child-window-gif-focus");
+//													if(oFirstNonMe!=null){
+//														oFirstNonMe.setIconCls("accp-child-window-gif-focus");
+//														oFirstNonMe.toFront();
+//													}
 													
 												};
 												
