@@ -175,6 +175,7 @@ Ext
 
 						var me = this;
 						me.launcher.title = "Job Monitor";
+						me.launcher.maximized = true;
 						
 						/*
 						 * -----------------------------------------------------------------------------------------------------------
@@ -385,7 +386,8 @@ Ext
 							margin:3,
 							iconCls:"jm-submit-icon",
 							handler: function() {
-								me.oprSelectorsRefreshWithSubmit(true);
+								me.oprLoadGridData();
+								//me.oprSelectorsRefreshWithSubmit(true);
 							},
 							scope:me
 							
@@ -756,7 +758,7 @@ Ext
 							if(me.pagingToolbar.toolbar.items.getAt(i).itemId=="refresh"){
 								
 								me.pagingToolbar.toolbar.items.getAt(i).handler = function() {
-									me.oprSelectorsRefreshWithSubmit(true);
+									me.oprLoadGridData();
 								};
 								break;
 								

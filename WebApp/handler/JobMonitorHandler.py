@@ -134,7 +134,7 @@ class JobMonitorHandler(WebHandler):
 #        for i in s:
 #          site.append([str(i)])    
         s = list(result["Value"])
-        site.append([str("All")])
+#         site.append([str("All")])
         for i in tier1:
           site.append([str(i)])
         for i in s:

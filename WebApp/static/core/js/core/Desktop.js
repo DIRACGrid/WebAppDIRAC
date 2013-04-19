@@ -628,21 +628,31 @@ Ext.define(
 		 */
 		onWindowClose : function(win) {
 			var me = this;
+			
+			if (win.__dirac_destroy != null)
+				win.__dirac_destroy(win);
+			
 			me.windows.remove(win);
 			/*
 			 * If the number of windows get 0, 
 			 * the current desktop state is cleared
 			 */
-			if(me.windows.getCount()==0)
+			if(me.windows.getCount()==0){
 				me.currentDesktopState='';
+				//me.app.removeUrlDesktopState();
+			}
 			me.taskbar.removeTaskButton(win.taskButton);
 			me.updateActiveWindow();
+			
 			/*
 			 * Close all other child windows
 			 */
-			for(var i=0;i<win.childWindows.length;i++)
-				if(win.childWindows[i]!=null)
+			for(var i=0;i<win.childWindows.length;i++){
+				if(win.childWindows[i]!=null){
 					win.childWindows[i].close();
+				}
+			}
+			
 		},
 
 		/**
@@ -665,7 +675,17 @@ Ext.define(
 				animCollapse : false,
 				border : false,
 				hideMode : 'offsets',
-				layout : 'fit'
+				layout : 'fit',
+				__dirac_activate : null,
+				__dirac_beforeshow : null,
+				__dirac_afterrender : null,
+				__dirac_deactivate : null,
+				__dirac_minimize : null,
+				__dirac_maximize : null,
+				__dirac_restore : null,
+				__dirac_destroy : null,
+				__dirac_boxready: null,
+				__dirac_destroy:null
 			});
 
 			win = me.add(new Ext.dirac.core.Window(cfg));
@@ -673,9 +693,10 @@ Ext.define(
 			me.windows.add(win);
 
 			win.taskButton = me.taskbar.addTaskButton(win);
-
+			
+			
 			win.on({
-				activate : me.updateActiveWindow,
+				activate : me.updateActiveWindow2,
 				beforeshow : me.updateActiveWindow,
 				afterrender: me.hideMessageBox,
 				deactivate : me.updateActiveWindow,
@@ -742,6 +763,38 @@ Ext.define(
 
 			me.taskbar.setActiveButton(activeWindow
 					&& activeWindow.taskButton);
+						
+		},
+		
+		updateActiveWindow2 : function() {
+			var me = this, activeWindow = me.getActiveWindow(), last = me.lastActiveWindow;
+			if (activeWindow === last) {
+				return;
+			}
+
+			if (last) {
+				if (last.el.dom) {
+					last.addCls(me.inactiveWindowCls);
+					last.removeCls(me.activeWindowCls);
+				}
+				last.active = false;
+			}
+
+			me.lastActiveWindow = activeWindow;
+
+			if (activeWindow) {
+				activeWindow.addCls(me.activeWindowCls);
+				activeWindow.removeCls(me.inactiveWindowCls);
+				activeWindow.minimized = false;
+				activeWindow.active = true;
+			}
+
+			me.taskbar.setActiveButton(activeWindow
+					&& activeWindow.taskButton);
+			
+			if(activeWindow.__dirac_activate!=null){
+				activeWindow.__dirac_activate(activeWindow);
+			}
 			
 		},
 		
@@ -973,13 +1026,17 @@ Ext.define(
 			
 			for(var i=0,len=stateData["data"].length;i<len;i++){
 				
+				
 				var appStateData = stateData["data"][i];
+				
 				
 				me.app.createWindow(appStateData.loadedObjectType,appStateData.name,appStateData);
 				
 			}
 			
 			me.currentDesktopState = stateName;
+			
+			//me.app.setUrlDesktopState(stateName);
 			
 		},
 		
@@ -1353,31 +1410,24 @@ Ext.define(
 			me.windows.each(function(win) {
 				
 				/*
-				 * Depends on the loadedObjectType 
+				 * First we check whether the 
+				 * window is not a child window
 				 */
-				var oElem = null;
 				
+				if(!win.isChildWindow){
 				
-				if(win.loadedObjectType == "app"){
+					/*
+					 * Depends on the loadedObjectType 
+					 */
+					var oElem = null;
 					
-					oElem = {
-						name: win.getAppClassName(),
-						currentState: win.currentState,
-						data: win.loadedObject.getStateData(),
-						x: win.x,
-						y: win.y,
-						width: win.getWidth(),
-						height: win.getHeight(),
-						maximized: win.maximized,
-						zIndex:win.zIndex,
-						loadedObjectType: win.loadedObjectType
-					};
 					
-				}else if(win.loadedObjectType == "link"){
-					
-					oElem = {
-							title: win.title,
-							linkToLoad: win.linkToLoad,
+					if(win.loadedObjectType == "app"){
+						
+						oElem = {
+							name: win.getAppClassName(),
+							currentState: win.currentState,
+							data: win.loadedObject.getStateData(),
 							x: win.x,
 							y: win.y,
 							width: win.getWidth(),
@@ -1385,9 +1435,24 @@ Ext.define(
 							maximized: win.maximized,
 							zIndex:win.zIndex,
 							loadedObjectType: win.loadedObjectType
-					};
-					
-					
+						};
+						
+					}else if(win.loadedObjectType == "link"){
+						
+						oElem = {
+								title: win.title,
+								linkToLoad: win.linkToLoad,
+								x: win.x,
+								y: win.y,
+								width: win.getWidth(),
+								height: win.getHeight(),
+								maximized: win.maximized,
+								zIndex:win.zIndex,
+								loadedObjectType: win.loadedObjectType
+						};
+						
+						
+					}
 				}
 				
 				dataToSend.data.push(oElem);

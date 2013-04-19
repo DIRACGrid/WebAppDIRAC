@@ -784,7 +784,9 @@ Ext.define(
 							height : oHeight,
 							width : oWidth,
 							title : sTitle,
-							modal: oModal
+							modal: oModal,
+							parentWindow:me,
+							isChildWindow:true
 						});
 						
 						me.childWindows.push(oWindow);
