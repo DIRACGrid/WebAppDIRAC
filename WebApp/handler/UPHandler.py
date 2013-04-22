@@ -55,7 +55,7 @@ class UPHandler( WebHandler ):
       raise WErr( 400, "Missing %s" % excp )
     #TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
     data = base64.b64encode( zlib.compress( DEncode.encode( state ), 9 ) )
-    result = yield self.threadTask( up.setVarPermissions, name, { 'ReadAccess', access } )
+    result = yield self.threadTask( up.setVarPermissions, name, { 'ReadAccess': access } )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
     self.set_status( 200 )
