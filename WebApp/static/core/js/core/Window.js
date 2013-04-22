@@ -767,7 +767,7 @@ Ext.define(
 						var me = this;
 						
 						me.loadMask.show();
-						
+						me.closeAllChildWindows();
 						me.loadedObject.loadState(me.desktop.cache.windows[me.appClassName][stateName]);
 						me.currentState = stateName;
 						me.setTitle(me.loadedObject.launcher.title+" ["+stateName+"]");
@@ -808,12 +808,15 @@ Ext.define(
 						}
 						
 						me.childWindows = oNewList;
-//						console.log("------------------------------------");
-//						console.log("IZBRISAN = "+oChildWindow.id);
-//						
-//						console.log("NOVATA LISTA za "+me.id);
-//						console.log(me.childWindows);
-//						console.log("------------------------------------");
+						
+					},
+					
+					closeAllChildWindows: function(){
+						
+						var me = this;
+						
+						for(var i=me.childWindows.length-1;i>=0;i--)
+							me.childWindows[i].close();
 						
 					}
 					

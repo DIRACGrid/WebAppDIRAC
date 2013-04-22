@@ -20,7 +20,8 @@ Ext
 							"Ext.Button", "Ext.dirac.utils.DiracMultiSelect",
 							"Ext.ux.form.MultiSelect",
 							"Ext.util.*",
-							"Ext.toolbar.Toolbar"],
+							"Ext.toolbar.Toolbar",
+							"Ext.data.Record"],
 
 					loadState : function(oData) {
 						
@@ -29,13 +30,14 @@ Ext
 						var oWins = oData.childWindows;
 						var oFirstWindow = null;
 						
+						me.numberChildWindowsToLoad = oWins.length;
+						me.currentChildWindowsToLoad = 0;
+						
 						for(var i=0;i<oWins.length;i++){
 							
 							var oItem = oWins[i];
 							
 							me.__generatePlot(null, oItem);
-							
-							
 							
 						}
 
@@ -284,7 +286,31 @@ Ext
 																		"Manual Selection" ],
 																[ -2,
 																		"By Quarter" ] ]
-													})
+													}),
+											listeners : {
+												change : function(field,
+														newValue, oldValue,
+														eOpts) {
+													
+													me.calendarFrom.hide();
+													me.calendarTo.hide();
+													me.cmbQuarter.hide();
+													
+													switch(newValue){
+													
+														case -1: me.calendarFrom.show();
+																 me.calendarTo.show();
+																 break;
+														case -2:
+																 me.__fillComboQuarter();	
+																 me.cmbQuarter.show();
+																 break;
+													
+													}
+														
+												}
+											}		
+											
 										});
 
 						me.calendarFrom = new Ext.create('Ext.form.field.Date',
@@ -292,19 +318,31 @@ Ext
 									width : 100,
 									format : 'Y-m-d',
 									fieldLabel : "Initial Date",
-									labelAlign : 'top'
-
+									labelAlign : 'top',
+									hidden: true	
 								});
 
 						me.calendarTo = new Ext.create('Ext.form.field.Date', {
+							
 							width : 100,
 							format : 'Y-m-d',
 							fieldLabel : "End Date",
-							labelAlign : 'top'
+							labelAlign : 'top',
+							hidden: true
+							
 						});
+						
+						me.cmbQuarter = Ext.create('Ext.dirac.utils.DiracBoxSelect',
+											{
+												fieldLabel : "",
+												displayField : "text",
+												valueField : "value",
+												anchor : '100%',
+												hidden: true
+											});
 
 						me.fsetTimeSpan.add([ me.cmbTimeSpan, me.calendarFrom,
-								me.calendarTo ]);
+								me.calendarTo,me.cmbQuarter ]);
 
 						me.fsetSpecialConditions = Ext.create(
 								'Ext.form.FieldSet', {
@@ -350,6 +388,7 @@ Ext
 							margin : 3,
 							iconCls : "accp-submit-icon",
 							handler : function() {
+								//console.log(me.cmbQuarter.getRawValue().split(","));
 								me.__generatePlot(null,null);	
 							},
 							scope : me
@@ -362,20 +401,7 @@ Ext
 							margin : 3,
 							iconCls : "accp-reset-icon",
 							handler : function() {
-								
-								me.cmbGroupBy.setValue(null);
-								me.cmbPlotGenerate.setValue(null);
-								me.calendarFrom.setValue(null);
-								me.calendarTo.setValue(null);
-								me.cmbTimeSpan.setValue(86400);
-								
-								me.advancedPin.setValue(false);	
-								me.advancedNotScaleUnits.setValue(false);
-								me.advancedPlotTitle.setValue("");
-								me.fsetSpecialConditions.removeAll();
-								me.cmbDomain.setValue(null);
-								
-								
+								me.__resetSelectionWindow();
 							},
 							scope : me
 
@@ -461,6 +487,51 @@ Ext
 						me.callParent(arguments);
 
 					},
+					
+					__fillComboQuarter:function(){
+						
+						var me = this;
+						
+						var oStore = me.cmbQuarter.getStore();
+						oStore.removeAll();
+						
+						var now = new Date();
+						
+						var currentQ = Math.floor(now.getUTCMonth()/3)+1;
+						var currentYear = now.getUTCFullYear();
+						
+						var oRecords = [];
+						
+						do
+						{
+							var recLabel = ""+currentYear+" Q" + currentQ;
+							var recValue = currentYear*10 + currentQ;
+							
+							oRecords.push([recValue,recLabel]);
+							
+							currentQ = currentQ - 1;
+							
+							if( currentQ == 0 )
+							{
+								currentQ = 4;
+								currentYear = currentYear - 1;
+							}
+							
+						}while( oRecords.length < 8 );
+						
+						
+						var oNewStore = new Ext.data.SimpleStore(
+								{
+									fields : [
+											'value',
+											'text' ],
+									data : oRecords
+								}); 
+						
+						me.cmbQuarter.bindStore(oNewStore);
+						
+					},
+					
 					__resetSelectionWindow:function(){
 						
 						var me = this;
@@ -616,6 +687,30 @@ Ext
 							
 						}
 						
+						
+						//checking the time span selection
+						
+						switch(me.cmbTimeSpan.getValue()){
+						
+							case -1:
+									if((me.calendarFrom.getValue()==null)||(me.calendarTo.getValue()==null)){
+								
+										alert("No dates selected !");
+										bValid = false;
+									
+									 }
+									 break;
+							case -2: if(me.cmbQuarter.getValue().length==0){
+										
+										alert("No quarters selected !");
+										bValid = false;
+								
+									 }
+									 break;
+						
+						}
+						
+						
 						return bValid;
 						
 					},
@@ -650,6 +745,35 @@ Ext
 						}else if(iTimeSpan == -2){
 							
 							oParams._timeSelector = -2;
+							
+							
+							var oSelectedQuarters = me.cmbQuarter.getValue();
+							var oMinQuarter = Ext.Array.min(oSelectedQuarters);
+							var oMaxQuarter = Ext.Array.max(oSelectedQuarters);
+							
+							var oMinDate = null;
+							
+							var oYear = Math.floor(oMinQuarter/10);
+							var oMonth = ((oMinQuarter%10)-1)*3+1;
+							
+							
+							oParams._startTime = oYear.toString()+"-"+((oMonth<10)?"0":"")+oMonth.toString()+"-01";
+							
+							var oMaxDate = null;
+							
+							var oYear = Math.floor(oMaxQuarter/10);
+							var oMonth = (oMaxQuarter%10)*3;
+							var oDay = ((oMonth==6)?30:31);
+							
+							oParams._endTime = oYear.toString()+"-"+((oMonth<10)?"0":"")+oMonth.toString()+"-"+oDay.toString();
+							
+							var oRawSelection = me.cmbQuarter.getRawValue().split(",");
+							var oQuarters = [];
+							
+							for(var i=0;i<oRawSelection.length;i++)
+								oQuarters.push(Ext.util.Format.trim(oRawSelection[i]));
+							
+							oParams._quarters = oQuarters;
 							
 						}else{
 							
@@ -766,28 +890,7 @@ Ext
 												
 												oPlotWindow.__dirac_destroy=function(oChildWindow){
 													
-													//var me = this;
 													oChildWindow.__dirac_activate = null;
-													
-//													var oWins = me.getContainer().childWindows;
-//													var oFirstNonMe = null;
-//													
-//													for(var i=0;i<oWins.length;i++){
-//														
-//														
-//														if(oWins[i].id!=oChildWindow.id){
-//															
-//															//oWins[i].setIconCls("accp-child-window-gif-notfocus");
-//															if(oFirstNonMe==null)
-//																oFirstNonMe=oWins[i];
-//														}
-//														
-//													}
-//													
-//													if(oFirstNonMe!=null){
-//														oFirstNonMe.setIconCls("accp-child-window-gif-focus");
-//														oFirstNonMe.toFront();
-//													}
 													
 												};
 												
@@ -803,13 +906,13 @@ Ext
 														return;
 													}
 													
-													
-													
 													var a = oImg.getWidth();
 													var b = oImg.getHeight();
 													
 													var a1 = iWidth-30;
 													var b1 = iHeight-70;
+													
+													
 													
 													if(b<=b1){
 														
@@ -819,18 +922,21 @@ Ext
 																
 																oImg.setWidth(a1);
 																oImg.setHeight(parseInt(a1/a*b));
+													
 																
 															}else{
 																
 																oImg.setHeight(b1);
 																oImg.setWidth(parseInt(b1/b*a));
-																
+													
+																more event handler for the
 															}
 															
 														}else{
 															
 															oImg.setWidth(a1);
 															oImg.setHeight(parseInt(a1/a*b));
+													
 														}
 														
 														
@@ -840,16 +946,20 @@ Ext
 															
 															oImg.setHeight(b1);
 															oImg.setWidth(parseInt(b1/b*a));
+													
 														}else{
 															
 															if((a1/a)<=(b1/b)){
 																
-																oImg.setHeight(b1);
-																oImg.setWidth(parseInt(b1/b*a));
-															}else{
-																
 																oImg.setWidth(a1);
 																oImg.setHeight(parseInt(a1/a*b));
+													
+																
+															}else{
+																
+																oImg.setHeight(b1);
+																oImg.setWidth(parseInt(b1/b*a));
+																
 															}
 															
 															
@@ -857,6 +967,7 @@ Ext
 														
 														
 													}
+													
 													
 												},me);
 												
@@ -885,6 +996,9 @@ Ext
 																	oPlotWindow.setWidth(oLoadState["width"]);
 																	oPlotWindow.setHeight(oLoadState["height"]);
 																	
+																	me.currentChildWindowsToLoad++;
+																	if(me.numberChildWindowsToLoad==me.currentChildWindowsToLoad)
+																		me.loadSelectionData(oPlotWindow);
 																}
 												            }
 											            });
@@ -1040,6 +1154,17 @@ Ext
 								
 								me.calendarFrom.setValue(oParams["_startTime"]);
 								me.calendarTo.setValue(oParams["_endTime"]);
+								
+							}
+							
+							if(oParams["_timeSelector"]==-2){
+								
+								//me.calendarFrom.setValue(oParams["_startTime"]);
+								var oNewQuartersArray = [];
+								for(var i=0;i<oParams["_quarters"].length;i++)
+									oNewQuartersArray.push(parseInt(oParams["_quarters"].replace(" Q","")));
+								
+								me.calendarFrom.setValue(oNewQuartersArray);
 								
 							}
 							
