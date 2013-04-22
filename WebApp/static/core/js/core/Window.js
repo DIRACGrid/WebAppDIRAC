@@ -81,13 +81,12 @@ Ext.define(
 						
 						var me = this;
 						
-						//da se zeme vo obzir elementot stateToLoad od setupData ako postoi
-						
 						if((setupData != null)&&(!("stateToLoad" in setupData))){
 							
 							me.setPosition(setupData.x,setupData.y);
 							
 							me.currentState = setupData.currentState;
+							_app.addUrlApp(me.loadedObject.self.getName(),me.currentState);
 							
 							if(!setupData.maximized){
 								me.setWidth(setupData.width);
@@ -126,9 +125,11 @@ Ext.define(
 							}
 							
 							if(setupData != null){
-								
 								me.oprLoadAppStateFromCache(setupData["stateToLoad"]);
+								_app.addUrlApp(me.loadedObject.self.getName(),setupData["stateToLoad"]);
 								
+							}else{
+								_app.addUrlApp(me.loadedObject.self.getName(),"");
 							}
 							
 							
@@ -767,6 +768,8 @@ Ext.define(
 						var me = this;
 						
 						me.loadMask.show();
+						
+						_app.setUrlAppState(me.loadedObject.self.getName(),me.currentState,stateName);
 						me.closeAllChildWindows();
 						me.loadedObject.loadState(me.desktop.cache.windows[me.appClassName][stateName]);
 						me.currentState = stateName;

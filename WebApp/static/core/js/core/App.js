@@ -110,6 +110,8 @@ Ext.define(
 			me._url_state = "0|";
 			//window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|");
 			
+			
+			
 			me.callParent();
 
 		},
@@ -138,7 +140,7 @@ Ext.define(
 
 			Ext.EventManager.on(window, 'beforeunload',
 					me.onUnload, me);
-
+			
 			me.isReady = true;//only if there is no desktop state loaded
 			me.fireEvent('ready', me);
 		},
@@ -483,10 +485,10 @@ Ext.define(
 			//only if there is no desktop state loaded
 			var me = this;
 			var oParts = me._url_state.split("|");
-			if(parseInt(oPrats[0])==1)
+			if(parseInt(oParts[0])==1)
 				return;
 			
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._url_state+";"+sAppName+":"+sStateName);
+			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state="+me._url_state+((me._url_state.length==2)?"":";")+sAppName+":"+sStateName);
 			me._url_state = me._url_state+";"+sAppName+":"+sStateName;
 			
 			
@@ -497,7 +499,7 @@ Ext.define(
 			//only if there is no desktop state loaded
 			var me = this;
 			var oParts = me._url_state.split("|");
-			if(parseInt(oPrats[0])==1)
+			if(parseInt(oParts[0])==1)
 				return;
 			
 			
@@ -532,7 +534,7 @@ Ext.define(
 			//only if there is no desktop state loaded
 			var me = this;
 			var oParts = me._url_state.split("|");
-			if(parseInt(oPrats[0])==1)
+			if(parseInt(oParts[0])==1)
 				return;
 			
 			
@@ -550,7 +552,7 @@ Ext.define(
 						oNewArray.push(oItems[i]);
 					else{
 						oOnlyOneInstance = true;
-						oNewArray.push(sAppState+":"+sNewStateName);
+						oNewArray.push(sAppName+":"+sNewStateName);
 					}
 				}
 			}
@@ -564,10 +566,10 @@ Ext.define(
 		},
 		
 		setUrlDesktopState:function(sStateName){
+			
 			var me =this;
 			
 			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=1|"+sStateName);
-			alert("OK");
 			me._url_state = "1|"+sStateName;
 			
 		},

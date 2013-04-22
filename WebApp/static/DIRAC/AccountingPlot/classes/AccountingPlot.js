@@ -929,7 +929,6 @@ Ext
 																oImg.setHeight(b1);
 																oImg.setWidth(parseInt(b1/b*a));
 													
-																more event handler for the
 															}
 															
 														}else{
@@ -1150,22 +1149,26 @@ Ext
 							me.cmbPlotGenerate.setValue(oParams["_plotName"]);
 							me.cmbTimeSpan.setValue(oParams["_timeSelector"]);
 							
-							if(oParams["_timeSelector"]==-1){
-								
-								me.calendarFrom.setValue(oParams["_startTime"]);
-								me.calendarTo.setValue(oParams["_endTime"]);
-								
-							}
+							me.calendarFrom.hide();
+							me.calendarTo.hide();
+							me.cmbQuarter.hide();
 							
-							if(oParams["_timeSelector"]==-2){
+							switch(oParams["_timeSelector"]){
+							
+								case -1:	me.calendarFrom.setValue(oParams["_startTime"]);
+											me.calendarTo.setValue(oParams["_endTime"]);
+											me.calendarFrom.show();
+											me.calendarTo.show();
+											break;
+											
+								case -2:	var oNewQuartersArray = [];
+											for(var i=0;i<oParams["_quarters"].length;i++)
+												oNewQuartersArray.push(parseInt(oParams["_quarters"].replace(" Q","")));
 								
-								//me.calendarFrom.setValue(oParams["_startTime"]);
-								var oNewQuartersArray = [];
-								for(var i=0;i<oParams["_quarters"].length;i++)
-									oNewQuartersArray.push(parseInt(oParams["_quarters"].replace(" Q","")));
-								
-								me.calendarFrom.setValue(oNewQuartersArray);
-								
+											me.calendarFrom.setValue(oNewQuartersArray);
+											me.cmbQuarter.show();
+											break;
+							
 							}
 							
 							me.advancedPlotTitle.setValue(oParams["_plotTitle"]);

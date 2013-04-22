@@ -644,6 +644,8 @@ Ext.define(
 			
 			//for(var i=0;i<win.childWindows.length;i++){
 			
+			if(!win.isChildWindow)	
+				me.app.removeUrlApp(win.loadedObject.self.getName(),win.currentState);
 			
 			if (win.__dirac_destroy != null)
 				win.__dirac_destroy(win);
@@ -658,7 +660,7 @@ Ext.define(
 			 */
 			if(me.windows.getCount()==0){
 				me.currentDesktopState='';
-				//me.app.removeUrlDesktopState();
+				me.app.removeUrlDesktopState();
 			}
 			me.taskbar.removeTaskButton(win.taskButton);
 			me.updateActiveWindow();
@@ -668,8 +670,7 @@ Ext.define(
 					win.childWindows[i].close();
 				}
 			}
-			
-			
+		
 		},
 
 		/**
@@ -1040,8 +1041,7 @@ Ext.define(
 			
 			//get the state from the cache
 			var stateData = me.cache.desktop[stateName];
-			console.log("EVE SHO IMAME");
-			console.log(stateData);
+			
 			for(var i=0,len=stateData["data"].length;i<len;i++){
 				
 				
@@ -1054,7 +1054,7 @@ Ext.define(
 			
 			me.currentDesktopState = stateName;
 			
-			//me.app.setUrlDesktopState(stateName);
+			me.app.setUrlDesktopState(stateName);
 			
 		},
 		
