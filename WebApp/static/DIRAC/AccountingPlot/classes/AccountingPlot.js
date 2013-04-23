@@ -1011,7 +1011,7 @@ Ext
 											});
 											var oRefreshMenu = new Ext.menu.Menu({
 									  			items : [ { text : 'Disabled', value : 0 },
-									  					  { text : 'Each 15m', value : 60000},//900000 },
+									  					  { text : 'Each 15m', value : 900000 },
 									  					  { text : 'Each hour', value : 3600000 },
 									  					  { text : 'Each day', value : 86400000 }
 									  				    ],

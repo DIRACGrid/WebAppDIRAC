@@ -202,7 +202,25 @@ Ext.define(
 						return this.currentState;
 						
 					},
-					
+					oprShareState: function (sStateName) {
+				        
+						Ext.Ajax.request({
+						    url: me.desktop.getBaseUrl()+'UP/listAppState',
+						    params: {
+						        app: 	me.appClassName,
+						        obj: 	"application"
+						    },
+						    scope:me,
+						    success: function(response){
+						    	
+						    },
+						    failure:function(response){
+						    	
+						    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+						    }
+						});	
+						    	
+				    },
 					/**
 					 * Overriden function, inherited from Ext.window.Window
 					 * used to set up the buttons at the top right corner of the window
@@ -225,9 +243,15 @@ Ext.define(
 									var newItem = Ext.create('Ext.menu.Item', {
 						    			  text: stateName,
 						    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-						    			  scope:me
+						    			  scope:me,
+						    			  menu:[{
+						    				  		text:"Share state",
+						    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+						    				  	}]
 						    		});
-		
+									
+									//newItem.getEl().on('contextmenu', me.onStateItemContextMenu, me);
+									
 									me.statesMenu.add(newItem);
 									
 								}
@@ -259,9 +283,14 @@ Ext.define(
 								    		var newItem = Ext.create('Ext.menu.Item', {
 															    			  text: stateName,
 															    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-															    			  scope:me
+															    			  scope:me,
+															    			  menu:[{
+														    				  		text:"Share state",
+														    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+														    				  	}]
 															    		});
 								    		
+								    		//newItem.getEl().on('contextmenu', me.onStateItemContextMenu, me);
 								    		me.statesMenu.add(newItem);
 								    		
 								    		me.desktop.cache.windows[me.appClassName][stateName]=states[stateName];

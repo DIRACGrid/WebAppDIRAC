@@ -132,7 +132,7 @@
 }
 
 /*----------------------------------------------------
-    Desktop DataView
+    Desktop DataViewdisplay:none
 */
 
 .ux-wallpaper {
@@ -249,4 +249,10 @@
 .toolbar-other-cascade {
     background-image:url(../img/icons/system/_tool_cascade.png) !important;
     background-size:16px 16px;
+}
+
+.x-hidden-loading-message{
+	
+	visibility:hidden;
+	
 }
