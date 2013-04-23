@@ -50,11 +50,15 @@ class UPHandler( WebHandler ):
     up = self.__getUP()
     try:
       name = self.request.arguments[ 'name' ][-1]
-      access = self.request.arguments[ 'access' ][-1].upper()
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
+    try:
+      access = self.request.arguments[ 'access' ][-1].upper()
+    except KeyError as excp:
+      access = 'ALL'
+    if access not in ( 'ALL', 'VO', 'GROUP' ):
+      raise WErr( 400, "Invalid access" )
     #TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
-    data = base64.b64encode( zlib.compress( DEncode.encode( state ), 9 ) )
     result = yield self.threadTask( up.setVarPermissions, name, { 'ReadAccess': access } )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
