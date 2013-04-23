@@ -46,6 +46,22 @@ class UPHandler( WebHandler ):
     self.finish()
 
   @asyncGen
+  def web_makePublicAppState( self ):
+    up = self.__getUP()
+    try:
+      name = self.request.arguments[ 'name' ][-1]
+      access = self.request.arguments[ 'access' ][-1].upper()
+    except KeyError as excp:
+      raise WErr( 400, "Missing %s" % excp )
+    #TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
+    data = base64.b64encode( zlib.compress( DEncode.encode( state ), 9 ) )
+    result = yield self.threadTask( up.setVarPermissions, name, { 'ReadAccess': access } )
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result )
+    self.set_status( 200 )
+    self.finish()
+
+  @asyncGen
   def web_loadAppState( self ):
     up = self.__getUP()
     try:
@@ -53,6 +69,22 @@ class UPHandler( WebHandler ):
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
     result = yield self.threadTask( up.retrieveVar, name )
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result)
+    data = result[ 'Value' ]
+    data, count = DEncode.decode( zlib.decompress( base64.b64decode( data ) ) )
+    self.finish( data )
+
+  @asyncGen
+  def web_loadUserAppState( self ):
+    up = self.__getUP()
+    try:
+      user = self.request.arguments[ 'user' ][-1]
+      user = self.request.arguments[ 'group' ][-1]
+      name = self.request.arguments[ 'name' ][-1]
+    except KeyError as excp:
+      raise WErr( 400, "Missing %s" % excp )
+    result = yield self.threadTask( up.retrieveVarFromUser, user, group, name )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result)
     data = result[ 'Value' ]
