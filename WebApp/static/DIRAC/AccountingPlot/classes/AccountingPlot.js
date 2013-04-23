@@ -346,7 +346,7 @@ Ext
 
 						me.fsetSpecialConditions = Ext.create(
 								'Ext.form.FieldSet', {
-									title : 'Special Conditions',
+									title : 'Selection Conditions',
 									collapsible : true,
 									layout : 'anchor'
 								});
@@ -895,7 +895,7 @@ Ext
 												};
 												
 												
-												oPlotWindow.on("resize",function(oChildWindow,iWidth,iHeight,eOpts){
+												oPlotWindow.__dirac_resize=function(oChildWindow,iWidth,iHeight,eOpts){
 													
 													var oImg=oChildWindow.items.getAt(0).items.getAt(1);
 													
@@ -968,7 +968,7 @@ Ext
 													}
 													
 													
-												},me);
+												};
 												
 											}else
 												oPlotWindow = oDestinationWindow;	

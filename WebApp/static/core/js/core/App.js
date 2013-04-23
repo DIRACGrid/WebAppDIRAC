@@ -106,11 +106,6 @@ Ext.define(
 			});
 			
 			me._cf = new Ext.dirac.core.CommonFunctions();
-			me._location_base = location.href;
-			me._url_state = "0|";
-			//window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|");
-			
-			
 			
 			me.callParent();
 
@@ -477,114 +472,6 @@ Ext.define(
 			return [me.desktop.getWidth(),me.desktop.getHeight()];
 			
 		},
-		/*
-		 * ----------------------------------URL MANAGEMENT----------------------------------
-		 */
-		addUrlApp:function(sAppName,sStateName){
-			
-			//only if there is no desktop state loaded
-			var me = this;
-			var oParts = me._url_state.split("|");
-			if(parseInt(oParts[0])==1)
-				return;
-			
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state="+me._url_state+((me._url_state.length==2)?"":";")+sAppName+":"+sStateName);
-			me._url_state = me._url_state+";"+sAppName+":"+sStateName;
-			
-			
-		},
-		
-		removeUrlApp:function(sAppName,sStateName){
-			
-			//only if there is no desktop state loaded
-			var me = this;
-			var oParts = me._url_state.split("|");
-			if(parseInt(oParts[0])==1)
-				return;
-			
-			
-			var oItems = oParts[1].split(";");
-			var oId = sAppName+":"+sStateName;
-			var oNewArray = [];
-			var oOnlyOneInstance = false;
-			
-			
-			for(var i=0;i<oItems.length;i++){
-				if(oId!=oItems[i]){
-					oNewArray.push(oItems[i]);
-				}else{
-					if(oOnlyOneInstance)
-						oNewArray.push(oItems[i]);
-					else
-						oOnlyOneInstance = true;
-				}
-			}
-			
-			var oNewState = oNewArray.join(";");
-			
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|"+oNewState);
-			me._url_state = "0|"+oNewState;
-			
-			
-		},
-		
-		setUrlAppState:function(sAppName,sOldStateName,sNewStateName){
-			
-			//only if there is no desktop state loaded
-			//only if there is no desktop state loaded
-			var me = this;
-			var oParts = me._url_state.split("|");
-			if(parseInt(oParts[0])==1)
-				return;
-			
-			
-			var oItems = oParts[1].split(";");
-			var oId = sAppName+":"+sOldStateName;
-			var oNewArray = [];
-			var oOnlyOneInstance = false;
-			
-			
-			for(var i=0;i<oItems.length;i++){
-				if(oId!=oItems[i]){
-					oNewArray.push(oItems[i]);
-				}else{
-					if(oOnlyOneInstance)
-						oNewArray.push(oItems[i]);
-					else{
-						oOnlyOneInstance = true;
-						oNewArray.push(sAppName+":"+sNewStateName);
-					}
-				}
-			}
-			
-			var oNewState = oNewArray.join(";");
-			
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|"+oNewState);
-		
-			me._url_state = "0|"+oNewState;
-			
-		},
-		
-		setUrlDesktopState:function(sStateName){
-			
-			var me =this;
-			
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=1|"+sStateName);
-			me._url_state = "1|"+sStateName;
-			
-		},
-		
-		removeUrlDesktopState:function(){
-			
-			var me =this;
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|");
-			me._url_state = "0|";
-			
-		},
-
-		/*
-		 * ----------------------------------END :: URL MANAGEMENT----------------------------------
-		 */
 		
 		onReady : function(fn, scope) {
 			if (this.isReady) {

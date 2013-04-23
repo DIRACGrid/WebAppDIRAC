@@ -71,6 +71,9 @@ Ext.define(
 							me.setLoadedObject(me.setupData);
 						else if(me.loadedObjectType == "link")
 							me.setPropertiesWhenLink(me.setupData);
+						
+						_app.desktop.refreshUrlDesktopState();
+						
 					},
 					
 					/**
@@ -86,7 +89,7 @@ Ext.define(
 							me.setPosition(setupData.x,setupData.y);
 							
 							me.currentState = setupData.currentState;
-							_app.addUrlApp(me.loadedObject.self.getName(),me.currentState);
+							//_app.addUrlApp(me.loadedObject.self.getName(),me.currentState);
 							
 							if(!setupData.maximized){
 								me.setWidth(setupData.width);
@@ -126,10 +129,6 @@ Ext.define(
 							
 							if(setupData != null){
 								me.oprLoadAppStateFromCache(setupData["stateToLoad"]);
-								_app.addUrlApp(me.loadedObject.self.getName(),setupData["stateToLoad"]);
-								
-							}else{
-								_app.addUrlApp(me.loadedObject.self.getName(),"");
 							}
 							
 							
@@ -149,7 +148,6 @@ Ext.define(
 						me.setIconCls(me.loadedObject.launcher.iconCls);
 						me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
 						me.loadedObject.setContainer(me);
-						
 						
 					},
 					
@@ -769,10 +767,12 @@ Ext.define(
 						
 						me.loadMask.show();
 						
-						_app.setUrlAppState(me.loadedObject.self.getName(),me.currentState,stateName);
 						me.closeAllChildWindows();
 						me.loadedObject.loadState(me.desktop.cache.windows[me.appClassName][stateName]);
 						me.currentState = stateName;
+						
+						_app.desktop.refreshUrlDesktopState();
+						
 						me.setTitle(me.loadedObject.launcher.title+" ["+stateName+"]");
 						me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+stateName+"]",20));
 						me.loadMask.hide();
@@ -820,6 +820,19 @@ Ext.define(
 						
 						for(var i=me.childWindows.length-1;i>=0;i--)
 							me.childWindows[i].close();
+						
+					},
+					
+					getUrlDescription:function(){
+						
+						var me = this;
+						
+						if(me.loadedObjectType=="link")
+							return "";
+						
+						var oPos = me.getPosition();
+						
+						return me.loadedObject.self.getName()+":"+me.currentState+":"+oPos[0]+":"+oPos[1]+":"+me.getWidth()+":"+me.getHeight();
 						
 					}
 					

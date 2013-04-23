@@ -629,24 +629,6 @@ Ext.define(
 		onWindowClose : function(win) {
 			var me = this;
 			
-			/*
-			 * Close all other child windows
-			 */
-//			console.log("=============================================");
-//			console.log("Eve gi moite deca windows "+win.id+": ");
-//			
-//			for(var i=0;i<win.childWindows.length;i++){
-//				
-//				console.log(win.childWindows[i].id);
-//			}
-//			
-//			console.log("=============================================");
-			
-			//for(var i=0;i<win.childWindows.length;i++){
-			
-			if(!win.isChildWindow)	
-				me.app.removeUrlApp(win.loadedObject.self.getName(),win.currentState);
-			
 			if (win.__dirac_destroy != null)
 				win.__dirac_destroy(win);
 			
@@ -660,19 +642,47 @@ Ext.define(
 			 */
 			if(me.windows.getCount()==0){
 				me.currentDesktopState='';
-				me.app.removeUrlDesktopState();
+				me.refreshUrlDesktopState();
 			}
 			me.taskbar.removeTaskButton(win.taskButton);
 			me.updateActiveWindow();
 			
+			/*
+			 * Close all other child windows
+			 */
 			for(var i=win.childWindows.length-1;i>=0;i--){
 				if(win.childWindows[i]!=null){
 					win.childWindows[i].close();
 				}
 			}
+			
+			if(!win.isChildWindow)
+				me.refreshUrlDesktopState();
+			
 		
 		},
 
+		
+		onWindowMove:function(oWindow,iX,iY,eOpts){
+			
+			var me = this;
+			
+			if(oWindow.__dirac_move!=null)
+				oWindow.__dirac_move(oWindow,iX,iY,eOpts);
+			
+			me.refreshUrlDesktopState();
+		},
+		
+		onWindowResize:function(oWindow,iWidth,iHeight,eOpts){
+			
+			var me = this;
+			
+			if(oWindow.__dirac_resize!=null)
+				oWindow.__dirac_resize(oWindow,iWidth,iHeight,eOpts);
+			
+			me.refreshUrlDesktopState();
+		},
+		
 		/**
 		 * Function that is used by modules to create windows with
 		 * some content. This function does configuration of the
@@ -703,7 +713,9 @@ Ext.define(
 				__dirac_restore : null,
 				__dirac_destroy : null,
 				__dirac_boxready: null,
-				__dirac_destroy:null
+				__dirac_destroy:null,
+				__dirac_move:null,
+				__dirac_resize:null
 			});
 
 			win = me.add(new Ext.dirac.core.Window(cfg));
@@ -722,6 +734,8 @@ Ext.define(
 				maximize:me.maximizeWindow,
 				restore:me.restoreWindow,
 				destroy : me.onWindowClose,
+				move:me.onWindowMove,
+				resize:me.onWindowResize,
 				scope : me
 			});
 
@@ -1054,7 +1068,7 @@ Ext.define(
 			
 			me.currentDesktopState = stateName;
 			
-			me.app.setUrlDesktopState(stateName);
+			me.refreshUrlDesktopState();
 			
 		},
 		
@@ -1516,9 +1530,51 @@ Ext.define(
 			    }
 			});
 			
-		}
+		},
 		
 		/*
 		 * ---------------------------------END: MANAGEMENT OF DESKTOP STATES--------------------------------------------
 		 */
+		
+		refreshUrlDesktopState:function(){
+			
+			var me = this;
+			
+			var sNewUrlState = "";
+			
+			if(me.currentDesktopState != ""){
+				
+				sNewUrlState = "?url_state=1|"+me.currentDesktopState;
+				
+			}else{
+				
+				for(var i=0;i<me.windows.getCount();i++){
+					var oWin = me.windows.getAt(i);
+					
+					if((oWin!=undefined)&&(oWin!=null)&&(!oWin.isChildWindow))
+						sNewUrlState+=((sNewUrlState=="")?"":";")+oWin.getUrlDescription();
+				}
+				
+				sNewUrlState = "?url_state=0|"+sNewUrlState;
+				
+			}
+			
+			var oHref = location.href;
+			var oQPosition = oHref.indexOf("?"); 
+			if(oQPosition!=-1){
+				
+				sNewUrlState = oHref.substr(0,oQPosition)+sNewUrlState;
+				
+			}else{
+				
+				sNewUrlState = oHref+sNewUrlState;
+				
+			}
+			
+			window.history.pushState("X","ExtTop - Desktop Sample App",sNewUrlState);
+			
+		}
+		
+		
+		
 	});
