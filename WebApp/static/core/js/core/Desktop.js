@@ -174,8 +174,54 @@ Ext.define(
 			var me = this;
 			me.callParent();
 			me.el.on('contextmenu', me.onDesktopMenu, me);
+			
+			me.__oprLoadUrlState();
+			
 		},
-
+		
+		__oprLoadUrlState: function(){
+			
+			var me = this;
+			
+			if(Ext.util.Format.trim(_load_by_url)!=""){
+				
+				var oParts = _load_by_url.split("|");
+				
+				if(parseInt(oParts[0])==0){
+					//non desktop state
+					var oApps = oParts[1].split("^");
+					
+					for(var i=0,len=oApps.length;i<len;i++){
+						
+						var oAppItems = oApps[i].split(":");
+						
+						var oSetupData = {};
+						
+						if(Ext.util.Format.trim(oAppItems[1])!="")
+							oSetupData.stateToLoad = oAppItems[1];
+						
+						oSetupData.x = oAppItems[2];
+						oSetupData.y = oAppItems[3];
+						oSetupData.width = oAppItems[4];
+						oSetupData.height = oAppItems[5];
+						
+						console.log(oAppItems[0]);
+						console.log(oSetupData);
+						
+						_app.createWindow("app",oAppItems[0],oSetupData);
+						
+					}
+					
+				}else{
+					//desktop state
+					me.oprLoadDesktopState(oParts[1]);
+				}
+				
+			}
+			
+			
+		},
+		
 		/**
 		 * Overridable configuration method for the shortcuts
 		 * presented on the desktop
@@ -1552,7 +1598,7 @@ Ext.define(
 					var oWin = me.windows.getAt(i);
 					
 					if((oWin!=undefined)&&(oWin!=null)&&(!oWin.isChildWindow))
-						sNewUrlState+=((sNewUrlState=="")?"":";")+oWin.getUrlDescription();
+						sNewUrlState+=((sNewUrlState=="")?"":"^")+oWin.getUrlDescription();
 				}
 				
 				sNewUrlState = "?url_state=0|"+sNewUrlState;

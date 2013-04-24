@@ -32,21 +32,11 @@ Ext.define(
 		isReady : false,
 
 		/**
-		 * @property {List} modules This a list containg data for
-		 *           the allowed user modules
-		 */
-		modules : null,
-
-		/**
 		 * @property {List} useQuickTips ?
 		 */			
 
 		useQuickTips : true,
 		
-		/**
-		 * @property {int} _uid_counter Counter used to assigne unique number to a module that can be used as a part of the id-s within the loaded module
-		 */
-		_uid_counter:0,
 
 		constructor : function() {
 
@@ -421,8 +411,6 @@ Ext.define(
 						var me = this;
 						
 						var instance = Ext.create(sStartClass,{_baseUrl:me.configData.baseURL+"/"});
-						
-						instance.setUID(++me._uid_counter);
 						
 						var config = {
 								desktop: me.desktop,

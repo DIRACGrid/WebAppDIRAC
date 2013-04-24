@@ -34,6 +34,8 @@
 	        var _app=null;
 	        var _app_base_url = "";
 	        var _dev = 1;
+	        var _load_by_url = "{{url_state}}";
+	        
 	        
 	        Ext.onReady(function () {
 	        	_app_base_url = "{{base_url}}/";
@@ -47,6 +49,8 @@
 	    	var _app=null;
 	        var _app_base_url = "";
 	        var _dev = 0;
+	        var _load_by_url = "{{url_state}}";
+	        
 	        
 	        Ext.onReady(function () {
 	        	_app_base_url = "{{base_url}}/";

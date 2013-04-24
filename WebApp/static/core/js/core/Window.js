@@ -59,6 +59,7 @@ Ext.define(
 						}
 						
 						me.childWindows = [];
+						me.bStatesLoaded = false;
 						
 						me.callParent();
 						
@@ -84,26 +85,76 @@ Ext.define(
 						
 						var me = this;
 						
-						if((setupData != null)&&(!("stateToLoad" in setupData))){
+						if(setupData != null){
 							
-							me.setPosition(setupData.x,setupData.y);
-							
-							me.currentState = setupData.currentState;
-							//_app.addUrlApp(me.loadedObject.self.getName(),me.currentState);
-							
-							if(!setupData.maximized){
-								me.setWidth(setupData.width);
-								me.setHeight(setupData.height);
+							if((!("maximized" in setupData))||(("maximized" in setupData)&&(!setupData.maximized))){
+								
+								
+								
+								if("x" in setupData)
+									me.setPosition(parseInt(setupData.x),parseInt(setupData.y));
+								
+								if("width" in setupData)
+									me.setWidth(parseInt(setupData.width));
+								
+								if("height" in setupData)
+									me.setHeight(parseInt(setupData.height));
+								
+								if((!("height" in setupData))&&(!("width" in setupData))){
+									
+									if("width" in me.loadedObject.launcher){
+										
+										me.setWidth(me.loadedObject.launcher.width);
+										
+									}else{
+										
+										me.setWidth(600);
+										
+									}
+									
+									if("height" in me.loadedObject.launcher){
+										
+										me.setHeight(me.loadedObject.launcher.height);
+										
+									}else{
+										
+										me.setHeight(400);
+										
+									}
+									
+								}
+								
 							}else{
+								
 								me.maximize();
 							}
 							
-							me.setZIndex(setupData.zIndex);
-							me.loadedObject.loadState(setupData.data);
+							if("zIndex" in setupData){
+								
+								me.setZIndex(setupData.zIndex);
+								
+							}
+							
+							if("stateToLoad" in setupData){
+								
+								me.oprLoadAppStateFromCache(setupData["stateToLoad"]);
+								
+							}else{
+								
+								if("data" in setupData){
+									
+									me.currentState = setupData.currentState;
+									me.loadedObject.loadState(setupData.data);
+									
+								}
+								
+							}
+							
 							
 						}else{
 							
 							if(!me.loadedObject.launcher.maximized){
+								
 								if("width" in me.loadedObject.launcher){
 									
 									me.setWidth(me.loadedObject.launcher.width);
@@ -124,16 +175,11 @@ Ext.define(
 									
 								}
 							}else{
+								
 								me.maximize();
 							}
-							
-							if(setupData != null){
-								me.oprLoadAppStateFromCache(setupData["stateToLoad"]);
-							}
-							
-							
+
 						}
-						
 						
 						if(me.currentState == ""){
 							
@@ -204,19 +250,40 @@ Ext.define(
 					},
 					oprShareState: function (sStateName) {
 				        
+						var me = this;
+						
 						Ext.Ajax.request({
-						    url: me.desktop.getBaseUrl()+'UP/listAppState',
+						    url: me.desktop.getBaseUrl()+'UP/makePublicAppState',
 						    params: {
-						        app: 	me.appClassName,
-						        obj: 	"application"
+						        app: 		me.appClassName,
+						        obj: 		"application",
+						        name: 		sStateName,
+						        access: 	"ALL"
 						    },
 						    scope:me,
 						    success: function(response){
 						    	
+						    	var me = this;
+
+					    		var oStringToShow = "application|"
+					    			+me.appClassName
+					    			+"|"+_app.configData["user"]["username"]
+					    			+"|"+_app.configData["user"]["group"]
+					    			+"|"+sStateName;
+					    		
+					    		var oInfoWindow = me.oprGetChildWindow("Info for sharing the <span style='color:red'>"+sStateName+"</span> state:",true,800,120);
+					    		var oHtml = "<div style='padding:5px'>The string you can send is as follows:</div>";
+					    		oHtml+="<div style='padding:5px;font-weight:bold'>"+oStringToShow+"</div>";
+					    		
+					    		oInfoWindow.add({html: oHtml,xtype: "panel"});		
+					    		
+					    		oInfoWindow.show();
+						    	
 						    },
 						    failure:function(response){
 						    	
-						    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+						    	var responseData = Ext.JSON.decode(response.responseText);
+						    	Ext.example.msg("Notification", responseData["error"]);
 						    }
 						});	
 						    	
@@ -229,8 +296,10 @@ Ext.define(
 
 						var me = this;
 						
-						if(me.loadedObjectType=="app"){
+						me.bStatesLoaded = false;
 						
+						if(me.loadedObjectType=="app"){
+							
 							me.statesMenu = new Ext.menu.Menu();
 							
 							/*
@@ -238,6 +307,8 @@ Ext.define(
 							 */
 							if(me.appClassName in me.desktop.cache.windows){
 								
+								me.bStatesLoaded = true; 
+									
 								for (var stateName in me.desktop.cache.windows[me.appClassName]) {	
 									
 									var newItem = Ext.create('Ext.menu.Item', {
@@ -290,13 +361,13 @@ Ext.define(
 														    				  	}]
 															    		});
 								    		
-								    		//newItem.getEl().on('contextmenu', me.onStateItemContextMenu, me);
 								    		me.statesMenu.add(newItem);
 								    		
 								    		me.desktop.cache.windows[me.appClassName][stateName]=states[stateName];
 								    		
 								    	}
 								    	
+								    	me.bStatesLoaded = true;
 								    	
 								    },
 								    failure:function(response){
@@ -786,6 +857,7 @@ Ext.define(
 						}
 						
 					},
+					
 					/**
 					 * Function to load module state with data from the cache
 					 * @param {String} stateName The name of the state
@@ -793,6 +865,25 @@ Ext.define(
 					oprLoadAppStateFromCache : function(stateName) {
 						
 						var me = this;
+						
+						if(!me.bStatesLoaded){
+							
+							me.funcPostponedLoading = function(){
+								
+								me.oprLoadAppStateFromCache(stateName);
+								
+							}
+							
+							me.postponedLoading = setInterval(me.funcPostponedLoading,1000);
+							return;
+							
+						}else{
+							
+							clearInterval(me.postponedLoading);
+							me.funcPostponedLoading = null;
+							
+						}
+						
 						
 						me.loadMask.show();
 						

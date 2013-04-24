@@ -174,6 +174,9 @@ Ext
 					initComponent : function() {
 
 						var me = this;
+						
+						
+						
 						me.launcher.title = "Job Monitor";
 						me.launcher.maximized = true;
 						

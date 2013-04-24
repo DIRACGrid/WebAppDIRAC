@@ -80,6 +80,7 @@ Ext
 					initComponent : function() {
 
 						var me = this;
+						
 						me.launcher.title = "Accounting Plot";
 						me.launcher.width = 350;
 						
@@ -96,7 +97,6 @@ Ext
 						 */
 
 						me.leftPanel = new Ext.create('Ext.panel.Panel', {
-							//title : 'Selectors',
 							floatable : false,
 							margins : '0',
 							minWidth : 230,
