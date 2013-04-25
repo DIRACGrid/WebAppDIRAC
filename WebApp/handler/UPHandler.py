@@ -84,13 +84,13 @@ class UPHandler( WebHandler ):
     up = self.__getUP()
     try:
       user = self.request.arguments[ 'user' ][-1]
-      user = self.request.arguments[ 'group' ][-1]
+      group = self.request.arguments[ 'group' ][-1]
       name = self.request.arguments[ 'name' ][-1]
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
     result = yield self.threadTask( up.retrieveVarFromUser, user, group, name )
     if not result[ 'OK' ]:
-      raise WErr.fromSERROR( result)
+      raise WErr.fromSERROR( result )
     data = result[ 'Value' ]
     data, count = DEncode.decode( zlib.decompress( base64.b64decode( data ) ) )
     self.finish( data )

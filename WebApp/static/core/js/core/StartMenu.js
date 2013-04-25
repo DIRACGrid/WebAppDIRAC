@@ -16,7 +16,9 @@
 Ext.define('Ext.dirac.core.StartMenu', {
 	extend : 'Ext.panel.Panel',
 
-	requires : [ 'Ext.menu.Menu', 'Ext.toolbar.Toolbar' ],
+	requires : [ 'Ext.menu.Menu', 'Ext.toolbar.Toolbar',
+	             'Ext.panel.Panel',"Ext.button.Button",
+	             "Ext.form.field.Text"],
 
 	ariaRole : 'menu',
 
@@ -71,7 +73,39 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 		me.toolbar.layout.align = 'stretch';
 		me.addDocked(me.toolbar);
-
+		
+		/*
+		 * Panel to load shared state
+		 */
+		
+		me.panelLoadSharedState = new Ext.create('Ext.panel.Panel', {
+			dock:"bottom",
+			margins : '0',
+			bodyPadding : 5,
+			layout: {
+		        type: 'hbox'
+		    },
+			items:[
+			       {
+			    	   xtype:"textfield",
+			    	   margin:"0 5 0 0",
+			    	   flex:1
+			       },
+			       {
+			    	   xtype:"button",
+			    	   text:"Load",
+			    	   handler:function(){
+			    		   
+			    		   var oText = me.panelLoadSharedState.items.getAt(0).getValue();
+			    		   me.app.desktop.loadSharedState(oText);
+			    		   
+			    	   }
+			       }
+			]
+		});
+		
+		me.addDocked(me.panelLoadSharedState);
+		
 		delete me.toolItems;
 
 		me.on('deactivate', function() {

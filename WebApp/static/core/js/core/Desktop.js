@@ -34,6 +34,7 @@ Ext.define(
 		xTickSize : 1,
 		yTickSize : 1,
 		cache:{windows:{},desktop:{}},
+		registerStartMenus:{},
 
 		/**
 		 * @property {Ext.dirac.core.app} app This is the reference
@@ -151,6 +152,9 @@ Ext.define(
 			if (wallpaper) {
 				me.setWallpaper(wallpaper, me.wallpaperStretch);
 			}
+			
+			me.bStatesLoaded = false;
+			
 		},
 
 		/**
@@ -187,6 +191,9 @@ Ext.define(
 				
 				var oParts = _load_by_url.split("|");
 				
+				if((oParts.length!=2)||(Ext.util.Format.trim(oParts[1]).length==0))
+					return;
+				
 				if(parseInt(oParts[0])==0){
 					//non desktop state
 					var oApps = oParts[1].split("^");
@@ -204,9 +211,6 @@ Ext.define(
 						oSetupData.y = oAppItems[3];
 						oSetupData.width = oAppItems[4];
 						oSetupData.height = oAppItems[5];
-						
-						console.log(oAppItems[0]);
-						console.log(oSetupData);
 						
 						_app.createWindow("app",oAppItems[0],oSetupData);
 						
@@ -281,7 +285,11 @@ Ext.define(
 			    		var newItem = Ext.create('Ext.menu.Item', {
 										    			  text: stateName,
 										    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
-										    			  scope:me
+										    			  scope:me,
+										    			  menu:[{
+									    				  		text:"Share state",
+									    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+									    				  	}]
 										    		});
 			    		
 			    		me.statesMenu.add(newItem);
@@ -289,6 +297,8 @@ Ext.define(
 			    		me.cache.desktop[stateName]=states[stateName];
 			    		
 			    	}
+			    	
+			    	me.bStatesLoaded = true;
 			    	
 			    	
 			    },
@@ -897,6 +907,9 @@ Ext.define(
 					item.addNewState(stateName);
 			});
 			
+			if(appName in me.registerStartMenus)
+				me.registerStartMenus[appName].addNewState(stateName);
+			
 		},
 		
 		/**
@@ -932,6 +945,9 @@ Ext.define(
 						if(item.getAppClassName() == appName)
 							item.oprRefreshAppStates();
 					});
+			    	
+			    	if(appName in me.registerStartMenus)
+						me.registerStartMenus[appName].oprRefreshAppStates();
 			    	
 			    },
 			    failure:function(response){
@@ -985,6 +1001,9 @@ Ext.define(
 				if(item.getAppClassName() == appName)
 					item.removeState(stateName);
 			});
+			
+			if(appName in me.registerStartMenus)
+				me.registerStartMenus[appName].removeState(stateName);
 			
 		},
 		
@@ -1043,6 +1062,7 @@ Ext.define(
 			
 			
 			var me = this;
+			
 			var count = me.windows.getCount();
 			
 			if(count >0){
@@ -1098,6 +1118,24 @@ Ext.define(
 		loadDesktopStateData:function(stateName){
 			
 			var me = this;
+			
+			if(!me.bStatesLoaded){
+				
+				me.funcPostponedLoading = function(){
+					
+					me.loadDesktopStateData(stateName);
+					
+				}
+				
+				me.postponedLoading = setInterval(me.funcPostponedLoading,1000);
+				return;
+				
+			}else{
+				
+				clearInterval(me.postponedLoading);
+				me.funcPostponedLoading = null;
+				
+			}
 			
 			//get the state from the cache
 			var stateData = me.cache.desktop[stateName];
@@ -1338,7 +1376,11 @@ Ext.define(
 			    		var newItem = Ext.create('Ext.menu.Item', {
 										    			  text: stateName,
 										    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
-										    			  scope:me
+										    			  scope:me,
+										    			  menu:[{
+									    				  		text:"Share state",
+									    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+									    				  	}]
 										    		});
 			    		
 			    		me.cache.desktop[stateName]=states[stateName];
@@ -1556,7 +1598,11 @@ Ext.define(
 			    		var newItem = Ext.create('Ext.menu.Item', {
 			    			  text: stateName,
 			    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
-			    			  scope:me
+			    			  scope:me,
+			    			  menu:[{
+		    				  		text:"Share state",
+		    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+		    				  	}]
 			    		});
 
 						me.statesMenu.add(newItem);
@@ -1568,6 +1614,7 @@ Ext.define(
 			    		me.cache.desktop[stateName]=dataToSend;
 			    	
 			    	me.currentDesktopState = stateName;
+			    	me.refreshUrlDesktopState();
 					
 			    },
 			    failure:function(response){
@@ -1619,8 +1666,124 @@ Ext.define(
 			
 			window.history.pushState("X","ExtTop - Desktop Sample App",sNewUrlState);
 			
-		}
+		},
 		
+		 loadSharedState:function(oData){
+			
+			var me = this; 
+			 
+			var oDataItems = oData.split("|"); 
+			
+			if(oDataItems.length!=5){
+				
+				alert("The data you entered is not valid !");
+				return;
+				
+			}
+			
+			Ext.Ajax.request({
+			    url: me.getBaseUrl()+'UP/loadUserAppState',
+			    params: {
+			    	obj: 		oDataItems[0],
+			        app: 		oDataItems[1],
+			        user:		oDataItems[2],
+			        group: 		oDataItems[3],
+			        name: 		oDataItems[4]
+			    },
+			    scope:me,
+			    success: function(response){
+			    	
+			    	var me = this;
+			    	var oDataReceive = Ext.JSON.decode(response.responseText);
+		    		
+			    	if(oDataItems[0]=="application"){
+			    		
+			    		var oSetupData={
+			    				"data":oDataReceive,
+			    				"currentState": ""
+			    		};
+			    		
+			    		me.app.createWindow("app",oDataItems[1],oSetupData);
+			    	}else if(oDataItems[0]=="desktop"){
+						
+						for(var i=0,len=oDataReceive["data"].length;i<len;i++){
+							
+							var appStateData = oDataReceive["data"][i];
+							
+							if(appStateData.name)
+								me.app.createWindow(appStateData.loadedObjectType,appStateData.name,appStateData);
+							
+						}
+						
+						me.currentDesktopState = "";
+			    		
+			    		
+			    	}
+			    	
+			    },
+			    failure:function(response){
+			    	
+			    	var responseData = Ext.JSON.decode(response.responseText);
+			    	Ext.example.msg("Notification", responseData["error"]);
+			    }
+			});	
+			
+			
+			 
+		 },
+		 
+		 oprShareState: function (sStateName) {
+		        
+				var me = this;
+				
+				Ext.Ajax.request({
+				    url: me.getBaseUrl()+'UP/makePublicAppState',
+				    params: {
+				        app: 		"desktop",
+				        obj: 		"desktop",
+				        name: 		sStateName,
+				        access: 	"ALL"
+				    },
+				    scope:me,
+				    success: function(response){
+				    	
+				    	var me = this;
+
+			    		var oStringToShow = "desktop|desktop"
+			    			+"|"+_app.configData["user"]["username"]
+			    			+"|"+_app.configData["user"]["group"]
+			    			+"|"+sStateName;
+			    		
+			    		var oInfoWindow = Ext.create('widget.window', {
+							height : 120,
+							width : 800,
+							title : "Info for sharing the <span style='color:red'>"+sStateName+"</span> state:",
+							layout : 'fit',
+							modal: true
+						});
+			    		
+			    		var oHtml = "<div style='padding:5px'>The string you can send is as follows:</div>";
+			    		oHtml+="<div style='padding:5px;font-weight:bold'>"+oStringToShow+"</div>";
+			    		
+			    		oInfoWindow.add({html: oHtml,xtype: "panel"});		
+			    		
+			    		oInfoWindow.show();
+				    	
+				    },
+				    failure:function(response){
+				    	
+				    	var responseData = Ext.JSON.decode(response.responseText);
+				    	Ext.example.msg("Notification", responseData["error"]);
+				    }
+				});	
+				    	
+		    },
 		
+		    registerStartAppMenu:function(oMenu,sAppClassName){
+		    	
+		    	var me = this;
+		    	me.registerStartMenus[sAppClassName] = oMenu;
+		    	
+		    }
 		
 	});

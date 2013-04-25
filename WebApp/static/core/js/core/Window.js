@@ -440,7 +440,11 @@ Ext.define(
 						var newItem = Ext.create('Ext.menu.Item', {
 			    			  text: stateName,
 			    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-			    			  scope:me
+			    			  scope:me,
+			    			  menu:[{
+		    				  		text:"Share state",
+		    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+		    				  	}]
 			    		});
 
 						me.statesMenu.add(newItem);
@@ -827,6 +831,7 @@ Ext.define(
 						    	me.currentState = stateName;
 								me.setTitle(me.loadedObject.launcher.title+" ["+me.currentState+"]");
 								me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+stateName+"]",20));
+								me.desktop.refreshUrlDesktopState();
 						    },
 						    failure:function(response){
 						    	
@@ -849,7 +854,11 @@ Ext.define(
 							var newItem = Ext.create('Ext.menu.Item', {
 				    			  text: stateName,
 				    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-				    			  scope:me
+				    			  scope:me,
+				    			  menu:[{
+			    				  		text:"Share state",
+			    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+			    				  	}]
 				    		});
 
 							me.statesMenu.add(newItem);

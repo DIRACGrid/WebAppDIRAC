@@ -1247,7 +1247,7 @@ Ext
 							
 							me.__additionalDataLoad();
 							me.__additionalDataLoad = null;
-							
+							//me.cmbDomain.fireEvent("change",me.cmbDomain,oParams["_typeName"],oParams["_typeName"],null);
 						}
 						
 						me.cmbDomain.setValue(oParams["_typeName"]);
