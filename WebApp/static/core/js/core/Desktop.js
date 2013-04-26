@@ -649,6 +649,8 @@ Ext.define(
 		 */
 		minimizeWindow : function(win) {
 			win.minimized = true;
+			//win.maximized = false;
+			this.refreshUrlDesktopState();
 			win.hide();
 		},
 		
@@ -674,6 +676,8 @@ Ext.define(
 			} else {
 				win.show();
 			}
+			win.minimized = false;
+			this.refreshUrlDesktopState();
 			return win;
 		},
 
@@ -1127,13 +1131,8 @@ Ext.define(
 					
 				}
 				
-				me.postponedLoading = setInterval(me.funcPostponedLoading,1000);
+				setTimeout(me.funcPostponedLoading,1000);
 				return;
-				
-			}else{
-				
-				clearInterval(me.postponedLoading);
-				me.funcPostponedLoading = null;
 				
 			}
 			

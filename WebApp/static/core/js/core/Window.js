@@ -883,13 +883,9 @@ Ext.define(
 								
 							}
 							
-							me.postponedLoading = setInterval(me.funcPostponedLoading,1000);
+							setTimeout(me.funcPostponedLoading,1000);
+							
 							return;
-							
-						}else{
-							
-							clearInterval(me.postponedLoading);
-							me.funcPostponedLoading = null;
 							
 						}
 						
@@ -961,7 +957,14 @@ Ext.define(
 						
 						var oPos = me.getPosition();
 						
-						return me.loadedObject.self.getName()+":"+me.currentState+":"+oPos[0]+":"+oPos[1]+":"+me.getWidth()+":"+me.getHeight();
+						var oState = "0";
+						if(me.minimized)
+							oState = -1;
+						else if(me.maximized)
+							oState = 1;
+								
+						
+						return me.loadedObject.self.getName()+":"+me.currentState+":"+oPos[0]+":"+oPos[1]+":"+me.getWidth()+":"+me.getHeight()+":"+oState;
 						
 					}
 					

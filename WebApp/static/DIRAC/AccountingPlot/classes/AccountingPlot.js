@@ -834,7 +834,8 @@ Ext
 							sTitle = oLoadState["title"];
 							
 						}
-												
+						//console.log("__generatePlot");
+						//console.trace();
 						Ext.Ajax
 								.request({
 									url : me._baseUrl
