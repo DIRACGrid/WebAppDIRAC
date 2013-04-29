@@ -185,7 +185,7 @@ class AccountingPlotHandler(WebHandler):
       return
     transferClient = TransferClient( "Accounting/ReportGenerator" )
     tempFile = tempfile.TemporaryFile()
-    retVal = transferClient.receiveFile( tempFile, plotImageFile )
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal[ 'OK' ]:
       callback = {"success":"false","error":retVal[ 'Message' ]}
       self.finish(json.dumps(callback))

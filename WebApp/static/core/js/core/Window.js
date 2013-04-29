@@ -66,6 +66,7 @@ Ext.define(
 					},
 					
 					afterRender:function(){
+						
 						var me = this;
 						me.callParent();
 						if(me.loadedObjectType == "app")
@@ -74,6 +75,7 @@ Ext.define(
 							me.setPropertiesWhenLink(me.setupData);
 						
 						_app.desktop.refreshUrlDesktopState();
+						alert("NIKSATA");
 						
 					},
 					
@@ -87,48 +89,58 @@ Ext.define(
 						
 						if(setupData != null){
 								
-							if("x" in setupData)
-								me.setPosition(parseInt(setupData.x),parseInt(setupData.y));
-							
-							if("width" in setupData)
-								me.setWidth(parseInt(setupData.width));
-							
-							if("height" in setupData)
-								me.setHeight(parseInt(setupData.height));
-							
 							if("maximized" in setupData){
 								if(setupData["maximized"])
 									me.maximize();	
 							}else if("minimized" in setupData){
 								
-								me.minimized = true;
-								me.minimize();
+								if("width" in setupData)
+									me.setWidth(parseInt(setupData.width));
+							
+								if("height" in setupData)
+									me.setHeight(parseInt(setupData.height));
 								
-							}else if((!("height" in setupData))&&(!("width" in setupData))){
+								me.desktop.minimizeWindow(me);
+								//me.minimized = true;
+								//me.hide();
+							
+							}else { 
 								
-								if("width" in me.loadedObject.launcher){
+								if("x" in setupData)
+									me.setPosition(parseInt(setupData.x),parseInt(setupData.y));
+
+								
+								if("width" in setupData)
+									me.setWidth(parseInt(setupData.width));
+							
+								if("height" in setupData)
+									me.setHeight(parseInt(setupData.height));
+
+								
+								if((!("height" in setupData))&&(!("width" in setupData))){
+							
+								
+									if("width" in me.loadedObject.launcher){
+										
+										me.setWidth(me.loadedObject.launcher.width);
+										
+									}else{
+										
+										me.setWidth(600);
+										
+									}
 									
-									me.setWidth(me.loadedObject.launcher.width);
-									
-								}else{
-									
-									me.setWidth(600);
-									
+									if("height" in me.loadedObject.launcher){
+										
+										me.setHeight(me.loadedObject.launcher.height);
+										
+									}else{
+										
+										me.setHeight(400);
+										
+									}
+								
 								}
-								
-								if("height" in me.loadedObject.launcher){
-									
-									me.setHeight(me.loadedObject.launcher.height);
-									
-								}else{
-									
-									me.setHeight(400);
-									
-								}
-								
-							}else{
-								
-								me.maximize();
 								
 							}
 							
@@ -197,6 +209,7 @@ Ext.define(
 						me.setIconCls(me.loadedObject.launcher.iconCls);
 						me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
 						me.loadedObject.setContainer(me);
+						me.hide();
 						
 					},
 					
@@ -318,9 +331,11 @@ Ext.define(
 						    			  text: stateName,
 						    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
 						    			  scope:me,
+						    			  iconCls:"system_state_icon",
 						    			  menu:[{
 						    				  		text:"Share state",
-						    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+						    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
+						    				  		iconCls:"system_share_state_icon"
 						    				  	}]
 						    		});
 									
@@ -358,9 +373,11 @@ Ext.define(
 															    			  text: stateName,
 															    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
 															    			  scope:me,
+															    			  iconCls:"system_state_icon",
 															    			  menu:[{
 														    				  		text:"Share state",
-														    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+														    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
+														    				  		iconCls:"system_share_state_icon"
 														    				  	}]
 															    		});
 								    		
@@ -444,9 +461,11 @@ Ext.define(
 			    			  text: stateName,
 			    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
 			    			  scope:me,
+			    			  iconCls:"system_state_icon",
 			    			  menu:[{
 		    				  		text:"Share state",
-		    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+		    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
+		    				  		iconCls:"system_share_state_icon"
 		    				  	}]
 			    		});
 
@@ -858,9 +877,11 @@ Ext.define(
 				    			  text: stateName,
 				    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
 				    			  scope:me,
+				    			  iconCls:"system_state_icon",
 				    			  menu:[{
 			    				  		text:"Share state",
-			    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+			    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
+			    				  		iconCls:"system_share_state_icon"
 			    				  	}]
 				    		});
 

@@ -256,3 +256,16 @@
 	visibility:hidden;
 	
 }
+
+.system_state_icon {
+    background-image:url(../img/icons/system/_state_icon.png) !important;
+    background-size:16px 16px;
+}
+
+.system_share_state_icon{
+	
+	background-image:url(../img/icons/system/_share_icon.png) !important;
+    background-size:16px 16px;
+	
+}
+

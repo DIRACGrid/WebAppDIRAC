@@ -264,6 +264,7 @@ Ext.define(
 									    			  text: stateName,
 									    			  handler: Ext.bind(me.createWindow, me, ["app",sStartClass,{stateToLoad:stateName}], false),
 									    			  scope:me,
+									    			  iconCls:"system_state_icon",
 									    			  menu:[{
 								    				  		text:"Share state",
 								    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,sStartClass], false)
@@ -296,6 +297,7 @@ Ext.define(
 																		    			  text: stateName,
 																		    			  handler: Ext.bind(me.createWindow, me, ["app",sStartClass,{stateToLoad:stateName}], false),
 																		    			  scope:me,
+																		    			  iconCls:"system_state_icon",
 																		    			  menu:[{
 																	    				  		text:"Share state",
 																	    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,sStartClass], false)
@@ -335,6 +337,7 @@ Ext.define(
 					    			  text: stateName,
 					    			  handler: Ext.bind(_app.createWindow, _app, ["app",oThisMenu.appClassName,{stateToLoad:stateName}], false),
 					    			  scope:me,
+					    			  iconCls:"system_state_icon",
 					    			  menu:[{
 				    				  		text:"Share state",
 				    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false)
@@ -373,6 +376,7 @@ Ext.define(
 						    			  text: stateName,
 						    			  handler: Ext.bind(_app.createWindow, _app, ["app",oThisMenu.appClassName,{stateToLoad:stateName}], false),
 						    			  scope:me,
+						    			  iconCls:"system_state_icon",
 						    			  menu:[{
 					    				  		text:"Share state",
 					    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false)

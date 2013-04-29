@@ -212,14 +212,17 @@ Ext.define(
 						oSetupData.width = oAppItems[4];
 						oSetupData.height = oAppItems[5];
 						
-						switch(oAppItems[6]){
+						switch(Ext.util.Format.trim(oAppItems[6])){
 						
-							case "maximized": oSetupData.maximized = true;
+							case "1": oSetupData.maximized = true;
 											  break;
-							case "minimized": oSetupData.minimized = true;
+							case "-1": oSetupData.minimized = true;
 											  break;
 						
 						}
+						
+						console.log("EVE SHO SA PRAKA");
+						console.log(oSetupData);
 						
 						_app.createWindow("app",oAppItems[0],oSetupData);
 						
@@ -295,9 +298,11 @@ Ext.define(
 										    			  text: stateName,
 										    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
 										    			  scope:me,
+										    			  iconCls:"system_state_icon",
 										    			  menu:[{
 									    				  		text:"Share state",
-									    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+									    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
+									    				  		iconCls:"system_share_state_icon"
 									    				  	}]
 										    		});
 			    		
@@ -1385,9 +1390,11 @@ Ext.define(
 										    			  text: stateName,
 										    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
 										    			  scope:me,
+										    			  iconCls:"system_state_icon",
 										    			  menu:[{
 									    				  		text:"Share state",
-									    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+									    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
+									    				  		iconCls:"system_share_state_icon"
 									    				  	}]
 										    		});
 			    		
@@ -1396,7 +1403,6 @@ Ext.define(
 			    		me.statesMenu.add(newItem);
 			    		
 			    	}
-			    	
 			    	
 			    },
 			    failure:function(response){
@@ -1607,9 +1613,11 @@ Ext.define(
 			    			  text: stateName,
 			    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
 			    			  scope:me,
+			    			  iconCls:"system_state_icon",
 			    			  menu:[{
 		    				  		text:"Share state",
-		    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false)
+		    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
+		    				  		iconCls:"system_share_state_icon"
 		    				  	}]
 			    		});
 
