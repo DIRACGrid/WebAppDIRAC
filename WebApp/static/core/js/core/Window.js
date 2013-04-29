@@ -86,47 +86,50 @@ Ext.define(
 						var me = this;
 						
 						if(setupData != null){
+								
+							if("x" in setupData)
+								me.setPosition(parseInt(setupData.x),parseInt(setupData.y));
 							
-							if((!("maximized" in setupData))||(("maximized" in setupData)&&(!setupData.maximized))){
+							if("width" in setupData)
+								me.setWidth(parseInt(setupData.width));
+							
+							if("height" in setupData)
+								me.setHeight(parseInt(setupData.height));
+							
+							if("maximized" in setupData){
+								if(setupData["maximized"])
+									me.maximize();	
+							}else if("minimized" in setupData){
 								
+								me.minimized = true;
+								me.minimize();
 								
+							}else if((!("height" in setupData))&&(!("width" in setupData))){
 								
-								if("x" in setupData)
-									me.setPosition(parseInt(setupData.x),parseInt(setupData.y));
-								
-								if("width" in setupData)
-									me.setWidth(parseInt(setupData.width));
-								
-								if("height" in setupData)
-									me.setHeight(parseInt(setupData.height));
-								
-								if((!("height" in setupData))&&(!("width" in setupData))){
+								if("width" in me.loadedObject.launcher){
 									
-									if("width" in me.loadedObject.launcher){
-										
-										me.setWidth(me.loadedObject.launcher.width);
-										
-									}else{
-										
-										me.setWidth(600);
-										
-									}
+									me.setWidth(me.loadedObject.launcher.width);
 									
-									if("height" in me.loadedObject.launcher){
-										
-										me.setHeight(me.loadedObject.launcher.height);
-										
-									}else{
-										
-										me.setHeight(400);
-										
-									}
+								}else{
+									
+									me.setWidth(600);
+									
+								}
+								
+								if("height" in me.loadedObject.launcher){
+									
+									me.setHeight(me.loadedObject.launcher.height);
+									
+								}else{
+									
+									me.setHeight(400);
 									
 								}
 								
 							}else{
 								
 								me.maximize();
+								
 							}
 							
 							if("zIndex" in setupData){

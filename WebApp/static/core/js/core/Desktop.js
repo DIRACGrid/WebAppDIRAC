@@ -212,6 +212,15 @@ Ext.define(
 						oSetupData.width = oAppItems[4];
 						oSetupData.height = oAppItems[5];
 						
+						switch(oAppItems[6]){
+						
+							case "maximized": oSetupData.maximized = true;
+											  break;
+							case "minimized": oSetupData.minimized = true;
+											  break;
+						
+						}
+						
 						_app.createWindow("app",oAppItems[0],oSetupData);
 						
 					}
