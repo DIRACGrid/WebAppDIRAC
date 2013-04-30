@@ -71,6 +71,15 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			width : 100
 		}, me.toolConfig));
 
+		me.toolbar.add(['->',{
+			text : 'State Loader',
+			iconCls : 'system_state_icon',
+			handler : function(){
+				me.toolConfig.app.desktop.formStateLoader();
+			},
+			scope : me.toolConfig.app.desktop
+		}]);
+		
 		me.toolbar.layout.align = 'stretch';
 		me.addDocked(me.toolbar);
 		
@@ -104,7 +113,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			]
 		});
 		
-		me.addDocked(me.panelLoadSharedState);
+		//me.addDocked(me.panelLoadSharedState);
 		
 		delete me.toolItems;
 

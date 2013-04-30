@@ -75,7 +75,7 @@ Ext.define(
 							me.setPropertiesWhenLink(me.setupData);
 						
 						_app.desktop.refreshUrlDesktopState();
-						alert("NIKSATA");
+						
 						
 					},
 					
@@ -101,10 +101,10 @@ Ext.define(
 									me.setHeight(parseInt(setupData.height));
 								
 								me.desktop.minimizeWindow(me);
-								//me.minimized = true;
-								//me.hide();
 							
 							}else { 
+								
+								
 								
 								if("x" in setupData)
 									me.setPosition(parseInt(setupData.x),parseInt(setupData.y));
@@ -119,24 +119,29 @@ Ext.define(
 								
 								if((!("height" in setupData))&&(!("width" in setupData))){
 							
-								
-									if("width" in me.loadedObject.launcher){
+									if(!me.loadedObject.launcher.maximized){
+										if("width" in me.loadedObject.launcher){
+											
+											me.setWidth(me.loadedObject.launcher.width);
+											
+										}else{
+											
+											me.setWidth(600);
+											
+										}
 										
-										me.setWidth(me.loadedObject.launcher.width);
-										
+										if("height" in me.loadedObject.launcher){
+											
+											me.setHeight(me.loadedObject.launcher.height);
+											
+										}else{
+											
+											me.setHeight(400);
+											
+										}
 									}else{
 										
-										me.setWidth(600);
-										
-									}
-									
-									if("height" in me.loadedObject.launcher){
-										
-										me.setHeight(me.loadedObject.launcher.height);
-										
-									}else{
-										
-										me.setHeight(400);
+										me.maximize();
 										
 									}
 								
@@ -209,7 +214,6 @@ Ext.define(
 						me.setIconCls(me.loadedObject.launcher.iconCls);
 						me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
 						me.loadedObject.setContainer(me);
-						me.hide();
 						
 					},
 					

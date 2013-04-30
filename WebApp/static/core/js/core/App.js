@@ -267,7 +267,8 @@ Ext.define(
 									    			  iconCls:"system_state_icon",
 									    			  menu:[{
 								    				  		text:"Share state",
-								    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,sStartClass], false)
+								    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,sStartClass], false),
+								    				  		iconCls:"system_share_state_icon"
 								    				  	}]
 									    		});
 					
@@ -300,7 +301,8 @@ Ext.define(
 																		    			  iconCls:"system_state_icon",
 																		    			  menu:[{
 																	    				  		text:"Share state",
-																	    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,sStartClass], false)
+																	    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,sStartClass], false),
+																	    				  		iconCls:"system_share_state_icon"
 																	    				  	}]
 																		    		});
 											    		
@@ -340,7 +342,8 @@ Ext.define(
 					    			  iconCls:"system_state_icon",
 					    			  menu:[{
 				    				  		text:"Share state",
-				    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false)
+				    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false),
+				    				  		iconCls:"system_share_state_icon"
 				    				  	}]
 					    		});
 
@@ -379,7 +382,8 @@ Ext.define(
 						    			  iconCls:"system_state_icon",
 						    			  menu:[{
 					    				  		text:"Share state",
-					    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false)
+					    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false),
+					    				  		iconCls:"system_share_state_icon"
 					    				  	}]
 						    		});
 
@@ -428,18 +432,7 @@ Ext.define(
 				height : 300,
 				toolConfig : {
 					width : 100,
-//					items : [ 
-//					{
-//						text : 'Settings',
-//						iconCls : 'settings',
-//						handler : me.onSettings,
-//						scope : me
-//					}, '-', {
-//						text : 'Logout',
-//						iconCls : 'logout',
-//						handler : me.onLogout,
-//						scope : me
-//					} ]
+					app:me
 				}
 			});
 

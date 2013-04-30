@@ -187,7 +187,70 @@ Ext.define(
 			
 			var me = this;
 			
-			if(Ext.util.Format.trim(_load_by_url)!=""){
+			var oValid = true;
+			
+			_load_by_url = Ext.util.Format.trim(_load_by_url);
+			
+			if(_load_by_url.length !=""){
+				
+				var oParts = _load_by_url.split("|");
+				
+				if(oParts.length!=2){
+					
+					me.refreshUrlDesktopState();
+					return;
+					
+				}
+				
+				if((parseInt(oParts[0])!=0)&&(parseInt(oParts[0])!=1)){
+					
+					oValid = false;
+					
+				}
+				
+				if(parseInt(oParts[0])==0){
+					
+					var oApps = oParts[1].split("^");
+				
+					
+					for(var i=0;i<oApps.length;i++){
+						
+						var oAppParts = oApps[i].split(":");
+						
+						if(oAppParts.length!=7){
+							
+							oValid = false;
+							break;
+							
+						}
+						
+						if(isNaN(parseInt(oAppParts[2]))||isNaN(parseInt(oAppParts[3]))||isNaN(parseInt(oAppParts[4]))
+								||isNaN(parseInt(oAppParts[5]))||isNaN(parseInt(oAppParts[6]))){
+							
+							oValid = false;
+							break;
+							
+						}
+						
+					}
+					
+				}
+				
+				if(parseInt(oParts[0])==1){
+					
+					if(Ext.util.Format.trim(oParts[1])==""){
+						
+						oValid = false;
+						
+					}
+
+				}
+
+			}
+			
+			
+			
+			if(oValid){
 				
 				var oParts = _load_by_url.split("|");
 				
@@ -233,7 +296,13 @@ Ext.define(
 					me.oprLoadDesktopState(oParts[1]);
 				}
 				
+			}else{
+				
+				me.refreshUrlDesktopState();
+				
 			}
+			
+			
 			
 			
 		},
@@ -1692,7 +1761,7 @@ Ext.define(
 			
 			if(oDataItems.length!=5){
 				
-				alert("The data you entered is not valid !");
+				alert("The 'Load' data you entered is not valid !");
 				return;
 				
 			}
@@ -1748,6 +1817,63 @@ Ext.define(
 			 
 		 },
 		 
+		 saveSharedState:function(sRefName,sRef){
+			 
+			var me = this; 
+			 
+			var oDataItems = sRef.split("|"); 
+			
+			Ext.Ajax.request({
+			    url: me.getBaseUrl()+'UP/saveAppState',
+			    params: {
+			        app: 	oDataItems[1],
+			        name: 	sRefName,
+			        state: 	sRef,
+			        obj: "reference"
+			    },
+			    scope:me,
+			    success: function(response){
+			    	
+			    	Ext.example.msg("Notification", 'Reference saved successfully !');
+			    	me.txtLoadText.setRawValue("");
+			    	me.txtRefName.setRawValue("");
+			    	/*
+			    	var me = this;
+			    	Ext.example.msg("Notification", 'State saved successfully !');
+			    	if(isNewItem){
+			    		var newItem = Ext.create('Ext.menu.Item', {
+			    			  text: stateName,
+			    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
+			    			  scope:me,
+			    			  iconCls:"system_state_icon",
+			    			  menu:[{
+		    				  		text:"Share state",
+		    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
+		    				  		iconCls:"system_share_state_icon"
+		    				  	}]
+			    		});
+
+						me.statesMenu.add(newItem);
+						
+						me.cache.desktop[stateName]=dataToSend;
+						me.saveForm.getForm().reset();
+						me.saveWindow.hide();
+			    	}else
+			    		me.cache.desktop[stateName]=dataToSend;
+			    	
+			    	me.currentDesktopState = stateName;
+			    	me.refreshUrlDesktopState();
+			    	*/
+					
+			    },
+			    failure:function(response){
+			    	
+			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+			    }
+			});
+			 
+		 },
+		 
 		 oprShareState: function (sStateName) {
 		        
 				var me = this;
@@ -1799,6 +1925,153 @@ Ext.define(
 		    	
 		    	var me = this;
 		    	me.registerStartMenus[sAppClassName] = oMenu;
+		    	
+		    },
+		    
+		    formStateLoader:function(){
+		    	
+		    	var me = this;
+		    	
+		    	me.txtLoadText = Ext.create(
+						'Ext.form.field.Text', {
+
+							fieldLabel : "Load:",
+							labelAlign : 'left',
+							margin:10,
+							width:400,
+							validate:function(){
+								var me = this;
+								
+								if((Ext.util.Format.trim(me.getValue())!="")&&(me.getValue().split("|").length==5)){
+									return true;
+								}else{
+									alert("The value in the load field is not valid !");	
+									return false;
+								}
+								
+							}
+							
+								
+						});
+		    	
+		    	me.txtRefName = Ext.create(
+						'Ext.form.field.Text', {
+
+							fieldLabel : "Reference:",
+							labelAlign : 'left',
+							margin:10,
+							width:400,
+							validate:function(){
+								var me = this;
+								
+								if(Ext.util.Format.trim(me.getValue())!=""){
+									return true;
+								}else{
+									alert("The 'Reference' field cannot be empty !");
+									return false;
+								}
+								
+							}
+								
+						});
+		    	
+		    	me.btnLoadSharedState = new Ext.Button({
+
+					text : 'Load',
+					margin : 3,
+					iconCls : "toolbar-other-load",
+					handler : function() {
+						if(me.txtLoadText.validate()){
+							
+							me.loadSharedState(me.txtLoadText.getValue());
+							
+						}
+					},
+					scope : me
+
+				});
+
+				me.btnSaveSharedState = new Ext.Button({
+
+					text : 'Save',
+					margin : 3,
+					iconCls : "toolbar-other-save",
+					handler : function() {
+						
+						var oValid = true;
+						
+						if(!me.txtLoadText.validate())
+							oValid = false;
+						
+						if(!me.txtRefName.validate())
+							oValid = false;
+						
+						if(oValid){
+							
+							me.saveSharedState(me.txtRefName.getValue(),me.txtLoadText.getValue());
+							
+						}
+						
+					},
+					scope : me
+
+				});
+
+				me.btnLoadAndSaveSharedState = new Ext.Button({
+
+					text : 'Load &amp; Save',
+					margin : 3,
+					iconCls : "toolbar-other-load",
+					handler : function() {
+						var oValid = true;
+						
+						if(!me.txtLoadText.validate())
+							oValid = false;
+						
+						if(!me.txtRefName.validate())
+							oValid = false;
+						
+						if(oValid){
+							
+							me.loadSharedState(me.txtLoadText.getValue());
+							me.saveSharedState(me.txtRefName.getValue(),me.txtLoadText.getValue());
+							
+						}
+				
+					},
+					scope : me
+
+				});
+				
+				var oToolbar = new Ext.toolbar.Toolbar();
+				
+				oToolbar.add([
+							    me.btnLoadSharedState,
+							    me.btnSaveSharedState,
+							    me.btnLoadAndSaveSharedState
+							]);
+				
+				var oPanel = new Ext.create('Ext.panel.Panel', {
+					autoHeight : true,
+					border : false,
+					items : [
+					    oToolbar,     
+						me.txtLoadText,
+						me.txtRefName,
+					]
+				});
+				
+				me.manageWindow = Ext.create('widget.window', {
+					height : 200,
+					width : 500,
+					title : 'State Loader',
+					layout : 'fit',
+					modal: true,
+					items : [oPanel],
+					iconCls:"system_state_icon"
+				});
+		    	
+				me.manageWindow.show();
 		    	
 		    }
 		

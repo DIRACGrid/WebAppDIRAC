@@ -812,6 +812,70 @@ Ext
 						
 					},
 					
+					__oprResizeImageAccordingToWindow:function(oImg,oPlotWindow){
+						
+						var a = oImg.originalWidth;
+						var b = oImg.originalHeight;
+						
+						var a1 = oPlotWindow.getWidth()-30;
+						var b1 = oPlotWindow.getHeight()-70;
+						
+						if(b<=b1){
+							
+							if(a<=a1){
+								
+								if((a1/a)<=(b1/b)){
+									
+									oImg.setWidth(a1);
+									oImg.setHeight(parseInt(a1/a*b));
+						
+									
+								}else{
+									
+									oImg.setHeight(b1);
+									oImg.setWidth(parseInt(b1/b*a));
+						
+								}
+								
+							}else{
+								
+								oImg.setWidth(a1);
+								oImg.setHeight(parseInt(a1/a*b));
+						
+							}
+							
+							
+						}else{
+							
+							if(a<=a1){
+								
+								oImg.setHeight(b1);
+								oImg.setWidth(parseInt(b1/b*a));
+						
+							}else{
+								
+								if((a1/a)<=(b1/b)){
+									
+									oImg.setWidth(a1);
+									oImg.setHeight(parseInt(a1/a*b));
+						
+									
+								}else{
+									
+									oImg.setHeight(b1);
+									oImg.setWidth(parseInt(b1/b*a));
+									
+								}
+								
+								
+							}
+							
+							
+						}
+						
+						
+					},
+					
 					__generatePlot : function(oDestinationWindow,oLoadState) {
 						
 						var me = this;
@@ -860,6 +924,7 @@ Ext
 											
 											if(oDestinationWindow==null){
 												oPlotWindow = me.getContainer().oprGetChildWindow(sTitle,false, 700, 500);
+												oPlotWindow.firstTimeSetDimensions = false;
 												me.__childWindowFocused = oPlotWindow;
 												
 												
@@ -900,73 +965,12 @@ Ext
 													
 													var oImg=oChildWindow.items.getAt(0).items.getAt(1);
 													
-													
-													
 													if(oImg.noResizeAtLoad<2){
 														oImg.noResizeAtLoad++;
 														return;
 													}
 													
-													var a = oImg.getWidth();
-													var b = oImg.getHeight();
-													
-													var a1 = iWidth-30;
-													var b1 = iHeight-70;
-													
-													
-													
-													if(b<=b1){
-														
-														if(a<=a1){
-															
-															if((a1/a)<=(b1/b)){
-																
-																oImg.setWidth(a1);
-																oImg.setHeight(parseInt(a1/a*b));
-													
-																
-															}else{
-																
-																oImg.setHeight(b1);
-																oImg.setWidth(parseInt(b1/b*a));
-													
-															}
-															
-														}else{
-															
-															oImg.setWidth(a1);
-															oImg.setHeight(parseInt(a1/a*b));
-													
-														}
-														
-														
-													}else{
-														
-														if(a<=a1){
-															
-															oImg.setHeight(b1);
-															oImg.setWidth(parseInt(b1/b*a));
-													
-														}else{
-															
-															if((a1/a)<=(b1/b)){
-																
-																oImg.setWidth(a1);
-																oImg.setHeight(parseInt(a1/a*b));
-													
-																
-															}else{
-																
-																oImg.setHeight(b1);
-																oImg.setWidth(parseInt(b1/b*a));
-																
-															}
-															
-															
-														}
-														
-														
-													}
+													me.__oprResizeImageAccordingToWindow(oImg,oChildWindow);
 													
 													
 												};
@@ -987,9 +991,25 @@ Ext
 													render:function(oElem,eOpts){
 														oElem.el.on({
 												            load: function (evt, ele, opts) {
-												            	oPlotWindow.setWidth(oElem.getWidth()+30);
-												            	oPlotWindow.setHeight(oElem.getHeight()+70);
+												            	
+												            	if(!oPlotWindow.firstTimeSetDimensions){
+												            	
+													            	oElem.originalWidth = oElem.getWidth();
+													            	oElem.originalHeight = oElem.getHeight();
+													            	
+													            	oPlotWindow.setWidth(oElem.getWidth()+30);
+													            	oPlotWindow.setHeight(oElem.getHeight()+70);
+													            	
+													            	oPlotWindow.firstTimeSetDimensions = true;
+												            	
+												            	}else{
+												            		
+												            		me.__oprResizeImageAccordingToWindow(oElem,oPlotWindow);
+												            		
+												            	}
+												            	
 												            	oPlotWindow.setLoading(false);
+												            	
 												            	if(oLoadState!=null){
 																	
 																	oPlotWindow.setPosition([oLoadState["position_x"],oLoadState["position_y"]]);
@@ -1163,10 +1183,11 @@ Ext
 											break;
 											
 								case -2:	var oNewQuartersArray = [];
+											
 											for(var i=0;i<oParams["_quarters"].length;i++)
-												oNewQuartersArray.push(parseInt(oParams["_quarters"].replace(" Q","")));
-								
-											me.calendarFrom.setValue(oNewQuartersArray);
+												oNewQuartersArray.push(parseInt(oParams["_quarters"][i].replace(" Q","")));
+											
+											me.cmbQuarter.setValue(oNewQuartersArray);
 											me.cmbQuarter.show();
 											break;
 							
