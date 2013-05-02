@@ -11,7 +11,7 @@
 
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
- 
+
     {% if _dev %}
     	<script type="text/javascript" src="/DIRAC/static/extjs/{{ext_version}}/ext-all-debug.js"></script>
     {% else %}
@@ -22,38 +22,39 @@
 		{% if _dev %}
 	        Ext.Loader.setPath({
 	        	'DIRAC': '/DIRAC/static/DIRAC',
+	        	'LHCbDIRAC': '/DIRAC/static/LHCbDIRAC',
 	            'Ext.dirac.core': '/DIRAC/static/core/js/core',
 	            'Ext.dirac.utils': '/DIRAC/static/core/js/utils',
 	            'Ext.ux.form':'/DIRAC/static/extjs/{{ext_version}}/examples/ux/form'
 	        });
-	        
-	
+
+
 	        Ext.require(['Ext.dirac.core.App','Ext.*']);
-			
-			
+
+
 	        var _app=null;
 	        var _app_base_url = "";
 	        var _dev = 1;
-	        
+
 	        Ext.onReady(function () {
 	        	_app_base_url = "{{base_url}}/";
 	            _app = new Ext.dirac.core.App();
-	            setTimeout(function(){ 
+	            setTimeout(function(){
 	            	Ext.get("app-dirac-loading").hide();
-	            	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ..."); 
+	            	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ...");
 	            },1000);
 	        });
 	    {% else %}
 	    	var _app=null;
 	        var _app_base_url = "";
 	        var _dev = 0;
-	        
+
 	        Ext.onReady(function () {
 	        	_app_base_url = "{{base_url}}/";
 	            _app = new Ext.dirac.core.App();
-	            setTimeout(function(){ 
+	            setTimeout(function(){
 	            	Ext.get("app-dirac-loading").hide();
-	            	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ..."); 
+	            	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ...");
 	            },1000);
 	        });
 	    {% end %}
@@ -76,7 +77,7 @@
 	    			</td>
 	    		</tr>
 	    	</table>
-	        
+
 	    </div>
 	</div>
 
