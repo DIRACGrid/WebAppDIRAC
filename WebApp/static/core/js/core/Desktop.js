@@ -33,7 +33,6 @@ Ext.define(
 		layout : 'fit',
 		xTickSize : 1,
 		yTickSize : 1,
-		cache:{windows:{},desktop:{}},
 		registerStartMenus:{},
 
 		/**
@@ -152,8 +151,6 @@ Ext.define(
 			if (wallpaper) {
 				me.setWallpaper(wallpaper, me.wallpaperStretch);
 			}
-			
-			me.bStatesLoaded = false;
 			
 		},
 
@@ -284,9 +281,6 @@ Ext.define(
 						
 						}
 						
-						console.log("EVE SHO SA PRAKA");
-						console.log(oSetupData);
-						
 						_app.createWindow("app",oAppItems[0],oSetupData);
 						
 					}
@@ -344,52 +338,13 @@ Ext.define(
 			//reading the existing states of the desktop for that user
 			me.statesMenu = new Ext.menu.Menu();
 			
-			/*
-			 * if the Ajax is not successful then no items will be listed
-			 * within the list of states
-			 */ 
-			Ext.Ajax.request({
-			    url: me.getBaseUrl()+'UP/listAppState',
-			    params: {
-			        app: 	"desktop",
-			        obj: 	"desktop"
-			    },
-			    scope:me,
-			    success: function(response){
-			    	
-			    	var me = this;
-			    	var states = Ext.JSON.decode(response.responseText);
-			    	me.cache.desktop={};
-			    	
-			    	for (var stateName in states) {	
-			    		
-			    		var newItem = Ext.create('Ext.menu.Item', {
-										    			  text: stateName,
-										    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
-										    			  scope:me,
-										    			  iconCls:"system_state_icon",
-										    			  menu:[{
-									    				  		text:"Share state",
-									    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
-									    				  		iconCls:"system_share_state_icon"
-									    				  	}]
-										    		});
-			    		
-			    		me.statesMenu.add(newItem);
-			    		
-			    		me.cache.desktop[stateName]=states[stateName];
-			    		
-			    	}
-			    	
-			    	me.bStatesLoaded = true;
-			    	
-			    	
-			    },
-			    failure:function(response){
-			    	
-			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-			    }
-			});
+			var oFunc = function(){
+				
+				me.oprReadDesktopStatesFromCache();
+				
+			}
+			
+			_app._sm.oprReadApplicationStatesAndReferences("desktop",oFunc);
 			
 			ret.items.push(
 				
@@ -439,6 +394,54 @@ Ext.define(
 			return ret;
 		},
 		
+		oprReadDesktopStatesFromCache:function(){
+			
+			
+			var me = this;
+			
+			me.statesMenu.removeAll();
+			
+			var oStates = _app._sm.cache.desktop.desktop; 
+			
+			for (var sStateName in oStates) {	
+	    		
+	    		var newItem = Ext.create('Ext.menu.Item', {
+								    			  text: sStateName,
+								    			  handler: Ext.bind(me.oprLoadDesktopState, me, [sStateName], false),
+								    			  scope:me,
+								    			  iconCls:"system_state_icon",
+								    			  stateType:"application",
+								    			  menu:[{
+							    				  		text:"Share state",
+							    				  		handler:Ext.bind(me.oprShareState, me, [sStateName], false),
+							    				  		iconCls:"system_share_state_icon"
+							    				  	}]
+								    		});
+	    		
+	    		me.statesMenu.add(newItem);
+	    		
+	    	}
+			
+			me.statesMenu.add("-");
+			
+			var oRefs = _app._sm.cache.reference.desktop;
+			
+			for (var sStateName in oRefs) {	
+	    		
+	    		var newItem = Ext.create('Ext.menu.Item', {
+								    			  text: sStateName,
+								    			  handler: Ext.bind(me.loadSharedStateByName, me, ["desktop",sStateName], false),
+								    			  scope:me,
+								    			  iconCls:"system_link_icon",
+								    			  stateType:"reference"
+								    		});
+	    		
+	    		me.statesMenu.add(newItem);
+	    		
+	    	}
+			
+			
+		},
 		
 		/**
 		 * Function to tile the windows within the available desktop
@@ -983,19 +986,22 @@ Ext.define(
 		 * @param {String} appName Name of the module 
 		 * @param {Object} stateData Data of the module that define its state 
 		 */
-		addStateToExistingWindows: function(stateName, appName, stateData){
+		addStateToExistingWindows: function(stateType,stateName, appName, stateData){
 			
 			var me=this;
 			
-			me.cache.windows[appName][stateName]=stateData;
-			
+			if(stateType=="application")
+				_app._sm.cache[stateType][appName][stateName]=stateData;
+			else if(stateType=="reference")
+				_app._sm.cache[stateType][appName][stateName]={link:stateData};
+				
 			me.windows.each(function(item,index,len){
 				if(item.getAppClassName() == appName)
-					item.addNewState(stateName);
+					item.addNewState(stateType,stateName);
 			});
 			
 			if(appName in me.registerStartMenus)
-				me.registerStartMenus[appName].addNewState(stateName);
+				me.registerStartMenus[appName].addNewState(stateType,stateName);
 			
 		},
 		
@@ -1011,37 +1017,20 @@ Ext.define(
 			/*
 			 * If the Ajax is not successful then the states will remain the same
 			 */
-			Ext.Ajax.request({
-			    url: me.getBaseUrl()+'UP/listAppState',
-			    params: {
-			        app: 	appName,
-			        obj: 	"application"
-			    },
-			    scope:me,
-			    success: function(response){
-			    	
-			    	var me = this;
-			    	
-			    	delete me.cache.windows[appName];
-			    	
-			    	var states = Ext.JSON.decode(response.responseText);
-			    	
-			    	me.cache.windows[appName]=states;
-			    	
-			    	me.windows.each(function(item,index,len){
-						if(item.getAppClassName() == appName)
-							item.oprRefreshAppStates();
-					});
-			    	
-			    	if(appName in me.registerStartMenus)
-						me.registerStartMenus[appName].oprRefreshAppStates();
-			    	
-			    },
-			    failure:function(response){
-			    	
-			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-			    }
-			});
+			
+			var oFunc = function(){
+				
+				me.windows.each(function(item,index,len){
+					if(item.getAppClassName() == appName)
+						item.oprRefreshAppStates();
+				});
+		    	
+		    	if(appName in me.registerStartMenus)
+					me.registerStartMenus[appName].oprRefreshAppStates();
+				
+			}
+			
+			_app._sm.oprReadApplicationStatesAndReferences(appName,oFunc);
 			
 		},
 		
@@ -1078,19 +1067,19 @@ Ext.define(
 		 * @param {String} stateName Name of the state
 		 * @param {String} appName Name of the module (application) 
 		 */
-		removeStateFromWindows: function(stateName, appName){
+		removeStateFromWindows: function(stateType,stateName, appName){
 			
 			var me=this;
 			
-			delete me.cache.windows[appName][stateName]; 
+			delete _app._sm.cache.application[appName][stateName]; 
 		
 			me.windows.each(function(item,index,len){
 				if(item.getAppClassName() == appName)
-					item.removeState(stateName);
+					item.removeState(stateType,stateName);
 			});
 			
 			if(appName in me.registerStartMenus)
-				me.registerStartMenus[appName].removeState(stateName);
+				me.registerStartMenus[appName].removeState(stateType,stateName);
 			
 		},
 		
@@ -1128,7 +1117,7 @@ Ext.define(
 		isExistingState:function(stateName){
 			var me = this;
 
-			if( stateName in me.cache.desktop)
+			if( stateName in _app._sm.cache.desktop.desktop)
 				return true;
 			else
 				return false;
@@ -1206,7 +1195,7 @@ Ext.define(
 			
 			var me = this;
 			
-			if(!me.bStatesLoaded){
+			if(!(("desktop" in _app._sm.cache.desktop)&&(stateName in _app._sm.cache.desktop.desktop))){
 				
 				me.funcPostponedLoading = function(){
 					
@@ -1220,7 +1209,7 @@ Ext.define(
 			}
 			
 			//get the state from the cache
-			var stateData = me.cache.desktop[stateName];
+			var stateData = _app._sm.cache.desktop.desktop[stateName];
 			
 			for(var i=0,len=stateData["data"].length;i<len;i++){
 				
@@ -1285,9 +1274,57 @@ Ext.define(
 										 html: "<b>DESKTOP</b> states",
 									    xtype: "box"
 									},
+									{xtype:"panel",
+									       layout:"column",
+									       border:false,
+									       items:[
+											{
+												xtype      : 'radiofield',
+												boxLabel  : 'States',
+								                inputValue: 's',
+								                name: "manage_state_type",
+								                width:150,
+								                checked:true,
+								                listeners:{
+								                	
+								                	change:function(cmp, newValue, oldValue, eOpts){
+								                		
+								                		var oSelectElStates = me.manageForm.items.getAt(2);
+								                		var oSelectElLinks = me.manageForm.items.getAt(3);
+								                		
+								                		if(newValue){
+								                			
+								                			oSelectElStates.show();
+								                			oSelectElLinks.hide();
+								                			
+								                		}else{
+								                			
+								                			oSelectElStates.hide();
+								                			oSelectElLinks.show();
+								                			
+								                		}
+								                		
+								                	}
+								                	
+								                }
+											},
+											{
+												xtype      : 'radiofield',
+												boxLabel  : 'Links',
+								                inputValue: 'l',
+								                name: "manage_state_type",
+								                width:150
+											}
+											]
+									},
 									{
 										 html: "<select size='10' multiple='multiple' style='width:100%'></select>",
 								         xtype: "box"
+									},
+									{
+										 html: "<select size='10' multiple='multiple' style='width:100%'></select>",
+								         xtype: "box",
+								         hidden: true
 									}
 								],
 
@@ -1327,7 +1364,13 @@ Ext.define(
 		oprDeleteSelectedStates: function(){
 			
 			var me = this;
-			var oSelectField = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
+			
+			var iWhoSelect = 0;
+			
+			if(me.manageForm.items.getAt(1).items.getAt(1).getValue())
+				iWhoSelect = 1;
+			
+			var oSelectField = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[iWhoSelect];
 			
 			for (var i = oSelectField.length - 1; i>=0; i--) {
 			    if (oSelectField.options[i].selected) {
@@ -1338,28 +1381,50 @@ Ext.define(
 			     */	
 
 			      var oStateName=oSelectField.options[i].value;	
-			    	
-			      if(! (me.currentDesktopState==oStateName) ){
+			    
+			      if(iWhoSelect == 0){	
+			      
+				      if(! (me.currentDesktopState==oStateName) ){
+				    	  
+				    	  /*
+				    	   * If the Ajax is not successful the item wont be deleted
+				    	   */
+				    	  Ext.Ajax.request({
+							    url: me.getBaseUrl()+'UP/delAppState',
+							    params: {
+							    	app: "desktop",
+							    	name: 	oStateName,
+							        obj: "desktop"
+							    },
+							    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField,iWhoSelect], false),
+							    failure:function(response){
+							    	
+							    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+							    }
+							});
+				    	  
+				      }else
+				    	  Ext.MessageBox.alert('Message','The state <b>'+oSelectField.options[i].value+'</b> you are willing to delete is curently in use !');
+			      }else{
 			    	  
-			    	  /*
-			    	   * If the Ajax is not successful the item wont be deleted
-			    	   */
+			    	  
 			    	  Ext.Ajax.request({
 						    url: me.getBaseUrl()+'UP/delAppState',
 						    params: {
 						    	app: "desktop",
 						    	name: 	oStateName,
-						        obj: "desktop"
+						        obj: "reference"
 						    },
-						    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField], false),
+						    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField,iWhoSelect], false),
 						    failure:function(response){
 						    	
 						    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 						    }
 						});
 			    	  
-			      }else
-			    	  Ext.MessageBox.alert('Message','The state <b>'+oSelectField.options[i].value+'</b> you are willing to delete is curently in use !');
+			    	  
+			    	  
+			      }
 			    	
 			    	
 			      
@@ -1373,12 +1438,16 @@ Ext.define(
 		 * @param {Integer} index index of the selected element
 		 * @param {DOMObject} oSelectEl the select element of the management form 
 		 */
-		oprDeleteSelectedStates_s: function(index,oSelectEl){
+		oprDeleteSelectedStates_s: function(index,oSelectEl,iWhoSelect){
 			
 			var me = this;
 			
 			var oStateName = oSelectEl.options[index].value;
-			delete me.cache.desktop[oStateName];
+			
+			if(iWhoSelect==0)
+				delete _app._sm.cache.desktop.desktop[oStateName];
+			else
+				delete _app._sm.cache.reference.desktop[oStateName];
 			
 			for(var i=0;i<me.statesMenu.items.length;i++){
 				
@@ -1407,7 +1476,27 @@ Ext.define(
 			for (i = oSelectEl.length - 1; i>=0; i--) 
 				oSelectEl.remove(i);
 		
-			for(var stateName in me.cache.desktop){
+			for(var stateName in _app._sm.cache.desktop.desktop){
+				
+				  var elOptNew = document.createElement('option');
+				  elOptNew.text = stateName;
+				  elOptNew.value = stateName;
+
+				  try {
+					  oSelectEl.add(elOptNew, null); // standards compliant; doesn't work in IE
+				  }
+				  catch(ex) {
+					  oSelectEl.add(elOptNew); // IE only
+				  }
+				  
+			}
+			
+			oSelectEl = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[1];
+			
+			for (i = oSelectEl.length - 1; i>=0; i--) 
+				oSelectEl.remove(i);
+		
+			for(var stateName in _app._sm.cache.reference.desktop){
 				
 				  var elOptNew = document.createElement('option');
 				  elOptNew.text = stateName;
@@ -1431,54 +1520,13 @@ Ext.define(
 			
 			var me = this;
 			
-			/*
-			 * If the Ajax is not successful then the states wil remain the same. 
-			 * No deletion.
-			 */
-			Ext.Ajax.request({
-			    url: me.getBaseUrl()+'UP/listAppState',
-			    params: {
-			        app: 	"desktop",
-			        obj: 	"desktop"
-			    },
-			    scope:me,
-			    success: function(response){
-			    	
-			    	var me = this;
-			    	
-			    	me.statesMenu.removeAll();
-					delete me.cache.desktop;
-					me.cache.desktop = {};
-			    	
-			    	var states = Ext.JSON.decode(response.responseText);
-			    	me.cache.desktop={};
-			    	
-			    	for (var stateName in states) {	
-			    		
-			    		var newItem = Ext.create('Ext.menu.Item', {
-										    			  text: stateName,
-										    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
-										    			  scope:me,
-										    			  iconCls:"system_state_icon",
-										    			  menu:[{
-									    				  		text:"Share state",
-									    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
-									    				  		iconCls:"system_share_state_icon"
-									    				  	}]
-										    		});
-			    		
-			    		me.cache.desktop[stateName]=states[stateName];
-			    		
-			    		me.statesMenu.add(newItem);
-			    		
-			    	}
-			    	
-			    },
-			    failure:function(response){
-			    	
-			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-			    }
-			});
+			var oFunc = function(){
+				
+				me.oprReadDesktopStatesFromCache();
+				
+			}
+			
+			_app._sm.oprReadApplicationStatesAndReferences("desktop",oFunc);
 			
 		},
 		/**
@@ -1690,13 +1738,13 @@ Ext.define(
 		    				  	}]
 			    		});
 
-						me.statesMenu.add(newItem);
+						me.statesMenu.insert(0,newItem);
 						
-						me.cache.desktop[stateName]=dataToSend;
+						_app._sm.cache.desktop.desktop[stateName] = dataToSend;
 						me.saveForm.getForm().reset();
 						me.saveWindow.hide();
 			    	}else
-			    		me.cache.desktop[stateName]=dataToSend;
+			    		_app._sm.cache.desktop.desktop[stateName] = dataToSend;
 			    	
 			    	me.currentDesktopState = stateName;
 			    	me.refreshUrlDesktopState();
@@ -1707,6 +1755,44 @@ Ext.define(
 			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			    }
 			});
+			
+		},
+		
+		
+		addDesktopReference:function(stateName){
+			
+			var me = this;
+			
+			var newItem = Ext.create('Ext.menu.Item', {
+	  			  text: stateName,
+	  			  handler: Ext.bind(me.loadSharedStateByName, me, ["desktop",stateName], false),
+	  			  scope:me,
+	  			  iconCls:"system_link_icon",
+	  		});
+			
+			me.statesMenu.add(newItem);
+			
+			
+		},
+		
+		
+		removeDesktopReference:function(){
+			
+			var me = this;
+			
+			for(var i=me.statesMenu.items.length-1;i>=0;i--){
+				
+				if(me.statesMenu.items.getAt(i).self.getName()=="Ext.menu.Separator")
+					break;
+				
+				if(me.statesMenu.items.getAt(i).text==stateName){
+					
+					me.statesMenu.remove(me.menu.items.getAt(i));
+					break;
+					
+				}
+				
+			}
 			
 		},
 		
@@ -1750,6 +1836,14 @@ Ext.define(
 			}
 			
 			window.history.pushState("X","ExtTop - Desktop Sample App",sNewUrlState);
+			
+		},
+		
+		loadSharedStateByName:function(sAppName,sStateName){
+			
+			var me = this;
+			
+			me.loadSharedState(_app._sm.cache.reference[sAppName][sStateName]["link"]);
 			
 		},
 		
@@ -1828,7 +1922,7 @@ Ext.define(
 			    params: {
 			        app: 	oDataItems[1],
 			        name: 	sRefName,
-			        state: 	sRef,
+			        state: 	Ext.JSON.encode({link:sRef}),
 			        obj: "reference"
 			    },
 			    scope:me,
@@ -1837,34 +1931,14 @@ Ext.define(
 			    	Ext.example.msg("Notification", 'Reference saved successfully !');
 			    	me.txtLoadText.setRawValue("");
 			    	me.txtRefName.setRawValue("");
-			    	/*
-			    	var me = this;
-			    	Ext.example.msg("Notification", 'State saved successfully !');
-			    	if(isNewItem){
-			    		var newItem = Ext.create('Ext.menu.Item', {
-			    			  text: stateName,
-			    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
-			    			  scope:me,
-			    			  iconCls:"system_state_icon",
-			    			  menu:[{
-		    				  		text:"Share state",
-		    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
-		    				  		iconCls:"system_share_state_icon"
-		    				  	}]
-			    		});
-
-						me.statesMenu.add(newItem);
-						
-						me.cache.desktop[stateName]=dataToSend;
-						me.saveForm.getForm().reset();
-						me.saveWindow.hide();
-			    	}else
-			    		me.cache.desktop[stateName]=dataToSend;
 			    	
-			    	me.currentDesktopState = stateName;
-			    	me.refreshUrlDesktopState();
-			    	*/
-					
+			    	if(oDataItems[0]=="application"){
+			    		me.addStateToExistingWindows("reference",sRefName,oDataItems[1],sRef);
+			    	}else{
+			    		me.addDesktopReference(sRefName);
+			    		_app._sm.cache.reference["desktop"][sRefName] = {link:sRef};
+			    	}
+			    	
 			    },
 			    failure:function(response){
 			    	
@@ -1896,20 +1970,11 @@ Ext.define(
 			    			+"|"+_app.configData["user"]["group"]
 			    			+"|"+sStateName;
 			    		
-			    		var oInfoWindow = Ext.create('widget.window', {
-							height : 120,
-							width : 800,
-							title : "Info for sharing the <span style='color:red'>"+sStateName+"</span> state:",
-							layout : 'fit',
-							modal: true
-						});
-			    		
 			    		var oHtml = "<div style='padding:5px'>The string you can send is as follows:</div>";
 			    		oHtml+="<div style='padding:5px;font-weight:bold'>"+oStringToShow+"</div>";
 			    		
-			    		oInfoWindow.add({html: oHtml,xtype: "panel"});		
-			    		
-			    		oInfoWindow.show();
+			    		Ext.MessageBox.alert("Info for sharing the <span style='color:red'>"+sStateName+"</span> state:",
+			    							oHtml);
 				    	
 				    },
 				    failure:function(response){
@@ -1935,7 +2000,7 @@ Ext.define(
 		    	me.txtLoadText = Ext.create(
 						'Ext.form.field.Text', {
 
-							fieldLabel : "Load:",
+							fieldLabel : "Shared State:",
 							labelAlign : 'left',
 							margin:10,
 							width:400,
@@ -1945,19 +2010,20 @@ Ext.define(
 								if((Ext.util.Format.trim(me.getValue())!="")&&(me.getValue().split("|").length==5)){
 									return true;
 								}else{
-									alert("The value in the load field is not valid !");	
+									alert("The value in the 'Shared State' field is not valid !");	
 									return false;
 								}
 								
-							}
+							},
+							validateOnChange:false,
+							validateOnBlur:false
 							
-								
 						});
 		    	
 		    	me.txtRefName = Ext.create(
 						'Ext.form.field.Text', {
 
-							fieldLabel : "Reference:",
+							fieldLabel : "Name:",
 							labelAlign : 'left',
 							margin:10,
 							width:400,
@@ -1967,12 +2033,13 @@ Ext.define(
 								if(Ext.util.Format.trim(me.getValue())!=""){
 									return true;
 								}else{
-									alert("The 'Reference' field cannot be empty !");
+									alert("The 'Name' field cannot be empty !");
 									return false;
 								}
 								
-							}
-								
+							},
+							validateOnChange:false,
+							validateOnBlur:false
 						});
 		    	
 		    	me.btnLoadSharedState = new Ext.Button({
@@ -1993,7 +2060,7 @@ Ext.define(
 
 				me.btnSaveSharedState = new Ext.Button({
 
-					text : 'Save',
+					text : 'Create Link',
 					margin : 3,
 					iconCls : "toolbar-other-save",
 					handler : function() {
@@ -2019,7 +2086,7 @@ Ext.define(
 
 				me.btnLoadAndSaveSharedState = new Ext.Button({
 
-					text : 'Load &amp; Save',
+					text : 'Load &amp; Create Link',
 					margin : 3,
 					iconCls : "toolbar-other-load",
 					handler : function() {

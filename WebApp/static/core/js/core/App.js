@@ -24,7 +24,8 @@ Ext.define(
 		             'Ext.dirac.core.Desktop', 
 		             'Ext.window.MessageBox',
 		             'Ext.dirac.core.ShortcutModel', 
-		             'Ext.dirac.core.CommonFunctions'
+		             'Ext.dirac.core.CommonFunctions',
+		             'Ext.dirac.core.StateManagement'
 		           ],
 		/**
 		 * @property {boolean} isReady
@@ -37,6 +38,7 @@ Ext.define(
 
 		useQuickTips : true,
 		
+		validApplications:[],
 
 		constructor : function() {
 
@@ -96,6 +98,7 @@ Ext.define(
 			});
 			
 			me._cf = new Ext.dirac.core.CommonFunctions();
+			me._sm = new Ext.dirac.core.StateManagement();
 			
 			me.callParent();
 
@@ -216,7 +219,7 @@ Ext.define(
 			
 			if(item.length==2){
 				
-				var result = {text:item[0],menu:[]};
+				var result = {text:item[0],menu:[],iconCls:"system_folder"};
 				
 				for(var i=0;i<item[1].length;i++)
 					result.menu.push(me.getMenuStructureRec(item[1][i]));
@@ -236,133 +239,127 @@ Ext.define(
 							text:item[1],
 							minWidth:200,
 							//handler:Ext.bind(me.createWindow, me,[item[0],item[2],((item[0]=="app")?null:{title:item[1]})]),
-							menu:[{text:"Default",handler:Ext.bind(me.createWindow, me,[item[0],item[2],null]),minWidth:200},'-'],
+							menu:[{text:"Default",handler:Ext.bind(me.createWindow, me,[item[0],item[2],null]),minWidth:200,iconCls:"notepad"},'-'],
 							isStateMenuLoaded:0,
 							appClassName:sStartClass,
+							iconCls:"notepad",
 							listeners:{
 								render:function(oMenu, eOpts){
 									_app.desktop.registerStartAppMenu(oMenu,oMenu.appClassName);
 								},
 								focus:function(cmp,e,eOpts){
+									
 									/*
 									 * if the cache for the state of the started application exist
 									 */
-									/*
-									var oParts = item[2].split(".");
-									var sStartClass="";
-									if(oParts.length==2)
-										sStartClass=item[2]+".classes."+oParts[1];
-									else
-										sStartClass=item[2];
-									*/
-									if(sStartClass in me.desktop.cache.windows){
+									if(sStartClass in _app._sm.cache.application){
 
 										if(cmp.isStateMenuLoaded != 2){
-											for (var stateName in me.desktop.cache.windows[sStartClass]) {	
-												
-												var newItem = Ext.create('Ext.menu.Item', {
-									    			  text: stateName,
-									    			  handler: Ext.bind(me.createWindow, me, ["app",sStartClass,{stateToLoad:stateName}], false),
-									    			  scope:me,
-									    			  iconCls:"system_state_icon",
-									    			  menu:[{
-								    				  		text:"Share state",
-								    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,sStartClass], false),
-								    				  		iconCls:"system_share_state_icon"
-								    				  	}]
-									    		});
-					
-												cmp.menu.add(newItem);
-												
-											}
+											
+											cmp.oprRefreshAppStates();
 											cmp.isStateMenuLoaded=2;
 										}
 																
 									}else{
-										if(cmp.isStateMenuLoaded==0){	
-											Ext.Ajax.request({
-											    url: me.desktop.getBaseUrl()+'UP/listAppState',
-											    params: {
-											        app: 	sStartClass,
-											        obj: 	"application"
-											    },
-											    
-											    success: function(response){
-											    	
-											    	var states = Ext.JSON.decode(response.responseText);
-											    	me.desktop.cache.windows[sStartClass]={};
-											    	
-											    	for (var stateName in states) {	
-											    		
-											    		var newItem = Ext.create('Ext.menu.Item', {
-																		    			  text: stateName,
-																		    			  handler: Ext.bind(me.createWindow, me, ["app",sStartClass,{stateToLoad:stateName}], false),
-																		    			  scope:me,
-																		    			  iconCls:"system_state_icon",
-																		    			  menu:[{
-																	    				  		text:"Share state",
-																	    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,sStartClass], false),
-																	    				  		iconCls:"system_share_state_icon"
-																	    				  	}]
-																		    		});
-											    		
-											    		cmp.menu.add(newItem);
-											    		
-											    		me.desktop.cache.windows[sStartClass][stateName]=states[stateName];
-											    		
-											    	}
-											    	
-											    	cmp.isStateMenuLoaded=2;
-											    	
-											    	
-											    },
-											    failure:function(response){
-											    	
-											    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-											    }
-											});
+										if(cmp.isStateMenuLoaded==0){
+											
+											var oFunc = function(){
+												
+												cmp.oprRefreshAppStates();
+												cmp.isStateMenuLoaded=2;
+												
+											}
+											
+											_app._sm.oprReadApplicationStatesAndReferences(sStartClass,oFunc);
 											
 											cmp.isStateMenuLoaded = 1;
+											
 										}
 			
 									}
-									
-									
+
 								}
 								
 							},
-							addNewState: function(stateName){
+							addNewState: function(stateType,stateName){
 								
 								var oThisMenu = this;
+								var oNewItem = null;
 								
-								var newItem = Ext.create('Ext.menu.Item', {
-					    			  text: stateName,
-					    			  handler: Ext.bind(_app.createWindow, _app, ["app",oThisMenu.appClassName,{stateToLoad:stateName}], false),
-					    			  scope:me,
-					    			  iconCls:"system_state_icon",
-					    			  menu:[{
-				    				  		text:"Share state",
-				    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false),
-				    				  		iconCls:"system_share_state_icon"
-				    				  	}]
-					    		});
+								if(stateType == "application"){
+									
+									oNewItem = Ext.create('Ext.menu.Item', {
+						    			  text: stateName,
+						    			  handler: Ext.bind(_app.createWindow, _app, ["app",oThisMenu.appClassName,{stateToLoad:stateName}], false),
+						    			  scope:me,
+						    			  iconCls:"system_state_icon",
+						    			  stateType:stateType,
+						    			  menu:[{
+					    				  		text:"Share state",
+					    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false),
+					    				  		iconCls:"system_share_state_icon"
+					    				  	}]
+						    		});
+									
+									oThisMenu.menu.insert(2,oNewItem);
+									
+								}else if(stateType == "reference"){
+									
+									oNewItem = Ext.create('Ext.menu.Item', {
+						    			  text: stateName,
+						    			  handler: Ext.bind(_app.desktop.loadSharedStateByName, _app.desktop, [oThisMenu.appClassName,stateName], false),
+						    			  scope:me,
+						    			  iconCls:"system_link_icon",
+						    			  stateType:stateType
+						    		});
+									
+									oThisMenu.menu.add(oNewItem);
+									
+								}
 
-								oThisMenu.menu.add(newItem);
 								
 							},
-							removeState: function(stateName){
+							removeState: function(stateType,stateName){
 								
 								var me = this;
 								
-								for(var i=2;i<me.menu.items.length;i++){
-									
-									if(me.menu.items.getAt(i).text==stateName){
+								var iStartingIndex = 0;
+								
+								switch(stateType){
+								
+									case "application": 
+														for(var i=2;i<me.menu.items.length;i++){
+															
+															if(me.menu.items.getAt(i).self.getName()=="Ext.menu.Separator")
+																break;
+															
+															if(me.menu.items.getAt(i).text==stateName){
+																
+																me.menu.remove(me.menu.items.getAt(i));
+																break;
+																
+															}
+															
+														}	
 										
-										me.menu.remove(me.menu.items.getAt(i));
-										break;
-										
-									}
-									
+														break;
+									case "reference":	
+														for(var i=me.menu.items.length-1;i>=0;i--){
+															
+															if(me.menu.items.getAt(i).self.getName()=="Ext.menu.Separator")
+																break;
+															
+															if(me.menu.items.getAt(i).text==stateName){
+																
+																me.menu.remove(me.menu.items.getAt(i));
+																break;
+																
+															}
+															
+														}
+														break;
+								
+								
 								}
 								
 							},
@@ -371,20 +368,37 @@ Ext.define(
 								var oThisMenu = this;
 								
 								oThisMenu.menu.removeAll();
-								oThisMenu.menu.add([{text:"Default",handler:Ext.bind(_app.createWindow, _app,["app",oThisMenu.appClassName,null]),minWidth:200},'-']);
+								oThisMenu.menu.add([{text:"Default",handler:Ext.bind(_app.createWindow, _app,["app",oThisMenu.appClassName,null]),minWidth:200,iconCls:"notepad"},'-']);
 								
-								for (var stateName in _app.desktop.cache.windows[oThisMenu.appClassName]) {	
+								for (var stateName in _app._sm.cache.application[oThisMenu.appClassName]) {	
 									
 									var newItem = Ext.create('Ext.menu.Item', {
 						    			  text: stateName,
 						    			  handler: Ext.bind(_app.createWindow, _app, ["app",oThisMenu.appClassName,{stateToLoad:stateName}], false),
 						    			  scope:me,
 						    			  iconCls:"system_state_icon",
+						    			  stateType: "application",
 						    			  menu:[{
 					    				  		text:"Share state",
 					    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false),
 					    				  		iconCls:"system_share_state_icon"
 					    				  	}]
+						    		});
+
+									oThisMenu.menu.add(newItem);
+									
+								}
+								
+								oThisMenu.menu.add("-");
+								
+								for (var stateName in _app._sm.cache.reference[oThisMenu.appClassName]) {	
+									
+									var newItem = Ext.create('Ext.menu.Item', {
+						    			  text: stateName,
+						    			  handler: Ext.bind(_app.desktop.loadSharedStateByName, _app.desktop, [oThisMenu.appClassName,stateName], false),
+						    			  scope:me,
+						    			  iconCls:"system_link_icon",
+						    			  stateType: "reference"
 						    		});
 
 									oThisMenu.menu.add(newItem);
@@ -399,7 +413,8 @@ Ext.define(
 					return {
 						text:item[1],
 						handler:Ext.bind(me.createWindow, me,[item[0],item[2],{title:item[1]}]),
-						minWidth:200
+						minWidth:200,
+						iconCls:"system_web_window"
 					};
 					
 					
@@ -537,20 +552,12 @@ Ext.define(
 		    			+"|"+_app.configData["user"]["group"]
 		    			+"|"+sStateName;
 		    		
-		    		var oInfoWindow = Ext.create('widget.window', {
-						height : 120,
-						width : 800,
-						title : "Info for sharing the <span style='color:red'>"+sStateName+"</span> state:",
-						layout : 'fit',
-						modal: true
-					});
-		    		
+		    				    		
 		    		var oHtml = "<div style='padding:5px'>The string you can send is as follows:</div>";
 		    		oHtml+="<div style='padding:5px;font-weight:bold'>"+oStringToShow+"</div>";
 		    		
-		    		oInfoWindow.add({html: oHtml,xtype: "panel"});		
-		    		
-		    		oInfoWindow.show();
+		    		Ext.MessageBox.alert("Info for sharing the <span style='color:red'>"+sStateName+"</span> state:",
+							oHtml);
 			    	
 			    },
 			    failure:function(response){

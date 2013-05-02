@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-    <title>ExtTop - Desktop Sample App</title>
+    <title>DIRAC :: DESKTOP</title>
 
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/{{ext_version}}/resources/css/ext-all.css" />
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/css.css" />

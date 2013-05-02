@@ -125,8 +125,6 @@ Ext
 						oReturn.leftMenu.calenTo = me.timeSearchPanel.calenTo.getValue();
 						oReturn.leftMenu.cmbTimeTo = me.timeSearchPanel.cmbTimeTo.getValue();
 						
-						console.log(oReturn);
-						
 						return oReturn;
 
 					},

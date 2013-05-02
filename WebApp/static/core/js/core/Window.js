@@ -59,7 +59,6 @@ Ext.define(
 						}
 						
 						me.childWindows = [];
-						me.bStatesLoaded = false;
 						
 						me.callParent();
 						
@@ -89,10 +88,11 @@ Ext.define(
 						
 						if(setupData != null){
 								
-							if("maximized" in setupData){
-								if(setupData["maximized"])
-									me.maximize();	
-							}else if("minimized" in setupData){
+							if(("maximized" in setupData)&&(setupData["maximized"])){
+								
+								me.maximize();
+								
+							}else if(("minimized" in setupData)&&(setupData["minimized"])){
 								
 								if("width" in setupData)
 									me.setWidth(parseInt(setupData.width));
@@ -103,18 +103,19 @@ Ext.define(
 								me.desktop.minimizeWindow(me);
 							
 							}else { 
-								
-								
-								
-								if("x" in setupData)
+	
+								if("x" in setupData){
 									me.setPosition(parseInt(setupData.x),parseInt(setupData.y));
+								}
 
 								
-								if("width" in setupData)
+								if("width" in setupData){
 									me.setWidth(parseInt(setupData.width));
+								}
 							
-								if("height" in setupData)
+								if("height" in setupData){
 									me.setHeight(parseInt(setupData.height));
+								}
 
 								
 								if((!("height" in setupData))&&(!("width" in setupData))){
@@ -162,10 +163,8 @@ Ext.define(
 							}else{
 								
 								if("data" in setupData){
-									
 									me.currentState = setupData.currentState;
 									me.loadedObject.loadState(setupData.data);
-									
 								}
 								
 							}
@@ -291,13 +290,12 @@ Ext.define(
 					    			+"|"+_app.configData["user"]["group"]
 					    			+"|"+sStateName;
 					    		
-					    		var oInfoWindow = me.oprGetChildWindow("Info for sharing the <span style='color:red'>"+sStateName+"</span> state:",true,800,120);
+					    		
 					    		var oHtml = "<div style='padding:5px'>The string you can send is as follows:</div>";
 					    		oHtml+="<div style='padding:5px;font-weight:bold'>"+oStringToShow+"</div>";
 					    		
-					    		oInfoWindow.add({html: oHtml,xtype: "panel"});		
-					    		
-					    		oInfoWindow.show();
+					    		Ext.MessageBox.alert("Info for sharing the <span style='color:red'>"+sStateName+"</span> state:",
+		    							oHtml);
 						    	
 						    },
 						    failure:function(response){
@@ -316,8 +314,6 @@ Ext.define(
 
 						var me = this;
 						
-						me.bStatesLoaded = false;
-						
 						if(me.loadedObjectType=="app"){
 							
 							me.statesMenu = new Ext.menu.Menu();
@@ -325,80 +321,23 @@ Ext.define(
 							/*
 							 * if the cache for the state of the started application exist
 							 */
-							if(me.appClassName in me.desktop.cache.windows){
+							if(me.appClassName in _app._sm.cache.application){
 								
-								me.bStatesLoaded = true; 
-									
-								for (var stateName in me.desktop.cache.windows[me.appClassName]) {	
-									
-									var newItem = Ext.create('Ext.menu.Item', {
-						    			  text: stateName,
-						    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-						    			  scope:me,
-						    			  iconCls:"system_state_icon",
-						    			  menu:[{
-						    				  		text:"Share state",
-						    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
-						    				  		iconCls:"system_share_state_icon"
-						    				  	}]
-						    		});
-									
-									//newItem.getEl().on('contextmenu', me.onStateItemContextMenu, me);
-									
-									me.statesMenu.add(newItem);
-									
-								}
+								me.oprRefreshAppStates();
 														
 							}else{
 								
 								/*
 								 * if the cache does not exist
 								 */
-								/*
-								 * If the Ajax is not successful then no items 
-								 * will be created within the cache and the list of states
-								 */
-								Ext.Ajax.request({
-								    url: me.desktop.getBaseUrl()+'UP/listAppState',
-								    params: {
-								        app: 	me.appClassName,
-								        obj: 	"application"
-								    },
-								    scope:me,
-								    success: function(response){
-								    	
-								    	var me = this;
-								    	var states = Ext.JSON.decode(response.responseText);
-								    	me.desktop.cache.windows[me.appClassName]={};
-								    	
-								    	for (var stateName in states) {	
-								    		
-								    		var newItem = Ext.create('Ext.menu.Item', {
-															    			  text: stateName,
-															    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-															    			  scope:me,
-															    			  iconCls:"system_state_icon",
-															    			  menu:[{
-														    				  		text:"Share state",
-														    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
-														    				  		iconCls:"system_share_state_icon"
-														    				  	}]
-															    		});
-								    		
-								    		me.statesMenu.add(newItem);
-								    		
-								    		me.desktop.cache.windows[me.appClassName][stateName]=states[stateName];
-								    		
-								    	}
-								    	
-								    	me.bStatesLoaded = true;
-								    	
-								    },
-								    failure:function(response){
-								    	
-								    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-								    }
-								});
+								
+								var oFunc = function(){
+									
+									me.oprRefreshAppStates();
+									
+								}	
+								
+								_app._sm.oprReadApplicationStatesAndReferences(me.appClassName,oFunc);
 	
 							}
 													
@@ -457,39 +396,99 @@ Ext.define(
 					 * Function for adding new state within the list of existing states
 					 * @param {String} stateName The name of the state
 					 */
-					addNewState: function(stateName){
+					addNewState: function(stateType,stateName){
 						
 						var me = this;
 						
-						var newItem = Ext.create('Ext.menu.Item', {
-			    			  text: stateName,
-			    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-			    			  scope:me,
-			    			  iconCls:"system_state_icon",
-			    			  menu:[{
-		    				  		text:"Share state",
-		    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
-		    				  		iconCls:"system_share_state_icon"
-		    				  	}]
-			    		});
+						if(stateType == "application"){
+						
+							var newItem = Ext.create('Ext.menu.Item', {
+				    			  text: stateName,
+				    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
+				    			  scope:me,
+				    			  iconCls:"system_state_icon",
+				    			  stateType:stateType,
+				    			  menu:[{
+			    				  		text:"Share state",
+			    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
+			    				  		iconCls:"system_share_state_icon"
+			    				  	}]
+				    		});
+							
+							var iIndexPosition = 0;
+							
+							for(var i=me.statesMenu.items.length-1;i>=0;i--){
+								
+								if(me.statesMenu.items.getAt(i).self.getName()=="Ext.menu.Separator"){
+									iIndexPosition = i;
+									break;
+								}
+								
+							}
+							
+							me.statesMenu.insert(iIndexPosition,newItem);
+						
+						}else if(stateType == "reference"){
+							
+							var newItem = Ext.create('Ext.menu.Item', {
+				    			  text: stateName,
+				    			  handler: Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [me.appClassName,stateName], false),
+				    			  scope:me,
+				    			  iconCls:"system_link_icon",
+				    			  stateType:stateType,
+				    		});
 
-						me.statesMenu.add(newItem);
+							me.statesMenu.add(newItem);
+							
+						}
 						
 					},
 					/**
 					 * Function for removing a state from the list of existing states
 					 * @param {String} stateName The name of the state
 					 */
-					removeState: function(stateName){
+					removeState: function(stateType,stateName){
 						
 						var me = this;
 						
-						for(var i=0;i<me.statesMenu.items.length;i++){
-							
-							if(me.statesMenu.items.getAt(i).text==stateName){
+						if(stateType == "application"){
+						
+							/*
+							 * Searching from the begging of the menu
+							 * 
+							 * */
+							for(var i=0;i<me.statesMenu.items.length;i++){
 								
-								me.statesMenu.remove(me.statesMenu.items.getAt(i));
-								break;
+								if(me.statesMenu.items.getAt(i).self.getName()=="Ext.menu.Separator")
+									break;
+								
+								if(me.statesMenu.items.getAt(i).text==stateName){
+									
+									me.statesMenu.remove(me.statesMenu.items.getAt(i));
+									break;
+									
+								}
+								
+							}
+						
+						}else if(stateType == "reference"){
+							
+							
+							/*
+							 * Searching from the end of the menu
+							 * 
+							 * */
+							for(var i=me.statesMenu.items.length-1;i>=0;i--){
+								
+								if(me.statesMenu.items.getAt(i).self.getName()=="Ext.menu.Separator")
+									break;
+								
+								if(me.statesMenu.items.getAt(i).text==stateName){
+									
+									me.statesMenu.remove(me.statesMenu.items.getAt(i));
+									break;
+									
+								}
 								
 							}
 							
@@ -631,9 +630,57 @@ Ext.define(
 													 html: "Application: <b>"+me.loadedObject.launcher.title+"</b>",
 												    xtype: "box"
 												},
+												{xtype:"panel",
+												       layout:"column",
+												       border:false,
+												       items:[
+														{
+															xtype      : 'radiofield',
+															boxLabel  : 'States',
+											                inputValue: 's',
+											                name: "manage_state_type",
+											                width:150,
+											                checked:true,
+											                listeners:{
+											                	
+											                	change:function(cmp, newValue, oldValue, eOpts){
+											                		
+											                		var oSelectElStates = me.manageForm.items.getAt(2);
+											                		var oSelectElLinks = me.manageForm.items.getAt(3);
+											                		
+											                		if(newValue){
+											                			
+											                			oSelectElStates.show();
+											                			oSelectElLinks.hide();
+											                			
+											                		}else{
+											                			
+											                			oSelectElStates.hide();
+											                			oSelectElLinks.show();
+											                			
+											                		}
+											                		
+											                	}
+											                	
+											                }
+														},
+														{
+															xtype      : 'radiofield',
+															boxLabel  : 'Links',
+											                inputValue: 'l',
+											                name: "manage_state_type",
+											                width:150
+														}
+														]
+												},
 												{
 													 html: "<select size='10' multiple='multiple' style='width:100%'></select>",
 											         xtype: "box"
+												},
+												{
+													 html: "<select size='10' multiple='multiple' style='width:100%;'></select>",
+											         xtype: "box",
+											         hidden: true
 												}
 											],
 
@@ -680,7 +727,27 @@ Ext.define(
 						for (i = oSelectEl.length - 1; i>=0; i--) 
 							oSelectEl.remove(i);
 						
-						for(var stateName in me.desktop.cache.windows[me.appClassName]){
+						for(var stateName in _app._sm.cache.application[me.appClassName]){
+							
+							  var elOptNew = document.createElement('option');
+							  elOptNew.text = stateName;
+							  elOptNew.value = stateName;
+		
+							  try {
+								  oSelectEl.add(elOptNew, null); // standards compliant; doesn't work in IE
+							  }
+							  catch(ex) {
+								  oSelectEl.add(elOptNew); // IE only
+							  }
+							  
+						}
+						
+						oSelectEl = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[1];
+						
+						for (i = oSelectEl.length - 1; i>=0; i--) 
+							oSelectEl.remove(i);
+						
+						for(var stateName in _app._sm.cache.reference[me.appClassName]){
 							
 							  var elOptNew = document.createElement('option');
 							  elOptNew.text = stateName;
@@ -721,7 +788,13 @@ Ext.define(
 					oprDeleteSelectedStates: function(){
 						
 						var me = this;
-						var oSelectField = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
+						
+						var iWhoSelect = 0;
+						
+						if(me.manageForm.items.getAt(1).items.getAt(1).getValue())
+							iWhoSelect = 1;
+						
+						var oSelectField = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[iWhoSelect];
 						
 						for (var i = oSelectField.length - 1; i>=0; i--) {
 						    if (oSelectField.options[i].selected) {
@@ -730,32 +803,50 @@ Ext.define(
 						     * First we check whether there are instances of that 
 						     * state that are active
 						     */	
-
-						      var oStateName=oSelectField.options[i].value;	
+						    var oStateName=oSelectField.options[i].value;	
+						    if(iWhoSelect == 0){	
+						    	  	
 						    	
-						      if(! me.desktop.isAnyActiveState(oStateName,me.appClassName)){
+							      if(! me.desktop.isAnyActiveState(oStateName,me.appClassName)){
+							    	  
+							    	  /*
+							    	   * If the Ajax is not successful then the item wont be deleted.
+							    	   */
+							    	  Ext.Ajax.request({
+										    url: me.desktop.getBaseUrl()+'UP/delAppState',
+										    params: {
+										    	app: me.appClassName,
+										    	name: 	oStateName,
+										        obj: "application"
+										    },
+										    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField,iWhoSelect], false),
+										    failure:function(response){
+										    	
+										    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+										    }
+										});
+							    	  
+							      }else
+							    	  Ext.MessageBox.alert('Message','The state <b>'+oSelectField.options[i].value+'</b> you are willing to delete is curently in use !');
+						    	
+						      }else{
 						    	  
-						    	  /*
-						    	   * If the Ajax is not successful then the item wont be deleted.
-						    	   */
 						    	  Ext.Ajax.request({
 									    url: me.desktop.getBaseUrl()+'UP/delAppState',
 									    params: {
 									    	app: me.appClassName,
 									    	name: 	oStateName,
-									        obj: "application"
+									        obj: "reference"
 									    },
-									    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField], false),
+									    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField,iWhoSelect], false),
 									    failure:function(response){
 									    	
 									    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 									    }
 									});
 						    	  
-						      }else
-						    	  Ext.MessageBox.alert('Message','The state <b>'+oSelectField.options[i].value+'</b> you are willing to delete is curently in use !');
-						    	
-						    	
+						    	  
+						      }
 						      
 						    }
 						}
@@ -767,13 +858,13 @@ Ext.define(
 					 * @param {Integer} index index of the selected element
 					 * @param {DOMObject} oSelectEl the select element of the management form 
 					 */
-					oprDeleteSelectedStates_s: function(index,oSelectEl){
+					oprDeleteSelectedStates_s: function(index,oSelectEl,iWhoSelect){
 						
 						var me = this;
 						
 						var oStateName = oSelectEl.options[index].value;
 						
-						me.desktop.removeStateFromWindows(oStateName,me.appClassName);
+						me.desktop.removeStateFromWindows(((iWhoSelect==0)?"application":"reference"),oStateName,me.appClassName);
 						
 						oSelectEl.remove(index);
 						
@@ -787,7 +878,7 @@ Ext.define(
 					isExistingState:function(stateName){
 						var me = this;
 
-						if( stateName in me.desktop.cache.windows[me.appClassName])
+						if( stateName in _app._sm.cache.application[me.appClassName])
 							return true;
 						else
 							return false;
@@ -849,10 +940,10 @@ Ext.define(
 						    	var me = this;
 						    	Ext.example.msg("Notification", 'State saved successfully !');
 						    	if(isNewItem){
-						    		me.desktop.addStateToExistingWindows(stateName,me.appClassName,sendData);
+						    		me.desktop.addStateToExistingWindows("application",stateName,me.appClassName,sendData);
 						    		me.saveWindow.hide();
 						    	}else
-						    		me.desktop.cache.windows[me.appClassName][stateName]=sendData;
+						    		_app._sm.cache.application[me.appClassName][stateName]=sendData;
 						    	
 						    	me.currentState = stateName;
 								me.setTitle(me.loadedObject.launcher.title+" ["+me.currentState+"]");
@@ -875,13 +966,14 @@ Ext.define(
 						
 						me.statesMenu.removeAll();
 						
-						for (var stateName in me.desktop.cache.windows[me.appClassName]) {	
+						for (var stateName in _app._sm.cache.application[me.appClassName]) {	
 							
 							var newItem = Ext.create('Ext.menu.Item', {
 				    			  text: stateName,
 				    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
 				    			  scope:me,
 				    			  iconCls:"system_state_icon",
+				    			  stateType:"application",
 				    			  menu:[{
 			    				  		text:"Share state",
 			    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
@@ -893,6 +985,23 @@ Ext.define(
 							
 						}
 						
+						me.statesMenu.add("-");
+						
+						for (var stateName in _app._sm.cache.reference[me.appClassName]) {	
+							
+							var newItem = Ext.create('Ext.menu.Item', {
+				    			  text: stateName,
+				    			  handler: Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [me.appClassName,stateName], false),
+				    			  scope:me,
+				    			  iconCls:"system_link_icon",
+				    			  stateType:"reference"
+				    		});
+
+							me.statesMenu.add(newItem);
+							
+						}
+
+						
 					},
 					
 					/**
@@ -903,7 +1012,7 @@ Ext.define(
 						
 						var me = this;
 						
-						if(!me.bStatesLoaded){
+						if(!((me.appClassName in _app._sm.cache.application)&&(stateName in _app._sm.cache.application[me.appClassName]))){
 							
 							me.funcPostponedLoading = function(){
 								
@@ -921,7 +1030,7 @@ Ext.define(
 						me.loadMask.show();
 						
 						me.closeAllChildWindows();
-						me.loadedObject.loadState(me.desktop.cache.windows[me.appClassName][stateName]);
+						me.loadedObject.loadState(_app._sm.cache.application[me.appClassName][stateName]);
 						me.currentState = stateName;
 						
 						_app.desktop.refreshUrlDesktopState();
@@ -942,7 +1051,8 @@ Ext.define(
 							title : sTitle,
 							modal: oModal,
 							parentWindow:me,
-							isChildWindow:true
+							isChildWindow:true,
+							iconCls:"system_child_window"
 						});
 						
 						me.childWindows.push(oWindow);
