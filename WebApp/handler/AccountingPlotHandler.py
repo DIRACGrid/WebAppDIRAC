@@ -168,7 +168,6 @@ class AccountingPlotHandler(WebHandler):
     retVal = repClient.generateDelayedPlot( *params )
     return retVal
   
-  #-----NOK-----
   @asyncGen
   def web_getPlotImg( self ):
     """
@@ -186,13 +185,15 @@ class AccountingPlotHandler(WebHandler):
       return
     transferClient = TransferClient( "Accounting/ReportGenerator" )
     tempFile = tempfile.TemporaryFile()
-    retVal = transferClient.receiveFile( tempFile, plotImageFile )
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal[ 'OK' ]:
       callback = {"success":"false","error":retVal[ 'Message' ]}
       self.finish(json.dumps(callback))
       return
     tempFile.seek( 0 )
     data = tempFile.read()
+#     import time 
+#     time.sleep(20)
     self.set_header('Content-type','image/png')
     self.set_header('Content-Disposition','attachment; filename="%s.png"' % md5( plotImageFile ).hexdigest())
     self.set_header('Content-Length',len( data ))

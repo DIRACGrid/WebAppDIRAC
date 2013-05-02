@@ -24,7 +24,8 @@ Ext.define(
 		             'Ext.dirac.core.Desktop', 
 		             'Ext.window.MessageBox',
 		             'Ext.dirac.core.ShortcutModel', 
-		             'Ext.dirac.core.CommonFunctions'
+		             'Ext.dirac.core.CommonFunctions',
+		             'Ext.dirac.core.StateManagement'
 		           ],
 		/**
 		 * @property {boolean} isReady
@@ -32,21 +33,12 @@ Ext.define(
 		isReady : false,
 
 		/**
-		 * @property {List} modules This a list containg data for
-		 *           the allowed user modules
-		 */
-		modules : null,
-
-		/**
 		 * @property {List} useQuickTips ?
 		 */			
 
 		useQuickTips : true,
 		
-		/**
-		 * @property {int} _uid_counter Counter used to assigne unique number to a module that can be used as a part of the id-s within the loaded module
-		 */
-		_uid_counter:0,
+		validApplications:[],
 
 		constructor : function() {
 
@@ -106,9 +98,7 @@ Ext.define(
 			});
 			
 			me._cf = new Ext.dirac.core.CommonFunctions();
-			me._location_base = location.href;
-			me._url_state = "0|";
-			//window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|");
+			me._sm = new Ext.dirac.core.StateManagement();
 			
 			me.callParent();
 
@@ -138,7 +128,7 @@ Ext.define(
 
 			Ext.EventManager.on(window, 'beforeunload',
 					me.onUnload, me);
-
+			
 			me.isReady = true;//only if there is no desktop state loaded
 			me.fireEvent('ready', me);
 		},
@@ -178,7 +168,7 @@ Ext.define(
 													data : {}
 												}),
 
-								wallpaper : '/DIRAC/static/core/img/wallpapers/sky.jpg',
+								wallpaper : '/DIRAC/static/core/img/wallpapers/desk.jpg',
 								wallpaperStretch : true
 							});
 
@@ -229,7 +219,7 @@ Ext.define(
 			
 			if(item.length==2){
 				
-				var result = {text:item[0],menu:[]};
+				var result = {text:item[0],menu:[],iconCls:"system_folder"};
 				
 				for(var i=0;i<item[1].length;i++)
 					result.menu.push(me.getMenuStructureRec(item[1][i]));
@@ -238,85 +228,180 @@ Ext.define(
 				
 			}else{
 				if(item[0]=="app"){
+					var oParts = item[2].split(".");
+					var sStartClass="";
+					if(oParts.length==2)
+						sStartClass=item[2]+".classes."+oParts[1];
+					else
+						sStartClass=item[2];
+					
 					return {
 							text:item[1],
 							minWidth:200,
 							//handler:Ext.bind(me.createWindow, me,[item[0],item[2],((item[0]=="app")?null:{title:item[1]})]),
-							menu:[{text:"Default",handler:Ext.bind(me.createWindow, me,[item[0],item[2],null]),minWidth:200},'-'],
+							menu:[{text:"Default",handler:Ext.bind(me.createWindow, me,[item[0],item[2],null]),minWidth:200,iconCls:"notepad"},'-'],
 							isStateMenuLoaded:0,
+							appClassName:sStartClass,
+							iconCls:"notepad",
 							listeners:{
-								
+								render:function(oMenu, eOpts){
+									_app.desktop.registerStartAppMenu(oMenu,oMenu.appClassName);
+								},
 								focus:function(cmp,e,eOpts){
+									
 									/*
 									 * if the cache for the state of the started application exist
 									 */
-									var oParts = item[2].split(".");
-									var sStartClass="";
-									if(oParts.length==2)
-										sStartClass=item[2]+".classes."+oParts[1];
-									else
-										sStartClass=item[2];
-									
-									if(sStartClass in me.desktop.cache.windows){
+									if(sStartClass in _app._sm.cache.application){
 
 										if(cmp.isStateMenuLoaded != 2){
-											for (var stateName in me.desktop.cache.windows[sStartClass]) {	
-												
-												var newItem = Ext.create('Ext.menu.Item', {
-									    			  text: stateName,
-									    			  handler: Ext.bind(me.createWindow, me, ["app",sStartClass,{stateToLoad:stateName}], false),
-									    			  scope:me
-									    		});
-					
-												cmp.menu.add(newItem);
-												
-											}
+											
+											cmp.oprRefreshAppStates();
 											cmp.isStateMenuLoaded=2;
 										}
 																
 									}else{
-										if(cmp.isStateMenuLoaded==0){	
-											Ext.Ajax.request({
-											    url: me.desktop.getBaseUrl()+'UP/listAppState',
-											    params: {
-											        app: 	sStartClass,
-											        obj: 	"application"
-											    },
-											    
-											    success: function(response){
-											    	
-											    	var states = Ext.JSON.decode(response.responseText);
-											    	me.desktop.cache.windows[sStartClass]={};
-											    	
-											    	for (var stateName in states) {	
-											    		
-											    		var newItem = Ext.create('Ext.menu.Item', {
-																		    			  text: stateName,
-																		    			  handler: Ext.bind(me.createWindow, me, ["app",sStartClass,{stateToLoad:stateName}], false),
-																		    			  scope:me
-																		    		});
-											    		
-											    		cmp.menu.add(newItem);
-											    		
-											    		me.desktop.cache.windows[sStartClass][stateName]=states[stateName];
-											    		
-											    	}
-											    	
-											    	cmp.isStateMenuLoaded=2;
-											    	
-											    	
-											    },
-											    failure:function(response){
-											    	
-											    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-											    }
-											});
+										if(cmp.isStateMenuLoaded==0){
+											
+											var oFunc = function(){
+												
+												cmp.oprRefreshAppStates();
+												cmp.isStateMenuLoaded=2;
+												
+											}
+											
+											_app._sm.oprReadApplicationStatesAndReferences(sStartClass,oFunc);
 											
 											cmp.isStateMenuLoaded = 1;
+											
 										}
 			
 									}
+
+								}
+								
+							},
+							addNewState: function(stateType,stateName){
+								
+								var oThisMenu = this;
+								var oNewItem = null;
+								
+								if(stateType == "application"){
 									
+									oNewItem = Ext.create('Ext.menu.Item', {
+						    			  text: stateName,
+						    			  handler: Ext.bind(_app.createWindow, _app, ["app",oThisMenu.appClassName,{stateToLoad:stateName}], false),
+						    			  scope:me,
+						    			  iconCls:"system_state_icon",
+						    			  stateType:stateType,
+						    			  menu:[{
+					    				  		text:"Share state",
+					    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false),
+					    				  		iconCls:"system_share_state_icon"
+					    				  	}]
+						    		});
+									
+									oThisMenu.menu.insert(2,oNewItem);
+									
+								}else if(stateType == "reference"){
+									
+									oNewItem = Ext.create('Ext.menu.Item', {
+						    			  text: stateName,
+						    			  handler: Ext.bind(_app.desktop.loadSharedStateByName, _app.desktop, [oThisMenu.appClassName,stateName], false),
+						    			  scope:me,
+						    			  iconCls:"system_link_icon",
+						    			  stateType:stateType
+						    		});
+									
+									oThisMenu.menu.add(oNewItem);
+									
+								}
+
+								
+							},
+							removeState: function(stateType,stateName){
+								
+								var me = this;
+								
+								var iStartingIndex = 0;
+								
+								switch(stateType){
+								
+									case "application": 
+														for(var i=2;i<me.menu.items.length;i++){
+															
+															if(me.menu.items.getAt(i).self.getName()=="Ext.menu.Separator")
+																break;
+															
+															if(me.menu.items.getAt(i).text==stateName){
+																
+																me.menu.remove(me.menu.items.getAt(i));
+																break;
+																
+															}
+															
+														}	
+										
+														break;
+									case "reference":	
+														for(var i=me.menu.items.length-1;i>=0;i--){
+															
+															if(me.menu.items.getAt(i).self.getName()=="Ext.menu.Separator")
+																break;
+															
+															if(me.menu.items.getAt(i).text==stateName){
+																
+																me.menu.remove(me.menu.items.getAt(i));
+																break;
+																
+															}
+															
+														}
+														break;
+								
+								
+								}
+								
+							},
+							oprRefreshAppStates:function(){
+								
+								var oThisMenu = this;
+								
+								oThisMenu.menu.removeAll();
+								oThisMenu.menu.add([{text:"Default",handler:Ext.bind(_app.createWindow, _app,["app",oThisMenu.appClassName,null]),minWidth:200,iconCls:"notepad"},'-']);
+								
+								for (var stateName in _app._sm.cache.application[oThisMenu.appClassName]) {	
+									
+									var newItem = Ext.create('Ext.menu.Item', {
+						    			  text: stateName,
+						    			  handler: Ext.bind(_app.createWindow, _app, ["app",oThisMenu.appClassName,{stateToLoad:stateName}], false),
+						    			  scope:me,
+						    			  iconCls:"system_state_icon",
+						    			  stateType: "application",
+						    			  menu:[{
+					    				  		text:"Share state",
+					    				  		handler:Ext.bind(_app.oprShareState, _app, [stateName,oThisMenu.appClassName], false),
+					    				  		iconCls:"system_share_state_icon"
+					    				  	}]
+						    		});
+
+									oThisMenu.menu.add(newItem);
+									
+								}
+								
+								oThisMenu.menu.add("-");
+								
+								for (var stateName in _app._sm.cache.reference[oThisMenu.appClassName]) {	
+									
+									var newItem = Ext.create('Ext.menu.Item', {
+						    			  text: stateName,
+						    			  handler: Ext.bind(_app.desktop.loadSharedStateByName, _app.desktop, [oThisMenu.appClassName,stateName], false),
+						    			  scope:me,
+						    			  iconCls:"system_link_icon",
+						    			  stateType: "reference"
+						    		});
+
+									oThisMenu.menu.add(newItem);
 									
 								}
 								
@@ -328,7 +413,8 @@ Ext.define(
 					return {
 						text:item[1],
 						handler:Ext.bind(me.createWindow, me,[item[0],item[2],{title:item[1]}]),
-						minWidth:200
+						minWidth:200,
+						iconCls:"system_web_window"
 					};
 					
 					
@@ -361,18 +447,7 @@ Ext.define(
 				height : 300,
 				toolConfig : {
 					width : 100,
-//					items : [ 
-//					{
-//						text : 'Settings',
-//						iconCls : 'settings',
-//						handler : me.onSettings,
-//						scope : me
-//					}, '-', {
-//						text : 'Logout',
-//						iconCls : 'logout',
-//						handler : me.onLogout,
-//						scope : me
-//					} ]
+					app:me
 				}
 			});
 
@@ -425,8 +500,6 @@ Ext.define(
 						
 						var instance = Ext.create(sStartClass,{_baseUrl:me.configData.baseURL+"/"});
 						
-						instance.setUID(++me._uid_counter);
-						
 						var config = {
 								desktop: me.desktop,
 								setupData: setupData,
@@ -455,9 +528,46 @@ Ext.define(
 				
 			}
 			
-			
-			
 		},
+		
+		oprShareState: function (sStateName,sAppName) {
+	        
+			var me = this;
+			
+			Ext.Ajax.request({
+			    url: _app_base_url+'UP/makePublicAppState',
+			    params: {
+			        app: 		sAppName,
+			        obj: 		"application",
+			        name: 		sStateName,
+			        access: 	"ALL"
+			    },
+			    scope:me,
+			    success: function(response){
+			    	
+			    	var me = this;
+
+		    		var oStringToShow = "application|"+sAppName
+		    			+"|"+_app.configData["user"]["username"]
+		    			+"|"+_app.configData["user"]["group"]
+		    			+"|"+sStateName;
+		    		
+		    				    		
+		    		var oHtml = "<div style='padding:5px'>The string you can send is as follows:</div>";
+		    		oHtml+="<div style='padding:5px;font-weight:bold'>"+oStringToShow+"</div>";
+		    		
+		    		Ext.MessageBox.alert("Info for sharing the <span style='color:red'>"+sStateName+"</span> state:",
+							oHtml);
+			    	
+			    },
+			    failure:function(response){
+			    	
+			    	var responseData = Ext.JSON.decode(response.responseText);
+			    	Ext.example.msg("Notification", responseData["error"]);
+			    }
+			});	
+			    	
+	    },
 
 		/**
 		 * Getter of the desktop object
@@ -475,114 +585,6 @@ Ext.define(
 			return [me.desktop.getWidth(),me.desktop.getHeight()];
 			
 		},
-		/*
-		 * ----------------------------------URL MANAGEMENT----------------------------------
-		 */
-		addUrlApp:function(sAppName,sStateName){
-			
-			//only if there is no desktop state loaded
-			var me = this;
-			var oParts = me._url_state.split("|");
-			if(parseInt(oPrats[0])==1)
-				return;
-			
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._url_state+";"+sAppName+":"+sStateName);
-			me._url_state = me._url_state+";"+sAppName+":"+sStateName;
-			
-			
-		},
-		
-		removeUrlApp:function(sAppName,sStateName){
-			
-			//only if there is no desktop state loaded
-			var me = this;
-			var oParts = me._url_state.split("|");
-			if(parseInt(oPrats[0])==1)
-				return;
-			
-			
-			var oItems = oParts[1].split(";");
-			var oId = sAppName+":"+sStateName;
-			var oNewArray = [];
-			var oOnlyOneInstance = false;
-			
-			
-			for(var i=0;i<oItems.length;i++){
-				if(oId!=oItems[i]){
-					oNewArray.push(oItems[i]);
-				}else{
-					if(oOnlyOneInstance)
-						oNewArray.push(oItems[i]);
-					else
-						oOnlyOneInstance = true;
-				}
-			}
-			
-			var oNewState = oNewArray.join(";");
-			
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|"+oNewState);
-			me._url_state = "0|"+oNewState;
-			
-			
-		},
-		
-		setUrlAppState:function(sAppName,sOldStateName,sNewStateName){
-			
-			//only if there is no desktop state loaded
-			//only if there is no desktop state loaded
-			var me = this;
-			var oParts = me._url_state.split("|");
-			if(parseInt(oPrats[0])==1)
-				return;
-			
-			
-			var oItems = oParts[1].split(";");
-			var oId = sAppName+":"+sOldStateName;
-			var oNewArray = [];
-			var oOnlyOneInstance = false;
-			
-			
-			for(var i=0;i<oItems.length;i++){
-				if(oId!=oItems[i]){
-					oNewArray.push(oItems[i]);
-				}else{
-					if(oOnlyOneInstance)
-						oNewArray.push(oItems[i]);
-					else{
-						oOnlyOneInstance = true;
-						oNewArray.push(sAppState+":"+sNewStateName);
-					}
-				}
-			}
-			
-			var oNewState = oNewArray.join(";");
-			
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|"+oNewState);
-		
-			me._url_state = "0|"+oNewState;
-			
-		},
-		
-		setUrlDesktopState:function(sStateName){
-			var me =this;
-			
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=1|"+sStateName);
-			alert("OK");
-			me._url_state = "1|"+sStateName;
-			
-		},
-		
-		removeUrlDesktopState:function(){
-			
-			var me =this;
-			window.history.pushState("X","ExtTop - Desktop Sample App",me._location_base+"?url_state=0|");
-			me._url_state = "0|";
-			
-		},
-
-		/*
-		 * ----------------------------------END :: URL MANAGEMENT----------------------------------
-		 */
 		
 		onReady : function(fn, scope) {
 			if (this.isReady) {

@@ -132,7 +132,7 @@
 }
 
 /*----------------------------------------------------
-    Desktop DataView
+    Desktop DataViewdisplay:none
 */
 
 .ux-wallpaper {
@@ -249,4 +249,48 @@
 .toolbar-other-cascade {
     background-image:url(../img/icons/system/_tool_cascade.png) !important;
     background-size:16px 16px;
+}
+
+.x-hidden-loading-message{
+	
+	visibility:hidden;
+	
+}
+
+.system_state_icon {
+    background-image:url(../img/icons/system/_state_icon.png) !important;
+    background-size:16px 16px;
+}
+
+.system_share_state_icon{
+	
+	background-image:url(../img/icons/system/_share_icon.png) !important;
+    background-size:16px 16px;
+	
+}
+
+.system_link_icon {
+    background-image:url(../img/icons/system/_link.png) !important;
+    background-size:16px 16px;
+}
+
+.system_web_window{
+	
+	background-image:url(../img/icons/system/_web.png) !important;
+    background-size:16px 16px;
+	
+}
+
+.system_folder{
+	
+	background-image:url(../img/icons/system/_folder.png) !important;
+    background-size:16px 16px;
+	
+}
+
+.system_child_window{
+	
+	background-image:url(../img/icons/system/_child_window.png) !important;
+    background-size:16px 16px;
+	
 }

@@ -17,23 +17,20 @@ Ext.define('Ext.dirac.core.Module', {
 	        "Ext.dirac.utils.DiracFileLoad"],
 	extend: 'Ext.container.Container',
 	
-	/**
-	 * @property {int} _UID The unique number assigned to the module, used as part of the defined id-s within the module
-	 */
-	_UID:0,
 	_container:null,
 	
-	launcher: {
-		
-		title : 'Module',
-		iconCls : 'notepad',
-		width:0,
-		height:0,
-		maximized:true
-		
-	},
-	
 	constructor : function(config) {
+		
+		this.launcher = {
+			
+							title : 'Module',
+							iconCls : 'notepad',
+							width:0,
+							height:0,
+							maximized:true
+							
+						};
+		
 		this._baseUrl = config._baseUrl;
 		this.init();
 		this.callParent();
@@ -52,36 +49,6 @@ Ext.define('Ext.dirac.core.Module', {
 	
 	init : Ext.emptyFn,
 
-	_baseUrl:"",
-
-	/**
-	 * Setter function for the property _UID
-	 * @param {int} _UID
-	 */
-	setUID: function(_UID){
-		
-		this._UID=_UID;
-		
-	},
-	
-	/**
-	 * Getter function for the property _UID
-	 */
-	getUID: function(){
-		
-		return this._UID;
-		
-	},
-	
-	/**
-	 * This function can be used by 
-	 * the developers of the module, so that they can use 
-	 * id-s across the modules without worry of duplicating id-s 
-	 */
-	D_ID: function(id){
-		
-		return id+this._UID+this.id;
-		
-	}
+	_baseUrl:""
 	
 });
