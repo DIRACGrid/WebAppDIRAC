@@ -483,7 +483,7 @@ Ext.define(
 							paths: {}
 						};
 					
-					oConfig["paths"]["DIRAC."+oParts[1]+".classes"] = "static/DIRAC/"+oParts[1]+"/build"; 
+					oConfig["paths"]["DIRAC."+oParts[1]+".classes"] = "static/"+oParts[0]+"/"+oParts[1]+"/build"; 
 					
 					Ext.Loader.setConfig(oConfig);
 					
@@ -494,7 +494,7 @@ Ext.define(
 					
 					var me = this;
 					
-					me.mixins.fileLoader.loadFile(["static/DIRAC/"+oParts[1]+"/css/"+oParts[1]+".css"],function(){
+					me.mixins.fileLoader.loadFile(["static/"+oParts[0]+"/"+oParts[1]+"/css/"+oParts[1]+".css"],function(){
 						
 						var me = this;
 						
