@@ -57,7 +57,6 @@ Ext
 								me.cmbSelectors[item.relatedCmbField].hide();
 							
 							/* this can be done only if the store is being loaded, otherwise has to be postponed*/
-							
 							me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField],data.leftMenu.selectors[item.relatedCmbField].data_selected);
 							
 							me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
@@ -126,8 +125,6 @@ Ext
 						oReturn.leftMenu.calenTo = me.timeSearchPanel.calenTo.getValue();
 						oReturn.leftMenu.cmbTimeTo = me.timeSearchPanel.cmbTimeTo.getValue();
 						
-						console.log(oReturn);
-						
 						return oReturn;
 
 					},
@@ -174,6 +171,9 @@ Ext
 					initComponent : function() {
 
 						var me = this;
+						
+						
+						
 						me.launcher.title = "Job Monitor";
 						me.launcher.maximized = true;
 						

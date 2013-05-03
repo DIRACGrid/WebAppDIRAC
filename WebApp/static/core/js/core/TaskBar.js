@@ -286,12 +286,15 @@ Ext.define('Ext.dirac.core.TaskBar', {
         var win = btn.win;
 
         if (win.minimized || win.hidden) {
+        	win.minimized = false;
             win.show();
         } else if (win.active) {
             win.minimize();
         } else {
             win.toFront();
         }
+        
+        win.desktop.refreshUrlDesktopState();
     },
     
     /**

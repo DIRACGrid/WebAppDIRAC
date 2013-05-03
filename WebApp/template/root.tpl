@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-    <title>ExtTop - Desktop Sample App</title>
+    <title>DIRAC :: DESKTOP</title>
 
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/{{ext_version}}/resources/css/ext-all.css" />
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/css.css" />
@@ -13,7 +13,7 @@
     <!-- <x-bootstrap> -->
  
     {% if _dev %}
-    	<script type="text/javascript" src="/DIRAC/static/extjs/{{ext_version}}/ext-all-debug.js"></script>
+    	<script type="text/javascript" src="/DIRAC/static/extjs/{{ext_version}}/ext-all.js"></script>
     {% else %}
     	<script type="text/javascript" src="/DIRAC/static/core/build/all-classes.js"></script>
     {% end %}
@@ -34,6 +34,8 @@
 	        var _app=null;
 	        var _app_base_url = "";
 	        var _dev = 1;
+	        var _load_by_url = "{{url_state}}";
+	        
 	        
 	        Ext.onReady(function () {
 	        	_app_base_url = "{{base_url}}/";
@@ -47,6 +49,8 @@
 	    	var _app=null;
 	        var _app_base_url = "";
 	        var _dev = 0;
+	        var _load_by_url = "{{url_state}}";
+	        
 	        
 	        Ext.onReady(function () {
 	        	_app_base_url = "{{base_url}}/";
