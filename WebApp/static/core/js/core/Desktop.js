@@ -19,6 +19,7 @@ Ext.define(
 	{
 		extend : 'Ext.panel.Panel',
 		alias : 'widget.desktop',
+		mixins:["Ext.dirac.core.Stateful"],
 		uses : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu',
 				'Ext.view.View', // dataview
 				'Ext.dirac.core.Window', 'Ext.dirac.core.TaskBar',
@@ -95,17 +96,88 @@ Ext.define(
 				'</div>',
 				'<span class="ux-desktop-shortcut-text">{name}</span>',
 				'</div>', '</tpl>', '<div class="x-clear"></div>' ],
-		
-		/**
-		 * @property {String} currentDesktopState Name of the current active desktop state
-		 */		
-		currentDesktopState: "",
 		/**
 		 * @cfg {Object} taskbarConfig The config object for the
 		 *      TaskBar.http://www.youtube.com/
 		 */
 		taskbarConfig : null,
 
+		getStateData:function(){
+			
+			var me = this;
+			
+			var oData = {"data":[]};
+			
+			me.windows.each(function(win) {
+				
+				/*
+				 * First we check whether the 
+				 * window is not a child window
+				 */
+				
+				if(!win.isChildWindow){
+				
+					/*
+					 * Depends on the loadedObjectType 
+					 */
+					var oElem = null;
+					
+					
+					if(win.loadedObjectType == "app"){
+						
+						oElem = {
+							name: win.getAppClassName(),
+							currentState: win.currentState,
+							data: win.loadedObject.getStateData(),
+							x: win.x,
+							y: win.y,
+							width: win.getWidth(),
+							height: win.getHeight(),
+							maximized: win.maximized,
+							zIndex:win.zIndex,
+							loadedObjectType: win.loadedObjectType
+						};
+						
+					}else if(win.loadedObjectType == "link"){
+						
+						oElem = {
+								title: win.title,
+								linkToLoad: win.linkToLoad,
+								x: win.x,
+								y: win.y,
+								width: win.getWidth(),
+								height: win.getHeight(),
+								maximized: win.maximized,
+								zIndex:win.zIndex,
+								loadedObjectType: win.loadedObjectType
+						};
+						
+						
+					}
+					
+					oData.data.push(oElem);
+				}
+
+			});
+			
+			return oData;
+			
+		},
+		
+		loadState:function(oData){
+			
+			for(var i=0,len=oData["data"].length;i<len;i++){
+				
+				var oAppStateData = stateData["data"][i];
+				
+				if(oAppStateData.name)
+					__app.createWindow(oAppStateData.loadedObjectType,oAppStateData.name,oAppStateData);
+				
+			}
+			
+			
+		},
+		
 		initComponent : function() {
 			var me = this;
 
@@ -295,10 +367,7 @@ Ext.define(
 				me.refreshUrlDesktopState();
 				
 			}
-			
-			
-			
-			
+
 		},
 		
 		/**
@@ -346,6 +415,27 @@ Ext.define(
 			
 			_app._sm.oprReadApplicationStatesAndReferences("desktop",oFunc);
 			
+			var funcAfterSave = function(sAppName,sStateName){
+				
+	    		var oNewItem = Ext.create('Ext.menu.Item', {
+	    			  text: stateName,
+	    			  handler: Ext.bind(me.oprLoadDesktopState, me, [sStateName], false),
+	    			  scope:me,
+	    			  iconCls:"system_state_icon",
+	    			  menu:[{
+    				  		text:"Share state",
+    				  		handler:Ext.bind(me.oprShareState, me, [sStateName], false),
+    				  		iconCls:"system_share_state_icon"
+    				  	}]
+	    		});
+
+				me.statesMenu.insert(0,oNewItem);
+					
+		    	me.currentState = stateName;
+		    	me.refreshUrlDesktopState();
+				
+			};
+			
 			ret.items.push(
 				
 				{
@@ -369,13 +459,13 @@ Ext.define(
 				}, {
 					text : "Save",
 					iconCls : "toolbar-other-save",
-					handler:me.oprSaveDesktopState,
+					handler:Ext.bind(_app._sm.oprSaveAppState, _app._sm, ["application","desktop",me,funcAfterSave], false),
 					minWindows : 1,
 					scope: me
 				},{
 					text : "Save As ...",
 					iconCls : "toolbar-other-save",
-					handler : me.formSaveState,
+					handler : Ext.bind(_app._sm.formSaveState, _app._sm, ["application","desktop",me,funcAfterSave], false),
 					minWindows : 1,
 					scope: me
 				},{
@@ -386,7 +476,7 @@ Ext.define(
 				},{
 					text : "Manage states ...",
 					iconCls : "toolbar-other-manage",
-					handler : me.formManageStates,//function(){alert("TDMMMMM");},//me.formManageStates,
+					handler : Ext.bind(_app._sm.formManageStates, _app._sm, ["desktop"], false),
 					scope: me
 				}
 			)
@@ -401,7 +491,7 @@ Ext.define(
 			
 			me.statesMenu.removeAll();
 			
-			var oStates = _app._sm.cache.desktop.desktop; 
+			var oStates = _app._sm.cache.application.desktop; 
 			
 			for (var sStateName in oStates) {	
 	    		
@@ -787,7 +877,7 @@ Ext.define(
 			 * the current desktop state is cleared
 			 */
 			if(me.windows.getCount()==0){
-				me.currentDesktopState='';
+				me.currentState='';
 				me.refreshUrlDesktopState();
 			}
 			me.taskbar.removeTaskButton(win.taskButton);
@@ -986,15 +1076,10 @@ Ext.define(
 		 * @param {String} appName Name of the module 
 		 * @param {Object} stateData Data of the module that define its state 
 		 */
-		addStateToExistingWindows: function(stateType,stateName, appName, stateData){
+		addStateToExistingWindows: function(stateType, stateName, appName){
 			
 			var me=this;
-			
-			if(stateType=="application")
-				_app._sm.cache[stateType][appName][stateName]=stateData;
-			else if(stateType=="reference")
-				_app._sm.cache[stateType][appName][stateName]={link:stateData};
-				
+		
 			me.windows.each(function(item,index,len){
 				if(item.getAppClassName() == appName)
 					item.addNewState(stateType,stateName);
@@ -1035,33 +1120,6 @@ Ext.define(
 		},
 		
 		/**
-		 * Function to check if a  
-		 * state of a module is currently active (has been loaded)
-		 * @param {String} stateName Name of the state
-		 * @param {String} appName Name of the module (application)
-		 * @return {Boolean}
-		 */
-		isAnyActiveState: function(stateName,appName){
-			
-			var me = this;
-			var oFound = false;
-			
-			for(var i=0,len=me.windows.getCount();i<len;i++){
-				
-				if((me.windows.getAt(i).getCurrentState() == stateName) && (me.windows.getAt(i).getAppClassName() == appName)){
-					
-					oFound = true;
-					break;
-					
-				}
-				
-			}
-			
-			return oFound;
-			
-		},
-		
-		/**
 		 * Function to remove a state from the state lists of the 
 		 * instances of the same module
 		 * @param {String} stateName Name of the state
@@ -1090,45 +1148,12 @@ Ext.define(
 		/*
 		 * ---------------------------------MANAGEMENT OF DESKTOP STATES--------------------------------------------
 		 */
-		
-		/**
-		 * Function that is executed when the Save button 
-		 * of the Save As form is pressed 
-		 */
-		oprSaveAsDesktopState : function() {
-			
-			var me = this;
-									
-			if (me.saveForm.getForm().isValid()) {
 				
-				var stateName = me.saveForm.getForm().findField("state_name").getValue();
-					
-				me.oprSendDataForSave(stateName,true);
-			
-			}
-			
-		},
-		
-		/**
-		 * Function to check if a state exists 
-		 * among the list of desktop states
-		 * @param {String} stateName The name of the state
-		 */
-		isExistingState:function(stateName){
-			var me = this;
-
-			if( stateName in _app._sm.cache.desktop.desktop)
-				return true;
-			else
-				return false;
-	
-		},
-		
 		/**
 		 * Function to load a desktop state 
 		 * @param {String} stateName The name of the state
 		 */
-		oprLoadDesktopState: function(stateName){
+		oprLoadDesktopState: function(sStateName){
 			
 			/*
 			 * First we have to check whether some other state is currently in use
@@ -1136,19 +1161,18 @@ Ext.define(
 			 * state or not
 			 */
 			
-			
 			var me = this;
 			
-			var count = me.windows.getCount();
+			var iCount = me.windows.getCount();
 			
-			if(count >0){
+			if(iCount >0){
 				
 				/*
 				 * Two cases:
 				 * 	- There is an active desktop state
 				 *  - There is no active desktop state 
 				 */
-				if(me.currentDesktopState == ''){
+				if(me.currentState == ''){
 				
 					var ret=Ext.MessageBox.confirm('Confirm', 'Are you sure you want to close windows without saving them ?',
 						function(button) {
@@ -1158,7 +1182,7 @@ Ext.define(
 						    	
 						    	me.closeAllActiveWindows();
 						    	
-						    	me.loadDesktopStateData(stateName);
+						    	me.__loadDesktopStateData(sStateName);
 						    	
 						    }
 					    },me);
@@ -1170,18 +1194,18 @@ Ext.define(
 								
 								var me = this;
 							    if (button === 'yes') {
-							    	me.oprSendDataForSave(me.currentDesktopState,false);
+							    	me.oprSendDataForSave(me.currentState,false);
 							    }
 							    
 							    me.closeAllActiveWindows();
-						    	me.loadDesktopStateData(stateName);
+						    	me.__loadDesktopStateData(sStateName);
 						    	
 						    },me);
 					
 				}
 			}else{
 				
-				me.loadDesktopStateData(stateName);
+				me.__loadDesktopStateData(sStateName);
 				
 			}
 			
@@ -1191,15 +1215,15 @@ Ext.define(
 		 * Function to create all windows from a desktop state
 		 * @param {String} stateName The name of the state 
 		 */
-		loadDesktopStateData:function(stateName){
+		__loadDesktopStateData:function(sStateName){
 			
 			var me = this;
 			
-			if(!(("desktop" in _app._sm.cache.desktop)&&(stateName in _app._sm.cache.desktop.desktop))){
+			if(!(("desktop" in _app._sm.cache.application)&&(sStateName in _app._sm.cache.application.desktop))){
 				
 				me.funcPostponedLoading = function(){
 					
-					me.loadDesktopStateData(stateName);
+					me.loadDesktopStateData(sStateName);
 					
 				}
 				
@@ -1208,20 +1232,9 @@ Ext.define(
 				
 			}
 			
-			//get the state from the cache
-			var stateData = _app._sm.cache.desktop.desktop[stateName];
+			me.loadState(_app._sm.cache.application.desktop[sStateName]);
 			
-			for(var i=0,len=stateData["data"].length;i<len;i++){
-				
-				
-				var appStateData = stateData["data"][i];
-				
-				if(appStateData.name)
-					me.app.createWindow(appStateData.loadedObjectType,appStateData.name,appStateData);
-				
-			}
-			
-			me.currentDesktopState = stateName;
+			me.currentState = sStateName;
 			
 			me.refreshUrlDesktopState();
 			
@@ -1244,276 +1257,6 @@ Ext.define(
 		},
 		
 		/**
-		 * Function to create and open the 
-		 * form for managing the desktop states
-		 */
-		formManageStates: function(){
-			
-			var me = this;
-
-			me.manageForm = Ext.widget(
-					'form',
-					{
-						layout : {
-							type : 'vbox',
-							align : 'stretch'
-						},
-						border : false,
-						bodyPadding : 10,
-
-						fieldDefaults : {
-							labelAlign : 'top',
-							labelWidth : 100,
-							labelStyle : 'font-weight:bold'
-						},
-						defaults : {
-							margins : '0 0 10 0'
-						},
-						items : [
-									{
-										 html: "<b>DESKTOP</b> states",
-									    xtype: "box"
-									},
-									{xtype:"panel",
-									       layout:"column",
-									       border:false,
-									       items:[
-											{
-												xtype      : 'radiofield',
-												boxLabel  : 'States',
-								                inputValue: 's',
-								                name: "manage_state_type",
-								                width:150,
-								                checked:true,
-								                listeners:{
-								                	
-								                	change:function(cmp, newValue, oldValue, eOpts){
-								                		
-								                		var oSelectElStates = me.manageForm.items.getAt(2);
-								                		var oSelectElLinks = me.manageForm.items.getAt(3);
-								                		
-								                		if(newValue){
-								                			
-								                			oSelectElStates.show();
-								                			oSelectElLinks.hide();
-								                			
-								                		}else{
-								                			
-								                			oSelectElStates.hide();
-								                			oSelectElLinks.show();
-								                			
-								                		}
-								                		
-								                	}
-								                	
-								                }
-											},
-											{
-												xtype      : 'radiofield',
-												boxLabel  : 'Links',
-								                inputValue: 'l',
-								                name: "manage_state_type",
-								                width:150
-											}
-											]
-									},
-									{
-										 html: "<select size='10' multiple='multiple' style='width:100%'></select>",
-								         xtype: "box"
-									},
-									{
-										 html: "<select size='10' multiple='multiple' style='width:100%'></select>",
-								         xtype: "box",
-								         hidden: true
-									}
-								],
-
-						buttons : [
-								{
-									text : 'Delete selected states',
-									handler : me.oprDeleteSelectedStates,
-									scope: me
-								},   
-								{
-									text : 'Cancel',
-									handler : function() {
-										me.manageWindow.hide();
-									},
-									scope: me
-								}
-								 ]
-					});
-			
-			me.manageWindow = Ext.create('widget.window', {
-				height : 300,
-				width : 500,
-				title : 'Manage states',
-				layout : 'fit',
-				modal: true,
-				items : me.manageForm
-			});
-			
-			me.manageWindow.show();
-			me.fillSelectFieldWithStates();
-			
-		},
-		
-		/**
-		 * Function to delete selected desktop states 
-		 */
-		oprDeleteSelectedStates: function(){
-			
-			var me = this;
-			
-			var iWhoSelect = 0;
-			
-			if(me.manageForm.items.getAt(1).items.getAt(1).getValue())
-				iWhoSelect = 1;
-			
-			var oSelectField = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[iWhoSelect];
-			
-			for (var i = oSelectField.length - 1; i>=0; i--) {
-			    if (oSelectField.options[i].selected) {
-			    	
-			    /*
-			     * First we check whether there are instances of that 
-			     * state that are active
-			     */	
-
-			      var oStateName=oSelectField.options[i].value;	
-			    
-			      if(iWhoSelect == 0){	
-			      
-				      if(! (me.currentDesktopState==oStateName) ){
-				    	  
-				    	  /*
-				    	   * If the Ajax is not successful the item wont be deleted
-				    	   */
-				    	  Ext.Ajax.request({
-							    url: me.getBaseUrl()+'UP/delAppState',
-							    params: {
-							    	app: "desktop",
-							    	name: 	oStateName,
-							        obj: "desktop"
-							    },
-							    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField,iWhoSelect], false),
-							    failure:function(response){
-							    	
-							    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-							    }
-							});
-				    	  
-				      }else
-				    	  Ext.MessageBox.alert('Message','The state <b>'+oSelectField.options[i].value+'</b> you are willing to delete is curently in use !');
-			      }else{
-			    	  
-			    	  
-			    	  Ext.Ajax.request({
-						    url: me.getBaseUrl()+'UP/delAppState',
-						    params: {
-						    	app: "desktop",
-						    	name: 	oStateName,
-						        obj: "reference"
-						    },
-						    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField,iWhoSelect], false),
-						    failure:function(response){
-						    	
-						    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-						    }
-						});
-			    	  
-			    	  
-			    	  
-			      }
-			    	
-			    	
-			      
-			    }
-			}
-			
-		},
-		
-		/**
-		 * Callback of the oprDeleteSelectedStates function
-		 * @param {Integer} index index of the selected element
-		 * @param {DOMObject} oSelectEl the select element of the management form 
-		 */
-		oprDeleteSelectedStates_s: function(index,oSelectEl,iWhoSelect){
-			
-			var me = this;
-			
-			var oStateName = oSelectEl.options[index].value;
-			
-			if(iWhoSelect==0)
-				delete _app._sm.cache.desktop.desktop[oStateName];
-			else
-				delete _app._sm.cache.reference.desktop[oStateName];
-			
-			for(var i=0;i<me.statesMenu.items.length;i++){
-				
-				if(me.statesMenu.items.getAt(i).text==oStateName){
-					
-					me.statesMenu.remove(me.statesMenu.items.getAt(i));
-					break;
-					
-				}
-				
-			}
-			
-			oSelectEl.remove(index);
-			
-		},
-		
-		/**
-		 * Function to fill the select element 
-		 * with the existing desktop states
-		 */
-		fillSelectFieldWithStates: function(){
-			
-			var me = this;
-			var oSelectEl = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
-			
-			for (i = oSelectEl.length - 1; i>=0; i--) 
-				oSelectEl.remove(i);
-		
-			for(var stateName in _app._sm.cache.desktop.desktop){
-				
-				  var elOptNew = document.createElement('option');
-				  elOptNew.text = stateName;
-				  elOptNew.value = stateName;
-
-				  try {
-					  oSelectEl.add(elOptNew, null); // standards compliant; doesn't work in IE
-				  }
-				  catch(ex) {
-					  oSelectEl.add(elOptNew); // IE only
-				  }
-				  
-			}
-			
-			oSelectEl = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[1];
-			
-			for (i = oSelectEl.length - 1; i>=0; i--) 
-				oSelectEl.remove(i);
-		
-			for(var stateName in _app._sm.cache.reference.desktop){
-				
-				  var elOptNew = document.createElement('option');
-				  elOptNew.text = stateName;
-				  elOptNew.value = stateName;
-
-				  try {
-					  oSelectEl.add(elOptNew, null); // standards compliant; doesn't work in IE
-				  }
-				  catch(ex) {
-					  oSelectEl.add(elOptNew); // IE only
-				  }
-				  
-			}
-			  
-		},
-		
-		/**
 		 * Function to refresh the list of desktop states
 		 */
 		oprRefreshAllDesktopStates: function(){
@@ -1529,235 +1272,6 @@ Ext.define(
 			_app._sm.oprReadApplicationStatesAndReferences("desktop",oFunc);
 			
 		},
-		/**
-		 * Function called when the Save button 
-		 * from the desktop context menu is clicked 
-		 */
-		oprSaveDesktopState : function() {
-			
-			var me = this;
-			
-			if(me.currentDesktopState == ""){
-				
-				me.formSaveState();
-				
-			}else{
-				
-				me.oprSendDataForSave(me.currentDesktopState,false);
-			}
-		},
-		/**
-		 * Function called when the Save As ... button
-		 * from the desktop context menu is clicked
-		 */
-		formSaveState : function() {
-			
-			var me = this;
-
-			me.saveForm = Ext.widget(
-					'form',
-					{
-						layout : {
-							type : 'vbox',
-							align : 'stretch'
-						},
-						border : false,
-						bodyPadding : 10,
-
-						fieldDefaults : {
-							labelAlign : 'top',
-							labelWidth : 100,
-							labelStyle : 'font-weight:bold'
-						},
-						defaults : {
-							margins : '0 0 5 0'
-						},
-						items : [
-								{
-									xtype : 'fieldcontainer',
-									layout : 'hbox',
-									defaultType : 'textfield',
-
-									fieldDefaults : {
-										labelAlign : 'left'
-									},
-
-									items : [{
-												flex : 1,
-												fieldLabel: 'State Name',
-												name : 'state_name',
-												validateOnChange: true,
-												parentDesktop:me,
-												validateValue:function(value){
-													
-													value = Ext.util.Format.trim(value);
-													
-													if(value.length < 1){
-										                 this.markInvalid("You must specify a name !");
-										                 return false;
-											             
-											        }else{
-											        	
-											        	if(this.parentDesktop.isExistingState(value)){
-											        		
-											        		this.markInvalid("The name you enetered already exists !");
-											                return false;
-											        		
-											        	}else{
-											        		
-											        		this.clearInvalid();
-											                return true;
-											        		
-											        	}
-											        	
-											        	
-											        }
-													
-												}
-											}]
-								}],
-
-						buttons : [
-								{
-									text : 'Save',
-									handler : me.oprSaveAsDesktopState,
-									scope: me
-								},   
-								{
-									text : 'Cancel',
-									handler : function() {
-										me.saveForm.getForm().reset();						
-										me.saveWindow.hide();
-									},
-									scope: me
-								}
-								 ]
-					});
-			
-			me.saveWindow = Ext.create('widget.window', {
-				height : 120,
-				width : 500,
-				title : 'Save desktop state',
-				layout : 'fit',
-				modal: true,
-				items : me.saveForm
-			});
-			
-			me.saveWindow.show();
-
-		},	
-		/**
-		 * Function that is used to prepare and send 
-		 * the data of the desktop state to the server.
-		 * @param {String} stateName The name of the state
-		 * @param {Boolean} isNewItem Parameter that says whether the state already exists or not 
-		 */
-		oprSendDataForSave: function (stateName,isNewItem){
-			
-			var me = this;
-			
-			var dataToSend = {"data":[]};
-			
-			me.windows.each(function(win) {
-				
-				/*
-				 * First we check whether the 
-				 * window is not a child window
-				 */
-				
-				if(!win.isChildWindow){
-				
-					/*
-					 * Depends on the loadedObjectType 
-					 */
-					var oElem = null;
-					
-					
-					if(win.loadedObjectType == "app"){
-						
-						oElem = {
-							name: win.getAppClassName(),
-							currentState: win.currentState,
-							data: win.loadedObject.getStateData(),
-							x: win.x,
-							y: win.y,
-							width: win.getWidth(),
-							height: win.getHeight(),
-							maximized: win.maximized,
-							zIndex:win.zIndex,
-							loadedObjectType: win.loadedObjectType
-						};
-						
-					}else if(win.loadedObjectType == "link"){
-						
-						oElem = {
-								title: win.title,
-								linkToLoad: win.linkToLoad,
-								x: win.x,
-								y: win.y,
-								width: win.getWidth(),
-								height: win.getHeight(),
-								maximized: win.maximized,
-								zIndex:win.zIndex,
-								loadedObjectType: win.loadedObjectType
-						};
-						
-						
-					}
-					
-					dataToSend.data.push(oElem);
-				}
-
-			});
-
-			/*
-			 * If the Ajax is not successful the state wont be saved.
-			 */
-			Ext.Ajax.request({
-			    url: me.getBaseUrl()+'UP/saveAppState',
-			    params: {
-			        app: 	"desktop",
-			        name: 	stateName,
-			        state: 	Ext.JSON.encode(dataToSend),
-			        obj: "desktop"
-			    },
-			    scope:me,
-			    success: function(response){
-			    	var me = this;
-			    	Ext.example.msg("Notification", 'State saved successfully !');
-			    	if(isNewItem){
-			    		var newItem = Ext.create('Ext.menu.Item', {
-			    			  text: stateName,
-			    			  handler: Ext.bind(me.oprLoadDesktopState, me, [stateName], false),
-			    			  scope:me,
-			    			  iconCls:"system_state_icon",
-			    			  menu:[{
-		    				  		text:"Share state",
-		    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
-		    				  		iconCls:"system_share_state_icon"
-		    				  	}]
-			    		});
-
-						me.statesMenu.insert(0,newItem);
-						
-						_app._sm.cache.desktop.desktop[stateName] = dataToSend;
-						me.saveForm.getForm().reset();
-						me.saveWindow.hide();
-			    	}else
-			    		_app._sm.cache.desktop.desktop[stateName] = dataToSend;
-			    	
-			    	me.currentDesktopState = stateName;
-			    	me.refreshUrlDesktopState();
-					
-			    },
-			    failure:function(response){
-			    	
-			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-			    }
-			});
-			
-		},
-		
 		
 		addDesktopReference:function(stateName){
 			
@@ -1806,9 +1320,9 @@ Ext.define(
 			
 			var sNewUrlState = "";
 			
-			if(me.currentDesktopState != ""){
+			if(me.currentState != ""){
 				
-				sNewUrlState = "?url_state=1|"+me.currentDesktopState;
+				sNewUrlState = "?url_state=1|"+me.currentState;
 				
 			}else{
 				
@@ -1894,7 +1408,7 @@ Ext.define(
 							
 						}
 						
-						me.currentDesktopState = "";
+						me.currentState = "";
 			    		
 			    		
 			    	}
@@ -1923,7 +1437,7 @@ Ext.define(
 			        app: 	oDataItems[1],
 			        name: 	sRefName,
 			        state: 	Ext.JSON.encode({link:sRef}),
-			        obj: "reference"
+			        obj: 	"reference"
 			    },
 			    scope:me,
 			    success: function(response){
@@ -1932,11 +1446,12 @@ Ext.define(
 			    	me.txtLoadText.setRawValue("");
 			    	me.txtRefName.setRawValue("");
 			    	
+			    	_app._sm.cache.reference[oDataItems[1]][sRefName]={link:sRef};
+			    	
 			    	if(oDataItems[0]=="application"){
 			    		me.addStateToExistingWindows("reference",sRefName,oDataItems[1],sRef);
 			    	}else{
 			    		me.addDesktopReference(sRefName);
-			    		_app._sm.cache.reference["desktop"][sRefName] = {link:sRef};
 			    	}
 			    	
 			    },

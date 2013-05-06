@@ -14,6 +14,9 @@
  */
 Ext.define('Ext.dirac.core.Stateful', {
 	
+	
+	currentState:"",
+	
 	/**
 	 * Function that can be overriden by a module
 	 * and it is used to get the data defining 
@@ -29,6 +32,6 @@ Ext.define('Ext.dirac.core.Stateful', {
 	 * module
 	 * @param {Object} data Data used to set up the state
 	 */
-	loadState : function(data){},
+	loadState : function(oData){},
 	
 });
