@@ -432,9 +432,25 @@ Ext.define(
 				me.statesMenu.insert(0,oNewItem);
 					
 		    	me.currentState = stateName;
+		    	_app._sm.addActiveState(sAppName,sStateName);
 		    	me.refreshUrlDesktopState();
 				
 			};
+			
+			var funcAfterRemove = function(sStateType,sAppName,sStateName){
+				
+				for(var i=0;i<me.statesMenu.items.length;i++){
+
+					if(me.statesMenu.items.getAt(i).text==sStateName){
+
+						me.statesMenu.remove(me.statesMenu.items.getAt(i));
+						break;
+
+					}
+
+				}
+				
+			}
 			
 			ret.items.push(
 				
@@ -476,7 +492,7 @@ Ext.define(
 				},{
 					text : "Manage states ...",
 					iconCls : "toolbar-other-manage",
-					handler : Ext.bind(_app._sm.formManageStates, _app._sm, ["desktop"], false),
+					handler : Ext.bind(_app._sm.formManageStates, _app._sm, ["desktop",funcAfterRemove], false),
 					scope: me
 				}
 			)
@@ -877,6 +893,10 @@ Ext.define(
 			 * the current desktop state is cleared
 			 */
 			if(me.windows.getCount()==0){
+				
+				if(me.currentState!="")
+					_app._sm.removeActiveState("desktop",me.currentState);
+				
 				me.currentState='';
 				me.refreshUrlDesktopState();
 			}
@@ -1125,7 +1145,7 @@ Ext.define(
 		 * @param {String} stateName Name of the state
 		 * @param {String} appName Name of the module (application) 
 		 */
-		removeStateFromWindows: function(stateType,stateName, appName){
+		removeStateFromWindows: function(stateType, stateName, appName){
 			
 			var me=this;
 			
@@ -1235,6 +1255,7 @@ Ext.define(
 			me.loadState(_app._sm.cache.application.desktop[sStateName]);
 			
 			me.currentState = sStateName;
+			_app._sm.addActiveState("desktop",sStateName);
 			
 			me.refreshUrlDesktopState();
 			
@@ -1349,7 +1370,7 @@ Ext.define(
 				
 			}
 			
-			window.history.pushState("X","ExtTop - Desktop Sample App",sNewUrlState);
+			//window.history.pushState("X","ExtTop - Desktop Sample App",sNewUrlState);
 			
 		},
 		
@@ -1407,6 +1428,9 @@ Ext.define(
 								me.app.createWindow(appStateData.loadedObjectType,appStateData.name,appStateData);
 							
 						}
+						
+						if(me.currentState!="")
+							_app._sm.removeActiveState("desktop",me.currentState);
 						
 						me.currentState = "";
 			    		

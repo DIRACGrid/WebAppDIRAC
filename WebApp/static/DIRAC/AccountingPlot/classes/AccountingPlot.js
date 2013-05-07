@@ -21,7 +21,8 @@ Ext
 							"Ext.ux.form.MultiSelect",
 							"Ext.util.*",
 							"Ext.toolbar.Toolbar",
-							"Ext.data.Record"],
+							"Ext.data.Record",
+							"Ext.chart.Chart"],
 
 					loadState : function(oData) {
 						
@@ -468,12 +469,50 @@ Ext
 						me.__childWindowFocused = null;
 						me.__additionalDataLoad = null;
 						
-
 						/*
 						 * -----------------------------------------------------------------------------------------------------------
 						 * DEFINITION OF THE MAIN CONTAINER
 						 * -----------------------------------------------------------------------------------------------------------
 						 */
+						
+						/*part for testing extjs plots*/
+						
+						me.tryPlots = Ext.create('Ext.form.field.ComboBox',{
+																				queryMode : 'local',
+																				displayField : "text",
+																				valueField : "value",
+																				anchor : '100%',
+																				value:"pie",
+																				store : new Ext.data.SimpleStore(
+																						{
+																							fields : [ 'value',
+																									'text' ],
+																							data : [[ "pie","Pie Chart" ]]
+																						})
+																			});
+						
+						me.tryPlotsButton = new Ext.Button({
+
+							text : 'Show Plot',
+							margin : 3,
+							iconCls : "accp-refresh-icon",
+							handler : function() {
+								me.__showExamplePlot(me.tryPlots.getValue());
+							},
+							scope : me
+
+						});
+						
+						var oPanelTryPlots = new Ext.create('Ext.toolbar.Toolbar',{
+							items:[me.tryPlots,me.tryPlotsButton],
+							dock: 'bottom'
+						});
+						
+						me.leftPanel.addDocked(oPanelTryPlots);
+						
+						/*end - part for testing extjs plots*/
+						
+						
 						Ext.apply(me, {
 							layout : 'fit',//'border',
 							bodyBorder : false,
@@ -488,6 +527,118 @@ Ext
 
 					},
 					
+					__showExamplePlot:function(sPlotType){
+						
+						var me = this;
+						
+						var oDataToSend = {
+								"pie":{
+											_grouping:"Site",
+											_plotName:"Pie plot of CPU used",
+											_timeSelector:2592000,
+											_typeName:"Job"
+											
+									   }
+						};
+						
+						Ext.Ajax.request({
+							url : me._baseUrl
+									+ 'AccountingPlot/getPlotData',
+							params : oDataToSend[sPlotType],
+							scope : me,
+							success : function(response) {
+
+								var me = this;
+								var response = Ext.JSON.decode(response.responseText);
+								
+								var oChartObject = null;
+								switch(sPlotType){
+								
+									case "pie":		
+														var oData = [];
+														
+														for(var key in response)
+															oData.push([key,response[key]]);
+														
+														var oStorePie = Ext.create('Ext.data.JsonStore', {
+													        fields: ['name', 'value'],
+													        data: oData
+													    });
+														
+														oChartObject = Ext.create('Ext.chart.Chart', {
+																			            xtype: 'chart',
+																			            animate: true,
+																			            store: oStorePie,
+																			            shadow: true,
+																			            legend: {
+																			                position: 'right'
+																			            },
+																			            insetPadding: 60,
+																			            theme: 'Base:gradients',
+																			            series: [{
+																			                type: 'pie',
+																			                field: 'value',
+																			                showInLegend: true,
+																			                //donut: donut,
+																			                tips: {
+																			                    trackMouse: true,
+																			                    width: 300,
+																			                    height: 28,
+																			                    renderer: function(storeItem, item) {
+																			                      //calculate percentage.
+																			                      var total = 0;
+																			                      oStorePie.each(function(rec) {
+																			                          total += rec.get('value');
+																			                      });
+																			                      this.setTitle(storeItem.get('name') + ': ' + Math.round(storeItem.get('value') / total * 100) + '%');
+																			                    }
+																			                  },
+																			                highlight: {
+																			                  segment: {
+																			                    margin: 20
+																			                  }
+																			                },
+																			                label: {
+																			                    field: 'name',
+																			                    display: 'rotate',
+																			                    contrast: true,
+																			                    //font: '12px Arial'
+																			                }
+																			            }]
+																			        });
+													
+										
+													break;
+								
+								
+								}
+								
+								var oPlotWindow = Ext.create('widget.window', {
+									height : 650,
+									width : 850,
+									title : 'Example Plot',
+									layout : 'fit',
+									modal: true
+								});
+								
+								var oPanel = new Ext.create('Ext.panel.Panel', {
+									autoHeight : true,
+									border : false,
+									width: 800,
+							        height: 600,
+							        layout: 'fit',
+									items : oChartObject
+								});
+								
+								oPlotWindow.add(oPanel);
+								
+								oPlotWindow.show();
+								
+							}
+						});
+						
+						
+					},
 					__fillComboQuarter:function(){
 						
 						var me = this;
@@ -900,8 +1051,7 @@ Ext
 						}
 						//console.log("__generatePlot");
 						//console.trace();
-						Ext.Ajax
-								.request({
+						Ext.Ajax.request({
 									url : me._baseUrl
 											+ 'AccountingPlot/generatePlot',
 									params : oParams,

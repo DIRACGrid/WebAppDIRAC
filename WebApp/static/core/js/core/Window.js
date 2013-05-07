@@ -164,6 +164,8 @@ Ext.define(
 								
 								if("data" in setupData){
 									me.currentState = setupData.currentState;
+									me.loadedObject.currentState = setupData.currentState;
+									_app._sm.addActiveState(me.loadedObject.self.getName(),me.currentState);
 									me.loadedObject.loadState(setupData.data);
 								}
 								
@@ -345,11 +347,19 @@ Ext.define(
 								
 								me.desktop.addStateToExistingWindows("application",sStateName,sAppName);
 								me.loadedObject.currentState = sStateName;
+								me.currentState = sStateName;
+								_app._sm.addActiveState(sAppName,sStateName);
 								me.setTitle(me.loadedObject.launcher.title+" ["+me.loadedObject.currentState+"]");
 								me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+me.loadedObject.currentState+"]",20));
 								_app.desktop.refreshUrlDesktopState();
 								
 							};
+							
+							var funcAfterRemove = function(sStateType,sAppName,sStateName){
+								
+								me.desktop.removeStateFromWindows(sStateType,sAppName,sStateName);
+								
+							}
 							
 							me.loadMenu = new Ext.menu.Menu({
 								items : [ {
@@ -374,7 +384,7 @@ Ext.define(
 								},{
 									text : "Manage states ...",
 									iconCls : "toolbar-other-manage",
-									handler : Ext.bind(_app._sm.formManageStates, _app._sm, [me.loadedObject.self.getName()], false),
+									handler : Ext.bind(_app._sm.formManageStates, _app._sm, [me.loadedObject.self.getName(),funcAfterRemove], false),
 									scope: me
 								} ]
 							});
@@ -581,6 +591,8 @@ Ext.define(
 						me.closeAllChildWindows();
 						me.loadedObject.loadState(_app._sm.cache.application[me.appClassName][stateName]);
 						me.currentState = stateName;
+						me.loadedObject.currentState = stateName; 
+						_app._sm.addActiveState(me.appClassName,stateName);
 						
 						_app.desktop.refreshUrlDesktopState();
 						

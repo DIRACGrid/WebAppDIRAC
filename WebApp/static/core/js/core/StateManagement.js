@@ -20,25 +20,24 @@ Ext.define('Ext.dirac.core.StateManagement',
 			
 			var me = this;
 			
-			var sStateType = ((sAppName=="desktop")?"desktop":"application"); 
-			
 			Ext.Ajax.request({
 			    url: _app_base_url+'UP/listAppState',
 			    params: {
 			        app: 	sAppName,
-			        obj: 	sStateType	
+			        obj: 	"application"	
 			    },
 			    success: function(response){
 			    	
 			    	var oStates = Ext.JSON.decode(response.responseText);
-			    	me.cache[sStateType][sAppName]={};
+			    	me.cache["application"][sAppName]={};
 			    	
 			    	for (var sStateName in oStates) {	
 			    		
-			    		me.cache[sStateType][sAppName][sStateName]=oStates[sStateName];
+			    		me.cache["application"][sAppName][sStateName]=oStates[sStateName];
 			    		
 			    	}
 			    	
+			
 			    	Ext.Ajax.request({
 					    url: _app_base_url+'UP/listAppState',
 					    params: {
@@ -55,7 +54,7 @@ Ext.define('Ext.dirac.core.StateManagement',
 					    		me.cache["reference"][sAppName][sStateName]=oStates[sStateName];
 					    		
 					    	}
-			    	
+			
 					    	funcCallBack();
 					    	
 					    },
@@ -69,11 +68,7 @@ Ext.define('Ext.dirac.core.StateManagement',
 			    failure:function(response){
 			    	
 			    	me.cache[sStateType][sAppName]={};
-			    	me.cache["reference"][sAppName]={};{
-						
-						
-						
-					}
+			    	me.cache["reference"][sAppName]={};
 			    	
 			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			    }
@@ -118,7 +113,9 @@ Ext.define('Ext.dirac.core.StateManagement',
 		},
 		
 		isExistingState:function(sStateType,sAppName,sStateName){
-				
+			
+			var me = this;
+			
 			if((sAppName in me.cache[sStateType])&&(sStateName in me.cache[sStateType][sAppName]))
 				return true;
 			else
@@ -178,6 +175,7 @@ Ext.define('Ext.dirac.core.StateManagement',
 										                 return false;
 											             
 											        }else{
+											        	console.log(me.__sStateType +" :: "+ me.__sAppName+" :: "+sValue);
 											        	
 											        	if(me.isExistingState(me.__sStateType,me.__sAppName,sValue)){
 											        		
@@ -322,10 +320,10 @@ Ext.define('Ext.dirac.core.StateManagement',
 		 * Function to create and open the 
 		 * form for managing the desktop states
 		 */
-		formManageStates: function(sAppName){
+		formManageStates: function(sAppName,funcAfterRemove){
 			
 			var me = this;
-
+			
 			me.manageForm = Ext.widget(
 					'form',
 					{
@@ -345,9 +343,10 @@ Ext.define('Ext.dirac.core.StateManagement',
 							margins : '0 0 10 0'
 						},
 						appName:sAppName,
+						cbAfterRemove: funcAfterRemove,
 						items : [
 									{
-										 html: "Application: <b>"+me.loadedObject.launcher.title+"</b>",
+										 html: "Application: <b>"+sAppName+"</b>",
 									     xtype: "box"
 									},
 									{xtype:"panel",
@@ -420,6 +419,8 @@ Ext.define('Ext.dirac.core.StateManagement',
 								 ]
 					});
 			
+			
+			
 			me.manageWindow = Ext.create('widget.window', {
 				height : 300,
 				width : 500,
@@ -430,8 +431,8 @@ Ext.define('Ext.dirac.core.StateManagement',
 			});
 			
 			me.manageWindow.show();
-			me.__oprFillSelectFieldWithStates();
 			
+			me.__oprFillSelectFieldWithStates();
 			
 		},
 		
@@ -447,7 +448,7 @@ Ext.define('Ext.dirac.core.StateManagement',
 			for (i = oSelectEl.length - 1; i>=0; i--) 
 				oSelectEl.remove(i);
 			
-			for(var sStateName in me.cache.application[me.appClassName]){
+			for(var sStateName in me.cache.application[me.manageForm.appName]){
 				
 				  var elOptNew = document.createElement('option');
 				  
@@ -468,7 +469,7 @@ Ext.define('Ext.dirac.core.StateManagement',
 			for (i = oSelectEl.length - 1; i>=0; i--) 
 				oSelectEl.remove(i);
 			
-			for(var sStateName in me.cache.reference[me.appClassName]){
+			for(var sStateName in me.cache.reference[me.manageForm.appName]){
 				
 				  var elOptNew = document.createElement('option');
 				  
@@ -491,7 +492,8 @@ Ext.define('Ext.dirac.core.StateManagement',
 			var me = this;
 			var oFound = false;
 			
-			for(var i=0;i<=me.activeStates.length;i++){
+			for(var i=0;i<me.activeStates.length;i++){
+				
 				if((sStateName==me.activeStates[i][1])&&(sAppName==me.activeStates[i][0])){
 					
 					oFound = true;
@@ -499,9 +501,31 @@ Ext.define('Ext.dirac.core.StateManagement',
 					
 				}
 			}
-		
+			
 			return oFound;
 			
+		},
+		
+		addActiveState:function(sAppName,sStateName){
+			
+			var me = this;
+			
+			me.activeStates.push([sAppName,sStateName]);
+			
+		},
+		
+		removeActiveState:function(sAppName,sStateName){
+			
+			var me = this;
+			var iIndex = -1;
+			for(var i=me.activeStates.length-1;i>=0;i--){
+				if((sStateName==me.activeStates[i][1])&&(sAppName==me.activeStates[i][0])){
+					iIndex = i;
+					break;
+				}
+			}
+			if(iIndex != -1)
+				me.activeStates.splice(iIndex,1);
 		},
 		
 		oprDeleteSelectedStates: function(){
@@ -525,7 +549,6 @@ Ext.define('Ext.dirac.core.StateManagement',
 				    var oStateName=oSelectField.options[i].value;	
 				    if(iWhoSelect == 0){	
 				    	  	
-				    	
 					      if(! me.isAnyActiveState(me.manageForm.appName,oStateName)){
 					    	  
 					    	  /*
@@ -581,9 +604,14 @@ Ext.define('Ext.dirac.core.StateManagement',
 			
 			var me = this;
 			
-			var oStateName = oSelectEl.options[index].value;
+			var sStateName = oSelectEl.options[index].value;
 			
-			me.desktop.removeStateFromWindows(((iWhoSelect==0)?"application":"reference"),oStateName,me.appClassName);
+			if(iWhoSelect == 0)
+				delete me.cache["application"][me.manageForm.appName][sStateName];
+			else
+				delete me.cache["reference"][me.manageForm.appName][sStateName];
+			
+			me.manageForm.cbAfterRemove(((iWhoSelect==0)?"application":"reference"),sStateName,me.manageForm.appName);
 			
 			oSelectEl.remove(index);
 			
