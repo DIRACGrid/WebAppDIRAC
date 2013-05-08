@@ -23,7 +23,11 @@ Ext
 					             "Ext.toolbar.Paging",
 					             "Ext.grid.Panel",
 					             "Ext.form.field.Date",
-					             "Ext.form.field.TextArea"],					
+					             "Ext.form.field.TextArea",
+					             "Ext.dirac.utils.DiracBoxSelect",
+					             "Ext.dirac.utils.DiracMultiSelect",
+					             "Ext.toolbar.Toolbar",
+					             "Ext.dirac.utils.DiracToolButton"],
 
 					loadState : function(data) {
 						

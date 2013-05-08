@@ -11,17 +11,20 @@ Ext
 				{
 					extend : 'Ext.dirac.core.Module',
 
-					requires : [ 'Ext.util.*', 'Ext.panel.Panel',
-							"Ext.form.field.Text", "Ext.button.Button",
-							"Ext.menu.Menu", "Ext.form.field.ComboBox",
-							"Ext.layout.*", "Ext.form.field.Date",
-							"Ext.form.field.TextArea",
-							"Ext.form.field.Checkbox", "Ext.form.FieldSet",
-							"Ext.Button", "Ext.dirac.utils.DiracMultiSelect",
-							"Ext.ux.form.MultiSelect",
-							"Ext.util.*",
-							"Ext.toolbar.Toolbar",
-							"Ext.data.Record"],
+    requires : [ 'Ext.util.*',
+                 'Ext.panel.Panel',
+                 "Ext.form.field.Text", "Ext.button.Button",
+                 "Ext.menu.Menu", "Ext.form.field.ComboBox",
+                 "Ext.layout.*", "Ext.form.field.Date",
+                 "Ext.form.field.TextArea",
+                 "Ext.form.field.Checkbox", "Ext.form.FieldSet",
+                 "Ext.Button", "Ext.dirac.utils.DiracMultiSelect",
+                 "Ext.ux.form.MultiSelect",
+                 "Ext.util.*",
+                 "Ext.toolbar.Toolbar",
+                 "Ext.dirac.utils.DiracBoxSelect","Ext.form.field.Text",
+                 "Ext.Img",
+                 "Ext.form.*"],
 
 					loadState : function(oData) {
 						
