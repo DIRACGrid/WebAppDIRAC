@@ -293,8 +293,10 @@ Ext.define('Ext.dirac.core.TaskBar', {
         } else {
             win.toFront();
         }
-        
-        win.desktop.refreshUrlDesktopState();
+        if (win.desktop){ //the child window does not have desktop.
+            win.desktop.refreshUrlDesktopState();
+        }//we do not need to refresh the url when an child window closed or activated.
+
     },
     
     /**
