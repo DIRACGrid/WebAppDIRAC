@@ -65,28 +65,16 @@ class Compiler(object):
       except IOError, excp:
         return S_ERROR( "Can't create build dir %s" % excp )
     outFile = os.path.join( buildDir, "index.html" )
+    compressedJsFile = os.path.join( buildDir, appName+'.js' )
 
     classPath = list( self.__classPaths )
     classPath.append( os.path.join( extPath, appName, "classes" ) )
     cmd = [ 'sencha', '-sdk', self.__sdkPath, 'compile', '-classpath=%s' % ",".join( classPath ),
-            '-debug=%s' % self.__debugFlag, 'page', '-yui', '-in', inFile, '-out', outFile ]
+           '-debug=%s' % self.__debugFlag, 'page', '-name=page','-in',inFile, '-out', outFile,'and','restore','page','and','exclude','-not','-namespace','Ext.dirac.*,DIRAC.*','and','concat','-yui',compressedJsFile]
+
     if self.__cmd( cmd ):
       return S_ERROR( "Error compiling %s.%s" % ( extName, appName ) )
 
-    try:
-      with open( os.path.join( buildDir, "all-classes.js" ) ) as allFD:
-        lines = allFD.readlines()
-        with open( os.path.join( buildDir, "%s.js" % appName ), "w" ) as appFD:
-          #Skip first line
-          appFD.write( "".join( lines[1:] ) )
-    except IOError, excp:
-      return S_ERROR( "Could not read/write js: %s" % excp )
-
-    try:
-      os.unlink( os.path.join( buildDir, "all-classes.js" ) )
-      os.unlink( outFile )
-    except:
-      pass
     return S_OK()
 
 
