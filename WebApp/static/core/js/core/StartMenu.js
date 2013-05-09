@@ -6,161 +6,151 @@
  */
 
 /**
- * @class Ext.dirac.core.StartMenu
- * Startmenu as a part of the taskbar. An object of
- * this class has two main parts:
- *  - Menu (on the left side)
- *  - Toolbar (on the right side)
+ * @class Ext.dirac.core.StartMenu Startmenu as a part of the taskbar. An object
+ *        of this class has two main parts: - Menu (on the left side) - Toolbar
+ *        (on the right side)
  * @extends Ext.panel.Panel
  */
 Ext.define('Ext.dirac.core.StartMenu', {
-	extend : 'Ext.panel.Panel',
+    extend : 'Ext.panel.Panel',
 
-	requires : [ 'Ext.menu.Menu', 'Ext.toolbar.Toolbar',
-	             'Ext.panel.Panel',"Ext.button.Button",
-	             "Ext.form.field.Text"],
+    requires : [ 'Ext.menu.Menu', 'Ext.toolbar.Toolbar', 'Ext.panel.Panel', "Ext.button.Button", "Ext.form.field.Text" ],
 
-	ariaRole : 'menu',
+    ariaRole : 'menu',
 
-	cls : 'x-menu ux-start-menu',
+    cls : 'x-menu ux-start-menu',
 
-	defaultAlign : 'bl-tl',
+    defaultAlign : 'bl-tl',
 
-	iconCls : 'user',
+    iconCls : 'user',
 
-	floating : true,
+    floating : true,
 
-	shadow : true,
+    shadow : true,
+
+    /*
+     * We have to hardcode a width because the internal Menu cannot drive our
+     * width. This is combined with changing the align property of the menu's
+     * layout from the typical 'stretchmax' to 'stretch' which allows the the
+     * items to fill the menu area.
+     */
+    width : 300,
+
+    initComponent : function() {
+	var me = this, menu = me.menu;
 
 	/*
-	 * We have to hardcode a width because the internal Menu cannot drive our
-	 * width. This is combined with changing the align property of the menu's
-	 * layout from the typical 'stretchmax' to 'stretch' which allows the the
-	 * items to fill the menu area.
+	 * Start menu
 	 */
-	width : 300,
+	me.menu = new Ext.menu.Menu({
+	    cls : 'ux-start-menu-body',
+	    border : false,
+	    floating : false,
+	    items : menu
+	});
+	me.menu.layout.align = 'stretch';
 
-	initComponent : function() {
-		var me = this, menu = me.menu;
-		
-		/*
-		 * Start menu
-		 */
-		me.menu = new Ext.menu.Menu({
-			cls : 'ux-start-menu-body',
-			border : false,
-			floating : false,
-			items : menu
-		});
-		me.menu.layout.align = 'stretch';
+	me.items = [ me.menu ];
+	me.layout = 'fit';
 
-		me.items = [ me.menu ];
-		me.layout = 'fit';
+	Ext.menu.Manager.register(me);
+	me.callParent();
 
-		Ext.menu.Manager.register(me);
-		me.callParent();
-		
-		/*
-		 * Additional toolbar on the right side of the 
-		 * start menu.
-		 */
-		me.toolbar = new Ext.toolbar.Toolbar(Ext.apply({
-			dock : 'right',
-			cls : 'ux-start-menu-toolbar',
-			vertical : true,
-			width : 100
-		}, me.toolConfig));
-
-		me.toolbar.add(['->',{
-			text : 'State Loader',
-			iconCls : 'system_state_icon',
-			handler : function(){
-				me.toolConfig.app.desktop.formStateLoader();
-			},
-			scope : me.toolConfig.app.desktop
-		}]);
-		
-		me.toolbar.layout.align = 'stretch';
-		me.addDocked(me.toolbar);
-		
-		/*
-		 * Panel to load shared state
-		 */
-		
-		me.panelLoadSharedState = new Ext.create('Ext.panel.Panel', {
-			dock:"bottom",
-			margins : '0',
-			bodyPadding : 5,
-			layout: {
-		        type: 'hbox'
-		    },
-			items:[
-			       {
-			    	   xtype:"textfield",
-			    	   margin:"0 5 0 0",
-			    	   flex:1
-			       },
-			       {
-			    	   xtype:"button",
-			    	   text:"Load",
-			    	   handler:function(){
-			    		   
-			    		   var oText = me.panelLoadSharedState.items.getAt(0).getValue();
-			    		   me.app.desktop.loadSharedState(oText);
-			    		   
-			    	   }
-			       }
-			]
-		});
-		
-		//me.addDocked(me.panelLoadSharedState);
-		
-		delete me.toolItems;
-
-		me.on('deactivate', function() {
-			me.hide();
-		});
-	},
-	
-	/**
-	 * Function to add an item (button, menu) to the menu
-	 * of the start menu
+	/*
+	 * Additional toolbar on the right side of the start menu.
 	 */
-	addMenuItem : function() {
-		var cmp = this.menu;
-		cmp.add.apply(cmp, arguments);
-	},
+	me.toolbar = new Ext.toolbar.Toolbar(Ext.apply({
+	    dock : 'right',
+	    cls : 'ux-start-menu-toolbar',
+	    vertical : true,
+	    width : 100
+	}, me.toolConfig));
 
-	/**
-	 * Function to add an item (button, menu) to the toolbar
-	 * of the start menu
+	me.toolbar.add([ '->', {
+	    text : 'State Loader',
+	    iconCls : 'system_state_icon',
+	    handler : function() {
+		me.toolConfig.app.desktop.formStateLoader();
+	    },
+	    scope : me.toolConfig.app.desktop
+	} ]);
+
+	me.toolbar.layout.align = 'stretch';
+	me.addDocked(me.toolbar);
+
+	/*
+	 * Panel to load shared state
 	 */
-	addToolItem : function() {
-		var cmp = this.toolbar;
-		cmp.add.apply(cmp, arguments);
-	},
 
-	showBy : function(cmp, pos, off) {
-		var me = this;
+	me.panelLoadSharedState = new Ext.create('Ext.panel.Panel', {
+	    dock : "bottom",
+	    margins : '0',
+	    bodyPadding : 5,
+	    layout : {
+		type : 'hbox'
+	    },
+	    items : [ {
+		xtype : "textfield",
+		margin : "0 5 0 0",
+		flex : 1
+	    }, {
+		xtype : "button",
+		text : "Load",
+		handler : function() {
 
-		if (me.floating && cmp) {
-			me.layout.autoSize = true;
-			me.show();
+		    var oText = me.panelLoadSharedState.items.getAt(0).getValue();
+		    me.app.desktop.loadSharedState(oText);
 
-			// Component or Element
-			cmp = cmp.el || cmp;
-
-			// Convert absolute to floatParent-relative coordinates if
-			// necessary.
-			var xy = me.el.getAlignToXY(cmp, pos || me.defaultAlign, off);
-			if (me.floatParent) {
-				var r = me.floatParent.getTargetEl().getViewRegion();
-				xy[0] -= r.x;
-				xy[1] -= r.y;
-			}
-			me.showAt(xy);
-			me.doConstrain();
 		}
-		return me;
+	    } ]
+	});
+
+	// me.addDocked(me.panelLoadSharedState);
+
+	delete me.toolItems;
+
+	me.on('deactivate', function() {
+	    me.hide();
+	});
+    },
+
+    /**
+     * Function to add an item (button, menu) to the menu of the start menu
+     */
+    addMenuItem : function() {
+	var cmp = this.menu;
+	cmp.add.apply(cmp, arguments);
+    },
+
+    /**
+     * Function to add an item (button, menu) to the toolbar of the start menu
+     */
+    addToolItem : function() {
+	var cmp = this.toolbar;
+	cmp.add.apply(cmp, arguments);
+    },
+
+    showBy : function(cmp, pos, off) {
+	var me = this;
+
+	if (me.floating && cmp) {
+	    me.layout.autoSize = true;
+	    me.show();
+
+	    // Component or Element
+	    cmp = cmp.el || cmp;
+
+	    // Convert absolute to floatParent-relative coordinates if
+	    // necessary.
+	    var xy = me.el.getAlignToXY(cmp, pos || me.defaultAlign, off);
+	    if (me.floatParent) {
+		var r = me.floatParent.getTargetEl().getViewRegion();
+		xy[0] -= r.x;
+		xy[1] -= r.y;
+	    }
+	    me.showAt(xy);
+	    me.doConstrain();
 	}
+	return me;
+    }
 });

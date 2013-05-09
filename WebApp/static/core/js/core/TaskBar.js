@@ -6,331 +6,324 @@
  */
 
 /**
- * @class Ext.dirac.core.TaskBar
- * The taskbar class. An object of this class 
- * has three main parts: 
- *  - Start menu
- *  - Quick start menu
- *  - Window bar (syn. task bar)
+ * @class Ext.dirac.core.TaskBar The taskbar class. An object of this class has
+ *        three main parts: - Start menu - Quick start menu - Window bar (syn.
+ *        task bar)
  * @extends Ext.toolbar.Toolbar
  */
 Ext.define('Ext.dirac.core.TaskBar', {
-    extend: 'Ext.toolbar.Toolbar', // TODO - make this a basic hbox panel...
+    extend : 'Ext.toolbar.Toolbar', // TODO - make this a basic hbox panel...
 
-    requires: [
-        'Ext.button.Button',
-        'Ext.resizer.Splitter',
-        'Ext.menu.Menu',
-        'Ext.dirac.core.StartMenu',
-        'Ext.toolbar.TextItem'
-    ],
+    requires : [ 'Ext.button.Button', 'Ext.resizer.Splitter', 'Ext.menu.Menu', 'Ext.dirac.core.StartMenu', 'Ext.toolbar.TextItem' ],
 
-    alias: 'widget.taskbar',
+    alias : 'widget.taskbar',
 
-    cls: 'ux-taskbar',
+    cls : 'ux-taskbar',
 
     /**
-	 * @cfg {String} startBtnText The text for the Start Button.
-	 */
-    startBtnText: 'Start',
-
-    initComponent: function () {
-    	
-        var me = this;
-        
-        me.startMenu = new Ext.dirac.core.StartMenu(me.startConfig);
-
-        me.quickStart = new Ext.toolbar.Toolbar(me.getQuickStart());
-
-        me.windowBar = new Ext.toolbar.Toolbar(me.getWindowBarConfig());
-        
-        
-        
-        me.items = [
-                    {
-                        xtype: 'button',
-                        cls: 'ux-start-button',
-                        iconCls: 'ux-start-button-icon',
-                        menu: me.startMenu,
-                        menuAlign: 'bl-tl',
-                        text: me.startBtnText
-                    },
-                    me.quickStart,
-                    {
-                        xtype: 'splitter', html: '&#160;',
-                        height: 14, width: 2, // TODO - there should be a CSS way here
-                        cls: 'x-toolbar-separator x-toolbar-separator-horizontal'
-                    },
-                    me.windowBar
-                   ];
-        
-        
-        if(me.app.configData.user.username){
-        	/*
-             * If the user is registered
-             */
-        	
-        	var button_data={
-            		"text":me.app.configData["user"]["group"],
-            		"menu":[]
-            };
-        	
-	        for(var i=0;i<me.app.configData["validGroups"].length;i++)
-	        	button_data.menu.push({	
-	        		text:me.app.configData["validGroups"][i],
-	        		handler:function(){
-	        			
-	        			var me = this;
-	        			
-	        			Ext.Ajax.request({
-	        			    url: _app_base_url+'changeGroup',
-	        			    params: {
-	        			    	to: me.text
-	        			    },
-	        			    scope:me,
-	        			    success: function(response){
-	        			    	document.open("text/html");
-	        			    	document.write(response.responseText);
-	        			    	document.close();
-	        			    },
-	        			    failure:function(response){
-	        			    	
-	        			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-	        			    }
-	        			});
-	        			
-	        			
-	        		}
-	        	});
-	        
-	        me.group_button = new Ext.button.Button(button_data);
-	        
-	        
-	        var setup_data={
-	        		"text":me.app.configData["setup"],
-	        		"menu":[]
-	        };
-	        
-	        for(var i=0;i<me.app.configData["validSetups"].length;i++)
-	        	setup_data.menu.push({	text:me.app.configData["validSetups"][i],
-	        		handler:function(){
-	        			
-	        			var me = this;
-	        			
-	        			Ext.Ajax.request({
-	        			    url: _app_base_url+'changeSetup',
-	        			    params: {
-	        			    	to: me.text
-	        			    },
-	        			    scope:me,
-	        			    success: function(response){
-	        			    	document.open("text/html");
-	        			    	document.write(response.responseText);
-	        			    	document.close();
-	        			    },
-	        			    failure:function(response){
-	        			    	
-	        			    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-	        			    }
-	        			});		
-	        			
-	        		}
-	        	});
-	        
-	        me.setup_button = new Ext.button.Button(setup_data);
-	        me.items.push('-');
-	        me.items.push({
-	              xtype: 'tbtext', 
-	              text:me.app.configData["user"]["username"]+"@"
-	          });
-	        me.items.push(me.group_button);
-	        me.items.push('-');
-	        me.items.push(me.setup_button);
-	        
-        }else{
-        	
-        	/*
-             * If the user is not registered
-             */
-        	me.items.push('-');
-        	me.items.push({
-				              xtype: 'tbtext', 
-				              text:"Anonymous"
-				          });
-        }
-
-        me.callParent();
-    },
-
-    afterLayout: function () {
-        var me = this;
-        me.callParent();
-        me.windowBar.el.on('contextmenu', me.onButtonContextMenu, me);
-    },
-
-    /**
-	 * This method returns the configuration object for the Quick Start toolbar.
-	 * A derived class can override this method, call the base version to build
-	 * the config and then modify the returned object before returning it.
-	 */
-    getQuickStart: function () {
-        var me = this, ret = {
-            minWidth: 20,
-            width: 60,
-            items: [],
-            enableOverflow: true
-        };
-
-        Ext.each(this.quickStart, function (item) {
-            ret.items.push({
-                tooltip: { text: item.name, align: 'bl-tl' },
-                // tooltip: item.name,
-                overflowText: item.name,
-                iconCls: item.iconCls,
-                module: item.module,
-                handler: me.onQuickStartClick,
-                scope: me
-            });
-        });
-
-        return ret;
-    },
-    
-    /**
-     * Event handler executed when a button 
-     * from the quick bar is clicked
-     * 
-     * @param {Ext.button.Button} btn Button that has been clicked 
+     * @cfg {String} startBtnText The text for the Start Button.
      */
-    onQuickStartClick: function (btn) {
-//        var module = this.app.getModule(btn.module),
-//            window;
-//
-//        if (module) {
-//            window = module.createWindow();
-//            window.show();
-//        }
-    	/*
-    	 * This to be implemented
-    	 */
+    startBtnText : 'Start',
+
+    initComponent : function() {
+
+	var me = this;
+
+	me.startMenu = new Ext.dirac.core.StartMenu(me.startConfig);
+
+	me.quickStart = new Ext.toolbar.Toolbar(me.getQuickStart());
+
+	me.windowBar = new Ext.toolbar.Toolbar(me.getWindowBarConfig());
+
+	me.items = [ {
+	    xtype : 'button',
+	    cls : 'ux-start-button',
+	    iconCls : 'ux-start-button-icon',
+	    menu : me.startMenu,
+	    menuAlign : 'bl-tl',
+	    text : me.startBtnText
+	}, me.quickStart, {
+	    xtype : 'splitter',
+	    html : '&#160;',
+	    height : 14,
+	    width : 2, // TODO - there should be a CSS way here
+	    cls : 'x-toolbar-separator x-toolbar-separator-horizontal'
+	}, me.windowBar ];
+
+	if (me.app.configData.user.username) {
+	    /*
+	     * If the user is registered
+	     */
+
+	    var button_data = {
+		"text" : me.app.configData["user"]["group"],
+		"menu" : []
+	    };
+
+	    for ( var i = 0; i < me.app.configData["validGroups"].length; i++)
+		button_data.menu.push({
+		    text : me.app.configData["validGroups"][i],
+		    handler : function() {
+
+			var me = this;
+
+			Ext.Ajax.request({
+			    url : _app_base_url + 'changeGroup',
+			    params : {
+				to : me.text
+			    },
+			    scope : me,
+			    success : function(response) {
+				document.open("text/html");
+				document.write(response.responseText);
+				document.close();
+			    },
+			    failure : function(response) {
+
+				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+			    }
+			});
+
+		    }
+		});
+
+	    me.group_button = new Ext.button.Button(button_data);
+
+	    var setup_data = {
+		"text" : me.app.configData["setup"],
+		"menu" : []
+	    };
+
+	    for ( var i = 0; i < me.app.configData["validSetups"].length; i++)
+		setup_data.menu.push({
+		    text : me.app.configData["validSetups"][i],
+		    handler : function() {
+
+			var me = this;
+
+			Ext.Ajax.request({
+			    url : _app_base_url + 'changeSetup',
+			    params : {
+				to : me.text
+			    },
+			    scope : me,
+			    success : function(response) {
+				document.open("text/html");
+				document.write(response.responseText);
+				document.close();
+			    },
+			    failure : function(response) {
+
+				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+			    }
+			});
+
+		    }
+		});
+
+	    me.setup_button = new Ext.button.Button(setup_data);
+	    me.items.push('-');
+	    me.items.push({
+		xtype : 'tbtext',
+		text : me.app.configData["user"]["username"] + "@"
+	    });
+	    me.items.push(me.group_button);
+	    me.items.push('-');
+	    me.items.push(me.setup_button);
+
+	} else {
+
+	    /*
+	     * If the user is not registered
+	     */
+	    me.items.push('-');
+	    me.items.push({
+		xtype : 'tbtext',
+		text : "Anonymous"
+	    });
+	}
+
+	me.callParent();
     },
-    
+
+    afterLayout : function() {
+	var me = this;
+	me.callParent();
+	me.windowBar.el.on('contextmenu', me.onButtonContextMenu, me);
+    },
+
     /**
-	 * This method returns the configuration object for the Tray toolbar. A
-	 * derived class can override this method, call the base version to build
-	 * the config and then modify the returned object before returning it.
+     * This method returns the configuration object for the Quick Start toolbar.
+     * A derived class can override this method, call the base version to build
+     * the config and then modify the returned object before returning it.
+     */
+    getQuickStart : function() {
+	var me = this, ret = {
+	    minWidth : 20,
+	    width : 60,
+	    items : [],
+	    enableOverflow : true
+	};
+
+	Ext.each(this.quickStart, function(item) {
+	    ret.items.push({
+		tooltip : {
+		    text : item.name,
+		    align : 'bl-tl'
+		},
+		// tooltip: item.name,
+		overflowText : item.name,
+		iconCls : item.iconCls,
+		module : item.module,
+		handler : me.onQuickStartClick,
+		scope : me
+	    });
+	});
+
+	return ret;
+    },
+
+    /**
+     * Event handler executed when a button from the quick bar is clicked
+     * 
+     * @param {Ext.button.Button}
+     *                btn Button that has been clicked
+     */
+    onQuickStartClick : function(btn) {
+	// var module = this.app.getModule(btn.module),
+	// window;
+	//
+	// if (module) {
+	// window = module.createWindow();
+	// window.show();
+	// }
+	/*
+	 * This to be implemented
 	 */
-    getTrayConfig: function () {
-        var ret = {
-            width: 80,
-            items: this.trayItems
-        };
-        delete this.trayItems;
-        return ret;
-    },
-
-    getWindowBarConfig: function () {
-        return {
-            flex: 1,
-            cls: 'ux-desktop-windowbar',
-            items: [ '&#160;' ],
-            layout: { overflowHandler: 'Scroller' }
-        };
-    },
-
-    getWindowBtnFromEl: function (el) {
-        var c = this.windowBar.getChildByElement(el);
-        return c || null;
-    },
-    
-    onButtonContextMenu: function (e) {
-        var me = this, t = e.getTarget(), btn = me.getWindowBtnFromEl(t);
-        if (btn) {
-            e.stopEvent();
-            me.windowMenu.theWin = btn.win;
-            me.windowMenu.showBy(t);
-        }
     },
 
     /**
-     * Function to add a (task) button 
-     * within the task bar
-     * @param {Ext.window.Window} win The window to be referenced by the button
+     * This method returns the configuration object for the Tray toolbar. A
+     * derived class can override this method, call the base version to build
+     * the config and then modify the returned object before returning it.
+     */
+    getTrayConfig : function() {
+	var ret = {
+	    width : 80,
+	    items : this.trayItems
+	};
+	delete this.trayItems;
+	return ret;
+    },
+
+    getWindowBarConfig : function() {
+	return {
+	    flex : 1,
+	    cls : 'ux-desktop-windowbar',
+	    items : [ '&#160;' ],
+	    layout : {
+		overflowHandler : 'Scroller'
+	    }
+	};
+    },
+
+    getWindowBtnFromEl : function(el) {
+	var c = this.windowBar.getChildByElement(el);
+	return c || null;
+    },
+
+    onButtonContextMenu : function(e) {
+	var me = this, t = e.getTarget(), btn = me.getWindowBtnFromEl(t);
+	if (btn) {
+	    e.stopEvent();
+	    me.windowMenu.theWin = btn.win;
+	    me.windowMenu.showBy(t);
+	}
+    },
+
+    /**
+     * Function to add a (task) button within the task bar
+     * 
+     * @param {Ext.window.Window}
+     *                win The window to be referenced by the button
      * @return {Ext.button.Button} Button object added to the task bar
      */
-    addTaskButton: function(win) {
-        var config = {
-            iconCls: win.iconCls,
-            enableToggle: true,
-            toggleGroup: 'all',
-            width: 140,
-            margins: '0 2 0 3',
-            text: Ext.util.Format.ellipsis(win.title, 20),
-            listeners: {
-                click: this.onWindowBtnClick,
-                scope: this
-            },
-            win: win
-        };
-        var cmp = this.windowBar.add(config);
-        cmp.toggle(true);
-        return cmp;
+    addTaskButton : function(win) {
+	var config = {
+	    iconCls : win.iconCls,
+	    enableToggle : true,
+	    toggleGroup : 'all',
+	    width : 140,
+	    margins : '0 2 0 3',
+	    text : Ext.util.Format.ellipsis(win.title, 20),
+	    listeners : {
+		click : this.onWindowBtnClick,
+		scope : this
+	    },
+	    win : win
+	};
+	var cmp = this.windowBar.add(config);
+	cmp.toggle(true);
+	return cmp;
     },
-    
+
     /**
      * Event handler executed when a button is clicked
      * 
-     * @param {Ext.button.Button} btn Button that has been clicked 
+     * @param {Ext.button.Button}
+     *                btn Button that has been clicked
      */
-    onWindowBtnClick: function (btn) {
-        var win = btn.win;
+    onWindowBtnClick : function(btn) {
+	var win = btn.win;
 
-        if (win.minimized || win.hidden) {
-        	win.minimized = false;
-            win.show();
-        } else if (win.active) {
-            win.minimize();
-        } else {
-            win.toFront();
-        }
-        
-        win.desktop.refreshUrlDesktopState();
+	if (win.minimized || win.hidden) {
+	    win.minimized = false;
+	    win.show();
+	} else if (win.active) {
+	    win.minimize();
+	} else {
+	    win.toFront();
+	}
+
+	win.desktop.refreshUrlDesktopState();
     },
-    
+
     /**
-     * Function to remove a (task) button 
-     * within the task bar
-     * @param {Ext.button.Button} btn The button to be removed
+     * Function to remove a (task) button within the task bar
+     * 
+     * @param {Ext.button.Button}
+     *                btn The button to be removed
      * @return {Ext.button.Button} Button object removed from the task bar
      */
-    removeTaskButton: function (btn) {
-        var found, me = this;
-        me.windowBar.items.each(function (item) {
-            if (item === btn) {
-                found = item;
-            }
-            return !found;
-        });
-        if (found) {
-            me.windowBar.remove(found);
-        }
-        return found;
+    removeTaskButton : function(btn) {
+	var found, me = this;
+	me.windowBar.items.each(function(item) {
+	    if (item === btn) {
+		found = item;
+	    }
+	    return !found;
+	});
+	if (found) {
+	    me.windowBar.remove(found);
+	}
+	return found;
     },
-    
+
     /**
      * Function to activate a button
      * 
-     * @param {Ext.button.Button} btn The button to be removed
+     * @param {Ext.button.Button}
+     *                btn The button to be removed
      */
-    setActiveButton: function(btn) {
-        if (btn) {
-            btn.toggle(true);
-        } else {
-            this.windowBar.items.each(function (item) {
-                if (item.isButton) {
-                    item.toggle(false);
-                }
-            });
-        }
+    setActiveButton : function(btn) {
+	if (btn) {
+	    btn.toggle(true);
+	} else {
+	    this.windowBar.items.each(function(item) {
+		if (item.isButton) {
+		    item.toggle(false);
+		}
+	    });
+	}
     }
 });
