@@ -503,25 +503,19 @@ Ext.define('Ext.dirac.core.App', {
 
 		var me = this;
 
-		me.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ], function() {
+		var instance = Ext.create(sStartClass, {
+		    _baseUrl : me.configData.baseURL + "/"
+		});
 
-		    var me = this;
+		var config = {
+		    desktop : me.desktop,
+		    setupData : setupData,
+		    loadedObject : instance,
+		    loadedObjectType : "app"
+		};
 
-		    var instance = Ext.create(sStartClass, {
-			_baseUrl : me.configData.baseURL + "/"
-		    });
-
-		    var config = {
-			desktop : me.desktop,
-			setupData : setupData,
-			loadedObject : instance,
-			loadedObjectType : "app"
-		    };
-
-		    var window = me.desktop.createWindow(config);
-		    window.show();
-
-		}, me);
+		var window = me.desktop.createWindow(config);
+		window.show();
 
 	    }, this);
 

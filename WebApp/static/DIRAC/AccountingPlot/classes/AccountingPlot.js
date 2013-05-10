@@ -62,9 +62,8 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	return oReturn;
 
     },
-
+    
     initComponent : function() {
-
 	var me = this;
 
 	me.launcher.title = "Accounting Plot";
@@ -74,6 +73,36 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	me.launcher.height = oDimensions[1] - 50;
 	me.launcher.maximized = false;
+	
+	Ext.apply(me, {
+	    layout : 'fit',
+	    bodyBorder : false,
+	    defaults : {
+		collapsible : true,
+		split : true
+	    }
+	});
+	
+	me.callParent(arguments);
+	
+	var oParts = me.self.getName().split(".");
+	
+	_app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ], function() {
+	    
+	    var me = this;
+	    
+	    me.buildUI();
+	    
+	},me);
+	
+	
+	
+	
+    },
+    
+    buildUI : function() {
+
+	var me = this;
 
 	/*
 	 * -----------------------------------------------------------------------------------------------------------
@@ -163,7 +192,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		}
 	    }
 	});
-
+	
 	me.cmbPlotGenerate = Ext.create('Ext.form.field.ComboBox', {
 	    fieldLabel : "Plot To Generate",
 	    queryMode : 'local',
@@ -222,7 +251,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    }
 
 	});
-
+	
 	me.calendarFrom = new Ext.create('Ext.form.field.Date', {
 	    width : 100,
 	    format : 'Y-m-d',
@@ -250,7 +279,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	});
 
 	me.fsetTimeSpan.add([ me.cmbTimeSpan, me.calendarFrom, me.calendarTo, me.cmbQuarter ]);
-
+	
 	me.fsetSpecialConditions = Ext.create('Ext.form.FieldSet', {
 	    title : 'Selection Conditions',
 	    collapsible : true,
@@ -281,14 +310,14 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	me.fsetAdvanced.add([ me.advancedPlotTitle, me.advancedPin, me.advancedNotScaleUnits ]);
 
 	me.leftPanel.add([ me.cmbDomain, me.cmbPlotGenerate, me.cmbGroupBy, me.fsetTimeSpan, me.fsetSpecialConditions, me.fsetAdvanced ]);
-
+	
 	me.btnPlot = new Ext.Button({
 
 	    text : 'New',
 	    margin : 3,
 	    iconCls : "accp-submit-icon",
 	    handler : function() {
-		// console.log(me.cmbQuarter.getRawValue().split(","));
+		
 		me.__generatePlot(null, null);
 	    },
 	    scope : me
@@ -338,7 +367,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    scope : me
 
 	});
-
+	
 	/*
 	 * This button is used to refresh any previously selected plot that is
 	 * already generated.
@@ -371,17 +400,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	 * -----------------------------------------------------------------------------------------------------------
 	 */
 
-	Ext.apply(me, {
-	    layout : 'fit',// 'border',
-	    bodyBorder : false,
-	    defaults : {
-		collapsible : true,
-		split : true
-	    },
-	    items : [ me.leftPanel ]
-	});
-
-	me.callParent(arguments);
+	me.add([me.leftPanel]);
 
     },
 

@@ -216,11 +216,38 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
     } ],
 
     initComponent : function() {
-
+	
 	var me = this;
 
 	me.launcher.title = "Job Monitor";
 	me.launcher.maximized = true;
+	
+	Ext.apply(me, {
+	    layout : 'border',
+	    bodyBorder : false,
+	    defaults : {
+		collapsible : true,
+		split : true
+	    }
+	});
+
+	me.callParent(arguments);
+	
+	var oParts = me.self.getName().split(".");
+	
+	_app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ], function() {
+	    
+	    var me = this;
+	    
+	    me.buildUI();
+	    
+	},me);
+	
+    },
+    
+    buildUI : function() {
+
+	var me = this;
 
 	/*
 	 * -----------------------------------------------------------------------------------------------------------
@@ -897,17 +924,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	 * DEFINITION OF THE MAIN CONTAINER
 	 * -----------------------------------------------------------------------------------------------------------
 	 */
-	Ext.apply(me, {
-	    layout : 'border',
-	    bodyBorder : false,
-	    defaults : {
-		collapsible : true,
-		split : true
-	    },
-	    items : [ me.leftPanel, me.grid ]
-	});
-
-	me.callParent(arguments);
+	me.add([ me.leftPanel, me.grid ]);
 
     },
 

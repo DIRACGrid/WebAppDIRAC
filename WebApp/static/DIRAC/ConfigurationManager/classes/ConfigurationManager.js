@@ -27,70 +27,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
     initComponent : function() {
 
 	var me = this;
-
+	
 	me.launcher.title = "Configuration Manager";
 	me.launcher.maximized = true;
-
-	/*
-	 * -----------------------------------------------------------------------------------------------------------
-	 * DEFINITION OF THE LEFT PANEL
-	 * -----------------------------------------------------------------------------------------------------------
-	 */
-
-	me.leftPanel = new Ext.create('Ext.panel.Panel', {
-	    title : 'Actions',
-	    region : 'west',
-	    floatable : false,
-	    margins : '0',
-	    width : 250,
-	    minWidth : 230,
-	    maxWidth : 350,
-	    bodyPadding : 5,
-	    layout : 'anchor',
-	    autoScroll : true
-	});
-
-	me.treeStore = Ext.create('Ext.data.TreeStore', {
-	    proxy : {
-		type : 'ajax',
-		url : me._baseUrl + 'ConfigurationManager/getSubnodes',
-		reader : {
-		    type : 'json',
-		    root : 'nodes'
-		},
-		extraParams : {
-		    nodePath : "/"
-		}
-	    },
-	    root : {
-		text : 'Configuration',
-		expanded : true
-	    },
-	    listeners : {
-		beforeload : function(oThisStore, oOperation, eOpts) {
-		    oThisStore.proxy.extraParams.nodePath = me.__getNodePath(oOperation.node);
-		    //console.log(oThisStore.proxy.extraParams.nodePath);
-		}
-	    }
-	});
-
-	me.treePanel = new Ext.create('Ext.tree.Panel', {
-	    title : "Configuration Tree",
-	    region : 'center',
-	    store : me.treeStore,
-	    listeners : {
-		itemappend : function(oNode, oChildNode, index, eOpts) {
-		    
-		}
-	    }
-	});
-
-	/*
-	 * -----------------------------------------------------------------------------------------------------------
-	 * DEFINITION OF THE MAIN CONTAINER
-	 * -----------------------------------------------------------------------------------------------------------
-	 */
-
+	
 	Ext.apply(me, {
 	    layout : 'border',
 	    bodyBorder : false,
@@ -98,12 +38,91 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		collapsible : true,
 		split : true
 	    },
-	    items : [ me.leftPanel, me.treePanel ]
+	    items:[]
+	});
+	
+	Ext.Ajax.request({
+	    url : _app_base_url + 'ConfigurationManager/initializeConfigurationCopy',
+	    method : 'POST',
+	    params : {},
+	    scope : me,
+	    success : function(response) {
+	
+        	/*
+        	 * -----------------------------------------------------------------------------------------------------------
+        	 * DEFINITION OF THE LEFT PANEL
+        	 * -----------------------------------------------------------------------------------------------------------
+        	 */
+        
+        	me.leftPanel = new Ext.create('Ext.panel.Panel', {
+        	    title : 'Actions',
+        	    region : 'west',
+        	    floatable : false,
+        	    margins : '0',
+        	    width : 250,
+        	    minWidth : 230,
+        	    maxWidth : 350,
+        	    bodyPadding : 5,
+        	    layout : 'anchor',
+        	    autoScroll : true
+        	});
+        
+        	me.treeStore = Ext.create('Ext.data.TreeStore', {
+        	    proxy : {
+        		type : 'ajax',
+        		url : me._baseUrl + 'ConfigurationManager/getSubnodes',
+        		reader : {
+        		    type : 'json',
+        		    root : 'nodes'
+        		},
+        		extraParams : {
+        		    nodePath : "/"
+        		}
+        	    },
+        	    root : {
+        		text : 'Configuration',
+        		expanded : true
+        	    },
+        	    listeners : {
+        		beforeload : function(oThisStore, oOperation, eOpts) {
+        		    oThisStore.proxy.extraParams.nodePath = me.__getNodePath(oOperation.node);
+        		    // console.log(oThisStore.proxy.extraParams.nodePath);
+        		}
+        	    }
+        	});
+        
+        	me.treePanel = new Ext.create('Ext.tree.Panel', {
+        	    title : "Configuration Tree",
+        	    region : 'center',
+        	    store : me.treeStore,
+        	    listeners : {
+        		itemappend : function(oNode, oChildNode, index, eOpts) {
+        
+        		},
+        		beforeitemappend : function(oNode, oChildNode, eOpts) {
+        
+        		    if (oChildNode.isLeaf())
+        			me.__configureLeafNode(oChildNode);
+        
+        		}
+        	    }
+        	});
+        
+        	/*
+        	 * -----------------------------------------------------------------------------------------------------------
+        	 * DEFINITION OF THE MAIN CONTAINER
+        	 * -----------------------------------------------------------------------------------------------------------
+        	 */
+               	
+        	me.add([ me.leftPanel, me.treePanel ]);
+	
+	    }
 	});
 
 	me.callParent(arguments);
 
     },
+
     __getNodePath : function(oNode) {
 	var sPath = ""
 	var oCopyRefNode = oNode;
@@ -117,6 +136,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	if (!sPath)
 	    return "/";
 	return sPath;
+    },
+
+    __configureLeafNode : function(oNode) {
+
+	// Version 4.1.3 has a bug regarding this, fixed in 4.2.0
+	// oNode.text = oNode.raw.csName + " = " + oNode.raw.csValue;
+
     }
 
 });

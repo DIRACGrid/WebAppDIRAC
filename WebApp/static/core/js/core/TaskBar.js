@@ -285,7 +285,8 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    win.toFront();
 	}
 
-	win.desktop.refreshUrlDesktopState();
+	if(!("isChildWindow" in win))
+	    win.desktop.refreshUrlDesktopState();
     },
 
     /**
