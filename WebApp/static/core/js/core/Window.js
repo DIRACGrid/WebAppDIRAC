@@ -268,39 +268,6 @@ Ext.define('Ext.dirac.core.Window', {
 	return this.currentState;
 
     },
-    oprShareState : function(sStateName) {
-
-	var me = this;
-
-	Ext.Ajax.request({
-	    url : me.desktop.getBaseUrl() + 'UP/makePublicAppState',
-	    params : {
-		app : me.appClassName,
-		obj : "application",
-		name : sStateName,
-		access : "ALL"
-	    },
-	    scope : me,
-	    success : function(response) {
-
-		var me = this;
-
-		var oStringToShow = "application|" + me.appClassName + "|" + _app.configData["user"]["username"] + "|" + _app.configData["user"]["group"] + "|" + sStateName;
-
-		var oHtml = "<div style='padding:5px'>The string you can send is as follows:</div>";
-		oHtml += "<div style='padding:5px;font-weight:bold'>" + oStringToShow + "</div>";
-
-		Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + sStateName + "</span> state:", oHtml);
-
-	    },
-	    failure : function(response) {
-
-		var responseData = Ext.JSON.decode(response.responseText);
-		Ext.example.msg("Notification", responseData["error"]);
-	    }
-	});
-
-    },
     /**
      * Overriden function, inherited from Ext.window.Window used to set up the
      * buttons at the top right corner of the window
@@ -424,7 +391,7 @@ Ext.define('Ext.dirac.core.Window', {
 		stateType : stateType,
 		menu : [ {
 		    text : "Share state",
-		    handler : Ext.bind(me.oprShareState, me, [ stateName ], false),
+		    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ stateName, me.loadedObject.self.getName() ], false),
 		    iconCls : "system_share_state_icon"
 		} ]
 	    });
@@ -531,7 +498,7 @@ Ext.define('Ext.dirac.core.Window', {
 		stateType : "application",
 		menu : [ {
 		    text : "Share state",
-		    handler : Ext.bind(me.oprShareState, me, [ stateName ], false),
+		    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ stateName, me.loadedObject.self.getName() ], false),
 		    iconCls : "system_share_state_icon"
 		} ]
 	    });
@@ -602,7 +569,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 	var me = this;
 
-	var oWindow = me.desktop.createWindow({
+	var oWindow = me.desktop.initWindow({
 	    height : oHeight,
 	    width : oWidth,
 	    title : sTitle,

@@ -32,12 +32,6 @@ Ext.define('Ext.dirac.core.Desktop', {
     registerStartMenus : {},
 
     /**
-     * @property {Ext.dirac.core.app} app This is the reference to the
-     *           application object
-     */
-    app : null,
-
-    /**
      * @property {Ext.menu.Menu} windowMenu Menu that is used as a context menu
      *           that appears when a window is clicked within the taskbar
      */
@@ -147,12 +141,13 @@ Ext.define('Ext.dirac.core.Desktop', {
 
     loadState : function(oData) {
 
+	var me = this;
 	for ( var i = 0, len = oData["data"].length; i < len; i++) {
 
 	    var oAppStateData = stateData["data"][i];
 
 	    if (oAppStateData.name)
-		__app.createWindow(oAppStateData.loadedObjectType, oAppStateData.name, oAppStateData);
+		me.createWindow(oAppStateData.loadedObjectType, oAppStateData.name, oAppStateData);
 
 	}
 
@@ -207,12 +202,14 @@ Ext.define('Ext.dirac.core.Desktop', {
      * @param e
      */
     onShortcutItemClick : function(dataView, record) {
+	/*
 	var me = this, module = me.app.getModule(record.data.module), win = module && module.createWindow();
 
 	if (win) {
 	    me.restoreWindow(win);
 	} else
 	    me.app.createWindow(record.data.module);
+	*/
 
     },
 
@@ -324,7 +321,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 		    }
 
-		    _app.createWindow("app", oAppItems[0], oSetupData);
+		    me.createWindow("app", oAppItems[0], oSetupData);
 
 		}
 
@@ -395,7 +392,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		iconCls : "system_state_icon",
 		menu : [ {
 		    text : "Share state",
-		    handler : Ext.bind(me.oprShareState, me, [ sStateName ], false),
+		    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ sStateName, "dekstop" ], false),
 		    iconCls : "system_share_state_icon"
 		} ]
 	    });
@@ -486,7 +483,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		stateType : "application",
 		menu : [ {
 		    text : "Share state",
-		    handler : Ext.bind(me.oprShareState, me, [ sStateName ], false),
+		    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ sStateName, "desktop" ], false),
 		    iconCls : "system_share_state_icon"
 		} ]
 	    });
@@ -739,12 +736,6 @@ Ext.define('Ext.dirac.core.Desktop', {
 	});
     },
 
-    getBaseUrl : function() {
-
-	return this.app.configData.baseURL + "/";
-
-    },
-
     // ------------------------------------------------------
     // Window management methods
 
@@ -887,6 +878,79 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	me.refreshUrlDesktopState();
     },
+    
+    
+    /**
+     * Function to create a window and to load the module defined by the
+     * moduleName
+     * 
+     * @param {String}
+     *                moduleName The name of the module (the JavaScript class)
+     *                to be loaded
+     */
+    createWindow : function(loadedObjectType, moduleName, setupData) {
+
+	Ext.get("app-dirac-loading").show();
+
+	if (loadedObjectType == "app") {
+
+	    var oParts = moduleName.split(".");
+	    var sStartClass = "";
+
+	    if (oParts.length == 2)
+		sStartClass = moduleName + ".classes." + oParts[1];
+	    else
+		sStartClass = moduleName;
+
+	    if (_dev == 0) {
+
+		var oConfig = {
+		    enabled : true,
+		    paths : {}
+		};
+
+		oConfig["paths"]["DIRAC." + oParts[1] + ".classes"] = "static/" + oParts[0] + "/" + oParts[1] + "/build";
+
+		Ext.Loader.setConfig(oConfig);
+
+	    }
+
+	    Ext.require(sStartClass, function() {
+
+		var me = this;
+
+		var instance = Ext.create(sStartClass, {
+		    _baseUrl : _app_base_url + "/"
+		});
+
+		var config = {
+		    desktop : me,
+		    setupData : setupData,
+		    loadedObject : instance,
+		    loadedObjectType : "app"
+		};
+
+		var window = me.initWindow(config);
+		window.show();
+
+	    }, this);
+
+	} else if (loadedObjectType == "link") {
+	    var me = this;
+	    
+	    var window = me.initWindow({
+		setupData : setupData,
+		loadedObjectType : "link",
+		linkToLoad : moduleName
+	    });
+
+	    window.show();
+
+	}
+
+    },
+    
+    
 
     /**
      * Function that is used by modules to create windows with some content.
@@ -896,7 +960,7 @@ Ext.define('Ext.dirac.core.Desktop', {
      *                config Configuration and content of the window
      */
 
-    createWindow : function(config) {
+    initWindow : function(config) {
 
 	var me = this, win, cfg = Ext.applyIf(config || {}, {
 	    stateful : false,
@@ -958,7 +1022,6 @@ Ext.define('Ext.dirac.core.Desktop', {
 	// replace normal window close
 	win.doClose = function() {
 	    win.el.disableShadow();
-
 	    win.destroy();
 	    win.doClose = Ext.emptyFn;
 	};
@@ -1338,290 +1401,71 @@ Ext.define('Ext.dirac.core.Desktop', {
 
     },
 
-    loadSharedState : function(oData) {
-
-	var me = this;
-
-	var oDataItems = oData.split("|");
-
-	if (oDataItems.length != 5) {
-
-	    alert("The 'Load' data you entered is not valid !");
-	    return;
-
-	}
-
-	Ext.Ajax.request({
-	    url : me.getBaseUrl() + 'UP/loadUserAppState',
-	    params : {
-		obj : oDataItems[0],
-		app : oDataItems[1],
-		user : oDataItems[2],
-		group : oDataItems[3],
-		name : oDataItems[4]
-	    },
-	    scope : me,
-	    success : function(response) {
-
-		var me = this;
-		var oDataReceive = Ext.JSON.decode(response.responseText);
-
-		if (oDataItems[0] == "application") {
-
-		    var oSetupData = {
-			"data" : oDataReceive,
-			"currentState" : ""
-		    };
-
-		    me.app.createWindow("app", oDataItems[1], oSetupData);
-		} else if (oDataItems[0] == "desktop") {
-
-		    for ( var i = 0, len = oDataReceive["data"].length; i < len; i++) {
-
-			var appStateData = oDataReceive["data"][i];
-
-			if (appStateData.name)
-			    me.app.createWindow(appStateData.loadedObjectType, appStateData.name, appStateData);
-
-		    }
-
-		    if (me.currentState != "")
-			_app._sm.removeActiveState("desktop", me.currentState);
-
-		    me.currentState = "";
-
-		}
-
-	    },
-	    failure : function(response) {
-
-		var responseData = Ext.JSON.decode(response.responseText);
-		Ext.example.msg("Notification", responseData["error"]);
-	    }
-	});
-
-    },
-
-    saveSharedState : function(sRefName, sRef) {
-
-	var me = this;
-
-	var oDataItems = sRef.split("|");
-
-	Ext.Ajax.request({
-	    url : me.getBaseUrl() + 'UP/saveAppState',
-	    params : {
-		app : oDataItems[1],
-		name : sRefName,
-		state : Ext.JSON.encode({
-		    link : sRef
-		}),
-		obj : "reference"
-	    },
-	    scope : me,
-	    success : function(response) {
-
-		Ext.example.msg("Notification", 'Reference saved successfully !');
-		me.txtLoadText.setRawValue("");
-		me.txtRefName.setRawValue("");
-
-		_app._sm.cache.reference[oDataItems[1]][sRefName] = {
-		    link : sRef
-		};
-
-		if (oDataItems[0] == "application") {
-		    me.addStateToExistingWindows("reference", sRefName, oDataItems[1], sRef);
-		} else {
-		    me.addDesktopReference(sRefName);
-		}
-
-	    },
-	    failure : function(response) {
-
-		Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-	    }
-	});
-
-    },
-
-    oprShareState : function(sStateName) {
-
-	var me = this;
-
-	Ext.Ajax.request({
-	    url : me.getBaseUrl() + 'UP/makePublicAppState',
-	    params : {
-		app : "desktop",
-		obj : "desktop",
-		name : sStateName,
-		access : "ALL"
-	    },
-	    scope : me,
-	    success : function(response) {
-
-		var me = this;
-
-		var oStringToShow = "desktop|desktop" + "|" + _app.configData["user"]["username"] + "|" + _app.configData["user"]["group"] + "|" + sStateName;
-
-		var oHtml = "<div style='padding:5px'>The string you can send is as follows:</div>";
-		oHtml += "<div style='padding:5px;font-weight:bold'>" + oStringToShow + "</div>";
-
-		Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + sStateName + "</span> state:", oHtml);
-
-	    },
-	    failure : function(response) {
-
-		var responseData = Ext.JSON.decode(response.responseText);
-		Ext.example.msg("Notification", responseData["error"]);
-	    }
-	});
-
-    },
-
     registerStartAppMenu : function(oMenu, sAppClassName) {
 
 	var me = this;
 	me.registerStartMenus[sAppClassName] = oMenu;
 
     },
-
-    formStateLoader : function() {
+    
+    getDesktopDimensions : function() {
 
 	var me = this;
 
-	me.txtLoadText = Ext.create('Ext.form.field.Text', {
+	return [ me.desktop.getWidth(), me.desktop.getHeight() ];
 
-	    fieldLabel : "Shared State:",
-	    labelAlign : 'left',
-	    margin : 10,
-	    width : 400,
-	    validate : function() {
-		var me = this;
+    },
+    
+    /*-----------------IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
+    
+    cbAfterLoadSharedState:function(sLink,oDataReceived){
+	
+	var me = this;
+	var oDataItems = sLink.split("|");
+	
+	if (oDataItems[0] != "desktop") {
 
-		if ((Ext.util.Format.trim(me.getValue()) != "") && (me.getValue().split("|").length == 5)) {
-		    return true;
-		} else {
-		    alert("The value in the 'Shared State' field is not valid !");
-		    return false;
-		}
+	    var oSetupData = {
+		"data" : oDataReceived,
+		"currentState" : ""
+	    };
 
-	    },
-	    validateOnChange : false,
-	    validateOnBlur : false
+	    me.app.createWindow("app", oDataItems[0], oSetupData);
+	    
+	}else{
 
-	});
+	    for ( var i = 0, len = oDataReceived["data"].length; i < len; i++) {
 
-	me.txtRefName = Ext.create('Ext.form.field.Text', {
+		var appStateData = oDataReceived["data"][i];
 
-	    fieldLabel : "Name:",
-	    labelAlign : 'left',
-	    margin : 10,
-	    width : 400,
-	    validate : function() {
-		var me = this;
+		if (appStateData.name)
+		    me.app.createWindow(appStateData.loadedObjectType, appStateData.name, appStateData);
 
-		if (Ext.util.Format.trim(me.getValue()) != "") {
-		    return true;
-		} else {
-		    alert("The 'Name' field cannot be empty !");
-		    return false;
-		}
+	    }
+	    
+	    if (me.currentState != "")
+		_app._sm.removeActiveState("desktop", me.currentState);
+	    
+	    me.currentState = "";
 
-	    },
-	    validateOnChange : false,
-	    validateOnBlur : false
-	});
-
-	me.btnLoadSharedState = new Ext.Button({
-
-	    text : 'Load',
-	    margin : 3,
-	    iconCls : "toolbar-other-load",
-	    handler : function() {
-		if (me.txtLoadText.validate()) {
-
-		    me.loadSharedState(me.txtLoadText.getValue());
-
-		}
-	    },
-	    scope : me
-
-	});
-
-	me.btnSaveSharedState = new Ext.Button({
-
-	    text : 'Create Link',
-	    margin : 3,
-	    iconCls : "toolbar-other-save",
-	    handler : function() {
-
-		var oValid = true;
-
-		if (!me.txtLoadText.validate())
-		    oValid = false;
-
-		if (!me.txtRefName.validate())
-		    oValid = false;
-
-		if (oValid) {
-
-		    me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue());
-
-		}
-
-	    },
-	    scope : me
-
-	});
-
-	me.btnLoadAndSaveSharedState = new Ext.Button({
-
-	    text : 'Load &amp; Create Link',
-	    margin : 3,
-	    iconCls : "toolbar-other-load",
-	    handler : function() {
-		var oValid = true;
-
-		if (!me.txtLoadText.validate())
-		    oValid = false;
-
-		if (!me.txtRefName.validate())
-		    oValid = false;
-
-		if (oValid) {
-
-		    me.loadSharedState(me.txtLoadText.getValue());
-		    me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue());
-
-		}
-
-	    },
-	    scope : me
-
-	});
-
-	var oToolbar = new Ext.toolbar.Toolbar();
-
-	oToolbar.add([ me.btnLoadSharedState, me.btnSaveSharedState, me.btnLoadAndSaveSharedState ]);
-
-	var oPanel = new Ext.create('Ext.panel.Panel', {
-	    autoHeight : true,
-	    border : false,
-	    items : [ oToolbar, me.txtLoadText, me.txtRefName, ]
-	});
-
-	me.manageWindow = Ext.create('widget.window', {
-	    height : 200,
-	    width : 500,
-	    title : 'State Loader',
-	    layout : 'fit',
-	    modal : true,
-	    items : [ oPanel ],
-	    iconCls : "system_state_icon"
-	});
-
-	me.manageWindow.show();
-
+	}
+	
+    },
+    
+    cbAfterSaveSharedState:function(sLinkName,sLink){
+	
+	var me = this;
+	
+	var oDataItems = sLink.split("|");
+	
+	if (oDataItems[0] != "desktop") {
+	    me.addStateToExistingWindows("reference", sLinkName, oDataItems[1], sLink);
+	} else {
+	    me.addDesktopReference(sLinkName);
+	}
+	
     }
+    
+    /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
 
 });

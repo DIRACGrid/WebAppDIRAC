@@ -29,7 +29,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 
 	var me = this;
 
-	me.startMenu = new Ext.dirac.core.StartMenu(me.startConfig);
+	me.startMenu = new Ext.dirac.core.StartMenu();
 
 	me.quickStart = new Ext.toolbar.Toolbar(me.getQuickStart());
 
@@ -50,19 +50,19 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    cls : 'x-toolbar-separator x-toolbar-separator-horizontal'
 	}, me.windowBar ];
 
-	if (me.app.configData.user.username) {
+	if (_app.configData.user.username) {
 	    /*
 	     * If the user is registered
 	     */
 
 	    var button_data = {
-		"text" : me.app.configData["user"]["group"],
+		"text" : _app.configData["user"]["group"],
 		"menu" : []
 	    };
 
-	    for ( var i = 0; i < me.app.configData["validGroups"].length; i++)
+	    for ( var i = 0; i < _app.configData["validGroups"].length; i++)
 		button_data.menu.push({
-		    text : me.app.configData["validGroups"][i],
+		    text : _app.configData["validGroups"][i],
 		    handler : function() {
 
 			var me = this;
@@ -90,13 +90,13 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    me.group_button = new Ext.button.Button(button_data);
 
 	    var setup_data = {
-		"text" : me.app.configData["setup"],
+		"text" : _app.configData["setup"],
 		"menu" : []
 	    };
 
-	    for ( var i = 0; i < me.app.configData["validSetups"].length; i++)
+	    for ( var i = 0; i < _app.configData["validSetups"].length; i++)
 		setup_data.menu.push({
-		    text : me.app.configData["validSetups"][i],
+		    text : _app.configData["validSetups"][i],
 		    handler : function() {
 
 			var me = this;
@@ -125,7 +125,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    me.items.push('-');
 	    me.items.push({
 		xtype : 'tbtext',
-		text : me.app.configData["user"]["username"] + "@"
+		text : _app.configData["user"]["username"] + "@"
 	    });
 	    me.items.push(me.group_button);
 	    me.items.push('-');

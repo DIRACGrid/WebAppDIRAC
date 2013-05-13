@@ -489,7 +489,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	me.leftPanel.addDocked(oPanelButtons);
 
 	Ext.Ajax.request({
-	    url : me._baseUrl + 'JobMonitor/getSelectionData',
+	    url : _app_base_url + 'JobMonitor/getSelectionData',
 	    params : {
 
 	    },
@@ -519,7 +519,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	    proxy : {
 		type : 'ajax',
-		url : this._baseUrl + 'JobMonitor/getJobData',
+		url : _app_base_url + 'JobMonitor/getJobData',
 		reader : {
 		    type : 'json',
 		    root : 'result'

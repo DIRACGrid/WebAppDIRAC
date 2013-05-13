@@ -172,7 +172,6 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			    return false;
 
 			} else {
-			    console.log(me.__sStateType + " :: " + me.__sAppName + " :: " + sValue);
 
 			    if (me.isExistingState(me.__sStateType, me.__sAppName, sValue)) {
 
@@ -180,9 +179,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 				return false;
 
 			    } else {
-
-				this.clearInvalid();
-				return true;
+				
+				if(me.__isValidStateName(sValue)){
+        				this.clearInvalid();
+        				return true;
+				}else{
+				    
+				    this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
+				    return false;
+				    
+				}
 
 			    }
 
@@ -252,6 +258,14 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	    me.oprSendDataForSave(oAppObject.currentState, false);
 	}
+    },
+    
+    __isValidStateName : function(sStateName){
+	
+	 var regExpr = /^([0-9a-zA-Z\.\_\-]+)+$/;
+	 
+	 return (String(sStateName).search(regExpr) != -1);
+	
     },
 
     /**
@@ -598,5 +612,263 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	oSelectEl.remove(index);
 
     },
+    
+    /*-----------------------------------------------SHARE STATE-----------------------------------------------*/
+    
+    oprShareState : function(sStateName, sAppName) {
+
+	var me = this;
+
+	Ext.Ajax.request({
+	    url : _app_base_url + 'UP/makePublicAppState',
+	    params : {
+		obj : "application",
+		app : sAppName,
+		name : sStateName,
+		access : "ALL"
+	    },
+	    scope : me,
+	    success : function(response) {
+
+		var me = this;
+
+		var oStringToShow = sAppName + "|" + _app.configData["user"]["username"] + "|" + _app.configData["user"]["group"] + "|" + sStateName;
+
+		var oHtml = ""; 	
+		oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+		oHtml += "<div style='padding:5px;font-weight:bold'>" + oStringToShow + "</div>";
+
+		Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + sStateName + "</span> state:", oHtml);
+
+	    },
+	    failure : function(response) {
+
+		var responseData = Ext.JSON.decode(response.responseText);
+		Ext.example.msg("Notification", responseData["error"]);
+	    }
+	});
+
+    },
+    
+    formStateLoader : function() {
+
+	var me = this;
+
+	me.txtLoadText = Ext.create('Ext.form.field.Text', {
+
+	    fieldLabel : "Shared State:",
+	    labelAlign : 'left',
+	    margin : 10,
+	    width : 400,
+	    validate : function() {
+		var me = this;
+
+		if ((Ext.util.Format.trim(me.getValue()) != "") && (me.getValue().split("|").length == 4)) {
+		    return true;
+		} else {
+		    alert("The value in the 'Shared State' field is not valid !");
+		    return false;
+		}
+
+	    },
+	    validateOnChange : false,
+	    validateOnBlur : false
+
+	});
+
+	me.txtRefName = Ext.create('Ext.form.field.Text', {
+
+	    fieldLabel : "Name:",
+	    labelAlign : 'left',
+	    margin : 10,
+	    width : 400,
+	    validate : function() {
+		var me = this;
+
+		if (Ext.util.Format.trim(me.getValue()) != "") {
+		    return true;
+		} else {
+		    alert("The 'Name' field cannot be empty !");
+		    return false;
+		}
+
+	    },
+	    validateOnChange : false,
+	    validateOnBlur : false
+	});
+
+	me.btnLoadSharedState = new Ext.Button({
+
+	    text : 'Load',
+	    margin : 3,
+	    iconCls : "toolbar-other-load",
+	    handler : function() {
+		if (me.txtLoadText.validate()) {
+
+		    me.loadSharedState(me.txtLoadText.getValue());
+
+		}
+	    },
+	    scope : me
+
+	});
+
+	me.btnSaveSharedState = new Ext.Button({
+
+	    text : 'Create Link',
+	    margin : 3,
+	    iconCls : "toolbar-other-save",
+	    handler : function() {
+
+		var oValid = true;
+
+		if (!me.txtLoadText.validate())
+		    oValid = false;
+
+		if (!me.txtRefName.validate())
+		    oValid = false;
+
+		if (oValid) {
+
+		    me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue());
+
+		}
+
+	    },
+	    scope : me
+
+	});
+
+	me.btnLoadAndSaveSharedState = new Ext.Button({
+
+	    text : 'Load &amp; Create Link',
+	    margin : 3,
+	    iconCls : "toolbar-other-load",
+	    handler : function() {
+		var oValid = true;
+
+		if (!me.txtLoadText.validate())
+		    oValid = false;
+
+		if (!me.txtRefName.validate())
+		    oValid = false;
+
+		if (oValid) {
+
+		    me.loadSharedState(me.txtLoadText.getValue());
+		    me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue());
+
+		}
+
+	    },
+	    scope : me
+
+	});
+
+	var oToolbar = new Ext.toolbar.Toolbar();
+
+	oToolbar.add([ me.btnLoadSharedState, me.btnSaveSharedState, me.btnLoadAndSaveSharedState ]);
+
+	var oPanel = new Ext.create('Ext.panel.Panel', {
+	    autoHeight : true,
+	    border : false,
+	    items : [ oToolbar, me.txtLoadText, me.txtRefName, ]
+	});
+
+	me.manageWindow = Ext.create('widget.window', {
+	    height : 200,
+	    width : 500,
+	    title : 'State Loader',
+	    layout : 'fit',
+	    modal : true,
+	    items : [ oPanel ],
+	    iconCls : "system_state_icon"
+	});
+
+	me.manageWindow.show();
+
+    },
+    
+    loadSharedState : function(oData) {
+
+	var me = this;
+
+	var oDataItems = oData.split("|");
+
+	if (oDataItems.length != 4) {
+
+	    alert("The 'Load' data you entered is not valid !");
+	    return;
+
+	}
+
+	Ext.Ajax.request({
+	    url : _app_base_url + 'UP/loadUserAppState',
+	    params : {
+		obj : "application",
+		app : oDataItems[0],
+		user : oDataItems[1],
+		group : oDataItems[2],
+		name : oDataItems[3]
+	    },
+	    scope : me,
+	    success : function(response) {
+
+		var me = this;
+		var oDataReceived = Ext.JSON.decode(response.responseText);
+
+		_app.desktop.cbAfterLoadSharedState(oData,oDataReceived);
+		
+	    },
+	    failure : function(response) {
+
+		var responseData = Ext.JSON.decode(response.responseText);
+		Ext.example.msg("Notification", responseData["error"]);
+	    }
+	});
+
+    },
+    
+    saveSharedState : function(sRefName, sRef) {
+
+	var me = this;
+
+	var oDataItems = sRef.split("|");
+
+	Ext.Ajax.request({
+	    url : _app_base_url + 'UP/saveAppState',
+	    params : {
+		app : oDataItems[0],
+		name : sRefName,
+		state : Ext.JSON.encode({
+		    link : sRef
+		}),
+		obj : "reference"
+	    },
+	    scope : me,
+	    success : function(response) {
+
+		Ext.example.msg("Notification", 'Reference saved successfully !');
+		
+		me.txtLoadText.setRawValue("");
+		me.txtRefName.setRawValue("");
+
+		me.cache.reference[oDataItems[0]][sRefName] = {
+		    link : sRef
+		};
+		
+		_app.desktop.cbAfterSaveSharedState(sRefName.sRef);
+
+	    },
+	    failure : function(response) {
+
+		Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+	    }
+	});
+
+    },
+    
+    
+    /*-----------------------------------------------END - SHARE STATE-----------------------------------------------*/
 
 });
