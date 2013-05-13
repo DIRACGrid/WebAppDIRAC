@@ -98,6 +98,8 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	me.toolbar.layout.align = 'stretch';
 	me.addDocked(me.toolbar);
 	
+	this.callParent();
+	
     },
 
     /**
