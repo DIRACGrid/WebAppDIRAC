@@ -203,13 +203,12 @@ Ext.define('Ext.dirac.core.Desktop', {
      */
     onShortcutItemClick : function(dataView, record) {
 	/*
-	var me = this, module = me.app.getModule(record.data.module), win = module && module.createWindow();
-
-	if (win) {
-	    me.restoreWindow(win);
-	} else
-	    me.app.createWindow(record.data.module);
-	*/
+	 * var me = this, module = me.app.getModule(record.data.module), win =
+	 * module && module.createWindow();
+	 * 
+	 * if (win) { me.restoreWindow(win); } else
+	 * me.app.createWindow(record.data.module);
+	 */
 
     },
 
@@ -878,8 +877,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	me.refreshUrlDesktopState();
     },
-    
-    
+
     /**
      * Function to create a window and to load the module defined by the
      * moduleName
@@ -919,7 +917,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 		var me = this;
 
-		var instance = Ext.create(sStartClass,{});
+		var instance = Ext.create(sStartClass, {});
 
 		var config = {
 		    desktop : me,
@@ -935,7 +933,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	} else if (loadedObjectType == "link") {
 	    var me = this;
-	    
+
 	    var window = me.initWindow({
 		setupData : setupData,
 		loadedObjectType : "link",
@@ -947,8 +945,6 @@ Ext.define('Ext.dirac.core.Desktop', {
 	}
 
     },
-    
-    
 
     /**
      * Function that is used by modules to create windows with some content.
@@ -1405,7 +1401,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	me.registerStartMenus[sAppClassName] = oMenu;
 
     },
-    
+
     getDesktopDimensions : function() {
 
 	var me = this;
@@ -1413,14 +1409,15 @@ Ext.define('Ext.dirac.core.Desktop', {
 	return [ me.getWidth(), me.getHeight() ];
 
     },
-    
+
     /*-----------------IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
+
     
-    cbAfterLoadSharedState:function(sLink,oDataReceived){
-	
+    cbAfterLoadSharedState : function(sLink, oDataReceived) {
+
 	var me = this;
 	var oDataItems = sLink.split("|");
-	
+
 	if (oDataItems[0] != "desktop") {
 
 	    var oSetupData = {
@@ -1429,8 +1426,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    };
 
 	    me.app.createWindow("app", oDataItems[0], oSetupData);
-	    
-	}else{
+
+	} else {
 
 	    for ( var i = 0, len = oDataReceived["data"].length; i < len; i++) {
 
@@ -1440,30 +1437,30 @@ Ext.define('Ext.dirac.core.Desktop', {
 		    me.app.createWindow(appStateData.loadedObjectType, appStateData.name, appStateData);
 
 	    }
-	    
+
 	    if (me.currentState != "")
 		_app._sm.removeActiveState("desktop", me.currentState);
-	    
+
 	    me.currentState = "";
 
 	}
-	
+
     },
-    
-    cbAfterSaveSharedState:function(sLinkName,sLink){
-	
+
+    cbAfterSaveSharedState : function(sLinkName, sLink) {
+
 	var me = this;
-	
+
 	var oDataItems = sLink.split("|");
-	
+
 	if (oDataItems[0] != "desktop") {
 	    me.addStateToExistingWindows("reference", sLinkName, oDataItems[1], sLink);
 	} else {
 	    me.addDesktopReference(sLinkName);
 	}
-	
+
     }
-    
-    /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
+
+/*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
 
 });

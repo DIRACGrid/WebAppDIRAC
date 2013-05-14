@@ -14,7 +14,66 @@ Ext.define('Ext.dirac.core.StateManagement', {
     },
 
     activeStates : [],
+    
+    isStateLoaded : function(sStateType, sAppName, sStateName) {
 
+	var me = this;
+
+	if (sAppName in me.cache[sStateType]) {
+
+	    if (sStateName in me.cache[sStateType][sAppName]) {
+
+		return 1;
+
+	    } else {
+
+		return -1;
+
+	    }
+
+	} else {
+	    return -2;
+	}
+
+    },
+
+    isExistingState : function(sStateType, sAppName, sStateName) {
+
+	var me = this;
+
+	if ((sAppName in me.cache[sStateType]) && (sStateName in me.cache[sStateType][sAppName]))
+	    return true;
+	else
+	    return false;
+
+    },
+    
+    getApplicationStates:function(sStateType,sAppName){
+	
+	var oAppStates = [];
+	
+	for(var key in me.cache[sStateType][sAppName])
+	    oAppStates.push(key);
+	
+	return oAppStates;
+	
+    },
+    
+    getStateData : function(sStateType, sAppName, sStateName) {
+
+	var me = this;
+	var oValidation = me.isStateLoaded(sStateType, sAppName, sStateName);
+
+	if (oValidation == 1) {
+
+	    return me.cache[sStateType][sAppName][sStateName];
+
+	} else
+	    return oValidation;
+
+    },
+    
+    
     oprReadApplicationStatesAndReferences : function(sAppName, funcCallBack) {
 
 	var me = this;
@@ -71,53 +130,6 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 	    }
 	});
-
-    },
-
-    isStateLoaded : function(sStateType, sAppName, sStateName) {
-
-	var me = this;
-
-	if (sAppName in me.cache[sStateType]) {
-
-	    if (sStateName in me.cache[sStateType][sAppName]) {
-
-		return 1;
-
-	    } else {
-
-		return -1;
-
-	    }
-
-	} else {
-	    return -2;
-	}
-
-    },
-
-    getStateData : function(sStateType, sAppName, sStateName) {
-
-	var me = this;
-	var oValidation = me.isStateLoaded(sStateType, sAppName, sStateName);
-
-	if (oValidation == 1) {
-
-	    return me.cache[sStateType][sAppName][sStateName];
-
-	} else
-	    return oValidation;
-
-    },
-
-    isExistingState : function(sStateType, sAppName, sStateName) {
-
-	var me = this;
-
-	if ((sAppName in me.cache[sStateType]) && (sStateName in me.cache[sStateType][sAppName]))
-	    return true;
-	else
-	    return false;
 
     },
 
@@ -650,7 +662,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
     
-    formStateLoader : function() {
+    formStateLoader : function(funcAfterLoad,funcAfterSave) {
 
 	var me = this;
 
@@ -764,7 +776,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    scope : me
 
 	});
-
+	
 	var oToolbar = new Ext.toolbar.Toolbar();
 
 	oToolbar.add([ me.btnLoadSharedState, me.btnSaveSharedState, me.btnLoadAndSaveSharedState ]);
@@ -775,6 +787,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    items : [ oToolbar, me.txtLoadText, me.txtRefName, ]
 	});
 
+	me.cbAfterLoadSharedState = funcAfterLoad;
+	me.cbAfterSaveSharedState = funcAfterSave;
+	
 	me.manageWindow = Ext.create('widget.window', {
 	    height : 200,
 	    width : 500,
@@ -782,7 +797,17 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    layout : 'fit',
 	    modal : true,
 	    items : [ oPanel ],
-	    iconCls : "system_state_icon"
+	    iconCls : "system_state_icon",
+	    listeners:{
+		
+		close:function(oPanel,eOpts){
+		    
+		    me.cbAfterLoadSharedState = null;
+		    me.cbAfterSaveSharedState = null;
+		    
+		}
+		
+	    }
 	});
 
 	me.manageWindow.show();
@@ -817,7 +842,8 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		var me = this;
 		var oDataReceived = Ext.JSON.decode(response.responseText);
 
-		_app.desktop.cbAfterLoadSharedState(oData,oDataReceived);
+		if(me.cbAfterLoadSharedState!=null)
+		    me.cbAfterLoadSharedState(oData,oDataReceived);
 		
 	    },
 	    failure : function(response) {
@@ -857,7 +883,8 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		    link : sRef
 		};
 		
-		_app.desktop.cbAfterSaveSharedState(sRefName.sRef);
+		if(me.cbAfterSaveSharedState!=null)
+		    me.cbAfterSaveSharedState(sRefName,sRef);
 
 	    },
 	    failure : function(response) {

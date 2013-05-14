@@ -8,9 +8,8 @@
 /**
  * @class Ext.dirac.core.App This class manages the entire application platform
  * @mixins Ext.util.Observable
- *
+ * 
  */
-
 
 Ext.define('Ext.dirac.core.App', {
     mixins : {
@@ -30,7 +29,7 @@ Ext.define('Ext.dirac.core.App', {
 
     useQuickTips : true,
 
-    validApplications : [],
+    validApplications : {},
 
     constructor : function() {
 
@@ -84,7 +83,10 @@ Ext.define('Ext.dirac.core.App', {
 	    success : function(response) {
 
 		var configData = Ext.JSON.decode(response.responseText);
+		
 		me.configData = configData;
+		
+		me.__readValidApplication();
 
 		if (Ext.isReady) {
 		    Ext.Function.defer(me.init, 10, me);
@@ -93,7 +95,6 @@ Ext.define('Ext.dirac.core.App', {
 		}
 	    },
 	    failure : function(response) {
-
 
 		Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 	    }
@@ -105,7 +106,45 @@ Ext.define('Ext.dirac.core.App', {
 	me.callParent();
 
     },
+    
+    __readValidApplication:function(){
+	
+	var me = this;
+	
+	for ( var i = 0; i < me.configData["menu"].length; i++)
+	   me.__getAppRecursivelyFromConfig(_app.configData["menu"][i]);
+	
+    },
+    
+    __getAppRecursivelyFromConfig:function(item){
+	
+	var me = this;
+	
+	if (item.length == 2) {
 
+	    for ( var i = 0; i < item[1].length; i++){
+		me.__getAppRecursivelyFromConfig(item[1][i]);
+	    }
+	    
+	} else {
+	    if (item[0] == "app") {
+		
+		var oParts = item[2].split(".");
+		
+		var sStartClass = "";
+		if (oParts.length == 2)
+		    sStartClass = item[2] + ".classes." + oParts[1];
+		else
+		    sStartClass = item[2];
+		
+		me.validApplications[sStartClass]=item[1]; 
+		
+	    }
+
+	}
+	
+    },
+    
     init : function() {
 
 	var me = this, desktopCfg;
@@ -121,23 +160,23 @@ Ext.define('Ext.dirac.core.App', {
 	 * Creating the main desktop obbject
 	 */
 	desktopCfg = {
-		contextMenuItems : [
-		       // {
-		       // text : 'Change Settings',
-		       // handler : me.onSettings,
-		       // scope : me
-		       // }
-		],
-		shortcuts : Ext.create('Ext.data.Store', {
-		        		model : 'Ext.dirac.core.ShortcutModel',
-		        		data : {}
-		        	    }),
-		wallpaper : '/DIRAC/static/core/img/wallpapers/desk.jpg',
-		wallpaperStretch : true
+	    contextMenuItems : [
+	    // {
+	    // text : 'Change Settings',
+	    // handler : me.onSettings,
+	    // scope : me
+	    // }
+	    ],
+	    shortcuts : Ext.create('Ext.data.Store', {
+		model : 'Ext.dirac.core.ShortcutModel',
+		data : {}
+	    }),
+	    wallpaper : '/DIRAC/static/core/img/wallpapers/desk.jpg',
+	    wallpaperStretch : true
 	};
-	
+
 	me.desktop = null;
-	
+
 	me.desktop = new Ext.dirac.core.Desktop(desktopCfg);
 
 	me.viewport = new Ext.container.Viewport({

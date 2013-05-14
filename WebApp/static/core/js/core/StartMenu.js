@@ -60,10 +60,25 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	Ext.menu.Manager.register(me);
 	
 	me.callParent(arguments);
+	
+	me.toolbar = new Ext.toolbar.Toolbar({
+	    dock : 'right',
+	    cls : 'ux-start-menu-toolbar',
+	    vertical : true,
+	    width : 100
+	});
 
-	/*
-	 * Additional toolbar on the right side of the start menu.
-	 */
+	me.toolbar.add([ '->', {
+	    text : 'State Loader',
+	    iconCls : 'system_state_icon',
+	    handler : function() {
+		_app._sm.formStateLoader(_app.desktop.cbAfterLoadSharedState,_app.desktop.cbAfterSaveSharedState);
+	    },
+	    scope : _app._sm
+	} ]);
+
+	me.toolbar.layout.align = 'stretch';
+	me.addDocked(me.toolbar);
 	
 	delete me.toolItems;
 
@@ -78,25 +93,6 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	
 	for ( var j = 0; j < _app.configData["menu"].length; j++)
 	    me.menu.add(me.getMenuStructureRec(_app.configData["menu"][j]));
-	
-	me.toolbar = new Ext.toolbar.Toolbar({
-	    dock : 'right',
-	    cls : 'ux-start-menu-toolbar',
-	    vertical : true,
-	    width : 100
-	});
-
-	me.toolbar.add([ '->', {
-	    text : 'State Loader',
-	    iconCls : 'system_state_icon',
-	    handler : function() {
-		_app._sm.formStateLoader();
-	    },
-	    scope : _app._sm
-	} ]);
-
-	me.toolbar.layout.align = 'stretch';
-	me.addDocked(me.toolbar);
 	
 	this.callParent();
 	
