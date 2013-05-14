@@ -41,6 +41,14 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    items:[]
 	});
 	
+	me.callParent(arguments);
+
+    },
+    
+    buildUI:function(){
+	
+	var me = this;
+	
 	Ext.Ajax.request({
 	    url : _app_base_url + 'ConfigurationManager/initializeConfigurationCopy',
 	    method : 'POST',
@@ -48,29 +56,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    scope : me,
 	    success : function(response) {
 	
-        	/*
-        	 * -----------------------------------------------------------------------------------------------------------
-        	 * DEFINITION OF THE LEFT PANEL
-        	 * -----------------------------------------------------------------------------------------------------------
-        	 */
-        
-        	me.leftPanel = new Ext.create('Ext.panel.Panel', {
-        	    title : 'Actions',
-        	    region : 'west',
-        	    floatable : false,
-        	    margins : '0',
-        	    width : 250,
-        	    minWidth : 230,
-        	    maxWidth : 350,
-        	    bodyPadding : 5,
-        	    layout : 'anchor',
-        	    autoScroll : true
-        	});
-        
+
         	me.treeStore = Ext.create('Ext.data.TreeStore', {
         	    proxy : {
         		type : 'ajax',
-        		url : me._baseUrl + 'ConfigurationManager/getSubnodes',
+        		url : _app_base_url + 'ConfigurationManager/getSubnodes',
         		reader : {
         		    type : 'json',
         		    root : 'nodes'
@@ -92,7 +82,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         	});
         
         	me.treePanel = new Ext.create('Ext.tree.Panel', {
-        	    title : "Configuration Tree",
         	    region : 'center',
         	    store : me.treeStore,
         	    listeners : {
@@ -108,21 +97,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         	    }
         	});
         
-        	/*
-        	 * -----------------------------------------------------------------------------------------------------------
-        	 * DEFINITION OF THE MAIN CONTAINER
-        	 * -----------------------------------------------------------------------------------------------------------
-        	 */
-               	
-        	me.add([ me.leftPanel, me.treePanel ]);
+        	me.add([me.treePanel ]);
 	
 	    }
 	});
-
-	me.callParent(arguments);
-
+	
+	
     },
-
     __getNodePath : function(oNode) {
 	var sPath = ""
 	var oCopyRefNode = oNode;

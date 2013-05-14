@@ -233,6 +233,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	me.callParent(arguments);
 	
+	/*
 	var oParts = me.self.getName().split(".");
 	
 	_app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ], function() {
@@ -241,7 +242,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    
 	    me.buildUI();
 	    
-	},me);
+	},me);*/
 	
     },
     
@@ -1038,7 +1039,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	// been loaded or not
 	me.bDataSelectionLoaded = false;
 	Ext.Ajax.request({
-	    url : me._baseUrl + 'JobMonitor/getSelectionData',
+	    url : _app_base_url + 'JobMonitor/getSelectionData',
 	    params : {
 
 	    },
@@ -1176,7 +1177,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    return;
 
 	Ext.Ajax.request({
-	    url : me._baseUrl + 'JobMonitor/jobAction',
+	    url : _app_base_url + 'JobMonitor/jobAction',
 	    method : 'POST',
 	    params : {
 		action : oAction,
@@ -1205,7 +1206,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	var oId = _app._cf.getFieldValueFromSelectedRow(me.grid, "JobID");
 	me.getContainer().body.mask("Wait ...");
 	Ext.Ajax.request({
-	    url : me._baseUrl + 'JobMonitor/jobData',
+	    url : _app_base_url + 'JobMonitor/jobData',
 	    method : 'POST',
 	    params : {
 		data_kind : oDataKind,

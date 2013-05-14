@@ -919,9 +919,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 		var me = this;
 
-		var instance = Ext.create(sStartClass, {
-		    _baseUrl : _app_base_url + "/"
-		});
+		var instance = Ext.create(sStartClass,{});
 
 		var config = {
 		    desktop : me,
@@ -1412,7 +1410,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	var me = this;
 
-	return [ me.desktop.getWidth(), me.desktop.getHeight() ];
+	return [ me.getWidth(), me.getHeight() ];
 
     },
     

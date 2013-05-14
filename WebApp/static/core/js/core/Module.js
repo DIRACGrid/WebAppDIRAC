@@ -29,9 +29,9 @@ Ext.define('Ext.dirac.core.Module', {
 
 	};
 
-	this._baseUrl = config._baseUrl;
-	this.init();
+	//this.init();
 	this.callParent();
+	this.loadCSS();
     },
 
     setContainer : function(oContainer) {
@@ -45,8 +45,25 @@ Ext.define('Ext.dirac.core.Module', {
 
     },
 
-    init : Ext.emptyFn,
+    buildUI : Ext.emptyFn,
 
-    _baseUrl : ""
+    loadCSS : function() {
+	var me = this;
+	var superClassName = me.superclass.self.getName();
+	if (superClassName != "Ext.dirac.core.Module") {
+	    var oParts = superClassName.split(".");
+	    _app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ]);
+	}
+
+	var oParts = me.self.getName().split(".");
+	_app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ], function() {
+
+	    var me = this;
+
+	    me.buildUI();
+
+	}, me);
+
+    }
 
 });
