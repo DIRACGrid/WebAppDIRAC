@@ -259,63 +259,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	me.cmbSelectors = {
 	    site : null,
-	    status : null,=======
-		mixins:["Ext.dirac.core.Stateful",
-		        "Ext.dirac.utils.DiracFileLoad"],
-		extend: 'Ext.container.Container',
-
-		_container:null,
-
-		constructor : function(config) {
-
-			this.launcher = {
-
-								title : 'Module',
-								iconCls : 'notepad',
-								width:0,
-								height:0,
-								maximized:true
-
-							};
-
-			this._baseUrl = config._baseUrl;
-			this.init();
-			this.callParent();
-			this.buildUI();
-		},
-
-		setContainer:function(oContainer){
-
-			this._container = oContainer;
-
-		},
-		getContainer:function(){
-
-			return this._container;
-
-		},
-		_baseUrl:"",
-		buildUI : function(){
-		    var me = this;
-		    var superClassName = me.superclass.self.getName();
-		    if (superClassName != "Ext.dirac.core.Module"){
-			var oParts = superClassName.split(".");
-			_app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ]);
-		    }
-
-		    var oParts = me.self.getName().split(".");
-		    _app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ], function() {
-
-			    var me = this;
-
-			    me.buildUI();
-
-			},me);
-
-
-
-		}
-	>>>>>>> upstream/integration
+	    status : null,	    
 	    minorStatus : null,
 	    appStatus : null,
 	    owner : null,
