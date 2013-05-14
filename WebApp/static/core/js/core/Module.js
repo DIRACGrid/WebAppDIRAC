@@ -47,9 +47,6 @@ Ext.define('Ext.dirac.core.Module', {
 		return this._container;
 
 	},
-
-	init : Ext.emptyFn,
-
 	_baseUrl:"",
 	buildUI : function(){
 	    var me = this;
