@@ -43,5 +43,6 @@ class RootHandler(WebHandler):
       url_state = self.request.arguments["url_state"][0]
     self.render( "root.tpl", base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
                  ext_version = data[ 'extVersion' ], url_state = url_state,
-                 extensions = data[ 'extensions' ] )
+                 extensions = data[ 'extensions' ],
+                 credentials = data[ 'user' ] )
 
