@@ -482,9 +482,9 @@ Ext.define(
 							enabled: true,
 							paths: {}
 						};
-					
-					oConfig["paths"]["DIRAC."+oParts[1]+".classes"] = "static/DIRAC/"+oParts[1]+"/build"; 
-					
+
+					oConfig["paths"]["oParts[0]."+oParts[1]+".classes"] = "static/oParts[0]/"+oParts[1]+"/build";
+
 					Ext.Loader.setConfig(oConfig);
 					
 				}
@@ -493,9 +493,9 @@ Ext.define(
 				Ext.require(sStartClass, function() {
 					
 					var me = this;
-					
-					me.mixins.fileLoader.loadFile(["static/DIRAC/"+oParts[1]+"/css/"+oParts[1]+".css"],function(){
-						
+
+					me.mixins.fileLoader.loadFile(["static/"+oParts[0]+"/"+oParts[1]+"/css/"+oParts[1]+".css"],function(){
+
 						var me = this;
 						
 						var instance = Ext.create(sStartClass,{_baseUrl:me.configData.baseURL+"/"});

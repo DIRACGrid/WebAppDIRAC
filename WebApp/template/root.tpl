@@ -23,7 +23,7 @@
           Ext.Loader.setPath({
       {% for extName in extensions %}
         {% if extName != 'WebAppDIRAC' %}
-            {{ escape( extName ) }}: "{{ escape( '/%s/static/%s' % ( extName, extName ) ) }}",
+            {{ escape( extName ) }}: "{{ escape( '/DIRAC/static/%s' % ( extName ) ) }}",
         {% end %}
       {% end %}
             'Ext.dirac.core': '/DIRAC/static/core/js/core',
