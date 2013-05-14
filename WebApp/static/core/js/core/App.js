@@ -8,8 +8,9 @@
 /**
  * @class Ext.dirac.core.App This class manages the entire application platform
  * @mixins Ext.util.Observable
- * 
+ *
  */
+
 
 Ext.define('Ext.dirac.core.App', {
     mixins : {
@@ -59,6 +60,7 @@ Ext.define('Ext.dirac.core.App', {
 			delay : 1000,
 			remove : true
 		    });
+
 		},
 
 		init : function() {
@@ -89,9 +91,9 @@ Ext.define('Ext.dirac.core.App', {
 		} else {
 		    Ext.onReady(me.init, me);
 		}
-
 	    },
 	    failure : function(response) {
+
 
 		Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 	    }

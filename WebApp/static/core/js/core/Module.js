@@ -9,9 +9,10 @@
  * @class Ext.dirac.core.Desktop This is an abstract class that has to be
  *        inherited by every module.
  * @mixin Ext.container.Container
- * 
+ *
  */
 Ext.define('Ext.dirac.core.Module', {
+
     mixins : [ "Ext.dirac.core.Stateful", "Ext.dirac.utils.DiracFileLoad" ],
     extend : 'Ext.container.Container',
 
@@ -29,7 +30,6 @@ Ext.define('Ext.dirac.core.Module', {
 
 	};
 
-	//this.init();
 	this.callParent();
 	this.loadCSS();
     },

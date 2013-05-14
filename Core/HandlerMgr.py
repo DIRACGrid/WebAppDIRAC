@@ -9,7 +9,7 @@ from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 import WebAppDIRAC
-from WebAppDIRAC.Lib.WebHandler import WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
@@ -81,6 +81,13 @@ class HandlerMgr( object ):
       handler.LOCATION = handlerRoute
       handler.PATH_RE = re.compile( "%s(%s/.*)" % ( baseRoute, handlerRoute ) )
       handler.URLSCHEMA = "/%s%%(setup)s%%(group)s%%(location)s/%%(action)s" % ( self.__baseURL )
+      if issubclass( handler, WebSocketHandler ):
+        handler.PATH_RE = re.compile( "%s(%s)" % ( baseRoute, handlerRoute ) )
+        route = "%s(%s)" % ( baseRoute, handlerRoute )
+        self.__routes.append( ( route, handler ) )
+        self.log.verbose( " - WebSocket %s -> %s" % ( handlerRoute, hn ) )
+        self.log.debug( "  * %s" % route )
+        continue
       #Look for methods that are exported
       for mName, mObj in inspect.getmembers( handler ):
         if inspect.ismethod( mObj ) and mName.find( "web_" ) == 0:
@@ -89,7 +96,7 @@ class HandlerMgr( object ):
             self.log.verbose( " - Route %s -> %s.web_index" % ( handlerRoute, hn ) )
             route = "%s(%s/)" % ( baseRoute, handlerRoute )
             self.__routes.append( ( route, handler ) )
-            self.__routes.append( ( route.rstrip( "/" ), CoreHandler, dict( action = 'addSlash' ) ) )
+            self.__routes.append( ( "%s(%s)" % ( baseRoute, handlerRoute ), CoreHandler, dict( action = 'addSlash' ) ) )
           else:
             #Normal methods get the method appeded without web_
             self.log.verbose( " - Route %s/%s ->  %s.%s" % ( handlerRoute, mName[4:], hn, mName ) )

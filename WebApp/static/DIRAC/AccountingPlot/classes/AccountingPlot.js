@@ -5,6 +5,7 @@
  * http://www.sencha.com/license
  */
 
+
 Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
     extend : 'Ext.dirac.core.Module',
     requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date",
@@ -84,18 +85,6 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	});
 	
 	me.callParent(arguments);
-	
-	/*
-	var oParts = me.self.getName().split(".");
-	
-	_app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ], function() {
-	    
-	    var me = this;
-	    
-	    me.buildUI();
-	    
-	},me);
-	*/
 	
     },
     

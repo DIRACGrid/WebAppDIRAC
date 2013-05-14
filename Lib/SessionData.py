@@ -130,8 +130,6 @@ class SessionData( object ):
              'validSetups' : gConfig.getSections( "/DIRAC/Setups" )[ 'Value' ],
              'extensions' : self.__extensions,
              'extVersion' : self.getExtJSVersion() }
-    if 'properties' in credDict:
-      credDict.pop( 'properties' )
     #Add valid groups if known
     if DN:
       result = Registry.getGroupsForDN( DN )
