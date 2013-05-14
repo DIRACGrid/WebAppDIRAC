@@ -14,6 +14,7 @@ import tornado.web
 import tornado.ioloop
 import tornado.gen
 import tornado.stack_context
+import tornado.websocket
 
 class WErr( tornado.web.HTTPError ):
   def __init__( self, code, msg = "", **kwargs ):
@@ -108,7 +109,7 @@ class WebHandler( tornado.web.RequestHandler ):
     self.__processCredentials()
     self.__disetConfig.reset()
     match = self.PATH_RE.match( self.request.path )
-    self.__pathResult = self.__checkPath( *match.groups() )
+    self._pathResult = self.__checkPath( *match.groups() )
 
   def __processCredentials( self ):
     """
@@ -250,9 +251,9 @@ class WebHandler( tornado.web.RequestHandler ):
     return WOK( methodName )
 
   def get( self, setup, group, route ):
-    if not self.__pathResult.ok:
-      raise self.__pathResult
-    methodName = "web_%s" % self.__pathResult.data
+    if not self._pathResult.ok:
+      raise self._pathResult
+    methodName = "web_%s" % self._pathResult.data
     try:
       mObj = getattr( self, methodName )
     except AttributeError as e:
@@ -262,4 +263,20 @@ class WebHandler( tornado.web.RequestHandler ):
 
   def post( self, *args, **kwargs ):
     return self.get( *args, **kwargs )
+
+
+class WebSocketHandler( tornado.websocket.WebSocketHandler, WebHandler ):
+
+  def __init__( self, *args, **kwargs ):
+    WebHandler.__init__( self, *args, **kwargs )
+    tornado.websocket.WebSocketHandler.__init__( self, *args, **kwargs )
+
+  def open( self, setup, group, route ):
+    if not self._pathResult.ok:
+      raise self._pathResult
+    return self.on_open()
+
+  def on_open( self ):
+    pass
+
 
