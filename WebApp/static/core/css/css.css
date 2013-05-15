@@ -44,7 +44,7 @@
     left:10px;
     top:10px;
     width:300px;
-    z-index:20000;
+    z-index:400000;
 }
 #msg-div .msg {
     border-radius: 4px;

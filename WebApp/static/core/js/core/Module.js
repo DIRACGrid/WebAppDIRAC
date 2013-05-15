@@ -6,59 +6,71 @@
  */
 
 /**
- * @class Ext.dirac.core.Desktop
- * This is an abstract class that has
- * to be inherited by every module.
+ * @class Ext.dirac.core.Desktop This is an abstract class that has to be
+ *        inherited by every module.
  * @mixin Ext.container.Container
  *
  */
 Ext.define('Ext.dirac.core.Module', {
-	mixins:["Ext.dirac.core.Stateful",
-	        "Ext.dirac.utils.DiracFileLoad"],
-	extend: 'Ext.container.Container',
 
-	_container:null,
+    mixins : [ "Ext.dirac.core.Stateful", "Ext.dirac.utils.DiracFileLoad" ],
+    extend : 'Ext.container.Container',
 
-	constructor : function(config) {
+    _container : null,
 
-		this.launcher = {
+    constructor : function(config) {
 
-							title : 'Module',
-							iconCls : 'notepad',
-							width:0,
-							height:0,
-							maximized:true
+	this.launcher = {
 
-						};
+	    title : 'Module',
+	    iconCls : 'notepad',
+	    width : 0,
+	    height : 0,
+	    maximized : true
 
-		this._baseUrl = config._baseUrl;
-		this.callParent();
-		this.loadCSS();
-		this.buildUI();
-	},
 
-	setContainer:function(oContainer){
+	};
 
-		this._container = oContainer;
+	this.callParent();
+	this.loadCSS();
+    },
 
-	},
-	getContainer:function(){
+    setContainer : function(oContainer) {
 
-		return this._container;
+	this._container = oContainer;
 
-	},
-	_baseUrl:"",
-	buildUI: Ext.emptyFn,
-	loadCSS : function(){
-	    var me = this;
-	    var superClassName = me.superclass.self.getName();
-	    if (superClassName != "Ext.dirac.core.Module"){
-		var oParts = superClassName.split(".");
-		_app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ]);
-	    }
+    },
+    
+    getContainer : function() {
 
-	    var oParts = me.self.getName().split(".");
-	    _app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ]);
+	return this._container;
+
+    },
+    
+    buildUI : Ext.emptyFn,
+
+    loadCSS : function() {
+	
+	var me = this;
+	var oSuperClass = me;
+	var oCssFilesStack = [];
+	
+	while(oSuperClass.self.getName() != "Ext.dirac.core.Module") {
+	    var oParts = oSuperClass.self.getName().split(".");
+	    oCssFilesStack.push("static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css");
+	    oSuperClass = oSuperClass.superclass;
 	}
+	
+	oCssFilesStack.reverse();
+	
+	_app.mixins.fileLoader.loadFile(oCssFilesStack, function() {
+
+	    var me = this;
+
+	    me.buildUI();
+
+	}, me);
+
+    }
 
 });

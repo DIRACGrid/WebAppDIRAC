@@ -6,1104 +6,657 @@
  */
 
 /**
- * @class Ext.dirac.core.Window This is a window widget with extended functionality
- * 								such as state management
+ * @class Ext.dirac.core.Window This is a window widget with extended
+ *        functionality such as state management
  * @extend Ext.window.Window
  * 
  */
-Ext.define(
-			'Ext.dirac.core.Window',
-			{
-					extend : 'Ext.window.Window',
-					requires : [ "Ext.dirac.utils.DiracToolButton", 
-					             "Ext.menu.Menu",
-					             "Ext.menu.Item",
-					             "Ext.form.*",
-					             "Ext.LoadMask"],
-					
-					/**
-					 * @property {String} currentState The name of the current active desktop state
-					 */             
-					currentState : "",
-					/**
-					 * @property {Object} loadedObject The object of the module loaded within the window
-					 */
-					loadedObject:null,
-					/**
-					 * @property {Ext.LoadMask} loadMask The load mask used when a state is being loaded
-					 */
-					loadMask:null,
-					/**
-					 * @property {Ext.dirac.core.Desktop} desktop Reference to the desktop object
-					 */
-					desktop:null,
-					
-					initComponent:function(){
-						
-						var me=this;
-						
-						me.loadMask = new Ext.LoadMask(me,{msg:"Loading ..."});
-						
-						if(me.loadedObjectType == "app"){
-							me.items=[me.loadedObject];
-							me.appClassName = me.loadedObject.self.getName();
-						}else if(me.loadedObjectType == "link"){
-							me.items = [{
-						        xtype : "component",
-						        autoEl : {
-						            tag : "iframe",
-						            src : me.linkToLoad
-						        }
-						    }];
-							me.appClassName = "link";
-						}
-						
-						me.childWindows = [];
-						
-						me.callParent();
-						
-					},
-					
-					afterRender:function(){
-						
-						var me = this;
-						me.callParent();
-						if(me.loadedObjectType == "app")
-							me.setLoadedObject(me.setupData);
-						else if(me.loadedObjectType == "link")
-							me.setPropertiesWhenLink(me.setupData);
-						
-						_app.desktop.refreshUrlDesktopState();
-						
-						
-					},
-					
-					/**
-					 * Function to set a state of the loaded object and a state of the window itself
-					 * @param {Object} setupData Setup data
-					 */
-					setLoadedObject:function(setupData){
-						
-						var me = this;
-						
-						if(setupData != null){
-								
-							if(("maximized" in setupData)&&(setupData["maximized"])){
-								
-								me.maximize();
-								
-							}else if(("minimized" in setupData)&&(setupData["minimized"])){
-								
-								if("width" in setupData)
-									me.setWidth(parseInt(setupData.width));
-							
-								if("height" in setupData)
-									me.setHeight(parseInt(setupData.height));
-								
-								me.desktop.minimizeWindow(me);
-							
-							}else { 
-	
-								if("x" in setupData){
-									me.setPosition(parseInt(setupData.x),parseInt(setupData.y));
-								}
+Ext.define('Ext.dirac.core.Window', {
+    extend : 'Ext.window.Window',
+    requires : [ "Ext.dirac.utils.DiracToolButton", "Ext.menu.Menu", "Ext.menu.Item", "Ext.form.*", "Ext.LoadMask" ],
 
-								
-								if("width" in setupData){
-									me.setWidth(parseInt(setupData.width));
-								}
-							
-								if("height" in setupData){
-									me.setHeight(parseInt(setupData.height));
-								}
+    /**
+     * @property {String} currentState The name of the current active desktop
+     *           state
+     */
+    currentState : "",
+    /**
+     * @property {Object} loadedObject The object of the module loaded within
+     *           the window
+     */
+    loadedObject : null,
+    /**
+     * @property {Ext.LoadMask} loadMask The load mask used when a state is
+     *           being loaded
+     */
+    loadMask : null,
+    /**
+     * @property {Ext.dirac.core.Desktop} desktop Reference to the desktop
+     *           object
+     */
+    desktop : null,
 
-								
-								if((!("height" in setupData))&&(!("width" in setupData))){
-							
-									if(!me.loadedObject.launcher.maximized){
-										if("width" in me.loadedObject.launcher){
-											
-											me.setWidth(me.loadedObject.launcher.width);
-											
-										}else{
-											
-											me.setWidth(600);
-											
-										}
-										
-										if("height" in me.loadedObject.launcher){
-											
-											me.setHeight(me.loadedObject.launcher.height);
-											
-										}else{
-											
-											me.setHeight(400);
-											
-										}
-									}else{
-										
-										me.maximize();
-										
-									}
-								
-								}
-								
-							}
-							
-							if("zIndex" in setupData){
-								
-								me.setZIndex(setupData.zIndex);
-								
-							}
-							
-							if("stateToLoad" in setupData){
-								
-								me.oprLoadAppStateFromCache(setupData["stateToLoad"]);
-								
-							}else{
-								
-								if("data" in setupData){
-									me.currentState = setupData.currentState;
-									me.loadedObject.loadState(setupData.data);
-								}
-								
-							}
-							
-							
-						}else{
-							
-							if(!me.loadedObject.launcher.maximized){
-								
-								if("width" in me.loadedObject.launcher){
-									
-									me.setWidth(me.loadedObject.launcher.width);
-									
-								}else{
-									
-									me.setWidth(600);
-									
-								}
-								
-								if("height" in me.loadedObject.launcher){
-									
-									me.setHeight(me.loadedObject.launcher.height);
-									
-								}else{
-									
-									me.setHeight(400);
-									
-								}
-							}else{
-								
-								me.maximize();
-							}
+    initComponent : function() {
 
-						}
-						
-						if(me.currentState == ""){
-							
-							me.setTitle(me.loadedObject.launcher.title+" [Untitled]");
-							me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" [Untitled]",20));
-							
-						}else{
-							me.setTitle(me.loadedObject.launcher.title+" ["+me.currentState+"]");
-							me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+me.currentState+"]",20));
-						}
-						
-						me.setIconCls(me.loadedObject.launcher.iconCls);
-						me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
-						me.loadedObject.setContainer(me);
-						
-					},
-					
-					setPropertiesWhenLink:function(setupData){
-						
-						var me=this;
+	var me = this;
 
-						if(setupData.x && setupData.y)
-							me.setPosition(setupData.x,setupData.y);
-						else{
-							me.setPosition(0,0);
-						}
-						
-						
-						if(!setupData.width && !setupData.height)
-							me.maximize();
-						else{
-							if(setupData.width)
-								me.setWidth(setupData.width);
-						
-							if(setupData.height)
-								me.setHeight(setupData.height);
-						}
-						
-						me.setTitle(setupData.title);
-						me.taskButton.setIconCls("notepad");
-						me.taskButton.setText(Ext.util.Format.ellipsis(me.title,20));
-						me.setIconCls("notepad");
-						
-						if(setupData.zIndex)
-							me.setZIndex(setupData.zIndex);
-						
-						
-					},
-					
-					/**
-					 * Getter function for the class of the loaded object
-					 * @return {String} The name of the class
-					 */
-					getAppClassName: function(){
-						
-						return this.appClassName;
-						
-					},
-					
-					/**
-					 * Getter function for the current state of the loaded object
-					 * @return {String} The name of the class
-					 */
-					getCurrentState: function(){
-						
-						return this.currentState;
-						
-					},
-					oprShareState: function (sStateName) {
-				        
-						var me = this;
-						
-						Ext.Ajax.request({
-						    url: me.desktop.getBaseUrl()+'UP/makePublicAppState',
-						    params: {
-						        app: 		me.appClassName,
-						        obj: 		"application",
-						        name: 		sStateName,
-						        access: 	"ALL"
-						    },
-						    scope:me,
-						    success: function(response){
-						    	
-						    	var me = this;
+	me.loadMask = new Ext.LoadMask(me, {
+	    msg : "Loading ..."
+	});
 
-					    		var oStringToShow = "application|"
-					    			+me.appClassName
-					    			+"|"+_app.configData["user"]["username"]
-					    			+"|"+_app.configData["user"]["group"]
-					    			+"|"+sStateName;
-					    		
-					    		
-					    		var oHtml = "<div style='padding:5px'>The string you can send is as follows:</div>";
-					    		oHtml+="<div style='padding:5px;font-weight:bold'>"+oStringToShow+"</div>";
-					    		
-					    		Ext.MessageBox.alert("Info for sharing the <span style='color:red'>"+sStateName+"</span> state:",
-		    							oHtml);
-						    	
-						    },
-						    failure:function(response){
-						    	
-						    	var responseData = Ext.JSON.decode(response.responseText);
-						    	Ext.example.msg("Notification", responseData["error"]);
-						    }
-						});	
-						    	
-				    },
-					/**
-					 * Overriden function, inherited from Ext.window.Window
-					 * used to set up the buttons at the top right corner of the window
-					 */
-					addTools : function() {
+	if (me.loadedObjectType == "app") {
+	    me.items = [ me.loadedObject ];
+	    me.appClassName = me.loadedObject.self.getName();
+	} else if (me.loadedObjectType == "link") {
+	    me.items = [ {
+		xtype : "component",
+		autoEl : {
+		    tag : "iframe",
+		    src : me.linkToLoad
+		}
+	    } ];
+	    me.appClassName = "link";
+	}
 
-						var me = this;
-						
-						if(me.loadedObjectType=="app"){
-							
-							me.statesMenu = new Ext.menu.Menu();
-							
-							/*
-							 * if the cache for the state of the started application exist
-							 */
-							if(me.appClassName in _app._sm.cache.application){
-								
-								me.oprRefreshAppStates();
-														
-							}else{
-								
-								/*
-								 * if the cache does not exist
-								 */
-								
-								var oFunc = function(){
-									
-									me.oprRefreshAppStates();
-									
-								}	
-								
-								_app._sm.oprReadApplicationStatesAndReferences(me.appClassName,oFunc);
-	
-							}
-													
-							me.loadMenu = new Ext.menu.Menu({
-								items : [ {
-									text : "Load state",
-									iconCls : "toolbar-other-load",
-									menu : me.statesMenu
-								}, {
-									text : "Save",
-									iconCls : "toolbar-other-save",
-									handler:me.oprSaveAppState,
-									scope: me
-								},{
-									text : "Save As ...",
-									iconCls : "toolbar-other-save",
-									handler : me.formSaveState,
-									scope: me
-								},{
-									text : "Refresh states",
-									iconCls : "toolbar-other-refresh",
-									handler:me.oprRefreshAllAppStates,
-									scope: me
-								},{
-									text : "Manage states ...",
-									iconCls : "toolbar-other-manage",
-									handler : me.formManageStates,
-									scope: me
-								} ]
-							});
-	
-							me.addTool({
-								xtype : "diracToolButton",
-								type : "save",
-								menu : me.loadMenu
-							});
+	me.childWindows = [];
 
-						
-						}
-						
-						me.callParent();
+	me.callParent();
 
-					},
-					/**
-					 * Function that is called when the refresh button of the SAVE window menu is clicked
-					 */
-					oprRefreshAllAppStates: function(){
-						
-						var me = this;
-						
-						me.desktop.oprRefreshAllAppStates(me.appClassName);
-						
-						
-					},
-					/**
-					 * Function for adding new state within the list of existing states
-					 * @param {String} stateName The name of the state
-					 */
-					addNewState: function(stateType,stateName){
-						
-						var me = this;
-						
-						if(stateType == "application"){
-						
-							var newItem = Ext.create('Ext.menu.Item', {
-				    			  text: stateName,
-				    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-				    			  scope:me,
-				    			  iconCls:"system_state_icon",
-				    			  stateType:stateType,
-				    			  menu:[{
-			    				  		text:"Share state",
-			    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
-			    				  		iconCls:"system_share_state_icon"
-			    				  	}]
-				    		});
-							
-							var iIndexPosition = 0;
-							
-							for(var i=me.statesMenu.items.length-1;i>=0;i--){
-								
-								if(me.statesMenu.items.getAt(i).self.getName()=="Ext.menu.Separator"){
-									iIndexPosition = i;
-									break;
-								}
-								
-							}
-							
-							me.statesMenu.insert(iIndexPosition,newItem);
-						
-						}else if(stateType == "reference"){
-							
-							var newItem = Ext.create('Ext.menu.Item', {
-				    			  text: stateName,
-				    			  handler: Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [me.appClassName,stateName], false),
-				    			  scope:me,
-				    			  iconCls:"system_link_icon",
-				    			  stateType:stateType,
-				    		});
+    },
 
-							me.statesMenu.add(newItem);
-							
-						}
-						
-					},
-					/**
-					 * Function for removing a state from the list of existing states
-					 * @param {String} stateName The name of the state
-					 */
-					removeState: function(stateType,stateName){
-						
-						var me = this;
-						
-						if(stateType == "application"){
-						
-							/*
-							 * Searching from the begging of the menu
-							 * 
-							 * */
-							for(var i=0;i<me.statesMenu.items.length;i++){
-								
-								if(me.statesMenu.items.getAt(i).self.getName()=="Ext.menu.Separator")
-									break;
-								
-								if(me.statesMenu.items.getAt(i).text==stateName){
-									
-									me.statesMenu.remove(me.statesMenu.items.getAt(i));
-									break;
-									
-								}
-								
-							}
-						
-						}else if(stateType == "reference"){
-							
-							
-							/*
-							 * Searching from the end of the menu
-							 * 
-							 * */
-							for(var i=me.statesMenu.items.length-1;i>=0;i--){
-								
-								if(me.statesMenu.items.getAt(i).self.getName()=="Ext.menu.Separator")
-									break;
-								
-								if(me.statesMenu.items.getAt(i).text==stateName){
-									
-									me.statesMenu.remove(me.statesMenu.items.getAt(i));
-									break;
-									
-								}
-								
-							}
-							
-						}
-						
-					},
-					/**
-					 * Function called when the Save As ... button
-					 * from the SAVE window menu is clicked
-					 */
-					formSaveState : function() {
-						
-						var me = this;
-	
-						me.saveForm = Ext.widget(
-								'form',
-								{
-									layout : {
-										type : 'vbox',
-										align : 'stretch'
-									},
-									border : false,
-									bodyPadding : 10,
+    afterRender : function() {
 
-									fieldDefaults : {
-										labelAlign : 'top',
-										labelWidth : 100,
-										labelStyle : 'font-weight:bold'
-									},
-									defaults : {
-										margins : '0 0 5 0'
-									},
-									items : [
-											{
-												xtype : 'fieldcontainer',
-												/*fieldLabel : 'State Name',
-												labelStyle : 'font-weight:bold;padding:0',*/
-												layout : 'hbox',
-												defaultType : 'textfield',
+	var me = this;
+	me.callParent();
+	if (me.loadedObjectType == "app")
+	    me.setLoadedObject(me.setupData);
+	else if (me.loadedObjectType == "link")
+	    me.setPropertiesWhenLink(me.setupData);
 
-												fieldDefaults : {
-													labelAlign : 'left'
-												},
+	_app.desktop.refreshUrlDesktopState();
 
-												items : [{
-															flex : 1,
-															fieldLabel: 'State Name',
-															name : 'state_name',
-															validateOnChange: true,
-															parentWindow:me,
-															validateValue:function(value){
-																
-																value = Ext.util.Format.trim(value);
-																
-																if(value.length < 1){
-													                 this.markInvalid("You must specify a name !");
-													                 return false;
-														             
-														        }else{
-														        	
-														        	if(this.parentWindow.isExistingState(value)){
-														        		
-														        		this.markInvalid("The name you enetered already exists !");
-														                return false;
-														        		
-														        	}else{
-														        		
-														        		this.clearInvalid();
-														                return true;
-														        		
-														        	}
-														        	
-														        	
-														        }
-																
-															}
-														}]
-											}],
+    },
 
-									buttons : [
-											{
-												text : 'Save',
-												handler : me.oprSaveAsAppState,
-												scope: me
-											},   
-											{
-												text : 'Cancel',
-												handler : function() {
-													me.saveForm.getForm().reset();						
-													me.saveWindow.hide();
-												},
-												scope: me
-											}
-											 ]
-								});
-						
-						me.saveWindow = Ext.create('widget.window', {
-							height : 120,
-							width : 500,
-							title : 'Save state',
-							layout : 'fit',
-							modal: true,
-							items : me.saveForm
-						});
-						
-						
-						me.saveWindow.show();
+    /**
+     * Function to set a state of the loaded object and a state of the window
+     * itself
+     * 
+     * @param {Object}
+     *                setupData Setup data
+     */
+    setLoadedObject : function(setupData) {
 
-					},	
-					
-					/**
-					 * Function to create and open the 
-					 * form for managing the desktop states
-					 */
-					formManageStates: function(){
-						
-						var me = this;
+	var me = this;
 
-						me.manageForm = Ext.widget(
-								'form',
-								{
-									layout : {
-										type : 'vbox',
-										align : 'stretch'
-									},
-									border : false,
-									bodyPadding : 10,
+	if (setupData != null) {
 
-									fieldDefaults : {
-										labelAlign : 'top',
-										labelWidth : 100,
-										labelStyle : 'font-weight:bold'
-									},
-									defaults : {
-										margins : '0 0 10 0'
-									},
-									items : [
-												{
-													 html: "Application: <b>"+me.loadedObject.launcher.title+"</b>",
-												    xtype: "box"
-												},
-												{xtype:"panel",
-												       layout:"column",
-												       border:false,
-												       items:[
-														{
-															xtype      : 'radiofield',
-															boxLabel  : 'States',
-											                inputValue: 's',
-											                name: "manage_state_type",
-											                width:150,
-											                checked:true,
-											                listeners:{
-											                	
-											                	change:function(cmp, newValue, oldValue, eOpts){
-											                		
-											                		var oSelectElStates = me.manageForm.items.getAt(2);
-											                		var oSelectElLinks = me.manageForm.items.getAt(3);
-											                		
-											                		if(newValue){
-											                			
-											                			oSelectElStates.show();
-											                			oSelectElLinks.hide();
-											                			
-											                		}else{
-											                			
-											                			oSelectElStates.hide();
-											                			oSelectElLinks.show();
-											                			
-											                		}
-											                		
-											                	}
-											                	
-											                }
-														},
-														{
-															xtype      : 'radiofield',
-															boxLabel  : 'Links',
-											                inputValue: 'l',
-											                name: "manage_state_type",
-											                width:150
-														}
-														]
-												},
-												{
-													 html: "<select size='10' multiple='multiple' style='width:100%'></select>",
-											         xtype: "box"
-												},
-												{
-													 html: "<select size='10' multiple='multiple' style='width:100%;'></select>",
-											         xtype: "box",
-											         hidden: true
-												}
-											],
+	    if (("maximized" in setupData) && (setupData["maximized"])) {
 
-									buttons : [
-											{
-												text : 'Delete selected states',
-												handler : me.oprDeleteSelectedStates,
-												scope: me
-											},   
-											{
-												text : 'Cancel',
-												handler : function() {
-													me.manageWindow.hide();
-												},
-												scope: me
-											}
-											 ]
-								});
-						
-						me.manageWindow = Ext.create('widget.window', {
-							height : 300,
-							width : 500,
-							title : 'Manage states',
-							layout : 'fit',
-							modal: true,
-							items : me.manageForm
-						});
-						
-						me.manageWindow.show();
-						me.fillSelectFieldWithStates();
-						
-						
-					},
-					
-					/**
-					 * Function to fill the select element 
-					 * with the existing module states
-					 */
-					fillSelectFieldWithStates: function(){
-						
-						var me = this;
-						var oSelectEl = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[0];
-						
-						for (i = oSelectEl.length - 1; i>=0; i--) 
-							oSelectEl.remove(i);
-						
-						for(var stateName in _app._sm.cache.application[me.appClassName]){
-							
-							  var elOptNew = document.createElement('option');
-							  elOptNew.text = stateName;
-							  elOptNew.value = stateName;
+		me.maximize();
+
+	    } else if (("minimized" in setupData) && (setupData["minimized"])) {
+
+		if ("width" in setupData)
+		    me.setWidth(parseInt(setupData.width));
+
+		if ("height" in setupData)
+		    me.setHeight(parseInt(setupData.height));
+
+		me.desktop.minimizeWindow(me);
+
+	    } else {
+
+		if ("x" in setupData) {
+		    me.setPosition(parseInt(setupData.x), parseInt(setupData.y));
+		}
+
+		if ("width" in setupData) {
+		    me.setWidth(parseInt(setupData.width));
+		}
+
+		if ("height" in setupData) {
+		    me.setHeight(parseInt(setupData.height));
+		}
+
+		if ((!("height" in setupData)) && (!("width" in setupData))) {
+
+		    if (!me.loadedObject.launcher.maximized) {
+			if ("width" in me.loadedObject.launcher) {
+
+			    me.setWidth(me.loadedObject.launcher.width);
+
+			} else {
+
+			    me.setWidth(600);
+
+			}
+
+			if ("height" in me.loadedObject.launcher) {
+
+			    me.setHeight(me.loadedObject.launcher.height);
+
+			} else {
+
+			    me.setHeight(400);
+
+			}
+		    } else {
+
+			me.maximize();
+
+		    }
+
+		}
+
+	    }
+
+	    if ("zIndex" in setupData) {
+
+		me.setZIndex(setupData.zIndex);
+
+	    }
+
+	    if ("stateToLoad" in setupData) {
+
+		me.oprLoadAppStateFromCache(setupData["stateToLoad"]);
+
+	    } else {
+
+		if ("data" in setupData) {
+		    me.currentState = setupData.currentState;
+		    me.loadedObject.currentState = setupData.currentState;
+		    
+		    if(me.currentState!="")
+			_app._sm.addActiveState(me.loadedObject.self.getName(), me.currentState);
+		    
+		    me.loadedObject.loadState(setupData.data);
+		}
+
+	    }
+
+	} else {
+
+	    if (!me.loadedObject.launcher.maximized) {
+
+		if ("width" in me.loadedObject.launcher) {
+
+		    me.setWidth(me.loadedObject.launcher.width);
+
+		} else {
+
+		    me.setWidth(600);
+
+		}
+
+		if ("height" in me.loadedObject.launcher) {
+
+		    me.setHeight(me.loadedObject.launcher.height);
+
+		} else {
+
+		    me.setHeight(400);
+
+		}
+	    } else {
+
+		me.maximize();
+	    }
+
+	}
+
+	if (me.currentState == "") {
+
+	    me.setTitle(me.loadedObject.launcher.title + " [Untitled]");
+	    me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [Untitled]", 20));
+
+	} else {
+	    me.setTitle(me.loadedObject.launcher.title + " [" + me.currentState + "]");
+	    me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.currentState + "]", 20));
+	}
+
+	me.setIconCls(me.loadedObject.launcher.iconCls);
+	me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
+	me.loadedObject.setContainer(me);
+
+    },
+
+    setPropertiesWhenLink : function(setupData) {
+
+	var me = this;
+
+	if (setupData.x && setupData.y)
+	    me.setPosition(setupData.x, setupData.y);
+	else {
+	    me.setPosition(0, 0);
+	}
+
+	if (!setupData.width && !setupData.height)
+	    me.maximize();
+	else {
+	    if (setupData.width)
+		me.setWidth(setupData.width);
+
+	    if (setupData.height)
+		me.setHeight(setupData.height);
+	}
+
+	me.setTitle(setupData.title);
+	me.taskButton.setIconCls("notepad");
+	me.taskButton.setText(Ext.util.Format.ellipsis(me.title, 20));
+	me.setIconCls("notepad");
+
+	if (setupData.zIndex)
+	    me.setZIndex(setupData.zIndex);
+
+    },
+
+    /**
+     * Getter function for the class of the loaded object
+     * 
+     * @return {String} The name of the class
+     */
+    getAppClassName : function() {
+
+	return this.appClassName;
+
+    },
+
+    /**
+     * Getter function for the current state of the loaded object
+     * 
+     * @return {String} The name of the class
+     */
+    getCurrentState : function() {
+
+	return this.currentState;
+
+    },
+    /**
+     * Overriden function, inherited from Ext.window.Window used to set up the
+     * buttons at the top right corner of the window
+     */
+    addTools : function() {
+
+	var me = this;
+
+	if (me.loadedObjectType == "app") {
+
+	    me.statesMenu = new Ext.menu.Menu();
+
+	    /*
+	     * if the cache for the state of the started application exist
+	     */
+	    
+	    /*
+	     * A call to isStateLoaded can be used to see whether the application states have been loaded
+	     * */
+	    var iAppStatesLoaded = _app._sm.isStateLoaded("application",me.appClassName,"|"); 
+	    
+	    if (iAppStatesLoaded!=-2) {
+
+		me.oprRefreshAppStates();
+
+	    } else {
+
+		/*
+		 * if the application cache does not exist
+		 */
+
+		var oFunc = function(sAppName) {
+
+		    me.oprRefreshAppStates();
+
+		}
+
+		_app._sm.oprReadApplicationStatesAndReferences(me.appClassName, oFunc);
+
+	    }
+
+	    var funcAfterSave = function(sAppName, sStateName) {
+
+		me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
 		
-							  try {
-								  oSelectEl.add(elOptNew, null); // standards compliant; doesn't work in IE
-							  }
-							  catch(ex) {
-								  oSelectEl.add(elOptNew); // IE only
-							  }
-							  
-						}
-						
-						oSelectEl = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[1];
-						
-						for (i = oSelectEl.length - 1; i>=0; i--) 
-							oSelectEl.remove(i);
-						
-						for(var stateName in _app._sm.cache.reference[me.appClassName]){
-							
-							  var elOptNew = document.createElement('option');
-							  elOptNew.text = stateName;
-							  elOptNew.value = stateName;
+		if(me.currentState!="")
+		    _app._sm.removeActiveState(sAppName,me.currentState);
 		
-							  try {
-								  oSelectEl.add(elOptNew, null); // standards compliant; doesn't work in IE
-							  }
-							  catch(ex) {
-								  oSelectEl.add(elOptNew); // IE only
-							  }
-							  
-						}
-						  
-					},
-					
-					/**
-					 * Function that is executed when the Save button 
-					 * of the Save As form is clicked 
-					 */
-					oprSaveAsAppState : function() {
-						
-						var me = this;
-												
-						if (me.saveForm.getForm().isValid()) {
-							
-							var stateName = me.saveForm.getForm().findField("state_name").getValue();
-								
-							me.oprSendDataForSave(stateName,true);
-							
-						}
-						
-					},
-					
-					/**
-					 * Function to delete selected desktop states 
-					 */
-					oprDeleteSelectedStates: function(){
-						
-						var me = this;
-						
-						var iWhoSelect = 0;
-						
-						if(me.manageForm.items.getAt(1).items.getAt(1).getValue())
-							iWhoSelect = 1;
-						
-						var oSelectField = document.getElementById(me.manageForm.getId()).getElementsByTagName("select")[iWhoSelect];
-						
-						for (var i = oSelectField.length - 1; i>=0; i--) {
-						    if (oSelectField.options[i].selected) {
-						    	
-						    /*
-						     * First we check whether there are instances of that 
-						     * state that are active
-						     */	
-						    var oStateName=oSelectField.options[i].value;	
-						    if(iWhoSelect == 0){	
-						    	  	
-						    	
-							      if(! me.desktop.isAnyActiveState(oStateName,me.appClassName)){
-							    	  
-							    	  /*
-							    	   * If the Ajax is not successful then the item wont be deleted.
-							    	   */
-							    	  Ext.Ajax.request({
-										    url: me.desktop.getBaseUrl()+'UP/delAppState',
-										    params: {
-										    	app: me.appClassName,
-										    	name: 	oStateName,
-										        obj: "application"
-										    },
-										    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField,iWhoSelect], false),
-										    failure:function(response){
-										    	
-										    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-										    }
-										});
-							    	  
-							      }else
-							    	  Ext.MessageBox.alert('Message','The state <b>'+oSelectField.options[i].value+'</b> you are willing to delete is curently in use !');
-						    	
-						      }else{
-						    	  
-						    	  Ext.Ajax.request({
-									    url: me.desktop.getBaseUrl()+'UP/delAppState',
-									    params: {
-									    	app: me.appClassName,
-									    	name: 	oStateName,
-									        obj: "reference"
-									    },
-									    success:Ext.bind(me.oprDeleteSelectedStates_s, me, [i,oSelectField,iWhoSelect], false),
-									    failure:function(response){
-									    	
-									    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-									    }
-									});
-						    	  
-						    	  
-						      }
-						      
-						    }
-						}
-						
-					},
-					
-					/**
-					 * Callback of the oprDeleteSelectedStates function
-					 * @param {Integer} index index of the selected element
-					 * @param {DOMObject} oSelectEl the select element of the management form 
-					 */
-					oprDeleteSelectedStates_s: function(index,oSelectEl,iWhoSelect){
-						
-						var me = this;
-						
-						var oStateName = oSelectEl.options[index].value;
-						
-						me.desktop.removeStateFromWindows(((iWhoSelect==0)?"application":"reference"),oStateName,me.appClassName);
-						
-						oSelectEl.remove(index);
-						
-					},
-					
-					/**
-					 * Function to check if a state exists 
-					 * among the list of desktop states
-					 * @param {String} stateName The name of the state
-					 */
-					isExistingState:function(stateName){
-						var me = this;
+		me.loadedObject.currentState = sStateName;
+		me.currentState = sStateName;
+		_app._sm.addActiveState(sAppName, sStateName);
+		me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
+		me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]", 20));
+		_app.desktop.refreshUrlDesktopState();
 
-						if( stateName in _app._sm.cache.application[me.appClassName])
-							return true;
-						else
-							return false;
-						
-					},
-					
-					/**
-					 * Function called when the Save button 
-					 * from the SAVE window menu is clicked 
-					 */
-					oprSaveAppState : function() {
-						
-						var me = this;
-						
-						if(me.currentState == ""){
-							
-							me.formSaveState();
-							
-						}else{
-							
-							me.oprSendDataForSave(me.currentState,false);
-						}
-					},
-					
-					/**
-					 * Function that is used to prepare and send 
-					 * the data of the desktop state to the server.
-					 * @param {String} stateName The name of the state
-					 * @param {Boolean} isNewItem Parameter that says whether the state already exists or not 
-					 */
-					oprSendDataForSave: function (stateName,isNewItem){
-						
-						var me = this;
-						
-						var sendData = me.loadedObject.getStateData();
-						/*
-						 * We save those data in the database
-						 */
-						if(!Ext.isObject(sendData)){
-							/*
-							 * Here the data to be sent is not an object
-							 */	
-							return;
-						}
-						
-						/*
-						 * If the Ajax is not successful the state wont be saved.
-						 */
-						Ext.Ajax.request({
-						    url: me.desktop.getBaseUrl()+'UP/saveAppState',
-						    params: {
-						        app: 	me.appClassName,
-						        name: 	stateName,
-						        state: 	Ext.JSON.encode(sendData),
-						        obj: "application"
-						    },
-						    scope:me,
-						    success: function(response){
-						    	var me = this;
-						    	Ext.example.msg("Notification", 'State saved successfully !');
-						    	if(isNewItem){
-						    		me.desktop.addStateToExistingWindows("application",stateName,me.appClassName,sendData);
-						    		me.saveWindow.hide();
-						    	}else
-						    		_app._sm.cache.application[me.appClassName][stateName]=sendData;
-						    	
-						    	me.currentState = stateName;
-								me.setTitle(me.loadedObject.launcher.title+" ["+me.currentState+"]");
-								me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+stateName+"]",20));
-								me.desktop.refreshUrlDesktopState();
-						    },
-						    failure:function(response){
-						    	
-						    	Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-						    }
-						});
-						
-					},
-					/**
-					 * Function to refresh the states of a module. The states are read from the cash.
-					 */
-					oprRefreshAppStates:function(){
-						
-						var me = this;
-						
-						me.statesMenu.removeAll();
-						
-						for (var stateName in _app._sm.cache.application[me.appClassName]) {	
-							
-							var newItem = Ext.create('Ext.menu.Item', {
-				    			  text: stateName,
-				    			  handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
-				    			  scope:me,
-				    			  iconCls:"system_state_icon",
-				    			  stateType:"application",
-				    			  menu:[{
-			    				  		text:"Share state",
-			    				  		handler:Ext.bind(me.oprShareState, me, [stateName], false),
-			    				  		iconCls:"system_share_state_icon"
-			    				  	}]
-				    		});
+	    };
 
-							me.statesMenu.add(newItem);
-							
-						}
-						
-						me.statesMenu.add("-");
-						
-						for (var stateName in _app._sm.cache.reference[me.appClassName]) {	
-							
-							var newItem = Ext.create('Ext.menu.Item', {
-				    			  text: stateName,
-				    			  handler: Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [me.appClassName,stateName], false),
-				    			  scope:me,
-				    			  iconCls:"system_link_icon",
-				    			  stateType:"reference"
-				    		});
+	    var funcAfterRemove = function(sStateType, sAppName, sStateName) {
 
-							me.statesMenu.add(newItem);
-							
-						}
+		me.desktop.removeStateFromWindows(sStateType, sAppName, sStateName);
 
-						
-					},
-					
-					/**
-					 * Function to load module state with data from the cache
-					 * @param {String} stateName The name of the state
-					 */
-					oprLoadAppStateFromCache : function(stateName) {
-						
-						var me = this;
-						
-						if(!((me.appClassName in _app._sm.cache.application)&&(stateName in _app._sm.cache.application[me.appClassName]))){
-							
-							me.funcPostponedLoading = function(){
-								
-								me.oprLoadAppStateFromCache(stateName);
-								
-							}
-							
-							setTimeout(me.funcPostponedLoading,1000);
-							
-							return;
-							
-						}
-						
-						
-						me.loadMask.show();
-						
-						me.closeAllChildWindows();
-						me.loadedObject.loadState(_app._sm.cache.application[me.appClassName][stateName]);
-						me.currentState = stateName;
-						
-						_app.desktop.refreshUrlDesktopState();
-						
-						me.setTitle(me.loadedObject.launcher.title+" ["+stateName+"]");
-						me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title+" ["+stateName+"]",20));
-						me.loadMask.hide();
+	    }
 
-					},
-					
-					oprGetChildWindow:function(sTitle,oModal,oWidth,oHeight){
-						
-						var me = this;
-						
-						var oWindow = me.desktop.createWindow({
-							height : oHeight,
-							width : oWidth,
-							title : sTitle,
-							modal: oModal,
-							parentWindow:me,
-							isChildWindow:true,
-							iconCls:"system_child_window"
-						});
-						
-						me.childWindows.push(oWindow);
-						
-						return oWindow;
-						
-					},
-					
-					removeChildWindowFromList:function(oChildWindow){
-						
-						var me = this;
-						var oNewList = [];
-						
-						for(var i=0;i<me.childWindows.length;i++){
-							
-							if(oChildWindow.id!=me.childWindows[i].id)
-								oNewList.push(me.childWindows[i]);
-							
-						}
-						
-						me.childWindows = oNewList;
-						
-					},
-					
-					closeAllChildWindows: function(){
-						
-						var me = this;
-						
-						for(var i=me.childWindows.length-1;i>=0;i--)
-							me.childWindows[i].close();
-						
-					},
-					
-					getUrlDescription:function(){
-						
-						var me = this;
-						
-						if(me.loadedObjectType=="link")
-							return "";
-						
-						var oPos = me.getPosition();
-						
-						var oState = "0";
-						if(me.minimized)
-							oState = -1;
-						else if(me.maximized)
-							oState = 1;
-								
-						
-						return me.loadedObject.self.getName()+":"+me.currentState+":"+oPos[0]+":"+oPos[1]+":"+me.getWidth()+":"+me.getHeight()+":"+oState;
-						
-					}
-					
-				});
+	    me.loadMenu = new Ext.menu.Menu({
+		items : [ {
+		    text : "Load state",
+		    iconCls : "toolbar-other-load",
+		    menu : me.statesMenu
+		}, {
+		    text : "Save",
+		    iconCls : "toolbar-other-save",
+		    handler : Ext.bind(_app._sm.oprSaveAppState, _app._sm, [ "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave ], false),
+		    scope : me
+		}, {
+		    text : "Save As ...",
+		    iconCls : "toolbar-other-save",
+		    handler : Ext.bind(_app._sm.formSaveState, _app._sm, [ "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave ], false),
+		    scope : me
+		}, {
+		    text : "Refresh states",
+		    iconCls : "toolbar-other-refresh",
+		    handler : me.oprRefreshAllAppStates,
+		    scope : me
+		}, {
+		    text : "Manage states ...",
+		    iconCls : "toolbar-other-manage",
+		    handler : Ext.bind(_app._sm.formManageStates, _app._sm, [ me.loadedObject.self.getName(), funcAfterRemove ], false),
+		    scope : me
+		} ]
+	    });
+
+	    me.addTool({
+		xtype : "diracToolButton",
+		type : "save",
+		menu : me.loadMenu
+	    });
+
+	}
+
+	me.callParent();
+
+    },
+    /**
+     * Function that is called when the refresh button of the SAVE window menu
+     * is clicked
+     */
+    oprRefreshAllAppStates : function() {
+
+	var me = this;
+
+	me.desktop.oprRefreshAllAppStates(me.appClassName);
+
+    },
+    /**
+     * Function for adding new state within the list of existing states
+     * 
+     * @param {String}
+     *                stateName The name of the state
+     */
+    addNewState : function(stateType, stateName) {
+
+	var me = this;
+
+	if (stateType == "application") {
+
+	    var newItem = Ext.create('Ext.menu.Item', {
+		text : stateName,
+		handler : Ext.bind(me.oprLoadAppStateFromCache, me, [ stateName ], false),
+		scope : me,
+		iconCls : "system_state_icon",
+		stateType : stateType,
+		menu : [ {
+		    text : "Share state",
+		    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ stateName, me.loadedObject.self.getName() ], false),
+		    iconCls : "system_share_state_icon"
+		} ]
+	    });
+
+	    var iIndexPosition = 0;
+
+	    for ( var i = me.statesMenu.items.length - 1; i >= 0; i--) {
+
+		if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator") {
+		    iIndexPosition = i;
+		    break;
+		}
+
+	    }
+
+	    me.statesMenu.insert(iIndexPosition, newItem);
+
+	} else if (stateType == "reference") {
+
+	    var newItem = Ext.create('Ext.menu.Item', {
+		text : stateName,
+		handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [ me.appClassName, stateName ], false),
+		scope : me,
+		iconCls : "system_link_icon",
+		stateType : stateType,
+	    });
+
+	    me.statesMenu.add(newItem);
+
+	}
+
+    },
+    /**
+     * Function for removing a state from the list of existing states
+     * 
+     * @param {String}
+     *                stateName The name of the state
+     */
+    removeState : function(stateType, stateName) {
+
+	var me = this;
+
+	if (stateType == "application") {
+
+	    /*
+	     * Searching from the begging of the menu
+	     * 
+	     */
+	    for ( var i = 0; i < me.statesMenu.items.length; i++) {
+
+		if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator")
+		    break;
+
+		if (me.statesMenu.items.getAt(i).text == stateName) {
+
+		    me.statesMenu.remove(me.statesMenu.items.getAt(i));
+		    break;
+
+		}
+
+	    }
+
+	} else if (stateType == "reference") {
+
+	    /*
+	     * Searching from the end of the menu
+	     * 
+	     */
+	    for ( var i = me.statesMenu.items.length - 1; i >= 0; i--) {
+
+		if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator")
+		    break;
+
+		if (me.statesMenu.items.getAt(i).text == stateName) {
+
+		    me.statesMenu.remove(me.statesMenu.items.getAt(i));
+		    break;
+
+		}
+
+	    }
+
+	}
+
+    },
+
+    /**
+     * Function to refresh the states of a module. The states are read from the
+     * cash.
+     */
+    oprRefreshAppStates : function() {
+
+	var me = this;
+
+	me.statesMenu.removeAll();
+	
+	var oStates = _app._sm.getApplicationStates("application", me.appClassName);
+	
+	for ( var i = 0, len = oStates.length; i < len; i++) {
+	    
+	    var stateName = oStates[i];
+		
+	    var oNewItem = Ext.create('Ext.menu.Item', {
+		text : stateName,
+		handler : Ext.bind(me.oprLoadAppStateFromCache, me, [ stateName ], false),
+		scope : me,
+		iconCls : "system_state_icon",
+		stateType : "application",
+		menu : [ {
+		    text : "Share state",
+		    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ stateName, me.appClassName ], false),
+		    iconCls : "system_share_state_icon"
+		} ]
+	    });
+
+	    me.statesMenu.add(oNewItem);
+
+	}
+
+	me.statesMenu.add("-");
+	
+	var oRefs = _app._sm.getApplicationStates("reference", me.appClassName);
+	
+	for ( var i = 0, len = oRefs.length; i < len; i++) {
+	    
+	    var stateName = oRefs[i];
+	    
+	    var oNewItem = Ext.create('Ext.menu.Item', {
+		text : stateName,
+		handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [ me.appClassName, stateName ], false),
+		scope : me,
+		iconCls : "system_link_icon",
+		stateType : "reference"
+	    });
+
+	    me.statesMenu.add(oNewItem);
+
+	}
+
+    },
+
+    /**
+     * Function to load module state with data from the cache
+     * 
+     * @param {String}
+     *                stateName The name of the state
+     */
+    oprLoadAppStateFromCache : function(stateName) {
+
+	var me = this;
+	var iStateLoaded = _app._sm.isStateLoaded("application",me.appClassName,stateName);
+	
+	switch(iStateLoaded){
+		case -1:
+	    		alert("The state does not exist !");
+	    		return;
+	    		break;
+		case -2: 
+		    	me.funcPostponedLoading = function() {
+    
+    				me.oprLoadAppStateFromCache(stateName);
+    
+    		    	}
+    
+		    	setTimeout(me.funcPostponedLoading, 1000);
+		    	return;
+	    	break;
+	}
+
+	me.loadMask.show();
+
+	me.closeAllChildWindows();
+	
+	me.loadedObject.loadState(_app._sm.getStateData("application",me.appClassName,stateName));
+	
+	if(me.currentState!="")
+	    _app._sm.removeActiveState(me.appClassName, me.currentState);
+	
+	me.currentState = stateName;
+	me.loadedObject.currentState = stateName;
+	
+	_app._sm.addActiveState(me.appClassName, stateName);
+	_app.desktop.refreshUrlDesktopState();
+
+	me.setTitle(me.loadedObject.launcher.title + " [" + stateName + "]");
+	me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + stateName + "]", 20));
+	me.loadMask.hide();
+
+    },
+
+    oprGetChildWindow : function(sTitle, oModal, oWidth, oHeight) {
+
+	var me = this;
+
+	var oWindow = me.desktop.initWindow({
+	    height : oHeight,
+	    width : oWidth,
+	    title : sTitle,
+	    modal : oModal,
+	    parentWindow : me,
+	    isChildWindow : true,
+	    iconCls : "system_child_window"
+	});
+
+	me.childWindows.push(oWindow);
+
+	return oWindow;
+
+    },
+
+    removeChildWindowFromList : function(oChildWindow) {
+
+	var me = this;
+	var oNewList = [];
+
+	for ( var i = 0; i < me.childWindows.length; i++) {
+
+	    if (oChildWindow.id != me.childWindows[i].id)
+		oNewList.push(me.childWindows[i]);
+
+	}
+
+	me.childWindows = oNewList;
+
+    },
+
+    closeAllChildWindows : function() {
+
+	var me = this;
+
+	for ( var i = me.childWindows.length - 1; i >= 0; i--)
+	    me.childWindows[i].close();
+
+    },
+
+    getUrlDescription : function() {
+
+	var me = this;
+
+	if (me.loadedObjectType == "link")
+	    return "";
+
+	var oPos = me.getPosition();
+
+	var oState = "0";
+	if (me.minimized)
+	    oState = -1;
+	else if (me.maximized)
+	    oState = 1;
+
+	return me.loadedObject.self.getName() + ":" + me.currentState + ":" + oPos[0] + ":" + oPos[1] + ":" + me.getWidth() + ":" + me.getHeight() + ":" + oState;
+
+    }
+
+});
