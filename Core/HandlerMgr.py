@@ -21,6 +21,7 @@ class HandlerMgr( object ):
     self.__routes = []
     self.__handlers = []
     self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w-]*))?"
+    self.__shySetupGroupRE = r"(?:/s:(?:[\w-]*)/g:(?:[\w-]*))?"
     self.log = gLogger.getSubLogger( "Routing" )
 
   def getPaths( self, dirName ):
@@ -58,9 +59,11 @@ class HandlerMgr( object ):
     self.log.verbose( "Static paths found:\n - %s" % "\n - ".join( staticPaths ) )
     self.__routes = []
     for pattern in ( ( r"/static/(.*)", r"/(favicon\.ico)", r"/(robots\.txt)" ) ):
+      pattern = r"%s%s" % ( self.__shySetupGroupRE, pattern )
       if self.__baseURL:
         pattern = "/%s%s" % ( self.__baseURL, pattern )
       self.__routes.append( ( pattern, StaticHandler, dict( pathList = staticPaths ) ) )
+      self.log.debug( " - Static route: %s" % pattern )
     for hn in self.__handlers:
       self.log.info( "Found handler %s" % hn  )
       handler = self.__handlers[ hn ]
