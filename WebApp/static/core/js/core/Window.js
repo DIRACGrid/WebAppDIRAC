@@ -165,7 +165,10 @@ Ext.define('Ext.dirac.core.Window', {
 		if ("data" in setupData) {
 		    me.currentState = setupData.currentState;
 		    me.loadedObject.currentState = setupData.currentState;
-		    _app._sm.addActiveState(me.loadedObject.self.getName(), me.currentState);
+		    
+		    if(me.currentState!="")
+			_app._sm.addActiveState(me.loadedObject.self.getName(), me.currentState);
+		    
 		    me.loadedObject.loadState(setupData.data);
 		}
 
@@ -283,17 +286,23 @@ Ext.define('Ext.dirac.core.Window', {
 	    /*
 	     * if the cache for the state of the started application exist
 	     */
-	    if (me.appClassName in _app._sm.cache.application) {
+	    
+	    /*
+	     * A call to isStateLoaded can be used to see whether the application states have been loaded
+	     * */
+	    var iAppStatesLoaded = _app._sm.isStateLoaded("application",me.appClassName,"|"); 
+	    
+	    if (iAppStatesLoaded!=-2) {
 
 		me.oprRefreshAppStates();
 
 	    } else {
 
 		/*
-		 * if the cache does not exist
+		 * if the application cache does not exist
 		 */
 
-		var oFunc = function() {
+		var oFunc = function(sAppName) {
 
 		    me.oprRefreshAppStates();
 
@@ -306,6 +315,10 @@ Ext.define('Ext.dirac.core.Window', {
 	    var funcAfterSave = function(sAppName, sStateName) {
 
 		me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
+		
+		if(me.currentState!="")
+		    _app._sm.removeActiveState(sAppName,me.currentState);
+		
 		me.loadedObject.currentState = sStateName;
 		me.currentState = sStateName;
 		_app._sm.addActiveState(sAppName, sStateName);
@@ -487,10 +500,14 @@ Ext.define('Ext.dirac.core.Window', {
 	var me = this;
 
 	me.statesMenu.removeAll();
-
-	for ( var stateName in _app._sm.cache.application[me.appClassName]) {
-
-	    var newItem = Ext.create('Ext.menu.Item', {
+	
+	var oStates = _app._sm.getApplicationStates("application", me.appClassName);
+	
+	for ( var i = 0, len = oStates.length; i < len; i++) {
+	    
+	    var stateName = oStates[i];
+		
+	    var oNewItem = Ext.create('Ext.menu.Item', {
 		text : stateName,
 		handler : Ext.bind(me.oprLoadAppStateFromCache, me, [ stateName ], false),
 		scope : me,
@@ -498,20 +515,24 @@ Ext.define('Ext.dirac.core.Window', {
 		stateType : "application",
 		menu : [ {
 		    text : "Share state",
-		    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ stateName, me.loadedObject.self.getName() ], false),
+		    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ stateName, me.appClassName ], false),
 		    iconCls : "system_share_state_icon"
 		} ]
 	    });
 
-	    me.statesMenu.add(newItem);
+	    me.statesMenu.add(oNewItem);
 
 	}
 
 	me.statesMenu.add("-");
-
-	for ( var stateName in _app._sm.cache.reference[me.appClassName]) {
-
-	    var newItem = Ext.create('Ext.menu.Item', {
+	
+	var oRefs = _app._sm.getApplicationStates("reference", me.appClassName);
+	
+	for ( var i = 0, len = oRefs.length; i < len; i++) {
+	    
+	    var stateName = oRefs[i];
+	    
+	    var oNewItem = Ext.create('Ext.menu.Item', {
 		text : stateName,
 		handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [ me.appClassName, stateName ], false),
 		scope : me,
@@ -519,7 +540,7 @@ Ext.define('Ext.dirac.core.Window', {
 		stateType : "reference"
 	    });
 
-	    me.statesMenu.add(newItem);
+	    me.statesMenu.add(oNewItem);
 
 	}
 
@@ -534,29 +555,38 @@ Ext.define('Ext.dirac.core.Window', {
     oprLoadAppStateFromCache : function(stateName) {
 
 	var me = this;
-
-	if (!((me.appClassName in _app._sm.cache.application) && (stateName in _app._sm.cache.application[me.appClassName]))) {
-
-	    me.funcPostponedLoading = function() {
-
-		me.oprLoadAppStateFromCache(stateName);
-
-	    }
-
-	    setTimeout(me.funcPostponedLoading, 1000);
-
-	    return;
-
+	var iStateLoaded = _app._sm.isStateLoaded("application",me.appClassName,stateName);
+	
+	switch(iStateLoaded){
+		case -1:
+	    		alert("The state does not exist !");
+	    		return;
+	    		break;
+		case -2: 
+		    	me.funcPostponedLoading = function() {
+    
+    				me.oprLoadAppStateFromCache(stateName);
+    
+    		    	}
+    
+		    	setTimeout(me.funcPostponedLoading, 1000);
+		    	return;
+	    	break;
 	}
 
 	me.loadMask.show();
 
 	me.closeAllChildWindows();
-	me.loadedObject.loadState(_app._sm.cache.application[me.appClassName][stateName]);
+	
+	me.loadedObject.loadState(_app._sm.getStateData("application",me.appClassName,stateName));
+	
+	if(me.currentState!="")
+	    _app._sm.removeActiveState(me.appClassName, me.currentState);
+	
 	me.currentState = stateName;
 	me.loadedObject.currentState = stateName;
+	
 	_app._sm.addActiveState(me.appClassName, stateName);
-
 	_app.desktop.refreshUrlDesktopState();
 
 	me.setTitle(me.loadedObject.launcher.title + " [" + stateName + "]");

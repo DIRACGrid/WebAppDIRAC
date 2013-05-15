@@ -36,20 +36,10 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	}
 
     },
-
-    isExistingState : function(sStateType, sAppName, sStateName) {
-
-	var me = this;
-
-	if ((sAppName in me.cache[sStateType]) && (sStateName in me.cache[sStateType][sAppName]))
-	    return true;
-	else
-	    return false;
-
-    },
-    
+ 
     getApplicationStates:function(sStateType,sAppName){
 	
+	var me = this;
 	var oAppStates = [];
 	
 	for(var key in me.cache[sStateType][sAppName])
@@ -74,7 +64,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
     },
     
     
-    oprReadApplicationStatesAndReferences : function(sAppName, funcCallBack) {
+    oprReadApplicationStatesAndReferences : function(sAppName, cbAfterRefresh) {
 
 	var me = this;
 
@@ -112,7 +102,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 			}
 
-			funcCallBack();
+			cbAfterRefresh(sAppName);
 
 		    },
 		    failure : function(response) {
@@ -137,12 +127,12 @@ Ext.define('Ext.dirac.core.StateManagement', {
      * Function called when the Save As ... button from the SAVE window menu is
      * clicked
      */
-    formSaveState : function(sStateType, sAppName, oAppObject, funcCallBack) {
+    formSaveState : function(sStateType, sAppName, oAppObject, cbAfterSave) {
 
 	var me = this;
 
 	me.__oAppObject = oAppObject;
-	me.__cbAfterSave = funcCallBack;
+	me.__cbAfterSave = cbAfterSave;
 	me.__sStateType = sStateType;
 	me.__sAppName = sAppName;
 
@@ -185,7 +175,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 			} else {
 
-			    if (me.isExistingState(me.__sStateType, me.__sAppName, sValue)) {
+			    if (me.isStateLoaded(me.__sStateType, me.__sAppName, sValue)==1) {
 
 				this.markInvalid("The name you enetered already exists !");
 				return false;
@@ -253,18 +243,18 @@ Ext.define('Ext.dirac.core.StateManagement', {
     /**
      * Function called when the Save button from the SAVE window menu is clicked
      */
-    oprSaveAppState : function(sStateType, sAppName, oAppObject, funcCallBack) {
+    oprSaveAppState : function(sStateType, sAppName, oAppObject, cbAfterSave) {
 
 	var me = this;
 
 	if (oAppObject.currentState == "") {
 
-	    me.formSaveState(sStateType, sAppName, oAppObject, funcCallBack);
+	    me.formSaveState(sStateType, sAppName, oAppObject, cbAfterSave);
 
 	} else {
 
 	    me.__oAppObject = oAppObject;
-	    me.__cbAfterSave = funcCallBack;
+	    me.__cbAfterSave = cbAfterSave;
 	    me.__sStateType = sStateType;
 	    me.__sAppName = sAppName;
 
@@ -340,7 +330,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
     /**
      * Function to create and open the form for managing the desktop states
      */
-    formManageStates : function(sAppName, funcAfterRemove) {
+    formManageStates : function(sAppName, cbAfterRemove) {
 
 	var me = this;
 
@@ -361,7 +351,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		margins : '0 0 10 0'
 	    },
 	    appName : sAppName,
-	    cbAfterRemove : funcAfterRemove,
+	    cbAfterRemove : cbAfterRemove,
 	    items : [ {
 		html : "Application: <b>" + sAppName + "</b>",
 		xtype : "box"
@@ -662,7 +652,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
     
-    formStateLoader : function(funcAfterLoad,funcAfterSave) {
+    formStateLoader : function(cbAfterLoad,cbAfterSave) {
 
 	var me = this;
 
@@ -674,8 +664,8 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    width : 400,
 	    validate : function() {
 		var me = this;
-
-		if ((Ext.util.Format.trim(me.getValue()) != "") && (me.getValue().split("|").length == 4)) {
+		var sValue = me.getValue();
+		if ((Ext.util.Format.trim(sValue) != "") && (sValue.split("|").length == 4)) {
 		    return true;
 		} else {
 		    alert("The value in the 'Shared State' field is not valid !");
@@ -698,7 +688,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		var me = this;
 
 		if (Ext.util.Format.trim(me.getValue()) != "") {
+		   
 		    return true;
+		    
 		} else {
 		    alert("The 'Name' field cannot be empty !");
 		    return false;
@@ -715,10 +707,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    margin : 3,
 	    iconCls : "toolbar-other-load",
 	    handler : function() {
+		
 		if (me.txtLoadText.validate()) {
-
-		    me.loadSharedState(me.txtLoadText.getValue());
-
+		    me.loadSharedState(me.txtLoadText.getValue(),null);
 		}
 	    },
 	    scope : me
@@ -742,7 +733,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 		if (oValid) {
 
-		    me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue());
+		    me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(),null);
 
 		}
 
@@ -767,8 +758,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 		if (oValid) {
 
-		    me.loadSharedState(me.txtLoadText.getValue());
-		    me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue());
+		    me.loadSharedState(me.txtLoadText.getValue(),null);
+		    me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(),null);
+		    
 
 		}
 
@@ -787,8 +779,8 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    items : [ oToolbar, me.txtLoadText, me.txtRefName, ]
 	});
 
-	me.cbAfterLoadSharedState = funcAfterLoad;
-	me.cbAfterSaveSharedState = funcAfterSave;
+	me.__cbAfterLoadSharedState = cbAfterLoad;
+	me.__cbAfterSaveSharedState = cbAfterSave;
 	
 	me.manageWindow = Ext.create('widget.window', {
 	    height : 200,
@@ -802,8 +794,8 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		
 		close:function(oPanel,eOpts){
 		    
-		    me.cbAfterLoadSharedState = null;
-		    me.cbAfterSaveSharedState = null;
+		    me.__cbAfterLoadSharedState = null;
+		    me.__cbAfterSaveSharedState = null;
 		    
 		}
 		
@@ -814,10 +806,13 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
     
-    loadSharedState : function(oData) {
+    loadSharedState : function(oData,cbAfterLoadSharedState) {
 
 	var me = this;
-
+	
+	if((cbAfterLoadSharedState!=null)&&(cbAfterLoadSharedState!=undefined))
+	    me.__cbAfterLoadSharedState = cbAfterLoadSharedState;
+	
 	var oDataItems = oData.split("|");
 
 	if (oDataItems.length != 4) {
@@ -842,8 +837,11 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		var me = this;
 		var oDataReceived = Ext.JSON.decode(response.responseText);
 
-		if(me.cbAfterLoadSharedState!=null)
-		    me.cbAfterLoadSharedState(oData,oDataReceived);
+		if(me.__cbAfterLoadSharedState!=null)
+		    me.__cbAfterLoadSharedState(oData,oDataReceived);
+		
+		if(me.manageWindow)
+		    me.manageWindow.close();
 		
 	    },
 	    failure : function(response) {
@@ -855,12 +853,21 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
     
-    saveSharedState : function(sRefName, sRef) {
+    saveSharedState : function(sRefName, sRef,cbAfterSaveSharedState) {
 
 	var me = this;
-
+	
+	if((cbAfterSaveSharedState!=null)&&(cbAfterSaveSharedState!=undefined))
+	    me.__cbAfterSaveSharedState = cbAfterSaveSharedState;
+	
 	var oDataItems = sRef.split("|");
+	
+	 if (me.isStateLoaded("reference", oDataItems[0], sRefName)==1) {
 
+		alert("The name for the link already exists !");
+		return;
+	}
+	
 	Ext.Ajax.request({
 	    url : _app_base_url + 'UP/saveAppState',
 	    params : {
@@ -874,7 +881,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    scope : me,
 	    success : function(response) {
 
-		Ext.example.msg("Notification", 'Reference saved successfully !');
+		Ext.example.msg("Notification", 'The shared state has been saved successfully !');
 		
 		me.txtLoadText.setRawValue("");
 		me.txtRefName.setRawValue("");
@@ -883,8 +890,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		    link : sRef
 		};
 		
-		if(me.cbAfterSaveSharedState!=null)
-		    me.cbAfterSaveSharedState(sRefName,sRef);
+		if(me.__cbAfterSaveSharedState!=null){
+		    me.__cbAfterSaveSharedState(sRefName,sRef);
+		}
 
 	    },
 	    failure : function(response) {

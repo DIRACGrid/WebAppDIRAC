@@ -52,16 +52,18 @@ Ext.define('Ext.dirac.core.Module', {
     loadCSS : function() {
 	
 	var me = this;
-	var superClassName = me.superclass.self.getName();
+	var oSuperClass = me;
+	var oCssFilesStack = [];
 	
-	if (superClassName != "Ext.dirac.core.Module") {
-	    var oParts = superClassName.split(".");
-	    _app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ]);
+	while(oSuperClass.self.getName() != "Ext.dirac.core.Module") {
+	    var oParts = oSuperClass.self.getName().split(".");
+	    oCssFilesStack.push("static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css");
+	    oSuperClass = oSuperClass.superclass;
 	}
-
-	var oParts = me.self.getName().split(".");
 	
-	_app.mixins.fileLoader.loadFile([ "static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css" ], function() {
+	oCssFilesStack.reverse();
+	
+	_app.mixins.fileLoader.loadFile(oCssFilesStack, function() {
 
 	    var me = this;
 

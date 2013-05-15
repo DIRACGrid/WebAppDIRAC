@@ -191,7 +191,13 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			     * if the cache for the state of the started
 			     * application exist
 			     */
-			    if (sStartClass in _app._sm.cache.application) {
+			    
+			    /*
+			     * A call to isStateLoaded can be used to see whether the application states have been loaded
+			     * */
+			    var iAppStatesLoaded = _app._sm.isStateLoaded("application",sStartClass,"|"); 
+			    
+			    if (iAppStatesLoaded!=-2) {
 
 				if (cmp.isStateMenuLoaded != 2) {
 
@@ -202,7 +208,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			    } else {
 				if (cmp.isStateMenuLoaded == 0) {
 
-				    var oFunc = function() {
+				    var oFunc = function(sAppName) {
 
 					cmp.oprRefreshAppStates();
 					cmp.isStateMenuLoaded = 2;
@@ -313,9 +319,13 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			    minWidth : 200,
 			    iconCls : "notepad"
 			}, '-' ]);
-
-			for ( var stateName in _app._sm.cache.application[oThisMenu.appClassName]) {
-
+			
+			var oStates = _app._sm.getApplicationStates("application",oThisMenu.appClassName);
+			
+			for ( var i = 0, len = oStates.length; i < len; i++) {
+				
+			    var stateName=oStates[i];	
+			
 			    var newItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
 				handler : Ext.bind(_app.desktop.createWindow, _app.desktop, [ "app", oThisMenu.appClassName, {
@@ -336,9 +346,13 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			}
 
 			oThisMenu.menu.add("-");
-
-			for ( var stateName in _app._sm.cache.reference[oThisMenu.appClassName]) {
-
+			
+			var oRefs = _app._sm.getApplicationStates("reference",oThisMenu.appClassName);
+			
+			for ( var i = 0, len = oRefs.length; i < len; i++) {
+			    
+			    var stateName=oRefs[i];	
+			    
 			    var newItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
 				handler : Ext.bind(_app.desktop.loadSharedStateByName, _app.desktop, [ oThisMenu.appClassName, stateName ], false),
