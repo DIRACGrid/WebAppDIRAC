@@ -202,22 +202,24 @@ class AccountingPlotHandler(WebHandler):
     self.set_header('Pragma',"no-cache")
     self.set_header('Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ))
     self.finish(data)
-    
+  
+  @asyncGen  
   def web_getCsvPlotData( self ):
     callback = {}
     retVal = self.__parseFormParams()
     if not retVal[ 'OK' ]:
       callback = {"success":"false","error":retVal[ 'Message' ]}
-      return callback
+      self.finish(callback)
     params = retVal[ 'Value' ]
     repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
-    retVal = repClient.getReport( *params )
+    retVal = yield self.threadTask(repClient.getReport, *params )
     if not retVal[ 'OK' ]:
       callback = {"success":"false","error":retVal[ 'Message' ]}
-      return callback
+      self.finish(callback)
     rawData = retVal[ 'Value' ]
     groupKeys = rawData[ 'data' ].keys()
     groupKeys.sort()
+#     print rawData['data']
     if 'granularity' in rawData:
       granularity = rawData[ 'granularity' ]
       data = rawData['data']
@@ -238,7 +240,26 @@ class AccountingPlotHandler(WebHandler):
     self.set_header('Content-type','text/csv')
     self.set_header('Content-Disposition', 'attachment; filename="%s.csv"' % md5( str( params ) ).hexdigest())
     self.set_header('Content-Length', len( strData ))
-    return strData
+    self.finish(strData)
+  
+  @asyncGen  
+  def web_getPlotData( self ):
+    callback = {}
+    retVal = self.__parseFormParams()
+    if not retVal[ 'OK' ]:
+      callback = {"success":"false","error":retVal[ 'Message' ]}
+      self.finish(callback)
+    params = retVal[ 'Value' ]
+    repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
+    retVal = yield self.threadTask(repClient.getReport, *params )
+    if not retVal[ 'OK' ]:
+      callback = {"success":"false","error":retVal[ 'Message' ]}
+      self.finish(callback)
+    rawData = retVal[ 'Value' ]
+    groupKeys = rawData[ 'data' ].keys()
+    groupKeys.sort()
+#     print rawData['data']
+    self.finish(json.dumps(rawData['data']))
   
   '''
   #OK code; DONT KNOW FOR WHAT DOES IT SERVE?

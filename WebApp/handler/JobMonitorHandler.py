@@ -129,12 +129,7 @@ class JobMonitorHandler(WebHandler):
       tier1 = gConfig.getValue("/Website/PreferredSites",[]) # Always return a list
       site = []
       if len(result["Value"])>0:
-#        s = list(result["Value"])
-#        #site.append([str("All")])
-#        for i in s:
-#          site.append([str(i)])    
         s = list(result["Value"])
-#         site.append([str("All")])
         for i in tier1:
           site.append([str(i)])
         for i in s:
@@ -165,7 +160,6 @@ class JobMonitorHandler(WebHandler):
     if result["OK"]:
       stat = []
       if len(result["Value"])>0:
-        #stat.append([str("All")])
         for i in result["Value"]:
           i = i.replace(",",";")
           stat.append([i])
@@ -180,7 +174,6 @@ class JobMonitorHandler(WebHandler):
     if result["OK"]:
       app = []
       if len(result["Value"])>0:
-        #app.append([str("All")])
         for i in result["Value"]:
           i = i.replace(",",";")
           app.append([i])
@@ -195,7 +188,6 @@ class JobMonitorHandler(WebHandler):
     if result["OK"]:
       types = []
       if len(result["Value"])>0:
-        #types.append([str("All")])
         for i in result["Value"]:
           i = i.replace(",",";")
           types.append([i])
@@ -214,7 +206,6 @@ class JobMonitorHandler(WebHandler):
       if result["OK"]:
         owner = []
         if len(result["Value"])>0:
-          #owner.append([str("All")])
           for i in result["Value"]:
             owner.append([str(i)])
         else:
