@@ -1,5 +1,5 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler,WebSocketHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -22,35 +22,46 @@ try:
 except:
   from md5 import md5
 
-class ConfigurationManagerHandler(WebHandler):
+
+class ConfigurationManagerHandler(WebSocketHandler):
 
   AUTH_PROPS = "authenticated"
-  __configData = {}
+
+  def on_open( self  ):
+    self.__configData = {}
+
+  def on_message( self, msg ):
+    self.log.info( "RECEIVED %s" % msg )
+    try:
+      params = simplejson.loads( msg )
+    except:
+      gLogger.exception( "No op defined" )
+    
+    if params["op"] == "init":
+      self.__getRemoteConfiguration()
+    elif params["op"] == "getSubnodes":
+      self.__getSubnodes(params["node"],params["nodePath"])
+      
   
   def __getRemoteConfiguration( self ):
     rpcClient = RPCClient( gConfig.getValue( "/DIRAC/Configuration/MasterServer", "Configuration/Server" ) )
     modCfg = Modificator( rpcClient )
     retVal = modCfg.loadFromRemote()
     if retVal[ 'OK' ]:
-      ConfigurationManagerHandler.__configData[ 'cfgData' ] = str( modCfg )
-      ConfigurationManagerHandler.__configData[ 'csName' ] = "%s Configuration" % ( modCfg.getValue( "/DIRAC/VirtualOrganization" ) )
+      self.__configData[ 'cfgData' ] = str( modCfg )
+      #self.__configData[ 'csName' ] = "%s Configuration" % ( modCfg.getValue( "/DIRAC/VirtualOrganization" ) )
     return retVal
-  
-  def web_initializeConfigurationCopy(self):
-    retVal = self.__getRemoteConfiguration()
-    print ConfigurationManagerHandler.__configData.keys()
-    self.write(json.dumps({"OK":1}))
-      
-
-  def web_getSubnodes( self ):
+    
+  def __getSubnodes( self, parentNodeId, sectionPath ):
+    '''
     try:
       parentNodeId = str( self.request.arguments[ 'node' ][0] )
       sectionPath = str( self.request.arguments[ 'nodePath' ][0] )
     except Exception, e:
       return S_ERROR( "Cannot expand section %s" % str( e ) )
-    
+    '''
     cfgData = CFG()
-    cfgData.loadFromBuffer( ConfigurationManagerHandler.__configData[ 'cfgData' ] )
+    cfgData.loadFromBuffer( self.__configData[ 'cfgData' ] )
     gLogger.info( "Expanding section", "%s" % sectionPath )
 #     print ConfigurationManagerHandler.__configData[ 'cfgData' ]
     try:
@@ -78,4 +89,5 @@ class ConfigurationManagerHandler(WebHandler):
         qtipDict = { 'text' : htmlC }
         nodeDef[ 'qtipCfg' ] = qtipDict
       retData.append( nodeDef )
-    self.write(json.dumps({"nodes":retData}))
+    self.write_message(json.dumps({"nodes":retData}))
+    

@@ -27,10 +27,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
     initComponent : function() {
 
 	var me = this;
-	
+
 	me.launcher.title = "Configuration Manager";
 	me.launcher.maximized = true;
-	
+
 	Ext.apply(me, {
 	    layout : 'border',
 	    bodyBorder : false,
@@ -38,71 +38,139 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		collapsible : true,
 		split : true
 	    },
-	    items:[]
+	    items : []
 	});
-	
+
 	me.callParent(arguments);
 
     },
-    
-    buildUI:function(){
-	
-	var me = this;
-	
-	Ext.Ajax.request({
-	    url : _app_base_url + 'ConfigurationManager/initializeConfigurationCopy',
-	    method : 'POST',
-	    params : {},
-	    scope : me,
-	    success : function(response) {
-	
 
-        	me.treeStore = Ext.create('Ext.data.TreeStore', {
-        	    proxy : {
-        		type : 'ajax',
-        		url : _app_base_url + 'ConfigurationManager/getSubnodes',
-        		reader : {
-        		    type : 'json',
-        		    root : 'nodes'
-        		},
-        		extraParams : {
-        		    nodePath : "/"
-        		}
-        	    },
-        	    root : {
-        		text : 'Configuration',
-        		expanded : true
-        	    },
-        	    listeners : {
-        		beforeload : function(oThisStore, oOperation, eOpts) {
-        		    oThisStore.proxy.extraParams.nodePath = me.__getNodePath(oOperation.node);
-        		    // console.log(oThisStore.proxy.extraParams.nodePath);
-        		}
-        	    }
-        	});
-        
-        	me.treePanel = new Ext.create('Ext.tree.Panel', {
-        	    region : 'center',
-        	    store : me.treeStore,
-        	    listeners : {
-        		itemappend : function(oNode, oChildNode, index, eOpts) {
-        
-        		},
-        		beforeitemappend : function(oNode, oChildNode, eOpts) {
-        
-        		    if (oChildNode.isLeaf())
-        			me.__configureLeafNode(oChildNode);
-        
-        		}
-        	    }
-        	});
-        
-        	me.add([me.treePanel ]);
+    buildUI : function() {
+
+	var me = this;
+
+	/*
+	 * Ext.Ajax.request({ url : _app_base_url +
+	 * 'ConfigurationManager/initializeConfigurationCopy', method : 'POST',
+	 * params : {}, scope : me, success : function(response) {
+	 */
 	
+	var sLoc = window.location;
+	var sWsuri;
+	
+	if (sLoc.protocol === "https:") {
+	    sWsuri = "wss:";
+	} else {
+	    sWsuri = "ws:";
+	}
+	sWsuri += "//" + sLoc.host + '/DIRAC/ConfigurationManager';
+	
+	me.socket = new WebSocket( sWsuri );
+	
+	me.socket.onopen = function( e ) { 
+	    alert( "CONNECTED" ); 
+	    me.socket.send( JSON.stringify( { op:"init" } ) );  
+	};
+	
+	me.socket.onerror = function( e ) { 
+	    alert( "ERR " + e.data ); 
+	};
+	
+	me.socket.onclose = function( e ) { 
+	    alert( "CLOSE" ); 
+	};
+	
+	me.socket.onmessage = function( e ) { 
+	    console.log("RCV");
+	    console.log(e.data);
+	    console.log("--------------------------------------");
+	};
+	
+	me.btnViewConfigAsText = new Ext.Button({
+
+	    text : 'View as Text',
+	    margin : 1,
+	    iconCls : "",
+	    handler : function() {
+
+	    },
+	    scope : me
+
+	});
+
+	me.btnDownloadConfig = new Ext.Button({
+
+	    text : 'Download',
+	    margin : 1,
+	    iconCls : "",
+	    handler : function() {
+
+	    },
+	    scope : me
+
+	});
+
+	me.btnResetConfig = new Ext.Button({
+
+	    text : 'Reset',
+	    margin : 1,
+	    iconCls : "",
+	    handler : function() {
+
+	    },
+	    scope : me
+
+	});
+
+	// me.tbar.add([me.btnViewConfigAsText,me.btnDownloadConfig,me.btnResetConfig]);
+
+	me.treeStore = Ext.create('Ext.data.TreeStore', {
+	    /*proxy : {
+		type : 'ajax',
+		url : _app_base_url + 'ConfigurationManager/getSubnodes',
+		reader : {
+		    type : 'json',
+		    root : 'nodes'
+		},
+		extraParams : {
+		    nodePath : "/"
+		}
+	    },*/
+	    root : {
+		text : 'Configuration',
+		expanded : true
+	    },
+	    listeners : {
+		beforeload : function(oThisStore, oOperation, eOpts) {
+		    //oThisStore.proxy.extraParams.nodePath = me.__getNodePath(oOperation.node);
+		    // console.log(oThisStore.proxy.extraParams.nodePath);
+		}
 	    }
 	});
-	
-	
+
+	me.treePanel = new Ext.create('Ext.tree.Panel', {
+	    region : 'center',
+	    store : me.treeStore,
+	    listeners : {
+		itemappend : function(oNode, oChildNode, index, eOpts) {
+
+		},
+		beforeitemappend : function(oNode, oChildNode, eOpts) {
+
+		    if (oChildNode.isLeaf())
+			me.__configureLeafNode(oChildNode);
+
+		}
+	    },
+	    tbar : [ me.btnViewConfigAsText, me.btnDownloadConfig, me.btnResetConfig ]
+	});
+
+	me.add([ me.treePanel ]);
+
+	/*
+	 * } });
+	 */
+
     },
     __getNodePath : function(oNode) {
 	var sPath = ""
