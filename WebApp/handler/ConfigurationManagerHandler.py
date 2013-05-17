@@ -12,7 +12,7 @@ from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
 import tempfile
-import datetime
+import datetime 
 import simplejson
 import json
 import ast
@@ -48,24 +48,17 @@ class ConfigurationManagerHandler(WebSocketHandler):
     modCfg = Modificator( rpcClient )
     retVal = modCfg.loadFromRemote()
     if retVal[ 'OK' ]:
-      self.__configData[ 'cfgData' ] = str( modCfg )
+      self.__configData[ 'cfgData' ] = modCfg 
+#       modCfg.getOption( "/DIRAC/Configuration/Version", "0" )
       #self.__configData[ 'csName' ] = "%s Configuration" % ( modCfg.getValue( "/DIRAC/VirtualOrganization" ) )
-    return retVal
+    self.write_message(json.dumps({"success":1, "op":"init"}))
     
   def __getSubnodes( self, parentNodeId, sectionPath ):
-    '''
-    try:
-      parentNodeId = str( self.request.arguments[ 'node' ][0] )
-      sectionPath = str( self.request.arguments[ 'nodePath' ][0] )
-    except Exception, e:
-      return S_ERROR( "Cannot expand section %s" % str( e ) )
-    '''
-    cfgData = CFG()
-    cfgData.loadFromBuffer( self.__configData[ 'cfgData' ] )
+   
     gLogger.info( "Expanding section", "%s" % sectionPath )
-#     print ConfigurationManagerHandler.__configData[ 'cfgData' ]
+
     try:
-      sectionCfg = cfgData
+      sectionCfg = self.__configData[ 'cfgData' ].getCFG()
       for section in [ section for section in sectionPath.split( "/" ) if not section.strip() == "" ]:
         sectionCfg = sectionCfg[ section ]
     except Exception, v:
@@ -74,10 +67,13 @@ class ConfigurationManagerHandler(WebSocketHandler):
     gLogger.verbose( "Section to expand %s" % sectionPath )
       
     retData = []
+    
     for entryName in sectionCfg.listAll():
       id = "%s/%s" % ( parentNodeId, entryName )
       comment = sectionCfg.getComment( entryName )
       nodeDef = { 'text' : entryName, 'csName' : entryName, 'csComment' : comment }
+      nodeDef[ 'leaf' ] = False
+      nodeDef[ 'expanded' ] = False
       if not sectionCfg.isSection( entryName ):
          nodeDef[ 'leaf' ] = True
          nodeDef[ 'csValue' ] = sectionCfg[ entryName ]
@@ -89,5 +85,5 @@ class ConfigurationManagerHandler(WebSocketHandler):
         qtipDict = { 'text' : htmlC }
         nodeDef[ 'qtipCfg' ] = qtipDict
       retData.append( nodeDef )
-    self.write_message(json.dumps({"nodes":retData}))
+    self.write_message(json.dumps({"success":1, "op":"getSubnodes", "nodes":retData, "parentNodeId":parentNodeId}))
     

@@ -54,38 +54,57 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	 * 'ConfigurationManager/initializeConfigurationCopy', method : 'POST',
 	 * params : {}, scope : me, success : function(response) {
 	 */
-	
+
 	var sLoc = window.location;
 	var sWsuri;
-	
+
 	if (sLoc.protocol === "https:") {
 	    sWsuri = "wss:";
 	} else {
 	    sWsuri = "ws:";
 	}
 	sWsuri += "//" + sLoc.host + '/DIRAC/ConfigurationManager';
-	
-	me.socket = new WebSocket( sWsuri );
-	
-	me.socket.onopen = function( e ) { 
-	    alert( "CONNECTED" ); 
-	    me.socket.send( JSON.stringify( { op:"init" } ) );  
+
+	me.socket = new WebSocket(sWsuri);
+
+	me.socket.onopen = function(e) {
+	    console.log("CONNECTED");
+	    me.socket.send(JSON.stringify({
+		op : "init"
+	    }));
 	};
-	
-	me.socket.onerror = function( e ) { 
-	    alert( "ERR " + e.data ); 
+
+	me.socket.onerror = function(e) {
+	    console.log("ERR " + e.data);
 	};
-	
-	me.socket.onclose = function( e ) { 
-	    alert( "CLOSE" ); 
+
+	me.socket.onclose = function(e) {
+	    console.log("CLOSE");
 	};
-	
-	me.socket.onmessage = function( e ) { 
-	    console.log("RCV");
-	    console.log(e.data);
-	    console.log("--------------------------------------");
+
+	me.socket.onmessage = function(e) {
+	    
+	    var oResponse = JSON.parse( e.data );
+	    
+	    if(parseInt(oResponse.success)==0){
+		
+		alert(oResponse.message);
+		
+	    }else{
+		
+        	switch (oResponse.op) {
+        
+        	    case "init":	
+        				break;
+        	    case "getSubnodes": 
+        				me.__oprCreateSubnodes(oResponse);
+        				break;
+        
+        	}
+	    }
+
 	};
-	
+
 	me.btnViewConfigAsText = new Ext.Button({
 
 	    text : 'View as Text',
@@ -125,25 +144,23 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	// me.tbar.add([me.btnViewConfigAsText,me.btnDownloadConfig,me.btnResetConfig]);
 
 	me.treeStore = Ext.create('Ext.data.TreeStore', {
-	    /*proxy : {
-		type : 'ajax',
-		url : _app_base_url + 'ConfigurationManager/getSubnodes',
-		reader : {
-		    type : 'json',
-		    root : 'nodes'
-		},
-		extraParams : {
-		    nodePath : "/"
-		}
-	    },*/
 	    root : {
-		text : 'Configuration',
-		expanded : true
+		text : 'Configuration'
+	    },
+	    proxy : { 
+			type : 'localstorage' 
+	    },  		
+	    root : {
+		text : 'Configuration'
 	    },
 	    listeners : {
 		beforeload : function(oThisStore, oOperation, eOpts) {
-		    //oThisStore.proxy.extraParams.nodePath = me.__getNodePath(oOperation.node);
+		    // oThisStore.proxy.extraParams.nodePath =
+		    // me.__getNodePath(oOperation.node);
 		    // console.log(oThisStore.proxy.extraParams.nodePath);
+		},
+		beforeexpand : function(oNode, eOpts) {
+
 		}
 	    }
 	});
@@ -152,8 +169,16 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    region : 'center',
 	    store : me.treeStore,
 	    listeners : {
-		itemappend : function(oNode, oChildNode, index, eOpts) {
+		afteritemexpand: function( oNode, index, item, eOpts ){
+		    
+		    var oNodePath = me.__getNodePath(oNode);
 
+		    me.socket.send(JSON.stringify({
+			op : "getSubnodes",
+			nodePath : oNodePath,
+			node : oNode.getId()
+		    }));
+		    
 		},
 		beforeitemappend : function(oNode, oChildNode, eOpts) {
 
@@ -166,10 +191,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	});
 
 	me.add([ me.treePanel ]);
-
-	/*
-	 * } });
-	 */
 
     },
     __getNodePath : function(oNode) {
@@ -186,7 +207,24 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    return "/";
 	return sPath;
     },
-
+    __oprCreateSubnodes:function(oResponse){
+	
+	var me = this;
+	
+	var oParentNode = me.treeStore.getNodeById(oResponse.parentNodeId);
+	
+	if(!oParentNode.hasChildNodes()){
+	
+        	for(var i=0;i<oResponse.nodes.length;i++){
+        	    //console.log(oResponse.nodes[i]);
+        	    var oNewNode = oParentNode.createNode(oResponse.nodes[i]);
+        	    oNewNode.collapse();
+        	    oParentNode.appendChild(oNewNode);
+        	}
+	
+	}
+	
+    },
     __configureLeafNode : function(oNode) {
 
 	// Version 4.1.3 has a bug regarding this, fixed in 4.2.0
