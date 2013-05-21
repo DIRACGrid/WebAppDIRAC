@@ -1,0 +1,20 @@
+.cm-textbox-help-window textarea.x-form-field{
+	
+	font-family: Courier,monospace !important;	
+	
+
+}
+
+.cm-view-text-icon{
+	
+	 background-image: url(../images/viewAsText.png) !important;
+     background-color: transparent;
+	
+}
+
+.cm-reset-icon{
+	
+	 background-image: url(../images/refresh.gif) !important;
+     background-color: transparent;
+	
+}

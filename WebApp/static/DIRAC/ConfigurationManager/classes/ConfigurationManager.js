@@ -9,7 +9,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
     extend : 'Ext.dirac.core.Module',
     requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date",
 	    "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record",
-	    "Ext.tree.Panel", "Ext.data.TreeStore" ],
+	    "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea' ],
 
     loadState : function(oData) {
 
@@ -40,6 +40,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    },
 	    items : []
 	});
+
+	// Ext.data.NodeInterface.decorate(Ext.data.ObjectTypeModel);
 
 	me.callParent(arguments);
 
@@ -83,24 +85,32 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	};
 
 	me.socket.onmessage = function(e) {
-	    
-	    var oResponse = JSON.parse( e.data );
-	    
-	    if(parseInt(oResponse.success)==0){
-		
+
+	    var oResponse = JSON.parse(e.data);
+
+	    if (parseInt(oResponse.success) == 0) {
+
 		alert(oResponse.message);
-		
-	    }else{
-		
-        	switch (oResponse.op) {
-        
-        	    case "init":	
-        				break;
-        	    case "getSubnodes": 
-        				me.__oprCreateSubnodes(oResponse);
-        				break;
-        
-        	}
+
+	    } else {
+
+		switch (oResponse.op) {
+
+		case "init":
+		    break;
+		case "getSubnodes":
+		    me.__oprCreateSubnodes(oResponse);
+		    break;
+		case "showConfigurationAsText":
+		    me.__showConfigTextInWindow(oResponse.text);
+		    break;
+		case "resetConfiguration":
+		    me.__cbResetConfigurationTree(oResponse.text);
+		    break;
+		case "getBulkExpandedNodeData":
+		    me.__cbGetBulkExpandedNodeData(oResponse);
+		    break;
+		}
 	    }
 
 	};
@@ -109,20 +119,14 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    text : 'View as Text',
 	    margin : 1,
-	    iconCls : "",
+	    iconCls : "cm-view-text-icon",
 	    handler : function() {
 
-	    },
-	    scope : me
+		me.socket.send(JSON.stringify({
+		    op : "showConfigurationAsText"
+		}));
 
-	});
-
-	me.btnDownloadConfig = new Ext.Button({
-
-	    text : 'Download',
-	    margin : 1,
-	    iconCls : "",
-	    handler : function() {
+		me.btnViewConfigAsText.hide();
 
 	    },
 	    scope : me
@@ -133,44 +137,27 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    text : 'Reset',
 	    margin : 1,
-	    iconCls : "",
+	    iconCls : "cm-reset-icon",
 	    handler : function() {
-
+		me.socket.send(JSON.stringify({
+		    op : "resetConfiguration"
+		}));
+		me.btnResetConfig.hide();
 	    },
 	    scope : me
 
 	});
 
-	// me.tbar.add([me.btnViewConfigAsText,me.btnDownloadConfig,me.btnResetConfig]);
-
 	me.treeStore = Ext.create('Ext.data.TreeStore', {
-	    root : {
-		text : 'Configuration'
+	    proxy : {
+		type : 'localstorage'
 	    },
-	    proxy : { 
-			type : 'localstorage' 
-	    },  		
 	    root : {
 		text : 'Configuration'
 	    },
 	    listeners : {
-		beforeload : function(oThisStore, oOperation, eOpts) {
-		    // oThisStore.proxy.extraParams.nodePath =
-		    // me.__getNodePath(oOperation.node);
-		    // console.log(oThisStore.proxy.extraParams.nodePath);
-		},
 		beforeexpand : function(oNode, eOpts) {
 
-		}
-	    }
-	});
-
-	me.treePanel = new Ext.create('Ext.tree.Panel', {
-	    region : 'center',
-	    store : me.treeStore,
-	    listeners : {
-		afteritemexpand: function( oNode, index, item, eOpts ){
-		    
 		    var oNodePath = me.__getNodePath(oNode);
 
 		    me.socket.send(JSON.stringify({
@@ -178,19 +165,58 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			nodePath : oNodePath,
 			node : oNode.getId()
 		    }));
-		    
-		},
-		beforeitemappend : function(oNode, oChildNode, eOpts) {
-
-		    if (oChildNode.isLeaf())
-			me.__configureLeafNode(oChildNode);
-
 		}
-	    },
-	    tbar : [ me.btnViewConfigAsText, me.btnDownloadConfig, me.btnResetConfig ]
+	    }
+	});
+
+	me.treePanel = new Ext.create('Ext.tree.Panel', {
+	    region : 'center',
+	    store : me.treeStore,
+	    tbar : [ me.btnViewConfigAsText, me.btnResetConfig ]
 	});
 
 	me.add([ me.treePanel ]);
+
+	me.expansionState = {};
+	me.counterNodes = 0;
+
+    },
+
+    __oprPathAsExpanded : function(sPath, bInsertIntoStructure) {
+
+	var me = this;
+	var oParts = sPath.split("/");
+
+	// The first element is always empty
+	var oTemp = me.expansionState;
+	var oFound = true;
+
+	var oStartIndex = 0;
+
+	if (sPath == "/")
+	    oStartIndex = 1;
+
+	for ( var i = oStartIndex; i < oParts.length; i++) {
+
+	    if (oParts[i] in oTemp) {
+
+		oTemp = oTemp[oParts[i]];
+
+	    } else {
+
+		oFound = false;
+
+		if (bInsertIntoStructure) {
+		    oTemp[oParts[i]] = {};
+		}
+
+		break;
+
+	    }
+
+	}
+
+	return oFound;
 
     },
     __getNodePath : function(oNode) {
@@ -207,28 +233,155 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    return "/";
 	return sPath;
     },
-    __oprCreateSubnodes:function(oResponse){
-	
-	var me = this;
-	
-	var oParentNode = me.treeStore.getNodeById(oResponse.parentNodeId);
-	
-	if(!oParentNode.hasChildNodes()){
-	
-        	for(var i=0;i<oResponse.nodes.length;i++){
-        	    //console.log(oResponse.nodes[i]);
-        	    var oNewNode = oParentNode.createNode(oResponse.nodes[i]);
-        	    oNewNode.collapse();
-        	    oParentNode.appendChild(oNewNode);
-        	}
-	
-	}
-	
-    },
-    __configureLeafNode : function(oNode) {
 
-	// Version 4.1.3 has a bug regarding this, fixed in 4.2.0
-	// oNode.text = oNode.raw.csName + " = " + oNode.raw.csValue;
+    __generateNewNodeId : function() {
+
+	var me = this;
+	var sId = me.id + "-ynode-" + me.counterNodes;
+	me.counterNodes++;
+	return sId;
+
+    },
+    __oprCreateSubnodes : function(oResponse) {
+
+	var me = this;
+
+	var oParentNode = me.treeStore.getNodeById(oResponse.parentNodeId);
+
+	if (!me.__oprPathAsExpanded(me.__getNodePath(oParentNode), true)) {
+
+	    /*
+	     * HACK for representation the plus/minus sign for none expanded
+	     * node
+	     */
+	    oParentNode.removeAll();
+	    /*
+	     * END - HACK
+	     */
+	    for ( var i = 0; i < oResponse.nodes.length; i++) {
+
+		var oNodeData = oResponse.nodes[i];
+
+		oNodeData.id = me.__generateNewNodeId();
+
+		if ("qtipCfg" in oNodeData)
+		    oNodeData.qtip = oNodeData.qtipCfg.text;
+
+		var oNewNode = oParentNode.createNode(oNodeData);
+
+		/*
+		 * HACK for representation the plus/minus sign for none expanded
+		 * node
+		 */
+		if (!oNodeData.leaf)
+		    oNewNode.appendChild({});
+		/*
+		 * END - HACK
+		 */
+
+		oParentNode.appendChild(oNewNode);
+
+	    }
+
+	}
+
+    },
+
+    __showConfigTextInWindow : function(sTextToShow) {
+
+	var me = this;
+
+	var oWindow = me.getContainer().oprGetChildWindow("Configuration As Text", false, 700, 500);
+
+	var oTextArea = new Ext.create('Ext.form.field.TextArea', {
+	    value : sTextToShow,
+	    cls : "cm-textbox-help-window"
+
+	});
+
+	oWindow.add(oTextArea);
+	oWindow.show();
+	me.btnViewConfigAsText.show();
+
+    },
+
+    __cbResetConfigurationTree : function() {
+
+	var me = this;
+
+	var oRoot = me.treeStore.getRootNode();
+	// oRoot.removeAll();
+
+	var oSerializedActions = [];
+
+	if ("" in me.expansionState)
+	    me.__serializeExpansionAction("", me.expansionState[""], oSerializedActions);
+
+	console.log(oSerializedActions);
+
+	me.socket.send(JSON.stringify({
+	    op : "getBulkExpandedNodeData",
+	    nodes : oSerializedActions.join("<<||>>")
+	}));
+
+	me.btnResetConfig.show();
+
+    },
+
+    __findNodeByPath : function(sPathToNode) {
+
+	var me = this;
+
+	var oRoot = me.treeStore.getRootNode();
+
+	var oParts = sPathToNode.split("/");
+
+	if ((oParts.length == 2) && (oParts[1] == "")) {
+
+	    return oRoot;
+
+	} else {
+
+	    var oStartNode = oRoot;
+
+	    for ( var i = 1; i < oParts.length; i++) {
+
+		var oChildNodes = oStartNode.childNodes;
+
+		for ( var j = 0; j < oChildNodes.length; j++) {
+
+		    if (oChildNodes[j].raw.csName == oParts[i]) {
+
+			oStartNode = oChildNodes[j];
+			break;
+
+		    }
+
+		}
+
+	    }
+
+	    return oStartNode;
+
+	}
+
+    },
+
+    __serializeExpansionAction : function(sPathToLevel, oLevel, oColector) {
+
+	var me = this;
+	oColector.push(((sPathToLevel.length == 0) ? "/" : sPathToLevel));
+
+	for (sChild in oLevel) {
+	    me.__serializeExpansionAction(sPathToLevel + "/" + sChild, oLevel[sChild], oColector);
+	}
+
+    },
+    __cbGetBulkExpandedNodeData : function(oResponse) {
+
+	var oRetData = oResponse.data;
+
+	console.log(oRetData);
 
     }
 

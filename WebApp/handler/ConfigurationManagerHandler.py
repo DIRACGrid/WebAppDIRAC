@@ -38,38 +38,49 @@ class ConfigurationManagerHandler(WebSocketHandler):
       gLogger.exception( "No op defined" )
     
     if params["op"] == "init":
-      self.__getRemoteConfiguration()
+      self.__getRemoteConfiguration("init")
     elif params["op"] == "getSubnodes":
       self.__getSubnodes(params["node"],params["nodePath"])
-      
+    elif params["op"] == "showConfigurationAsText":
+      self.__showConfigurationAsText()
+    elif params["op"] == "resetConfiguration":
+      self.__getRemoteConfiguration("resetConfiguration")
+    elif params["op"] == "getBulkExpandedNodeData":
+      self.__getBulkExpandedNodeData(params["nodes"])
   
-  def __getRemoteConfiguration( self ):
+  def __getRemoteConfiguration( self, funcName ):
     rpcClient = RPCClient( gConfig.getValue( "/DIRAC/Configuration/MasterServer", "Configuration/Server" ) )
     modCfg = Modificator( rpcClient )
     retVal = modCfg.loadFromRemote()
     if retVal[ 'OK' ]:
-      self.__configData[ 'cfgData' ] = modCfg 
+      self.__configData[ 'cfgData' ] = modCfg
+      self.__configData[ 'strCfgData' ] = str(modCfg) 
 #       modCfg.getOption( "/DIRAC/Configuration/Version", "0" )
       #self.__configData[ 'csName' ] = "%s Configuration" % ( modCfg.getValue( "/DIRAC/VirtualOrganization" ) )
-    self.write_message(json.dumps({"success":1, "op":"init"}))
+    self.write_message(json.dumps({"success":1, "op":funcName}))
     
   def __getSubnodes( self, parentNodeId, sectionPath ):
    
     gLogger.info( "Expanding section", "%s" % sectionPath )
-
+      
+    retData = []
+    retVal = self.__getSubnodesForPath(sectionPath,retData)
+    
+    if not retVal:
+      gLogger.exception( "Section does not exist", "%s -> %s" % ( sectionPath, str( v ) ) )
+      return S_ERROR( "Section %s does not exist: %s" % ( sectionPath, str( v ) ) )
+        
+    self.write_message(json.dumps({"success":1, "op":"getSubnodes", "nodes":retData, "parentNodeId":parentNodeId}))
+  
+  def __getSubnodesForPath(self,sectionPath,retData):
     try:
       sectionCfg = self.__configData[ 'cfgData' ].getCFG()
       for section in [ section for section in sectionPath.split( "/" ) if not section.strip() == "" ]:
         sectionCfg = sectionCfg[ section ]
     except Exception, v:
-      gLogger.exception( "Section does not exist", "%s -> %s" % ( sectionPath, str( v ) ) )
-      return S_ERROR( "Section %s does not exist: %s" % ( sectionPath, str( v ) ) )
-    gLogger.verbose( "Section to expand %s" % sectionPath )
-      
-    retData = []
+      return False
     
     for entryName in sectionCfg.listAll():
-      id = "%s/%s" % ( parentNodeId, entryName )
       comment = sectionCfg.getComment( entryName )
       nodeDef = { 'text' : entryName, 'csName' : entryName, 'csComment' : comment }
       nodeDef[ 'leaf' ] = False
@@ -80,10 +91,42 @@ class ConfigurationManagerHandler(WebSocketHandler):
          nodeDef[ 'text' ] = nodeDef[ 'text' ] + " = " + nodeDef[ 'csValue' ]  
          
       #Comment magic
-      htmlC = comment #self.__htmlComment( comment )
+      htmlC = self.__htmlComment( comment )
       if htmlC:
         qtipDict = { 'text' : htmlC }
         nodeDef[ 'qtipCfg' ] = qtipDict
       retData.append( nodeDef )
-    self.write_message(json.dumps({"success":1, "op":"getSubnodes", "nodes":retData, "parentNodeId":parentNodeId}))
+      
+    return True
+  
+  def __htmlComment( self, rawComment ):
+    commentLines = []
+    commiter = ""
+    rawLines = rawComment.strip().split( "\n" )
+    if rawLines[-1].find( "@@-" ) == 0:
+      commiter = rawLines[-1][3:]
+      rawLines.pop( -1 )
+    for line in rawLines:
+      line = line.strip()
+      if not line:
+        continue
+      commentLines.append( line )
+    if commentLines or commiter:
+      return "%s<small><strong>%s</strong></small>" % ( "<br/>".join( commentLines ), commiter )
+    else:
+      return False
+    
+  def __showConfigurationAsText( self ):
+    self.write_message(json.dumps({"success":1, "op":"showConfigurationAsText", "text":self.__configData[ 'strCfgData' ]}))
+  
+  def __getBulkExpandedNodeData(self,nodes):
+    nodesPaths = nodes.split("<<||>>")
+    returnData = []
+    for nodePath in nodesPaths:
+      pathData = []
+      if self.__getSubnodesForPath(nodePath,pathData):
+        returnData.append([nodePath, pathData])
+    self.write_message(json.dumps({"success":1, "op":"getBulkExpandedNodeData", "data":returnData}))
+      
+      
     
