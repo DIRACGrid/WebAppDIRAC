@@ -353,7 +353,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    appName : sAppName,
 	    cbAfterRemove : cbAfterRemove,
 	    items : [ {
-		html : "Application: <b>" + sAppName + "</b>",
+		html : "Application: <b>" + _app.getApplicationTitle(sAppName) + "</b>",
 		xtype : "box"
 	    }, {
 		xtype : "panel",

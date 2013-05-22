@@ -18,3 +18,17 @@
      background-color: transparent;
 	
 }
+
+.cm-submit-icon{
+	
+	 background-image: url(../images/submit.gif) !important;
+     background-color: transparent;
+	
+}
+
+.cm-kill-icon{
+	
+	 background-image: url(../images/close.gif) !important;
+     background-color: transparent;
+	
+}

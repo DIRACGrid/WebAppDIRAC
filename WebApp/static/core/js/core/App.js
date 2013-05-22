@@ -189,7 +189,19 @@ Ext.define('Ext.dirac.core.App', {
 	me.isReady = true;// only if there is no desktop state loaded
 	me.fireEvent('ready', me);
     },
-
+    
+    isValidApplication:function(sAppName){
+	
+	return (sAppName in this.validApplications); 
+	
+    },
+    
+    getApplicationTitle:function(sAppName){
+	
+	return this.validApplications[sAppName];
+	
+    },
+    
     getDesktop : function() {
 	return this.desktop;
     },
