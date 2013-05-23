@@ -32,3 +32,17 @@
      background-color: transparent;
 	
 }
+
+.cm-to-manage-icon{
+	
+	 background-image: url(../images/cog_edit.png) !important;
+     background-color: transparent;
+	
+}
+
+.cm-to-browse-icon{
+	
+	 background-image: url(../images/cog.png) !important;
+     background-color: transparent;
+	
+}

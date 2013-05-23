@@ -211,6 +211,29 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	});
 
+	me.btnBrowseManage = new Ext.Button({
+
+	    text : 'Manage Configuration',
+	    // margin : 1,
+	    iconCls : "cm-to-manage-icon",
+	    handler : function() {
+		if (me.editMode) {
+		    me.btnBrowseManage.setText("Manage Configuration");
+		    me.btnBrowseManage.setIconCls("cm-to-manage-icon");
+		    me.leafMenu.hide();
+		    me.sectionMenu.hide();
+		    me.valuePanel.hide();
+		} else {
+		    me.btnBrowseManage.setText("Browse Configuration");
+		    me.btnBrowseManage.setIconCls("cm-to-browse-icon");
+		    me.valuePanel.show();
+		}
+		me.editMode = !me.editMode;
+	    },
+	    scope : me
+
+	});
+
 	me.treeStore = Ext.create('Ext.data.TreeStore', {
 	    proxy : {
 		type : 'localstorage'
@@ -239,42 +262,55 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.treePanel = new Ext.create('Ext.tree.Panel', {
 	    region : 'center',
 	    store : me.treeStore,
-	    tbar : [ me.btnViewConfigAsText, me.btnResetConfig ],
+	    tbar : [ me.btnViewConfigAsText, me.btnResetConfig, '->', me.btnBrowseManage ],
 	    listeners : {
 
 		beforeitemcontextmenu : function(oView, oNode, item, index, e, eOpts) {
 
-		    e.preventDefault();
-		    if (oNode.isLeaf()) {
-			me.leafMenu.node = oNode;
-			me.leafMenu.showAt(e.xy);
-		    } else {
-			me.sectionMenu.node = oNode;
-			me.sectionMenu.showAt(e.xy);
-		    }
+		    if (me.editMode) {
 
-		    return false;
+			e.preventDefault();
+			if (oNode.isLeaf()) {
+			    me.leafMenu.node = oNode;
+			    me.leafMenu.showAt(e.xy);
+			} else {
+			    me.sectionMenu.node = oNode;
+			    me.sectionMenu.showAt(e.xy);
+			}
+
+			return false;
+		    } else {
+
+			return true;
+		    }
 
 		},
 
 		beforecontainercontextmenu : function(oView, e, eOpts) {
-		    return false;
+		    if (me.editMode) {
+			return false;
+		    } else {
+			return true;
+		    }
 		},
 
 		itemclick : function(oView, oNode, item, index, e, eOpts) {
 
-		    if ((oNode.getId() != "root") && (!me.valuePanel.collapsed)) {
+		    if (me.editMode) {
 
-			if (oNode.isLeaf()) {
+			if ((oNode.getId() != "root") && (!me.valuePanel.collapsed)) {
 
-			    me.__oprSetOptionValueForValuePanel(me, oNode);
+			    if (oNode.isLeaf()) {
 
-			} else {
+				me.__oprSetOptionValueForValuePanel(me, oNode);
 
-			    me.__oprSetCommentValueForValuePanel(me, oNode);
+			    } else {
+
+				me.__oprSetCommentValueForValuePanel(me, oNode);
+
+			    }
 
 			}
-
 		    }
 
 		}
@@ -331,7 +367,16 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    autoScroll : true,
 	    collapsed : true,
 	    items : [ me.txtValuePanelTextArea ],
-	    bbar : [ me.btnValuePanelSubmit, me.btnValuePanelReset, me.btnValuePanelCancel ]
+	    bbar : [ me.btnValuePanelSubmit, me.btnValuePanelReset, me.btnValuePanelCancel ],
+	    listeners:{
+		
+		render:function(oPanel,eOpts){
+		    
+		    oPanel.hide();
+		    
+		}
+		
+	    }
 	});
 
 	me.add([ me.treePanel, me.valuePanel ]);
@@ -404,6 +449,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.expansionState = {};
 	me.counterNodes = 0;
 	me.flagReset = false;
+	me.editMode = false;
 
     },
 
