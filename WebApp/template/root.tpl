@@ -35,6 +35,7 @@
 
           var _app=null;
           var _app_base_url = "";
+          var _app_ext_version = "{{ext_version}}";
           var _dev = 1;
           var _load_by_url = "{{url_state}}";
 
