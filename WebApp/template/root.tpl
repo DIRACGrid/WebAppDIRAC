@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title>DIRAC :: DESKTOP</title>
-
+	<link rel="SHORTCUT ICON" href='/DIRAC/static/core/img/icons/system/favicon.ico'>
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/{{ext_version}}/resources/css/ext-all.css" />
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/css.css" />
     {% autoescape None %}

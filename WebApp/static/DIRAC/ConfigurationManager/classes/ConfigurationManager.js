@@ -138,6 +138,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    else
 			me.treeStore.getRootNode().setText("Configuration: " + oResponse.version);
 		    me.__cbResetConfigurationTree(oResponse.text);
+		    me.__clearValuePanel();
+		    me.treePanel.body.unmask();
 		    break;
 		case "getBulkExpandedNodeData":
 		    me.__cbGetBulkExpandedNodeData(oResponse);
@@ -145,8 +147,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		case "setOptionValue":
 		    var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
-		    console.log("RESPONSE :: setOptionValue");
-		    console.log(oNode);
 		    oNode.raw.csValue = oResponse.value;
 		    if (_app_ext_version == "ext-4.1.1a")
 			me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
@@ -165,6 +165,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    break;
 		case "deleteKey":
 		    me.__cbMenuDeleteNode(oResponse);
+		    me.__clearValuePanel();
 		    break;
 		case "createSection":
 		    me.__cbMenuCreateSubsection(oResponse);
@@ -198,14 +199,18 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	me.btnResetConfig = new Ext.Button({
 
-	    text : 'Reset',
+	    text : 'Reload',
 	    // margin : 1,
 	    iconCls : "cm-reset-icon",
 	    handler : function() {
-		me.socket.send(JSON.stringify({
-		    op : "resetConfiguration"
-		}));
-		me.btnResetConfig.hide();
+
+		if (confirm("If you reload you might loose the changes you've might made.\nDo you want to reload?")) {
+		    me.socket.send(JSON.stringify({
+			op : "resetConfiguration"
+		    }));
+		    me.btnResetConfig.hide();
+		    me.treePanel.body.mask("Loading ...");
+		}
 	    },
 	    scope : me
 
@@ -213,20 +218,21 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	me.btnBrowseManage = new Ext.Button({
 
-	    text : 'Manage Configuration',
+	    text : 'Manage',
 	    // margin : 1,
 	    iconCls : "cm-to-manage-icon",
 	    handler : function() {
 		if (me.editMode) {
-		    me.btnBrowseManage.setText("Manage Configuration");
+		    me.btnBrowseManage.setText("Manage");
 		    me.btnBrowseManage.setIconCls("cm-to-manage-icon");
 		    me.leafMenu.hide();
 		    me.sectionMenu.hide();
 		    me.valuePanel.hide();
 		} else {
-		    me.btnBrowseManage.setText("Browse Configuration");
+		    me.btnBrowseManage.setText("Browse");
 		    me.btnBrowseManage.setIconCls("cm-to-browse-icon");
 		    me.valuePanel.show();
+		    me.valuePanel.expand(false);
 		}
 		me.editMode = !me.editMode;
 	    },
@@ -298,17 +304,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		    if (me.editMode) {
 
-			if ((oNode.getId() != "root") && (!me.valuePanel.collapsed)) {
+			if (oNode.getId() != "root") {
 
-			    if (oNode.isLeaf()) {
-
-				me.__oprSetOptionValueForValuePanel(me, oNode);
-
-			    } else {
-
-				me.__oprSetCommentValueForValuePanel(me, oNode);
-
-			    }
+			    me.__oprSetValuesForValuePanel(me, oNode);
 
 			}
 		    }
@@ -334,25 +332,26 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    margin : 1,
 	    iconCls : "cm-reset-icon",
 	    handler : function() {
-		me.txtValuePanelTextArea.setValue(me.valuePanel.csValue);
+		if(me.valuePanel.csNode==null)
+		    return;
+		
+		me.txtOptionValuePanelTextArea.setValue(me.valuePanel.csValue);
+		me.txtCommentValuePanelTextArea.setValue(me.valuePanel.csComment);
 	    },
 	    scope : me
 
 	});
 
-	me.btnValuePanelCancel = new Ext.Button({
-
-	    text : 'Cancel',
-	    margin : 1,
-	    iconCls : "cm-kill-icon",
-	    handler : function() {
-		me.valuePanel.collapse(false);
-	    },
-	    scope : me
-
+	me.txtOptionValuePanelTextArea = new Ext.create('Ext.form.field.TextArea', {
+	    fieldLabel : "Value",
+	    labelAlign : "top",
+	    flex : 1
 	});
-
-	me.txtValuePanelTextArea = new Ext.create('Ext.form.field.TextArea', {});
+	me.txtCommentValuePanelTextArea = new Ext.create('Ext.form.field.TextArea', {
+	    fieldLabel : "Comment",
+	    labelAlign : "top",
+	    flex : 1
+	});
 
 	me.valuePanel = new Ext.create('Ext.panel.Panel', {
 	    title : 'Path',
@@ -363,19 +362,30 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    minWidth : 230,
 	    maxWidth : 350,
 	    bodyPadding : 5,
-	    layout : 'fit',
+	    layout : {
+		type : 'vbox',
+		align : 'stretch',
+		pack : 'start'
+	    },
 	    autoScroll : true,
 	    collapsed : true,
-	    items : [ me.txtValuePanelTextArea ],
-	    bbar : [ me.btnValuePanelSubmit, me.btnValuePanelReset, me.btnValuePanelCancel ],
-	    listeners:{
-		
-		render:function(oPanel,eOpts){
-		    
+	    
+	    csNode:null,
+	    csPath:"",
+	    csValue:"",
+	    csComment:"",
+	    
+	    items : [ me.txtOptionValuePanelTextArea, me.txtCommentValuePanelTextArea ],
+
+	    bbar : [ me.btnValuePanelSubmit, me.btnValuePanelReset ],
+	    listeners : {
+
+		render : function(oPanel, eOpts) {
+
 		    oPanel.hide();
-		    
+
 		}
-		
+
 	    }
 	});
 
@@ -383,27 +393,20 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	me.leafMenu = new Ext.menu.Menu({
 	    items : [ {
-		text : 'Change option value',
-		listeners : {
-		    click : me.__oprMenuSetOptionValue
-		}
-	    }, '-', {
-		text : 'Change comment',
-		listeners : {
-		    click : me.__oprMenuSetCommentValue
-		}
-	    }, '-', {
-		text : 'Copy option',
+		text : 'Copy',
+		width:150,
 		listeners : {
 		    click : me.__oprMenuCopyNode
 		}
 	    }, {
-		text : 'Rename option',
+		text : 'Rename',
+		width:150,
 		listeners : {
 		    click : me.__oprMenuRenameNode
 		}
 	    }, {
-		text : 'Delete option',
+		text : 'Delete',
+		width:150,
 		listeners : {
 		    click : me.__oprMenuDeleteNode
 		}
@@ -414,31 +417,31 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.sectionMenu = new Ext.menu.Menu({
 	    items : [ {
 		text : 'Create a subsection',
+		width:150,
 		listeners : {
 		    click : me.__oprMenuCreateSubsection
 		}
 	    }, {
 		text : 'Create an option',
+		width:150,
 		listeners : {
 		    click : me.__oprMenuCreateOption
 		}
 	    }, '-', {
-		text : 'Change comment',
-		listeners : {
-		    click : me.__oprMenuSetCommentValue
-		}
-	    }, '-', {
-		text : 'Copy section',
+		text : 'Copy',
+		width:150,
 		listeners : {
 		    click : me.__oprMenuCopyNode
 		}
 	    }, {
-		text : 'Rename section',
+		text : 'Rename',
+		width:150,
 		listeners : {
 		    click : me.__oprMenuRenameNode
 		}
 	    }, {
-		text : 'Delete section',
+		text : 'Delete',
+		width:150,
 		listeners : {
 		    click : me.__oprMenuDeleteNode
 		}
@@ -452,7 +455,18 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.editMode = false;
 
     },
-
+    __clearValuePanel:function(){
+	
+	var me = this;
+	me.txtCommentValuePanelTextArea.setValue("");
+	me.txtOptionValuePanelTextArea.setValue("");
+	me.valuePanel.csValue = "";
+	me.valuePanel.csComment = "";
+	me.valuePanel.csNode = null;
+	me.valuePanel.csPath = "";
+	me.valuePanel.setTitle("[No node selected]");
+	
+    },
     __oprPathAsExpanded : function(sPath, bInsertIntoStructure) {
 
 	var me = this;
@@ -739,85 +753,56 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	return cList;
     },
 
-    __oprMenuSetOptionValue : function(oItem, e, eOpts) {
-
-	var oNode = oItem.parentMenu.node;
-	var oModule = oItem.parentMenu.moduleObject;
-
-	oModule.__oprSetOptionValueForValuePanel(oModule, oNode);
-
-    },
-
-    __oprSetOptionValueForValuePanel : function(oModule, oNode) {
+    __oprSetValuesForValuePanel : function(oModule, oNode) {
 
 	oModule.valuePanel.csNode = oNode;
-	oModule.valuePanel.csValue = oModule.__stringToList(oNode.raw.csValue).join("\n");
+	oModule.valuePanel.csComment = oModule.__commentToList(oNode.raw.csComment).join("\n");
 	oModule.valuePanel.csPath = oModule.__getNodePath(oNode);
-	oModule.valuePanel.setTitle("Value for <br/>" + oModule.valuePanel.csPath);
-	oModule.txtValuePanelTextArea.setValue(oModule.valuePanel.csValue);
-	oModule.valuePanel.csAction = "setValue";
-	oModule.valuePanel.expand(false);
+	oModule.valuePanel.setTitle("Node <br/>" + oModule.valuePanel.csPath);
 
-    },
+	if (oNode.isLeaf()) {
 
-    __oprMenuSetCommentValue : function(oItem, e, eOpts) {
+	    oModule.valuePanel.csValue = oModule.__stringToList(oNode.raw.csValue).join("\n");
+	    oModule.txtOptionValuePanelTextArea.setValue(oModule.valuePanel.csValue);
+	    oModule.txtCommentValuePanelTextArea.setValue(oModule.valuePanel.csComment);
+	    oModule.txtOptionValuePanelTextArea.show();
 
-	var oNode = oItem.parentMenu.node;
-	var oModule = oItem.parentMenu.moduleObject;
+	} else {
 
-	oModule.__oprSetCommentValueForValuePanel(oModule, oNode);
+	    oModule.txtCommentValuePanelTextArea.setValue(oModule.valuePanel.csComment);
+	    oModule.txtOptionValuePanelTextArea.hide();
+	}
 
-    },
-
-    __oprSetCommentValueForValuePanel : function(oModule, oNode) {
-
-	oModule.valuePanel.csNode = oNode;
-	oModule.valuePanel.csValue = oModule.__commentToList(oNode.raw.csComment).join("\n");
-	oModule.valuePanel.csPath = oModule.__getNodePath(oNode);
-	oModule.valuePanel.setTitle("Comment for <br/>" + oModule.valuePanel.csPath);
-	oModule.txtValuePanelTextArea.setValue(oModule.valuePanel.csValue);
-	oModule.valuePanel.csAction = "setComment";
 	oModule.valuePanel.expand(false);
 
     },
 
     __oprActionValuePanel : function(oButton, eOpts) {
-
+	
 	var oValuePanel = oButton.scope.valuePanel;
 	var oModule = oButton.scope;
 	var oNode = oValuePanel.csNode;
-	var sValue = oModule.txtValuePanelTextArea.getValue();
+	
+	if(oNode==null)
+	    return;
 
-	switch (oValuePanel.csAction) {
-	case 'setValue':
-
-	    if (_app_ext_version == "ext-4.1.1a")
-		oModule.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
-	    else
-		oNode.setText(oNode.raw.csName + " = " + oNode.raw.csValue);
+	if (oNode.isLeaf()) {
 
 	    oModule.socket.send(JSON.stringify({
 		op : "setOptionValue",
 		path : oModule.__getNodePath(oNode),
-		value : oModule.__stringToList(sValue, "\n").join(","),
+		value : oModule.__stringToList(oModule.txtOptionValuePanelTextArea.getValue(), "\n").join(","),
 		parentNodeId : oNode.getId()
 
 	    }));
-
-	    break;
-	case 'setComment':
-
-	    oModule.socket.send(JSON.stringify({
-		op : "setComment",
-		path : oModule.__getNodePath(oNode),
-		value : sValue,
-		parentNodeId : oNode.getId()
-	    }));
-
-	    break;
 	}
 
-	oValuePanel.collapse(false);
+	oModule.socket.send(JSON.stringify({
+	    op : "setComment",
+	    path : oModule.__getNodePath(oNode),
+	    value : oModule.txtCommentValuePanelTextArea.getValue(),
+	    parentNodeId : oNode.getId()
+	}));
 
     },
 
