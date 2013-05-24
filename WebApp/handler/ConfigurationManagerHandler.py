@@ -16,6 +16,7 @@ import datetime
 import simplejson
 import json
 import ast
+import types
 
 try:
   from hashlib import md5
@@ -179,7 +180,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
   
   def __copyKey( self, params ):
     try:
-      originalPath = str( params[ 'path' ] ).strip()
+      originalPath = str( params[ 'copyFromPath' ] ).strip()
+      toCopyPath = str( params[ 'copyToPath' ] ).strip()
       newName = str( params[ 'newName' ] ).strip()
     except Exception, e:
       self.write_message(json.dumps({"success":0, "op":"copyKey","message":"Can't decode parameter: %s" % str( e )}))
@@ -193,12 +195,12 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return
       if self.__configData[ 'cfgData' ].copyKey( originalPath, newName ):
         pathList = List.fromChar( originalPath, "/" )
-        newPath = "/%s/%s" % ( "/".join( pathList[:-1] ), newName )
-        if self.__configData[ 'cfgData' ].existsSection( newPath ):
-          self.write_message(json.dumps({"success":1, "op":"copyKey", "parentNodeId":params["parentNodeId"],"newName":newName,"comment":self.__configData[ 'cfgData' ].getComment( newPath )}))
+#         newPath = "/%s/%s" % ( "/".join( pathList[:-1] ), newName )
+        if self.__configData[ 'cfgData' ].existsSection( toCopyPath ):
+          self.write_message(json.dumps({"success":1, "op":"copyKey", "parentNodeToId":params["parentNodeToId"], "parentNodeFromId":params["parentNodeFromId"],"newName":newName,"comment":self.__configData[ 'cfgData' ].getComment( newPath )}))
           return 
         else:
-          self.write_message(json.dumps({"success":1, "op":"copyKey", "parentNodeId":params["parentNodeId"],"value":self.__configData[ 'cfgData' ].getValue( newPath ),"newName":newName,"comment":self.__configData[ 'cfgData' ].getComment( newPath )}))
+          self.write_message(json.dumps({"success":1, "op":"copyKey", "parentNodeToId":params["parentNodeToId"], "parentNodeFromId":params["parentNodeFromId"],"value":self.__configData[ 'cfgData' ].getValue( newPath ),"newName":newName,"comment":self.__configData[ 'cfgData' ].getComment( newPath )}))
           return 
       else:
         self.write_message(json.dumps({"success":0, "op":"copyKey","message":"Path can't be created. Exists already?"}))
@@ -321,11 +323,11 @@ class ConfigurationManagerHandler(WebSocketHandler):
     
   def __moveNode( self, params ):
     try:
-      nodePath = request.params[ 'nodePath' ]
-      destinationParentPath = request.params[ 'parentPath' ]
-      beforeOfIndex = int( request.params[ 'beforeOfIndex' ] )
+      nodePath = params[ 'nodePath' ]
+      destinationParentPath = params[ 'newParentPath' ]
+      beforeOfIndex = int( params[ 'beforeOfIndex' ] )
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Can't decode parameter: %s" % str( e )}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Can't decode parameter: %s" % str( e ), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
       return
 
     gLogger.info( "Moving %s under %s before pos %s" % ( nodePath, destinationParentPath, beforeOfIndex ) )
@@ -333,20 +335,20 @@ class ConfigurationManagerHandler(WebSocketHandler):
     
     nodeDict = cfgData.getRecursive( nodePath )
     if not nodeDict:
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Moving entity does not exist"}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Moving entity does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
       return
     oldParentDict = cfgData.getRecursive( nodePath, -1 )
     newParentDict = cfgData.getRecursive( destinationParentPath )
     if type( newParentDict ) == types.StringType:
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Destination is not a section"}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Destination is not a section", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
       return
     if not newParentDict:
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Destination does not exist"}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Destination does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
       return
     #Calculate the old parent path
     oldParentPath = "/%s" % "/".join( List.fromChar( nodePath, "/" )[:-1] )
     if not oldParentPath == destinationParentPath and newParentDict['value'].existsKey( nodeDict['key'] ):
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Another entry with the same name already exists"}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Another entry with the same name already exists", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
       return
 
     try:
@@ -363,11 +365,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
           addArgs[ key ] = nodeDict[ key ]
       newParentDict[ 'value' ].addKey( **addArgs )
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Can't move node: %s" % str( e )}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Can't move node: %s" % str( e ), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
       return
-    self.write_message(json.dumps({"success":1, "op":"moveNode", "parentNodeId":params["parentNodeId"]}))
-
-  
-      
-      
+    self.write_message(json.dumps({"success":1, "op":"moveNode"}))
     

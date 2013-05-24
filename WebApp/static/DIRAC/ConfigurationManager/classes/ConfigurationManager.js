@@ -108,16 +108,33 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	};
 
 	me.socket.onmessage = function(e) {
-
+	    
 	    var oResponse = JSON.parse(e.data);
+	    
+	    console.log("----RESPONSE");
+	    console.log(oResponse);
 
 	    if (parseInt(oResponse.success) == 0) {
 
 		alert(oResponse.message);
-
+		
+		switch(oResponse.op){
+		
+		case "moveNode":
+		    		/*
+		    		 * If the node move is not valid, we undo the movement
+		    		 * TO-DO: be aware of the index within the children of the old parent
+		    		 */
+		    		me.flagMoveWhenError = true;
+		    		var oNode = me.treeStore.getNodeById(oResponse.nodeId);
+		    		var oOldParentNode = me.treeStore.getNodeById(oResponse.parentOldId);
+		    		oOldParentNode.appendChild(oNode);
+		    		me.flagMoveWhenError = false;
+		    		break;	
+		}
+		
 	    } else {
-		console.log("RESPONSE");
-		console.log(oResponse);
+
 		switch (oResponse.op) {
 
 		case "init":
@@ -139,6 +156,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			me.treeStore.getRootNode().setText("Configuration: " + oResponse.version);
 		    me.__cbResetConfigurationTree(oResponse.text);
 		    me.__clearValuePanel();
+		    me.copyNode = null;
+		    me.btnPasteButton.setDisabled(true);
 		    me.treePanel.body.unmask();
 		    break;
 		case "getBulkExpandedNodeData":
@@ -268,6 +287,12 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.treePanel = new Ext.create('Ext.tree.Panel', {
 	    region : 'center',
 	    store : me.treeStore,
+	    viewConfig : {
+		plugins : {
+		    ptype : 'treeviewdragdrop',
+		    containerScroll : true
+		}
+	    },
 	    tbar : [ me.btnViewConfigAsText, me.btnResetConfig, '->', me.btnBrowseManage ],
 	    listeners : {
 
@@ -311,6 +336,21 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			}
 		    }
 
+		},
+		itemmove:function( oNode, oOldParent, oNewParent, iIndex, eOpts ){
+		    
+		    if(!me.flagMoveWhenError)
+			me.__oprMoveNode(oNode, oOldParent, oNewParent, iIndex);
+		    
+		},
+		
+		beforeitemmove:function( oNode, oOldParent, oNewParent, iIndex, eOpts ){
+		    
+		    if (me.editMode)
+			return true;
+		    else
+			return false;
+		    
 		}
 
 	    }
@@ -332,9 +372,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    margin : 1,
 	    iconCls : "cm-reset-icon",
 	    handler : function() {
-		if(me.valuePanel.csNode==null)
+		if (me.valuePanel.csNode == null)
 		    return;
-		
+
 		me.txtOptionValuePanelTextArea.setValue(me.valuePanel.csValue);
 		me.txtCommentValuePanelTextArea.setValue(me.valuePanel.csComment);
 	    },
@@ -369,12 +409,12 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    },
 	    autoScroll : true,
 	    collapsed : true,
-	    
-	    csNode:null,
-	    csPath:"",
-	    csValue:"",
-	    csComment:"",
-	    
+
+	    csNode : null,
+	    csPath : "",
+	    csValue : "",
+	    csComment : "",
+
 	    items : [ me.txtOptionValuePanelTextArea, me.txtCommentValuePanelTextArea ],
 
 	    bbar : [ me.btnValuePanelSubmit, me.btnValuePanelReset ],
@@ -392,21 +432,19 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.add([ me.treePanel, me.valuePanel ]);
 
 	me.leafMenu = new Ext.menu.Menu({
+	    width : 150,
 	    items : [ {
 		text : 'Copy',
-		width:150,
 		listeners : {
 		    click : me.__oprMenuCopyNode
 		}
 	    }, {
 		text : 'Rename',
-		width:150,
 		listeners : {
 		    click : me.__oprMenuRenameNode
 		}
 	    }, {
 		text : 'Delete',
-		width:150,
 		listeners : {
 		    click : me.__oprMenuDeleteNode
 		}
@@ -414,34 +452,40 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    moduleObject : me
 	});
 
+	me.btnPasteButton = new Ext.menu.Item({
+
+	    text : 'Paste',
+	    disabled : false,
+	    listeners : {
+		click : me.__oprMenuCopyNode
+	    }
+
+	});
+
 	me.sectionMenu = new Ext.menu.Menu({
+	    width : 150,
 	    items : [ {
 		text : 'Create a subsection',
-		width:150,
 		listeners : {
 		    click : me.__oprMenuCreateSubsection
 		}
 	    }, {
 		text : 'Create an option',
-		width:150,
 		listeners : {
 		    click : me.__oprMenuCreateOption
 		}
 	    }, '-', {
 		text : 'Copy',
-		width:150,
 		listeners : {
 		    click : me.__oprMenuCopyNode
 		}
-	    }, {
+	    }, me.btnPasteButton, {
 		text : 'Rename',
-		width:150,
 		listeners : {
 		    click : me.__oprMenuRenameNode
 		}
 	    }, {
 		text : 'Delete',
-		width:150,
 		listeners : {
 		    click : me.__oprMenuDeleteNode
 		}
@@ -452,11 +496,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.expansionState = {};
 	me.counterNodes = 0;
 	me.flagReset = false;
+	me.flagMoveWhenError = false;
 	me.editMode = false;
+	me.copyNode = null;
 
     },
-    __clearValuePanel:function(){
-	
+    __clearValuePanel : function() {
+
 	var me = this;
 	me.txtCommentValuePanelTextArea.setValue("");
 	me.txtOptionValuePanelTextArea.setValue("");
@@ -465,7 +511,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.valuePanel.csNode = null;
 	me.valuePanel.csPath = "";
 	me.valuePanel.setTitle("[No node selected]");
-	
+
     },
     __oprPathAsExpanded : function(sPath, bInsertIntoStructure) {
 
@@ -778,12 +824,12 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
     },
 
     __oprActionValuePanel : function(oButton, eOpts) {
-	
+
 	var oValuePanel = oButton.scope.valuePanel;
 	var oModule = oButton.scope;
 	var oNode = oValuePanel.csNode;
-	
-	if(oNode==null)
+
+	if (oNode == null)
 	    return;
 
 	if (oNode.isLeaf()) {
@@ -808,18 +854,32 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
     __oprMenuCopyNode : function(oItem, e, eOpts) {
 
-	var oNode = oItem.parentMenu.node;
 	var oModule = oItem.parentMenu.moduleObject;
-	var sNewName = window.prompt("What's the name for the copy?", oNode.raw.csName + " copy");
-	if (sNewName == null)
-	    return;
+	var oNode = oItem.parentMenu.node;
 
-	oModule.socket.send(JSON.stringify({
-	    op : "copyKey",
-	    path : oModule.__getNodePath(oNode),
-	    newName : sNewName,
-	    parentNodeId : oNode.getId()
-	}));
+	if (oModule.copyNode == null) {
+
+	    // when press COPY
+	    oModule.copyNode = oNode;
+	    oModule.btnPasteButton.setDisabled(false);
+
+	} else {
+
+	    // when press PASTE
+	    var sNewName = window.prompt("What's the name for the copy?", oNode.raw.csName + " copy");
+	    if (sNewName == null)
+		return;
+
+	    oModule.socket.send(JSON.stringify({
+		op : "copyKey",
+		newName : sNewName,
+		copyFromPath : oModule.__getNodePath(oModule.copyNode),
+		copyToPath : oModule.__getNodePath(oNode),
+		parentNodeFromId : oModule.copyNode.getId(),
+		parentNodeToId : oNode.getId()
+	    }));
+
+	}
 
     },
 
@@ -828,7 +888,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	var me = this;
 
 	var newName = oResponse.newName;
-	var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
+	var oNode = me.treeStore.getNodeById(oResponse.parentNodeFromId);
+	var oDestinationNode = me.treeStore.getNodeById(oResponse.parentNodeToId);
 	var newCfg = {
 	    text : oNode.data.text,
 	    csName : newName,
@@ -842,7 +903,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    newCfg.text = newName + " = " + oNode.raw.csValue;
 	    newCfg.id = me.__generateNewNodeId();
 	    var oNewNode = oNode.createNode(newCfg);
-	    oNode.parentNode.appendChild(oNewNode);
+	    oDestinationNode.appendChild(oNewNode);
 	} else {
 
 	    newCfg.text = newName;
@@ -850,7 +911,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    newCfg.id = me.__generateNewNodeId();
 	    var oNewNode = oNode.createNode(newCfg);
 	    oNewNode.appendChild({});
-	    oNode.parentNode.appendChild(oNewNode);
+	    oDestinationNode.appendChild(oNewNode);
 	}
 
     },
@@ -1006,6 +1067,25 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	oNode.expand();
 
+    },
+    
+    __oprMoveNode:function(oNode, oOldParent, oNewParent, iIndex){
+	
+	var me = this;
+	
+	me.socket.send(JSON.stringify({
+	    op : "moveNode",
+	    
+	    nodePath : me.__getNodePath(oNode),
+	    newParentPath: me.__getNodePath(oNewParent),
+	    beforeOfIndex: iIndex,
+	    
+	    nodeId : oNode.getId(),
+	    parentOldId : oOldParent.getId(),
+	    parentNewId : oNewParent.getId()
+	}));
+	
+	
     }
 
 });
