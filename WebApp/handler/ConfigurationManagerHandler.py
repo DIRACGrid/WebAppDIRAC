@@ -178,7 +178,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     gLogger.info( "Set comment", "%s = %s" % ( path, value ) )
     self.write_message(json.dumps({"success":1, "op":"setComment", "parentNodeId":params["parentNodeId"],"comment":self.__configData[ 'cfgData' ].getComment( path )}))    
   
-  def __copyKey( self, params ):
+  def __copyKeyOld( self, params ):
     try:
       originalPath = str( params[ 'copyFromPath' ] ).strip()
       toCopyPath = str( params[ 'copyToPath' ] ).strip()
@@ -327,7 +327,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       destinationParentPath = params[ 'newParentPath' ]
       beforeOfIndex = int( params[ 'beforeOfIndex' ] )
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Can't decode parameter: %s" % str( e ), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Can't decode parameter: %s" % str( e ), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"],"oldIndex":params["oldIndex"]}))
       return
 
     gLogger.info( "Moving %s under %s before pos %s" % ( nodePath, destinationParentPath, beforeOfIndex ) )
@@ -335,20 +335,20 @@ class ConfigurationManagerHandler(WebSocketHandler):
     
     nodeDict = cfgData.getRecursive( nodePath )
     if not nodeDict:
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Moving entity does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Moving entity does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"],"oldIndex":params["oldIndex"]}))
       return
     oldParentDict = cfgData.getRecursive( nodePath, -1 )
     newParentDict = cfgData.getRecursive( destinationParentPath )
     if type( newParentDict ) == types.StringType:
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Destination is not a section", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Destination is not a section", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"],"oldIndex":params["oldIndex"]}))
       return
     if not newParentDict:
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Destination does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Destination does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"],"oldIndex":params["oldIndex"]}))
       return
     #Calculate the old parent path
     oldParentPath = "/%s" % "/".join( List.fromChar( nodePath, "/" )[:-1] )
     if not oldParentPath == destinationParentPath and newParentDict['value'].existsKey( nodeDict['key'] ):
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Another entry with the same name already exists", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Another entry with the same name already exists", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"],"oldIndex":params["oldIndex"]}))
       return
 
     try:
@@ -365,7 +365,50 @@ class ConfigurationManagerHandler(WebSocketHandler):
           addArgs[ key ] = nodeDict[ key ]
       newParentDict[ 'value' ].addKey( **addArgs )
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Can't move node: %s" % str( e ), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"]}))
+      self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Can't move node: %s" % str( e ), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"],"oldIndex":params["oldIndex"]}))
       return
     self.write_message(json.dumps({"success":1, "op":"moveNode"}))
+    
+  def __copyKey( self, params ):
+    try:
+      nodePath = params[ 'copyFromPath' ]
+      destinationParentPath = params[ 'copyToPath' ]
+      newNodeName = params[ 'newName' ]
+    except Exception, e:
+      self.write_message(json.dumps({"success":0, "op":"copyKey","message":"Can't decode parameter: %s" % str( e )}))
+      return
+
+#     gLogger.info( "Moving %s under %s before pos %s" % ( nodePath, destinationParentPath, beforeOfIndex ) )
+    cfgData = self.__configData[ 'cfgData' ].getCFG()
+    
+    nodeDict = cfgData.getRecursive( nodePath )
+    if not nodeDict:
+      self.write_message(json.dumps({"success":0, "op":"copyKey","message":"Moving entity does not exist"}))
+      return
+    oldParentDict = cfgData.getRecursive( nodePath, -1 )
+    newParentDict = cfgData.getRecursive( destinationParentPath )
+    if type( newParentDict ) == types.StringType:
+      self.write_message(json.dumps({"success":0, "op":"copyKey","message":"Destination is not a section"}))
+      return
+    if not newParentDict:
+      self.write_message(json.dumps({"success":0, "op":"copyKey","message":"Destination does not exist"}))
+      return
+    #Calculate the old parent path
+    oldParentPath = "/%s" % "/".join( List.fromChar( nodePath, "/" )[:-1] )
+    if not oldParentPath == destinationParentPath and newParentDict['value'].existsKey( newNodeName ):
+      self.write_message(json.dumps({"success":0, "op":"copyKey","message":"Another entry with the same name already exists"}))
+      return
+
+    try:
+      brothers = newParentDict[ 'value' ].listAll()
+      nodeDict["key"] = newNodeName
+      addArgs = {}
+      for key in ( 'comment', 'beforeKey', 'value', 'key' ):
+        if key in nodeDict:
+          addArgs[ key ] = nodeDict[ key ]
+      newParentDict[ 'value' ].addKey( **addArgs )
+    except Exception, e:
+      self.write_message(json.dumps({"success":0, "op":"copyKey","message":"Can't move node: %s" % str( e )}))
+      return
+    self.write_message(json.dumps({"success":1, "op":"copyKey", "newName":nodeDict['key'], "nodeId":params["nodeId"], "parentNodeToId":params["parentNodeToId"]}))
     

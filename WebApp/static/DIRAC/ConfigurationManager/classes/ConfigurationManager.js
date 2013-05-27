@@ -108,31 +108,27 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	};
 
 	me.socket.onmessage = function(e) {
-	    
+
 	    var oResponse = JSON.parse(e.data);
-	    
+
 	    console.log("----RESPONSE");
 	    console.log(oResponse);
 
 	    if (parseInt(oResponse.success) == 0) {
 
 		alert(oResponse.message);
-		
-		switch(oResponse.op){
-		
+
+		switch (oResponse.op) {
+
 		case "moveNode":
-		    		/*
-		    		 * If the node move is not valid, we undo the movement
-		    		 * TO-DO: be aware of the index within the children of the old parent
-		    		 */
-		    		me.flagMoveWhenError = true;
-		    		var oNode = me.treeStore.getNodeById(oResponse.nodeId);
-		    		var oOldParentNode = me.treeStore.getNodeById(oResponse.parentOldId);
-		    		oOldParentNode.appendChild(oNode);
-		    		me.flagMoveWhenError = false;
-		    		break;	
+		    me.flagMoveWhenError = true;
+		    var oNode = me.treeStore.getNodeById(oResponse.nodeId);
+		    var oOldParentNode = me.treeStore.getNodeById(oResponse.parentOldId);
+		    oOldParentNode.insertChild(oResponse.oldIndex, oNode);
+		    me.flagMoveWhenError = false;
+		    break;
 		}
-		
+
 	    } else {
 
 		switch (oResponse.op) {
@@ -309,6 +305,15 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			    me.sectionMenu.showAt(e.xy);
 			}
 
+			if (me.editMode) {
+
+			    if (oNode.getId() != "root") {
+
+				me.__oprSetValuesForValuePanel(me, oNode);
+
+			    }
+			}
+
 			return false;
 		    } else {
 
@@ -337,22 +342,16 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    }
 
 		},
-		itemmove:function( oNode, oOldParent, oNewParent, iIndex, eOpts ){
-		    
-		    if(!me.flagMoveWhenError)
-			me.__oprMoveNode(oNode, oOldParent, oNewParent, iIndex);
-		    
-		},
-		
-		beforeitemmove:function( oNode, oOldParent, oNewParent, iIndex, eOpts ){
-		    
-		    if (me.editMode)
-			return true;
-		    else
-			return false;
-		    
-		}
+		beforeitemmove : function(oNode, oOldParent, oNewParent, iIndex, eOpts) {
 
+		    if (!me.flagMoveWhenError) {
+			me.__oprMoveNode(oNode, oOldParent, oNewParent, iIndex);
+			return true;
+		    } else {
+			return false;
+		    }
+
+		}
 	    }
 	});
 
@@ -457,7 +456,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    text : 'Paste',
 	    disabled : false,
 	    listeners : {
-		click : me.__oprMenuCopyNode
+		click : me.__oprMenuPasteNode
 	    }
 
 	});
@@ -857,29 +856,68 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	var oModule = oItem.parentMenu.moduleObject;
 	var oNode = oItem.parentMenu.node;
 
-	if (oModule.copyNode == null) {
+	// when press COPY
+	oModule.copyNode = oNode;
+	oModule.btnPasteButton.setDisabled(false);
 
-	    // when press COPY
-	    oModule.copyNode = oNode;
-	    oModule.btnPasteButton.setDisabled(false);
+    },
 
-	} else {
+    __oprMenuPasteNode : function(oItem, e, eOpts) {
 
-	    // when press PASTE
-	    var sNewName = window.prompt("What's the name for the copy?", oNode.raw.csName + " copy");
-	    if (sNewName == null)
-		return;
+	var oModule = oItem.parentMenu.moduleObject;
+	var oNode = oItem.parentMenu.node;
 
+	if (oModule.copyNode != null) {
+	    // when press PASTE, if only the name repeats itself
+	    // First we have to check if there is a node with that name
+
+	    var sNewName = oModule.copyNode.raw.csName;
+
+	    var bNameExists = oModule.__nameExists(oNode, sNewName);
+
+	    while (bNameExists) {
+		console.log("OVDE");
+		sNewName = sNewName + "(copy)";
+		sNewName = window.prompt("The name already exists. What's the name for the copy?", sNewName);
+
+		if (sNewName == null)
+		    return;
+
+		bNameExists = oModule.__nameExists(oNode, sNewName);
+	    }
+	    console.log(sNewName);
 	    oModule.socket.send(JSON.stringify({
 		op : "copyKey",
 		newName : sNewName,
 		copyFromPath : oModule.__getNodePath(oModule.copyNode),
 		copyToPath : oModule.__getNodePath(oNode),
-		parentNodeFromId : oModule.copyNode.getId(),
+		nodeId : oModule.copyNode.getId(),
 		parentNodeToId : oNode.getId()
 	    }));
 
 	}
+
+    },
+
+    __nameExists : function(oNode, sName) {
+	console.log("TDMM");
+	var oChildNodes = oNode.childNodes;
+
+	var bNameExists = false;
+	console.log("TDMM2");
+	for ( var i = 0; i < oChildNodes.length; i++) {
+	    console.log("TDMM3");
+	    console.log(oChildNodes[i]);
+	    if (oChildNodes[i].raw.csName == sName) {
+		console.log("TDMM4");
+		bNameExists = true;
+		break;
+
+	    }
+
+	}
+
+	return bNameExists;
 
     },
 
@@ -888,8 +926,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	var me = this;
 
 	var newName = oResponse.newName;
-	var oNode = me.treeStore.getNodeById(oResponse.parentNodeFromId);
+	var oNode = me.treeStore.getNodeById(oResponse.nodeId);
 	var oDestinationNode = me.treeStore.getNodeById(oResponse.parentNodeToId);
+
 	var newCfg = {
 	    text : oNode.data.text,
 	    csName : newName,
@@ -900,6 +939,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    newCfg.leaf = true;
 	    newCfg.csValue = oNode.raw.csValue;
+	    newCfg.csName = newName;
 	    newCfg.text = newName + " = " + oNode.raw.csValue;
 	    newCfg.id = me.__generateNewNodeId();
 	    var oNewNode = oNode.createNode(newCfg);
@@ -907,6 +947,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	} else {
 
 	    newCfg.text = newName;
+	    newCfg.csName = newName;
 	    newCfg.leaf = false;
 	    newCfg.id = me.__generateNewNodeId();
 	    var oNewNode = oNode.createNode(newCfg);
@@ -1068,24 +1109,24 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	oNode.expand();
 
     },
-    
-    __oprMoveNode:function(oNode, oOldParent, oNewParent, iIndex){
-	
+
+    __oprMoveNode : function(oNode, oOldParent, oNewParent, iIndex) {
+
 	var me = this;
-	
+
 	me.socket.send(JSON.stringify({
 	    op : "moveNode",
-	    
+
 	    nodePath : me.__getNodePath(oNode),
-	    newParentPath: me.__getNodePath(oNewParent),
-	    beforeOfIndex: iIndex,
-	    
+	    newParentPath : me.__getNodePath(oNewParent),
+	    beforeOfIndex : iIndex,
+
+	    oldIndex : oOldParent.indexOf(oNode),
 	    nodeId : oNode.getId(),
 	    parentOldId : oOldParent.getId(),
 	    parentNewId : oNewParent.getId()
 	}));
-	
-	
+
     }
 
 });
