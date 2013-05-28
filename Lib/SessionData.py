@@ -86,7 +86,9 @@ class SessionData( object ):
     user = result[ 'Value' ]
     if user not in users:
       return {}
-    return { 'DN' : DN, 'group' : group, 'username' : user }
+    return { 'DN' : DN, 'group' : group,
+             'username' : user, 'properties' : Registry.getPropertiesForGroup( group ) }
+
 
 
   def __getGroupMenu( self, credDict, group ):
