@@ -38,6 +38,10 @@
           var _app_ext_version = "{{ext_version}}";
           var _dev = 1;
           var _load_by_url = "{{url_state}}";
+          {% import simplejson %}
+          var _user_credentials = {{ simplejson.dumps( credentials ) }}; 
+
+          
 
           Ext.onReady(function () {
             _app_base_url = "{{base_url}}/";

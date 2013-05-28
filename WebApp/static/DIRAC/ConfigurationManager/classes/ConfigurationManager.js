@@ -9,7 +9,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
     extend : 'Ext.dirac.core.Module',
     requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date",
 	    "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record",
-	    "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea' ],
+	    "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array' ],
 
     loadState : function(oData) {
 
@@ -111,7 +111,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    var oResponse = JSON.parse(e.data);
 
-	    console.log("----RESPONSE");
+	    console.log("----RESPONSE----");
 	    console.log(oResponse);
 
 	    if (parseInt(oResponse.success) == 0) {
@@ -126,6 +126,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    var oOldParentNode = me.treeStore.getNodeById(oResponse.parentOldId);
 		    oOldParentNode.insertChild(oResponse.oldIndex, oNode);
 		    me.flagMoveWhenError = false;
+		    break;
+		case "commitConfiguration":
+		    me.btnCommitConfiguration.show();
 		    break;
 		}
 
@@ -188,6 +191,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		case "createOption":
 		    me.__cbMenuCreateOption(oResponse);
 		    break;
+		case "commitConfiguration":
+		    alert("The changes in the configuration have been successfuly commited !");
+		    me.btnCommitConfiguration.show();
+		    break;
 
 		}
 	    }
@@ -215,7 +222,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.btnResetConfig = new Ext.Button({
 
 	    text : 'Reload',
-	    // margin : 1,
+	    
 	    iconCls : "cm-reset-icon",
 	    handler : function() {
 
@@ -226,30 +233,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    me.btnResetConfig.hide();
 		    me.treePanel.body.mask("Loading ...");
 		}
-	    },
-	    scope : me
-
-	});
-
-	me.btnBrowseManage = new Ext.Button({
-
-	    text : 'Manage',
-	    // margin : 1,
-	    iconCls : "cm-to-manage-icon",
-	    handler : function() {
-		if (me.editMode) {
-		    me.btnBrowseManage.setText("Manage");
-		    me.btnBrowseManage.setIconCls("cm-to-manage-icon");
-		    me.leafMenu.hide();
-		    me.sectionMenu.hide();
-		    me.valuePanel.hide();
-		} else {
-		    me.btnBrowseManage.setText("Browse");
-		    me.btnBrowseManage.setIconCls("cm-to-browse-icon");
-		    me.valuePanel.show();
-		    me.valuePanel.expand(false);
-		}
-		me.editMode = !me.editMode;
 	    },
 	    scope : me
 
@@ -280,6 +263,56 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    }
 	});
 
+	var bBarElems = [ me.btnViewConfigAsText, me.btnResetConfig ];
+	
+	if (("properties" in _user_credentials) && (Ext.Array.indexOf(_user_credentials.properties, "CSAdministrator") != -1)) {
+	    
+	    me.btnBrowseManage = new Ext.Button({
+
+		text : 'Manage',
+
+		iconCls : "cm-to-manage-icon",
+		handler : function() {
+		    if (me.editMode) {
+			me.btnBrowseManage.setText("Manage");
+			me.btnBrowseManage.setIconCls("cm-to-manage-icon");
+			me.leafMenu.hide();
+			me.sectionMenu.hide();
+			me.valuePanel.hide();
+		    } else {
+			me.btnBrowseManage.setText("Browse");
+			me.btnBrowseManage.setIconCls("cm-to-browse-icon");
+			me.valuePanel.show();
+			me.valuePanel.expand(false);
+		    }
+		    me.editMode = !me.editMode;
+		},
+		scope : me
+
+	    });
+	    
+	    me.btnCommitConfiguration = new Ext.Button({
+
+		text : 'Commit',
+
+		iconCls : "cm-to-manage-icon",
+		handler : function() {
+		    me.socket.send(JSON.stringify({
+			op : "commitConfiguration"
+		    }));
+		    me.btnCommitConfiguration.hide();
+		},
+		scope : me
+
+	    }); 
+	    
+	    bBarElems.push(me.btnCommitConfiguration);
+	    bBarElems.push("->");
+	    bBarElems.push(me.btnBrowseManage);
+
+	}
+	
+
 	me.treePanel = new Ext.create('Ext.tree.Panel', {
 	    region : 'center',
 	    store : me.treeStore,
@@ -289,7 +322,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    containerScroll : true
 		}
 	    },
-	    tbar : [ me.btnViewConfigAsText, me.btnResetConfig, '->', me.btnBrowseManage ],
+	    tbar : bBarElems,
 	    listeners : {
 
 		beforeitemcontextmenu : function(oView, oNode, item, index, e, eOpts) {
@@ -876,7 +909,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    var bNameExists = oModule.__nameExists(oNode, sNewName);
 
 	    while (bNameExists) {
-		console.log("OVDE");
+
 		sNewName = sNewName + "(copy)";
 		sNewName = window.prompt("The name already exists. What's the name for the copy?", sNewName);
 
@@ -885,7 +918,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		bNameExists = oModule.__nameExists(oNode, sNewName);
 	    }
-	    console.log(sNewName);
+
 	    oModule.socket.send(JSON.stringify({
 		op : "copyKey",
 		newName : sNewName,
@@ -900,16 +933,15 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
     },
 
     __nameExists : function(oNode, sName) {
-	console.log("TDMM");
+
 	var oChildNodes = oNode.childNodes;
 
 	var bNameExists = false;
-	console.log("TDMM2");
+
 	for ( var i = 0; i < oChildNodes.length; i++) {
-	    console.log("TDMM3");
-	    console.log(oChildNodes[i]);
+
 	    if (oChildNodes[i].raw.csName == sName) {
-		console.log("TDMM4");
+
 		bNameExists = true;
 		break;
 

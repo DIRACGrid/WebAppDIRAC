@@ -7,6 +7,7 @@ from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
+# from dirac.lib.credentials import authorizeAction
 
 from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
@@ -64,6 +65,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.__createOption(params)
     elif params["op"] == "moveNode":
       self.__moveNode(params)
+    elif params["op"] == "commitConfiguration":
+      self.__commitConfiguration()
   
   def __getRemoteConfiguration( self, funcName ):
     rpcClient = RPCClient( gConfig.getValue( "/DIRAC/Configuration/MasterServer", "Configuration/Server" ) )
@@ -411,4 +414,15 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.write_message(json.dumps({"success":0, "op":"copyKey","message":"Can't move node: %s" % str( e )}))
       return
     self.write_message(json.dumps({"success":1, "op":"copyKey", "newName":nodeDict['key'], "nodeId":params["nodeId"], "parentNodeToId":params["parentNodeToId"]}))
+    
+  def __commitConfiguration( self ):
+    if not authorizeAction():
+      self.write_message(json.dumps({"success":0, "op":"commitConfiguration","message":"You are not authorized to commit configurations!! Bad boy!"}))
+      return
+    gLogger.always( "User %s is commiting a new configuration version" % credentials.getUserDN() )
+    retDict = self.__configData[ 'cfgData' ].commit()
+    if not retDict[ 'OK' ]:
+      self.write_message(json.dumps({"success":0, "op":"commitConfiguration","message":retDict[ 'Message' ]}))
+      return
+    self.write_message(json.dumps({"success":1, "op":"copyKey"}))
     

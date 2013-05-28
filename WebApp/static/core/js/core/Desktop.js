@@ -1405,7 +1405,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    sNewUrlState = oHref + sNewUrlState;
 
 	}
-
+	console.log(sNewUrlState);
 	window.history.pushState("X", "ExtTop - Desktop Sample App", sNewUrlState);
 
     },
