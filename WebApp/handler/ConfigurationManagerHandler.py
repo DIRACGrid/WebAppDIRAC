@@ -7,7 +7,7 @@ from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
-# from dirac.lib.credentials import authorizeAction
+from WebAppDIRAC.Lib.SessionData import SessionData
 
 from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
@@ -370,7 +370,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     except Exception, e:
       self.write_message(json.dumps({"success":0, "op":"moveNode","message":"Can't move node: %s" % str( e ), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"],"oldIndex":params["oldIndex"]}))
       return
-    self.write_message(json.dumps({"success":1, "op":"moveNode"}))
+    self.write_message(json.dumps({"success":1, "op":"moveNode","nodeId":params["nodeId"], "parentOldId":params["parentOldId"],"parentNewId":params["parentNewId"],"beforeOfIndex":params["beforeOfIndex"]}))
     
   def __copyKey( self, params ):
     try:
@@ -414,15 +414,20 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.write_message(json.dumps({"success":0, "op":"copyKey","message":"Can't move node: %s" % str( e )}))
       return
     self.write_message(json.dumps({"success":1, "op":"copyKey", "newName":nodeDict['key'], "nodeId":params["nodeId"], "parentNodeToId":params["parentNodeToId"]}))
-    
+  
   def __commitConfiguration( self ):
-    if not authorizeAction():
+    data = SessionData().getData()
+    isAuth = False
+    if "properties" in data["user"]:
+      if "CSAdministrator" in data["user"]["properties"]:
+        isAuth = True
+    if not isAuth:
       self.write_message(json.dumps({"success":0, "op":"commitConfiguration","message":"You are not authorized to commit configurations!! Bad boy!"}))
       return
-    gLogger.always( "User %s is commiting a new configuration version" % credentials.getUserDN() )
+    gLogger.always( "User %s is commiting a new configuration version" % data["user"]["DN"] )
     retDict = self.__configData[ 'cfgData' ].commit()
     if not retDict[ 'OK' ]:
       self.write_message(json.dumps({"success":0, "op":"commitConfiguration","message":retDict[ 'Message' ]}))
       return
-    self.write_message(json.dumps({"success":1, "op":"copyKey"}))
+    self.write_message(json.dumps({"success":1, "op":"commitConfiguration"}))
     

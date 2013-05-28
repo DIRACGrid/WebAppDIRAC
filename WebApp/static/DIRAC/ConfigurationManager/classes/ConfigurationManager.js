@@ -82,7 +82,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	} else {
 	    sWsuri = "ws:";
 	}
-	sWsuri += "//" + sLoc.host + '/DIRAC/ConfigurationManager';
+	sWsuri += "//" + sLoc.host + _app_base_url +'ConfigurationManager';
 
 	me.socket = new WebSocket(sWsuri);
 
@@ -111,8 +111,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    var oResponse = JSON.parse(e.data);
 
-	    console.log("----RESPONSE----");
-	    console.log(oResponse);
+	    //console.log("----RESPONSE----");
+	    //console.log(oResponse);
 
 	    if (parseInt(oResponse.success) == 0) {
 
@@ -121,11 +121,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		switch (oResponse.op) {
 
 		case "moveNode":
-		    me.flagMoveWhenError = true;
-		    var oNode = me.treeStore.getNodeById(oResponse.nodeId);
-		    var oOldParentNode = me.treeStore.getNodeById(oResponse.parentOldId);
-		    oOldParentNode.insertChild(oResponse.oldIndex, oNode);
-		    me.flagMoveWhenError = false;
+		    me.waitForMoveResponse = false;
 		    break;
 		case "commitConfiguration":
 		    me.btnCommitConfiguration.show();
@@ -195,6 +191,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    alert("The changes in the configuration have been successfuly commited !");
 		    me.btnCommitConfiguration.show();
 		    break;
+		case "moveNode":
+		    me.__cbMoveNode(oResponse);
+		    break;
 
 		}
 	    }
@@ -222,7 +221,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.btnResetConfig = new Ext.Button({
 
 	    text : 'Reload',
-	    
+
 	    iconCls : "cm-reset-icon",
 	    handler : function() {
 
@@ -264,9 +263,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	});
 
 	var bBarElems = [ me.btnViewConfigAsText, me.btnResetConfig ];
-	
+
 	if (("properties" in _user_credentials) && (Ext.Array.indexOf(_user_credentials.properties, "CSAdministrator") != -1)) {
-	    
+
 	    me.btnBrowseManage = new Ext.Button({
 
 		text : 'Manage',
@@ -279,39 +278,42 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			me.leafMenu.hide();
 			me.sectionMenu.hide();
 			me.valuePanel.hide();
+			me.btnCommitConfiguration.hide();
 		    } else {
 			me.btnBrowseManage.setText("Browse");
 			me.btnBrowseManage.setIconCls("cm-to-browse-icon");
 			me.valuePanel.show();
 			me.valuePanel.expand(false);
+			me.btnCommitConfiguration.show();
 		    }
 		    me.editMode = !me.editMode;
 		},
 		scope : me
 
 	    });
-	    
+
 	    me.btnCommitConfiguration = new Ext.Button({
 
 		text : 'Commit',
 
-		iconCls : "cm-to-manage-icon",
+		iconCls : "cm-submit-icon",
 		handler : function() {
-		    me.socket.send(JSON.stringify({
-			op : "commitConfiguration"
-		    }));
-		    me.btnCommitConfiguration.hide();
+		    if (confirm("Do you want to apply the configuration changes you've done till now?")) {
+			me.socket.send(JSON.stringify({
+			    op : "commitConfiguration"
+			}));
+			me.btnCommitConfiguration.hide();
+		    }
 		},
-		scope : me
+		scope : me,
+		hidden : true
 
-	    }); 
-	    
-	    bBarElems.push(me.btnCommitConfiguration);
+	    });
 	    bBarElems.push("->");
+	    bBarElems.push(me.btnCommitConfiguration);
 	    bBarElems.push(me.btnBrowseManage);
 
 	}
-	
 
 	me.treePanel = new Ext.create('Ext.tree.Panel', {
 	    region : 'center',
@@ -377,9 +379,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		},
 		beforeitemmove : function(oNode, oOldParent, oNewParent, iIndex, eOpts) {
 
-		    if (!me.flagMoveWhenError) {
-			me.__oprMoveNode(oNode, oOldParent, oNewParent, iIndex);
-			return true;
+		    if (me.editMode) {
+			if (!me.waitForMoveResponse) {
+			    me.__oprMoveNode(oNode, oOldParent, oNewParent, iIndex);
+			    return false;
+			}
 		    } else {
 			return false;
 		    }
@@ -528,7 +532,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.expansionState = {};
 	me.counterNodes = 0;
 	me.flagReset = false;
-	me.flagMoveWhenError = false;
+	me.waitForMoveResponse = false;
 	me.editMode = false;
 	me.copyNode = null;
 
@@ -1158,6 +1162,19 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    parentOldId : oOldParent.getId(),
 	    parentNewId : oNewParent.getId()
 	}));
+
+	me.waitForMoveResponse = true;
+
+    },
+
+    __cbMoveNode : function(oResponse) {
+
+	var me = this;
+	var oNode = me.treeStore.getNodeById(oResponse.nodeId);
+	var oNewParent = me.treeStore.getNodeById(oResponse.parentNewId);
+
+	oNewParent.insertChild(parseInt(oResponse.beforeOfIndex), oNode);
+	me.waitForMoveResponse = false;
 
     }
 
