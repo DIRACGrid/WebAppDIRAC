@@ -13,12 +13,42 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
     loadState : function(oData) {
 
+	var me = this;
+
+	me.__postponedLoadState(oData);
+
+    },
+
+    __postponedLoadState : function(oData) {
+
+	var me = this;
+
+	if (!me.isConnectionEstablished) {
+	    setTimeout(function() {
+		me.__postponedLoadState(oData);
+	    }, 1000);
+	} else {
+
+	    me.socket.send(JSON.stringify({
+		op : "getBulkExpandedNodeData",
+		nodes : oData.expandedNodes.join("<<||>>")
+	    }));
+
+	}
+
     },
 
     getStateData : function() {
 
 	var me = this;
 	var oReturn = {};
+
+	var oSerializedActions = [];
+
+	if ("" in me.expansionState)
+	    me.__serializeExpansionAction("", me.expansionState[""], oSerializedActions);
+
+	oReturn.expandedNodes = oSerializedActions;
 
 	return oReturn;
 
@@ -40,8 +70,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    },
 	    items : []
 	});
-
-	// Ext.data.NodeInterface.decorate(Ext.data.ObjectTypeModel);
 
 	me.callParent(arguments);
 
@@ -74,6 +102,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	var me = this;
 
+	me.isConnectionEstablished = false;
+
 	var sLoc = window.location;
 	var sWsuri;
 
@@ -82,12 +112,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	} else {
 	    sWsuri = "ws:";
 	}
-	sWsuri += "//" + sLoc.host + _app_base_url +'ConfigurationManager';
+	sWsuri += "//" + sLoc.host + _app_base_url + 'ConfigurationManager';
 
 	me.socket = new WebSocket(sWsuri);
 
 	me.socket.onopen = function(e) {
 	    console.log("CONNECTED");
+	    me.isConnectionEstablished = true;
 	    me.socket.send(JSON.stringify({
 		op : "init"
 	    }));
@@ -111,8 +142,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    var oResponse = JSON.parse(e.data);
 
-	    //console.log("----RESPONSE----");
-	    //console.log(oResponse);
+	    // console.log("----RESPONSE----");
+	    // console.log(oResponse);
 
 	    if (parseInt(oResponse.success) == 0) {
 
@@ -125,6 +156,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    break;
 		case "commitConfiguration":
 		    me.btnCommitConfiguration.show();
+		    me.btnViewConfigDifference.show();
 		    break;
 		}
 
@@ -190,6 +222,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		case "commitConfiguration":
 		    alert("The changes in the configuration have been successfuly commited !");
 		    me.btnCommitConfiguration.show();
+		    me.btnViewConfigDifference.show();
 		    break;
 		case "moveNode":
 		    me.__cbMoveNode(oResponse);
@@ -279,12 +312,14 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			me.sectionMenu.hide();
 			me.valuePanel.hide();
 			me.btnCommitConfiguration.hide();
+			me.btnViewConfigDifference.hide();
 		    } else {
 			me.btnBrowseManage.setText("Browse");
 			me.btnBrowseManage.setIconCls("cm-to-browse-icon");
 			me.valuePanel.show();
 			me.valuePanel.expand(false);
 			me.btnCommitConfiguration.show();
+			me.btnViewConfigDifference.show();
 		    }
 		    me.editMode = !me.editMode;
 		},
@@ -303,14 +338,30 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			    op : "commitConfiguration"
 			}));
 			me.btnCommitConfiguration.hide();
+			me.btnViewConfigDifference.hide();
 		    }
 		},
 		scope : me,
 		hidden : true
 
 	    });
+	    
+	    me.btnViewConfigDifference = new Ext.Button({
+
+		text : 'View diffrence',
+
+		iconCls : "cm-to-browse-icon",
+		handler : function() {
+		    
+		},
+		scope : me,
+		hidden : true
+
+	    });
+	    
 	    bBarElems.push("->");
 	    bBarElems.push(me.btnCommitConfiguration);
+	    bBarElems.push(me.btnViewConfigDifference);
 	    bBarElems.push(me.btnBrowseManage);
 
 	}
@@ -537,6 +588,32 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.copyNode = null;
 
     },
+
+    afterRender : function() {
+	var me = this;
+
+	me.__setDiracDestroyHandler();
+
+	this.callParent();
+    },
+
+    __setDiracDestroyHandler : function() {
+
+	var me = this;
+
+	if (me.getContainer() != null) {
+	    me.getContainer().__dirac_destroy = function(oWin) {
+		oWin.loadedObject.socket.close();
+	    }
+	} else {
+	    setTimeout(function() {
+		me.__setDiracDestroyHandler();
+	    }, 1000);
+
+	}
+
+    },
+
     __clearValuePanel : function() {
 
 	var me = this;

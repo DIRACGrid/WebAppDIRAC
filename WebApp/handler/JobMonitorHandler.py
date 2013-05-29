@@ -2,7 +2,7 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
-from DIRAC import gConfig, S_OK, S_ERROR
+from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 import json
 import ast
 
@@ -73,7 +73,7 @@ class JobMonitorHandler(WebHandler):
         result = result + str(key) + ": " + ", ".join(value) + "; "
     except Exception, x:
       pass
-#      gLogger.info("\033[0;31m Exception: \033[0m %s" % x)
+      gLogger.info("\033[0;31m Exception: \033[0m %s" % x)
     result = result.strip()
     result = result[:-1]
     return result
@@ -97,7 +97,6 @@ class JobMonitorHandler(WebHandler):
     if user == "Anonymous":
       callback["prod"] = [["Insufficient rights"]]
     else:
-      #RPC = getRPCClient("WorkloadManagement/JobMonitoring")
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
       result = RPC.getProductionIds()
       if result["OK"]:
@@ -118,11 +117,10 @@ class JobMonitorHandler(WebHandler):
         else:
           prod = [["Nothing to display"]]
       else:
-#        gLogger.error("RPC.getProductionIds() return error: %s" % result["Message"])
+        gLogger.error("RPC.getProductionIds() return error: %s" % result["Message"])
         prod = [["Error happened on service side"]]
       callback["prod"] = prod
 ###
-    #RPC = getRPCClient("WorkloadManagement/JobMonitoring")
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
     result = RPC.getSites()
     if result["OK"]:
@@ -146,7 +144,6 @@ class JobMonitorHandler(WebHandler):
     if result["OK"]:
       stat = []
       if len(result["Value"])>0:
-        #stat.append([str("All")])
         for i in result["Value"]:
           stat.append([str(i)])
       else:
@@ -180,7 +177,7 @@ class JobMonitorHandler(WebHandler):
       else:
         app = [["Nothing to display"]]
     else:
-#      gLogger.error("RPC.getApplicationstates() return error: %s" % result["Message"])
+      gLogger.error("RPC.getApplicationstates() return error: %s" % result["Message"])
       app = [["Error happened on service side"]]
     callback["app"] = app
 ###
@@ -194,7 +191,7 @@ class JobMonitorHandler(WebHandler):
       else:
         types = [["Nothing to display"]]
     else:
-#      gLogger.error("RPC.getJobTypes() return error: %s" % result["Message"])
+      gLogger.error("RPC.getJobTypes() return error: %s" % result["Message"])
       types = [["Error happened on service side"]]
     callback["types"] = types
 ###
@@ -211,7 +208,7 @@ class JobMonitorHandler(WebHandler):
         else:
           owner = [["Nothing to display"]]
       else:
-#        gLogger.error("RPC.getOwners() return error: %s" % result["Message"])
+        gLogger.error("RPC.getOwners() return error: %s" % result["Message"])
         owner = [["Error happened on service side"]]
       callback["owner"] = owner
     self.write(json.dumps(callback))
