@@ -1,48 +1,28 @@
-.cm-textbox-help-window textarea.x-form-field{
+.meta-reset-icon{
 	
-	font-family: Courier,monospace !important;	
-	
-
-}
-
-.cm-view-text-icon{
-	
-	 background-image: url(../images/viewAsText.png) !important;
+	 background-image: url(../images/reset.gif) !important;
      background-color: transparent;
 	
 }
 
-.cm-reset-icon{
-	
-	 background-image: url(../images/refresh.gif) !important;
-     background-color: transparent;
-	
-}
-
-.cm-submit-icon{
+.meta-submit-icon{
 	
 	 background-image: url(../images/submit.gif) !important;
      background-color: transparent;
 	
 }
 
-.cm-kill-icon{
+.meta-refresh-icon{
 	
-	 background-image: url(../images/close.gif) !important;
+	 background-image: url(../images/refresh.gif) !important;
      background-color: transparent;
 	
 }
 
-.cm-to-manage-icon{
+.meta-equal-icon{
 	
-	 background-image: url(../images/cog_edit.png) !important;
+	 background-image: url(../images/equal.gif) !important;
      background-color: transparent;
 	
 }
 
-.cm-to-browse-icon{
-	
-	 background-image: url(../images/cog.png) !important;
-     background-color: transparent;
-	
-}

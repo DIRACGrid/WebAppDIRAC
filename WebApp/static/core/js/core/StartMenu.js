@@ -154,10 +154,10 @@ Ext.define('Ext.dirac.core.StartMenu', {
 		menu : [],
 		iconCls : "system_folder"
 	    };
-
+	    
 	    for ( var i = 0; i < item[1].length; i++)
 		result.menu.push(me.getMenuStructureRec(item[1][i]));
-
+	    
 	    return result;
 
 	} else {

@@ -11,6 +11,11 @@ class MetadataCatalogHandler(WebHandler):
   AUTH_PROPS = "authenticated"
      
   def web_getMetadataOptions(self):
+    
+    stubResponse = {"total": 18, "result": [{"Type": "label", "Name": "fileLevelMDTest"}, {"Type": "int", "Name": "nbShowers"}, {"Type": "varchar(128)", "Name": "prodName"}, {"Type": "float", "Name": "viewCone"}, {"Type": "varchar(128)", "Name": "particle"}, {"Type": "varchar(128)", "Name": "corsikaProdVersion"}, {"Type": "float", "Name": "thetaP"}, {"Type": "float", "Name": "altitude"}, {"Type": "float", "Name": "phiP"}, {"Type": "varchar(128)", "Name": "simtelArrayConfig"}, {"Type": "varchar(128)", "Name": "outputType"}, {"Type": "varchar(128)", "Name": "simtelArrayProdVersion"}, {"Type": "varchar(128)", "Name": "MCCampaign"}, {"Type": "varchar(128)", "Name": "energyInfo"}, {"Type": "float", "Name": "offset"}, {"Type": "int", "Name": "runNumSeries"}, {"Type": "float", "Name": "az"}, {"Type": "float", "Name": "zen"}], "success": "true"};
+    self.write(json.dumps(stubResponse))
+    return
+  
     RPC = RPCClient( "DataManagement/FileCatalog" )
     result = RPC.getMetadataFields()
     gLogger.debug( "request: %s" % result )
