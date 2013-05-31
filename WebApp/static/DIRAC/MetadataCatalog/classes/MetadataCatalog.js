@@ -49,46 +49,9 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 	var me = this;
 
-	var leftPanelToolbar = new Ext.toolbar.Toolbar({
-	    dock : 'bottom',
-	    layout : {
-		pack : 'center'
-	    },
-	    items : []
-	});
-
-	me.btnRefreshLeftPanel = new Ext.Button({
-
-	    text : 'Refresh',
-
-	    iconCls : "meta-refresh-icon",
-	    handler : function() {
-
-	    },
-	    scope : me
-
-	});
-
-	leftPanelToolbar.add(me.btnRefreshLeftPanel);
-
-	me.leftPanel = new Ext.create('Ext.panel.Panel', {
-	    title : 'Metadata Catalog',
-	    region : 'west',
-	    floatable : false,
-	    margins : '0',
-	    width : 250,
-	    minWidth : 230,
-	    maxWidth : 350,
-	    bodyPadding : 0,
-	    autoScroll : true,
-	    layout : 'fit'
-	});
-
-	me.leftPanel.addDocked(leftPanelToolbar);
-
 	/*-------------------------------------------------------------------------------------*/
 
-	var centerPanelToolbarBottom = new Ext.toolbar.Toolbar({
+	var queryPanelToolbarBottom = new Ext.toolbar.Toolbar({
 	    dock : 'bottom',
 	    layout : {
 		pack : 'center'
@@ -120,9 +83,9 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 	});
 
-	centerPanelToolbarBottom.add([ me.btnSubmitLeftPanel, me.btnResetLeftPanel ]);
+	queryPanelToolbarBottom.add([ me.btnSubmitLeftPanel, me.btnResetLeftPanel ]);
 
-	var centerPanelToolbarTop = new Ext.toolbar.Toolbar({
+	var queryPanelToolbarTop = new Ext.toolbar.Toolbar({
 	    dock : 'top',
 	    layout : {
 		pack : 'center'
@@ -130,7 +93,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	    items : []
 	});
 
-	centerPanelToolbarTop.add({
+	queryPanelToolbarTop.add({
 	    xtype : 'tbtext',
 	    text : "Path to start from:"
 	});
@@ -140,7 +103,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	    value : '/'
 	});
 
-	centerPanelToolbarTop.add(me.txtPathField);
+	queryPanelToolbarTop.add(me.txtPathField);
 
 	me.btnResetPath = new Ext.Button({
 
@@ -154,11 +117,11 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 	});
 
-	centerPanelToolbarTop.add(me.btnResetPath);
+	queryPanelToolbarTop.add(me.btnResetPath);
 
-	me.centerPanel = new Ext.create('Ext.panel.Panel', {
+	me.queryPanel = new Ext.create('Ext.panel.Panel', {
 	    title : 'Metadata Query',
-	    region : 'west',
+	    region : 'center',
 	    floatable : false,
 	    margins : '0',
 	    width : 350,
@@ -168,7 +131,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	    autoScroll : true
 	});
 
-	me.centerPanel.addDocked([ centerPanelToolbarBottom, centerPanelToolbarTop ]);
+	me.queryPanel.addDocked([ queryPanelToolbarBottom, queryPanelToolbarTop ]);
 
 	/*-------------------------------------------------------------------------------------*/
 
@@ -182,14 +145,14 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	});
 
 	/*
-	 * The grid for the metadata choice (part of the leftPanel)
+	 * The grid for the metadata choice (part of the metadataOptionPanel)
 	 */
 
 	me.metadataCatalogStore = new Ext.data.JsonStore({
 
 	    proxy : {
 		type : 'ajax',
-		url : _app_base_url + 'MetadataCatalog/getMetadataOptions',
+		url : _app_base_url + 'MetadataCatalog/getMetadataFields',
 		reader : {
 		    type : 'json',
 		    root : 'result'
@@ -203,8 +166,35 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	    autoLoad : true
 	});
 
+	var metadataCatalogGridToolbar = new Ext.toolbar.Toolbar({
+	    dock : 'bottom',
+	    layout : {
+		pack : 'center'
+	    },
+	    items : []
+	});
+
+	me.btnRefreshLeftPanel = new Ext.Button({
+
+	    text : 'Refresh',
+
+	    iconCls : "meta-refresh-icon",
+	    handler : function() {
+
+	    },
+	    scope : me
+
+	});
+
+	metadataCatalogGridToolbar.add(me.btnRefreshLeftPanel);
+
 	me.metadataCatalogGrid = Ext.create('Ext.grid.Panel', {
+	    title : 'Metadata Catalog',
+	    region : 'south',
+	    height : 300,
+	    hideHeaders : true,
 	    store : me.metadataCatalogStore,
+	    bodyBorder : false,
 	    viewConfig : {
 		stripeRows : true,
 		enableTextSelection : true
@@ -238,59 +228,86 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		    return '<img src="static/DIRAC/MetadataCatalog/images/unknown.gif">';
 		}
 	    },
-	    listeners:{
-		
-		itemclick:function( oView, oRecord, item, index, e, eOpts ){
-		    
+	    listeners : {
+
+		itemclick : function(oView, oRecord, item, index, e, eOpts) {
+
 		    // alert(record.get("Name"));
-		    switch(oRecord.get("Type")){
-		    
-		    case "varchar(128)": 	me.centerPanel.add(me.__getDropDownField(oRecord.get("Name")));
-		    				break;
-		    default:			me.centerPanel.add(me.__getValueField(oRecord.get("Name"),oRecord.get("Type")));
-						break;
-		    
+		    switch (oRecord.get("Type")) {
+
+		    case "varchar(128)":
+			me.queryPanel.add(me.__getDropDownField(oRecord.get("Name")));
+			break;
+		    default:
+			me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
+			break;
+
 		    }
-		    
-		    
-		    
+
 		}
-		
+
 	    }
 
 	});
 
-	me.leftPanel.add([ me.metadataCatalogGrid ]);
+	me.metadataCatalogGrid.addDocked(metadataCatalogGridToolbar);
 
-	me.add([ me.leftPanel, me.centerPanel, me.rightPanel ]);
+	// me.metadataOptionPanel.add([ me.metadataCatalogGrid ]);
+
+	var oLeftPanel = new Ext.create('Ext.panel.Panel', {
+	    region : 'west',
+	    layout : 'border',
+	    bodyBorder : false,
+	    defaults : {
+		collapsible : true,
+		split : true
+	    },
+	    width : 350,
+	    minWidth : 300,
+	    maxWidth : 450,
+	    items : [ me.queryPanel, me.metadataCatalogGrid ]
+	// me.metadataOptionPanel]
+	});
+
+	me.add([ oLeftPanel, me.rightPanel ]);
 
     },
+
+    onItemLogicOperationClick : function(oItem, e, eOpts) {
+
+	// alert(item.iconCls);
+
+	oItem.up("button").setIconCls(oItem.iconCls);
+
+    },
+
     __getDropDownField : function(sName) {
 
 	var oPanel = Ext.create('Ext.container.Container', {
 	    layout : {
 		type : 'hbox',
 		align : 'stretch',
-		margin: 3
+		margin : 3
 	    },
 	    fieldName : sName,
+	    blockType : "string",
 	    items : [ {
 		xtype : 'panel',
-		html:"<div style='padding:7px 0px 0px 5px;'>"+sName+"</div>",
-		border:false,
-		flex:1
+		html : "<div style='padding:7px 0px 0px 5px;'>" + sName + "</div>",
+		border : false,
+		flex : 1
 	    }, {
 		xtype : "combo",
 		width : 120,
-		margin: 3
+		margin : 3
 	    }, {
 		xtype : "button",
 		iconCls : "meta-refresh-icon",
-		margin: 3
+		margin : 3
 	    }, {
 		xtype : "button",
 		iconCls : "meta-reset-icon",
-		margin: 3
+		margin : 3
 	    } ]
 
 	});
@@ -298,37 +315,83 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	return oPanel;
 
     },
-    __getValueField : function(sName,sType) {
-	
+    __getValueField : function(sName, sType) {
+
+	var me = this;
+
 	var oPanel = Ext.create('Ext.container.Container', {
 	    layout : {
 		type : 'hbox',
 		align : 'stretch',
-		margin: 3
+		margin : 3
 	    },
 	    fieldName : sName,
-	    fieldType: sType,
+	    fieldType : sType,
+	    blockType : "value",
 	    items : [ {
 		xtype : 'panel',
-		html:"<div style='padding:7px 0px 0px 5px;'>"+sName+"</div>",
-		border:false,
-		flex:1
-	    },{
+		html : "<div style='padding:7px 0px 0px 5px;'>" + sName + "</div>",
+		border : false,
+		flex : 1
+	    }, {
 		xtype : "button",
-		iconCls:"meta-equal-icon",
-		margin: 3
-	    },{
-		xtype : "textfield",
-		width : 85,
-		margin: 3
+		iconCls : "meta-equal-icon",
+		margin : 3,
+		menu : [ {
+		    text : "Equal to",
+		    iconCls : "meta-equal-icon",
+		    width : 200,
+		    listeners : {
+			click : me.onItemLogicOperationClick
+		    }
+		}, {
+		    text : "Not equal to",
+		    iconCls : "meta-nequal-icon",
+		    width : 200,
+		    listeners : {
+			click : me.onItemLogicOperationClick
+		    }
+		}, {
+		    text : "Greater than",
+		    iconCls : "meta-great-icon",
+		    width : 200,
+		    listeners : {
+			click : me.onItemLogicOperationClick
+		    }
+		}, {
+		    text : "Less than",
+		    iconCls : "meta-less-icon",
+		    width : 200,
+		    listeners : {
+			click : me.onItemLogicOperationClick
+		    }
+		}, {
+		    text : "Greater than or equal to",
+		    iconCls : "meta-lequal-icon",
+		    width : 200,
+		    listeners : {
+			click : me.onItemLogicOperationClick
+		    }
+		}, {
+		    text : "Less than or equal to",
+		    iconCls : "meta-gequal-icon",
+		    width : 200,
+		    listeners : {
+			click : me.onItemLogicOperationClick
+		    }
+		} ]
+	    }, {
+		xtype : "combo",
+		width : 120,
+		margin : 3
 	    }, {
 		xtype : "button",
 		iconCls : "meta-refresh-icon",
-		margin: 3
+		margin : 3
 	    }, {
 		xtype : "button",
 		iconCls : "meta-reset-icon",
-		margin: 3
+		margin : 3
 	    } ]
 
 	});

@@ -26,3 +26,37 @@
 	
 }
 
+.meta-gequal-icon{
+	
+	 background-image: url(../images/gequal.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-great-icon{
+	
+	 background-image: url(../images/great.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-lequal-icon{
+	
+	 background-image: url(../images/lequal.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-less-icon{
+	
+	 background-image: url(../images/less.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-nequal-icon{
+	
+	 background-image: url(../images/nequal.gif) !important;
+     background-color: transparent;
+	
+}
