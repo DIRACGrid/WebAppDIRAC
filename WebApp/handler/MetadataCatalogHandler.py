@@ -19,7 +19,8 @@ class MetadataCatalogHandler(WebHandler):
     self.write(json.dumps(stubResponse))
     return
     '''
-   
+    self.L_NUMBER = 0
+    self.S_NUMBER = 0
     RPC = RPCClient( "DataManagement/FileCatalog" )
     result = RPC.getMetadataFields()
     gLogger.debug( "request: %s" % result )
@@ -149,3 +150,105 @@ class MetadataCatalogHandler(WebHandler):
       return self.write(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
     
     return self.write(json.dumps({ "success" : "true" , "result" : result[ "Value" ] }))
+  
+  def web_getFilesData( self ) :
+    RPC = RPCClient( "DataManagement/FileCatalog" )
+    req = self.__request()
+    gLogger.debug( "submit: incoming request %s" % req )
+    result = RPC.findFilesByMetadataWeb( req["selection"] , req["path"] , self.S_NUMBER , self.L_NUMBER)
+    gLogger.debug( "submit: result of findFilesByMetadataDetailed %s" % result )
+    if not result[ "OK" ] :
+      gLogger.error( "submit: %s" % result[ "Message" ] )
+      return self.write(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
+    result = result[ "Value" ]
+    gLogger.always( "Result of findFilesByMetadataDetailed %s" % result )
+
+    total = result[ "TotalRecords" ]
+    result = result[ "Records" ]
+
+    if not len(result) > 0:
+      return { "success" : "true" , "result" : {} , "total" : 0 }
+
+    callback = list()
+    for key , value in result.items() :
+      
+      size = ""
+      if "Size" in value:
+        size = value[ "Size" ]
+
+      date = ""
+      if "CreationDate" in value:
+        date = str( value[ "CreationDate" ] )
+
+      meta = ""
+      if "Metadata" in value:
+        m = value[ "Metadata" ]
+        meta = '; '.join( [ '%s: %s' % ( i , j ) for ( i , j ) in m.items() ] )
+
+      callback.append({ "filename" : key , "date" : date , "size" : size ,
+                            "metadata" : meta })
+    return self.write(json.dumps({ "success" : "true" , "result" : callback , "total" : len( callback )}))
+
+  def __request(self):
+    req = { "selection" : {} , "path" : "/" }  
+    self.L_NUMBER = 25
+    if self.request.arguments.has_key( "limit" ) and len( self.request.arguments[ "limit" ][0] ) > 0:
+      self.L_NUMBER = int( self.request.arguments[ "limit" ] )
+    self.S_NUMBER = 0
+    if self.request.arguments.has_key( "start" ) and len( self.request.arguments[ "start" ][0] ) > 0:
+      self.S_NUMBER = int( self.request.arguments[ "start" ] )
+    result = gConfig.getOption( "/Website/ListSeparator" )
+    if result[ "OK" ] :
+      separator = result[ "Value" ]
+    else:
+      separator = ":::"
+    RPC = RPCClient("DataManagement/FileCatalog")
+    result = RPC.getMetadataFields()
+    gLogger.debug( "request: %s" % result )
+    if not result["OK"]:
+      gLogger.error( "request: %s" % result[ "Message" ] )
+      return req
+    result = result["Value"]
+    if not result.has_key( "FileMetaFields" ):
+      error = "Service response has no FileMetaFields key. Return empty dict"
+      gLogger.error( "request: %s" % error )
+      return req
+    if not result.has_key( "DirectoryMetaFields" ):
+      error = "Service response has no DirectoryMetaFields key. Return empty dict"
+      gLogger.error( "request: %s" % error )
+      return req
+    filemeta = result[ "FileMetaFields" ]
+    dirmeta = result[ "DirectoryMetaFields" ]
+    meta = []
+    for key,value in dirmeta.items() :
+      meta.append( key )
+    gLogger.always( "request: metafields: %s " % meta )
+    for i in self.request.arguments :
+      tmp = str( i ).split( '.' )
+      if len( tmp ) < 2 :
+        continue
+      logic = tmp[ 1 ]
+      if not logic in [ "=" , "!=" , ">=" , "<=" , ">" , "<" ] :
+        gLogger.always( "Operand '%s' is not supported " % logic )
+        continue
+      name = tmp[ 0 ]
+      
+      if name in meta :
+        if not req[ "selection" ].has_key( name ):
+          req[ "selection" ][ name ] = dict()
+        value = str( self.request.arguments[ i ][0] ).split( separator )
+        gLogger.always( "Value for metafield %s: %s " % ( name , value ) )
+        if not logic in [ "=" , "!=" ] :
+          if len( value ) > 1 :
+            gLogger.always( "List of values is not supported for %s " % logic )
+            continue
+          req[ "selection" ][ name ][ logic ] = value[ 0 ]
+        else :
+          if not req[ "selection" ][ name ].has_key( logic ) :
+            req[ "selection" ][ name ][ logic ] = dict()
+          for j in value:
+            req[ "selection" ][ name ][ logic ].append( j )
+    if self.request.arguments.has_key("path") :
+      req["path"] = self.request.arguments["path"][0]
+    gLogger.always(" REQ: ",req)
+    return req

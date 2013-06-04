@@ -142,8 +142,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    var oResponse = JSON.parse(e.data);
 
-	    // console.log("----RESPONSE----");
-	    // console.log(oResponse);
+//	     console.log("----RESPONSE----");
+//	     console.log(oResponse);
 
 	    if (parseInt(oResponse.success) == 0) {
 
@@ -166,9 +166,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		case "init":
 		    if (_app_ext_version == "ext-4.1.1a")
-			me.setNodeText(me.treeStore.getRootNode(), "Configuration: " + oResponse.version);
+			me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
 		    else
-			me.treeStore.getRootNode().setText("Configuration: " + oResponse.version);
+			me.treeStore.getRootNode().setText(oResponse.name + " [" + oResponse.version + "]");
 		    break;
 		case "getSubnodes":
 		    me.__oprCreateSubnodes(oResponse);
@@ -176,16 +176,22 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		case "showConfigurationAsText":
 		    me.__showConfigTextInWindow(oResponse.text);
 		    break;
+		case "showCurrentDiff":
+		    me.__showConfigDiffInWindow(oResponse.html);
+		    me.btnCommitConfiguration.show();
+		    me.btnViewConfigDifference.show();
+		    break;
 		case "resetConfiguration":
 		    if (_app_ext_version == "ext-4.1.1a")
-			me.setNodeText(me.treeStore.getRootNode(), "Configuration: " + oResponse.version);
+			me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
 		    else
-			me.treeStore.getRootNode().setText("Configuration: " + oResponse.version);
+			me.treeStore.getRootNode().setText(oResponse.name + " [" + oResponse.version + "]");
 		    me.__cbResetConfigurationTree(oResponse.text);
 		    me.__clearValuePanel();
 		    me.copyNode = null;
 		    me.btnPasteButton.setDisabled(true);
 		    me.treePanel.body.unmask();
+		    me.changeMade = false;
 		    break;
 		case "getBulkExpandedNodeData":
 		    me.__cbGetBulkExpandedNodeData(oResponse);
@@ -194,38 +200,49 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		case "setOptionValue":
 		    var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
 		    oNode.raw.csValue = oResponse.value;
+		    me.valuePanel.csValue = oResponse.value;
 		    if (_app_ext_version == "ext-4.1.1a")
 			me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
 		    else
 			oNode.setText(oNode.raw.csName + " = " + oNode.raw.csValue);
+		    me.changeMade = true;
 		    break;
 		case "setComment":
 		    var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
 		    oNode.raw.csComment = oResponse.comment;
+		    me.valuePanel.csValue = oResponse.comment;
+		    me.changeMade = true;
 		    break;
 		case "copyKey":
 		    me.__cbMenuCopyNode(oResponse);
+		    me.changeMade = true;
 		    break;
 		case "renameKey":
 		    me.__cbMenuRenameNode(oResponse);
+		    me.changeMade = true;
 		    break;
 		case "deleteKey":
 		    me.__cbMenuDeleteNode(oResponse);
 		    me.__clearValuePanel();
+		    me.changeMade = true;
 		    break;
 		case "createSection":
 		    me.__cbMenuCreateSubsection(oResponse);
+		    me.changeMade = true;
 		    break;
 		case "createOption":
 		    me.__cbMenuCreateOption(oResponse);
+		    me.changeMade = true;
 		    break;
 		case "commitConfiguration":
 		    alert("The changes in the configuration have been successfuly commited !");
 		    me.btnCommitConfiguration.show();
 		    me.btnViewConfigDifference.show();
+		    me.changeMade = false;
 		    break;
 		case "moveNode":
 		    me.__cbMoveNode(oResponse);
+		    me.changeMade = true;
 		    break;
 
 		}
@@ -257,13 +274,22 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    iconCls : "cm-reset-icon",
 	    handler : function() {
+		if (me.changeMade) {
+		    if (confirm("If you reload you might loose the changes you've might made.\nDo you want to reload?")) {
+			me.socket.send(JSON.stringify({
+			    op : "resetConfiguration"
+			}));
+			me.btnResetConfig.hide();
+			me.treePanel.body.mask("Loading ...");
+		    }
+		} else {
 
-		if (confirm("If you reload you might loose the changes you've might made.\nDo you want to reload?")) {
 		    me.socket.send(JSON.stringify({
 			op : "resetConfiguration"
 		    }));
 		    me.btnResetConfig.hide();
 		    me.treePanel.body.mask("Loading ...");
+
 		}
 	    },
 	    scope : me
@@ -345,20 +371,23 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		hidden : true
 
 	    });
-	    
+
 	    me.btnViewConfigDifference = new Ext.Button({
 
 		text : 'View diffrence',
 
 		iconCls : "cm-to-browse-icon",
 		handler : function() {
-		    
+		    me.socket.send(JSON.stringify({
+			op : "showCurrentDiff"
+		    }));
+		    me.btnCommitConfiguration.hide();
+		    me.btnViewConfigDifference.hide();
 		},
 		scope : me,
 		hidden : true
-
 	    });
-	    
+
 	    bBarElems.push("->");
 	    bBarElems.push(me.btnCommitConfiguration);
 	    bBarElems.push(me.btnViewConfigDifference);
@@ -418,13 +447,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		itemclick : function(oView, oNode, item, index, e, eOpts) {
 
-		    if (me.editMode) {
+		    if (oNode.getId() != "root") {
 
-			if (oNode.getId() != "root") {
+			me.__oprSetValuesForValuePanel(me, oNode);
 
-			    me.__oprSetValuesForValuePanel(me, oNode);
-
-			}
 		    }
 
 		},
@@ -586,6 +612,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.waitForMoveResponse = false;
 	me.editMode = false;
 	me.copyNode = null;
+	me.changeMade = false;
 
     },
 
@@ -750,6 +777,24 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
     },
 
+    __showConfigDiffInWindow : function(sHtml) {
+
+	var me = this;
+	var oWindow = me.getContainer().oprGetChildWindow("Current Configuration Difference", false, 700, 500);
+	sHtml = sHtml.replace(new RegExp("&amp;nbsp;", 'g'), "&nbsp;");
+	var oPanel = new Ext.create('Ext.panel.Panel', {
+	    html:sHtml,
+	    layout:"fit",
+	    autoScroll : true,
+	    bodyPadding: 5
+	});
+	oWindow.add(oPanel);
+	oWindow.show();
+	oWindow.maximize();
+
+    },
+
+    
     __cbResetConfigurationTree : function() {
 
 	var me = this;
@@ -885,8 +930,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
     },
 
     __stringToList : function(stringValue, sep) {
-	if (!sep)
+
+	if (!sep) {
 	    sep = ",";
+	} else {
+	    stringValue = stringValue.replace(new RegExp(",", 'g'), "");
+	}
+
 	var vList = stringValue.split(sep);
 	var strippedList = [];
 	for ( var i = 0; i < vList.length; i++) {
@@ -931,8 +981,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    oModule.txtCommentValuePanelTextArea.setValue(oModule.valuePanel.csComment);
 	    oModule.txtOptionValuePanelTextArea.hide();
 	}
-
-	oModule.valuePanel.expand(false);
 
     },
 

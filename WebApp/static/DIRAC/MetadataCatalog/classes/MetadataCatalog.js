@@ -123,6 +123,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	    title : 'Metadata Query',
 	    region : 'center',
 	    floatable : false,
+	    bodyBorder : false,
 	    margins : '0',
 	    width : 350,
 	    minWidth : 300,
@@ -218,7 +219,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	    listeners : {
 
 		itemclick : function(oView, oRecord, item, index, e, eOpts) {
-		    
+
 		    switch (oRecord.get("Type")) {
 
 		    case "varchar(128)":
@@ -270,7 +271,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		    // populating the fields for the first time
 
 		    me.fieldsTypes = oResponse.result;
-		    
+
 		    me.metadataCatalogStore.removeAll();
 
 		    var oNewData = [];
@@ -307,22 +308,29 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	    var iDropDownIndex = ((oLastBlock.blockType == "value") ? 2 : 1);
 
 	    var oDropDown = oLastBlock.items.getAt(iDropDownIndex);
-	    
+
 	    if (oDropDown.getValue() == null) {
-		 
+
 		me.queryPanel.remove(oLastBlock);
 
 	    }
 	}
 
     },
+    __removeBlock:function(oBlock){
+	
+	var me = this;
+	me.queryPanel.remove(oBlock);
+	me.__getQueryData(true);
+	
+    },
 
     __getDropDownField : function(sName) {
 
 	var me = this;
-	
+
 	me.__removeLastBlockIfEmpty();
-	
+
 	var oPanel = Ext.create('Ext.container.Container', {
 	    layout : {
 		type : 'hbox',
@@ -338,7 +346,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		flex : 1
 	    }, {
 		xtype : "combo",
-		width : 120,
+		width : 150,
 		margin : 3,
 		store : new Ext.data.SimpleStore({
 		    fields : [ 'value', 'text' ],
@@ -358,12 +366,13 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		}
 	    }, {
 		xtype : "button",
-		iconCls : "meta-refresh-icon",
-		margin : 3
-	    }, {
-		xtype : "button",
 		iconCls : "meta-reset-icon",
-		margin : 3
+		margin : 3,
+		handler : function() {
+
+		    me.__removeBlock(oPanel);
+
+		}
 	    } ]
 
 	});
@@ -374,9 +383,8 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
     __getValueField : function(sName, sType) {
 
 	var me = this;
-	
+
 	me.__removeLastBlockIfEmpty();
-	
 
 	var oPanel = Ext.create('Ext.container.Container', {
 	    layout : {
@@ -441,7 +449,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		} ]
 	    }, {
 		xtype : "combo",
-		width : 120,
+		width : 150,
 		margin : 3,
 		store : new Ext.data.SimpleStore({
 		    fields : [ 'value', 'text' ],
@@ -461,12 +469,13 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		}
 	    }, {
 		xtype : "button",
-		iconCls : "meta-refresh-icon",
-		margin : 3
-	    }, {
-		xtype : "button",
 		iconCls : "meta-reset-icon",
-		margin : 3
+		margin : 3,
+		handler : function() {
+
+		    me.__removeBlock(oPanel);
+
+		}
 	    } ]
 
 	});

@@ -83,17 +83,6 @@ class JobMonitorHandler(WebHandler):
     callback = {}
     group = sData["user"]["group"]
     user = sData["user"]["username"]
-    '''
-    if len(self.request.arguments) > 0:
-      tmp = {}
-      for i in self.request.arguments:
-        tmp[i] = str(self.request.arguments[i])
-      callback["extra"] = tmp
-      if callback["extra"].has_key("prod"):
-        callback["extra"]["prod"] = callback["extra"]["prod"].zfill(8)
-        if callback["extra"]["prod"] == "00000000":
-          callback["extra"]["prod"] = ""
-    '''
     if user == "Anonymous":
       callback["prod"] = [["Insufficient rights"]]
     else:
