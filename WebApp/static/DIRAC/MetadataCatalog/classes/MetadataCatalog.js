@@ -281,7 +281,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 		    me.metadataCatalogStore.add(oNewData);
 
-		    me.__getQueryData(false);
+		    me.__getQueryData(false,false);
 
 		} else {
 		    alert(oResponse.error);
@@ -321,7 +321,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	
 	var me = this;
 	me.queryPanel.remove(oBlock);
-	me.__getQueryData(true);
+	me.__getQueryData(true,true);
 	
     },
 
@@ -359,7 +359,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 		    change : function(oField, newValue, oldValue, eOpts) {
 
-			me.__getQueryData(true);
+			me.__getQueryData(true,false);
 
 		    }
 
@@ -462,7 +462,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 		    change : function(oField, newValue, oldValue, eOpts) {
 
-			me.__getQueryData(true);
+			me.__getQueryData(true,true);
 
 		    }
 
@@ -484,7 +484,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
     },
 
-    __getQueryData : function(bRefreshMetadataList) {
+    __getQueryData : function(bRefreshMetadataList, bRefreshQueryFields) {
 
 	var me = this;
 	// collect already selected options
@@ -517,6 +517,12 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		if (bRefreshMetadataList) {
 		    me.__oprRefreshMetadataFieldsList();
 		}
+		
+		if(bRefreshQueryFields){
+		    
+		    me.__refreshQueryFieldsOptions();
+		    
+		}
 
 		me.metadataCatalogGrid.body.unmask();
 
@@ -524,7 +530,39 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	});
 
     },
+    
+    __refreshQueryFieldsOptions:function(){
+	
+	var me = this;
+	
+	for(var i=0;i<me.queryPanel.items.length;i++){
+	    
+	    var oBlock = me.queryPanel.items.getAt(i);
+	    
+	    var iDropDownIndex = ((oBlock.blockType == "value") ? 2 : 1);
 
+	    var oDropDown = oBlock.items.getAt(iDropDownIndex);
+	    
+	    var oValue = oDropDown.getValue();
+	    
+	    oDropDown.suspendEvents(false);
+	    
+	    var oNewStore = new Ext.data.SimpleStore({
+		    fields : [ 'value', 'text' ],
+		    data : me.__getFieldOptions(oBlock.fieldName)
+		});
+	    
+	    oDropDown.bindStore(oNewStore);
+	    
+	    oDropDown.setValue(oValue);
+	    
+	    oDropDown.resumeEvents();
+	    
+	}
+	
+	
+    },
+    
     __oprRefreshMetadataFieldsList : function() {
 
 	var me = this;

@@ -10,6 +10,7 @@ from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 import simplejson
 import json
 import types
+import time
 
 class ConfigurationManagerHandler(WebSocketHandler):
 
@@ -131,6 +132,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       return False
     
   def __showConfigurationAsText(self):
+    time.sleep(10)
     self.write_message(json.dumps({"success":1, "op":"showConfigurationAsText", "text":self.__configData[ 'strCfgData' ]}))
   
   def __getBulkExpandedNodeData(self, nodes):

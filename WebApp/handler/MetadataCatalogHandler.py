@@ -142,7 +142,7 @@ class MetadataCatalogHandler(WebHandler):
       return self.write(json.dumps({ "success" : "false" , "error" : e }))
 
     RPC = RPCClient( "DataManagement/FileCatalog" )
-
+    print compat
     result = RPC.getCompatibleMetadata( compat )
     gLogger.always( result )
 
