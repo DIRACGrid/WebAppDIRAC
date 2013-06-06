@@ -29,10 +29,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    }, 1000);
 	} else {
 
-	    me.socket.send(JSON.stringify({
+	    me.__sendSocketMessage({
 		op : "getBulkExpandedNodeData",
 		nodes : oData.expandedNodes.join("<<||>>")
-	    }));
+	    });
 
 	}
 
@@ -97,39 +97,49 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	oNode.data.text = sNewText;
 
     },
-
-    /*
-     * __createSocket:function(){
-     * 
-     * var me = this;
-     * 
-     * var sLoc = window.location; var sWsuri;
-     * 
-     * if (sLoc.protocol === "https:") { sWsuri = "wss:"; } else { sWsuri =
-     * "ws:"; } sWsuri += "//" + sLoc.host + _app_base_url +
-     * 'ConfigurationManager';
-     * 
-     * socket = new WebSocket(sWsuri);
-     * 
-     * socket.onopen = function(e) { console.log("CONNECTED");
-     * me.isConnectionEstablished = true; socket.send(JSON.stringify({ op :
-     * "init" })); };
-     * 
-     * socket.onerror = function(e) { console.log("ERR " + e.data); };
-     * 
-     * socket.onclose = function(e) { console.log("CLOSE");
-     *  // resetting the configuration socket.send(JSON.stringify({ op :
-     * "resetConfiguration" })); me.btnResetConfig.hide(); };
-     * 
-     * return socket;
-     *  },
-     */
-
-    buildUI : function() {
+    __sendSocketMessage : function(oData) {
 
 	var me = this;
 
-	me.isConnectionEstablished = false;
+	if (!me.isConnectionEstablished) {
+
+	    var sMessage = "There is no connection established with the server.\nDo you want to reconnect now?";
+
+	    if (confirm(sMessage)) {
+		// resetting the configuration
+		me.socket = me.__createSocket("resetConfiguration");
+		me.btnResetConfig.hide();
+	    }
+
+	} else {
+
+	    me.socket.send(JSON.stringify(oData));
+
+	}
+
+    },
+    __setChangeMade:function(bChange){
+	
+	var me = this;
+	
+	if(bChange){
+	    
+	    me.btnCommitConfiguration.show();
+	    me.btnViewConfigDifference.show();
+	    
+	}else{
+	    
+	    me.btnCommitConfiguration.hide();
+	    me.btnViewConfigDifference.hide();
+	    
+	}
+	
+	me.changeMade = bChange;
+	
+    },
+    __createSocket : function(sOnOpenFuncName) {
+
+	var me = this;
 
 	var sLoc = window.location;
 	var sWsuri;
@@ -141,22 +151,23 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	}
 	sWsuri += "//" + sLoc.host + _app_base_url + 'ConfigurationManager';
 
-	me.socket = new WebSocket(sWsuri);
+	socket = new WebSocket(sWsuri);
 
-	me.socket.onopen = function(e) {
+	socket.onopen = function(e) {
 	    console.log("CONNECTED");
 	    me.isConnectionEstablished = true;
-	    me.socket.send(JSON.stringify({
-		op : "init"
+	    socket.send(JSON.stringify({
+		op : sOnOpenFuncName
 	    }));
+
 	};
 
-	me.socket.onerror = function(e) {
+	socket.onerror = function(e) {
 	    console.log("ERR " + e.data);
 	    me.isConnectionEstablished = false;
 	};
 
-	me.socket.onclose = function(e) {
+	socket.onclose = function(e) {
 	    me.isConnectionEstablished = false;
 	    var sMessage = "CONNECTION CLOSED";
 
@@ -164,20 +175,18 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		sMessage += " - UNCOMMITED CHANGES ARE LOST";
 
 	    console.log("CLOSE");
-	    sMessage += "\n Do you want to reconnect now?";
-	    
+	    sMessage += "\nDo you want to reconnect now?";
+
 	    if (me.dontShowMessageBeforeClose) {
 		if (confirm(sMessage)) {
 		    // resetting the configuration
-		    me.socket.send(JSON.stringify({
-			op : "resetConfiguration"
-		    }));
+		    me.socket = me.__createSocket("resetConfiguration");
 		    me.btnResetConfig.hide();
 		}
 	    }
 	};
 
-	me.socket.onmessage = function(e) {
+	socket.onmessage = function(e) {
 
 	    var oResponse = JSON.parse(e.data);
 
@@ -208,6 +217,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
 		    else
 			me.treeStore.getRootNode().setText(oResponse.name + " [" + oResponse.version + "]");
+		    me.btnResetConfig.show();
+		    me.treePanel.getRootNode().expand();
 		    break;
 		case "getSubnodes":
 		    me.__oprCreateSubnodes(oResponse);
@@ -230,7 +241,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    me.copyNode = null;
 		    me.btnPasteButton.setDisabled(true);
 		    me.treePanel.body.unmask();
-		    me.changeMade = false;
+		    me.__setChangeMade(false);
 		    break;
 		case "getBulkExpandedNodeData":
 		    me.__cbGetBulkExpandedNodeData(oResponse);
@@ -245,50 +256,64 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
 		    else
 			oNode.setText(oNode.raw.csName + " = " + oNode.raw.csValue);
-		    me.changeMade = true;
+		    me.__setChangeMade(true);
 		    break;
 		case "setComment":
 		    var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
 		    oNode.raw.csComment = oResponse.comment;
 		    me.valuePanel.csComment = me.__commentToList(oNode.raw.csComment).join("\n");
-		    me.changeMade = true;
+		    
+		    me.__setChangeMade(true);
 		    break;
 		case "copyKey":
 		    me.__cbMenuCopyNode(oResponse);
-		    me.changeMade = true;
+		    
+		    me.__setChangeMade(true);
 		    break;
 		case "renameKey":
 		    me.__cbMenuRenameNode(oResponse);
-		    me.changeMade = true;
+		    
+		    me.__setChangeMade(true);
 		    break;
 		case "deleteKey":
 		    me.__cbMenuDeleteNode(oResponse);
 		    me.__clearValuePanel();
-		    me.changeMade = true;
+		    me.__setChangeMade(true);
 		    break;
 		case "createSection":
 		    me.__cbMenuCreateSubsection(oResponse);
-		    me.changeMade = true;
+		    me.__setChangeMade(true);
 		    break;
 		case "createOption":
 		    me.__cbMenuCreateOption(oResponse);
-		    me.changeMade = true;
+		    me.__setChangeMade(true);
 		    break;
 		case "commitConfiguration":
 		    alert("The changes in the configuration have been successfuly commited !");
 		    me.btnCommitConfiguration.show();
 		    me.btnViewConfigDifference.show();
-		    me.changeMade = false;
+		    me.__setChangeMade(false);
 		    break;
 		case "moveNode":
 		    me.__cbMoveNode(oResponse);
-		    me.changeMade = true;
+		    me.__setChangeMade(true);
 		    break;
 
 		}
 	    }
 
 	};
+
+	return socket;
+    },
+
+    buildUI : function() {
+
+	var me = this;
+
+	me.isConnectionEstablished = false;
+
+	me.socket = me.__createSocket("init");
 
 	me.btnViewConfigAsText = new Ext.Button({
 
@@ -297,9 +322,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    iconCls : "cm-view-text-icon",
 	    handler : function() {
 
-		me.socket.send(JSON.stringify({
+		me.__sendSocketMessage({
 		    op : "showConfigurationAsText"
-		}));
+		});
 
 		me.btnViewConfigAsText.hide();
 
@@ -316,17 +341,17 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    handler : function() {
 		if (me.changeMade) {
 		    if (confirm("If you reload you might loose the changes you've might made.\nDo you want to reload?")) {
-			me.socket.send(JSON.stringify({
+			me.__sendSocketMessage({
 			    op : "resetConfiguration"
-			}));
+			});
 			me.btnResetConfig.hide();
 			me.treePanel.body.mask("Loading ...");
 		    }
 		} else {
 
-		    me.socket.send(JSON.stringify({
+		    me.__sendSocketMessage({
 			op : "resetConfiguration"
-		    }));
+		    });
 		    me.btnResetConfig.hide();
 		    me.treePanel.body.mask("Loading ...");
 
@@ -350,11 +375,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 			var oNodePath = me.__getNodePath(oNode);
 
-			me.socket.send(JSON.stringify({
+			me.__sendSocketMessage({
 			    op : "getSubnodes",
 			    nodePath : oNodePath,
 			    node : oNode.getId()
-			}));
+			});
 
 		    }
 		}
@@ -384,8 +409,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			me.btnBrowseManage.setIconCls("cm-to-browse-icon");
 			me.valuePanel.show();
 			me.valuePanel.expand(false);
-			me.btnCommitConfiguration.show();
-			me.btnViewConfigDifference.show();
 		    }
 		    me.editMode = !me.editMode;
 		},
@@ -400,9 +423,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		iconCls : "cm-submit-icon",
 		handler : function() {
 		    if (confirm("Do you want to apply the configuration changes you've done till now?")) {
-			me.socket.send(JSON.stringify({
+			me.__sendSocketMessage({
 			    op : "commitConfiguration"
-			}));
+			});
 			me.btnCommitConfiguration.hide();
 			me.btnViewConfigDifference.hide();
 		    }
@@ -418,9 +441,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		iconCls : "cm-to-browse-icon",
 		handler : function() {
-		    me.socket.send(JSON.stringify({
+		    me.__sendSocketMessage({
 			op : "showCurrentDiff"
-		    }));
+		    });
 		    me.btnCommitConfiguration.hide();
 		    me.btnViewConfigDifference.hide();
 		},
@@ -534,6 +557,14 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    scope : me
 
 	});
+	
+	var oValuePanelToolbar = new Ext.toolbar.Toolbar({
+	    dock : 'bottom',
+	    layout : {
+		pack : 'center'
+	    },
+	    items : [me.btnValuePanelSubmit,me.btnValuePanelReset]
+	});
 
 	me.txtOptionValuePanelTextArea = new Ext.create('Ext.form.field.TextArea', {
 	    fieldLabel : "Value",
@@ -570,7 +601,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    items : [ me.txtOptionValuePanelTextArea, me.txtCommentValuePanelTextArea ],
 
-	    bbar : [ me.btnValuePanelSubmit, me.btnValuePanelReset ],
 	    listeners : {
 
 		render : function(oPanel, eOpts) {
@@ -581,6 +611,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    }
 	});
+	
+	me.valuePanel.addDocked([oValuePanelToolbar]);
 
 	me.add([ me.treePanel, me.valuePanel ]);
 
@@ -652,7 +684,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.waitForMoveResponse = false;
 	me.editMode = false;
 	me.copyNode = null;
-	me.changeMade = false;
+	me.__setChangeMade(false);
 	me.dontShowMessageBeforeClose = true;
 
     },
@@ -845,10 +877,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	if ("" in me.expansionState)
 	    me.__serializeExpansionAction("", me.expansionState[""], oSerializedActions);
 
-	me.socket.send(JSON.stringify({
+	me.__sendSocketMessage({
 	    op : "getBulkExpandedNodeData",
 	    nodes : oSerializedActions.join("<<||>>")
-	}));
+	});
 
 	me.btnResetConfig.show();
 
@@ -1038,21 +1070,21 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    var sNewValue = oModule.__stringToList(oModule.txtOptionValuePanelTextArea.getValue(), "\n").join(",");
 
-	    oModule.socket.send(JSON.stringify({
+	    oModule.__sendSocketMessage({
 		op : "setOptionValue",
 		path : oModule.__getNodePath(oNode),
 		value : sNewValue,
 		parentNodeId : oNode.getId()
 
-	    }));
+	    });
 	}
 
-	oModule.socket.send(JSON.stringify({
+	oModule.__sendSocketMessage({
 	    op : "setComment",
 	    path : oModule.__getNodePath(oNode),
 	    value : oModule.txtCommentValuePanelTextArea.getValue(),
 	    parentNodeId : oNode.getId()
-	}));
+	});
 
     },
 
@@ -1091,14 +1123,14 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		bNameExists = oModule.__nameExists(oNode, sNewName);
 	    }
 
-	    oModule.socket.send(JSON.stringify({
+	    oModule.__sendSocketMessage({
 		op : "copyKey",
 		newName : sNewName,
 		copyFromPath : oModule.__getNodePath(oModule.copyNode),
 		copyToPath : oModule.__getNodePath(oNode),
 		nodeId : oModule.copyNode.getId(),
 		parentNodeToId : oNode.getId()
-	    }));
+	    });
 
 	}
 
@@ -1168,12 +1200,12 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	if (sNewName == null)
 	    return;
 
-	oModule.socket.send(JSON.stringify({
+	oModule.__sendSocketMessage({
 	    op : "renameKey",
 	    path : oModule.__getNodePath(oNode),
 	    newName : sNewName,
 	    parentNodeId : oNode.getId()
-	}));
+	});
 
     },
 
@@ -1208,11 +1240,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	var oModule = oItem.parentMenu.moduleObject;
 	if (!window.confirm("Are you sure you want to delete " + oModule.__getNodePath(oNode) + "?"))
 	    return;
-	oModule.socket.send(JSON.stringify({
+	oModule.__sendSocketMessage({
 	    op : "deleteKey",
 	    path : oModule.__getNodePath(oNode),
 	    parentNodeId : oNode.getId()
-	}));
+	});
 
     },
 
@@ -1233,12 +1265,12 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	if (sNewName == null)
 	    return;
 
-	oModule.socket.send(JSON.stringify({
+	oModule.__sendSocketMessage({
 	    op : "createSection",
 	    path : oModule.__getNodePath(oNode),
 	    name : sNewName,
 	    parentNodeId : oNode.getId()
-	}));
+	});
 
     },
 
@@ -1279,13 +1311,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	if (sValue == null)
 	    return;
 
-	oModule.socket.send(JSON.stringify({
+	oModule.__sendSocketMessage({
 	    op : "createOption",
 	    path : oModule.__getNodePath(oNode),
 	    name : sNewName,
 	    value : sValue,
 	    parentNodeId : oNode.getId()
-	}));
+	});
 
     },
 
@@ -1318,7 +1350,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	var me = this;
 
-	me.socket.send(JSON.stringify({
+	me.__sendSocketMessage({
 	    op : "moveNode",
 
 	    nodePath : me.__getNodePath(oNode),
@@ -1329,7 +1361,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    nodeId : oNode.getId(),
 	    parentOldId : oOldParent.getId(),
 	    parentNewId : oNewParent.getId()
-	}));
+	});
 
 	me.waitForMoveResponse = true;
 

@@ -136,11 +136,12 @@
 */
 
 .ux-wallpaper {
-    background-color: #3d71b8;
+    background-color: #eeeeee;
+    background-position:bottom right;
 }
 
 .ux-wallpaper-tiled {
-    background-repeat: repeat;
+    background-repeat:no-repeat;
 }
 
 .ux-desktop-shortcut {

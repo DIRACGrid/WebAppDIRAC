@@ -374,7 +374,10 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
 	    items : [ me.btnPlot, me.btnRefreshPlot, me.btnReset, me.btnRefresh ],
-	    dock : 'bottom'
+	    dock : 'bottom',
+	    layout : {
+		pack : 'center'
+	    }
 	});
 
 	me.leftPanel.addDocked(oPanelButtons);

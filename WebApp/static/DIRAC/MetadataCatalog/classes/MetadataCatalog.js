@@ -281,7 +281,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 		    me.metadataCatalogStore.add(oNewData);
 
-		    me.__getQueryData(false,false);
+		    me.__getQueryData(false, false);
 
 		} else {
 		    alert(oResponse.error);
@@ -317,12 +317,12 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	}
 
     },
-    __removeBlock:function(oBlock){
-	
+    __removeBlock : function(oBlock) {
+
 	var me = this;
 	me.queryPanel.remove(oBlock);
-	me.__getQueryData(true,true);
-	
+	me.__getQueryData(true, false);
+
     },
 
     __getDropDownField : function(sName) {
@@ -358,8 +358,15 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		listeners : {
 
 		    change : function(oField, newValue, oldValue, eOpts) {
+			console.log("change");
+			me.__getQueryData(true, false);
 
-			me.__getQueryData(true,false);
+		    },
+		    expand : function(oField, eOpts) {
+			console.log("expand");
+			me.queryPanel.body.mask("Wait ...");
+			oField.collapse();
+			me.__expandMenuBeforeExpandMenu(oPanel);
 
 		    }
 
@@ -461,9 +468,16 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		listeners : {
 
 		    change : function(oField, newValue, oldValue, eOpts) {
+			console.log("change");
+			me.__getQueryData(true, false);
 
-			me.__getQueryData(true,true);
-
+		    },
+		    expand : function(oField, eOpts) {
+			console.log("expand");
+			me.queryPanel.body.mask("Wait ...");
+			oField.collapse();
+			me.__expandMenuBeforeExpandMenu(oPanel);
+			
 		    }
 
 		}
@@ -481,6 +495,69 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	});
 
 	return oPanel;
+
+    },
+
+    __expandMenuBeforeExpandMenu : function(oThisBlock) {
+
+	var me = this;
+	// collect already selected options
+
+	var oSendData = {};
+
+	for ( var i = 0; i < me.queryPanel.items.length; i++) {
+
+	    var oBlock = me.queryPanel.items.getAt(i);
+
+	    if (oThisBlock != oBlock) {
+
+		var iDropDownIndex = ((oBlock.blockType == "value") ? 2 : 1);
+
+		var oDropDown = oBlock.items.getAt(iDropDownIndex);
+
+		oSendData["_compatible_" + oBlock.fieldName] = oDropDown.getValue();
+
+	    }
+
+	}
+
+	Ext.Ajax.request({
+	    url : _app_base_url + 'MetadataCatalog/getQueryData',
+	    method : 'POST',
+	    params : oSendData,
+	    scope : me,
+	    success : function(oReponse) {
+		
+		oResponse = Ext.JSON.decode(oReponse.responseText);
+		
+		var iDropDownIndex = ((oThisBlock.blockType == "value") ? 2 : 1);
+
+		var oDropDown = oThisBlock.items.getAt(iDropDownIndex);
+
+		oDropDown.suspendEvents(false);
+
+		var oBackData = oResponse.result;
+
+		var oList = [];
+		for ( var i = 0; i < oBackData[oThisBlock.fieldName].length; i++)
+		    oList.push([ oBackData[oThisBlock.fieldName][i], oBackData[oThisBlock.fieldName][i] ]);
+		
+		var oNewStore = new Ext.data.SimpleStore({
+		    fields : [ 'value', 'text' ],
+		    data : oList
+		});
+
+		oDropDown.bindStore(oNewStore);
+
+		oDropDown.focus();
+		oDropDown.collapse();
+		oDropDown.expand();
+
+		oDropDown.resumeEvents();
+		me.queryPanel.body.unmask();
+
+	    }
+	});
 
     },
 
@@ -517,11 +594,11 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		if (bRefreshMetadataList) {
 		    me.__oprRefreshMetadataFieldsList();
 		}
-		
-		if(bRefreshQueryFields){
-		    
+
+		if (bRefreshQueryFields) {
+
 		    me.__refreshQueryFieldsOptions();
-		    
+
 		}
 
 		me.metadataCatalogGrid.body.unmask();
@@ -530,39 +607,38 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	});
 
     },
-    
-    __refreshQueryFieldsOptions:function(){
-	
+
+    __refreshQueryFieldsOptions : function() {
+
 	var me = this;
-	
-	for(var i=0;i<me.queryPanel.items.length;i++){
-	    
+
+	for ( var i = 0; i < me.queryPanel.items.length; i++) {
+
 	    var oBlock = me.queryPanel.items.getAt(i);
-	    
+
 	    var iDropDownIndex = ((oBlock.blockType == "value") ? 2 : 1);
 
 	    var oDropDown = oBlock.items.getAt(iDropDownIndex);
-	    
+
 	    var oValue = oDropDown.getValue();
-	    
+
 	    oDropDown.suspendEvents(false);
-	    
+
 	    var oNewStore = new Ext.data.SimpleStore({
-		    fields : [ 'value', 'text' ],
-		    data : me.__getFieldOptions(oBlock.fieldName)
-		});
-	    
+		fields : [ 'value', 'text' ],
+		data : me.__getFieldOptions(oBlock.fieldName)
+	    });
+
 	    oDropDown.bindStore(oNewStore);
-	    
+
 	    oDropDown.setValue(oValue);
-	    
+
 	    oDropDown.resumeEvents();
-	    
+
 	}
-	
-	
+
     },
-    
+
     __oprRefreshMetadataFieldsList : function() {
 
 	var me = this;

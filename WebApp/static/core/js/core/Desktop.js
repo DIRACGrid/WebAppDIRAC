@@ -923,7 +923,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		    paths : {}
 		};
 
-		oConfig["paths"]["DIRAC." + oParts[1] + ".classes"] = "static/" + oParts[0] + "/" + oParts[1] + "/build";
+		oConfig["paths"][oParts[0] + "." + oParts[1] + ".classes"] ="static/" + oParts[0] + "/" + oParts[1] + "/build";
 
 		Ext.Loader.setConfig(oConfig);
 

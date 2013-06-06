@@ -379,7 +379,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	    text : 'Reset Time Panel',
 	    margin : 3,
-	    iconCls : "jm-reset-icon",
+	    iconCls : "jm-reset-button-icon",
 	    handler : function() {
 
 		me.timeSearchPanel.cmbTimeTo.setValue(null);
@@ -450,7 +450,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	    text : 'Reset',
 	    margin : 3,
-	    iconCls : "jm-reset-icon",
+	    iconCls : "jm-reset-button-icon",
 	    handler : function() {
 		me.oprResetSelectionOptions();
 	    },
@@ -471,8 +471,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	});
 
 	var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
-	    items : [ me.btnSubmit, me.btnReset, me.btnRefresh ],
-	    dock : 'bottom'
+	    dock : 'bottom',
+	    layout : {
+		pack : 'center'
+	    },
+	    items : [ me.btnSubmit, me.btnReset, me.btnRefresh ]
 	});
 
 	me.leftPanel.addDocked(oPanelButtons);

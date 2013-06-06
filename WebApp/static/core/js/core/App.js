@@ -171,8 +171,8 @@ Ext.define('Ext.dirac.core.App', {
 		model : 'Ext.dirac.core.ShortcutModel',
 		data : {}
 	    }),
-	    wallpaper : '/DIRAC/static/core/img/wallpapers/desk.jpg',
-	    wallpaperStretch : true
+	    wallpaper : '/DIRAC/static/core/img/wallpapers/dirac_background_6.png',
+	    wallpaperStretch : false
 	};
 
 	me.desktop = null;
