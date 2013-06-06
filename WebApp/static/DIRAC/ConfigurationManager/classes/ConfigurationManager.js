@@ -684,7 +684,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.waitForMoveResponse = false;
 	me.editMode = false;
 	me.copyNode = null;
-	me.__setChangeMade(false);
+	me.changeMade = false;
 	me.dontShowMessageBeforeClose = true;
 
     },
