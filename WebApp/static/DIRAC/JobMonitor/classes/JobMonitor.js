@@ -31,7 +31,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	}
 
-	for ( var i = 0; i < me.selectorMenu.items.length; i++) {
+	for ( var i = 0; i < me.selectorMenu.items.length - 1; i++) {
 
 	    var item = me.selectorMenu.items.getAt(i);
 
@@ -52,13 +52,24 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	}
 
-	me.textJobId.setValue(data.leftMenu.txtJobId);
-	me.timeSearchPanel.cmbTimeSpan.setValue(data.leftMenu.cmbTimeSpan);
-	me.timeSearchPanel.calenFrom.setValue(data.leftMenu.calenFrom);
+	//For the time span searching sub-panel
+	var item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
 
-	me.timeSearchPanel.cmbTimeFrom.setValue(data.leftMenu.cmbTimeFrom);
-	me.timeSearchPanel.calenTo.setValue(data.leftMenu.calenTo);
-	me.timeSearchPanel.cmbTimeTo.setValue(data.leftMenu.cmbTimeTo);
+	item.setChecked(!data.leftMenu.timeSearchPanelHidden);
+
+	if (!data.leftMenu.timeSearchPanelHidden)
+	    me.timeSearchPanel.show();
+	else
+	    me.timeSearchPanel.hide();
+	//END - For the time span searching sub-panel
+	
+	me.textJobId.setValue(data.leftMenu.txtJobId);
+	me.timeSearchElementsGroup.cmbTimeSpan.setValue(data.leftMenu.cmbTimeSpan);
+	me.timeSearchElementsGroup.calenFrom.setValue(data.leftMenu.calenFrom);
+
+	me.timeSearchElementsGroup.cmbTimeFrom.setValue(data.leftMenu.cmbTimeFrom);
+	me.timeSearchElementsGroup.calenTo.setValue(data.leftMenu.calenTo);
+	me.timeSearchElementsGroup.cmbTimeTo.setValue(data.leftMenu.cmbTimeTo);
 
 	// me.oprLoadGridData();
 
@@ -113,11 +124,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	// the state of the selectors, text fields and time
 	oReturn.leftMenu.txtJobId = me.textJobId.getValue();
-	oReturn.leftMenu.cmbTimeSpan = me.timeSearchPanel.cmbTimeSpan.getValue();
-	oReturn.leftMenu.calenFrom = me.timeSearchPanel.calenFrom.getValue();
-	oReturn.leftMenu.cmbTimeFrom = me.timeSearchPanel.cmbTimeFrom.getValue();
-	oReturn.leftMenu.calenTo = me.timeSearchPanel.calenTo.getValue();
-	oReturn.leftMenu.cmbTimeTo = me.timeSearchPanel.cmbTimeTo.getValue();
+	oReturn.leftMenu.cmbTimeSpan = me.timeSearchElementsGroup.cmbTimeSpan.getValue();
+	oReturn.leftMenu.calenFrom = me.timeSearchElementsGroup.calenFrom.getValue();
+	oReturn.leftMenu.cmbTimeFrom = me.timeSearchElementsGroup.cmbTimeFrom.getValue();
+	oReturn.leftMenu.calenTo = me.timeSearchElementsGroup.calenTo.getValue();
+	oReturn.leftMenu.cmbTimeTo = me.timeSearchElementsGroup.cmbTimeTo.getValue();
+	oReturn.leftMenu.timeSearchPanelHidden = me.timeSearchPanel.hidden;
 
 	return oReturn;
 
@@ -215,12 +227,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
     } ],
 
     initComponent : function() {
-	
+
 	var me = this;
 
 	me.launcher.title = "Job Monitor";
 	me.launcher.maximized = true;
-	
+
 	Ext.apply(me, {
 	    layout : 'border',
 	    bodyBorder : false,
@@ -231,9 +243,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	});
 
 	me.callParent(arguments);
-	
+
     },
-    
+
     buildUI : function() {
 
 	var me = this;
@@ -259,7 +271,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	me.cmbSelectors = {
 	    site : null,
-	    status : null,	    
+	    status : null,
 	    minorStatus : null,
 	    appStatus : null,
 	    owner : null,
@@ -325,9 +337,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	// time search sub-panel
 
-	me.timeSearchPanel = {};
+	me.timeSearchElementsGroup = {};
 
-	me.timeSearchPanel.cmbTimeSpan = new Ext.create('Ext.form.field.ComboBox', {
+	me.timeSearchElementsGroup.cmbTimeSpan = new Ext.create('Ext.form.field.ComboBox', {
 	    labelAlign : 'top',
 	    fieldLabel : 'Time Span',
 	    store : new Ext.data.SimpleStore({
@@ -345,12 +357,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    oTimeData.push([ ((i.toString().length == 1) ? "0" + i.toString() : i.toString()) + ":30" ]);
 	}
 
-	me.timeSearchPanel.calenFrom = new Ext.create('Ext.form.field.Date', {
+	me.timeSearchElementsGroup.calenFrom = new Ext.create('Ext.form.field.Date', {
 	    width : 100,
 	    format : 'Y-m-d'
 	});
 
-	me.timeSearchPanel.cmbTimeFrom = new Ext.create('Ext.form.field.ComboBox', {
+	me.timeSearchElementsGroup.cmbTimeFrom = new Ext.create('Ext.form.field.ComboBox', {
 	    width : 70,
 	    store : new Ext.data.SimpleStore({
 		fields : [ 'value' ],
@@ -360,12 +372,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    displayField : 'value'
 	});
 
-	me.timeSearchPanel.calenTo = new Ext.create('Ext.form.field.Date', {
+	me.timeSearchElementsGroup.calenTo = new Ext.create('Ext.form.field.Date', {
 	    width : 100,
 	    format : 'Y-m-d'
 	});
 
-	me.timeSearchPanel.cmbTimeTo = new Ext.create('Ext.form.field.ComboBox', {
+	me.timeSearchElementsGroup.cmbTimeTo = new Ext.create('Ext.form.field.ComboBox', {
 	    width : 70,
 	    store : new Ext.data.SimpleStore({
 		fields : [ 'value' ],
@@ -375,24 +387,24 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    displayField : 'value'
 	});
 
-	me.timeSearchPanel.btnResetTimePanel = new Ext.Button({
+	me.timeSearchElementsGroup.btnResetTimePanel = new Ext.Button({
 
 	    text : 'Reset Time Panel',
 	    margin : 3,
 	    iconCls : "jm-reset-button-icon",
 	    handler : function() {
 
-		me.timeSearchPanel.cmbTimeTo.setValue(null);
-		me.timeSearchPanel.cmbTimeFrom.setValue(null);
-		me.timeSearchPanel.calenTo.setRawValue("");
-		me.timeSearchPanel.calenFrom.setRawValue("");
-		me.timeSearchPanel.cmbTimeSpan.setValue(null);
+		me.timeSearchElementsGroup.cmbTimeTo.setValue(null);
+		me.timeSearchElementsGroup.cmbTimeFrom.setValue(null);
+		me.timeSearchElementsGroup.calenTo.setRawValue("");
+		me.timeSearchElementsGroup.calenFrom.setRawValue("");
+		me.timeSearchElementsGroup.cmbTimeSpan.setValue(null);
 	    },
 	    scope : me,
 	    defaultAlign : "c"
 	});
 
-	var oTimePanel = new Ext.create('Ext.panel.Panel', {
+	me.timeSearchPanel = new Ext.create('Ext.panel.Panel', {
 	    width : 200,
 	    autoHeight : true,
 	    border : true,
@@ -402,13 +414,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    dockedItems : [ {
 		xtype : 'toolbar',
 		dock : 'bottom',
-		items : [ me.timeSearchPanel.btnResetTimePanel ],
+		items : [ me.timeSearchElementsGroup.btnResetTimePanel ],
 		layout : {
 		    type : 'hbox',
 		    pack : 'center'
 		}
 	    } ],
-	    items : [ me.timeSearchPanel.cmbTimeSpan, {
+	    items : [ me.timeSearchElementsGroup.cmbTimeSpan, {
 		xtype : 'tbtext',
 		text : "From:",
 		padding : "3 0 3 0"
@@ -416,7 +428,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		xtype : "panel",
 		layout : "column",
 		border : false,
-		items : [ me.timeSearchPanel.calenFrom, me.timeSearchPanel.cmbTimeFrom ]
+		items : [ me.timeSearchElementsGroup.calenFrom, me.timeSearchElementsGroup.cmbTimeFrom ]
 	    }, {
 		xtype : 'tbtext',
 		text : "To:",
@@ -425,11 +437,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		xtype : "panel",
 		layout : "column",
 		border : false,
-		items : [ me.timeSearchPanel.calenTo, me.timeSearchPanel.cmbTimeTo ]
+		items : [ me.timeSearchElementsGroup.calenTo, me.timeSearchElementsGroup.cmbTimeTo ]
 	    } ]
 	});
 
-	me.leftPanel.add(oTimePanel);
+	me.leftPanel.add(me.timeSearchPanel);
 
 	// Buttons at the bottom of the panel
 
@@ -522,7 +534,17 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    // (see Ext.data.Store for an example)
 	    fields : me.dataFields,
 	    autoLoad : true,
-	    remoteSort : true
+	    remoteSort : true,
+	    pageSize:25,
+	    listeners:{
+		
+		load: function( oStore, records, successful, eOpts ){
+		  
+		    me.pagingToolbar.updateStamp.setText('Updated: '+oStore.proxy.reader.rawData["date"]);
+		    
+		}
+		
+	    }
 	});
 
 	me.checkboxFunctionDefinition = '<input type="checkbox" value="" onchange="';
@@ -606,6 +628,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	me.pagingToolbar.pageSizeCombo.on("change", function(combo, newValue, oldValue, eOpts) {
 	    var me = this;
+	    me.dataStore.pageSize = newValue;
 	    me.oprLoadGridData();
 	}, me);
 
@@ -922,7 +945,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
     afterRender : function() {
 	var me = this;
-
+	console.log(me.dataStore.proxy.reader);
 	var menuItems = [];
 	for ( var cmb in me.cmbSelectors) {
 
@@ -945,6 +968,23 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    });
 
 	}
+
+	menuItems.push({
+	    xtype : 'menucheckitem',
+	    text : "Time Span",
+	    checked : true,
+	    handler : function(item, e) {
+
+		var me = this;
+		console.log(me);
+		if (item.checked)
+		    me.timeSearchPanel.show();
+		else
+		    me.timeSearchPanel.hide();
+
+	    },
+	    scope : me
+	});
 
 	me.selectorMenu = new Ext.menu.Menu({
 	    items : menuItems
@@ -1061,12 +1101,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	if (me.__oprValidateBeforeSubmit()) {
 
 	    // if a value in time span has been selected
-	    var sStartDate = me.timeSearchPanel.calenFrom.getRawValue();
-	    var sStartTime = me.timeSearchPanel.cmbTimeFrom.getValue();
-	    var sEndDate = me.timeSearchPanel.calenTo.getRawValue();
-	    var sEndTime = me.timeSearchPanel.cmbTimeTo.getValue();
+	    var sStartDate = me.timeSearchElementsGroup.calenFrom.getRawValue();
+	    var sStartTime = me.timeSearchElementsGroup.cmbTimeFrom.getValue();
+	    var sEndDate = me.timeSearchElementsGroup.calenTo.getRawValue();
+	    var sEndTime = me.timeSearchElementsGroup.cmbTimeTo.getValue();
 
-	    var iSpanValue = me.timeSearchPanel.cmbTimeSpan.getValue();
+	    var iSpanValue = me.timeSearchElementsGroup.cmbTimeSpan.getValue();
 
 	    if ((iSpanValue != null) && (iSpanValue != 5)) {
 

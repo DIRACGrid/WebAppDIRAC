@@ -5,7 +5,7 @@
  * http://www.sencha.com/license
  */
 
-Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
+Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
     extend : 'Ext.dirac.core.Module',
     requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date",
 	    "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record",
@@ -28,7 +28,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 	var me = this;
 
-	me.launcher.title = "Metadata Catalog";
+	me.launcher.title = "File Catalog";
 	me.launcher.maximized = true;
 
 	Ext.apply(me, {
@@ -120,7 +120,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	queryPanelToolbarTop.add(me.btnResetPath);
 
 	me.queryPanel = new Ext.create('Ext.panel.Panel', {
-	    title : 'Metadata Query',
+	    title : 'Query',
 	    region : 'north',
 	    floatable : false,
 	    bodyBorder : false,
@@ -182,7 +182,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	metadataCatalogGridToolbar.add(me.btnRefreshLeftPanel);
 
 	me.metadataCatalogGrid = Ext.create('Ext.grid.Panel', {
-	    title : 'Metadata Catalog',
+	    title : 'Metadata',
 	    region : 'center',
 
 	    hideHeaders : true,
@@ -202,23 +202,25 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		hideable : false,
 		fixed : true,
 		menuDisabled : true,
-		align : 'center'
+		align : 'center',
+		hidden : true
 	    }, {
 		dataIndex : 'Name',
 		align : 'left',
-		sortable : false,
+		sortable : true,
 		hideable : false,
+		sortState : "ASC",
 		flex : 1
 	    } ],
 	    rendererType : function(value) {
 		if (value == 'varchar(128)') {
-		    return '<img src="static/DIRAC/MetadataCatalog/images/str.gif">';
+		    return '<img src="static/DIRAC/FileCatalog/images/str.gif">';
 		} else if (value == 'int') {
-		    return '<img src="static/DIRAC/MetadataCatalog/images/int.gif">';
+		    return '<img src="static/DIRAC/FileCatalog/images/int.gif">';
 		} else if (value == 'datetime') {
-		    return '<img src="static/DIRAC/MetadataCatalog/images/date.gif">';
+		    return '<img src="static/DIRAC/FileCatalog/images/date.gif">';
 		} else {
-		    return '<img src="static/DIRAC/MetadataCatalog/images/unknown.gif">';
+		    return '<img src="static/DIRAC/FileCatalog/images/unknown.gif">';
 		}
 	    },
 	    listeners : {
@@ -263,7 +265,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	me.fieldsTypes = {};
 
 	Ext.Ajax.request({
-	    url : _app_base_url + 'MetadataCatalog/getMetadataFields',
+	    url : _app_base_url + 'FileCatalog/getMetadataFields',
 	    method : 'POST',
 	    params : {},
 	    scope : me,
@@ -277,16 +279,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 		    me.fieldsTypes = oResponse.result;
 
-		    me.metadataCatalogStore.removeAll();
-
-		    var oNewData = [];
-
-		    for ( var key in me.fieldsTypes)
-			oNewData.push([ me.fieldsTypes[key], key ]);
-
-		    me.metadataCatalogStore.add(oNewData);
-
-		    me.__getQueryData(false, false);
+		    me.__getQueryData(true);
 
 		} else {
 		    alert(oResponse.error);
@@ -312,10 +305,19 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 	    var oDropDown = oLastBlock.items.getAt(2);
 
-	    if (oDropDown.getValue().length == 0) {
+	    if (oLastBlock.blockType == "string") {
 
-		me.queryPanel.remove(oLastBlock);
+		if (oDropDown.getValue().length == 0) {
 
+		    me.queryPanel.remove(oLastBlock);
+
+		}
+	    } else {
+		if (oDropDown.getValue() == null) {
+
+		    me.queryPanel.remove(oLastBlock);
+
+		}
 	    }
 	}
 
@@ -324,7 +326,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 	var me = this;
 	me.queryPanel.remove(oBlock);
-	me.__getQueryData(true, false);
+	me.__getQueryData(true);
 
     },
 
@@ -340,6 +342,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	    valueField : "value",
 	    width : 250,
 	    margin : 3,
+	    noChangeEventWhenCreated : 0,
 	    store : new Ext.data.SimpleStore({
 		fields : [ 'value', 'text' ],
 		data : me.__getFieldOptions(sName)
@@ -348,7 +351,11 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 		change : function(oField, newValue, oldValue, eOpts) {
 
-		    me.__getQueryData(true, false);
+		    if (oField.noChangeEventWhenCreated == 1) {
+			me.__getQueryData(true);
+		    } else {
+			oField.noChangeEventWhenCreated = 1;
+		    }
 
 		},
 		expand : function(oField, eOpts) {
@@ -401,7 +408,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 	me.__removeLastBlockIfEmpty();
 
-	var oDropDown = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
+	var oDropDown = Ext.create('Ext.form.field.ComboBox', {
 	    queryMode : 'local',
 	    displayField : "text",
 	    valueField : "value",
@@ -414,9 +421,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	    listeners : {
 
 		change : function(oField, newValue, oldValue, eOpts) {
-
-		    me.__getQueryData(true, false);
-
+		    me.__getQueryData(true);
 		},
 		expand : function(oField, eOpts) {
 
@@ -450,13 +455,6 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		menu : [ {
 		    text : "Equal to",
 		    iconCls : "meta-equal-icon",
-		    width : 200,
-		    listeners : {
-			click : me.onItemLogicOperationClick
-		    }
-		}, {
-		    text : "In",
-		    iconCls : "meta-in-icon",
 		    width : 200,
 		    listeners : {
 			click : me.onItemLogicOperationClick
@@ -519,61 +517,113 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	var me = this;
 	// collect already selected options
 
-	var oSendData = {};
+	var sBlockType = oThisBlock.blockType;
+	var oDropDown = oThisBlock.items.getAt(2);
 
-	for ( var i = 0; i < me.queryPanel.items.length; i++) {
+	var ifValue = true;
 
-	    var oBlock = me.queryPanel.items.getAt(i);
+	switch (sBlockType) {
 
-	    if (oThisBlock != oBlock) {
-
-		var oDropDown = oBlock.items.getAt(2);
-
-		oSendData["_compatible_" + oBlock.fieldName] = oDropDown.getValue();
-
-	    }
+	case "value":
+	    if (oDropDown.getValue() == null)
+		ifValue = false;
+	    break;
+	case "string":
+	    if (oDropDown.getValue().length == 0)
+		ifValue = false;
+	    break;
 
 	}
 
-	Ext.Ajax.request({
-	    url : _app_base_url + 'MetadataCatalog/getQueryData',
-	    method : 'POST',
-	    params : oSendData,
-	    scope : me,
-	    success : function(oReponse) {
+	if (ifValue) {
 
-		oResponse = Ext.JSON.decode(oReponse.responseText);
+	    var oSendData = {};
 
-		var oDropDown = oThisBlock.items.getAt(2);
+	    for ( var i = 0; i < me.queryPanel.items.length; i++) {
 
-		oDropDown.suspendEvents(false);
+		var oBlock = me.queryPanel.items.getAt(i);
 
-		var oBackData = oResponse.result;
+		if (oThisBlock != oBlock) {
 
-		var oList = [];
-		for ( var i = 0; i < oBackData[oThisBlock.fieldName].length; i++)
-		    oList.push([ oBackData[oThisBlock.fieldName][i], oBackData[oThisBlock.fieldName][i] ]);
+		    var oDropDown = oBlock.items.getAt(2);
 
-		var oNewStore = new Ext.data.SimpleStore({
-		    fields : [ 'value', 'text' ],
-		    data : oList
-		});
+		    oSendData["_compatible_" + oBlock.fieldName] = oDropDown.getValue();
+		}
+	    }
 
+	    Ext.Ajax.request({
+		url : _app_base_url + 'FileCatalog/getQueryData',
+		method : 'POST',
+		params : oSendData,
+		scope : me,
+		success : function(oReponse) {
+
+		    oResponse = Ext.JSON.decode(oReponse.responseText);
+		    
+		    var oBackData = oResponse.result;
+		    var oDropDown = oThisBlock.items.getAt(2);
+
+		    oDropDown.suspendEvents(false);
+
+		    var oList = [];
+		    for ( var i = 0; i < oBackData[oThisBlock.fieldName].length; i++)
+			oList.push([ oBackData[oThisBlock.fieldName][i], oBackData[oThisBlock.fieldName][i] ]);
+
+		    var oNewStore = new Ext.data.SimpleStore({
+			fields : [ 'value', 'text' ],
+			data : oList
+		    });
+
+		    switch (sBlockType) {
+
+		    case "value":
+			oDropDown.bindStore(oNewStore);
+			break;
+		    case "string":
+			oDropDown.refreshStore(oNewStore);
+			break;
+
+		    }
+
+		    oDropDown.collapse();
+		    oDropDown.expand();
+
+		    oDropDown.resumeEvents();
+		    me.queryPanel.body.unmask();
+
+		}
+	    });
+	} else {
+
+	    oDropDown.suspendEvents(false);
+
+	    var oNewStore = new Ext.data.SimpleStore({
+		fields : [ 'value', 'text' ],
+		data : me.__getFieldOptions(oThisBlock.fieldName)
+	    });
+
+	    switch (sBlockType) {
+
+	    case "value":
 		oDropDown.bindStore(oNewStore);
-
-		oDropDown.focus();
-		oDropDown.collapse();
-		oDropDown.expand();
-
-		oDropDown.resumeEvents();
-		me.queryPanel.body.unmask();
+		break;
+	    case "string":
+		oDropDown.refreshStore(oNewStore);
+		break;
 
 	    }
-	});
+
+	    oDropDown.collapse();
+	    oDropDown.expand();
+
+	    oDropDown.resumeEvents();
+	    me.queryPanel.body.unmask();
+
+	}
 
     },
 
-    __getQueryData : function(bRefreshMetadataList, bRefreshQueryFields) {
+    __getQueryData : function(bRefreshMetadataList) {
 
 	var me = this;
 	// collect already selected options
@@ -592,7 +642,7 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	}
 
 	Ext.Ajax.request({
-	    url : _app_base_url + 'MetadataCatalog/getQueryData',
+	    url : _app_base_url + 'FileCatalog/getQueryData',
 	    method : 'POST',
 	    params : oSendData,
 	    scope : me,
@@ -603,12 +653,6 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 
 		if (bRefreshMetadataList) {
 		    me.__oprRefreshMetadataFieldsList();
-		}
-
-		if (bRefreshQueryFields) {
-
-		    me.__refreshQueryFieldsOptions();
-
 		}
 
 		me.metadataCatalogGrid.body.unmask();
@@ -652,7 +696,16 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	var me = this;
 	var oButton = oBlock.items.getAt(1);
 	var oDropDown = oBlock.items.getAt(2);
-	return me.__getSignByIconCls(oButton.iconCls,oDropDown.isInverseSelection())+"|"+ oDropDown.getValue().join(":::");
+
+	var oRet = "";
+
+	if (oBlock.blockType == "string") {
+	    oRet = "s" + "|" + me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection()) + "|" + oDropDown.getValue().join(":::");
+	} else {
+	    oRet = "v" + "|" + me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection()) + "|" + oDropDown.getValue();
+	}
+	
+	return oRet;
 
     },
 
@@ -703,17 +756,17 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 	    } else {
 		sSign = "!=";
 	    }
-	    break;  
+	    break;
 	case "meta-in-icon":
 	    if (bNot) {
 		sSign = "nin";
 	    } else {
 		sSign = "in";
 	    }
-	    break;  
+	    break;
 
 	}
-	
+
 	return sSign;
 
     },
@@ -731,6 +784,10 @@ Ext.define('DIRAC.MetadataCatalog.classes.MetadataCatalog', {
 		oNewData.push([ me.fieldsTypes[key], key ]);
 	    }
 	}
+
+	oNewData.sort(function(a, b) {
+	    return ((a[1].toLowerCase() > b[1].toLowerCase()) ? 1 : 0);
+	});
 
 	me.metadataCatalogStore.add(oNewData);
 

@@ -3,6 +3,7 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities import Time
 import json
 import ast
 
@@ -60,7 +61,8 @@ class JobMonitorHandler(WebHandler):
     if result.has_key("Extras"):
       st = self.__dict2string({})
       extra = result["Extras"]
-      callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":None } 
+      timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+      callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":timestamp } 
     else:
       callback = {"success":"true", "result":callback, "total":total, "date":None}
              

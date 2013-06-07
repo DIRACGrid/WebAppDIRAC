@@ -3,10 +3,11 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+import operator
 import json
 import ast
 
-class MetadataCatalogHandler(WebHandler):
+class FileCatalogHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
   
@@ -145,11 +146,13 @@ class MetadataCatalogHandler(WebHandler):
     print compat
     result = RPC.getCompatibleMetadata( compat )
     gLogger.always( result )
+    
+#     sorted_result = sorted(result["Value"].iteritems(), key=operator.itemgetter(0))
 
     if not result[ "OK" ]:
       return self.write(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
     
-    return self.write(json.dumps({ "success" : "true" , "result" : result[ "Value" ] }))
+    return self.write(json.dumps({ "success" : "true" , "result" : result["Value"] }))
   
   def web_getFilesData( self ) :
     RPC = RPCClient( "DataManagement/FileCatalog" )

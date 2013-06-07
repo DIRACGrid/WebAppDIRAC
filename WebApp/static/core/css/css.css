@@ -136,7 +136,7 @@
 */
 
 .ux-wallpaper {
-    background-color: #eeeeee;
+    background-color: #AAAAAA;
     background-position:bottom right;
 }
 
@@ -249,6 +249,11 @@
 
 .toolbar-other-cascade {
     background-image:url(../img/icons/system/_tool_cascade.png) !important;
+    background-size:16px 16px;
+}
+
+.toolbar-other-close {
+    background-image:url(../img/icons/system/close.gif) !important;
     background-size:16px 16px;
 }
 

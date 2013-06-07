@@ -394,28 +394,16 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     	
     	var oCountNewStore = oNewStore.getCount();
     	
+    	me.suspendEvents(false);
+    	
+    	var oValue = me.getValue();
+    	oStore.removeAll();
+    	
     	for(var i=0;i<oCountNewStore;i++){
-    		
-    		var oNewItem = oNewStore.getAt(i);
-    		var oFound = false;
-    		
-    		for(var j=0;j<oCount;j++){
-    			
-    			var oExistItem = oStore.getAt(j);
-    			
-    			if(oNewItem.get(me.valueField)==oExistItem.get(me.valueField)){
-    				
-    				oFound = true;
-    				break;
-    				
-    			}
-    			
-    		}
-    		
-    		if(!oFound)
-    			oStore.add(oNewItem);
-    		
+    		oStore.add(oNewStore.getAt(i));	
     	}
+    
+    	me.resumeEvents();
     	
     	//this is needed because we have to render check-boxes inside the new items added
     	me.getPicker().refresh();
