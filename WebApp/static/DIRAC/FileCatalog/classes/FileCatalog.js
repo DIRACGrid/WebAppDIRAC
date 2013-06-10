@@ -202,8 +202,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		hideable : false,
 		fixed : true,
 		menuDisabled : true,
-		align : 'center',
-		hidden : true
+		align : 'center'
 	    }, {
 		dataIndex : 'Name',
 		align : 'left',
@@ -214,13 +213,13 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    } ],
 	    rendererType : function(value) {
 		if (value == 'varchar(128)') {
-		    return '<img src="static/DIRAC/FileCatalog/images/str.gif">';
+		    return '<img src="static/DIRAC/FileCatalog/images/new_string.png">';
 		} else if (value == 'int') {
-		    return '<img src="static/DIRAC/FileCatalog/images/int.gif">';
+		    return '<img src="static/DIRAC/FileCatalog/images/new_int.png">';
 		} else if (value == 'datetime') {
-		    return '<img src="static/DIRAC/FileCatalog/images/date.gif">';
+		    return '<img src="static/DIRAC/FileCatalog/images/new_date.png">';
 		} else {
-		    return '<img src="static/DIRAC/FileCatalog/images/unknown.gif">';
+		    return '<img src="static/DIRAC/FileCatalog/images/new_float.png">';
 		}
 	    },
 	    listeners : {
@@ -635,9 +634,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	    var oBlock = me.queryPanel.items.getAt(i);
 
-	    var oDropDown = oBlock.items.getAt(2);
-
-	    oSendData["_compatible_" + oBlock.fieldName] = oDropDown.getValue();
+	    oSendData["_compatible_" + oBlock.fieldName] = me.__getValueBlockDescription(oBlock);
 
 	}
 
@@ -702,7 +699,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	if (oBlock.blockType == "string") {
 	    oRet = "s" + "|" + me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection()) + "|" + oDropDown.getValue().join(":::");
 	} else {
-	    oRet = "v" + "|" + me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection()) + "|" + oDropDown.getValue();
+	    oRet = "v" + "|" + me.__getSignByIconCls(oButton.iconCls, false) + "|" + oDropDown.getValue();
 	}
 	
 	return oRet;

@@ -91,41 +91,6 @@ class FileCatalogHandler(WebHandler):
       
     return self.write(json.dumps({ "success" : "true" , "result" : callback }))
   
-  '''
-    Method to read the compatible fields regarding the current query
-  '''
-  def web_getCompatible( self ):
-
-    try:
-      compat = dict()
-      for key in self.request.arguments:
-        key = str( key )
-        prefix = key[ :12 ]
-        postfix = key[ 12: ]
-        if not "_compatible_" in prefix:
-          continue
-        if not len( postfix ) > 0:
-          continue 
-        compat[ postfix ] = str( self.request.arguments[ key ][0] )
-    except Exception, e:
-      return self.write(json.dumps({ "success" : "false" , "error" : e }))
-
-    RPC = RPCClient( "DataManagement/FileCatalog" )
-
-    result = RPC.getCompatibleMetadata( compat )
-    gLogger.always( result )
-
-    if not result[ "OK" ]:
-      return self.write(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
-    result = result[ "Value" ]
-    
-    callback = dict()
-    for i in result:
-      if not len( result[ i ] ) > 0:
-        continue
-      callback[ i ] = True
-    return self.write(json.dumps({ "success" : "true" , "result" : callback }))
-  
   def web_getQueryData( self ):
 
     try:
@@ -133,15 +98,37 @@ class FileCatalogHandler(WebHandler):
       for key in self.request.arguments:
         key = str( key )
         prefix = key[ :12 ]
-        postfix = key[ 12: ]
+        name = key[ 12: ]
         if not "_compatible_" in prefix:
           continue
-        if not len( postfix ) > 0:
-          continue 
-        compat[ postfix ] = str( self.request.arguments[ key ][0] )
+        if not len( name ) > 0:
+          continue
+        
+        value = str( self.request.arguments[ key ][0] ).split("|")
+        
+        sign = value[1]
+        
+        #check existence of the 'name' section
+        if not compat.has_key(name):
+          compat[name] = dict()
+          
+        #check existence of the 'sign' section
+        if not compat[name].has_key(sign):
+          if value[0]=="v":
+            compat[name][sign] = ""
+          elif value[0]=="s":
+            compat[name][sign] = []
+          
+        if value[0]=="v":
+          compat[name][sign] = value[2]
+        elif value[0]=="s":
+          compat[name][sign] += value[2].split(":::")
+    
     except Exception, e:
       return self.write(json.dumps({ "success" : "false" , "error" : e }))
-
+    
+    gLogger.always( compat )
+    
     RPC = RPCClient( "DataManagement/FileCatalog" )
     print compat
     result = RPC.getCompatibleMetadata( compat )
