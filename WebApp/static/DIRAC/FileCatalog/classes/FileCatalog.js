@@ -9,7 +9,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
     extend : 'Ext.dirac.core.Module',
     requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date",
 	    "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record",
-	    "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text' ],
+	    "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping' ],
 
     loadState : function(oData) {
 
@@ -147,6 +147,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		    root : 'result'
 		}
 	    },
+	    groupField : 'dirname',
 	    fields : [ {
 		name : 'dirname'
 	    }, {
@@ -157,8 +158,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		name : 'size'
 	    }, {
 		name : 'metadata'
-	    },{
-		name:"fullfilename"
+	    }, {
+		name : "fullfilename"
 	    } ],
 	    remoteSort : true,
 	    pageSize : 25,
@@ -211,7 +212,25 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    me.oprLoadFilesGridData();
 	}, me);
 
-	var pagingToolbarItems = [ '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+	me.pagingToolbar.btnGrouping = new Ext.Button({
+	    text : 'Disable Grouping',
+	    handler : function() {
+
+		if (me.groupingFeature.disabled) {
+		    me.groupingFeature.enable();
+		    me.pagingToolbar.btnGrouping.setText("Disable Grouping");
+		    me.filesGrid.columns[1].hide();
+		} else {
+		    me.groupingFeature.disable();
+		    me.pagingToolbar.btnGrouping.setText("Enable Grouping");
+		    me.filesGrid.columns[1].show();
+		}
+
+	    },
+	    scope : me
+	});
+
+	var pagingToolbarItems = [ me.pagingToolbar.btnGrouping, '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
 
 	me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
 	    store : me.filesDataStore,
@@ -222,6 +241,13 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    prependButtons : true
 	});
 
+	me.groupingFeature = Ext.create('Ext.grid.feature.Grouping', {
+	    groupHeaderTpl : '{columnName}: {name} ({rows.length} Item{[values.rows.length > 1 ? "s" : ""]})',
+	    hideGroupedHeader : true,
+	    startCollapsed : true,
+	    id : 'directoryGrouping'
+	});
+
 	me.filesGrid = Ext.create('Ext.grid.Panel', {
 	    region : 'center',
 	    store : me.filesDataStore,
@@ -230,6 +256,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		stripeRows : true,
 		enableTextSelection : true
 	    },
+	    features : [ me.groupingFeature ],
 	    columns : [ {
 		header : me.checkboxFunctionDefinition,
 		name : 'checkBox',
@@ -253,13 +280,13 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		sortable : true,
 		dataIndex : 'filename',
 		align : 'left',
-		width:200
+		flex : 1
 	    }, {
 		header : 'Date',
 		sortable : true,
 		dataIndex : 'date',
 		align : 'left',
-		width: 150
+		width : 150
 	    }, {
 		header : 'Size',
 		sortable : true,
@@ -301,10 +328,6 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    iconCls : "meta-refresh-icon",
 	    handler : function() {
 
-		for ( var i = 0; i < me.queryPanel.items.length; i++) {
-
-		    console.log(me.__getValueBlockDescription(me.queryPanel.items.getAt(i)));
-		}
 	    },
 	    scope : me
 
@@ -426,20 +449,19 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	// me.metadataCatalogGrid.body.mask("Wait ...");
 	var me = this;
-	
+
 	me.queryPanel.body.mask("Wait ...");
 	me.metadataCatalogGrid.body.mask("Wait ...");
-	
+
 	var oSendData = {};
 
 	for ( var i = 0; i < me.queryPanel.items.length; i++) {
 
 	    var oBlock = me.queryPanel.items.getAt(i);
 	    var oData = me.__getValueBlockDescription(oBlock);
-	    
-	    if(oData!="")
+
+	    if (oData != "")
 		oSendData["p." + oBlock.fieldName] = oData;
-	    
 
 	}
 
@@ -451,7 +473,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
     },
 
     onItemLogicOperationClick : function(oItem, e, eOpts) {
-	
+
 	var oButton = oItem.up("button");
 	oButton.setIconCls(oItem.iconCls);
 	oButton.moduleObject.__getQueryData(true);
@@ -614,7 +636,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		xtype : "button",
 		iconCls : "meta-equal-icon",
 		margin : 3,
-		moduleObject:me,
+		moduleObject : me,
 		menu : [ {
 		    text : "Equal to",
 		    iconCls : "meta-equal-icon",
@@ -798,8 +820,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	    var oBlock = me.queryPanel.items.getAt(i);
 	    var oData = me.__getValueBlockDescription(oBlock);
-	    
-	    if(oData!="")
+
+	    if (oData != "")
 		oSendData["_compatible_" + oBlock.fieldName] = oData;
 
 	}
@@ -863,11 +885,11 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	var oRet = "";
 
 	if (oBlock.blockType == "string") {
-	    if(oDropDown.getValue().length>0){
+	    if (oDropDown.getValue().length > 0) {
 		oRet = "s" + "|" + me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection()) + "|" + oDropDown.getValue().join(":::");
 	    }
 	} else {
-	    if(oDropDown.getValue()!=null){
+	    if (oDropDown.getValue() != null) {
 		oRet = "v" + "|" + me.__getSignByIconCls(oButton.iconCls, false) + "|" + oDropDown.getValue();
 	    }
 	}
@@ -951,11 +973,22 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		oNewData.push([ me.fieldsTypes[key], key ]);
 	    }
 	}
-
-	oNewData.sort(function(a, b) {
-	    return ((a[1].toLowerCase() > b[1].toLowerCase()) ? 1 : 0);
-	});
-
+	
+	for(var i=0;i<oNewData.length-1;i++){
+	    for(var j=i+1;j<oNewData.length;j++){
+		
+		if(oNewData[i][1].toLowerCase() > oNewData[j][1].toLowerCase()){
+		    
+		    var elem = oNewData[i];
+		    oNewData[i] = oNewData[j];
+		    oNewData[j] = elem;
+		    
+		}
+		
+	    }
+	    
+	}
+	
 	me.metadataCatalogStore.add(oNewData);
 
     },

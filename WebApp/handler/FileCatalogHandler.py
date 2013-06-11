@@ -55,44 +55,7 @@ class FileCatalogHandler(WebHandler):
   '''
     Method to read all the available options for a metadata field
   '''
-  def web_getMetadataFieldOptions(self):
-    if not "getValue" in self.request.arguments:
-      return self.write(json.dumps({ "success" : "false" , "error" : "Metadata key is absent" }))
-    
-    try:
-      meta = str( self.request.arguments[ "getValue" ][0] )
-      compat = dict()
-      for key in self.request.arguments:
-        key = str( key )
-        prefix = key[ :12 ]
-        postfix = key[ 12: ]
-        if not "_compatible_" in prefix:
-          continue
-        if not len( postfix ) > 0:
-          continue 
-        compat[ postfix ] = str( self.request.arguments[ key ][0] )
-    except Exception, e:
-      return self.write(json.dumps({ "success" : "false" , "error" : e }))
-    gLogger.always( compat )    
-        
-    RPC = RPCClient( "DataManagement/FileCatalog" )
-
-    result = RPC.getCompatibleMetadata( compat )
-    gLogger.always( result )
-
-    if not result[ "OK" ]:
-      return self.write(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
-    result = result[ "Value" ]
-
-    if not meta in result:
-      return self.write(json.dumps({ "success" : "true" , "result" : {} }))
-    
-    callback = []
-    for i in result[ meta ]:
-      callback.append( { "name" : i} )
-      
-    return self.write(json.dumps({ "success" : "true" , "result" : callback }))
-  
+  @asyncGen 
   def web_getQueryData( self ):
 
     try:
@@ -127,37 +90,36 @@ class FileCatalogHandler(WebHandler):
           compat[name][sign] += value[2].split(":::")
     
     except Exception, e:
-      return self.write(json.dumps({ "success" : "false" , "error" : e }))
+      self.finish(json.dumps({ "success" : "false" , "error" : "Metadata query error" }))
     
     gLogger.always( compat )
     
     RPC = RPCClient( "DataManagement/FileCatalog" )
-    print compat
-    result = RPC.getCompatibleMetadata( compat )
-    gLogger.always( result )
     
-#     sorted_result = sorted(result["Value"].iteritems(), key=operator.itemgetter(0))
+    result = yield self.threadTask(RPC.getCompatibleMetadata, compat )
+    gLogger.always( result )
 
     if not result[ "OK" ]:
-      return self.write(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
+      self.finish(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
     
-    return self.write(json.dumps({ "success" : "true" , "result" : result["Value"] }))
+    self.finish(json.dumps({ "success" : "true" , "result" : result["Value"] }))
   
+  @asyncGen  
   def web_getFilesData( self ) :
     RPC = RPCClient( "DataManagement/FileCatalog" )
     req = self.__request()
     gLogger.always(req)
     gLogger.debug( "submit: incoming request %s" % req )
-    result = RPC.findFilesByMetadataWeb( req["selection"] , req["path"] , self.S_NUMBER , self.L_NUMBER)
+    result = yield self.threadTask(RPC.findFilesByMetadataWeb, req["selection"] , req["path"] , self.S_NUMBER , self.L_NUMBER)
     gLogger.debug( "submit: result of findFilesByMetadataDetailed %s" % result )
     if not result[ "OK" ] :
       gLogger.error( "submit: %s" % result[ "Message" ] )
-      return self.write(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
+      self.finish(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
     result = result[ "Value" ]
-    gLogger.always( "Result of findFilesByMetadataDetailed %s" % result )
+#     gLogger.always( "Result of findFilesByMetadataDetailed %s" % result )
 
     if not len(result) > 0:
-      return self.write(json.dumps({ "success" : "true" , "result" : [] , "total" : 0, "date":"-" }))
+      self.finish(json.dumps({ "success" : "true" , "result" : [] , "total" : 0, "date":"-" }))
     
     total = result[ "TotalRecords" ]
     result = result[ "Records" ]
@@ -185,7 +147,7 @@ class FileCatalogHandler(WebHandler):
       callback.append({"fullfilename":key, "dirname": dirname, "filename" : filename , "date" : date , "size" : size ,
                             "metadata" : meta })
     timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
-    return self.write(json.dumps({ "success" : "true" , "result" : callback , "total" : total, "date":timestamp}))
+    self.finish(json.dumps({ "success" : "true" , "result" : callback , "total" : total, "date":timestamp}))
 
   def __request(self):
     req = { "selection" : {} , "path" : "/" }
