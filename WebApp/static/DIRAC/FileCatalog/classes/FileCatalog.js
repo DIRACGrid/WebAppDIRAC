@@ -65,7 +65,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	    iconCls : "meta-submit-icon",
 	    handler : function() {
-
+		me.oprLoadFilesGridData();
 	    },
 	    scope : me
 
@@ -75,7 +75,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	    text : 'Refresh',
 
-	    iconCls : "meta-reset-icon",
+	    iconCls : "meta-refresh-icon",
 	    handler : function() {
 
 	    },
@@ -133,17 +133,148 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    height : 300
 	});
 
-	me.queryPanel.addDocked([ queryPanelToolbarBottom, queryPanelToolbarTop ]);
+	me.queryPanel.addDocked([ queryPanelToolbarBottom ]);
 
 	/*-------------------------------------------------------------------------------------*/
 
-	me.rightPanel = new Ext.create('Ext.panel.Panel', {
+	me.filesDataStore = new Ext.data.JsonStore({
+
+	    proxy : {
+		type : 'ajax',
+		url : _app_base_url + 'FileCatalog/getFilesData',
+		reader : {
+		    type : 'json',
+		    root : 'result'
+		}
+	    },
+	    fields : [ {
+		name : 'dirname'
+	    }, {
+		name : 'filename'
+	    }, {
+		name : 'date'
+	    }, {
+		name : 'size'
+	    }, {
+		name : 'metadata'
+	    },{
+		name:"fullfilename"
+	    } ],
+	    remoteSort : true,
+	    pageSize : 25,
+	    listeners : {
+
+		load : function(oStore, records, successful, eOpts) {
+
+		    me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+		    me.queryPanel.body.unmask();
+		    me.metadataCatalogGrid.body.unmask();
+
+		}
+
+	    }
+	});
+
+	me.checkboxFunctionDefinition = '<input type="checkbox" value="" onchange="';
+	me.checkboxFunctionDefinition += 'var oChecked=this.checked;';
+	me.checkboxFunctionDefinition += 'var oElems=Ext.query(\'#' + me.id + ' input.checkrow\');';
+	me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
+	me.checkboxFunctionDefinition += '"/>';
+
+	me.pagingToolbar = {};
+	me.pagingToolbar.updateStamp = new Ext.Button({
+	    disabled : true,
+	    text : 'Updated: -'
+	});
+
+	me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
+	    allowBlank : false,
+	    displayField : 'number',
+	    editable : false,
+	    maxLength : 4,
+	    maxLengthText : 'The maximum value for this field is 1000',
+	    minLength : 1,
+	    minLengthText : 'The minimum value for this field is 1',
+	    mode : 'local',
+	    store : new Ext.data.SimpleStore({
+		fields : [ 'number' ],
+		data : [ [ 25 ], [ 50 ], [ 100 ], [ 200 ], [ 500 ], [ 1000 ] ]
+	    }),
+	    triggerAction : 'all',
+	    value : 25,
+	    width : 50
+	});
+
+	me.pagingToolbar.pageSizeCombo.on("change", function(combo, newValue, oldValue, eOpts) {
+	    var me = this;
+	    me.filesDataStore.pageSize = newValue;
+	    me.oprLoadFilesGridData();
+	}, me);
+
+	var pagingToolbarItems = [ '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+
+	me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
+	    store : me.filesDataStore,
+	    displayInfo : true,
+	    displayMsg : 'Displaying topics {0} - {1} of {2}',
+	    items : pagingToolbarItems,
+	    emptyMsg : "No topics to display",
+	    prependButtons : true
+	});
+
+	me.filesGrid = Ext.create('Ext.grid.Panel', {
 	    region : 'center',
-	    floatable : false,
-	    margins : '0',
-	    bodyPadding : 0,
-	    autoScroll : true,
-	    flex : 1
+	    store : me.filesDataStore,
+	    flex : 1,
+	    viewConfig : {
+		stripeRows : true,
+		enableTextSelection : true
+	    },
+	    columns : [ {
+		header : me.checkboxFunctionDefinition,
+		name : 'checkBox',
+		width : 26,
+		sortable : false,
+		dataIndex : 'fullfilename',
+		renderer : function(value, metaData, record, row, col, store, gridView) {
+		    return this.rendererChkBox(value);
+		},
+		hideable : false,
+		fixed : true,
+		menuDisabled : true
+	    }, {
+		header : 'Directory',
+		sortable : true,
+		dataIndex : 'dirname',
+		hideable : false,
+		flex : 1,
+	    }, {
+		header : 'File',
+		sortable : true,
+		dataIndex : 'filename',
+		align : 'left',
+		width:200
+	    }, {
+		header : 'Date',
+		sortable : true,
+		dataIndex : 'date',
+		align : 'left',
+		width: 150
+	    }, {
+		header : 'Size',
+		sortable : true,
+		dataIndex : 'size',
+		align : 'left'
+	    }, {
+		header : 'Metadata',
+		sortable : false,
+		dataIndex : 'metadata',
+		align : 'left'
+	    } ],
+	    rendererChkBox : function(val) {
+		return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
+	    },
+	    tbar : me.pagingToolbar.toolbar
 	});
 
 	/*
@@ -260,7 +391,9 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	});
 
-	me.add([ oLeftPanel, me.rightPanel ]);
+	oLeftPanel.addDocked([ queryPanelToolbarTop ]);
+
+	me.add([ oLeftPanel, me.filesGrid ]);
 	me.fieldsTypes = {};
 
 	Ext.Ajax.request({
@@ -289,9 +422,39 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
     },
 
-    onItemLogicOperationClick : function(oItem, e, eOpts) {
+    oprLoadFilesGridData : function() {
 
-	oItem.up("button").setIconCls(oItem.iconCls);
+	// me.metadataCatalogGrid.body.mask("Wait ...");
+	var me = this;
+	
+	me.queryPanel.body.mask("Wait ...");
+	me.metadataCatalogGrid.body.mask("Wait ...");
+	
+	var oSendData = {};
+
+	for ( var i = 0; i < me.queryPanel.items.length; i++) {
+
+	    var oBlock = me.queryPanel.items.getAt(i);
+	    var oData = me.__getValueBlockDescription(oBlock);
+	    
+	    if(oData!="")
+		oSendData["p." + oBlock.fieldName] = oData;
+	    
+
+	}
+
+	oSendData.path = me.txtPathField.getValue();
+
+	// set those data as extraParams in
+	me.filesGrid.store.proxy.extraParams = oSendData;
+	me.filesGrid.store.load();
+    },
+
+    onItemLogicOperationClick : function(oItem, e, eOpts) {
+	
+	var oButton = oItem.up("button");
+	oButton.setIconCls(oItem.iconCls);
+	oButton.moduleObject.__getQueryData(true);
 
     },
 
@@ -451,6 +614,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		xtype : "button",
 		iconCls : "meta-equal-icon",
 		margin : 3,
+		moduleObject:me,
 		menu : [ {
 		    text : "Equal to",
 		    iconCls : "meta-equal-icon",
@@ -558,7 +722,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		success : function(oReponse) {
 
 		    oResponse = Ext.JSON.decode(oReponse.responseText);
-		    
+
 		    var oBackData = oResponse.result;
 		    var oDropDown = oThisBlock.items.getAt(2);
 
@@ -633,8 +797,10 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	for ( var i = 0; i < me.queryPanel.items.length; i++) {
 
 	    var oBlock = me.queryPanel.items.getAt(i);
-
-	    oSendData["_compatible_" + oBlock.fieldName] = me.__getValueBlockDescription(oBlock);
+	    var oData = me.__getValueBlockDescription(oBlock);
+	    
+	    if(oData!="")
+		oSendData["_compatible_" + oBlock.fieldName] = oData;
 
 	}
 
@@ -697,11 +863,15 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	var oRet = "";
 
 	if (oBlock.blockType == "string") {
-	    oRet = "s" + "|" + me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection()) + "|" + oDropDown.getValue().join(":::");
+	    if(oDropDown.getValue().length>0){
+		oRet = "s" + "|" + me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection()) + "|" + oDropDown.getValue().join(":::");
+	    }
 	} else {
-	    oRet = "v" + "|" + me.__getSignByIconCls(oButton.iconCls, false) + "|" + oDropDown.getValue();
+	    if(oDropDown.getValue()!=null){
+		oRet = "v" + "|" + me.__getSignByIconCls(oButton.iconCls, false) + "|" + oDropDown.getValue();
+	    }
 	}
-	
+
 	return oRet;
 
     },

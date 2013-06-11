@@ -3,6 +3,8 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities import Time
+
 import operator
 import json
 import ast
@@ -144,6 +146,7 @@ class FileCatalogHandler(WebHandler):
   def web_getFilesData( self ) :
     RPC = RPCClient( "DataManagement/FileCatalog" )
     req = self.__request()
+    gLogger.always(req)
     gLogger.debug( "submit: incoming request %s" % req )
     result = RPC.findFilesByMetadataWeb( req["selection"] , req["path"] , self.S_NUMBER , self.L_NUMBER)
     gLogger.debug( "submit: result of findFilesByMetadataDetailed %s" % result )
@@ -153,12 +156,12 @@ class FileCatalogHandler(WebHandler):
     result = result[ "Value" ]
     gLogger.always( "Result of findFilesByMetadataDetailed %s" % result )
 
+    if not len(result) > 0:
+      return self.write(json.dumps({ "success" : "true" , "result" : [] , "total" : 0, "date":"-" }))
+    
     total = result[ "TotalRecords" ]
     result = result[ "Records" ]
-
-    if not len(result) > 0:
-      return { "success" : "true" , "result" : {} , "total" : 0 }
-
+    
     callback = list()
     for key , value in result.items() :
       
@@ -174,71 +177,94 @@ class FileCatalogHandler(WebHandler):
       if "Metadata" in value:
         m = value[ "Metadata" ]
         meta = '; '.join( [ '%s: %s' % ( i , j ) for ( i , j ) in m.items() ] )
-
-      callback.append({ "filename" : key , "date" : date , "size" : size ,
+      
+      dirnameList = key.split("/")
+      dirname = "/".join(dirnameList[:len(dirnameList)-1])
+      filename = dirnameList[len(dirnameList)-1:]
+        
+      callback.append({"fullfilename":key, "dirname": dirname, "filename" : filename , "date" : date , "size" : size ,
                             "metadata" : meta })
-    return self.write(json.dumps({ "success" : "true" , "result" : callback , "total" : len( callback )}))
+    timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+    return self.write(json.dumps({ "success" : "true" , "result" : callback , "total" : total, "date":timestamp}))
 
   def __request(self):
-    req = { "selection" : {} , "path" : "/" }  
+    req = { "selection" : {} , "path" : "/" }
+      
     self.L_NUMBER = 25
     if self.request.arguments.has_key( "limit" ) and len( self.request.arguments[ "limit" ][0] ) > 0:
-      self.L_NUMBER = int( self.request.arguments[ "limit" ] )
+      self.L_NUMBER = int( self.request.arguments[ "limit" ][0] )
+      
     self.S_NUMBER = 0
     if self.request.arguments.has_key( "start" ) and len( self.request.arguments[ "start" ][0] ) > 0:
-      self.S_NUMBER = int( self.request.arguments[ "start" ] )
+      self.S_NUMBER = int( self.request.arguments[ "start" ][0] )
+      
     result = gConfig.getOption( "/Website/ListSeparator" )
     if result[ "OK" ] :
       separator = result[ "Value" ]
     else:
       separator = ":::"
+      
     RPC = RPCClient("DataManagement/FileCatalog")
     result = RPC.getMetadataFields()
     gLogger.debug( "request: %s" % result )
+    
     if not result["OK"]:
       gLogger.error( "request: %s" % result[ "Message" ] )
       return req
     result = result["Value"]
+    
     if not result.has_key( "FileMetaFields" ):
       error = "Service response has no FileMetaFields key. Return empty dict"
       gLogger.error( "request: %s" % error )
       return req
+    
     if not result.has_key( "DirectoryMetaFields" ):
       error = "Service response has no DirectoryMetaFields key. Return empty dict"
       gLogger.error( "request: %s" % error )
       return req
+    
     filemeta = result[ "FileMetaFields" ]
     dirmeta = result[ "DirectoryMetaFields" ]
+    
     meta = []
     for key,value in dirmeta.items() :
       meta.append( key )
+      
     gLogger.always( "request: metafields: %s " % meta )
-    for i in self.request.arguments :
-      tmp = str( i ).split( '.' )
+    
+    for param in self.request.arguments :
+      
+      tmp = str( param ).split( '.' )
+      
       if len( tmp ) < 2 :
         continue
-      logic = tmp[ 1 ]
-      if not logic in [ "=" , "!=" , ">=" , "<=" , ">" , "<" ] :
+      
+      name = tmp[1]
+      value = self.request.arguments[param][0].split("|")
+      
+      logic = value[ 1 ]
+      
+      if not logic in ["in","nin", "=" , "!=" , ">=" , "<=" , ">" , "<" ] :
         gLogger.always( "Operand '%s' is not supported " % logic )
         continue
-      name = tmp[ 0 ]
       
       if name in meta :
-        if not req[ "selection" ].has_key( name ):
-          req[ "selection" ][ name ] = dict()
-        value = str( self.request.arguments[ i ][0] ).split( separator )
-        gLogger.always( "Value for metafield %s: %s " % ( name , value ) )
-        if not logic in [ "=" , "!=" ] :
-          if len( value ) > 1 :
-            gLogger.always( "List of values is not supported for %s " % logic )
-            continue
-          req[ "selection" ][ name ][ logic ] = value[ 0 ]
-        else :
-          if not req[ "selection" ][ name ].has_key( logic ) :
-            req[ "selection" ][ name ][ logic ] = dict()
-          for j in value:
-            req[ "selection" ][ name ][ logic ].append( j )
+        #check existence of the 'name' section
+        if not req[ "selection" ].has_key(name):
+          req[ "selection" ][name] = dict()
+          
+        #check existence of the 'sign' section
+        if not req[ "selection" ][name].has_key(logic):
+          if value[0]=="v":
+            req[ "selection" ][name][logic] = ""
+          elif value[0]=="s":
+            req[ "selection" ][name][logic] = []
+          
+        if value[0]=="v":
+          req[ "selection" ][name][logic] = value[2]
+        elif value[0]=="s":
+          req[ "selection" ][name][logic] += value[2].split(":::")
     if self.request.arguments.has_key("path") :
       req["path"] = self.request.arguments["path"][0]
-    gLogger.always(" REQ: ",req)
+    gLogger.always("REQ: ",req)
     return req
