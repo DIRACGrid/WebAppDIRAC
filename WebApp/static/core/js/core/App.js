@@ -35,8 +35,6 @@ Ext.define('Ext.dirac.core.App', {
 
 	var me = this;
 	
-	Ext.Ajax.timeout = 1800000;
-	
 	me.addEvents('ready', 'beforeunload');
 
 	me.mixins.observable.constructor.call(this, undefined);
