@@ -59,7 +59,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	var me = this;
 
 	me.launcher.title = "Configuration Manager";
-	me.launcher.maximized = true;
+	me.launcher.maximized = false;
+	var oDimensions = _app.desktop.getDesktopDimensions();
+
+	me.launcher.height = oDimensions[1]/2;
+	me.launcher.width = oDimensions[0]/2;
 
 	Ext.apply(me, {
 	    layout : 'border',

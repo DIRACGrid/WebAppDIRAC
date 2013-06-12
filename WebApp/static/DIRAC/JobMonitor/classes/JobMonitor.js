@@ -527,7 +527,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		reader : {
 		    type : 'json',
 		    root : 'result'
-		}
+		},
+		timeout:1800000
 	    },
 
 	    // alternatively, a Ext.data.Model name can be given

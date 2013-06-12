@@ -7,9 +7,9 @@
 
 Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
     extend : 'Ext.dirac.core.Module',
-    requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date",
-	    "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record",
-	    "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping' ],
+    requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.TextArea",
+	    "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface",
+	    'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping' ],
 
     loadState : function(oData) {
 
@@ -100,7 +100,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	me.txtPathField = new Ext.form.field.Text({
 	    width : 200,
-	    value : '/'
+	    value : '/',
+	    flex : 1
 	});
 
 	queryPanelToolbarTop.add(me.txtPathField);
@@ -111,7 +112,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	    iconCls : "meta-reset-icon",
 	    handler : function() {
-
+		me.txtPathField.setValue("/");
 	    },
 	    scope : me
 
@@ -145,7 +146,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		reader : {
 		    type : 'json',
 		    root : 'result'
-		}
+		},
+		timeout:1800000
 	    },
 	    groupField : 'dirname',
 	    fields : [ {
@@ -213,16 +215,19 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	}, me);
 
 	me.pagingToolbar.btnGrouping = new Ext.Button({
-	    text : 'Disable Grouping',
+	    text : 'Ungroup',
+	    iconCls:"meta-ungroup-icon",
 	    handler : function() {
 
 		if (me.groupingFeature.disabled) {
 		    me.groupingFeature.enable();
-		    me.pagingToolbar.btnGrouping.setText("Disable Grouping");
+		    me.pagingToolbar.btnGrouping.setText("Ungroup");
+		    me.pagingToolbar.btnGrouping.setIconCls("meta-ungroup-icon");
 		    me.filesGrid.columns[1].hide();
 		} else {
 		    me.groupingFeature.disable();
-		    me.pagingToolbar.btnGrouping.setText("Enable Grouping");
+		    me.pagingToolbar.btnGrouping.setText("Group");
+		    me.pagingToolbar.btnGrouping.setIconCls("meta-group-icon");
 		    me.filesGrid.columns[1].show();
 		}
 
@@ -336,7 +341,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	metadataCatalogGridToolbar.add(me.btnRefreshLeftPanel);
 
 	me.metadataCatalogGrid = Ext.create('Ext.grid.Panel', {
-	    title : 'Metadata',
+	    title : 'Directory Metadata',
 	    region : 'center',
 
 	    hideHeaders : true,
@@ -533,13 +538,14 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    }),
 	    listeners : {
 
-		change : function(oField, newValue, oldValue, eOpts) {
-
-		    if (oField.noChangeEventWhenCreated == 1) {
+		// change : function(oField, newValue, oldValue, eOpts) {
+		blur : function(oField, oEvent, eOpts) {
+		    
+		    //if (oField.noChangeEventWhenCreated == 1) {
 			me.__getQueryData(true);
-		    } else {
-			oField.noChangeEventWhenCreated = 1;
-		    }
+		    //} else {
+			//oField.noChangeEventWhenCreated = 1;
+		    //}
 
 		},
 		expand : function(oField, eOpts) {
@@ -604,7 +610,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    }),
 	    listeners : {
 
-		change : function(oField, newValue, oldValue, eOpts) {
+		// change : function(oField, newValue, oldValue, eOpts) {
+		blur : function(oField, oEvent, eOpts) {
 		    me.__getQueryData(true);
 		},
 		expand : function(oField, eOpts) {
@@ -973,22 +980,22 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		oNewData.push([ me.fieldsTypes[key], key ]);
 	    }
 	}
-	
-	for(var i=0;i<oNewData.length-1;i++){
-	    for(var j=i+1;j<oNewData.length;j++){
-		
-		if(oNewData[i][1].toLowerCase() > oNewData[j][1].toLowerCase()){
-		    
+
+	for ( var i = 0; i < oNewData.length - 1; i++) {
+	    for ( var j = i + 1; j < oNewData.length; j++) {
+
+		if (oNewData[i][1].toLowerCase() > oNewData[j][1].toLowerCase()) {
+
 		    var elem = oNewData[i];
 		    oNewData[i] = oNewData[j];
 		    oNewData[j] = elem;
-		    
+
 		}
-		
+
 	    }
-	    
+
 	}
-	
+
 	me.metadataCatalogStore.add(oNewData);
 
     },

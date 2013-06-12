@@ -55,6 +55,7 @@ class FileCatalogHandler(WebHandler):
   '''
     Method to read all the available options for a metadata field
   '''
+  '''
   @asyncGen 
   def web_getQueryData( self ):
 
@@ -103,7 +104,55 @@ class FileCatalogHandler(WebHandler):
       self.finish(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
     
     self.finish(json.dumps({ "success" : "true" , "result" : result["Value"] }))
-  
+  '''  
+  def web_getQueryData( self ):
+
+    try:
+      compat = dict()
+      for key in self.request.arguments:
+        key = str( key )
+        prefix = key[ :12 ]
+        name = key[ 12: ]
+        if not "_compatible_" in prefix:
+          continue
+        if not len( name ) > 0:
+          continue
+        
+        value = str( self.request.arguments[ key ][0] ).split("|")
+        
+        sign = value[1]
+        
+        #check existence of the 'name' section
+        if not compat.has_key(name):
+          compat[name] = dict()
+          
+        #check existence of the 'sign' section
+        if not compat[name].has_key(sign):
+          if value[0]=="v":
+            compat[name][sign] = ""
+          elif value[0]=="s":
+            compat[name][sign] = []
+          
+        if value[0]=="v":
+          compat[name][sign] = value[2]
+        elif value[0]=="s":
+          compat[name][sign] += value[2].split(":::")
+    
+    except Exception, e:
+      return self.write(json.dumps({ "success" : "false" , "error" : "Metadata query error" }))
+    
+    gLogger.always( compat )
+    
+    RPC = RPCClient( "DataManagement/FileCatalog" )
+    
+    result = RPC.getCompatibleMetadata( compat )
+    gLogger.always( result )
+
+    if not result[ "OK" ]:
+      return self.write(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
+    
+    return self.write(json.dumps({ "success" : "true" , "result" : result["Value"] }))
+  '''
   @asyncGen  
   def web_getFilesData( self ) :
     RPC = RPCClient( "DataManagement/FileCatalog" )
@@ -148,7 +197,53 @@ class FileCatalogHandler(WebHandler):
                             "metadata" : meta })
     timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
     self.finish(json.dumps({ "success" : "true" , "result" : callback , "total" : total, "date":timestamp}))
+  
+  '''  
+  def web_getFilesData( self ) :
+    RPC = RPCClient( "DataManagement/FileCatalog" )
+    req = self.__request()
+    gLogger.always(req)
+    gLogger.debug( "submit: incoming request %s" % req )
+    result = RPC.findFilesByMetadataWeb( req["selection"] , req["path"] , self.S_NUMBER , self.L_NUMBER)
+    gLogger.debug( "submit: result of findFilesByMetadataDetailed %s" % result )
+    if not result[ "OK" ] :
+      gLogger.error( "submit: %s" % result[ "Message" ] )
+      return self.write(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
+    result = result[ "Value" ]
+#     gLogger.always( "Result of findFilesByMetadataDetailed %s" % result )
 
+    if not len(result) > 0:
+      return self.write(json.dumps({ "success" : "true" , "result" : [] , "total" : 0, "date":"-" }))
+    
+    total = result[ "TotalRecords" ]
+    result = result[ "Records" ]
+    
+    callback = list()
+    for key , value in result.items() :
+      
+      size = ""
+      if "Size" in value:
+        size = value[ "Size" ]
+
+      date = ""
+      if "CreationDate" in value:
+        date = str( value[ "CreationDate" ] )
+
+      meta = ""
+      if "Metadata" in value:
+        m = value[ "Metadata" ]
+        meta = '; '.join( [ '%s: %s' % ( i , j ) for ( i , j ) in m.items() ] )
+      
+      dirnameList = key.split("/")
+      dirname = "/".join(dirnameList[:len(dirnameList)-1])
+      filename = dirnameList[len(dirnameList)-1:]
+        
+      callback.append({"fullfilename":key, "dirname": dirname, "filename" : filename , "date" : date , "size" : size ,
+                            "metadata" : meta })
+    timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+    return self.write(json.dumps({ "success" : "true" , "result" : callback , "total" : total, "date":timestamp}))
+
+    
   def __request(self):
     req = { "selection" : {} , "path" : "/" }
       

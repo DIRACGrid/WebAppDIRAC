@@ -67,3 +67,17 @@
      background-color: transparent;
 	
 }
+
+.meta-group-icon{
+	
+	 background-image: url(../images/group.png) !important;
+     background-color: transparent;
+	
+}
+
+.meta-ungroup-icon{
+	
+	 background-image: url(../images/ungroup.png) !important;
+     background-color: transparent;
+	
+}
