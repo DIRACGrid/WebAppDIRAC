@@ -971,7 +971,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
     afterRender : function() {
 	var me = this;
-	console.log(me.dataStore.proxy.reader);
+	
 	var menuItems = [];
 	for ( var cmb in me.cmbSelectors) {
 
@@ -1002,7 +1002,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    handler : function(item, e) {
 
 		var me = this;
-		console.log(me);
+		
 		if (item.checked)
 		    me.timeSearchPanel.show();
 		else

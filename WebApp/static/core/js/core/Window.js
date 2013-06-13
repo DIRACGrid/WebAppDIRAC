@@ -175,7 +175,11 @@ Ext.define('Ext.dirac.core.Window', {
 	    }
 
 	} else {
-
+	    
+	    if((me.loadedObject.launcher.x != null)&&(me.loadedObject.launcher.y != null)){
+		me.setPosition(me.loadedObject.launcher.x,me.loadedObject.launcher.y);
+	    }
+	    
 	    if (!me.loadedObject.launcher.maximized) {
 
 		if ("width" in me.loadedObject.launcher) {

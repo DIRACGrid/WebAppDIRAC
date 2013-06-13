@@ -17,36 +17,31 @@ class JobMonitorHandler(WebHandler):
   def web_standalone(self):
     self.render("JobMonitor/standalone.tpl", config_data = json.dumps(SessionData().getData()))
   
+  @asyncGen
   def web_getJobData(self):
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
     req = self.__request()
-    result = RPC.getJobPageSummaryWeb(req, self.globalSort , self.pageNumber, self.numberOfJobs)
+    result = yield self.threadTask(RPC.getJobPageSummaryWeb,req, self.globalSort , self.pageNumber, self.numberOfJobs)
     
     if not result["OK"]:
-      self.write(json.dumps({"success":"false", "error":result["Message"]}))
-      pass
+      self.finish(json.dumps({"success":"false", "error":result["Message"]}))
     
     result = result["Value"]
     
     if not result.has_key("TotalRecords"):
-      self.write(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
-      pass
+      self.finish(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
     
     if not (result["TotalRecords"] > 0):
-      self.write(json.dumps({"success":"false", "result":"", "error":"There were no data matching your selection"}))
-      pass
+      self.finish(json.dumps({"success":"false", "result":"", "error":"There were no data matching your selection"}))
     
     if not (result.has_key("ParameterNames") and result.has_key("Records")):
-      self.write(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
-      pass
+      self.finish(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
     
     if not (len(result["ParameterNames"]) > 0):
-      self.write(json.dumps({"success":"false", "result":"", "error":"ParameterNames field is missing"}))
-      pass
+      self.finish(json.dumps({"success":"false", "result":"", "error":"ParameterNames field is missing"}))
     
     if not (len(result["Records"]) > 0):
-      self.write(json.dumps({"success":"false", "Message":"There are no data to display"}))
-      pass
+      self.finish(json.dumps({"success":"false", "Message":"There are no data to display"}))
 
     callback = []
     jobs = result["Records"]
@@ -66,7 +61,7 @@ class JobMonitorHandler(WebHandler):
     else:
       callback = {"success":"true", "result":callback, "total":total, "date":None}
              
-    self.write(json.dumps(callback))
+    self.finish(json.dumps(callback))
 
   def __dict2string(self, req):
     result = ""

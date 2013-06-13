@@ -51,8 +51,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	/*-------------------------------------------------------------------------------------*/
 
-	var queryPanelToolbarCenter = new Ext.toolbar.Toolbar({
-	    region : 'north',
+	me.queryPanelToolbarCenter = new Ext.toolbar.Toolbar({
+	    dock : 'bottom',
 	    layout : {
 		pack : 'center'
 	    },
@@ -65,7 +65,21 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	    iconCls : "meta-submit-icon",
 	    handler : function() {
-		me.oprLoadFilesGridData();
+
+		if (me.__isEveryBlockBlured()) {
+
+		    me.oprLoadFilesGridData();
+
+		} else {
+
+		    me.funcAfterEveryBlockGetsBlured = function() {
+
+			me.oprLoadFilesGridData();
+
+		    };
+
+		    me.btnSubmitLeftPanel.focus();
+		}
 	    },
 	    scope : me
 
@@ -105,7 +119,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	});
 
-	queryPanelToolbarCenter.add([ me.btnSubmitLeftPanel, me.btnResetLeftPanel, me.btnClearQuery ]);
+	me.queryPanelToolbarCenter.add([ me.btnSubmitLeftPanel, me.btnResetLeftPanel, me.btnClearQuery ]);
 
 	var queryPanelToolbarTop = new Ext.toolbar.Toolbar({
 	    dock : 'top',
@@ -144,6 +158,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    iconCls : "meta-reset-icon",
 	    handler : function() {
 		me.txtPathField.setValue("/");
+		me.__getQueryData(true);
 	    },
 	    scope : me
 
@@ -202,6 +217,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		    me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
 		    me.queryPanel.body.unmask();
 		    me.metadataCatalogGrid.body.unmask();
+		    me.queryPanelToolbarCenter.show();
 
 		}
 
@@ -255,22 +271,52 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		    me.pagingToolbar.btnGrouping.setIconCls("meta-ungroup-icon");
 		    me.filesGrid.columns[1].hide();
 		} else {
-		    
+
 		    me.groupingFeature.disable();
 		    me.pagingToolbar.btnGrouping.setText("Group");
 		    me.pagingToolbar.btnGrouping.setIconCls("meta-group-icon");
-		    
+
 		    me.filesGrid.columns[1].show();
 		    me.filesGrid.columns[1].flex = 1;
 		    me.filesGrid.doLayout();
-		    
+
 		}
 
 	    },
 	    scope : me
 	});
 
-	var pagingToolbarItems = [ me.pagingToolbar.btnGrouping, '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+	me.pagingToolbar.btnSaveFile = new Ext.Button({
+	    text : 'Save',
+	    iconCls : "meta-save-icon",
+	    handler : function() {
+
+	    },
+	    scope : me
+	});
+
+	me.pagingToolbar.btnShowQuery = new Ext.Button({
+	    text : 'Show Query',
+	    iconCls : "meta-query-icon",
+	    handler : function() {
+
+		var oWindow = me.getContainer().oprGetChildWindow("Show Query", false, 400, 300);
+
+		var oTextArea = new Ext.create('Ext.form.field.TextArea', {
+		    value : me.lastSubmittedQuery,
+		    cls : "meta-textbox-help-window"
+
+		});
+
+		oWindow.add(oTextArea);
+		oWindow.show();
+
+	    },
+	    scope : me
+	});
+
+	var pagingToolbarItems = [ me.pagingToolbar.btnGrouping, me.pagingToolbar.btnSaveFile, me.pagingToolbar.btnShowQuery, '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
+		me.pagingToolbar.pageSizeCombo, '-' ];
 
 	me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
 	    store : me.filesDataStore,
@@ -398,15 +444,37 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 		itemclick : function(oView, oRecord, item, index, e, eOpts) {
 
-		    switch (oRecord.get("Type")) {
+		    if (me.__isEveryBlockBlured()) {
 
-		    case "varchar(128)":
-			me.queryPanel.add(me.__getDropDownField(oRecord.get("Name")));
-			break;
-		    default:
-			me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
-			break;
+			switch (oRecord.get("Type")) {
 
+			case "varchar(128)":
+			    me.queryPanel.add(me.__getDropDownField(oRecord.get("Name")));
+			    break;
+			default:
+			    me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
+			    break;
+
+			}
+
+		    } else {
+
+			me.funcAfterEveryBlockGetsBlured = function() {
+
+			    switch (oRecord.get("Type")) {
+
+			    case "varchar(128)":
+				me.queryPanel.add(me.__getDropDownField(oRecord.get("Name")));
+				break;
+			    default:
+				me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
+				break;
+
+			    }
+
+			};
+
+			me.btnSubmitLeftPanel.focus();
 		    }
 
 		}
@@ -420,18 +488,17 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    layout : 'border',
 	    bodyBorder : false,
 	    defaults : {
-		collapsible : false,
+		collapsible : true,
 		split : true
 	    },
 	    width : 450,
 	    minWidth : 400,
 	    maxWidth : 550,
-	    items : [ me.queryPanel, queryPanelToolbarCenter, me.metadataCatalogGrid ]
+	    items : [ me.queryPanel, me.metadataCatalogGrid ]
 
 	});
-	
 
-	oLeftPanel.addDocked([ queryPanelToolbarTop ]);
+	oLeftPanel.addDocked([ queryPanelToolbarTop, me.queryPanelToolbarCenter ]);
 
 	me.add([ oLeftPanel, me.filesGrid ]);
 	me.fieldsTypes = {};
@@ -460,6 +527,9 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    }
 	});
 
+	me.funcAfterEveryBlockGetsBlured = null;
+	me.lastSubmittedQuery = "";
+
     },
 
     oprLoadFilesGridData : function() {
@@ -469,6 +539,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	me.queryPanel.body.mask("Wait ...");
 	me.metadataCatalogGrid.body.mask("Wait ...");
+	me.queryPanelToolbarCenter.hide();
 
 	var oSendData = {};
 
@@ -477,13 +548,17 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    var oBlock = me.queryPanel.items.getAt(i);
 	    var oData = me.__getValueBlockDescription(oBlock);
 
-	    if (oData != "")
-		oSendData["p." + oBlock.fieldName] = oData;
+	    if (oData[0] != "")
+		oSendData["p." + oBlock.fieldName + "." + oData[0]] = oData[1];
 
 	}
 
 	oSendData.path = me.txtPathField.getValue();
 
+	me.lastSubmittedQuery = JSON.stringify(oSendData);
+	me.lastSubmittedQuery = me.lastSubmittedQuery.replace(new RegExp(",", 'g'), ",\n\t");
+	me.lastSubmittedQuery = me.lastSubmittedQuery.replace(new RegExp("{", 'g'), "{\n\t");
+	me.lastSubmittedQuery = me.lastSubmittedQuery.replace(new RegExp("}", 'g'), "\n}");
 	// set those data as extraParams in
 	me.filesGrid.store.proxy.extraParams = oSendData;
 	me.filesGrid.store.load();
@@ -543,17 +618,20 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    valueField : "value",
 	    width : 250,
 	    margin : 3,
+	    focusBlurState : 0,
 	    store : new Ext.data.SimpleStore({
 		fields : [ 'value', 'text' ],
 		data : me.__getFieldOptions(sName)
 	    }),
 	    listeners : {
 
-		// change : function(oField, newValue, oldValue, eOpts) {
 		blur : function(oField, oEvent, eOpts) {
-
+		    oField.focusBlurState = 0;
 		    me.__getQueryData(true);
 
+		},
+		focus : function(oField, oEvent, eOpts) {
+		    oField.focusBlurState = 1;
 		},
 		expand : function(oField, eOpts) {
 
@@ -564,24 +642,22 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		}
 
 	    },
-	    onClearButtonAfterClick:function(oSelectBox){
-		
+	    onClearButtonAfterClick : function(oSelectBox) {
+
 		me.__getQueryData(true);
-		
+
 	    },
-	    onNotButtonAfterClick:function(oSelectBox){
-		
+	    onNotButtonAfterClick : function(oSelectBox) {
+
 		me.__getQueryData(true);
-		
+
 	    },
-	    onItemRemovedClick:function(oSelectBox){
-		
+	    onItemRemovedClick : function(oSelectBox) {
+
 		me.__getQueryData(true);
-		
+
 	    }
 	});
-	
-	
 
 	var oPanel = Ext.create('Ext.container.Container', {
 	    layout : {
@@ -628,15 +704,19 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    valueField : "value",
 	    width : 250,
 	    margin : 3,
+	    focusBlurState : 0,
 	    store : new Ext.data.SimpleStore({
 		fields : [ 'value', 'text' ],
 		data : me.__getFieldOptions(sName)
 	    }),
 	    listeners : {
 
-		// change : function(oField, newValue, oldValue, eOpts) {
 		blur : function(oField, oEvent, eOpts) {
+		    oField.focusBlurState = 0;
 		    me.__getQueryData(true);
+		},
+		focus : function(oField, oEvent, eOpts) {
+		    oField.focusBlurState = 1;
 		},
 		expand : function(oField, eOpts) {
 
@@ -728,6 +808,28 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
     },
 
+    __isEveryBlockBlured : function() {
+
+	var me = this;
+
+	var bBlured = true;
+
+	for ( var i = 0; i < me.queryPanel.items.length; i++) {
+
+	    var oBlock = me.queryPanel.items.getAt(i);
+	    if (oBlock.focusBlurState == 1) {
+
+		bBlured = false;
+		break;
+
+	    }
+
+	}
+
+	return bBlured;
+
+    },
+
     __expandMenuBeforeExpandMenu : function(oThisBlock) {
 
 	var me = this;
@@ -761,51 +863,70 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 		if (oThisBlock != oBlock) {
 
-		    var oDropDown = oBlock.items.getAt(2);
+		    var oData = me.__getValueBlockDescription(oBlock);
 
-		    oSendData["_compatible_" + oBlock.fieldName] = oDropDown.getValue();
+		    if (oData[0] != "")
+			oSendData["p." + oBlock.fieldName + "." + oData[0]] = oData[1];
 		}
 	    }
+
+	    oSendData["path"] = me.txtPathField.getValue();
 
 	    Ext.Ajax.request({
 		url : _app_base_url + 'FileCatalog/getQueryData',
 		method : 'POST',
 		params : oSendData,
 		scope : me,
+		timeout : 1800000,
 		success : function(oReponse) {
 
 		    oResponse = Ext.JSON.decode(oReponse.responseText);
 
-		    var oBackData = oResponse.result;
-		    var oDropDown = oThisBlock.items.getAt(2);
+		    if (oResponse.success == "true") {
 
-		    oDropDown.suspendEvents(false);
+			var oBackData = oResponse.result;
+			var oDropDown = oThisBlock.items.getAt(2);
 
-		    var oList = [];
-		    for ( var i = 0; i < oBackData[oThisBlock.fieldName].length; i++)
-			oList.push([ oBackData[oThisBlock.fieldName][i], oBackData[oThisBlock.fieldName][i] ]);
+			oDropDown.suspendEvents(false);
 
-		    var oNewStore = new Ext.data.SimpleStore({
-			fields : [ 'value', 'text' ],
-			data : oList
-		    });
+			var oList = [];
+			for ( var i = 0; i < oBackData[oThisBlock.fieldName].length; i++)
+			    oList.push([ oBackData[oThisBlock.fieldName][i], oBackData[oThisBlock.fieldName][i] ]);
 
-		    switch (sBlockType) {
+			var oNewStore = new Ext.data.SimpleStore({
+			    fields : [ 'value', 'text' ],
+			    data : oList
+			});
 
-		    case "value":
-			oDropDown.bindStore(oNewStore);
-			break;
-		    case "string":
-			oDropDown.refreshStore(oNewStore);
-			break;
+			switch (sBlockType) {
+
+			case "value":
+			    oDropDown.bindStore(oNewStore);
+			    break;
+			case "string":
+			    oDropDown.refreshStore(oNewStore);
+			    break;
+
+			}
+
+			oDropDown.collapse();
+			oDropDown.expand();
+
+			oDropDown.resumeEvents();
+			me.queryPanel.body.unmask();
+
+			if (me.funcAfterEveryBlockGetsBlured != null) {
+
+			    me.funcAfterEveryBlockGetsBlured();
+			    me.funcAfterEveryBlockGetsBlured = null
+			}
+
+		    } else {
+
+			alert(oResponse.error);
+			me.queryPanel.body.unmask();
 
 		    }
-
-		    oDropDown.collapse();
-		    oDropDown.expand();
-
-		    oDropDown.resumeEvents();
-		    me.queryPanel.body.unmask();
 
 		}
 	    });
@@ -852,8 +973,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    var oBlock = me.queryPanel.items.getAt(i);
 	    var oData = me.__getValueBlockDescription(oBlock);
 
-	    if (oData != "")
-		oSendData["_compatible_" + oBlock.fieldName] = oData;
+	    if (oData[0] != "")
+		oSendData["p." + oBlock.fieldName + "." + oData[0]] = oData[1];
 
 	}
 
@@ -864,16 +985,33 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    method : 'POST',
 	    params : oSendData,
 	    scope : me,
+	    timeout : 1800000,
 	    success : function(oReponse) {
 
 		oResponse = Ext.JSON.decode(oReponse.responseText);
-		me.queryData = oResponse.result;
 
-		if (bRefreshMetadataList) {
-		    me.__oprRefreshMetadataFieldsList();
+		if (oResponse.success == "true") {
+		    me.queryData = oResponse.result;
+
+		    if (bRefreshMetadataList) {
+			me.__oprRefreshMetadataFieldsList();
+		    }
+
+		    me.metadataCatalogGrid.body.unmask();
+
+		    if (me.funcAfterEveryBlockGetsBlured != null) {
+
+			me.funcAfterEveryBlockGetsBlured();
+			me.funcAfterEveryBlockGetsBlured = null;
+
+		    }
+
+		} else {
+
+		    alert(oResponse.error);
+		    me.metadataCatalogGrid.body.unmask();
+
 		}
-
-		me.metadataCatalogGrid.body.unmask();
 
 	    }
 	});
@@ -915,15 +1053,17 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	var oButton = oBlock.items.getAt(1);
 	var oDropDown = oBlock.items.getAt(2);
 
-	var oRet = "";
+	var oRet = [ "", "" ];
 
 	if (oBlock.blockType == "string") {
 	    if (oDropDown.getValue().length > 0) {
-		oRet = "s" + "|" + me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection()) + "|" + oDropDown.getValue().join(":::");
+		var sSign = me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection());
+		oRet = [ sSign, "s" + "|" + oDropDown.getValue().join(":::") ];
 	    }
 	} else {
 	    if (oDropDown.getValue() != null) {
-		oRet = "v" + "|" + me.__getSignByIconCls(oButton.iconCls, false) + "|" + oDropDown.getValue();
+		var sSign = me.__getSignByIconCls(oButton.iconCls, false);
+		oRet = [ sSign, "v" + "|" + oDropDown.getValue() ];
 	    }
 	}
 

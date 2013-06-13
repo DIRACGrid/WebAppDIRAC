@@ -75,6 +75,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	me.launcher.height = oDimensions[1] - 50;
 	me.launcher.maximized = false;
 	
+	me.launcher.x = 0;
+	me.launcher.y = 0;
+	
 	Ext.apply(me, {
 	    layout : 'fit',
 	    bodyBorder : false,
@@ -394,7 +397,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	me.add([me.leftPanel]);
 
     },
-
+    
     __fillComboQuarter : function() {
 
 	var me = this;
@@ -778,8 +781,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    sTitle = oLoadState["title"];
 
 	}
-	// console.log("__generatePlot");
-	// console.trace();
+	
 	Ext.Ajax.request({
 	    url : _app_base_url + 'AccountingPlot/generatePlot',
 	    params : oParams,
