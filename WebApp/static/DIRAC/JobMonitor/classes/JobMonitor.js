@@ -52,7 +52,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	}
 
-	//For the time span searching sub-panel
+	// For the time span searching sub-panel
 	var item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
 
 	item.setChecked(!data.leftMenu.timeSearchPanelHidden);
@@ -61,8 +61,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    me.timeSearchPanel.show();
 	else
 	    me.timeSearchPanel.hide();
-	//END - For the time span searching sub-panel
-	
+	// END - For the time span searching sub-panel
+
 	me.textJobId.setValue(data.leftMenu.txtJobId);
 	me.timeSearchElementsGroup.cmbTimeSpan.setValue(data.leftMenu.cmbTimeSpan);
 	me.timeSearchElementsGroup.calenFrom.setValue(data.leftMenu.calenFrom);
@@ -443,7 +443,15 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	me.leftPanel.add(me.timeSearchPanel);
 
-	// Buttons at the bottom of the panel
+	// Buttons at the top of the panel
+
+	var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
+	    dock : 'bottom',
+	    layout : {
+		pack : 'center'
+	    },
+	    items : []
+	});
 
 	me.btnSubmit = new Ext.Button({
 
@@ -458,6 +466,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	});
 
+	oPanelButtons.add(me.btnSubmit);
+
 	me.btnReset = new Ext.Button({
 
 	    text : 'Reset',
@@ -469,6 +479,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    scope : me
 
 	});
+
+	oPanelButtons.add(me.btnReset);
 
 	me.btnRefresh = new Ext.Button({
 
@@ -482,13 +494,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	});
 
-	var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
-	    dock : 'bottom',
-	    layout : {
-		pack : 'center'
-	    },
-	    items : [ me.btnSubmit, me.btnReset, me.btnRefresh ]
-	});
+	oPanelButtons.add(me.btnRefresh);
 
 	me.leftPanel.addDocked(oPanelButtons);
 
@@ -504,6 +510,16 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		var response = Ext.JSON.decode(response.responseText);
 
 		me.__oprRefreshStoresForSelectors(response, false);
+		
+		if (me.currentState == "") {
+		    if ("properties" in _user_credentials) {
+			if ((Ext.Array.indexOf(_user_credentials.properties, "NormalUser") != -1) && (Ext.Array.indexOf(_user_credentials.properties, "JobSharing") == -1)) {
+			    me.cmbSelectors["owner"].setValue([_user_credentials.username]);
+			}
+		    }
+
+		}
+		
 		me.bDataSelectionLoaded = true;
 
 	    },
@@ -528,7 +544,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		    type : 'json',
 		    root : 'result'
 		},
-		timeout:1800000
+		timeout : 1800000
 	    },
 
 	    // alternatively, a Ext.data.Model name can be given
@@ -536,15 +552,15 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    fields : me.dataFields,
 	    autoLoad : true,
 	    remoteSort : true,
-	    pageSize:25,
-	    listeners:{
-		
-		load: function( oStore, records, successful, eOpts ){
-		  
-		    me.pagingToolbar.updateStamp.setText('Updated: '+oStore.proxy.reader.rawData["date"]);
-		    
+	    pageSize : 25,
+	    listeners : {
+
+		load : function(oStore, records, successful, eOpts) {
+
+		    me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+
 		}
-		
+
 	    }
 	});
 
@@ -561,17 +577,21 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    text : 'Updated: -'
 	});
 
-	me.pagingToolbar.btnReset = new Ext.Button({
-	    text : 'Reset',
-	    iconCls : "jm-reset-button-icon",
-	    handler : function() {
+	me.pagingToolbar.btnReset = null;
 
-		var me = this;
-		me.__oprJobAction("reset", "");
+	if (("properties" in _user_credentials) && (Ext.Array.indexOf(_user_credentials.properties, "JobAdministrator") != -1)) {
+	    me.pagingToolbar.btnReset = new Ext.Button({
+		text : 'Reset',
+		iconCls : "jm-reset-button-icon",
+		handler : function() {
 
-	    },
-	    scope : me
-	});
+		    var me = this;
+		    me.__oprJobAction("reset", "");
+
+		},
+		scope : me
+	    });
+	}
 
 	me.pagingToolbar.btnReschedule = new Ext.Button({
 	    text : 'Reschedule',
@@ -633,8 +653,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    me.oprLoadGridData();
 	}, me);
 
-	var pagingToolbarItems = [ me.pagingToolbar.btnReset, me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-',
-		'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+	var pagingToolbarItems = [ me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
+		me.pagingToolbar.pageSizeCombo, '-' ];
+
+	if (me.pagingToolbar.btnReset != null)
+	    pagingToolbarItems.unshift(me.pagingToolbar.btnReset);
 
 	me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
 	    store : me.dataStore,
@@ -784,7 +807,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		menuDisabled : true
 	    }, {
 		header : 'Status',
-		width : 70,
+		width : 100,
 		sortable : true,
 		dataIndex : 'Status',
 		align : 'left'
@@ -792,7 +815,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		header : 'MinorStatus',
 		sortable : true,
 		dataIndex : 'MinorStatus',
-		align : 'left'
+		align : 'left',
+		flex : 1
 	    }, {
 		header : 'ApplicationStatus',
 		sortable : true,
@@ -808,7 +832,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		width : 200,
 		sortable : true,
 		dataIndex : 'JobName',
-		align : 'left'
+		align : 'left',
+		flex : 1
 	    }, {
 		header : 'LastUpdate [UTC]',
 		width : 150,
@@ -1228,6 +1253,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			}
 			Ext.Msg.alert('Result:', html);
 		    }
+		    me.grid.store.load();
 		}
 	    }
 	});

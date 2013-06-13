@@ -141,11 +141,16 @@ class FileCatalogHandler(WebHandler):
     except Exception, e:
       return self.write(json.dumps({ "success" : "false" , "error" : "Metadata query error" }))
     
+    path = "/";
+    
+    if self.request.arguments.has_key("path") :
+      path = self.request.arguments["path"][0]
+    
     gLogger.always( compat )
     
     RPC = RPCClient( "DataManagement/FileCatalog" )
     
-    result = RPC.getCompatibleMetadata( compat )
+    result = RPC.getCompatibleMetadata( compat, path )
     gLogger.always( result )
 
     if not result[ "OK" ]:

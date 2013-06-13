@@ -51,8 +51,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	/*-------------------------------------------------------------------------------------*/
 
-	var queryPanelToolbarBottom = new Ext.toolbar.Toolbar({
-	    dock : 'bottom',
+	var queryPanelToolbarCenter = new Ext.toolbar.Toolbar({
+	    region : 'north',
 	    layout : {
 		pack : 'center'
 	    },
@@ -77,13 +77,35 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	    iconCls : "meta-refresh-icon",
 	    handler : function() {
+		me.__getQueryData(true);
+	    },
+	    scope : me
+
+	});
+
+	me.btnClearQuery = new Ext.Button({
+
+	    text : 'Clear',
+
+	    iconCls : "meta-reset-icon",
+	    handler : function() {
+
+		for ( var i = me.queryPanel.items.length - 1; i >= 0; i--) {
+
+		    var oBlock = me.queryPanel.items.getAt(i);
+
+		    me.queryPanel.remove(oBlock);
+
+		}
+
+		me.__getQueryData(true);
 
 	    },
 	    scope : me
 
 	});
 
-	queryPanelToolbarBottom.add([ me.btnSubmitLeftPanel, me.btnResetLeftPanel ]);
+	queryPanelToolbarCenter.add([ me.btnSubmitLeftPanel, me.btnResetLeftPanel, me.btnClearQuery ]);
 
 	var queryPanelToolbarTop = new Ext.toolbar.Toolbar({
 	    dock : 'top',
@@ -101,7 +123,16 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	me.txtPathField = new Ext.form.field.Text({
 	    width : 200,
 	    value : '/',
-	    flex : 1
+	    flex : 1,
+	    listeners : {
+
+		blur : function(oField, oEvent, eOpts) {
+
+		    me.__getQueryData(true);
+
+		}
+
+	    }
 	});
 
 	queryPanelToolbarTop.add(me.txtPathField);
@@ -131,10 +162,9 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    maxWidth : 550,
 	    bodyPadding : 0,
 	    autoScroll : true,
-	    height : 300
+	    split : true,
+	    height : 400
 	});
-
-	me.queryPanel.addDocked([ queryPanelToolbarBottom ]);
 
 	/*-------------------------------------------------------------------------------------*/
 
@@ -147,7 +177,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		    type : 'json',
 		    root : 'result'
 		},
-		timeout:1800000
+		timeout : 1800000
 	    },
 	    groupField : 'dirname',
 	    fields : [ {
@@ -216,7 +246,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	me.pagingToolbar.btnGrouping = new Ext.Button({
 	    text : 'Ungroup',
-	    iconCls:"meta-ungroup-icon",
+	    iconCls : "meta-ungroup-icon",
 	    handler : function() {
 
 		if (me.groupingFeature.disabled) {
@@ -225,10 +255,15 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		    me.pagingToolbar.btnGrouping.setIconCls("meta-ungroup-icon");
 		    me.filesGrid.columns[1].hide();
 		} else {
+		    
 		    me.groupingFeature.disable();
 		    me.pagingToolbar.btnGrouping.setText("Group");
 		    me.pagingToolbar.btnGrouping.setIconCls("meta-group-icon");
+		    
 		    me.filesGrid.columns[1].show();
+		    me.filesGrid.columns[1].flex = 1;
+		    me.filesGrid.doLayout();
+		    
 		}
 
 	    },
@@ -278,13 +313,13 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		header : 'Directory',
 		sortable : true,
 		dataIndex : 'dirname',
-		hideable : false,
-		flex : 1,
+		hideable : false
 	    }, {
 		header : 'File',
 		sortable : true,
 		dataIndex : 'filename',
 		align : 'left',
+		hideable : false,
 		flex : 1
 	    }, {
 		header : 'Date',
@@ -301,7 +336,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		header : 'Metadata',
 		sortable : false,
 		dataIndex : 'metadata',
-		align : 'left'
+		align : 'left',
+		flex : 2
 	    } ],
 	    rendererChkBox : function(val) {
 		return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
@@ -318,32 +354,9 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    data : []
 	});
 
-	var metadataCatalogGridToolbar = new Ext.toolbar.Toolbar({
-	    dock : 'bottom',
-	    layout : {
-		pack : 'center'
-	    },
-	    items : []
-	});
-
-	me.btnRefreshLeftPanel = new Ext.Button({
-
-	    text : 'Refresh',
-
-	    iconCls : "meta-refresh-icon",
-	    handler : function() {
-
-	    },
-	    scope : me
-
-	});
-
-	metadataCatalogGridToolbar.add(me.btnRefreshLeftPanel);
-
 	me.metadataCatalogGrid = Ext.create('Ext.grid.Panel', {
 	    title : 'Directory Metadata',
 	    region : 'center',
-
 	    hideHeaders : true,
 	    store : me.metadataCatalogStore,
 	    bodyBorder : false,
@@ -402,22 +415,21 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	});
 
-	me.metadataCatalogGrid.addDocked(metadataCatalogGridToolbar);
-
 	var oLeftPanel = new Ext.create('Ext.panel.Panel', {
 	    region : 'west',
 	    layout : 'border',
 	    bodyBorder : false,
 	    defaults : {
-		collapsible : true,
+		collapsible : false,
 		split : true
 	    },
 	    width : 450,
 	    minWidth : 400,
 	    maxWidth : 550,
-	    items : [ me.queryPanel, me.metadataCatalogGrid ]
+	    items : [ me.queryPanel, queryPanelToolbarCenter, me.metadataCatalogGrid ]
 
 	});
+	
 
 	oLeftPanel.addDocked([ queryPanelToolbarTop ]);
 
@@ -531,7 +543,6 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    valueField : "value",
 	    width : 250,
 	    margin : 3,
-	    noChangeEventWhenCreated : 0,
 	    store : new Ext.data.SimpleStore({
 		fields : [ 'value', 'text' ],
 		data : me.__getFieldOptions(sName)
@@ -540,12 +551,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 		// change : function(oField, newValue, oldValue, eOpts) {
 		blur : function(oField, oEvent, eOpts) {
-		    
-		    //if (oField.noChangeEventWhenCreated == 1) {
-			me.__getQueryData(true);
-		    //} else {
-			//oField.noChangeEventWhenCreated = 1;
-		    //}
+
+		    me.__getQueryData(true);
 
 		},
 		expand : function(oField, eOpts) {
@@ -556,8 +563,25 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 		}
 
+	    },
+	    onClearButtonAfterClick:function(oSelectBox){
+		
+		me.__getQueryData(true);
+		
+	    },
+	    onNotButtonAfterClick:function(oSelectBox){
+		
+		me.__getQueryData(true);
+		
+	    },
+	    onItemRemovedClick:function(oSelectBox){
+		
+		me.__getQueryData(true);
+		
 	    }
 	});
+	
+	
 
 	var oPanel = Ext.create('Ext.container.Container', {
 	    layout : {
@@ -832,6 +856,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		oSendData["_compatible_" + oBlock.fieldName] = oData;
 
 	}
+
+	oSendData["path"] = me.txtPathField.getValue();
 
 	Ext.Ajax.request({
 	    url : _app_base_url + 'FileCatalog/getQueryData',
