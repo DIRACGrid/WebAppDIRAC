@@ -135,96 +135,98 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	me.__cbAfterSave = cbAfterSave;
 	me.__sStateType = sStateType;
 	me.__sAppName = sAppName;
+	
+	me.txtStateName = Ext.create('Ext.form.field.Text', {
 
-	me.saveForm = Ext.widget('form', {
-	    layout : {
-		type : 'vbox',
-		align : 'stretch'
-	    },
-	    border : false,
-	    bodyPadding : 10,
+	    fieldLabel : "State Name:",
+	    labelAlign : 'left',
+	    margin : 10,
+	    width : 400,
+	    validateValue : function(sValue) {
 
-	    fieldDefaults : {
-		labelAlign : 'top',
-		labelWidth : 100,
-		labelStyle : 'font-weight:bold'
-	    },
-	    defaults : {
-		margins : '0 0 5 0'
-	    },
-	    items : [ {
-		xtype : 'fieldcontainer',
-		layout : 'hbox',
-		defaultType : 'textfield',
-		fieldDefaults : {
-		    labelAlign : 'left'
-		},
+		sValue = Ext.util.Format.trim(sValue);
 
-		items : [ {
-		    flex : 1,
-		    fieldLabel : 'State Name',
-		    name : 'state_name',
-		    validateOnChange : true,
-		    validateValue : function(sValue) {
+		if (sValue.length < 1) {
+		    this.markInvalid("You must specify a name !");
+		    return false;
 
-			sValue = Ext.util.Format.trim(sValue);
+		} else {
 
-			if (sValue.length < 1) {
-			    this.markInvalid("You must specify a name !");
+		    if (me.isStateLoaded(me.__sStateType, me.__sAppName, sValue)==1) {
+
+			this.markInvalid("The name you enetered already exists !");
+			return false;
+
+		    } else {
+			
+			if(me.__isValidStateName(sValue)){
+				this.clearInvalid();
+				return true;
+			}else{
+			    
+			    this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
 			    return false;
-
-			} else {
-
-			    if (me.isStateLoaded(me.__sStateType, me.__sAppName, sValue)==1) {
-
-				this.markInvalid("The name you enetered already exists !");
-				return false;
-
-			    } else {
-				
-				if(me.__isValidStateName(sValue)){
-        				this.clearInvalid();
-        				return true;
-				}else{
-				    
-				    this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
-				    return false;
-				    
-				}
-
-			    }
-
+			    
 			}
 
 		    }
-		} ]
-	    } ],
 
-	    buttons : [ {
-		text : 'Save',
-		handler : function() {
+		}
 
-		    if (me.saveForm.getForm().isValid()) {
+	    },
+	    validateOnChange : true,
+	    validateOnBlur : false
 
-			var sStateName = me.saveForm.getForm().findField("state_name").getValue();
+	});
+
+	
+
+	me.btnSaveState = new Ext.Button({
+
+	    text : 'Save',
+	    margin : 3,
+	    iconCls : "toolbar-other-save",
+	    handler : function() {
+		
+		if (me.txtStateName.isValid()) {
+
+			var sStateName = me.txtStateName.getValue();
 
 			me.oprSendDataForSave(sStateName, true);
 
-		    }
+		}
 
-		},
-		scope : me
-	    }, {
-		text : 'Cancel',
-		handler : function() {
-		    me.saveForm.getForm().reset();
+	    },
+	    scope : me
+
+	});
+
+	me.btnCancelSaveState = new Ext.Button({
+
+	    text : 'Cancel',
+	    margin : 3,
+	    iconCls : "toolbar-other-close",
+	    handler : function() {
+
+		 me.txtStateName.setValue("");	
 		    me.__oAppObject = null;
 		    me.__cbAfterSave = null;
 		    me.__sStateType = null;
 		    me.saveWindow.hide();
-		},
-		scope : me
-	    } ]
+
+	    },
+	    scope : me
+
+	});
+
+	var oToolbar = new Ext.toolbar.Toolbar();
+
+	oToolbar.add([ me.btnSaveState, me.btnCancelSaveState ]);
+
+	var oPanel = new Ext.create('Ext.panel.Panel', {
+	    autoHeight : true,
+	    border : false,
+	    items : [ oToolbar, me.txtStateName ]
 	});
 
 	me.saveWindow = Ext.create('widget.window', {
@@ -233,10 +235,11 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    title : 'Save state',
 	    layout : 'fit',
 	    modal : true,
-	    items : me.saveForm
+	    items : oPanel
 	});
 
 	me.saveWindow.show();
+	me.txtStateName.focus();
 
     },
 
@@ -353,7 +356,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    appName : sAppName,
 	    cbAfterRemove : cbAfterRemove,
 	    items : [ {
-		html : "Application: <b>" + sAppName + "</b>",
+		html : "Application: <b>" + _app.getApplicationTitle(sAppName) + "</b>",
 		xtype : "box"
 	    }, {
 		xtype : "panel",

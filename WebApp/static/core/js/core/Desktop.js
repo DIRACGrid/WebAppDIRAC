@@ -261,7 +261,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 		    }
 
-		    if (isNaN(parseInt(oAppParts[2])) || isNaN(parseInt(oAppParts[3])) || isNaN(parseInt(oAppParts[4])) || isNaN(parseInt(oAppParts[5])) || isNaN(parseInt(oAppParts[6]))) {
+		    if (!_app.isValidApplication(oAppParts[0])||isNaN(parseInt(oAppParts[2])) || isNaN(parseInt(oAppParts[3])) || isNaN(parseInt(oAppParts[4])) || isNaN(parseInt(oAppParts[5])) || isNaN(parseInt(oAppParts[6]))) {
 
 			oValid = false;
 			break;
@@ -398,10 +398,10 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    });
 
 	    me.statesMenu.insert(0, oNewItem);
-	    
-	    if(me.currentState!="")
-		_app._sm.removeActiveState("desktop",me.currentState);
-	    
+
+	    if (me.currentState != "")
+		_app._sm.removeActiveState("desktop", me.currentState);
+
 	    me.currentState = sStateName;
 	    _app._sm.addActiveState(sAppName, sStateName);
 	    me.refreshUrlDesktopState();
@@ -486,7 +486,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		scope : me,
 		iconCls : "system_state_icon",
 		stateType : "application",
-		minWidth:200,
+		minWidth : 200,
 		menu : [ {
 		    text : "Share state",
 		    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ sStateName, "desktop" ], false),
@@ -513,7 +513,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		scope : me,
 		iconCls : "system_link_icon",
 		stateType : "reference",
-		minWidth:200
+		minWidth : 200
 	    });
 
 	    me.statesMenu.add(newItem);
@@ -864,11 +864,11 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    }
 	}
 
-	if (!win.isChildWindow){
-	    
-	    if(win.currentState!="")
-		_app._sm.removeActiveState(win.loadedObject.self.getName(),win.currentState);
-	    
+	if (!win.isChildWindow) {
+
+	    if (win.currentState != "")
+		_app._sm.removeActiveState(win.loadedObject.self.getName(), win.currentState);
+
 	    me.refreshUrlDesktopState();
 	}
 
@@ -923,7 +923,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		    paths : {}
 		};
 
-		oConfig["paths"]["DIRAC." + oParts[1] + ".classes"] = "static/" + oParts[0] + "/" + oParts[1] + "/build";
+		oConfig["paths"][oParts[0] + "." + oParts[1] + ".classes"] ="static/" + oParts[0] + "/" + oParts[1] + "/build";
 
 		Ext.Loader.setConfig(oConfig);
 
@@ -1270,28 +1270,28 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	var iStateLoaded = _app._sm.isStateLoaded("application", "desktop", sStateName);
 
-	switch(iStateLoaded){
-		case -1:
-		    	alert("The state does not exist !");
-		    	return;
-		    	break;
-		case -2: 
-    		    	me.funcPostponedLoading = function() {
-    
-    				me.__loadDesktopStateData(sStateName);
-    
-    		    	}
-    
-    		    	setTimeout(me.funcPostponedLoading, 1000);
-    		    	return;
-		    	break;
+	switch (iStateLoaded) {
+	case -1:
+	    alert("The state does not exist !");
+	    return;
+	    break;
+	case -2:
+	    me.funcPostponedLoading = function() {
+
+		me.__loadDesktopStateData(sStateName);
+
+	    }
+
+	    setTimeout(me.funcPostponedLoading, 1000);
+	    return;
+	    break;
 	}
 
-	me.loadState(_app._sm.getStateData("application","desktop",sStateName));
-	
-	if(me.currentState!="")
-	    _app._sm.removeActiveState("desktop",me.currentState);
-	
+	me.loadState(_app._sm.getStateData("application", "desktop", sStateName));
+
+	if (me.currentState != "")
+	    _app._sm.removeActiveState("desktop", me.currentState);
+
 	me.currentState = sStateName;
 	_app._sm.addActiveState("desktop", sStateName);
 
@@ -1405,7 +1405,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    sNewUrlState = oHref + sNewUrlState;
 
 	}
-
+	
 	window.history.pushState("X", "ExtTop - Desktop Sample App", sNewUrlState);
 
     },
@@ -1413,9 +1413,9 @@ Ext.define('Ext.dirac.core.Desktop', {
     loadSharedStateByName : function(sAppName, sStateName) {
 
 	var me = this;
-	
-	var oData = _app._sm.getStateData("reference",sAppName,sStateName);
-	_app._sm.loadSharedState(oData["link"],me.cbAfterLoadSharedState);
+
+	var oData = _app._sm.getStateData("reference", sAppName, sStateName);
+	_app._sm.loadSharedState(oData["link"], me.cbAfterLoadSharedState);
 
     },
 
@@ -1439,19 +1439,18 @@ Ext.define('Ext.dirac.core.Desktop', {
     cbAfterLoadSharedState : function(sLink, oDataReceived) {
 
 	var me = _app.desktop;
-	
+
 	var oDataItems = sLink.split("|");
-	
+
 	if (oDataItems[0] != "desktop") {
-	    
-	    
+
 	    var oSetupData = {
 		"data" : oDataReceived,
 		"currentState" : ""
 	    };
 
 	    me.createWindow("app", oDataItems[0], oSetupData);
-	    
+
 	} else {
 
 	    for ( var i = 0, len = oDataReceived["data"].length; i < len; i++) {
@@ -1475,7 +1474,7 @@ Ext.define('Ext.dirac.core.Desktop', {
     cbAfterSaveSharedState : function(sLinkName, sLink) {
 
 	var me = _app.desktop;
-	
+
 	var oDataItems = sLink.split("|");
 
 	if (oDataItems[0] != "desktop") {

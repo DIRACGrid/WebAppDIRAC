@@ -26,9 +26,9 @@ Ext.define('Ext.dirac.core.Module', {
 	    iconCls : 'notepad',
 	    width : 0,
 	    height : 0,
-	    maximized : true
-
-
+	    maximized : true,
+	    x:null,
+	    y:null
 	};
 
 	this.callParent();

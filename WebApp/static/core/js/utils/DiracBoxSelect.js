@@ -273,12 +273,21 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     trigger3Cls: Ext.baseCSSPrefix+'form-combo-trigger',
     clsNot: Ext.baseCSSPrefix+'form-not-trigger',
     clsNotsel: Ext.baseCSSPrefix+'form-notsel-trigger',
+    
+    onClearButtonAfterClick:null,
+    onNotButtonAfterClick:null,
+    
     onTrigger1Click:function(){
     	
     	var me = this;
     	
     	me.getPicker().getSelectionModel().deselectAll();
     	me.setValue([]);
+    	
+    	
+    	if(me.onClearButtonAfterClick!=null){
+    		me.onClearButtonAfterClick(me);
+    	}
     	
     },
     
@@ -315,7 +324,8 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     		
     	}
     	
-    	
+    	if(me.onNotButtonAfterClick!=null)
+    		me.onNotButtonAfterClick(me);
     	
     },
     
@@ -361,7 +371,14 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     	
     },
     
-    getInverseSelection:function(){
+    getInverseSelection:function(sSeparator){
+    	
+    	var s = "";
+    	
+    	if(!sSeparator)
+    		s = ",";
+    	else
+    		s = sSeparator;
     	
     	var me = this;
     	
@@ -374,7 +391,7 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     		if(!oSelectionModel.isSelected(oStore.getAt(i)))
     			oInverseValues.push(oStore.getAt(i).get(me.valueField));
     	
-    	return oInverseValues.join(",");
+    	return oInverseValues.join(s);
 
     },
     
@@ -387,28 +404,16 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     	
     	var oCountNewStore = oNewStore.getCount();
     	
+    	me.suspendEvents(false);
+    	
+    	var oValue = me.getValue();
+    	oStore.removeAll();
+    	
     	for(var i=0;i<oCountNewStore;i++){
-    		
-    		var oNewItem = oNewStore.getAt(i);
-    		var oFound = false;
-    		
-    		for(var j=0;j<oCount;j++){
-    			
-    			var oExistItem = oStore.getAt(j);
-    			
-    			if(oNewItem.get(me.valueField)==oExistItem.get(me.valueField)){
-    				
-    				oFound = true;
-    				break;
-    				
-    			}
-    			
-    		}
-    		
-    		if(!oFound)
-    			oStore.add(oNewItem);
-    		
+    		oStore.add(oNewStore.getAt(i));	
     	}
+    
+    	me.resumeEvents();
     	
     	//this is needed because we have to render check-boxes inside the new items added
     	me.getPicker().refresh();
@@ -1494,7 +1499,9 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
 
     /**
 	 * Removal of labelled item by node reference
-	 */
+	 */ 
+	onItemRemovedClick:null,
+	
     removeByListItemNode: function(itemEl) {
         var me = this,
         rec = me.getRecordByListItemNode(itemEl);
@@ -1503,6 +1510,10 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
             me.valueStore.remove(rec);
             me.setValue(me.valueStore.getRange());
         }
+        
+        if(me.onItemRemovedClick!=null)
+        	me.onItemRemovedClick(me);
+        
     },
 
     /**

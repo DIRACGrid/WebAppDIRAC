@@ -175,7 +175,11 @@ Ext.define('Ext.dirac.core.Window', {
 	    }
 
 	} else {
-
+	    
+	    if((me.loadedObject.launcher.x != null)&&(me.loadedObject.launcher.y != null)){
+		me.setPosition(me.loadedObject.launcher.x,me.loadedObject.launcher.y);
+	    }
+	    
 	    if (!me.loadedObject.launcher.maximized) {
 
 		if ("width" in me.loadedObject.launcher) {
@@ -206,8 +210,8 @@ Ext.define('Ext.dirac.core.Window', {
 
 	if (me.currentState == "") {
 
-	    me.setTitle(me.loadedObject.launcher.title + " [Untitled]");
-	    me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [Untitled]", 20));
+	    me.setTitle(me.loadedObject.launcher.title);
+	    me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title, 20));
 
 	} else {
 	    me.setTitle(me.loadedObject.launcher.title + " [" + me.currentState + "]");
