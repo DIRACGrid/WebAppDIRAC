@@ -2,7 +2,8 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
-from DIRAC import gConfig, S_OK, S_ERROR
+from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities import Time
 import json
 import ast
 
@@ -16,36 +17,31 @@ class JobMonitorHandler(WebHandler):
   def web_standalone(self):
     self.render("JobMonitor/standalone.tpl", config_data = json.dumps(SessionData().getData()))
   
+  @asyncGen
   def web_getJobData(self):
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
     req = self.__request()
-    result = RPC.getJobPageSummaryWeb(req, self.globalSort , self.pageNumber, self.numberOfJobs)
+    result = yield self.threadTask(RPC.getJobPageSummaryWeb,req, self.globalSort , self.pageNumber, self.numberOfJobs)
     
     if not result["OK"]:
-      self.write(json.dumps({"success":"false", "error":result["Message"]}))
-      pass
+      self.finish(json.dumps({"success":"false", "error":result["Message"]}))
     
     result = result["Value"]
     
     if not result.has_key("TotalRecords"):
-      self.write(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
-      pass
+      self.finish(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
     
     if not (result["TotalRecords"] > 0):
-      self.write(json.dumps({"success":"false", "result":"", "error":"There were no data matching your selection"}))
-      pass
+      self.finish(json.dumps({"success":"false", "result":"", "error":"There were no data matching your selection"}))
     
     if not (result.has_key("ParameterNames") and result.has_key("Records")):
-      self.write(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
-      pass
+      self.finish(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
     
     if not (len(result["ParameterNames"]) > 0):
-      self.write(json.dumps({"success":"false", "result":"", "error":"ParameterNames field is missing"}))
-      pass
+      self.finish(json.dumps({"success":"false", "result":"", "error":"ParameterNames field is missing"}))
     
     if not (len(result["Records"]) > 0):
-      self.write(json.dumps({"success":"false", "Message":"There are no data to display"}))
-      pass
+      self.finish(json.dumps({"success":"false", "Message":"There are no data to display"}))
 
     callback = []
     jobs = result["Records"]
@@ -60,11 +56,12 @@ class JobMonitorHandler(WebHandler):
     if result.has_key("Extras"):
       st = self.__dict2string({})
       extra = result["Extras"]
-      callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":None } 
+      timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+      callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":timestamp } 
     else:
       callback = {"success":"true", "result":callback, "total":total, "date":None}
              
-    self.write(json.dumps(callback))
+    self.finish(json.dumps(callback))
 
   def __dict2string(self, req):
     result = ""
@@ -73,7 +70,7 @@ class JobMonitorHandler(WebHandler):
         result = result + str(key) + ": " + ", ".join(value) + "; "
     except Exception, x:
       pass
-#      gLogger.info("\033[0;31m Exception: \033[0m %s" % x)
+      gLogger.info("\033[0;31m Exception: \033[0m %s" % x)
     result = result.strip()
     result = result[:-1]
     return result
@@ -83,21 +80,9 @@ class JobMonitorHandler(WebHandler):
     callback = {}
     group = sData["user"]["group"]
     user = sData["user"]["username"]
-    '''
-    if len(self.request.arguments) > 0:
-      tmp = {}
-      for i in self.request.arguments:
-        tmp[i] = str(self.request.arguments[i])
-      callback["extra"] = tmp
-      if callback["extra"].has_key("prod"):
-        callback["extra"]["prod"] = callback["extra"]["prod"].zfill(8)
-        if callback["extra"]["prod"] == "00000000":
-          callback["extra"]["prod"] = ""
-    '''
     if user == "Anonymous":
       callback["prod"] = [["Insufficient rights"]]
     else:
-      #RPC = getRPCClient("WorkloadManagement/JobMonitoring")
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
       result = RPC.getProductionIds()
       if result["OK"]:
@@ -118,11 +103,10 @@ class JobMonitorHandler(WebHandler):
         else:
           prod = [["Nothing to display"]]
       else:
-#        gLogger.error("RPC.getProductionIds() return error: %s" % result["Message"])
+        gLogger.error("RPC.getProductionIds() return error: %s" % result["Message"])
         prod = [["Error happened on service side"]]
       callback["prod"] = prod
 ###
-    #RPC = getRPCClient("WorkloadManagement/JobMonitoring")
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
     result = RPC.getSites()
     if result["OK"]:
@@ -146,7 +130,6 @@ class JobMonitorHandler(WebHandler):
     if result["OK"]:
       stat = []
       if len(result["Value"])>0:
-        #stat.append([str("All")])
         for i in result["Value"]:
           stat.append([str(i)])
       else:
@@ -180,7 +163,7 @@ class JobMonitorHandler(WebHandler):
       else:
         app = [["Nothing to display"]]
     else:
-#      gLogger.error("RPC.getApplicationstates() return error: %s" % result["Message"])
+      gLogger.error("RPC.getApplicationstates() return error: %s" % result["Message"])
       app = [["Error happened on service side"]]
     callback["app"] = app
 ###
@@ -194,7 +177,7 @@ class JobMonitorHandler(WebHandler):
       else:
         types = [["Nothing to display"]]
     else:
-#      gLogger.error("RPC.getJobTypes() return error: %s" % result["Message"])
+      gLogger.error("RPC.getJobTypes() return error: %s" % result["Message"])
       types = [["Error happened on service side"]]
     callback["types"] = types
 ###
@@ -211,7 +194,7 @@ class JobMonitorHandler(WebHandler):
         else:
           owner = [["Nothing to display"]]
       else:
-#        gLogger.error("RPC.getOwners() return error: %s" % result["Message"])
+        gLogger.error("RPC.getOwners() return error: %s" % result["Message"])
         owner = [["Error happened on service side"]]
       callback["owner"] = owner
     self.write(json.dumps(callback))

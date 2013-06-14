@@ -1,0 +1,102 @@
+
+.meta-textbox-help-window textarea.x-form-field {
+	font-family: Courier, monospace !important;
+}
+
+.meta-reset-icon{
+	
+	 background-image: url(../images/reset.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-submit-icon{
+	
+	 background-image: url(../images/submit.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-refresh-icon{
+	
+	 background-image: url(../images/refresh.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-equal-icon{
+	
+	 background-image: url(../images/equal.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-gequal-icon{
+	
+	 background-image: url(../images/gequal.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-great-icon{
+	
+	 background-image: url(../images/great.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-lequal-icon{
+	
+	 background-image: url(../images/lequal.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-less-icon{
+	
+	 background-image: url(../images/less.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-nequal-icon{
+	
+	 background-image: url(../images/nequal.gif) !important;
+     background-color: transparent;
+	
+}
+
+.meta-in-icon{
+	
+	 background-image: url(../images/in.png) !important;
+     background-color: transparent;
+	
+}
+
+.meta-group-icon{
+	
+	 background-image: url(../images/group.png) !important;
+     background-color: transparent;
+	
+}
+
+.meta-ungroup-icon{
+	
+	 background-image: url(../images/ungroup.png) !important;
+     background-color: transparent;
+	
+}
+
+.meta-query-icon{
+	
+	 background-image: url(../images/query.png) !important;
+     background-color: transparent;
+	
+}
+
+.meta-save-icon{
+	
+	 background-image: url(../images/save.png) !important;
+     background-color: transparent;
+	
+}

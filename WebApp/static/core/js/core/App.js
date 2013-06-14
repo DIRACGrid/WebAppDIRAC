@@ -34,7 +34,7 @@ Ext.define('Ext.dirac.core.App', {
     constructor : function() {
 
 	var me = this;
-
+	
 	me.addEvents('ready', 'beforeunload');
 
 	me.mixins.observable.constructor.call(this, undefined);
@@ -171,8 +171,8 @@ Ext.define('Ext.dirac.core.App', {
 		model : 'Ext.dirac.core.ShortcutModel',
 		data : {}
 	    }),
-	    wallpaper : '/DIRAC/static/core/img/wallpapers/desk.jpg',
-	    wallpaperStretch : true
+	    wallpaper : '/DIRAC/static/core/img/wallpapers/dirac_background_6.png',
+	    wallpaperStretch : false
 	};
 
 	me.desktop = null;
@@ -189,7 +189,19 @@ Ext.define('Ext.dirac.core.App', {
 	me.isReady = true;// only if there is no desktop state loaded
 	me.fireEvent('ready', me);
     },
-
+    
+    isValidApplication:function(sAppName){
+	
+	return (sAppName in this.validApplications); 
+	
+    },
+    
+    getApplicationTitle:function(sAppName){
+	
+	return this.validApplications[sAppName];
+	
+    },
+    
     getDesktop : function() {
 	return this.desktop;
     },

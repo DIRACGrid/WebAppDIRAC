@@ -67,22 +67,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 
 			var me = this;
 
-			Ext.Ajax.request({
-			    url : _app_base_url + 'changeGroup',
-			    params : {
-				to : me.text
-			    },
-			    scope : me,
-			    success : function(response) {
-				document.open("text/html");
-				document.write(response.responseText);
-				document.close();
-			    },
-			    failure : function(response) {
-
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-			    }
-			});
+			location.href = _app_base_url + 'changeGroup?to='+me.text;
 
 		    }
 		});
@@ -101,22 +86,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 
 			var me = this;
 
-			Ext.Ajax.request({
-			    url : _app_base_url + 'changeSetup',
-			    params : {
-				to : me.text
-			    },
-			    scope : me,
-			    success : function(response) {
-				document.open("text/html");
-				document.write(response.responseText);
-				document.close();
-			    },
-			    failure : function(response) {
-
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
-			    }
-			});
+			location.href = _app_base_url + 'changeSetup?to='+me.text;
 
 		    }
 		});

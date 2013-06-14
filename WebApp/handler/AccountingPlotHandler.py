@@ -23,7 +23,6 @@ class AccountingPlotHandler(WebHandler):
   AUTH_PROPS = "authenticated"
   __keysCache = DictCache.DictCache()
 
-  #OK
   def __getUniqueKeyValues( self, typeName ):
     sessionData = SessionData().getData()
     userGroup = sessionData["user"]["group"]
@@ -57,7 +56,6 @@ class AccountingPlotHandler(WebHandler):
       AccountingPlotHandler.__keysCache.add( cacheKey, 300, data )
     return data
 
-  #OK
   def web_getSelectionData(self):
     callback = {}
     typeName = self.request.arguments["type"][0]
@@ -147,8 +145,7 @@ class AccountingPlotHandler(WebHandler):
     for selName in pD:
       pD[ selName ] = List.fromChar( pD[ selName ], "," )
     return S_OK( ( typeName, reportName, start, end, pD, grouping, extraParams ) )
-
-  #OK  
+  
   def web_generatePlot( self ):
     callback = {}
     retVal =  self.__queryForPlot()
@@ -158,7 +155,6 @@ class AccountingPlotHandler(WebHandler):
       callback = { 'success' : False, 'errors' : retVal[ 'Message' ] }
     self.write(json.dumps(callback))
   
-  #OK
   def __queryForPlot( self ):
     retVal = self.__parseFormParams()
     if not retVal[ 'OK' ]:
@@ -192,8 +188,6 @@ class AccountingPlotHandler(WebHandler):
       return
     tempFile.seek( 0 )
     data = tempFile.read()
-#     import time 
-#     time.sleep(20)
     self.set_header('Content-type','image/png')
     self.set_header('Content-Disposition','attachment; filename="%s.png"' % md5( plotImageFile ).hexdigest())
     self.set_header('Content-Length',len( data ))
@@ -258,27 +252,4 @@ class AccountingPlotHandler(WebHandler):
     rawData = retVal[ 'Value' ]
     groupKeys = rawData[ 'data' ].keys()
     groupKeys.sort()
-#     print rawData['data']
     self.finish(json.dumps(rawData['data']))
-  
-  '''
-  #OK code; DONT KNOW FOR WHAT DOES IT SERVE?
-  def __getKeyValuesForType( self ):
-    try:
-      typeName = str( self.request.arguments[ 'typeName' ][0] )
-    except:
-      return S_ERROR( "Missing or invalid type name!" )
-    retVal = self.__getUniqueKeyValues( typeName )
-    if not retVal[ 'OK' ] and 'rpcStub' in retVal:
-      del( retVal[ 'rpcStub' ] )
-    return retVal
-  '''
-  
-  '''
-  #OK - used when auto refresh
-  def generatePlotAndGetHTML( self ):
-    retVal = self.__queryForPlot()
-    if not retVal[ 'OK' ]:
-      return "<h2>Can't regenerate plot: %s</h2>" % retVal[ 'Message' ]
-    return "<img src='getPlotImg?file=%s'/>" % retVal[ 'Value' ][ 'plot' ]
-  '''

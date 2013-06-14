@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title>DIRAC :: DESKTOP</title>
-
+	<link rel="SHORTCUT ICON" href='/DIRAC/static/core/img/icons/system/favicon.ico'>
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/{{ext_version}}/resources/css/ext-all.css" />
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/css.css" />
     {% autoescape None %}
@@ -35,8 +35,13 @@
 
           var _app=null;
           var _app_base_url = "";
+          var _app_ext_version = "{{ext_version}}";
           var _dev = 1;
           var _load_by_url = "{{url_state}}";
+          {% import simplejson %}
+          var _user_credentials = {{ simplejson.dumps( credentials ) }}; 
+
+          
 
           Ext.onReady(function () {
             _app_base_url = "{{base_url}}/";
