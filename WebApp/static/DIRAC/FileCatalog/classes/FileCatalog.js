@@ -290,7 +290,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    text : 'Save',
 	    iconCls : "meta-save-icon",
 	    handler : function() {
-
+		me.__getMetadataFile();
 	    },
 	    scope : me
 	});
@@ -555,13 +555,97 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	oSendData.path = me.txtPathField.getValue();
 
-	me.lastSubmittedQuery = JSON.stringify(oSendData);
-	me.lastSubmittedQuery = me.lastSubmittedQuery.replace(new RegExp(",", 'g'), ",\n\t");
-	me.lastSubmittedQuery = me.lastSubmittedQuery.replace(new RegExp("{", 'g'), "{\n\t");
-	me.lastSubmittedQuery = me.lastSubmittedQuery.replace(new RegExp("}", 'g'), "\n}");
+	me.lastSubmittedQuery = me.__restructureQueryForShow(oSendData);
+
 	// set those data as extraParams in
 	me.filesGrid.store.proxy.extraParams = oSendData;
 	me.filesGrid.store.load();
+    },
+
+    __restructureQueryForShow : function(oSendData) {
+
+	var req = {
+	    "selection" : {},
+	    "path" : ""
+	};
+
+	for ( var sParam in oSendData) {
+
+	    var oParts = sParam.split('.');
+
+	    if (oParts.length != 3)
+		continue;
+
+	    var sName = oParts[1];
+	    var sLogic = oParts[2];
+	    var oValue = oSendData[sParam].split("|")
+
+	    if (!(sName in req["selection"]))
+		req["selection"][sName] = {};
+
+	    if (!(sLogic in req["selection"][sName])) {
+		if (oValue[0] == "v") {
+		    req["selection"][sName][sLogic] = "";
+		} else if (oValue[0] == "s") {
+		    req["selection"][sName][sLogic] = [];
+		}
+	    }
+
+	    if (oValue[0] == "v") {
+		req["selection"][sName][sLogic] = oValue[1];
+	    } else if (oValue[0] == "s") {
+		req["selection"][sName][sLogic] = oValue[1].split(":::");
+	    }
+
+	}
+
+	if ("path" in oSendData)
+	    req["path"] = oSendData["path"];
+
+	var sText = JSON.stringify(req);
+
+	var iTab = 0;
+	var sNewText = "";
+
+	for ( var i = 0; i < sText.length; i++) {
+
+	    switch (sText.charAt(i)) {
+
+	    case '{':
+		var sTabs = "";
+		for ( var j = 0; j <= iTab; j++)
+		    sTabs += "\t";
+		sNewText += "{\n" + sTabs;
+		iTab++;
+		break;
+	    case '}':
+		var sTabs = "";
+		for ( var j = 0; j < iTab - 1; j++)
+		    sTabs += "\t";
+
+		if (i + 1 < sText.length) {
+		    if (sText.charAt(i + 1) == ",") {
+			sNewText += "\n" + sTabs + "},\n" + sTabs;
+			i++;
+		    } else {
+			sNewText += "\n" + sTabs + "}\n" + sTabs;
+		    }
+		} else {
+		    sNewText += "\n" + sTabs + "}\n" + sTabs;
+
+		}
+		iTab--;
+		break;
+
+	    default:
+		sNewText += sText.charAt(i);
+
+	    }
+
+	}
+
+	return sNewText;
+
     },
 
     onItemLogicOperationClick : function(oItem, e, eOpts) {
@@ -957,6 +1041,26 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    me.queryPanel.body.unmask();
 
 	}
+
+    },
+
+    __getMetadataFile : function() {
+
+	var me = this;
+
+	var oSendData = [];
+
+	for ( var i = 0; i < me.queryPanel.items.length; i++) {
+
+	    var oBlock = me.queryPanel.items.getAt(i);
+	    var oData = me.__getValueBlockDescription(oBlock);
+
+	    if (oData[0] != "")
+		oSendData.push(oBlock.fieldName + "|" + oData[0] + "|" + oData[1]);
+
+	}
+
+	location.href = _app_base_url + 'FileCatalog/getMetadataFilesInFile?path=' + encodeURIComponent(me.txtPathField.getValue()) + "&selection=" + encodeURIComponent(oSendData.join("<|>"));
 
     },
 

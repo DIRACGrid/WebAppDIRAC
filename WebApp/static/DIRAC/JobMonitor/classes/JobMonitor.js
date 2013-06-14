@@ -141,7 +141,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	name : 'ApplicationNumStatus'
     }, {
 	name : 'JobID',
-	type : 'float'
+	type : 'int'
     }, {
 	name : 'LastSignOfLife',
 	type : 'date',
@@ -558,6 +558,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		load : function(oStore, records, successful, eOpts) {
 
 		    me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+		    me.dataStore.remoteSort = false;
+		    me.dataStore.sort();
+		    me.dataStore.remoteSort = true;
 
 		}
 

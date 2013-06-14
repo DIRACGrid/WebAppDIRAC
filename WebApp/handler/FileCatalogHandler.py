@@ -9,6 +9,11 @@ import operator
 import json
 import ast
 
+try:
+  from hashlib import md5
+except:
+  from md5 import md5
+
 class FileCatalogHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
@@ -234,3 +239,102 @@ class FileCatalogHandler(WebHandler):
       req["path"] = self.request.arguments["path"][0]
     gLogger.always("REQ: ",req)
     return req
+  
+  def __request_file(self):
+    req = { "selection" : {} , "path" : "/" }
+   
+    separator = ":::"
+      
+    RPC = RPCClient("DataManagement/FileCatalog")
+    result = RPC.getMetadataFields()
+    gLogger.debug( "request: %s" % result )
+    
+    if not result["OK"]:
+      gLogger.error( "request: %s" % result[ "Message" ] )
+      return req
+    result = result["Value"]
+    
+    if not result.has_key( "FileMetaFields" ):
+      error = "Service response has no FileMetaFields key. Return empty dict"
+      gLogger.error( "request: %s" % error )
+      return req
+    
+    if not result.has_key( "DirectoryMetaFields" ):
+      error = "Service response has no DirectoryMetaFields key. Return empty dict"
+      gLogger.error( "request: %s" % error )
+      return req
+    
+    filemeta = result[ "FileMetaFields" ]
+    dirmeta = result[ "DirectoryMetaFields" ]
+    
+    meta = []
+    for key,value in dirmeta.items() :
+      meta.append( key )
+      
+    gLogger.always( "request: metafields: %s " % meta )
+    
+    selectionElems=self.request.arguments["selection"][0].split("<|>")
+    
+    gLogger.always( "request: THISSSS %s " % self.request.arguments["selection"][0] )
+    
+    for param in selectionElems:
+      
+      tmp = str( param ).split( '|' )
+      
+      if len( tmp ) != 4 :
+        continue
+      
+      name = tmp[0]
+      logic = tmp[1]
+      
+      if not logic in ["in","nin", "=" , "!=" , ">=" , "<=" , ">" , "<" ] :
+        gLogger.always( "Operand '%s' is not supported " % logic )
+        continue
+      
+      if name in meta :
+        #check existence of the 'name' section
+        if not req[ "selection" ].has_key(name):
+          req[ "selection" ][name] = dict()
+          
+        #check existence of the 'sign' section
+        if not req[ "selection" ][name].has_key(logic):
+          if tmp[2]=="v":
+            req[ "selection" ][name][logic] = ""
+          elif tmp[2]=="s":
+            req[ "selection" ][name][logic] = []
+          
+        if tmp[2]=="v":
+          req[ "selection" ][name][logic] = tmp[3]
+        elif tmp[2]=="s":
+          req[ "selection" ][name][logic] += tmp[3].split(":::")
+    if self.request.arguments.has_key("path") :
+      req["path"] = self.request.arguments["path"][0]
+    gLogger.always("REQ: ",req)
+    return req
+  
+  @asyncGen  
+  def web_getMetadataFilesInFile( self ):
+    self.set_header('Content-type','text/plain')
+    self.set_header('Content-Disposition', 'attachment; filename="error.txt"')
+    RPC = RPCClient( "DataManagement/FileCatalog" )
+    req = self.__request_file()
+    gLogger.always(req)
+    gLogger.debug( "submit: incoming request %s" % req )
+    result = yield self.threadTask(RPC.findFilesByMetadata, req["selection"] , req["path"])
+    
+    if not result[ "OK" ] :
+      gLogger.error( "submit: %s" % result[ "Message" ] )
+      self.finish(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
+    result = result[ "Value" ]
+        
+    retStrLines = []
+    for key , value in result.items() :
+      for fileName in value:
+        retStrLines.append(key+"/"+fileName)
+    
+    strData = "\n".join(retStrLines)
+    
+    self.set_header('Content-type','text/plain')
+    self.set_header('Content-Disposition', 'attachment; filename="%s.txt"' % md5( str( req ) ).hexdigest())
+    self.set_header('Content-Length', len( strData ))
+    self.finish(strData)
