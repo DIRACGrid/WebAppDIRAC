@@ -45,7 +45,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	 * Structuring the Start menu
 	 */
 	
-	me.title = ((_app.configData.user.username) ? _app.configData["user"]["username"] + "@" + _app.configData["user"]["group"] : "Anonymous");
+	me.title = ((GLOBAL.APP.configData.user.username) ? GLOBAL.APP.configData["user"]["username"] + "@" + GLOBAL.APP.configData["user"]["group"] : "Anonymous");
 	
 	me.menu = new Ext.menu.Menu({
 	    cls : 'ux-start-menu-body',
@@ -72,9 +72,9 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	    text : 'State Loader',
 	    iconCls : 'system_state_icon',
 	    handler : function() {
-		_app._sm.formStateLoader(_app.desktop.cbAfterLoadSharedState,_app.desktop.cbAfterSaveSharedState);
+		GLOBAL.APP._sm.formStateLoader(GLOBAL.APP.desktop.cbAfterLoadSharedState,GLOBAL.APP.desktop.cbAfterSaveSharedState);
 	    },
-	    scope : _app._sm
+	    scope : GLOBAL.APP._sm
 	} ]);
 
 	me.toolbar.layout.align = 'stretch';
@@ -91,8 +91,8 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	
 	var me = this;
 	
-	for ( var j = 0; j < _app.configData["menu"].length; j++)
-	    me.menu.add(me.getMenuStructureRec(_app.configData["menu"][j]));
+	for ( var j = 0; j < GLOBAL.APP.configData["menu"].length; j++)
+	    me.menu.add(me.getMenuStructureRec(GLOBAL.APP.configData["menu"][j]));
 	
 	this.callParent();
 	
@@ -174,7 +174,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 		    minWidth : 200,
 		    menu : [ {
 			text : "Default",
-			handler : Ext.bind(_app.desktop.createWindow, _app.desktop, [ item[0], item[2], null ]),
+			handler : Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ item[0], item[2], null ]),
 			minWidth : 200,
 			iconCls : "notepad"
 		    }, '-' ],
@@ -183,7 +183,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 		    iconCls : "notepad",
 		    listeners : {
 			render : function(oMenu, eOpts) {
-			    _app.desktop.registerStartAppMenu(oMenu, oMenu.appClassName);
+			    GLOBAL.APP.desktop.registerStartAppMenu(oMenu, oMenu.appClassName);
 			},
 			focus : function(cmp, e, eOpts) {
 
@@ -195,7 +195,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			    /*
 			     * A call to isStateLoaded can be used to see whether the application states have been loaded
 			     * */
-			    var iAppStatesLoaded = _app._sm.isStateLoaded("application",sStartClass,"|"); 
+			    var iAppStatesLoaded = GLOBAL.APP._sm.isStateLoaded("application",sStartClass,"|"); 
 			    
 			    if (iAppStatesLoaded!=-2) {
 
@@ -215,7 +215,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 				    }
 
-				    _app._sm.oprReadApplicationStatesAndReferences(sStartClass, oFunc);
+				    GLOBAL.APP._sm.oprReadApplicationStatesAndReferences(sStartClass, oFunc);
 
 				    cmp.isStateMenuLoaded = 1;
 
@@ -235,7 +235,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 			    oNewItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
-				handler : Ext.bind(_app.desktop.createWindow, _app.desktop, [ "app", oThisMenu.appClassName, {
+				handler : Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ "app", oThisMenu.appClassName, {
 				    stateToLoad : stateName
 				} ], false),
 				scope : me,
@@ -243,7 +243,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 				stateType : stateType,
 				menu : [ {
 				    text : "Share state",
-				    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ stateName, oThisMenu.appClassName ], false),
+				    handler : Ext.bind(GLOBAL.APP._sm.oprShareState, GLOBAL.APP._sm, [ stateName, oThisMenu.appClassName ], false),
 				    iconCls : "system_share_state_icon"
 				} ]
 			    });
@@ -254,7 +254,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 			    oNewItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
-				handler : Ext.bind(_app.desktop.loadSharedStateByName, _app.desktop, [ oThisMenu.appClassName, stateName ], false),
+				handler : Ext.bind(GLOBAL.APP.desktop.loadSharedStateByName, GLOBAL.APP.desktop, [ oThisMenu.appClassName, stateName ], false),
 				scope : me,
 				iconCls : "system_link_icon",
 				stateType : stateType
@@ -315,12 +315,12 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			oThisMenu.menu.removeAll();
 			oThisMenu.menu.add([ {
 			    text : "Default",
-			    handler : Ext.bind(_app.desktop.createWindow, _app.desktop, [ "app", oThisMenu.appClassName, null ]),
+			    handler : Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ "app", oThisMenu.appClassName, null ]),
 			    minWidth : 200,
 			    iconCls : "notepad"
 			}, '-' ]);
 			
-			var oStates = _app._sm.getApplicationStates("application",oThisMenu.appClassName);
+			var oStates = GLOBAL.APP._sm.getApplicationStates("application",oThisMenu.appClassName);
 			
 			for ( var i = 0, len = oStates.length; i < len; i++) {
 				
@@ -328,7 +328,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			
 			    var newItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
-				handler : Ext.bind(_app.desktop.createWindow, _app.desktop, [ "app", oThisMenu.appClassName, {
+				handler : Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ "app", oThisMenu.appClassName, {
 				    stateToLoad : stateName
 				} ], false),
 				scope : me,
@@ -336,7 +336,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 				stateType : "application",
 				menu : [ {
 				    text : "Share state",
-				    handler : Ext.bind(_app._sm.oprShareState, _app._sm, [ stateName, oThisMenu.appClassName ], false),
+				    handler : Ext.bind(GLOBAL.APP._sm.oprShareState, GLOBAL.APP._sm, [ stateName, oThisMenu.appClassName ], false),
 				    iconCls : "system_share_state_icon"
 				} ]
 			    });
@@ -347,7 +347,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 			oThisMenu.menu.add("-");
 			
-			var oRefs = _app._sm.getApplicationStates("reference",oThisMenu.appClassName);
+			var oRefs = GLOBAL.APP._sm.getApplicationStates("reference",oThisMenu.appClassName);
 			
 			for ( var i = 0, len = oRefs.length; i < len; i++) {
 			    
@@ -355,7 +355,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			    
 			    var newItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
-				handler : Ext.bind(_app.desktop.loadSharedStateByName, _app.desktop, [ oThisMenu.appClassName, stateName ], false),
+				handler : Ext.bind(GLOBAL.APP.desktop.loadSharedStateByName, GLOBAL.APP.desktop, [ oThisMenu.appClassName, stateName ], false),
 				scope : me,
 				iconCls : "system_link_icon",
 				stateType : "reference"
@@ -372,7 +372,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 		return {
 		    text : item[1],
-		    handler : Ext.bind(_app.desktop.createWindow, _app.desktop, [ item[0], item[2], {
+		    handler : Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ item[0], item[2], {
 			title : item[1]
 		    } ]),
 		    minWidth : 200,

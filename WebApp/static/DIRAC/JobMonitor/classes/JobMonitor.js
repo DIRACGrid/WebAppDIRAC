@@ -499,7 +499,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	me.leftPanel.addDocked(oPanelButtons);
 
 	Ext.Ajax.request({
-	    url : _app_base_url + 'JobMonitor/getSelectionData',
+	    url : GLOBAL.BASE_URL + 'JobMonitor/getSelectionData',
 	    params : {
 
 	    },
@@ -512,9 +512,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.__oprRefreshStoresForSelectors(response, false);
 		
 		if (me.currentState == "") {
-		    if ("properties" in _user_credentials) {
-			if ((Ext.Array.indexOf(_user_credentials.properties, "NormalUser") != -1) && (Ext.Array.indexOf(_user_credentials.properties, "JobSharing") == -1)) {
-			    me.cmbSelectors["owner"].setValue([_user_credentials.username]);
+		    if ("properties" in GLOBAL.USER_CREDENTIALS) {
+			if ((Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "NormalUser") != -1) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "JobSharing") == -1)) {
+			    me.cmbSelectors["owner"].setValue([GLOBAL.USER_CREDENTIALS.username]);
 			}
 		    }
 
@@ -539,7 +539,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	    proxy : {
 		type : 'ajax',
-		url : _app_base_url + 'JobMonitor/getJobData',
+		url : GLOBAL.BASE_URL + 'JobMonitor/getJobData',
 		reader : {
 		    type : 'json',
 		    root : 'result'
@@ -582,7 +582,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	me.pagingToolbar.btnReset = null;
 
-	if (("properties" in _user_credentials) && (Ext.Array.indexOf(_user_credentials.properties, "JobAdministrator") != -1)) {
+	if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "JobAdministrator") != -1)) {
 	    me.pagingToolbar.btnReset = new Ext.Button({
 		text : 'Reset',
 		iconCls : "jm-reset-button-icon",
@@ -720,7 +720,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			handler : function() {
 
 			    var me = this;
-			    me.__oprJobAction("kill", _app._cf.getFieldValueFromSelectedRow(me.grid, "JobID"));
+			    me.__oprJobAction("kill", GLOBAL.APP._cf.getFieldValueFromSelectedRow(me.grid, "JobID"));
 
 			},
 			iconCls : "jm-kill-icon",
@@ -730,7 +730,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			handler : function() {
 
 			    var me = this;
-			    me.__oprJobAction("delete", _app._cf.getFieldValueFromSelectedRow(me.grid, "JobID"));
+			    me.__oprJobAction("delete", GLOBAL.APP._cf.getFieldValueFromSelectedRow(me.grid, "JobID"));
 
 			},
 			iconCls : "jm-delete-icon",
@@ -1099,7 +1099,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	// been loaded or not
 	me.bDataSelectionLoaded = false;
 	Ext.Ajax.request({
-	    url : _app_base_url + 'JobMonitor/getSelectionData',
+	    url : GLOBAL.BASE_URL + 'JobMonitor/getSelectionData',
 	    params : {
 
 	    },
@@ -1237,7 +1237,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    return;
 
 	Ext.Ajax.request({
-	    url : _app_base_url + 'JobMonitor/jobAction',
+	    url : GLOBAL.BASE_URL + 'JobMonitor/jobAction',
 	    method : 'POST',
 	    params : {
 		action : oAction,
@@ -1264,10 +1264,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
     __oprGetJobData : function(oDataKind) {
 
 	var me = this;
-	var oId = _app._cf.getFieldValueFromSelectedRow(me.grid, "JobID");
+	var oId = GLOBAL.APP._cf.getFieldValueFromSelectedRow(me.grid, "JobID");
 	me.getContainer().body.mask("Wait ...");
 	Ext.Ajax.request({
-	    url : _app_base_url + 'JobMonitor/jobData',
+	    url : GLOBAL.BASE_URL + 'JobMonitor/jobData',
 	    method : 'POST',
 	    params : {
 		data_kind : oDataKind,

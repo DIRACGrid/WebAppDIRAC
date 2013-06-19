@@ -77,7 +77,7 @@ Ext.define('Ext.dirac.core.App', {
 	}();
 
 	Ext.Ajax.request({
-	    url : _app_base_url + 'getConfigData',
+	    url : GLOBAL.BASE_URL + 'getConfigData',
 	    params : {},
 	    scope : me,
 	    success : function(response) {
@@ -112,7 +112,7 @@ Ext.define('Ext.dirac.core.App', {
 	var me = this;
 	
 	for ( var i = 0; i < me.configData["menu"].length; i++)
-	   me.__getAppRecursivelyFromConfig(_app.configData["menu"][i]);
+	   me.__getAppRecursivelyFromConfig(GLOBAL.APP.configData["menu"][i]);
 	
     },
     

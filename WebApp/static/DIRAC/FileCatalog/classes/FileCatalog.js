@@ -13,6 +13,150 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
     loadState : function(oData) {
 
+	var me = this;
+
+	me.setLoading("Loading state ...");
+
+	me.txtPathField.setValue(oData["path"]);
+
+	/*
+	 * We starting adding one by one block, for each block we are going to
+	 * check if A) the parameter exists into the list of parameters and B)
+	 * the values are within the possible values We stop loading the blocks
+	 * only if some of the condition A) and B) are not fulfilled.
+	 * 
+	 */
+	me.__postponedLoadState(oData);
+
+	// me.setLoading(false);
+
+    },
+
+    __postponedLoadState : function(oData) {
+
+	var me = this;
+
+	if (me.queryData == null) {
+
+	    Ext.Function.defer(me.__postponedLoadState, 1000, me, [ oData ]);
+
+	} else {
+
+	    /*
+	     * We start loading block by block
+	     */
+
+	    me.__loadingStateDataStruct = {
+
+		blocks : oData["blocks"],
+		index : 0,
+		error_message : "",
+		next : function() {
+
+		    var oIter = this;
+		    
+		    if (oIter.index == oIter.blocks.length-1) {
+			oIter.finished = true;
+		    }
+		    
+		    var oBlockData = oIter.blocks[oIter.index];
+
+		    /*
+		     * We check whether the parameter name exists
+		     */
+		    if (!(oBlockData[0] in me.queryData)) {
+			oIter.finished = true;
+			oIter.error_message = "'" + oBlockData[0] + "' was not found in the current set of metadata fields !";
+			alert(oIter.error_message);
+			me.setLoading(false);
+			return;
+		    }
+		    
+		    /*
+		     * We check whether the values are defined for the parameter
+		     */
+		    switch (oBlockData[1]) {
+
+		    case "varchar(128)":
+			var oDataArray = oBlockData[4].split(":::");
+
+			for ( var i = 0; i < oDataArray.length; i++) {
+
+			    if (me.queryData[oBlockData[0]].indexOf(oDataArray[i]) == -1) {
+
+				oIter.finished = true;
+				oIter.error_message = "'" + oDataArray[i] + "' value was not found as a value of the '" + oBlockData[0] + "' field !";
+				alert(oIter.error_message);
+				me.setLoading(false);
+				return;
+
+			    }
+
+			}
+
+			break;
+
+		    default:
+			
+			if (me.queryData[oBlockData[0]].indexOf(oBlockData[4]) == -1) {
+
+			    oIter.finished = true;
+			    oIter.error_message = "'" + oBlockData[4] + "' value was not found as a value of the '" + oBlockData[0] + "' field !";
+			    alert(oIter.error_message);
+			    me.setLoading(false);
+			    return;
+
+			}
+			break;
+
+		    }
+		    
+		    switch (oBlockData[1]) {
+
+		    case "varchar(128)":
+			
+			var oNewBlock = me.__getDropDownField(oBlockData[0],oBlockData[1]);
+			me.queryPanel.add(oNewBlock);
+			oNewBlock.items.getAt(2).setValue(oBlockData[4].split(":::"));
+			
+			if(oBlockData[3])
+			    oNewBlock.items.getAt(2).setInverseSelection(true);
+			
+			me.__getQueryData(true);
+			
+			break;
+
+		    default:
+			
+			var oNewBlock = me.__getValueField(oBlockData[0], oBlockData[1]);
+			me.queryPanel.add(oNewBlock);
+			oNewBlock.items.getAt(2).setValue(oBlockData[4]);
+			oNewBlock.items.getAt(1).setIconCls(oBlockData[2]);
+			
+			me.__getQueryData(true);
+			
+			break;
+
+		    }
+
+		    if(oIter.finished){
+			
+			me.oprLoadFilesGridData();
+			me.setLoading(false);
+			
+		    }
+		    
+		    oIter.index++;
+
+		},
+		finished : false
+
+	    };
+
+	    me.__loadingStateDataStruct.next();
+
+	}
+
     },
 
     getStateData : function() {
@@ -20,6 +164,33 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	var me = this;
 	var oReturn = {};
 
+	var oSendData = [];
+
+	for ( var i = 0; i < me.queryPanel.items.length; i++) {
+
+	    var oBlock = me.queryPanel.items.getAt(i);
+	    
+	    var oItem = [oBlock.fieldName,oBlock.fieldType,oBlock.items.getAt(1).iconCls];
+	    
+	    if(oBlock.blockType=="string"){
+		
+		oItem.push(((oBlock.items.getAt(2).isInverseSelection())?1:0));
+		oItem.push(oBlock.items.getAt(2).getValue().join(":::"));
+		
+	    }else{
+		
+		oItem.push(0);
+		oItem.push(oBlock.items.getAt(2).getValue());
+		
+	    }
+	    
+	    oSendData.push(oItem);
+
+	}
+
+	oReturn["path"] = me.txtPathField.getValue();
+	oReturn["blocks"] = oSendData;
+	
 	return oReturn;
 
     },
@@ -30,6 +201,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	me.launcher.title = "File Catalog";
 	me.launcher.maximized = true;
+
+	me.__loadingStateDataStruct = null;
 
 	Ext.apply(me, {
 	    layout : 'border',
@@ -187,7 +360,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	    proxy : {
 		type : 'ajax',
-		url : _app_base_url + 'FileCatalog/getFilesData',
+		url : GLOBAL.BASE_URL + 'FileCatalog/getFilesData',
 		reader : {
 		    type : 'json',
 		    root : 'result'
@@ -449,7 +622,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			switch (oRecord.get("Type")) {
 
 			case "varchar(128)":
-			    me.queryPanel.add(me.__getDropDownField(oRecord.get("Name")));
+			    me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"),oRecord.get("Type")));
 			    break;
 			default:
 			    me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
@@ -464,7 +637,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			    switch (oRecord.get("Type")) {
 
 			    case "varchar(128)":
-				me.queryPanel.add(me.__getDropDownField(oRecord.get("Name")));
+				me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"),oRecord.get("Type")));
 				break;
 			    default:
 				me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
@@ -501,10 +674,12 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	oLeftPanel.addDocked([ queryPanelToolbarTop, me.queryPanelToolbarCenter ]);
 
 	me.add([ oLeftPanel, me.filesGrid ]);
-	me.fieldsTypes = {};
+
+	me.fieldsTypes = null;
+	me.queryData = null;
 
 	Ext.Ajax.request({
-	    url : _app_base_url + 'FileCatalog/getMetadataFields',
+	    url : GLOBAL.BASE_URL + 'FileCatalog/getMetadataFields',
 	    method : 'POST',
 	    params : {},
 	    scope : me,
@@ -690,7 +865,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
     },
 
-    __getDropDownField : function(sName) {
+    __getDropDownField : function(sName,sType) {
 
 	var me = this;
 
@@ -750,6 +925,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		margin : 3
 	    },
 	    fieldName : sName,
+	    fieldType : sType,
 	    blockType : "string",
 	    items : [ {
 		xtype : 'panel',
@@ -862,14 +1038,14 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		    }
 		}, {
 		    text : "Greater than or equal to",
-		    iconCls : "meta-lequal-icon",
+		    iconCls : "meta-gequal-icon",
 		    width : 200,
 		    listeners : {
 			click : me.onItemLogicOperationClick
 		    }
 		}, {
 		    text : "Less than or equal to",
-		    iconCls : "meta-gequal-icon",
+		    iconCls : "meta-lequal-icon",
 		    width : 200,
 		    listeners : {
 			click : me.onItemLogicOperationClick
@@ -957,7 +1133,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    oSendData["path"] = me.txtPathField.getValue();
 
 	    Ext.Ajax.request({
-		url : _app_base_url + 'FileCatalog/getQueryData',
+		url : GLOBAL.BASE_URL + 'FileCatalog/getQueryData',
 		method : 'POST',
 		params : oSendData,
 		scope : me,
@@ -1060,7 +1236,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	}
 
-	location.href = _app_base_url + 'FileCatalog/getMetadataFilesInFile?path=' + encodeURIComponent(me.txtPathField.getValue()) + "&selection=" + encodeURIComponent(oSendData.join("<|>"));
+	location.href = GLOBAL.BASE_URL + 'FileCatalog/getMetadataFilesInFile?path=' + encodeURIComponent(me.txtPathField.getValue()) + "&selection=" + encodeURIComponent(oSendData.join("<|>"));
 
     },
 
@@ -1085,7 +1261,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	oSendData["path"] = me.txtPathField.getValue();
 
 	Ext.Ajax.request({
-	    url : _app_base_url + 'FileCatalog/getQueryData',
+	    url : GLOBAL.BASE_URL + 'FileCatalog/getQueryData',
 	    method : 'POST',
 	    params : oSendData,
 	    scope : me,
@@ -1107,6 +1283,16 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 			me.funcAfterEveryBlockGetsBlured();
 			me.funcAfterEveryBlockGetsBlured = null;
+
+		    }
+		    
+		    if (me.__loadingStateDataStruct != null) {
+
+			if (!me.__loadingStateDataStruct.finished) {
+			    
+			    me.__loadingStateDataStruct.next();
+
+			}
 
 		    }
 
