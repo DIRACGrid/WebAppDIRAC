@@ -38,6 +38,7 @@ class RootHandler(WebHandler):
   def web_index(self):
     # Render base template
     data = SessionData().getData()
+#     data[ 'extVersion' ] = "ext-4.1.1a"
     url_state = ""
     if self.request.arguments.has_key("url_state") and len(self.request.arguments["url_state"][0]) > 0:
       url_state = self.request.arguments["url_state"][0]

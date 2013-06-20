@@ -100,8 +100,8 @@ Ext.define('Ext.dirac.core.App', {
 	    }
 	});
 
-	me._cf = new Ext.dirac.core.CommonFunctions();
-	me._sm = new Ext.dirac.core.StateManagement();
+	me.CF = new Ext.dirac.core.CommonFunctions();
+	me.SM = new Ext.dirac.core.StateManagement();
 
 	me.callParent();
 

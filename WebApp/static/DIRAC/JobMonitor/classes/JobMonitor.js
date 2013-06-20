@@ -720,7 +720,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			handler : function() {
 
 			    var me = this;
-			    me.__oprJobAction("kill", GLOBAL.APP._cf.getFieldValueFromSelectedRow(me.grid, "JobID"));
+			    me.__oprJobAction("kill", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"));
 
 			},
 			iconCls : "jm-kill-icon",
@@ -730,7 +730,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			handler : function() {
 
 			    var me = this;
-			    me.__oprJobAction("delete", GLOBAL.APP._cf.getFieldValueFromSelectedRow(me.grid, "JobID"));
+			    me.__oprJobAction("delete", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"));
 
 			},
 			iconCls : "jm-delete-icon",
@@ -774,6 +774,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    region : 'center',
 	    store : me.dataStore,
 	    height : '600',
+	    header:false,
 	    viewConfig : {
 		stripeRows : true,
 		enableTextSelection : true
@@ -1264,7 +1265,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
     __oprGetJobData : function(oDataKind) {
 
 	var me = this;
-	var oId = GLOBAL.APP._cf.getFieldValueFromSelectedRow(me.grid, "JobID");
+	var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
 	me.getContainer().body.mask("Wait ...");
 	Ext.Ajax.request({
 	    url : GLOBAL.BASE_URL + 'JobMonitor/jobData',

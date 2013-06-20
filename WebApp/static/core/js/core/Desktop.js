@@ -380,7 +380,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	}
 
-	GLOBAL.APP._sm.oprReadApplicationStatesAndReferences("desktop", oFunc);
+	GLOBAL.APP.SM.oprReadApplicationStatesAndReferences("desktop", oFunc);
 
 	var funcAfterSave = function(sAppName, sStateName) {
 
@@ -392,7 +392,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		minWidth : 200,
 		menu : [ {
 		    text : "Share state",
-		    handler : Ext.bind(GLOBAL.APP._sm.oprShareState, GLOBAL.APP._sm, [ sStateName, "dekstop" ], false),
+		    handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ sStateName, "dekstop" ], false),
 		    iconCls : "system_share_state_icon"
 		} ]
 	    });
@@ -400,10 +400,10 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    me.statesMenu.insert(0, oNewItem);
 
 	    if (me.currentState != "")
-		GLOBAL.APP._sm.removeActiveState("desktop", me.currentState);
+		GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
 
 	    me.currentState = sStateName;
-	    GLOBAL.APP._sm.addActiveState(sAppName, sStateName);
+	    GLOBAL.APP.SM.addActiveState(sAppName, sStateName);
 	    me.refreshUrlDesktopState();
 
 	};
@@ -444,13 +444,13 @@ Ext.define('Ext.dirac.core.Desktop', {
 	}, {
 	    text : "Save",
 	    iconCls : "toolbar-other-save",
-	    handler : Ext.bind(GLOBAL.APP._sm.oprSaveAppState, GLOBAL.APP._sm, [ "application", "desktop", me, funcAfterSave ], false),
+	    handler : Ext.bind(GLOBAL.APP.SM.oprSaveAppState, GLOBAL.APP.SM, [ "application", "desktop", me, funcAfterSave ], false),
 	    minWindows : 1,
 	    scope : me
 	}, {
 	    text : "Save As ...",
 	    iconCls : "toolbar-other-save",
-	    handler : Ext.bind(GLOBAL.APP._sm.formSaveState, GLOBAL.APP._sm, [ "application", "desktop", me, funcAfterSave ], false),
+	    handler : Ext.bind(GLOBAL.APP.SM.formSaveState, GLOBAL.APP.SM, [ "application", "desktop", me, funcAfterSave ], false),
 	    minWindows : 1,
 	    scope : me
 	}, {
@@ -461,7 +461,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	}, {
 	    text : "Manage states ...",
 	    iconCls : "toolbar-other-manage",
-	    handler : Ext.bind(GLOBAL.APP._sm.formManageStates, GLOBAL.APP._sm, [ "desktop", funcAfterRemove ], false),
+	    handler : Ext.bind(GLOBAL.APP.SM.formManageStates, GLOBAL.APP.SM, [ "desktop", funcAfterRemove ], false),
 	    scope : me
 	})
 
@@ -474,7 +474,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	me.statesMenu.removeAll();
 
-	var oStates = GLOBAL.APP._sm.getApplicationStates("application", "desktop");
+	var oStates = GLOBAL.APP.SM.getApplicationStates("application", "desktop");
 
 	for ( var i = 0, len = oStates.length; i < len; i++) {
 
@@ -489,7 +489,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		minWidth : 200,
 		menu : [ {
 		    text : "Share state",
-		    handler : Ext.bind(GLOBAL.APP._sm.oprShareState, GLOBAL.APP._sm, [ sStateName, "desktop" ], false),
+		    handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ sStateName, "desktop" ], false),
 		    iconCls : "system_share_state_icon"
 		} ]
 	    });
@@ -500,7 +500,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	me.statesMenu.add("-");
 
-	var oRefs = GLOBAL.APP._sm.getApplicationStates("reference", "desktop");
+	var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", "desktop");
 
 	// for ( var sStateName in oRefs) {
 	for ( var i = 0, len = oRefs.length; i < len; i++) {
@@ -607,8 +607,10 @@ Ext.define('Ext.dirac.core.Desktop', {
      *          used to disable enable some operations within that menu.
      */
     onWindowMenuBeforeShow : function(menu) {
+	var me = this;
+	
 	var items = menu.items.items, win = menu.theWin;
-
+	
 	items[2].setDisabled(win.maximized !== true && win.hidden !== true); // Restore
 	items[3].setDisabled(win.minimized === true); // Minimize
 	items[4].setDisabled(win.maximized === true || win.hidden === true); // Maximize
@@ -635,7 +637,7 @@ Ext.define('Ext.dirac.core.Desktop', {
      */
     onWindowMenuClose : function() {
 	var me = this, win = me.windowMenu.theWin;
-
+	console.log(me);
 	win.close();
     },
 
@@ -675,7 +677,7 @@ Ext.define('Ext.dirac.core.Desktop', {
      * @param menu
      */
     onWindowMenuHide : function(menu) {
-	menu.theWin = null;
+	//menu.theWin = null;
     },
 
     // ----------------------------------------------------------------------------------------
@@ -847,7 +849,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	if (me.windows.getCount() == 0) {
 
 	    if (me.currentState != "")
-		GLOBAL.APP._sm.removeActiveState("desktop", me.currentState);
+		GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
 
 	    me.currentState = '';
 	    me.refreshUrlDesktopState();
@@ -867,7 +869,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	if (!win.isChildWindow) {
 
 	    if (win.currentState != "")
-		GLOBAL.APP._sm.removeActiveState(win.loadedObject.self.getName(), win.currentState);
+		GLOBAL.APP.SM.removeActiveState(win.loadedObject.self.getName(), win.currentState);
 
 	    me.refreshUrlDesktopState();
 	}
@@ -1160,7 +1162,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	}
 
-	GLOBAL.APP._sm.oprReadApplicationStatesAndReferences(appName, oFunc);
+	GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(appName, oFunc);
 
     },
 
@@ -1268,7 +1270,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	var me = this;
 
-	var iStateLoaded = GLOBAL.APP._sm.isStateLoaded("application", "desktop", sStateName);
+	var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", "desktop", sStateName);
 
 	switch (iStateLoaded) {
 	case -1:
@@ -1287,13 +1289,13 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    break;
 	}
 
-	me.loadState(GLOBAL.APP._sm.getStateData("application", "desktop", sStateName));
+	me.loadState(GLOBAL.APP.SM.getStateData("application", "desktop", sStateName));
 
 	if (me.currentState != "")
-	    GLOBAL.APP._sm.removeActiveState("desktop", me.currentState);
+	    GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
 
 	me.currentState = sStateName;
-	GLOBAL.APP._sm.addActiveState("desktop", sStateName);
+	GLOBAL.APP.SM.addActiveState("desktop", sStateName);
 
 	me.refreshUrlDesktopState();
 
@@ -1327,7 +1329,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	}
 
-	GLOBAL.APP._sm.oprReadApplicationStatesAndReferences("desktop", oFunc);
+	GLOBAL.APP.SM.oprReadApplicationStatesAndReferences("desktop", oFunc);
 
     },
 
@@ -1414,8 +1416,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	var me = this;
 
-	var oData = GLOBAL.APP._sm.getStateData("reference", sAppName, sStateName);
-	GLOBAL.APP._sm.loadSharedState(oData["link"], me.cbAfterLoadSharedState);
+	var oData = GLOBAL.APP.SM.getStateData("reference", sAppName, sStateName);
+	GLOBAL.APP.SM.loadSharedState(oData["link"], me.cbAfterLoadSharedState);
 
     },
 
@@ -1463,7 +1465,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    }
 
 	    if (me.currentState != "")
-		GLOBAL.APP._sm.removeActiveState("desktop", me.currentState);
+		GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
 
 	    me.currentState = "";
 

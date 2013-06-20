@@ -54,11 +54,11 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		next : function() {
 
 		    var oIter = this;
-		    
-		    if (oIter.index == oIter.blocks.length-1) {
+
+		    if (oIter.index == oIter.blocks.length - 1) {
 			oIter.finished = true;
 		    }
-		    
+
 		    var oBlockData = oIter.blocks[oIter.index];
 
 		    /*
@@ -71,7 +71,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			me.setLoading(false);
 			return;
 		    }
-		    
+
 		    /*
 		     * We check whether the values are defined for the parameter
 		     */
@@ -97,7 +97,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			break;
 
 		    default:
-			
+
 			if (me.queryData[oBlockData[0]].indexOf(oBlockData[4]) == -1) {
 
 			    oIter.finished = true;
@@ -110,42 +110,42 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			break;
 
 		    }
-		    
+
 		    switch (oBlockData[1]) {
 
 		    case "varchar(128)":
-			
-			var oNewBlock = me.__getDropDownField(oBlockData[0],oBlockData[1]);
+
+			var oNewBlock = me.__getDropDownField(oBlockData[0], oBlockData[1]);
 			me.queryPanel.add(oNewBlock);
 			oNewBlock.items.getAt(2).setValue(oBlockData[4].split(":::"));
-			
-			if(oBlockData[3])
+
+			if (oBlockData[3])
 			    oNewBlock.items.getAt(2).setInverseSelection(true);
-			
+
 			me.__getQueryData(true);
-			
+
 			break;
 
 		    default:
-			
+
 			var oNewBlock = me.__getValueField(oBlockData[0], oBlockData[1]);
 			me.queryPanel.add(oNewBlock);
 			oNewBlock.items.getAt(2).setValue(oBlockData[4]);
 			oNewBlock.items.getAt(1).setIconCls(oBlockData[2]);
-			
+
 			me.__getQueryData(true);
-			
+
 			break;
 
 		    }
 
-		    if(oIter.finished){
-			
+		    if (oIter.finished) {
+
 			me.oprLoadFilesGridData();
 			me.setLoading(false);
-			
+
 		    }
-		    
+
 		    oIter.index++;
 
 		},
@@ -169,28 +169,28 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	for ( var i = 0; i < me.queryPanel.items.length; i++) {
 
 	    var oBlock = me.queryPanel.items.getAt(i);
-	    
-	    var oItem = [oBlock.fieldName,oBlock.fieldType,oBlock.items.getAt(1).iconCls];
-	    
-	    if(oBlock.blockType=="string"){
-		
-		oItem.push(((oBlock.items.getAt(2).isInverseSelection())?1:0));
+
+	    var oItem = [ oBlock.fieldName, oBlock.fieldType, oBlock.items.getAt(1).iconCls ];
+
+	    if (oBlock.blockType == "string") {
+
+		oItem.push(((oBlock.items.getAt(2).isInverseSelection()) ? 1 : 0));
 		oItem.push(oBlock.items.getAt(2).getValue().join(":::"));
-		
-	    }else{
-		
+
+	    } else {
+
 		oItem.push(0);
 		oItem.push(oBlock.items.getAt(2).getValue());
-		
+
 	    }
-	    
+
 	    oSendData.push(oItem);
 
 	}
 
 	oReturn["path"] = me.txtPathField.getValue();
 	oReturn["blocks"] = oSendData;
-	
+
 	return oReturn;
 
     },
@@ -342,6 +342,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	me.queryPanel = new Ext.create('Ext.panel.Panel', {
 	    title : 'Query',
 	    region : 'north',
+	    header : false,
 	    floatable : false,
 	    bodyBorder : false,
 	    margins : '0',
@@ -509,6 +510,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	me.filesGrid = Ext.create('Ext.grid.Panel', {
 	    region : 'center',
+	    header : false,
 	    store : me.filesDataStore,
 	    flex : 1,
 	    viewConfig : {
@@ -622,7 +624,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			switch (oRecord.get("Type")) {
 
 			case "varchar(128)":
-			    me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"),oRecord.get("Type")));
+			    me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"), oRecord.get("Type")));
 			    break;
 			default:
 			    me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
@@ -637,7 +639,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			    switch (oRecord.get("Type")) {
 
 			    case "varchar(128)":
-				me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"),oRecord.get("Type")));
+				me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"), oRecord.get("Type")));
 				break;
 			    default:
 				me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
@@ -659,6 +661,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	var oLeftPanel = new Ext.create('Ext.panel.Panel', {
 	    region : 'west',
 	    layout : 'border',
+	    header : false,
 	    bodyBorder : false,
 	    defaults : {
 		collapsible : true,
@@ -865,7 +868,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
     },
 
-    __getDropDownField : function(sName,sType) {
+    __getDropDownField : function(sName, sType) {
 
 	var me = this;
 
@@ -1285,11 +1288,11 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			me.funcAfterEveryBlockGetsBlured = null;
 
 		    }
-		    
+
 		    if (me.__loadingStateDataStruct != null) {
 
 			if (!me.__loadingStateDataStruct.finished) {
-			    
+
 			    me.__loadingStateDataStruct.next();
 
 			}

@@ -372,7 +372,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		    inputValue : 's',
 		    name : "manage_state_type",
 		    width : 150,
-		    padding : "5 0 10 0",
+		    padding : "0 0 5 0",
 		    checked : true,
 		    listeners : {
 
@@ -400,15 +400,15 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		    xtype : 'radiofield',
 		    boxLabel : 'Links',
 		    inputValue : 'l',
-		    padding : "5 0 10 0",
+		    padding : "0 0 5 0",
 		    name : "manage_state_type",
 		    width : 150
 		} ]
 	    }, {
-		html : "<select size='12' multiple='multiple' style='width:100%'></select>",
+		html : "<select multiple='multiple' style='width:100%;height:175px'></select>",
 		xtype : "box"
 	    }, {
-		html : "<select size='12' multiple='multiple' style='width:100%;'></select>",
+		html : "<select multiple='multiple' style='width:100%;height:175px'></select>",
 		xtype : "box",
 		hidden : true
 	    } ]

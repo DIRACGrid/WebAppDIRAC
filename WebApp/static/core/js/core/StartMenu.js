@@ -52,6 +52,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	    border : false,
 	    floating : false
 	});
+	
 	me.menu.layout.align = 'stretch';
 
 	me.items = [ me.menu ];
@@ -72,9 +73,9 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	    text : 'State Loader',
 	    iconCls : 'system_state_icon',
 	    handler : function() {
-		GLOBAL.APP._sm.formStateLoader(GLOBAL.APP.desktop.cbAfterLoadSharedState,GLOBAL.APP.desktop.cbAfterSaveSharedState);
+		GLOBAL.APP.SM.formStateLoader(GLOBAL.APP.desktop.cbAfterLoadSharedState,GLOBAL.APP.desktop.cbAfterSaveSharedState);
 	    },
-	    scope : GLOBAL.APP._sm
+	    scope : GLOBAL.APP.SM
 	} ]);
 
 	me.toolbar.layout.align = 'stretch';
@@ -82,11 +83,9 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	
 	delete me.toolItems;
 
-	me.on('deactivate', function() {
-	    me.hide();
-	});
     },
     
+  
     afterRender:function(){
 	
 	var me = this;
@@ -97,6 +96,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	this.callParent();
 	
     },
+    
 
     /**
      * Function to add an item (button, menu) to the menu of the start menu
@@ -195,7 +195,8 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			    /*
 			     * A call to isStateLoaded can be used to see whether the application states have been loaded
 			     * */
-			    var iAppStatesLoaded = GLOBAL.APP._sm.isStateLoaded("application",sStartClass,"|"); 
+			    
+			    var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application",sStartClass,"|"); 
 			    
 			    if (iAppStatesLoaded!=-2) {
 
@@ -215,13 +216,14 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 				    }
 
-				    GLOBAL.APP._sm.oprReadApplicationStatesAndReferences(sStartClass, oFunc);
+				    GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(sStartClass, oFunc);
 
 				    cmp.isStateMenuLoaded = 1;
 
 				}
 
 			    }
+			    
 
 			}
 
@@ -243,7 +245,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 				stateType : stateType,
 				menu : [ {
 				    text : "Share state",
-				    handler : Ext.bind(GLOBAL.APP._sm.oprShareState, GLOBAL.APP._sm, [ stateName, oThisMenu.appClassName ], false),
+				    handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ stateName, oThisMenu.appClassName ], false),
 				    iconCls : "system_share_state_icon"
 				} ]
 			    });
@@ -320,7 +322,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			    iconCls : "notepad"
 			}, '-' ]);
 			
-			var oStates = GLOBAL.APP._sm.getApplicationStates("application",oThisMenu.appClassName);
+			var oStates = GLOBAL.APP.SM.getApplicationStates("application",oThisMenu.appClassName);
 			
 			for ( var i = 0, len = oStates.length; i < len; i++) {
 				
@@ -336,7 +338,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 				stateType : "application",
 				menu : [ {
 				    text : "Share state",
-				    handler : Ext.bind(GLOBAL.APP._sm.oprShareState, GLOBAL.APP._sm, [ stateName, oThisMenu.appClassName ], false),
+				    handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ stateName, oThisMenu.appClassName ], false),
 				    iconCls : "system_share_state_icon"
 				} ]
 			    });
@@ -347,7 +349,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 			oThisMenu.menu.add("-");
 			
-			var oRefs = GLOBAL.APP._sm.getApplicationStates("reference",oThisMenu.appClassName);
+			var oRefs = GLOBAL.APP.SM.getApplicationStates("reference",oThisMenu.appClassName);
 			
 			for ( var i = 0, len = oRefs.length; i < len; i++) {
 			    

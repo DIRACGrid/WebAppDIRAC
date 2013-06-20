@@ -72,7 +72,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		collapsible : true,
 		split : true
 	    },
-	    items : []
+	    items : [],
+	    header:false
 	});
 
 	me.callParent(arguments);
@@ -217,10 +218,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		switch (oResponse.op) {
 
 		case "init":
-		    if (GLOBAL.EXTJS_VERSION == "ext-4.1.1a")
-			me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
-		    else
-			me.treeStore.getRootNode().setText(oResponse.name + " [" + oResponse.version + "]");
+		    me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
 		    me.btnResetConfig.show();
 		    me.treePanel.getRootNode().expand();
 		    break;
@@ -236,10 +234,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    me.btnViewConfigDifference.show();
 		    break;
 		case "resetConfiguration":
-		    if (GLOBAL.EXTJS_VERSION == "ext-4.1.1a")
-			me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
-		    else
-			me.treeStore.getRootNode().setText(oResponse.name + " [" + oResponse.version + "]");
+		    me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
 		    me.__cbResetConfigurationTree(oResponse.text);
 		    me.__clearValuePanel();
 		    me.copyNode = null;
@@ -256,10 +251,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    oNode.raw.csValue = oResponse.value;
 		    me.valuePanel.csValue = oResponse.value;
 		    me.txtOptionValuePanelTextArea.setValue(oResponse.value);
-		    if (GLOBAL.EXTJS_VERSION == "ext-4.1.1a")
-			me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
-		    else
-			oNode.setText(oNode.raw.csName + " = " + oNode.raw.csValue);
+		    me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
 		    me.__setChangeMade(true);
 		    break;
 		case "setComment":
@@ -465,6 +457,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.treePanel = new Ext.create('Ext.tree.Panel', {
 	    region : 'center',
 	    store : me.treeStore,
+	    header:false,
 	    viewConfig : {
 		plugins : {
 		    ptype : 'treeviewdragdrop',
@@ -587,6 +580,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    floatable : false,
 	    margins : '0',
 	    width : 250,
+	    header:false,
 	    minWidth : 230,
 	    maxWidth : 350,
 	    bodyPadding : 5,
@@ -1223,17 +1217,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	if (oNode.isLeaf()) {
 
-	    if (GLOBAL.EXTJS_VERSION == "ext-4.1.1a")
-		me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
-	    else
-		oNode.setText(oNode.raw.csName + " = " + oNode.raw.csValue);
+	    me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
 
 	} else {
-
-	    if (GLOBAL.EXTJS_VERSION == "ext-4.1.1a")
-		me.setNodeText(oNode, newName);
-	    else
-		oNode.setText(newName)
+	    
+	    me.setNodeText(oNode, newName);	    
 
 	}
 

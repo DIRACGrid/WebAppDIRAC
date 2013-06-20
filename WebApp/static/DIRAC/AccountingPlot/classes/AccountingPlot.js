@@ -68,23 +68,20 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	var me = this;
 
 	me.launcher.title = "Accounting Plot";
-	me.launcher.width = 350;
+	me.launcher.maximized = false;
 
 	var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
-
+	
+	me.launcher.width = 350;
 	me.launcher.height = oDimensions[1] - 50;
-	me.launcher.maximized = false;
 	
 	me.launcher.x = 0;
 	me.launcher.y = 0;
 	
 	Ext.apply(me, {
-	    layout : 'fit',
+	    layout : 'border',
 	    bodyBorder : false,
-	    defaults : {
-		collapsible : true,
-		split : true
-	    }
+	    items:[]
 	});
 	
 	me.callParent(arguments);
@@ -102,7 +99,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	 */
 
 	me.leftPanel = new Ext.create('Ext.panel.Panel', {
+	    region:"center",
 	    floatable : false,
+	    header:false,
 	    margins : '0',
 	    minWidth : 230,
 	    bodyPadding : 5,
