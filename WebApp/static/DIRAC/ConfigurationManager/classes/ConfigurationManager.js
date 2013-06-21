@@ -85,20 +85,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
      */
 
     setNodeText : function(oNode, sNewText) {
+	
+	oNode.set('text', sNewText);
 
-	var me = this;
-	var oDivContainer = me.treePanel.getView().getNode(oNode).childNodes[0].childNodes[0];
-
-	var iNumberChildren = oDivContainer.childNodes.length;
-
-	// removing the old text node
-	oDivContainer.removeChild(oDivContainer.childNodes[iNumberChildren - 1]);
-
-	// creating the new text node
-	var oNewTextNode = document.createTextNode(sNewText);
-	oDivContainer.appendChild(oNewTextNode);
-
-	oNode.raw.text = sNewText;
 	oNode.data.text = sNewText;
 
     },
@@ -210,6 +199,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		case "commitConfiguration":
 		    me.btnCommitConfiguration.show();
 		    me.btnViewConfigDifference.show();
+		    me.treePanel.body.unmask();
 		    break;
 		}
 
@@ -289,6 +279,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    me.btnCommitConfiguration.show();
 		    me.btnViewConfigDifference.show();
 		    me.__setChangeMade(false);
+		    me.__sendSocketMessage({
+			    op : "resetConfiguration"
+		    });
+		    me.btnResetConfig.hide();
 		    break;
 		case "moveNode":
 		    me.__cbMoveNode(oResponse);
@@ -419,6 +413,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		iconCls : "cm-submit-icon",
 		handler : function() {
 		    if (confirm("Do you want to apply the configuration changes you've done till now?")) {
+			me.treePanel.body.mask("Wait ...");
 			me.__sendSocketMessage({
 			    op : "commitConfiguration"
 			});
@@ -580,7 +575,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    floatable : false,
 	    margins : '0',
 	    width : 250,
-	    header:false,
 	    minWidth : 230,
 	    maxWidth : 350,
 	    bodyPadding : 5,

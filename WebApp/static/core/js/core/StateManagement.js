@@ -336,7 +336,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	me.btnDeleteState = new Ext.Button({
 
-	    text : 'Delete selected states',
+	    text : 'Delete',
 	    margin : 3,
 	    iconCls : "toolbar-other-close",
 	    handler : me.oprDeleteSelectedStates,

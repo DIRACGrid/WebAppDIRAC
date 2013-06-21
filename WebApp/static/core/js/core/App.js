@@ -198,7 +198,11 @@ Ext.define('Ext.dirac.core.App', {
     
     getApplicationTitle:function(sAppName){
 	
-	return this.validApplications[sAppName];
+	if(sAppName in this.validApplications){
+	    return this.validApplications[sAppName];
+	}else{
+	    return "DESKTOP";
+	}
 	
     },
     

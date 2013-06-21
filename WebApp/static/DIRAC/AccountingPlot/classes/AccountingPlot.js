@@ -397,6 +397,34 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
     },
     
+    afterRender : function() {
+	
+	var me = this;
+	
+	me.__postponedBugSizeFix();
+	
+	this.callParent();
+    },
+    
+    __postponedBugSizeFix:function(){
+	
+	var me = this;
+	
+	if(me.getContainer()){
+	    
+	    var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+		
+	    me.getContainer().setWidth(350);	
+	    me.getContainer().setHeight(oDimensions[1] - 50);
+	    
+	}else{
+	    
+	    setTimeout(function(){me.__postponedBugSizeFix();},1000);
+	    
+	}
+	
+    },
+    
     __fillComboQuarter : function() {
 
 	var me = this;

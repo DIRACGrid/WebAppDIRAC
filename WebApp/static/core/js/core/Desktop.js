@@ -984,6 +984,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    border : false,
 	    hideMode : 'offsets',
 	    layout : 'fit',
+	    x:0,
+	    y:0,
 	    __dirac_activate : null,
 	    __dirac_beforeshow : null,
 	    __dirac_afterrender : null,

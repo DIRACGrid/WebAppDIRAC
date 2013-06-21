@@ -33,9 +33,11 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
     },
 
     __postponedLoadState : function(oData) {
-
+	
 	var me = this;
-
+	console.log("LOAD DATA");
+	console.log(oData);
+	
 	if (me.queryData == null) {
 
 	    Ext.Function.defer(me.__postponedLoadState, 1000, me, [ oData ]);
@@ -54,7 +56,13 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		next : function() {
 
 		    var oIter = this;
-
+		    
+		    if(oIter.blocks.length==0){
+			oIter.finished = true;
+			me.setLoading(false);
+			return;
+		    }
+		    
 		    if (oIter.index == oIter.blocks.length - 1) {
 			oIter.finished = true;
 		    }

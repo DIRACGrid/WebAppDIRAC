@@ -179,6 +179,11 @@ Ext.define('Ext.dirac.core.Window', {
 	    if((me.loadedObject.launcher.x != null)&&(me.loadedObject.launcher.y != null)){
 		
 		me.setPosition(me.loadedObject.launcher.x,me.loadedObject.launcher.y);
+		
+	    }else{
+		
+		me.setPosition(0,0);
+		
 	    }
 	    
 	    if (!me.loadedObject.launcher.maximized) {
@@ -202,6 +207,7 @@ Ext.define('Ext.dirac.core.Window', {
 		    me.setHeight(400);
 
 		}
+		
 	    } else {
 
 		me.maximize();

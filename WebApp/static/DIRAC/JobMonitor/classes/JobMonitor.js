@@ -30,7 +30,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		col.setSortState(sortState);
 
 	}
-
+	
 	for ( var i = 0; i < me.selectorMenu.items.length - 1; i++) {
 
 	    var item = me.selectorMenu.items.getAt(i);
@@ -46,7 +46,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	     * this can be done only if the store is being loaded, otherwise has
 	     * to be postponed
 	     */
-	    me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected);
+	    me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected,((i==me.selectorMenu.items.length - 2)?true:false));
 
 	    me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
 
@@ -71,18 +71,42 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	me.timeSearchElementsGroup.calenTo.setValue(data.leftMenu.calenTo);
 	me.timeSearchElementsGroup.cmbTimeTo.setValue(data.leftMenu.cmbTimeTo);
 
-	// me.oprLoadGridData();
+	
 
     },
 
-    __oprPostponedValueSetUntilOptionsLoaded : function(oSelectionBox, oValues) {
+    __cancelPreviousDataRequest : function() {
+
+	var me = this;
+	
+	if (me.dataStore.loading && me.dataStore.lastDataRequest) {
+	    var oRequests = Ext.Ajax.requests;
+	    for (id in oRequests) {
+		if (oRequests.hasOwnProperty(id) && (oRequests[id].options == me.dataStore.lastDataRequest.request)) {
+		    Ext.Ajax.abort(oRequests[id]);
+		}
+	    }
+	}
+
+    },
+
+    __oprPostponedValueSetUntilOptionsLoaded : function(oSelectionBox, oValues, bLastOne) {
 
 	var me = this;
 
 	if (me.bDataSelectionLoaded) {
+	    
+	    if(bLastOne){
+		me.__cancelPreviousDataRequest();
+		me.oprLoadGridData();
+	    }
+	    
 	    oSelectionBox.setValue(oValues);
+	    
 	} else {
-	    Ext.Function.defer(me.__oprPostponedValueSetUntilOptionsLoaded, 1500, me, [ oSelectionBox, oValues ]);
+	    
+	    Ext.Function.defer(me.__oprPostponedValueSetUntilOptionsLoaded, 1500, me, [ oSelectionBox, oValues, bLastOne ]);
+	    
 	}
 
     },
@@ -510,16 +534,16 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		var response = Ext.JSON.decode(response.responseText);
 
 		me.__oprRefreshStoresForSelectors(response, false);
-		
+
 		if (me.currentState == "") {
 		    if ("properties" in GLOBAL.USER_CREDENTIALS) {
 			if ((Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "NormalUser") != -1) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "JobSharing") == -1)) {
-			    me.cmbSelectors["owner"].setValue([GLOBAL.USER_CREDENTIALS.username]);
+			    me.cmbSelectors["owner"].setValue([ GLOBAL.USER_CREDENTIALS.username ]);
 			}
 		    }
 
 		}
-		
+
 		me.bDataSelectionLoaded = true;
 
 	    },
@@ -556,11 +580,19 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    listeners : {
 
 		load : function(oStore, records, successful, eOpts) {
-
-		    me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+		    
+		    if(oStore.proxy.reader.rawData)
+			me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+		    
 		    me.dataStore.remoteSort = false;
 		    me.dataStore.sort();
 		    me.dataStore.remoteSort = true;
+
+		},
+
+		beforeload : function(oStore, oOperation, eOpts) {
+		    
+		    me.dataStore.lastDataRequest = oOperation;
 
 		}
 
@@ -774,7 +806,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    region : 'center',
 	    store : me.dataStore,
 	    height : '600',
-	    header:false,
+	    header : false,
 	    viewConfig : {
 		stripeRows : true,
 		enableTextSelection : true
@@ -975,7 +1007,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
     afterRender : function() {
 	var me = this;
-	
+
 	var menuItems = [];
 	for ( var cmb in me.cmbSelectors) {
 
@@ -1006,7 +1038,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    handler : function(item, e) {
 
 		var me = this;
-		
+
 		if (item.checked)
 		    me.timeSearchPanel.show();
 		else
