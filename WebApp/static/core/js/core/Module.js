@@ -63,7 +63,7 @@ Ext.define('Ext.dirac.core.Module', {
 	
 	oCssFilesStack.reverse();
 	
-	_app.mixins.fileLoader.loadFile(oCssFilesStack, function() {
+	GLOBAL.APP.mixins.fileLoader.loadFile(oCssFilesStack, function() {
 
 	    var me = this;
 

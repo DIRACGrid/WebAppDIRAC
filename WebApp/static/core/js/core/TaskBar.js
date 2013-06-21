@@ -50,24 +50,24 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    cls : 'x-toolbar-separator x-toolbar-separator-horizontal'
 	}, me.windowBar ];
 
-	if (_app.configData.user.username) {
+	if (GLOBAL.APP.configData.user.username) {
 	    /*
 	     * If the user is registered
 	     */
 
 	    var button_data = {
-		"text" : _app.configData["user"]["group"],
+		"text" : GLOBAL.APP.configData["user"]["group"],
 		"menu" : []
 	    };
 
-	    for ( var i = 0; i < _app.configData["validGroups"].length; i++)
+	    for ( var i = 0; i < GLOBAL.APP.configData["validGroups"].length; i++)
 		button_data.menu.push({
-		    text : _app.configData["validGroups"][i],
+		    text : GLOBAL.APP.configData["validGroups"][i],
 		    handler : function() {
 
 			var me = this;
 
-			location.href = _app_base_url + 'changeGroup?to='+me.text;
+			location.href = GLOBAL.BASE_URL + 'changeGroup?to='+me.text;
 
 		    }
 		});
@@ -75,18 +75,18 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    me.group_button = new Ext.button.Button(button_data);
 
 	    var setup_data = {
-		"text" : _app.configData["setup"],
+		"text" : GLOBAL.APP.configData["setup"],
 		"menu" : []
 	    };
 
-	    for ( var i = 0; i < _app.configData["validSetups"].length; i++)
+	    for ( var i = 0; i < GLOBAL.APP.configData["validSetups"].length; i++)
 		setup_data.menu.push({
-		    text : _app.configData["validSetups"][i],
+		    text : GLOBAL.APP.configData["validSetups"][i],
 		    handler : function() {
 
 			var me = this;
 
-			location.href = _app_base_url + 'changeSetup?to='+me.text;
+			location.href = GLOBAL.BASE_URL + 'changeSetup?to='+me.text;
 
 		    }
 		});
@@ -95,7 +95,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    me.items.push('-');
 	    me.items.push({
 		xtype : 'tbtext',
-		text : _app.configData["user"]["username"] + "@"
+		text : GLOBAL.APP.configData["user"]["username"] + "@"
 	    });
 	    me.items.push(me.group_button);
 	    me.items.push('-');

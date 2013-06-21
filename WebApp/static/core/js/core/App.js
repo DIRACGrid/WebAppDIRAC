@@ -77,7 +77,7 @@ Ext.define('Ext.dirac.core.App', {
 	}();
 
 	Ext.Ajax.request({
-	    url : _app_base_url + 'getConfigData',
+	    url : GLOBAL.BASE_URL + 'getConfigData',
 	    params : {},
 	    scope : me,
 	    success : function(response) {
@@ -100,8 +100,8 @@ Ext.define('Ext.dirac.core.App', {
 	    }
 	});
 
-	me._cf = new Ext.dirac.core.CommonFunctions();
-	me._sm = new Ext.dirac.core.StateManagement();
+	me.CF = new Ext.dirac.core.CommonFunctions();
+	me.SM = new Ext.dirac.core.StateManagement();
 
 	me.callParent();
 
@@ -112,7 +112,7 @@ Ext.define('Ext.dirac.core.App', {
 	var me = this;
 	
 	for ( var i = 0; i < me.configData["menu"].length; i++)
-	   me.__getAppRecursivelyFromConfig(_app.configData["menu"][i]);
+	   me.__getAppRecursivelyFromConfig(GLOBAL.APP.configData["menu"][i]);
 	
     },
     
@@ -198,7 +198,11 @@ Ext.define('Ext.dirac.core.App', {
     
     getApplicationTitle:function(sAppName){
 	
-	return this.validApplications[sAppName];
+	if(sAppName in this.validApplications){
+	    return this.validApplications[sAppName];
+	}else{
+	    return "DESKTOP";
+	}
 	
     },
     
