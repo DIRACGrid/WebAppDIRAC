@@ -15,15 +15,16 @@ if not os.path.isdir( downDir ):
 
 #First, download EXTJS
 spinner = ".:|\-=-/|:"
-#extVersion = "4.2.0"
-extVersion = "4.1.1a"
+extVersion = "4.2.1"
 extFilePath = os.path.join( downDir, "ext-%s-gpl.zip" % extVersion )
 if not os.path.isfile( extFilePath ):
   print "Downloading ExtJS4..."
   remFile = False
-  for srcUrl in ( 'http://cdn.sencha.com/', 'http://cdn.sencha.com/ext/gpl' ):
+  for srcUrl in ( 'http://cdn.sencha.com', 'http://cdn.sencha.com/ext/gpl' ):
     try:
-      remFile = urllib2.urlopen( "%s/ext-%s-gpl.zip" % ( srcUrl, extVersion ) , "rb" )
+      extURL = "%s/ext-%s-gpl.zip" % ( srcUrl, extVersion )
+      print "Trying %s" % extURL
+      remFile = urllib2.urlopen( extURL , "rb" )
       break
     except Exception, excp:
       print excp
@@ -31,17 +32,21 @@ if not os.path.isfile( extFilePath ):
   if not remFile:
     print "Can't download extjs!"
     sys.exit(1)
-  locFile = open( extFilePath, "wb" )
-  remData = remFile.read( 1024 * 1024 )
-  count = 0
-  while remData:
-    print "%s\r" % spinner[count % len( spinner )],
-    sys.stdout.flush()
-    locFile.write( remData )
-    remData = remFile.read( 1024 * 1024 )
-    count += 1
-  locFile.close()
-  remFile.close()
+  try:
+    locFile = open( extFilePath, "wb" )
+    count = 0
+    remData = remFile.read( 1024  )
+    while remData:
+      print "%s\r" % spinner[count % len( spinner )],
+      sys.stdout.flush()
+      locFile.write( remData )
+      remData = remFile.read( 1024 )
+      count += 1
+    locFile.close()
+    remFile.close()
+  except:
+    os.unlink( extFilePath )
+    raise
 
 print "Installing ExtJS 4"
 extDir = os.path.join( staticDir, "extjs" )
