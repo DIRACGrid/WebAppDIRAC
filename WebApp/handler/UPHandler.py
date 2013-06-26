@@ -100,7 +100,7 @@ class UPHandler( WebHandler ):
     up = self.__getUP()
     result = yield self.threadTask( up.retrieveAllVars )
     if not result[ 'OK' ]:
-      raise WErr.fromSERROR( result)
+      self.finish(WErr.fromSERROR( result))
     data = result[ 'Value' ]
     for k in data:
       #Unpack data

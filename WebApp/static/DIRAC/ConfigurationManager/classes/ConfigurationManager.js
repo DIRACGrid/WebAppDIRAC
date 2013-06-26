@@ -60,7 +60,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	me.launcher.title = "Configuration Manager";
 	me.launcher.maximized = false;
-	var oDimensions = _app.desktop.getDesktopDimensions();
+	var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
 
 	me.launcher.height = oDimensions[1]/2;
 	me.launcher.width = oDimensions[0]/2;
@@ -72,7 +72,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		collapsible : true,
 		split : true
 	    },
-	    items : []
+	    items : [],
+	    header:false
 	});
 
 	me.callParent(arguments);
@@ -84,20 +85,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
      */
 
     setNodeText : function(oNode, sNewText) {
+	
+	oNode.set('text', sNewText);
 
-	var me = this;
-	var oDivContainer = me.treePanel.getView().getNode(oNode).childNodes[0].childNodes[0];
-
-	var iNumberChildren = oDivContainer.childNodes.length;
-
-	// removing the old text node
-	oDivContainer.removeChild(oDivContainer.childNodes[iNumberChildren - 1]);
-
-	// creating the new text node
-	var oNewTextNode = document.createTextNode(sNewText);
-	oDivContainer.appendChild(oNewTextNode);
-
-	oNode.raw.text = sNewText;
 	oNode.data.text = sNewText;
 
     },
@@ -153,7 +143,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	} else {
 	    sWsuri = "ws:";
 	}
-	sWsuri += "//" + sLoc.host + _app_base_url + 'ConfigurationManager';
+	sWsuri += "//" + sLoc.host + GLOBAL.BASE_URL + 'ConfigurationManager';
 
 	socket = new WebSocket(sWsuri);
 
@@ -209,6 +199,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		case "commitConfiguration":
 		    me.btnCommitConfiguration.show();
 		    me.btnViewConfigDifference.show();
+		    me.treePanel.body.unmask();
 		    break;
 		}
 
@@ -217,10 +208,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		switch (oResponse.op) {
 
 		case "init":
-		    if (_app_ext_version == "ext-4.1.1a")
-			me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
-		    else
-			me.treeStore.getRootNode().setText(oResponse.name + " [" + oResponse.version + "]");
+		    me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
 		    me.btnResetConfig.show();
 		    me.treePanel.getRootNode().expand();
 		    break;
@@ -236,10 +224,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    me.btnViewConfigDifference.show();
 		    break;
 		case "resetConfiguration":
-		    if (_app_ext_version == "ext-4.1.1a")
-			me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
-		    else
-			me.treeStore.getRootNode().setText(oResponse.name + " [" + oResponse.version + "]");
+		    me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
 		    me.__cbResetConfigurationTree(oResponse.text);
 		    me.__clearValuePanel();
 		    me.copyNode = null;
@@ -256,10 +241,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    oNode.raw.csValue = oResponse.value;
 		    me.valuePanel.csValue = oResponse.value;
 		    me.txtOptionValuePanelTextArea.setValue(oResponse.value);
-		    if (_app_ext_version == "ext-4.1.1a")
-			me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
-		    else
-			oNode.setText(oNode.raw.csName + " = " + oNode.raw.csValue);
+		    me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
 		    me.__setChangeMade(true);
 		    break;
 		case "setComment":
@@ -297,6 +279,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		    me.btnCommitConfiguration.show();
 		    me.btnViewConfigDifference.show();
 		    me.__setChangeMade(false);
+		    me.__sendSocketMessage({
+			    op : "resetConfiguration"
+		    });
+		    me.btnResetConfig.hide();
 		    break;
 		case "moveNode":
 		    me.__cbMoveNode(oResponse);
@@ -392,7 +378,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	var bBarElems = [ me.btnViewConfigAsText, me.btnResetConfig ];
 
-	if (("properties" in _user_credentials) && (Ext.Array.indexOf(_user_credentials.properties, "CSAdministrator") != -1)) {
+	if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "CSAdministrator") != -1)) {
 
 	    me.btnBrowseManage = new Ext.Button({
 
@@ -427,6 +413,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		iconCls : "cm-submit-icon",
 		handler : function() {
 		    if (confirm("Do you want to apply the configuration changes you've done till now?")) {
+			me.treePanel.body.mask("Wait ...");
 			me.__sendSocketMessage({
 			    op : "commitConfiguration"
 			});
@@ -465,6 +452,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	me.treePanel = new Ext.create('Ext.tree.Panel', {
 	    region : 'center',
 	    store : me.treeStore,
+	    header:false,
 	    viewConfig : {
 		plugins : {
 		    ptype : 'treeviewdragdrop',
@@ -1223,17 +1211,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	if (oNode.isLeaf()) {
 
-	    if (_app_ext_version == "ext-4.1.1a")
-		me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
-	    else
-		oNode.setText(oNode.raw.csName + " = " + oNode.raw.csValue);
+	    me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
 
 	} else {
-
-	    if (_app_ext_version == "ext-4.1.1a")
-		me.setNodeText(oNode, newName);
-	    else
-		oNode.setText(newName)
+	    
+	    me.setNodeText(oNode, newName);	    
 
 	}
 

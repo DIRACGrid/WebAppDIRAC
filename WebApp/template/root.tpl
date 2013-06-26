@@ -32,35 +32,39 @@
           });
 
           Ext.require(['Ext.dirac.core.App','Ext.*']);
-
-          var _app=null;
-          var _app_base_url = "";
-          var _app_ext_version = "{{ext_version}}";
-          var _dev = 1;
-          var _load_by_url = "{{url_state}}";
+		  
+		  var GLOBAL = {};
+		  	
+          GLOBAL.APP = null;
+          GLOBAL.BASE_URL = "";
+          GLOBAL.EXTJS_VERSION = "{{ext_version}}";
+          GLOBAL.DEV = 1;
+          GLOBAL.URL_STATE = "{{url_state}}";
           {% import simplejson %}
-          var _user_credentials = {{ simplejson.dumps( credentials ) }}; 
-
-          
+          GLOBAL.USER_CREDENTIALS = {{ simplejson.dumps( credentials ) }}; 
 
           Ext.onReady(function () {
-            _app_base_url = "{{base_url}}/";
-              _app = new Ext.dirac.core.App();
-              setTimeout(function(){
-                Ext.get("app-dirac-loading").hide();
-                Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ...");
-              },1000);
+            	GLOBAL.BASE_URL = "{{base_url}}/";
+              	GLOBAL.APP = new Ext.dirac.core.App();
+              	setTimeout(function(){
+                	Ext.get("app-dirac-loading").hide();
+                	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ...");
+              	},1000);
           });
       {% else %}
-        var _app=null;
-          var _app_base_url = "";
-          var _dev = 0;
-          var _load_by_url = "{{url_state}}";
-
-
+      	  var GLOBAL = {};
+		  	
+          GLOBAL.APP = null;
+          GLOBAL.BASE_URL = "";
+          GLOBAL.EXTJS_VERSION = "{{ext_version}}";
+          GLOBAL.DEV = 0;
+          GLOBAL.URL_STATE = "{{url_state}}";
+          {% import simplejson %}
+          GLOBAL.USER_CREDENTIALS = {{ simplejson.dumps( credentials ) }}; 
+      
           Ext.onReady(function () {
-            _app_base_url = "{{base_url}}/";
-              _app = new Ext.dirac.core.App();
+              GLOBAL.BASE_URL = "{{base_url}}/";
+              GLOBAL.APP = new Ext.dirac.core.App();
               setTimeout(function(){
                 Ext.get("app-dirac-loading").hide();
                 Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ...");
