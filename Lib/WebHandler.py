@@ -10,6 +10,9 @@ from WebAppDIRAC.Lib import Conf
 import ssl
 import functools
 import sys
+import types
+import json
+import traceback
 import tornado.web
 import tornado.ioloop
 import tornado.gen
@@ -18,7 +21,7 @@ import tornado.websocket
 
 class WErr( tornado.web.HTTPError ):
   def __init__( self, code, msg = "", **kwargs ):
-    super( WErr, self ).__init__( code, msg or None )
+    super( WErr, self ).__init__( code, str( msg ) or None )
     for k in kwargs:
       setattr( self, k, kwargs[ k ] )
     self.ok = False
@@ -238,7 +241,7 @@ class WebHandler( tornado.web.RequestHandler ):
       setup = Conf.setup()
     self.__setup = setup
     if not self.__auth( handlerRoute, group ):
-      return WErr( 401 )
+      return WErr( 401, "Unauthorized, bad boy!" )
 
     DN = self.getUserDN()
     if DN:
@@ -263,6 +266,26 @@ class WebHandler( tornado.web.RequestHandler ):
 
   def post( self, *args, **kwargs ):
     return self.get( *args, **kwargs )
+
+
+  def write_error( self, status_code, **kwargs ):
+    self.set_status( status_code )
+    cType = "text/plain"
+    data = self._reason
+    if 'exc_info' in kwargs:
+      ex = kwargs[ 'exc_info' ][1]
+      trace = traceback.format_exception( *kwargs["exc_info"] )
+      if not isinstance( ex, WErr ):
+        data += "\n".join( trace )
+      else:
+        if self.settings.get("debug"):
+          self.log.error( "Request ended in error:\n  %s" % "\n  ".join( trace ) )
+        data = ex.msg
+        if type( data ) == types.DictType:
+          cType = "application/json"
+          data = json.dumps( data )
+    self.set_header( 'Content-Type', cType )
+    self.finish( data )
 
 
 class WebSocketHandler( tornado.websocket.WebSocketHandler, WebHandler ):
