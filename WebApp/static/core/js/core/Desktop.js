@@ -1191,16 +1191,6 @@ Ext.define('Ext.dirac.core.Desktop', {
 
     },
 
-    /*
-     * -------------------------END: BROADCAST METHODS FOR THE ACTIVE
-     * WINDOWS-------------------------
-     */
-
-    /*
-     * ---------------------------------MANAGEMENT OF DESKTOP
-     * STATES--------------------------------------------
-     */
-
     /**
      * Function to load a desktop state
      * 
