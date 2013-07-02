@@ -36,6 +36,15 @@ Ext.define('Ext.dirac.core.Window', {
      */
     desktop : null,
 
+    desktopStickMode : false,
+    
+    i_x : 0,
+    i_y : 0,
+    ic_x : 0,
+    ic_y : 0,
+    _x : 0,
+    _y : 0,
+    
     initComponent : function() {
 
 	var me = this;
@@ -63,6 +72,8 @@ Ext.define('Ext.dirac.core.Window', {
 	me.callParent();
 
     },
+    
+    
 
     afterRender : function() {
 
@@ -165,31 +176,31 @@ Ext.define('Ext.dirac.core.Window', {
 		if ("data" in setupData) {
 		    me.currentState = setupData.currentState;
 		    me.loadedObject.currentState = setupData.currentState;
-		    
-		    if(me.currentState!="")
+
+		    if (me.currentState != "")
 			GLOBAL.APP.SM.addActiveState(me.loadedObject.self.getName(), me.currentState);
-		    
+
 		    me.loadedObject.loadState(setupData.data);
 		}
 
 	    }
 
 	} else {
-	    
-	    if((me.loadedObject.launcher.x != null)&&(me.loadedObject.launcher.y != null)){
-		
-		me.setPosition(me.loadedObject.launcher.x,me.loadedObject.launcher.y);
-		
-	    }else{
-		
-		me.setPosition(0,0);
-		
+
+	    if ((me.loadedObject.launcher.x != null) && (me.loadedObject.launcher.y != null)) {
+
+		me.setPosition(me.loadedObject.launcher.x, me.loadedObject.launcher.y);
+
+	    } else {
+
+		me.setPosition(0, 0);
+
 	    }
-	    
+
 	    if (!me.loadedObject.launcher.maximized) {
 
 		if ("width" in me.loadedObject.launcher) {
-		    
+
 		    me.setWidth(me.loadedObject.launcher.width);
 
 		} else {
@@ -199,7 +210,7 @@ Ext.define('Ext.dirac.core.Window', {
 		}
 
 		if ("height" in me.loadedObject.launcher) {
-		    
+
 		    me.setHeight(me.loadedObject.launcher.height);
 
 		} else {
@@ -207,7 +218,7 @@ Ext.define('Ext.dirac.core.Window', {
 		    me.setHeight(400);
 
 		}
-		
+
 	    } else {
 
 		me.maximize();
@@ -297,13 +308,14 @@ Ext.define('Ext.dirac.core.Window', {
 	    /*
 	     * if the cache for the state of the started application exist
 	     */
-	    
+
 	    /*
-	     * A call to isStateLoaded can be used to see whether the application states have been loaded
-	     * */
-	    var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application",me.appClassName,"|"); 
-	    
-	    if (iAppStatesLoaded!=-2) {
+	     * A call to isStateLoaded can be used to see whether the
+	     * application states have been loaded
+	     */
+	    var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, "|");
+
+	    if (iAppStatesLoaded != -2) {
 
 		me.oprRefreshAppStates();
 
@@ -326,10 +338,10 @@ Ext.define('Ext.dirac.core.Window', {
 	    var funcAfterSave = function(sAppName, sStateName) {
 
 		me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
-		
-		if(me.currentState!="")
-		    GLOBAL.APP.SM.removeActiveState(sAppName,me.currentState);
-		
+
+		if (me.currentState != "")
+		    GLOBAL.APP.SM.removeActiveState(sAppName, me.currentState);
+
 		me.loadedObject.currentState = sStateName;
 		me.currentState = sStateName;
 		GLOBAL.APP.SM.addActiveState(sAppName, sStateName);
@@ -378,6 +390,15 @@ Ext.define('Ext.dirac.core.Window', {
 		type : "save",
 		menu : me.loadMenu
 	    });
+	    
+	    me.desktopGridStickButton = new Ext.dirac.utils.DiracToolButton({
+		type : "pin",
+		handler:function(){
+		    me.desktop.setDesktopStickMode(me);  
+		}
+	    });
+	    
+	    me.addTool(me.desktopGridStickButton);
 
 	}
 
@@ -511,13 +532,13 @@ Ext.define('Ext.dirac.core.Window', {
 	var me = this;
 
 	me.statesMenu.removeAll();
-	
+
 	var oStates = GLOBAL.APP.SM.getApplicationStates("application", me.appClassName);
-	
+
 	for ( var i = 0, len = oStates.length; i < len; i++) {
-	    
+
 	    var stateName = oStates[i];
-		
+
 	    var oNewItem = Ext.create('Ext.menu.Item', {
 		text : stateName,
 		handler : Ext.bind(me.oprLoadAppStateFromCache, me, [ stateName ], false),
@@ -536,13 +557,13 @@ Ext.define('Ext.dirac.core.Window', {
 	}
 
 	me.statesMenu.add("-");
-	
+
 	var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", me.appClassName);
-	
+
 	for ( var i = 0, len = oRefs.length; i < len; i++) {
-	    
+
 	    var stateName = oRefs[i];
-	    
+
 	    var oNewItem = Ext.create('Ext.menu.Item', {
 		text : stateName,
 		handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [ me.appClassName, stateName ], false),
@@ -566,37 +587,37 @@ Ext.define('Ext.dirac.core.Window', {
     oprLoadAppStateFromCache : function(stateName) {
 
 	var me = this;
-	var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application",me.appClassName,stateName);
-	
-	switch(iStateLoaded){
-		case -1:
-	    		alert("The state does not exist !");
-	    		return;
-	    		break;
-		case -2: 
-		    	me.funcPostponedLoading = function() {
-    
-    				me.oprLoadAppStateFromCache(stateName);
-    
-    		    	}
-    
-		    	setTimeout(me.funcPostponedLoading, 1000);
-		    	return;
-	    	break;
+	var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, stateName);
+
+	switch (iStateLoaded) {
+	case -1:
+	    alert("The state does not exist !");
+	    return;
+	    break;
+	case -2:
+	    me.funcPostponedLoading = function() {
+
+		me.oprLoadAppStateFromCache(stateName);
+
+	    }
+
+	    setTimeout(me.funcPostponedLoading, 1000);
+	    return;
+	    break;
 	}
 
 	me.loadMask.show();
 
 	me.closeAllChildWindows();
-	
-	me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application",me.appClassName,stateName));
-	
-	if(me.currentState!="")
+
+	me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName));
+
+	if (me.currentState != "")
 	    GLOBAL.APP.SM.removeActiveState(me.appClassName, me.currentState);
-	
+
 	me.currentState = stateName;
 	me.loadedObject.currentState = stateName;
-	
+
 	GLOBAL.APP.SM.addActiveState(me.appClassName, stateName);
 	GLOBAL.APP.desktop.refreshUrlDesktopState();
 

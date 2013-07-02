@@ -40,6 +40,9 @@
           GLOBAL.EXTJS_VERSION = "{{ext_version}}";
           GLOBAL.DEV = 1;
           GLOBAL.URL_STATE = "{{url_state}}";
+          GLOBAL.MOUSE_X = 0;
+          GLOBAL.MOUSE_Y = 0;
+          GLOBAL.IS_IE = false;
           {% import simplejson %}
           GLOBAL.USER_CREDENTIALS = {{ simplejson.dumps( credentials ) }}; 
 
@@ -59,6 +62,9 @@
           GLOBAL.EXTJS_VERSION = "{{ext_version}}";
           GLOBAL.DEV = 0;
           GLOBAL.URL_STATE = "{{url_state}}";
+          GLOBAL.MOUSE_X = 0;
+          GLOBAL.MOUSE_Y = 0;
+          GLOBAL.IS_IE = false;
           {% import simplejson %}
           GLOBAL.USER_CREDENTIALS = {{ simplejson.dumps( credentials ) }}; 
       

@@ -34,7 +34,7 @@ Ext.define('Ext.dirac.core.App', {
     constructor : function() {
 
 	var me = this;
-	
+
 	me.addEvents('ready', 'beforeunload');
 
 	me.mixins.observable.constructor.call(this, undefined);
@@ -83,9 +83,9 @@ Ext.define('Ext.dirac.core.App', {
 	    success : function(response) {
 
 		var configData = Ext.JSON.decode(response.responseText);
-		
+
 		me.configData = configData;
-		
+
 		me.__readValidApplication();
 
 		if (Ext.isReady) {
@@ -103,48 +103,76 @@ Ext.define('Ext.dirac.core.App', {
 	me.CF = new Ext.dirac.core.CommonFunctions();
 	me.SM = new Ext.dirac.core.StateManagement();
 
+	GLOBAL.IS_IE = document.all ? true : false
+
+	// If NS -- that is, !IE -- then set up for mouse capture
+	if (!GLOBAL.IS_IE)
+	    document.captureEvents(Event.MOUSEMOVE)
+
+	    // Set-up to use getMouseXY function onMouseMove
+	document.onmousemove = me.__getMouseXY;
+	// Main function to retrieve mouse x-y pos.s
 	me.callParent();
 
     },
-    
-    __readValidApplication:function(){
+
+    __getMouseXY : function(e) {
 	
-	var me = this;
+	if (GLOBAL.IS_IE) { // grab the x-y pos.s if browser is IE
+	    GLOBAL.MOUSE_X = event.clientX + document.body.scrollLeft
+	    GLOBAL.MOUSE_Y = event.clientY + document.body.scrollTop
+	} else { // grab the x-y pos.s if browser is NS
+	    GLOBAL.MOUSE_X = e.pageX
+	    GLOBAL.MOUSE_Y = e.pageY
+	}
+	// catch possible negative values in NS4
+	if (GLOBAL.MOUSE_X < 0) {
+	    GLOBAL.MOUSE_X = 0
+	}
+	if (GLOBAL.MOUSE_Y < 0) {
+	    GLOBAL.MOUSE_Y = 0
+	}
 	
-	for ( var i = 0; i < me.configData["menu"].length; i++)
-	   me.__getAppRecursivelyFromConfig(GLOBAL.APP.configData["menu"][i]);
-	
+	return true
     },
-    
-    __getAppRecursivelyFromConfig:function(item){
-	
+    __readValidApplication : function() {
+
 	var me = this;
-	
+
+	for ( var i = 0; i < me.configData["menu"].length; i++)
+	    me.__getAppRecursivelyFromConfig(GLOBAL.APP.configData["menu"][i]);
+
+    },
+
+    __getAppRecursivelyFromConfig : function(item) {
+
+	var me = this;
+
 	if (item.length == 2) {
 
-	    for ( var i = 0; i < item[1].length; i++){
+	    for ( var i = 0; i < item[1].length; i++) {
 		me.__getAppRecursivelyFromConfig(item[1][i]);
 	    }
-	    
+
 	} else {
 	    if (item[0] == "app") {
-		
+
 		var oParts = item[2].split(".");
-		
+
 		var sStartClass = "";
 		if (oParts.length == 2)
 		    sStartClass = item[2] + ".classes." + oParts[1];
 		else
 		    sStartClass = item[2];
-		
-		me.validApplications[sStartClass]=item[1]; 
-		
+
+		me.validApplications[sStartClass] = item[1];
+
 	    }
 
 	}
-	
+
     },
-    
+
     init : function() {
 
 	var me = this, desktopCfg;
@@ -189,23 +217,23 @@ Ext.define('Ext.dirac.core.App', {
 	me.isReady = true;// only if there is no desktop state loaded
 	me.fireEvent('ready', me);
     },
-    
-    isValidApplication:function(sAppName){
-	
-	return (sAppName in this.validApplications); 
-	
+
+    isValidApplication : function(sAppName) {
+
+	return (sAppName in this.validApplications);
+
     },
-    
-    getApplicationTitle:function(sAppName){
-	
-	if(sAppName in this.validApplications){
+
+    getApplicationTitle : function(sAppName) {
+
+	if (sAppName in this.validApplications) {
 	    return this.validApplications[sAppName];
-	}else{
+	} else {
 	    return "DESKTOP";
 	}
-	
+
     },
-    
+
     getDesktop : function() {
 	return this.desktop;
     },
