@@ -250,7 +250,9 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    win.minimized = false;
 	    win.show();
 	} else if (win.active) {
-	    win.minimize();
+	    if(!win.desktopStickMode){
+		win.minimize();
+	    }
 	} else {
 	    win.toFront();
 	}

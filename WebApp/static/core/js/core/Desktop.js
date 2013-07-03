@@ -251,7 +251,26 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	    me.boxSizeX = Math.floor(iWidth / me.desktopGranularity[1]);
 	    me.boxSizeY = Math.floor(iHeight / me.desktopGranularity[0]);
-	    console.log([ me.boxSizeX, me.boxSizeY ]);
+
+	    me.windows.each(function(win) {
+		if (win.desktopStickMode) {
+
+		    var oPos = [ 0, 0 ];
+
+		    oPos[0] = win.i_x * me.boxSizeX;
+		    oPos[1] = win.i_y * me.boxSizeY;
+
+		    win._x = oPos[0];
+		    win._y = oPos[1];
+
+		    win.suspendEvents(false);
+		    win.setPosition(oPos[0], oPos[1]);
+		    win.setWidth(me.boxSizeX * win.ic_x);
+		    win.setHeight(me.boxSizeY * win.ic_y);
+		    win.resumeEvents();
+
+		}
+	    });
 
 	}
 
@@ -627,6 +646,14 @@ Ext.define('Ext.dirac.core.Desktop', {
 		handler : me.onWindowMenuMaximize,
 		scope : me
 	    }, '-', {
+		text : 'Pin',
+		handler : me.onWindowMenuPin,
+		scope : me
+	    }, {
+		text : 'Show header',
+		handler : me.onWindowMenuHeader,
+		scope : me
+	    }, '-', {
 		text : 'Close',
 		handler : me.onWindowMenuClose,
 		scope : me
@@ -648,9 +675,19 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	var items = menu.items.items, win = menu.theWin;
 
-	items[2].setDisabled(win.maximized !== true && win.hidden !== true); // Restore
-	items[3].setDisabled(win.minimized === true); // Minimize
-	items[4].setDisabled(win.maximized === true || win.hidden === true); // Maximize
+	if (win.desktopStickMode) {
+
+	    items[2].setDisabled(true); // Restore
+	    items[3].setDisabled(true); // Restore
+	    items[4].setDisabled(true); // Restore
+
+	} else {
+
+	    items[2].setDisabled(win.maximized !== true && win.hidden !== true); // Restore
+	    items[3].setDisabled(win.minimized === true); // Minimize
+	    items[4].setDisabled(win.maximized === true || win.hidden === true); // Maximize
+
+	}
 
 	// We copy the menu from the window
 
@@ -665,6 +702,27 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    items[1].show();
 
 	    items[0].menu = win.loadMenu;
+
+	    if (win.desktopStickMode) {
+
+		items[6].setText("Unpin");
+
+	    } else {
+
+		items[6].setText("Pin");
+
+	    }
+
+	    if (win.getHeader().hidden) {
+
+		items[7].setText("Show header");
+
+	    } else {
+
+		items[7].setText("Hide header");
+
+	    }
+
 	}
     },
 
@@ -697,6 +755,46 @@ Ext.define('Ext.dirac.core.Desktop', {
 	var me = this, win = me.windowMenu.theWin;
 
 	win.minimize();
+    },
+
+    /**
+     * @private Handler called when the Minimize option is choicen from the
+     *          window taskbar menu
+     */
+    onWindowMenuPin : function() {
+	var me = this, win = me.windowMenu.theWin;
+	var items = me.windowMenu.items.items;
+
+	me.setDesktopStickMode(win);
+
+	if (win.desktopStickMode) {
+
+	    items[6].setText("Unpin");
+
+	} else {
+
+	    items[6].setText("Pin");
+
+	}
+
+    },
+
+    onWindowMenuHeader : function() {
+	var me = this, win = me.windowMenu.theWin;
+	var items = me.windowMenu.items.items;
+
+	if (win.getHeader().hidden) {
+
+	    items[7].setText("Hide header");
+	    win.getHeader().show();
+
+	} else {
+
+	    items[7].setText("Show header");
+	    win.getHeader().hide();
+
+	}
+
     },
 
     /**
@@ -910,7 +1008,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	    me.refreshUrlDesktopState();
 	}
-	
+
 	if (win.desktopGridStickButton.type == "unpin") {
 	    for ( var i = win.i_x; i <= win.i_x + win.ic_x - 1; i++) {
 		for ( var j = win.i_y; j <= win.i_y + win.ic_y - 1; j++) {
@@ -1110,7 +1208,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	me.refreshUrlDesktopState();
     },
-    
+
     printTakenCellsMatrix : function() {
 
 	var me = this;
@@ -1307,6 +1405,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    activeWindow.removeCls(me.inactiveWindowCls);
 	    activeWindow.minimized = false;
 	    activeWindow.active = true;
+
 	}
 
 	me.taskbar.setActiveButton(activeWindow && activeWindow.taskButton);
@@ -1786,6 +1885,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	    if (oFindEmptyCell[0] >= 0) {
 
+		// oWin.restore();
 		me.takenCells[oFindEmptyCell[1]][oFindEmptyCell[0]] = true;
 
 		var oPos = [ 0, 0 ];
@@ -1793,6 +1893,10 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 		oPos[0] = oFindEmptyCell[0] * oBox[0];
 		oPos[1] = oFindEmptyCell[1] * oBox[1];
+
+		oWin.restore();
+		oWin.toFront();
+		oWin.minimized = false;
 
 		oWin._x = oPos[0];
 		oWin._y = oPos[1];
@@ -1807,6 +1911,15 @@ Ext.define('Ext.dirac.core.Desktop', {
 		oWin.setHeight(oBox[1]);
 		oWin.resumeEvents();
 		oWin.desktopGridStickButton.setType("unpin");
+		oWin.getHeader().show();
+
+		/*
+		 * Hide minimize, maximize, restore
+		 */
+		oWin.tools[2].hide();
+		oWin.tools[3].hide();
+		oWin.tools[4].hide();
+
 	    } else {
 
 		alert("No available space on the desktop can be found !");
@@ -1824,6 +1937,13 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    }
 
 	    oWin.desktopGridStickButton.setType("pin");
+
+	    /*
+	     * Show minimize, maximize, restore
+	     */
+	    oWin.tools[2].show();
+	    oWin.tools[3].show();
+	    oWin.tools[4].show();
 
 	}
 
