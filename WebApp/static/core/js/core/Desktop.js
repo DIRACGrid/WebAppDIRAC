@@ -959,6 +959,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    win.show();
 	}
 	win.minimized = false;
+	
 	this.refreshUrlDesktopState();
 	return win;
     },
@@ -1113,20 +1114,21 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    me.printTakenCellsMatrix();
 
 	}
-
+	
 	me.refreshUrlDesktopState();
 
     },
 
     onWindowResize : function(oWindow, iWidth, iHeight, eOpts) {
-
+	
 	var me = this;
-
-	if (oWindow.__dirac_resize != null)
+	
+	if (oWindow.__dirac_resize != null){
 	    oWindow.__dirac_resize(oWindow, iWidth, iHeight, eOpts);
-
+	}
+	
 	if (oWindow.desktopStickMode) {
-
+	    
 	    // console.log("RESIZE: " + w + " - " + h);
 	    // console.log("BEFORE RESIZE [" + oComp.getWidth() + ", " +
 	    // oComp.getHeight() + "](" + oComp.x + ", " + oComp.y + ")");
@@ -1205,7 +1207,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    me.printTakenCellsMatrix();
 	    // oComp.resizeEventTriggered = true;
 	}
-
+	
 	me.refreshUrlDesktopState();
     },
 
@@ -1919,11 +1921,14 @@ Ext.define('Ext.dirac.core.Desktop', {
 		oWin.tools[2].hide();
 		oWin.tools[3].hide();
 		oWin.tools[4].hide();
+		
+		
 
 	    } else {
 
 		alert("No available space on the desktop can be found !");
 		oWin.desktopStickMode = false;
+		
 
 	    }
 

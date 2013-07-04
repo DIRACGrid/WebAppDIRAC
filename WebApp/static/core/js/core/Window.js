@@ -35,6 +35,8 @@ Ext.define('Ext.dirac.core.Window', {
      *           object
      */
     desktop : null,
+    
+    resizeHandles:"s e se",
 
     desktopStickMode : false,
     
