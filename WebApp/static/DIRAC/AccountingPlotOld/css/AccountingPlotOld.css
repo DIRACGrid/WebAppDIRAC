@@ -1,0 +1,83 @@
+.accp-reschedule-icon{
+	
+	 background-image: url(../images/reschedule.gif) !important;
+     background-color: transparent;
+	
+}
+
+.accp-kill-icon{
+	
+	 background-image: url(../images/close.gif) !important;
+     background-color: transparent;
+	
+}
+
+.accp-delete-icon{
+	
+	 background-image: url(../images/delete.gif) !important;
+     background-color: transparent;
+	
+}
+
+.accp-refresh-icon{
+	
+	 background-image: url(../images/refresh.gif) !important;
+     background-color: transparent;
+	
+}
+
+.accp-submit-icon{
+	
+	 background-image: url(../images/submit.gif) !important;
+     background-color: transparent;
+	
+}
+
+.accp-reset-icon{
+	
+	 background-image: url(../images/reset.gif) !important;
+     background-color: transparent;
+	
+}
+
+.accp-reset-button-icon{
+	
+	 background-image: url(../images/resetButton.gif) !important;
+     background-color: transparent;
+	
+}
+
+.accp-action-gif-icon{
+	
+	 background-image: url(../images/action.gif) !important;
+     background-color: transparent;
+	
+}
+
+.accp-addfile-gif-icon{
+	
+	 background-image: url(../images/addfile.gif) !important;
+     background-color: transparent;
+	
+}
+
+.accp-textbox-help-window textarea.x-form-field{
+	
+	font-family: Courier,monospace !important;	
+	
+
+}
+
+.accp-child-window-gif-focus{
+	
+	 background-image: url(../images/done.gif) !important;
+     background-color: transparent;
+	
+}
+
+.accp-child-window-gif-notfocus{
+	
+	 background-image: url(../images/failed.gif) !important;
+     background-color: transparent;
+	
+}

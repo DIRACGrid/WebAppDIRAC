@@ -172,12 +172,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 		return {
 		    text : item[1],
 		    minWidth : 200,
-		    menu : [ {
-			text : "Default",
-			handler : Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ item[0], item[2], null ]),
-			minWidth : 200,
-			iconCls : "notepad"
-		    }, '-' ],
+		    menu : [],
 		    isStateMenuLoaded : 0,
 		    appClassName : sStartClass,
 		    iconCls : "notepad",
@@ -185,6 +180,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			render : function(oMenu, eOpts) {
 			    GLOBAL.APP.desktop.registerStartAppMenu(oMenu, oMenu.appClassName);
 			},
+			click:Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ item[0], item[2], null ]),
 			focus : function(cmp, e, eOpts) {
 
 			    /*
@@ -250,7 +246,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 				} ]
 			    });
 
-			    oThisMenu.menu.insert(2, oNewItem);
+			    oThisMenu.menu.insert(0, oNewItem);
 
 			} else if (stateType == "reference") {
 
@@ -276,7 +272,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			switch (stateType) {
 
 			case "application":
-			    for ( var i = 2; i < me.menu.items.length; i++) {
+			    for ( var i = 0; i < me.menu.items.length; i++) {
 
 				if (me.menu.items.getAt(i).self.getName() == "Ext.menu.Separator")
 				    break;
@@ -315,12 +311,6 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			var oThisMenu = this;
 
 			oThisMenu.menu.removeAll();
-			oThisMenu.menu.add([ {
-			    text : "Default",
-			    handler : Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ "app", oThisMenu.appClassName, null ]),
-			    minWidth : 200,
-			    iconCls : "notepad"
-			}, '-' ]);
 			
 			var oStates = GLOBAL.APP.SM.getApplicationStates("application",oThisMenu.appClassName);
 			
