@@ -35,18 +35,18 @@ Ext.define('Ext.dirac.core.Window', {
      *           object
      */
     desktop : null,
-    
-    resizeHandles:"s e se",
+
+    resizeHandles : "s e se",
 
     desktopStickMode : false,
-    
+
     i_x : 0,
     i_y : 0,
     ic_x : 0,
     ic_y : 0,
     _x : 0,
     _y : 0,
-    
+
     initComponent : function() {
 
 	var me = this;
@@ -74,10 +74,8 @@ Ext.define('Ext.dirac.core.Window', {
 	me.callParent();
 
     },
-    
-    
 
-    afterRender : function() {
+    afterShow : function() {
 
 	var me = this;
 	me.callParent();
@@ -87,6 +85,14 @@ Ext.define('Ext.dirac.core.Window', {
 	    me.setPropertiesWhenLink(me.setupData);
 
 	GLOBAL.APP.desktop.refreshUrlDesktopState();
+
+	me.header.un({
+	    dblclick : {
+		fn : me.toggleMaximize,
+		element : 'el',
+		scope : me
+	    }
+	});
 
     },
 
@@ -103,7 +109,46 @@ Ext.define('Ext.dirac.core.Window', {
 
 	if (setupData != null) {
 
-	    if (("maximized" in setupData) && (setupData["maximized"])) {
+	    if (("desktopStickMode" in setupData) && (parseInt(setupData["desktopStickMode"]) == 1)) {
+
+		me.i_x = setupData["i_x"];
+		me.i_y = setupData["i_y"];
+		me.ic_x = setupData["ic_x"];
+		me.ic_y = setupData["ic_y"];
+
+		console.log([ me.i_x, me.i_y, me.ic_x, me.ic_y ]);
+
+		for ( var i = me.i_x; i < me.i_x + me.ic_x; i++) {
+		    for ( var j = me.i_y; j < me.i_y + me.ic_y; j++) {
+
+			me.desktop.takenCells[j][i] = true;
+
+		    }
+		}
+
+		me.desktopStickMode = true;
+		me._x = me.i_x * me.desktop.boxSizeX;
+		me._y = me.i_y * me.desktop.boxSizeY;
+		
+		me.setPosition(me.i_x * me.desktop.boxSizeX, me.i_y * me.desktop.boxSizeY);
+
+		
+
+		me.setSize(me.ic_x * me.desktop.boxSizeX, me.ic_y * me.desktop.boxSizeY);
+
+		var oPom = me.getSize();
+
+		me.desktopGridStickButton.setType("unpin");
+		me.getHeader().show();
+
+		/*
+		 * Hide minimize, maximize, restore
+		 */
+		me.tools[2].hide();
+		me.tools[3].hide();
+		me.tools[4].hide();
+
+	    } else if (("maximized" in setupData) && (setupData["maximized"])) {
 
 		me.maximize();
 
@@ -187,6 +232,13 @@ Ext.define('Ext.dirac.core.Window', {
 
 	    }
 
+	    if ("headerHidden" in setupData) {
+
+		if (setupData["headerHidden"] == 1)
+		    me.getHeader().hide();
+
+	    }
+
 	} else {
 
 	    if ((me.loadedObject.launcher.x != null) && (me.loadedObject.launcher.y != null)) {
@@ -238,8 +290,13 @@ Ext.define('Ext.dirac.core.Window', {
 	    me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.currentState + "]", 20));
 	}
 
+	if (me.desktopStickMode)
+	    me.taskButton.setIconCls("system_pin_window");
+	else
+	    me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
+
 	me.setIconCls(me.loadedObject.launcher.iconCls);
-	me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
+
 	me.loadedObject.setContainer(me);
 
     },
@@ -392,14 +449,14 @@ Ext.define('Ext.dirac.core.Window', {
 		type : "save",
 		menu : me.loadMenu
 	    });
-	    
+
 	    me.desktopGridStickButton = new Ext.dirac.utils.DiracToolButton({
 		type : "pin",
-		handler:function(){
-		    me.desktop.setDesktopStickMode(me);  
+		handler : function() {
+		    me.desktop.setDesktopStickMode(me);
 		}
 	    });
-	    
+
 	    me.addTool(me.desktopGridStickButton);
 
 	}
@@ -689,7 +746,17 @@ Ext.define('Ext.dirac.core.Window', {
 	else if (me.maximized)
 	    oState = 1;
 
-	return me.loadedObject.self.getName() + ":" + me.currentState + ":" + oPos[0] + ":" + oPos[1] + ":" + me.getWidth() + ":" + me.getHeight() + ":" + oState;
+	var sRet = "";
+	sRet += me.loadedObject.self.getName() + ":";
+	sRet += me.currentState + ":";
+	sRet += oPos[0] + ":";
+	sRet += oPos[1] + ":";
+	sRet += me.getWidth() + ":";
+	sRet += me.getHeight() + ":";
+	sRet += oState + ":";
+	sRet += ((me.desktopStickMode) ? "1" : "0") + "," + ((me.getHeader().hidden) ? "1" : "0") + "," + me.i_x + "," + me.i_y + "," + me.ic_x + "," + me.ic_y;
+
+	return sRet;
 
     }
 

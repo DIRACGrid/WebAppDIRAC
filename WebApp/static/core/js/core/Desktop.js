@@ -88,7 +88,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 	var me = this;
 
 	var oData = {
-	    "data" : []
+	    "data" : [],
+	    "desktopGranularity":me.desktopGranularity
 	};
 
 	me.windows.each(function(win) {
@@ -116,7 +117,13 @@ Ext.define('Ext.dirac.core.Desktop', {
 			height : win.getHeight(),
 			maximized : win.maximized,
 			zIndex : win.zIndex,
-			loadedObjectType : win.loadedObjectType
+			loadedObjectType : win.loadedObjectType,
+			desktopStickMode:((win.desktopStickMode)?1:0),
+			headerHidden: ((win.getHeader().hidden)?1:0),
+			i_x: win.i_x,
+			i_y: win.i_y,
+			ic_x: win.ic_x,
+			ic_y: win.ic_y
 		    };
 
 		} else if (win.loadedObjectType == "link") {
@@ -130,7 +137,13 @@ Ext.define('Ext.dirac.core.Desktop', {
 			height : win.getHeight(),
 			maximized : win.maximized,
 			zIndex : win.zIndex,
-			loadedObjectType : win.loadedObjectType
+			loadedObjectType : win.loadedObjectType,
+			desktopStickMode:((win.desktopStickMode)?1:0),
+			headerHidden: ((win.getHeader().hidden)?1:0),
+			i_x: win.i_x,
+			i_y: win.i_y,
+			ic_x: win.ic_x,
+			ic_y: win.ic_y
 		    };
 
 		}
@@ -139,7 +152,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    }
 
 	});
-
+	console.log(oData);
 	return oData;
 
     },
@@ -147,6 +160,29 @@ Ext.define('Ext.dirac.core.Desktop', {
     loadState : function(oData) {
 
 	var me = this;
+	
+	me.desktopGranularity = oData["desktopGranularity"];
+	
+	me.takenCells = [];
+
+	for ( var i = 0; i < me.desktopGranularity[0]; i++) {
+
+	    me.takenCells.push([]);
+
+	    for ( var j = 0; j < me.desktopGranularity[1]; j++) {
+
+		me.takenCells[i].push(false);
+
+	    }
+
+	}
+	
+	var iWidth = me.getWidth();
+	var iHeight = me.getHeight() - me.taskbar.getHeight();
+
+	me.boxSizeX = Math.floor(iWidth / me.desktopGranularity[1]);
+	me.boxSizeY = Math.floor(iHeight / me.desktopGranularity[0]);
+	
 	for ( var i = 0, len = oData["data"].length; i < len; i++) {
 
 	    var oAppStateData = oData["data"][i];
@@ -309,7 +345,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 		    var oAppParts = oApps[i].split(":");
 
-		    if (oAppParts.length != 7) {
+		    if (oAppParts.length != 8) {
 
 			oValid = false;
 			break;
@@ -364,6 +400,14 @@ Ext.define('Ext.dirac.core.Desktop', {
 		    oSetupData.y = oAppItems[3];
 		    oSetupData.width = oAppItems[4];
 		    oSetupData.height = oAppItems[5];
+		    
+		    var oPinnedData = oAppItems[7].split(",");
+		    oSetupData.desktopStickMode = parseInt(oPinnedData[0]);
+		    oSetupData.hiddenHeader = parseInt(oPinnedData[1]);
+		    oSetupData.i_x = parseInt(oPinnedData[2]);
+		    oSetupData.i_y = parseInt(oPinnedData[3]);
+		    oSetupData.ic_x = parseInt(oPinnedData[4]);
+		    oSetupData.ic_y = parseInt(oPinnedData[5]);
 
 		    switch (Ext.util.Format.trim(oAppItems[6])) {
 
@@ -732,7 +776,6 @@ Ext.define('Ext.dirac.core.Desktop', {
      */
     onWindowMenuClose : function() {
 	var me = this, win = me.windowMenu.theWin;
-	console.log(me);
 	win.close();
     },
 
@@ -753,8 +796,12 @@ Ext.define('Ext.dirac.core.Desktop', {
      */
     onWindowMenuMinimize : function() {
 	var me = this, win = me.windowMenu.theWin;
-
-	win.minimize();
+	
+	//win.minimize();
+	win.minimized = true;
+	// win.maximized = false;
+	me.refreshUrlDesktopState();
+	win.hide();
     },
 
     /**
@@ -776,6 +823,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    items[6].setText("Pin");
 
 	}
+	
+	me.refreshUrlDesktopState();
 
     },
 
@@ -794,6 +843,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    win.getHeader().hide();
 
 	}
+	
+	me.refreshUrlDesktopState();
 
     },
 
@@ -939,7 +990,7 @@ Ext.define('Ext.dirac.core.Desktop', {
     maximizeWindow : function(win) {
 	win.getHeader().hide();
 	win.maximize();
-
+	win.toFront();
     },
 
     /**
@@ -1032,7 +1083,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    // console.log("BEFORE MOVE [" + oComp.getWidth() + ", " +
 	    // oComp.getHeight() + "](" + oComp.x + ", " + oComp.y + ")");
 	    // console.log([ oComp.i_x, oComp.i_y, oComp.ic_x, oComp.ic_y ]);
-	    me.printTakenCellsMatrix();
+	    //me.printTakenCellsMatrix("MOVE");
 
 	    // var oCell = me.getGridCell(x, y);
 	    // console.log("COORDS: " + x + ", " + y + " | " + tempX + ", " +
@@ -1111,7 +1162,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    // + "](" + oComp.x + ", " + oComp.y + ")");
 	    // console.log("AFTER MOVE [" + oComp.getWidth() + ", " +
 	    // oComp.getHeight() + "](" + oComp.x + ", " + oComp.y + ")");
-	    me.printTakenCellsMatrix();
+	    //me.printTakenCellsMatrix("MOVE");
 
 	}
 	
@@ -1132,7 +1183,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    // console.log("RESIZE: " + w + " - " + h);
 	    // console.log("BEFORE RESIZE [" + oComp.getWidth() + ", " +
 	    // oComp.getHeight() + "](" + oComp.x + ", " + oComp.y + ")");
-	    me.printTakenCellsMatrix();
+	    //me.printTakenCellsMatrix("RESIZE");
 	    oWindow.suspendEvents(false);
 
 	    var oCell = me.getGridCell(oWindow.x + iWidth - 10, oWindow.y + iHeight - 10);
@@ -1204,17 +1255,19 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    // + "](" + oComp.x + ", " + oComp.y + ")");
 	    // console.log("AFTER RESIZE [" + oComp.getWidth() + ", " +
 	    // oComp.getHeight() + "](" + oComp.x + ", " + oComp.y + ")");
-	    me.printTakenCellsMatrix();
+	    //me.printTakenCellsMatrix("RESIZE");
 	    // oComp.resizeEventTriggered = true;
 	}
 	
 	me.refreshUrlDesktopState();
     },
 
-    printTakenCellsMatrix : function() {
-
+    printTakenCellsMatrix : function(sWhere) {
+	
 	var me = this;
-
+	
+	console.log(sWhere);
+	
 	var s = "";
 
 	for ( var i = 0; i < me.desktopGranularity[0]; i++) {
@@ -1921,7 +1974,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		oWin.tools[2].hide();
 		oWin.tools[3].hide();
 		oWin.tools[4].hide();
-		
+		oWin.taskButton.setIconCls("system_pin_window");
 		
 
 	    } else {
@@ -1949,9 +2002,12 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    oWin.tools[2].show();
 	    oWin.tools[3].show();
 	    oWin.tools[4].show();
+	    
+	    oWin.taskButton.setIconCls("notepad");
 
 	}
-
-    },
+	
+	me.refreshUrlDesktopState();
+    }
 
 });

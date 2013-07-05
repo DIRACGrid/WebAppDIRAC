@@ -5,65 +5,33 @@
  * http://www.sencha.com/license
  */
 
-
 Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
     extend : 'Ext.dirac.core.Module',
     requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date",
-	    "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*",
-	    "Ext.toolbar.Toolbar", "Ext.data.Record" ],
+	    "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record" ],
 
     loadState : function(oData) {
 
 	var me = this;
 
-	var oWins = oData.childWindows;
-	var oFirstWindow = null;
-
-	me.numberChildWindowsToLoad = oWins.length;
-	me.currentChildWindowsToLoad = 0;
-
-	for ( var i = 0; i < oWins.length; i++) {
-
-	    var oItem = oWins[i];
-
-	    me.__generatePlot(null, oItem);
-
-	}
+	me.__loadSelectionData(oData.plotParams);
 
     },
 
+    /*
+     * PARTLY DONE
+     */
     getStateData : function() {
 
 	var me = this;
 	var oReturn = {};
 
-	var oWins = me.getContainer().childWindows;
-
-	oReturn.childWindows = [];
-
-	for ( var i = 0; i < oWins.length; i++) {
-
-	    var oPos = oWins[i].getPosition();
-
-	    var oItem = {
-
-		params : oWins[i].items.getAt(0).plotParams,
-		position_x : oPos[0],
-		position_y : oPos[1],
-		width : oWins[i].getWidth(),
-		height : oWins[i].getHeight(),
-		title : oWins[i].title
-
-	    };
-
-	    oReturn.childWindows.push(oItem);
-
-	}
+	oReturn.plotParams = me.plotParams;
 
 	return oReturn;
 
     },
-    
+
     initComponent : function() {
 	var me = this;
 
@@ -71,23 +39,26 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	me.launcher.maximized = false;
 
 	var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
-	
-	me.launcher.width = 350;
+
+	me.launcher.width = 370;
 	me.launcher.height = oDimensions[1] - 50;
-	
+
 	me.launcher.x = 0;
 	me.launcher.y = 0;
-	
+
 	Ext.apply(me, {
 	    layout : 'border',
 	    bodyBorder : false,
-	    items:[]
+	    defaults : {
+		collapsible : true,
+		split : true
+	    }
 	});
-	
+
 	me.callParent(arguments);
-	
+
     },
-    
+
     buildUI : function() {
 
 	var me = this;
@@ -99,14 +70,25 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	 */
 
 	me.leftPanel = new Ext.create('Ext.panel.Panel', {
-	    region:"center",
+	    region : "west",
 	    floatable : false,
-	    header:false,
+	    header : false,
 	    margins : '0',
-	    minWidth : 230,
+	    width : 350,
+	    minWidth : 330,
+	    maxWidth : 450,
 	    bodyPadding : 5,
 	    layout : 'anchor',
 	    autoScroll : true
+	});
+
+	me.rightPanel = new Ext.create('Ext.panel.Panel', {
+	    region : "center",
+	    floatable : false,
+	    header : false,
+	    margins : '0',
+	    bodyPadding : 0,
+	    layout : "border"
 	});
 
 	me.descPlotType = {
@@ -182,7 +164,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		}
 	    }
 	});
-	
+
 	me.cmbPlotGenerate = Ext.create('Ext.form.field.ComboBox', {
 	    fieldLabel : "Plot To Generate",
 	    queryMode : 'local',
@@ -241,7 +223,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    }
 
 	});
-	
+
 	me.calendarFrom = new Ext.create('Ext.form.field.Date', {
 	    width : 100,
 	    format : 'Y-m-d',
@@ -269,7 +251,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	});
 
 	me.fsetTimeSpan.add([ me.cmbTimeSpan, me.calendarFrom, me.calendarTo, me.cmbQuarter ]);
-	
+
 	me.fsetSpecialConditions = Ext.create('Ext.form.FieldSet', {
 	    title : 'Selection Conditions',
 	    collapsible : true,
@@ -300,15 +282,34 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	me.fsetAdvanced.add([ me.advancedPlotTitle, me.advancedPin, me.advancedNotScaleUnits ]);
 
 	me.leftPanel.add([ me.cmbDomain, me.cmbPlotGenerate, me.cmbGroupBy, me.fsetTimeSpan, me.fsetSpecialConditions, me.fsetAdvanced ]);
-	
+
 	me.btnPlot = new Ext.Button({
 
 	    text : 'New',
 	    margin : 3,
 	    iconCls : "accp-submit-icon",
 	    handler : function() {
+
+		var oSetupData = {};
 		
-		me.__generatePlot(null, null);
+		oSetupData.x = me.getContainer().x+10;
+		oSetupData.y = me.getContainer().y+10;
+		oSetupData.width = me.getContainer().getWidth();
+		oSetupData.height = me.getContainer().getHeight();
+		oSetupData.currentState = "";
+
+		
+		oSetupData.desktopStickMode = 0;
+		oSetupData.hiddenHeader = 1;
+		oSetupData.i_x = 0;
+		oSetupData.i_y = 0;
+		oSetupData.ic_x = 0;
+		oSetupData.ic_y = 0;
+		
+		oSetupData.data = {plotParams: me.__getSelectionParametars()};
+		
+		GLOBAL.APP.desktop.createWindow("app", "DIRAC.AccountingPlot.classes.AccountingPlot", oSetupData);
+
 	    },
 	    scope : me
 
@@ -357,7 +358,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    scope : me
 
 	});
-	
+
 	/*
 	 * This button is used to refresh any previously selected plot that is
 	 * already generated.
@@ -368,14 +369,14 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    margin : 3,
 	    iconCls : "accp-refresh-icon",
 	    handler : function() {
-		me.__generatePlot(me.__childWindowFocused, null);
+		me.__generatePlot();
 	    },
 	    scope : me
 
 	});
 
 	var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
-	    items : [ me.btnPlot, me.btnRefreshPlot, me.btnReset, me.btnRefresh ],
+	    items : [ me.btnRefreshPlot, me.btnPlot, me.btnReset, me.btnRefresh ],
 	    dock : 'bottom',
 	    layout : {
 		pack : 'center'
@@ -384,47 +385,73 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	me.leftPanel.addDocked(oPanelButtons);
 
-	me.__childWindowFocused = null;
-	me.__additionalDataLoad = null;
-
 	/*
 	 * -----------------------------------------------------------------------------------------------------------
 	 * DEFINITION OF THE MAIN CONTAINER
 	 * -----------------------------------------------------------------------------------------------------------
 	 */
+	me.plotParams = {};
+	me.add([ me.leftPanel, me.rightPanel ]);
+	me.plotImage = null;
+	me.rightPanel.onResize = function(width, height, oldWidth, oldHeight) {
 
-	me.add([me.leftPanel]);
+	    me.__oprResizeImageAccordingToContainer();
+
+	};
+
+	me.refreshMenu = new Ext.menu.Menu({
+	    items : [ {
+		text : 'Disabled',
+		value : 0
+	    }, {
+		text : 'Each 15m',
+		value : 900000
+	    }, {
+		text : 'Each hour',
+		value : 3600000
+	    }, {
+		text : 'Each day',
+		value : 86400000
+	    } ],
+	    listeners : {
+		click : function(menu, menuItem, e, eOpts) {
+
+		    if (menuItem.value == 0) {
+			clearInterval(me.rightPanel.refreshTimeout);
+		    } else {
+			clearInterval(me.rightPanel.refreshTimeout);
+			me.rightPanel.refreshTimeout = setInterval(function() {
+
+			    Ext.Ajax.request({
+				url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
+				params : me.plotParams,
+				success : function(responseImg) {
+
+				    responseImg = Ext.JSON.decode(responseImg.responseText);
+
+				    if (responseImg["success"]) {
+
+					me.plotImage.setSrc(GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + responseImg["data"] + "&nocache=" + (new Date()).getTime());
+					me.rightPanel.setLoading('Loading Image ...');
+
+				    }
+				}
+			    });
+
+			}, menuItem.value);
+		    }
+
+		    menuItem.parentMenu.up('button').setText("Auto refresh : " + menuItem.text);
+		}
+	    }
+	});
+	
 
     },
-    
-    afterRender : function() {
-	
-	var me = this;
-	
-	me.__postponedBugSizeFix();
-	
-	this.callParent();
-    },
-    
-    __postponedBugSizeFix:function(){
-	
-	var me = this;
-	
-	if(me.getContainer()){
-	    
-	    var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
-		
-	    me.getContainer().setWidth(350);	
-	    me.getContainer().setHeight(oDimensions[1] - 50);
-	    
-	}else{
-	    
-	    setTimeout(function(){me.__postponedBugSizeFix();},1000);
-	    
-	}
-	
-    },
-    
+
+    /*
+     * OK
+     */
     __fillComboQuarter : function() {
 
 	var me = this;
@@ -463,6 +490,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
     },
 
+    /*
+     * OK
+     */
     __resetSelectionWindow : function() {
 
 	var me = this;
@@ -480,6 +510,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	me.cmbDomain.setValue(null);
 
     },
+
     applyDataToSelection : function(oData, sValue) {
 
 	var me = this;
@@ -511,7 +542,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	    if ((oSelectionOptions[i][0] == "User") || (oSelectionOptions[i][0] == "UserGroup")) {
 
-		//to-do
+		// to-do
 
 	    } else {
 
@@ -554,6 +585,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
     },
 
+    /*
+     * OK
+     */
     applySpecialConditions : function(oData) {
 
 	var me = this;
@@ -576,7 +610,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	}
 
     },
-
+    /*
+     * OK
+     */
     __oprDoubleElementItemList : function(oList) {
 
 	for ( var i = 0; i < oList.length; i++)
@@ -584,6 +620,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
     },
 
+    /*
+     * OK
+     */
     __validateConditions : function() {
 
 	var me = this;
@@ -634,7 +673,10 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
     },
 
-    __getParamsFromSelectionWindow : function() {
+    /*
+     * OK
+     */
+    __getSelectionParametars : function() {
 
 	var me = this;
 
@@ -724,17 +766,30 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	}
 
-	return [ oParams, sTitle ];
+	return oParams;
 
     },
+    /*
+     * OK
+     */
+    __oprResizeImageAccordingToContainer : function() {
 
-    __oprResizeImageAccordingToWindow : function(oImg, oPlotWindow) {
+	var me = this;
 
-	var a = oImg.originalWidth;
-	var b = oImg.originalHeight;
+	if (me.plotImage == null)
+	    return;
 
-	var a1 = oPlotWindow.getWidth() - 30;
-	var b1 = oPlotWindow.getHeight() - 70;
+	var a = me.plotImage.originalWidth;
+	var b = me.plotImage.originalHeight;
+
+	var a1 = me.rightPanel.getWidth() - 30;
+	var b1 = me.rightPanel.getHeight() - 70;
+	if (a1 < 0)
+	    a1 = 0;
+	if (b1 < 0)
+	    b1 = 0;
+	// console.log(["IMAGE",a,b]);
+	// console.log(["CONTAINER",a1,b1]);
 
 	if (b <= b1) {
 
@@ -742,20 +797,20 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		if ((a1 / a) <= (b1 / b)) {
 
-		    oImg.setWidth(a1);
-		    oImg.setHeight(parseInt(a1 / a * b));
+		    me.plotImage.setWidth(a1);
+		    me.plotImage.setHeight(parseInt(a1 / a * b));
 
 		} else {
 
-		    oImg.setHeight(b1);
-		    oImg.setWidth(parseInt(b1 / b * a));
+		    me.plotImage.setHeight(b1);
+		    me.plotImage.setWidth(parseInt(b1 / b * a));
 
 		}
 
 	    } else {
 
-		oImg.setWidth(a1);
-		oImg.setHeight(parseInt(a1 / a * b));
+		me.plotImage.setWidth(a1);
+		me.plotImage.setHeight(parseInt(a1 / a * b));
 
 	    }
 
@@ -763,20 +818,20 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	    if (a <= a1) {
 
-		oImg.setHeight(b1);
-		oImg.setWidth(parseInt(b1 / b * a));
+		me.plotImage.setHeight(b1);
+		me.plotImage.setWidth(parseInt(b1 / b * a));
 
 	    } else {
 
 		if ((a1 / a) <= (b1 / b)) {
 
-		    oImg.setWidth(a1);
-		    oImg.setHeight(parseInt(a1 / a * b));
+		    me.plotImage.setWidth(a1);
+		    me.plotImage.setHeight(parseInt(a1 / a * b));
 
 		} else {
 
-		    oImg.setHeight(b1);
-		    oImg.setWidth(parseInt(b1 / b * a));
+		    me.plotImage.setHeight(b1);
+		    me.plotImage.setWidth(parseInt(b1 / b * a));
 
 		}
 
@@ -786,32 +841,18 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
     },
 
-    __generatePlot : function(oDestinationWindow, oLoadState) {
+    __generatePlot : function() {
 
 	var me = this;
 
-	var oParams = null;
-	var sTitle = null;
+	if (!me.__validateConditions())
+	    return;
 
-	if (oLoadState == null) {
+	me.plotParams = me.__getSelectionParametars();
 
-	    if (!me.__validateConditions())
-		return;
-
-	    var oParamsData = me.__getParamsFromSelectionWindow();
-
-	    oParams = oParamsData[0];
-	    sTitle = oParamsData[1];
-	} else {
-
-	    oParams = oLoadState["params"];
-	    sTitle = oLoadState["title"];
-
-	}
-	
 	Ext.Ajax.request({
 	    url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
-	    params : oParams,
+	    params : me.plotParams,
 	    scope : me,
 	    success : function(response) {
 
@@ -824,63 +865,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		     * This should go into the container, where we have to load
 		     * the image
 		     */
-
-		    var oPlotWindow = null;
-
-		    if (oDestinationWindow == null) {
-			oPlotWindow = me.getContainer().oprGetChildWindow(sTitle, false, 700, 500);
-			oPlotWindow.firstTimeSetDimensions = false;
-			me.__childWindowFocused = oPlotWindow;
-
-			/*
-			 * when the child window gets the focus, the accounting
-			 * plot is filled with selection data stored in the
-			 * panel of this window
-			 */
-			oPlotWindow.__dirac_activate = function(oChildWindow) {
-
-			    // var me = this;
-
-			    me.loadSelectionData(oChildWindow);
-
-			    // do the indication icon
-
-			    var oWins = me.getContainer().childWindows;
-
-			    for ( var i = 0; i < oWins.length; i++) {
-
-				oWins[i].setIconCls("accp-child-window-gif-notfocus");
-
-			    }
-
-			    oChildWindow.setIconCls("accp-child-window-gif-focus");
-
-			};
-
-			oPlotWindow.__dirac_destroy = function(oChildWindow) {
-
-			    oChildWindow.__dirac_activate = null;
-
-			};
-
-			oPlotWindow.__dirac_resize = function(oChildWindow, iWidth, iHeight, eOpts) {
-
-			    var oImg = oChildWindow.items.getAt(0).items.getAt(1);
-
-			    if (oImg.noResizeAtLoad < 2) {
-				oImg.noResizeAtLoad++;
-				return;
-			    }
-
-			    me.__oprResizeImageAccordingToWindow(oImg, oChildWindow);
-
-			};
-
-		    } else
-			oPlotWindow = oDestinationWindow;
-
-		    var oImg = Ext.create('Ext.Img', {
-			noResizeAtLoad : 0,
+		    me.leftPanel.collapse();
+		    me.plotImage = Ext.create('Ext.Img', {
+			region : "center",
 			src : GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + response["data"] + "&nocache=" + (new Date()).getTime(),
 			listeners : {
 
@@ -888,34 +875,13 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 				oElem.el.on({
 				    load : function(evt, ele, opts) {
 
-					if (!oPlotWindow.firstTimeSetDimensions) {
+					oElem.originalWidth = oElem.getWidth();
+					oElem.originalHeight = oElem.getHeight();
 
-					    oElem.originalWidth = oElem.getWidth();
-					    oElem.originalHeight = oElem.getHeight();
+					me.__oprResizeImageAccordingToContainer();
 
-					    oPlotWindow.setWidth(oElem.getWidth() + 30);
-					    oPlotWindow.setHeight(oElem.getHeight() + 70);
+					me.rightPanel.setLoading(false);
 
-					    oPlotWindow.firstTimeSetDimensions = true;
-
-					} else {
-
-					    me.__oprResizeImageAccordingToWindow(oElem, oPlotWindow);
-
-					}
-
-					oPlotWindow.setLoading(false);
-
-					if (oLoadState != null) {
-
-					    oPlotWindow.setPosition([ oLoadState["position_x"], oLoadState["position_y"] ]);
-					    oPlotWindow.setWidth(oLoadState["width"]);
-					    oPlotWindow.setHeight(oLoadState["height"]);
-
-					    me.currentChildWindowsToLoad++;
-					    if (me.numberChildWindowsToLoad == me.currentChildWindowsToLoad)
-						me.loadSelectionData(oPlotWindow);
-					}
 				    }
 				});
 
@@ -924,83 +890,42 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			}
 
 		    });
-		    var oRefreshMenu = new Ext.menu.Menu({
-			items : [ {
-			    text : 'Disabled',
-			    value : 0
-			}, {
-			    text : 'Each 15m',
-			    value : 900000
-			}, {
-			    text : 'Each hour',
-			    value : 3600000
-			}, {
-			    text : 'Each day',
-			    value : 86400000
-			} ],
-			listeners : {
-			    click : function(menu, menuItem, e, eOpts) {
-				var oPanel = menuItem.parentMenu.up('panel');
 
-				if (menuItem.value == 0) {
-				    clearInterval(oPanel.refreshTimeout);
-				} else {
-				    clearInterval(oPanel.refreshTimeout);
-				    oPanel.refreshTimeout = setInterval(function() {
+		    var oPlotPanel = Ext.create('Ext.panel.Panel', {
+			region : "center",
+			layout : "absolute",
+			items : [ me.plotImage ]
 
-					Ext.Ajax.request({
-					    url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
-					    params : oParams,
-					    success : function(responseImg) {
-
-						responseImg = Ext.JSON.decode(responseImg.responseText);
-
-						if (responseImg["success"]) {
-
-						    oPanel.items.getAt(1).setSrc(GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + responseImg["data"] + "&nocache=" + (new Date()).getTime());
-						    oPanel.up('window').setLoading('Loading Image ...');
-
-						}
-					    }
-					});
-
-				    }, menuItem.value);
-				}
-
-				menuItem.parentMenu.up('button').setText("Auto refresh : " + menuItem.text);
-			    }
-			},
-			plotParams : {}
 		    });
 
 		    var oHrefParams = "";
 
-		    for ( var oParam in oParams) {
+		    for ( var oParam in me.plotParams) {
 
-			oHrefParams += ((oHrefParams == "") ? "" : "&") + oParam + "=" + encodeURIComponent(oParams[oParam]);
+			oHrefParams += ((oHrefParams == "") ? "" : "&") + oParam + "=" + encodeURIComponent(me.plotParams[oParam]);
 
 		    }
 
-		    var oToolbar = new Ext.toolbar.Toolbar({
+		    me.plotToolbar = new Ext.toolbar.Toolbar({
+			region : "north",
 			items : [ {
 			    xtype : "button",
 			    text : "Refresh",
 			    handler : function() {
 
 				var oThisButton = this;
-				var oPanel = oThisButton.up('panel');
 
 				Ext.Ajax.request({
 				    url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
-				    params : oPanel.plotParams,
+				    params : me.plotParams,
 				    success : function(responseImg) {
 
 					responseImg = Ext.JSON.decode(responseImg.responseText);
 
 					if (responseImg["success"]) {
 
-					    oPanel.items.getAt(1).setSrc(GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + responseImg["data"] + "&nocache=" + (new Date()).getTime());
-					    oPanel.up('window').setLoading('Loading Image ...');
+					    me.plotImage.setSrc(GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + responseImg["data"] + "&nocache=" + (new Date()).getTime());
+					    me.rightPanel.setLoading('Loading Image ...');
 
 					}
 				    }
@@ -1009,26 +934,15 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			    }
 			}, {
 			    xtype : "button",
-			    menu : oRefreshMenu,
+			    menu : me.refreshMenu,
 			    text : "Auto refresh :  Disabled"
 			}, '->', "<a target='_blank' href='" + GLOBAL.BASE_URL + "AccountingPlot/getCsvPlotData?" + oHrefParams + "'>CSV data</a>" ]
 		    });
 
-		    oPlotWindow.removeAll();
+		    me.rightPanel.removeAll();
 
-		    var oPanel = new Ext.create('Ext.panel.Panel', {
-			autoHeight : true,
-			border : false,
-			items : [ oToolbar, oImg ],
-			plotParams : oParams
-		    });
-
-		    oPlotWindow.add(oPanel);
-
-		    if (oDestinationWindow == null)
-			oPlotWindow.show();
-
-		    oPlotWindow.setLoading('Loading Image ...');
+		    me.rightPanel.add([ me.plotToolbar, oPlotPanel ]);
+		    me.rightPanel.setLoading('Loading Image ...');
 
 		} else {
 		    alert(response["errors"]);
@@ -1043,13 +957,14 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
     },
 
-    loadSelectionData : function(oChildWindow) {
+    __loadSelectionData : function(oParams) {
 
 	var me = this;
 
-	me.__childWindowFocused = oChildWindow;
+	me.plotParams = oParams;
 
-	var oParams = oChildWindow.items.getAt(0).plotParams;
+	if (!("_typeName" in oParams))
+	    return;
 
 	me.__additionalDataLoad = function() {
 
@@ -1148,13 +1063,14 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	    }
 
+	    me.__generatePlot();
+
 	};
 
 	if (me.cmbDomain.getValue() == oParams["_typeName"]) {
 
 	    me.__additionalDataLoad();
 	    me.__additionalDataLoad = null;
-	    // me.cmbDomain.fireEvent("change",me.cmbDomain,oParams["_typeName"],oParams["_typeName"],null);
 	}
 
 	me.cmbDomain.setValue(oParams["_typeName"]);

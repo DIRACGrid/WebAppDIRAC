@@ -219,6 +219,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
      * @return {Ext.button.Button} Button object added to the task bar
      */
     addTaskButton : function(win) {
+	
 	var config = {
 	    iconCls : win.iconCls,
 	    enableToggle : true,
@@ -245,18 +246,22 @@ Ext.define('Ext.dirac.core.TaskBar', {
      */
     onWindowBtnClick : function(btn) {
 	var win = btn.win;
-
+	
 	if (win.minimized || win.hidden) {
 	    win.minimized = false;
 	    win.show();
 	} else if (win.active) {
 	    if(!win.desktopStickMode){
-		win.minimize();
+		//win.minimize();
+		win.minimized = true;
+		// win.maximized = false;
+		//me.refreshUrlDesktopState();
+		win.hide();
 	    }
 	} else {
 	    win.toFront();
 	}
-
+	
 	if(!("isChildWindow" in win))
 	    win.desktop.refreshUrlDesktopState();
     },

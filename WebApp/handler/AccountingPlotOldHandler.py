@@ -18,7 +18,7 @@ try:
 except:
   from md5 import md5
 
-class AccountingPlot2Handler(WebHandler):
+class AccountingPlotOldHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
   __keysCache = DictCache.DictCache()
@@ -30,7 +30,7 @@ class AccountingPlot2Handler(WebHandler):
       cacheKey = ( sessionData["user"]["username"], userGroup, sessionData["setup"], typeName )
     else:
       cacheKey = ( userGroup, sessionData["setup"], typeName )
-    data = AccountingPlot2Handler.__keysCache.get( cacheKey )
+    data = AccountingPlotOldHandler.__keysCache.get( cacheKey )
     if not data:
       rpcClient = RPCClient( "Accounting/ReportGenerator" )
       retVal = rpcClient.listUniqueKeyValues( typeName )
@@ -53,7 +53,7 @@ class AccountingPlot2Handler(WebHandler):
           orderedSites.extend( sorted( siteLevel[ level ] ) )
         retVal[ 'Value' ][ 'Site' ] = orderedSites
       data = retVal
-      AccountingPlot2Handler.__keysCache.add( cacheKey, 300, data )
+      AccountingPlotOldHandler.__keysCache.add( cacheKey, 300, data )
     return data
 
   def web_getSelectionData(self):
@@ -66,7 +66,7 @@ class AccountingPlot2Handler(WebHandler):
       return
     callback["selectionValues"] = simplejson.dumps( retVal[ 'Value' ] )
     #Cache for plotsList?
-    data = AccountingPlot2Handler.__keysCache.get( "reportsList:%s" % typeName )
+    data = AccountingPlotOldHandler.__keysCache.get( "reportsList:%s" % typeName )
     if not data:
       repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
       retVal = repClient.listReports( typeName )
@@ -74,7 +74,7 @@ class AccountingPlot2Handler(WebHandler):
         self.write(json.dumps({"success":"false", "result":"", "error":retVal[ 'Message' ]}))
         return
       data = simplejson.dumps( retVal[ 'Value' ] )
-      AccountingPlot2Handler.__keysCache.add( "reportsList:%s" % typeName, 300, data )
+      AccountingPlotOldHandler.__keysCache.add( "reportsList:%s" % typeName, 300, data )
     callback["plotsList"] = data
     self.write(json.dumps({"success":"true", "result":callback}))
 
