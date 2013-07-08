@@ -113,7 +113,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    Pilot : {
 		title : "Pilot",
 		selectionConditions : [ [ "User", "User" ], [ "UserGroup", "User Group" ], [ "Site", "Site" ], [ "GridCE", "Grid CE" ], [ "GridMiddleware", "Grid Middleware" ],
-			[ "GridResourcesBroker", "Grid Resource Broker" ], [ "GridStatus", "Grid Status" ] ]
+			[ "GridResourceBroker", "Grid Resource Broker" ], [ "GridStatus", "Grid Status" ] ]
 
 	    },
 	    SRMSpaceTokenDeployment : {
@@ -140,7 +140,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		    if (newValue == null)
 			return;
-
+		    console.log("ASK SERVER FOR THE DATA");
 		    me.leftPanel.body.mask("Wait ...");
 		    Ext.Ajax.request({
 			url : GLOBAL.BASE_URL + 'AccountingPlot/getSelectionData',
@@ -152,7 +152,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			success : function(response) {
 
 			    var oResult = Ext.JSON.decode(response.responseText);
-
+			    console.log("RESPONSE RECEIVED");
 			    if (oResult["success"] == "true")
 				me.applyDataToSelection(oResult, newValue);
 			    else
@@ -446,6 +446,8 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    }
 	});
 	
+	me.__additionalDataLoad = null;
+	
 
     },
 
@@ -516,7 +518,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	var me = this;
 
 	var oList = Ext.JSON.decode(oData["result"]["plotsList"]);
-
+	
 	me.__oprDoubleElementItemList(oList);
 
 	var oStore = new Ext.data.SimpleStore({
@@ -547,6 +549,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    } else {
 
 		var oList = oSelectionData[oSelectionOptions[i][0]];
+		
 		me.__oprDoubleElementItemList(oList);
 
 		var oMultiList = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
@@ -580,6 +583,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	// we call the additional function
 	if (me.__additionalDataLoad != null) {
 	    me.__additionalDataLoad();
+	    console.log("ADDITIONAL FUNCTION EXECUTED");
 	    me.__additionalDataLoad = null;
 	}
 
@@ -788,8 +792,6 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    a1 = 0;
 	if (b1 < 0)
 	    b1 = 0;
-	// console.log(["IMAGE",a,b]);
-	// console.log(["CONTAINER",a1,b1]);
 
 	if (b <= b1) {
 
@@ -963,6 +965,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	me.plotParams = oParams;
 
+	console.log(oParams);	
 	if (!("_typeName" in oParams))
 	    return;
 
@@ -1066,13 +1069,16 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    me.__generatePlot();
 
 	};
-
+	
+	console.log("POSTPONED FUNCTION PREPARED");
+	
 	if (me.cmbDomain.getValue() == oParams["_typeName"]) {
 
 	    me.__additionalDataLoad();
 	    me.__additionalDataLoad = null;
 	}
 
+	console.log("VALUE CHANGED");
 	me.cmbDomain.setValue(oParams["_typeName"]);
 
     }

@@ -30,7 +30,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		col.setSortState(sortState);
 
 	}
-	
+
 	for ( var i = 0; i < me.selectorMenu.items.length - 1; i++) {
 
 	    var item = me.selectorMenu.items.getAt(i);
@@ -46,7 +46,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	     * this can be done only if the store is being loaded, otherwise has
 	     * to be postponed
 	     */
-	    me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected,((i==me.selectorMenu.items.length - 2)?true:false));
+	    me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected,
+		    ((i == me.selectorMenu.items.length - 2) ? true : false));
 
 	    me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
 
@@ -71,14 +72,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	me.timeSearchElementsGroup.calenTo.setValue(data.leftMenu.calenTo);
 	me.timeSearchElementsGroup.cmbTimeTo.setValue(data.leftMenu.cmbTimeTo);
 
-	
-
     },
 
     __cancelPreviousDataRequest : function() {
 
 	var me = this;
-	
+
 	if (me.dataStore.loading && me.dataStore.lastDataRequest) {
 	    var oRequests = Ext.Ajax.requests;
 	    for (id in oRequests) {
@@ -95,18 +94,18 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	var me = this;
 
 	if (me.bDataSelectionLoaded) {
-	    
-	    if(bLastOne){
+
+	    if (bLastOne) {
 		me.__cancelPreviousDataRequest();
 		me.oprLoadGridData();
 	    }
-	    
+
 	    oSelectionBox.setValue(oValues);
-	    
+
 	} else {
-	    
+
 	    Ext.Function.defer(me.__oprPostponedValueSetUntilOptionsLoaded, 1500, me, [ oSelectionBox, oValues, bLastOne ]);
-	    
+
 	}
 
     },
@@ -580,10 +579,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    listeners : {
 
 		load : function(oStore, records, successful, eOpts) {
-		    
-		    if(oStore.proxy.reader.rawData)
+
+		    if (oStore.proxy.reader.rawData)
 			me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
-		    
+
 		    me.dataStore.remoteSort = false;
 		    me.dataStore.sort();
 		    me.dataStore.remoteSort = true;
@@ -591,7 +590,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		},
 
 		beforeload : function(oStore, oOperation, eOpts) {
-		    
+
 		    me.dataStore.lastDataRequest = oOperation;
 
 		}
@@ -603,7 +602,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	me.checkboxFunctionDefinition += 'var oChecked=this.checked;';
 	me.checkboxFunctionDefinition += 'var oElems=Ext.query(\'#' + me.id + ' input.checkrow\');';
 	me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
-	me.checkboxFunctionDefinition += '"/>';
+	me.checkboxFunctionDefinition += '" class="jm-main-check-box"/>';
 
 	me.pagingToolbar = {};
 	me.pagingToolbar.updateStamp = new Ext.Button({
@@ -823,7 +822,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		},
 		hideable : false,
 		fixed : true,
-		menuDisabled : true
+		menuDisabled : true,
+		align:"center"
 	    }, {
 		header : 'JobId',
 		sortable : true,
@@ -987,9 +987,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    tbar : me.pagingToolbar.toolbar,
 	    listeners : {
 
-		itemclick : function(comp, record, item, index, e, eOpts) {
+		cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 
-		    me.contextGridMenu.showAt(e.xy);
+		    if(cellIndex!=0){	
+			me.contextGridMenu.showAt(e.xy);
+		    }
 
 		}
 

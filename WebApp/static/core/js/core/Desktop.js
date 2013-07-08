@@ -78,7 +78,7 @@ Ext.define('Ext.dirac.core.Desktop', {
      */
     taskbarConfig : null,
 
-    desktopGranularity : [ 5, 5 ],
+    desktopGranularity : [ 6, 6 ],
     boxSizeX : 0,
     boxSizeY : 0,
     takenCells : null,
@@ -1004,13 +1004,14 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    win.setWidth(this.getWidth() / 2);
 	    win.setHeight(this.getHeight() / 2);
 	    win.setPosition(50, 50);
+	    win.maximized = false;
 	    win.restore();
 	    win.toFront();
 	} else {
 	    win.show();
 	}
-	win.minimized = false;
 	
+	win.minimized = false;
 	this.refreshUrlDesktopState();
 	return win;
     },
@@ -1105,7 +1106,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    var oNewX = iX + oXDiff % oBox[0];
 	    var oNewY = iY + oYDiff % oBox[1];
 
-	    var oCell = me.getGridCell(oNewX, oNewY); // - koga se
+	    var oCell = me.getGridCell(oNewX, oNewY,false); // - koga se
 
 	    // console.log("M: " + oCell[0] + " - " + oCell[1]);
 
@@ -1180,15 +1181,25 @@ Ext.define('Ext.dirac.core.Desktop', {
 	
 	if (oWindow.desktopStickMode) {
 	    
+	    
+	    
 	    // console.log("RESIZE: " + w + " - " + h);
 	    // console.log("BEFORE RESIZE [" + oComp.getWidth() + ", " +
 	    // oComp.getHeight() + "](" + oComp.x + ", " + oComp.y + ")");
 	    //me.printTakenCellsMatrix("RESIZE");
 	    oWindow.suspendEvents(false);
-
-	    var oCell = me.getGridCell(oWindow.x + iWidth - 10, oWindow.y + iHeight - 10);
-	    // console.log("M: " + oCell[0] + " - " + oCell[1]);
-
+	    var oBox = me.getBoxSize();
+	    
+	    var iPomX = oWindow.x + iWidth - 10;
+	    var iPomY = oWindow.y + iHeight - 10;
+	    
+	    var oCell = me.getGridCell(iPomX,iPomY,true);
+	    console.log(["FOUND",me.getGridCell(iPomX,iPomY,false)]);
+	    console.log(["FIXED",oCell]);
+	    /*
+	     * END - Fix to stick to the nearest grid border
+	     */
+	    
 	    var bOK = true;
 	    for ( var i = oWindow.i_x; i <= oCell[0]; i++) {
 		for ( var j = oWindow.i_y; j <= oCell[1]; j++) {
@@ -1218,7 +1229,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    // var iBoxHeight = Math.floor(iHeight / me.desktopGrid[0]);
 	    // console.log("BW/BH: " + iBoxWidth + " / " + iBoxHeight);
 
-	    var oBox = me.getBoxSize();
+	    
 
 	    if (bOK) {
 
@@ -1878,7 +1889,7 @@ Ext.define('Ext.dirac.core.Desktop', {
     },
 
     /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
-    getGridCell : function(iX, iY) {
+    getGridCell : function(iX, iY, bWithFixNearestBorder) {
 
 	var me = this;
 
@@ -1890,11 +1901,32 @@ Ext.define('Ext.dirac.core.Desktop', {
 	var iXAxis = Math.floor(iX / iBoxWidth);
 	var iYAxis = Math.floor(iY / iBoxHeight);
 
-	if (iXAxis >= me.desktopGranularity[1])
+	if(bWithFixNearestBorder){
+	    
+	    if(iX%iBoxWidth<iBoxWidth/2)
+		iXAxis--;
+	    
+	    if(iY%iBoxHeight<iBoxHeight/2)
+		iYAxis--;
+	    
+	}
+	
+	if (iXAxis >= me.desktopGranularity[1]){
 	    iXAxis = me.desktopGranularity[1] - 1;
+	}else if(iXAxis<0){
+	    
+	    iXAxis = 0;
+	    
+	}
+	
 
-	if (iYAxis >= me.desktopGranularity[0])
+	if (iYAxis >= me.desktopGranularity[0]){
 	    iYAxis = me.desktopGranularity[0] - 1;
+	}else if(iYAxis<0){
+	    
+	    iYAxis = 0;
+	    
+	}
 
 	return [ iXAxis, iYAxis ];
 
