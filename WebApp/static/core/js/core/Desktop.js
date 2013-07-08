@@ -78,7 +78,7 @@ Ext.define('Ext.dirac.core.Desktop', {
      */
     taskbarConfig : null,
 
-    desktopGranularity : [ 5, 5 ],
+    desktopGranularity : [ 6, 6 ],
     boxSizeX : 0,
     boxSizeY : 0,
     takenCells : null,

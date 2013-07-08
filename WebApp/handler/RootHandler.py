@@ -1,4 +1,5 @@
 import json
+import urlparse
 from DIRAC import gConfig
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
@@ -29,11 +30,15 @@ class RootHandler(WebHandler):
       setup = self.getUserSetup()
     if not group:
       group = self.getUserGroup() or 'anon'
+    qs = False
+    if 'Referer' in self.request.headers:
+      o = urlparse.urlparse( self.request.headers[ 'Referer' ] )
+      qs = '?%s' % o.query
     url = [ Conf.rootURL().strip( "/" ), "s:%s" % setup, "g:%s" % group ]
-    self.redirect( "/%s" % "/".join( url ) )
+    self.redirect( "/%s%s" % ( "/".join( url ), qs ) )
 
   def web_getConfigData( self ):
-    self.write(json.dumps(SessionData().getData()))
+    self.finish(SessionData().getData())
 
   def web_index(self):
     # Render base template
