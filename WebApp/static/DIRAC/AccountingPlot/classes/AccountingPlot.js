@@ -515,7 +515,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	var me = this;
 
-	var oList = Ext.JSON.decode(oData["result"]["plotsList"]);
+	var oList = oData["result"]["plotsList"];
 
 	me.__oprDoubleElementItemList(oList);
 
@@ -528,7 +528,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	me.cmbPlotGenerate.bindStore(oStore);
 
-	var oSelectionData = Ext.JSON.decode(oData["result"]["selectionValues"]);
+	var oSelectionData = oData["result"]["selectionValues"];
 
 	var oSelectionOptions = me.descPlotType[sValue]["selectionConditions"];
 
@@ -592,7 +592,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	var me = this;
 
-	var oSelectionData = Ext.JSON.decode(oData["result"]["selectionValues"]);
+	var oSelectionData = oData["result"]["selectionValues"];
 
 	for ( var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
 
