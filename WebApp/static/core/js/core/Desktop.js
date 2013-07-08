@@ -78,12 +78,18 @@ Ext.define('Ext.dirac.core.Desktop', {
      */
     taskbarConfig : null,
 
+    desktopGranularity : [ 5, 5 ],
+    boxSizeX : 0,
+    boxSizeY : 0,
+    takenCells : null,
+
     getStateData : function() {
 
 	var me = this;
 
 	var oData = {
-	    "data" : []
+	    "data" : [],
+	    "desktopGranularity":me.desktopGranularity
 	};
 
 	me.windows.each(function(win) {
@@ -111,7 +117,13 @@ Ext.define('Ext.dirac.core.Desktop', {
 			height : win.getHeight(),
 			maximized : win.maximized,
 			zIndex : win.zIndex,
-			loadedObjectType : win.loadedObjectType
+			loadedObjectType : win.loadedObjectType,
+			desktopStickMode:((win.desktopStickMode)?1:0),
+			headerHidden: ((win.getHeader().hidden)?1:0),
+			i_x: win.i_x,
+			i_y: win.i_y,
+			ic_x: win.ic_x,
+			ic_y: win.ic_y
 		    };
 
 		} else if (win.loadedObjectType == "link") {
@@ -125,7 +137,13 @@ Ext.define('Ext.dirac.core.Desktop', {
 			height : win.getHeight(),
 			maximized : win.maximized,
 			zIndex : win.zIndex,
-			loadedObjectType : win.loadedObjectType
+			loadedObjectType : win.loadedObjectType,
+			desktopStickMode:((win.desktopStickMode)?1:0),
+			headerHidden: ((win.getHeader().hidden)?1:0),
+			i_x: win.i_x,
+			i_y: win.i_y,
+			ic_x: win.ic_x,
+			ic_y: win.ic_y
 		    };
 
 		}
@@ -134,7 +152,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    }
 
 	});
-
+	console.log(oData);
 	return oData;
 
     },
@@ -142,6 +160,29 @@ Ext.define('Ext.dirac.core.Desktop', {
     loadState : function(oData) {
 
 	var me = this;
+	
+	me.desktopGranularity = oData["desktopGranularity"];
+	
+	me.takenCells = [];
+
+	for ( var i = 0; i < me.desktopGranularity[0]; i++) {
+
+	    me.takenCells.push([]);
+
+	    for ( var j = 0; j < me.desktopGranularity[1]; j++) {
+
+		me.takenCells[i].push(false);
+
+	    }
+
+	}
+	
+	var iWidth = me.getWidth();
+	var iHeight = me.getHeight() - me.taskbar.getHeight();
+
+	me.boxSizeX = Math.floor(iWidth / me.desktopGranularity[1]);
+	me.boxSizeY = Math.floor(iHeight / me.desktopGranularity[0]);
+	
 	for ( var i = 0, len = oData["data"].length; i < len; i++) {
 
 	    var oAppStateData = oData["data"][i];
@@ -195,6 +236,20 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    me.setWallpaper(wallpaper, me.wallpaperStretch);
 	}
 
+	me.takenCells = [];
+
+	for ( var i = 0; i < me.desktopGranularity[0]; i++) {
+
+	    me.takenCells.push([]);
+
+	    for ( var j = 0; j < me.desktopGranularity[1]; j++) {
+
+		me.takenCells[i].push(false);
+
+	    }
+
+	}
+
     },
 
     /**
@@ -218,6 +273,42 @@ Ext.define('Ext.dirac.core.Desktop', {
 	me.el.on('contextmenu', me.onDesktopMenu, me);
 
 	me.__oprLoadUrlState();
+
+    },
+
+    listeners : {
+
+	resize : function(oComp, w, h, ow, oh, eOpts) {
+
+	    var me = oComp;
+
+	    var iWidth = me.getWidth();
+	    var iHeight = me.getHeight() - me.taskbar.getHeight();
+
+	    me.boxSizeX = Math.floor(iWidth / me.desktopGranularity[1]);
+	    me.boxSizeY = Math.floor(iHeight / me.desktopGranularity[0]);
+
+	    me.windows.each(function(win) {
+		if (win.desktopStickMode) {
+
+		    var oPos = [ 0, 0 ];
+
+		    oPos[0] = win.i_x * me.boxSizeX;
+		    oPos[1] = win.i_y * me.boxSizeY;
+
+		    win._x = oPos[0];
+		    win._y = oPos[1];
+
+		    win.suspendEvents(false);
+		    win.setPosition(oPos[0], oPos[1]);
+		    win.setWidth(me.boxSizeX * win.ic_x);
+		    win.setHeight(me.boxSizeY * win.ic_y);
+		    win.resumeEvents();
+
+		}
+	    });
+
+	}
 
     },
 
@@ -254,14 +345,15 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 		    var oAppParts = oApps[i].split(":");
 
-		    if (oAppParts.length != 7) {
+		    if (oAppParts.length != 8) {
 
 			oValid = false;
 			break;
 
 		    }
 
-		    if (!GLOBAL.APP.isValidApplication(oAppParts[0])||isNaN(parseInt(oAppParts[2])) || isNaN(parseInt(oAppParts[3])) || isNaN(parseInt(oAppParts[4])) || isNaN(parseInt(oAppParts[5])) || isNaN(parseInt(oAppParts[6]))) {
+		    if (!GLOBAL.APP.isValidApplication(oAppParts[0]) || isNaN(parseInt(oAppParts[2])) || isNaN(parseInt(oAppParts[3])) || isNaN(parseInt(oAppParts[4]))
+			    || isNaN(parseInt(oAppParts[5])) || isNaN(parseInt(oAppParts[6]))) {
 
 			oValid = false;
 			break;
@@ -308,6 +400,14 @@ Ext.define('Ext.dirac.core.Desktop', {
 		    oSetupData.y = oAppItems[3];
 		    oSetupData.width = oAppItems[4];
 		    oSetupData.height = oAppItems[5];
+		    
+		    var oPinnedData = oAppItems[7].split(",");
+		    oSetupData.desktopStickMode = parseInt(oPinnedData[0]);
+		    oSetupData.hiddenHeader = parseInt(oPinnedData[1]);
+		    oSetupData.i_x = parseInt(oPinnedData[2]);
+		    oSetupData.i_y = parseInt(oPinnedData[3]);
+		    oSetupData.ic_x = parseInt(oPinnedData[4]);
+		    oSetupData.ic_y = parseInt(oPinnedData[5]);
 
 		    switch (Ext.util.Format.trim(oAppItems[6])) {
 
@@ -590,6 +690,14 @@ Ext.define('Ext.dirac.core.Desktop', {
 		handler : me.onWindowMenuMaximize,
 		scope : me
 	    }, '-', {
+		text : 'Pin',
+		handler : me.onWindowMenuPin,
+		scope : me
+	    }, {
+		text : 'Show header',
+		handler : me.onWindowMenuHeader,
+		scope : me
+	    }, '-', {
 		text : 'Close',
 		handler : me.onWindowMenuClose,
 		scope : me
@@ -608,12 +716,22 @@ Ext.define('Ext.dirac.core.Desktop', {
      */
     onWindowMenuBeforeShow : function(menu) {
 	var me = this;
-	
+
 	var items = menu.items.items, win = menu.theWin;
-	
-	items[2].setDisabled(win.maximized !== true && win.hidden !== true); // Restore
-	items[3].setDisabled(win.minimized === true); // Minimize
-	items[4].setDisabled(win.maximized === true || win.hidden === true); // Maximize
+
+	if (win.desktopStickMode) {
+
+	    items[2].setDisabled(true); // Restore
+	    items[3].setDisabled(true); // Restore
+	    items[4].setDisabled(true); // Restore
+
+	} else {
+
+	    items[2].setDisabled(win.maximized !== true && win.hidden !== true); // Restore
+	    items[3].setDisabled(win.minimized === true); // Minimize
+	    items[4].setDisabled(win.maximized === true || win.hidden === true); // Maximize
+
+	}
 
 	// We copy the menu from the window
 
@@ -628,6 +746,27 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    items[1].show();
 
 	    items[0].menu = win.loadMenu;
+
+	    if (win.desktopStickMode) {
+
+		items[6].setText("Unpin");
+
+	    } else {
+
+		items[6].setText("Pin");
+
+	    }
+
+	    if (win.getHeader().hidden) {
+
+		items[7].setText("Show header");
+
+	    } else {
+
+		items[7].setText("Hide header");
+
+	    }
+
 	}
     },
 
@@ -637,7 +776,6 @@ Ext.define('Ext.dirac.core.Desktop', {
      */
     onWindowMenuClose : function() {
 	var me = this, win = me.windowMenu.theWin;
-	console.log(me);
 	win.close();
     },
 
@@ -658,8 +796,56 @@ Ext.define('Ext.dirac.core.Desktop', {
      */
     onWindowMenuMinimize : function() {
 	var me = this, win = me.windowMenu.theWin;
+	
+	//win.minimize();
+	win.minimized = true;
+	// win.maximized = false;
+	me.refreshUrlDesktopState();
+	win.hide();
+    },
 
-	win.minimize();
+    /**
+     * @private Handler called when the Minimize option is choicen from the
+     *          window taskbar menu
+     */
+    onWindowMenuPin : function() {
+	var me = this, win = me.windowMenu.theWin;
+	var items = me.windowMenu.items.items;
+
+	me.setDesktopStickMode(win);
+
+	if (win.desktopStickMode) {
+
+	    items[6].setText("Unpin");
+
+	} else {
+
+	    items[6].setText("Pin");
+
+	}
+	
+	me.refreshUrlDesktopState();
+
+    },
+
+    onWindowMenuHeader : function() {
+	var me = this, win = me.windowMenu.theWin;
+	var items = me.windowMenu.items.items;
+
+	if (win.getHeader().hidden) {
+
+	    items[7].setText("Hide header");
+	    win.getHeader().show();
+
+	} else {
+
+	    items[7].setText("Show header");
+	    win.getHeader().hide();
+
+	}
+	
+	me.refreshUrlDesktopState();
+
     },
 
     /**
@@ -677,7 +863,7 @@ Ext.define('Ext.dirac.core.Desktop', {
      * @param menu
      */
     onWindowMenuHide : function(menu) {
-	//menu.theWin = null;
+	// menu.theWin = null;
     },
 
     // ----------------------------------------------------------------------------------------
@@ -804,7 +990,7 @@ Ext.define('Ext.dirac.core.Desktop', {
     maximizeWindow : function(win) {
 	win.getHeader().hide();
 	win.maximize();
-
+	win.toFront();
     },
 
     /**
@@ -824,6 +1010,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    win.show();
 	}
 	win.minimized = false;
+	
 	this.refreshUrlDesktopState();
 	return win;
     },
@@ -874,6 +1061,14 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    me.refreshUrlDesktopState();
 	}
 
+	if (win.desktopGridStickButton.type == "unpin") {
+	    for ( var i = win.i_x; i <= win.i_x + win.ic_x - 1; i++) {
+		for ( var j = win.i_y; j <= win.i_y + win.ic_y - 1; j++) {
+		    me.takenCells[j][i] = false;
+		}
+	    }
+	}
+
     },
 
     onWindowMove : function(oWindow, iX, iY, eOpts) {
@@ -883,17 +1078,211 @@ Ext.define('Ext.dirac.core.Desktop', {
 	if (oWindow.__dirac_move != null)
 	    oWindow.__dirac_move(oWindow, iX, iY, eOpts);
 
+	if (oWindow.desktopStickMode) {
+
+	    // console.log("BEFORE MOVE [" + oComp.getWidth() + ", " +
+	    // oComp.getHeight() + "](" + oComp.x + ", " + oComp.y + ")");
+	    // console.log([ oComp.i_x, oComp.i_y, oComp.ic_x, oComp.ic_y ]);
+	    //me.printTakenCellsMatrix("MOVE");
+
+	    // var oCell = me.getGridCell(x, y);
+	    // console.log("COORDS: " + x + ", " + y + " | " + tempX + ", " +
+	    // tempY);
+
+	    var oXDiff = GLOBAL.MOUSE_X - iX;
+	    var oYDiff = GLOBAL.MOUSE_Y - iY;
+
+	    /*
+	     * var iWidth = me.getWidth(); var iHeight = me.getHeight() -
+	     * me.taskbar.getHeight();
+	     * 
+	     * var iBoxWidth = Math.floor(iWidth / me.desktopGrid[1]); var
+	     * iBoxHeight = Math.floor(iHeight / me.desktopGrid[0]);
+	     */
+
+	    var oBox = me.getBoxSize();
+
+	    var oNewX = iX + oXDiff % oBox[0];
+	    var oNewY = iY + oYDiff % oBox[1];
+
+	    var oCell = me.getGridCell(oNewX, oNewY); // - koga se
+
+	    // console.log("M: " + oCell[0] + " - " + oCell[1]);
+
+	    var bOK = true;
+
+	    for ( var i = oCell[0]; i <= oCell[0] + oWindow.ic_x - 1; i++) {
+		for ( var j = oCell[1]; j <= oCell[1] + oWindow.ic_y - 1; j++) {
+
+		    if (!((i >= oWindow.i_x) && (i <= oWindow.i_x + oWindow.ic_x - 1) && (j >= oWindow.i_y) && (j <= oWindow.i_y + oWindow.ic_y - 1))) {
+
+			if (me.takenCells[j][i]) {
+
+			    bOK = false;
+			    break;
+
+			}
+		    }
+		}
+
+		if (!bOK)
+		    break;
+
+	    }
+
+	    if (bOK) {
+
+		// we free the previous cells
+		for ( var i = oWindow.i_x; i <= oWindow.i_x + oWindow.ic_x - 1; i++) {
+		    for ( var j = oWindow.i_y; j <= oWindow.i_y + oWindow.ic_y - 1; j++) {
+			// console.log("CISTI: (" + i + ", " + j + ")");
+			me.takenCells[j][i] = false;
+		    }
+		}
+
+		for ( var i = oCell[0]; i <= oCell[0] + oWindow.ic_x - 1; i++) {
+		    for ( var j = oCell[1]; j <= oCell[1] + oWindow.ic_y - 1; j++) {
+			me.takenCells[j][i] = true;
+		    }
+		}
+
+		oWindow.i_x = oCell[0];
+		oWindow.i_y = oCell[1];
+
+		oWindow._x = oWindow.i_x * oBox[0];
+		oWindow._y = oWindow.i_y * oBox[1];
+
+	    }
+
+	    oWindow.suspendEvents(false);
+	    oWindow.setPosition(oWindow._x, oWindow._y);
+	    oWindow.resumeEvents();
+
+	    // oComp.setTitle("W[" + oComp.getWidth() + ", " + oComp.getHeight()
+	    // + "](" + oComp.x + ", " + oComp.y + ")");
+	    // console.log("AFTER MOVE [" + oComp.getWidth() + ", " +
+	    // oComp.getHeight() + "](" + oComp.x + ", " + oComp.y + ")");
+	    //me.printTakenCellsMatrix("MOVE");
+
+	}
+	
 	me.refreshUrlDesktopState();
+
     },
 
     onWindowResize : function(oWindow, iWidth, iHeight, eOpts) {
-
+	
 	var me = this;
-
-	if (oWindow.__dirac_resize != null)
+	
+	if (oWindow.__dirac_resize != null){
 	    oWindow.__dirac_resize(oWindow, iWidth, iHeight, eOpts);
+	}
+	
+	if (oWindow.desktopStickMode) {
+	    
+	    // console.log("RESIZE: " + w + " - " + h);
+	    // console.log("BEFORE RESIZE [" + oComp.getWidth() + ", " +
+	    // oComp.getHeight() + "](" + oComp.x + ", " + oComp.y + ")");
+	    //me.printTakenCellsMatrix("RESIZE");
+	    oWindow.suspendEvents(false);
 
+	    var oCell = me.getGridCell(oWindow.x + iWidth - 10, oWindow.y + iHeight - 10);
+	    // console.log("M: " + oCell[0] + " - " + oCell[1]);
+
+	    var bOK = true;
+	    for ( var i = oWindow.i_x; i <= oCell[0]; i++) {
+		for ( var j = oWindow.i_y; j <= oCell[1]; j++) {
+
+		    if (!((i >= oWindow.i_x) && (i <= oWindow.i_x + oWindow.ic_x - 1) && (j >= oWindow.i_y) && (j <= oWindow.i_y + oWindow.ic_y - 1))) {
+
+			if (me.takenCells[j][i]) {
+
+			    bOK = false;
+			    break;
+
+			}
+		    }
+		}
+
+		if (!bOK)
+		    break;
+
+	    }
+
+	    // var iWidth = me.getWidth();
+	    // var iHeight = me.getHeight() - me.taskbar.getHeight();
+
+	    // console.log("TW/TH: " + iWidth + " / " + iHeight);
+
+	    // var iBoxWidth = Math.floor(iWidth / me.desktopGrid[1]);
+	    // var iBoxHeight = Math.floor(iHeight / me.desktopGrid[0]);
+	    // console.log("BW/BH: " + iBoxWidth + " / " + iBoxHeight);
+
+	    var oBox = me.getBoxSize();
+
+	    if (bOK) {
+
+		// we free the previous cells
+		for ( var i = oWindow.i_x; i <= oWindow.i_x + oWindow.ic_x - 1; i++) {
+		    for ( var j = oWindow.i_y; j <= oWindow.i_y + oWindow.ic_y - 1; j++) {
+			// console.log("CLEAR: (" + j + ", " + i + ")");
+			me.takenCells[j][i] = false;
+		    }
+		}
+
+		for ( var i = oWindow.i_x; i <= oCell[0]; i++) {
+		    for ( var j = oWindow.i_y; j <= oCell[1]; j++) {
+			// console.log("TAKEN: (" + j + ", " + i + ")");
+			me.takenCells[j][i] = true;
+		    }
+		}
+
+		oWindow.ic_x = oCell[0] - oWindow.i_x + 1;
+		oWindow.ic_y = oCell[1] - oWindow.i_y + 1;
+
+		// console.log("ic_: " + oComp.ic_x + " | " + oComp.ic_y);
+		// console.log("w/h: " + (oCell[0] - oComp.i_x + 1) * iBoxWidth
+		// + " | " + (oCell[1] - oComp.i_y + 1) * iBoxHeight);
+
+	    }
+
+	    oWindow.setWidth(oWindow.ic_x * oBox[0]);
+	    oWindow.setHeight(oWindow.ic_y * oBox[1]);
+
+	    oWindow.resumeEvents();
+
+	    // oComp.setTitle("W[" + oComp.getWidth() + ", " + oComp.getHeight()
+	    // + "](" + oComp.x + ", " + oComp.y + ")");
+	    // console.log("AFTER RESIZE [" + oComp.getWidth() + ", " +
+	    // oComp.getHeight() + "](" + oComp.x + ", " + oComp.y + ")");
+	    //me.printTakenCellsMatrix("RESIZE");
+	    // oComp.resizeEventTriggered = true;
+	}
+	
 	me.refreshUrlDesktopState();
+    },
+
+    printTakenCellsMatrix : function(sWhere) {
+	
+	var me = this;
+	
+	console.log(sWhere);
+	
+	var s = "";
+
+	for ( var i = 0; i < me.desktopGranularity[0]; i++) {
+
+	    for ( var j = 0; j < me.desktopGranularity[1]; j++) {
+
+		s += " " + ((me.takenCells[i][j]) ? 1 : 0) + " ";
+
+	    }
+	    s += '\n';
+
+	}
+
+	console.log(s);
+
     },
 
     /**
@@ -925,7 +1314,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		    paths : {}
 		};
 
-		oConfig["paths"][oParts[0] + "." + oParts[1] + ".classes"] ="static/" + oParts[0] + "/" + oParts[1] + "/build";
+		oConfig["paths"][oParts[0] + "." + oParts[1] + ".classes"] = "static/" + oParts[0] + "/" + oParts[1] + "/build";
 
 		Ext.Loader.setConfig(oConfig);
 
@@ -984,8 +1373,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    border : false,
 	    hideMode : 'offsets',
 	    layout : 'fit',
-	    x:0,
-	    y:0,
+	    x : 0,
+	    y : 0,
 	    __dirac_activate : null,
 	    __dirac_beforeshow : null,
 	    __dirac_afterrender : null,
@@ -1071,6 +1460,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    activeWindow.removeCls(me.inactiveWindowCls);
 	    activeWindow.minimized = false;
 	    activeWindow.active = true;
+
 	}
 
 	me.taskbar.setActiveButton(activeWindow && activeWindow.taskButton);
@@ -1190,16 +1580,6 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    me.registerStartMenus[sAppName].removeState(sStateType, sStateName);
 
     },
-
-    /*
-     * -------------------------END: BROADCAST METHODS FOR THE ACTIVE
-     * WINDOWS-------------------------
-     */
-
-    /*
-     * ---------------------------------MANAGEMENT OF DESKTOP
-     * STATES--------------------------------------------
-     */
 
     /**
      * Function to load a desktop state
@@ -1409,7 +1789,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    sNewUrlState = oHref + sNewUrlState;
 
 	}
-	
+
 	window.history.pushState("X", "ExtTop - Desktop Sample App", sNewUrlState);
 
     },
@@ -1435,6 +1815,14 @@ Ext.define('Ext.dirac.core.Desktop', {
 	var me = this;
 
 	return [ me.getWidth(), me.getHeight() ];
+
+    },
+
+    getBoxSize : function() {
+
+	var me = this;
+
+	return [ me.boxSizeX, me.boxSizeY ];
 
     },
 
@@ -1487,8 +1875,139 @@ Ext.define('Ext.dirac.core.Desktop', {
 	    me.addDesktopReference(sLinkName);
 	}
 
-    }
+    },
 
-/*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
+    /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
+    getGridCell : function(iX, iY) {
+
+	var me = this;
+
+	var oBox = me.getBoxSize();
+
+	var iBoxWidth = oBox[0];
+	var iBoxHeight = oBox[1];
+
+	var iXAxis = Math.floor(iX / iBoxWidth);
+	var iYAxis = Math.floor(iY / iBoxHeight);
+
+	if (iXAxis >= me.desktopGranularity[1])
+	    iXAxis = me.desktopGranularity[1] - 1;
+
+	if (iYAxis >= me.desktopGranularity[0])
+	    iYAxis = me.desktopGranularity[0] - 1;
+
+	return [ iXAxis, iYAxis ];
+
+    },
+
+    findEmptyGridCell : function() {
+
+	var me = this;
+	var oFound = false;
+	var oPosI = [ -1, -1 ];
+
+	for ( var i = 0; i < me.desktopGranularity[1]; i++) {
+	    for ( var j = 0; j < me.desktopGranularity[0]; j++) {
+
+		if (!me.takenCells[j][i]) {
+
+		    oPosI[0] = i;
+		    oPosI[1] = j;
+		    oFound = true;
+		    break;
+
+		}
+
+	    }
+
+	    if (oFound)
+		break;
+	}
+
+	return oPosI;
+
+    },
+
+    setDesktopStickMode : function(oWin) {
+
+	var me = this;
+
+	oWin.desktopStickMode = !oWin.desktopStickMode;
+
+	if (oWin.desktopStickMode) {
+
+	    var oFindEmptyCell = me.findEmptyGridCell();
+
+	    if (oFindEmptyCell[0] >= 0) {
+
+		// oWin.restore();
+		me.takenCells[oFindEmptyCell[1]][oFindEmptyCell[0]] = true;
+
+		var oPos = [ 0, 0 ];
+		var oBox = me.getBoxSize();
+
+		oPos[0] = oFindEmptyCell[0] * oBox[0];
+		oPos[1] = oFindEmptyCell[1] * oBox[1];
+
+		oWin.restore();
+		oWin.toFront();
+		oWin.minimized = false;
+
+		oWin._x = oPos[0];
+		oWin._y = oPos[1];
+		oWin.i_x = oFindEmptyCell[0];
+		oWin.i_y = oFindEmptyCell[1];
+		oWin.ic_x = 1;
+		oWin.ic_y = 1;
+
+		oWin.suspendEvents(false);
+		oWin.setPosition(oPos[0], oPos[1]);
+		oWin.setWidth(oBox[0]);
+		oWin.setHeight(oBox[1]);
+		oWin.resumeEvents();
+		oWin.desktopGridStickButton.setType("unpin");
+		oWin.getHeader().show();
+
+		/*
+		 * Hide minimize, maximize, restore
+		 */
+		oWin.tools[2].hide();
+		oWin.tools[3].hide();
+		oWin.tools[4].hide();
+		oWin.taskButton.setIconCls("system_pin_window");
+		
+
+	    } else {
+
+		alert("No available space on the desktop can be found !");
+		oWin.desktopStickMode = false;
+		
+
+	    }
+
+	} else {
+
+	    // release the cells
+	    for ( var i = oWin.i_x; i <= oWin.i_x + oWin.ic_x - 1; i++) {
+		for ( var j = oWin.i_y; j <= oWin.i_y + oWin.ic_y - 1; j++) {
+		    me.takenCells[j][i] = false;
+		}
+	    }
+
+	    oWin.desktopGridStickButton.setType("pin");
+
+	    /*
+	     * Show minimize, maximize, restore
+	     */
+	    oWin.tools[2].show();
+	    oWin.tools[3].show();
+	    oWin.tools[4].show();
+	    
+	    oWin.taskButton.setIconCls("notepad");
+
+	}
+	
+	me.refreshUrlDesktopState();
+    }
 
 });

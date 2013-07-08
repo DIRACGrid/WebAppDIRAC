@@ -18,7 +18,7 @@ Ext
 						var me = this;
 						
 						me.launcher.title = "Notepad";
-						
+
 						me.editor = new Ext.form.field.HtmlEditor(
 								{
 									value : [

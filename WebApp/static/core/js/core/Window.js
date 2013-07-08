@@ -36,6 +36,17 @@ Ext.define('Ext.dirac.core.Window', {
      */
     desktop : null,
 
+    resizeHandles : "s e se",
+
+    desktopStickMode : false,
+
+    i_x : 0,
+    i_y : 0,
+    ic_x : 0,
+    ic_y : 0,
+    _x : 0,
+    _y : 0,
+
     initComponent : function() {
 
 	var me = this;
@@ -64,7 +75,7 @@ Ext.define('Ext.dirac.core.Window', {
 
     },
 
-    afterRender : function() {
+    afterShow : function() {
 
 	var me = this;
 	me.callParent();
@@ -74,6 +85,14 @@ Ext.define('Ext.dirac.core.Window', {
 	    me.setPropertiesWhenLink(me.setupData);
 
 	GLOBAL.APP.desktop.refreshUrlDesktopState();
+
+	me.header.un({
+	    dblclick : {
+		fn : me.toggleMaximize,
+		element : 'el',
+		scope : me
+	    }
+	});
 
     },
 
@@ -90,7 +109,46 @@ Ext.define('Ext.dirac.core.Window', {
 
 	if (setupData != null) {
 
-	    if (("maximized" in setupData) && (setupData["maximized"])) {
+	    if (("desktopStickMode" in setupData) && (parseInt(setupData["desktopStickMode"]) == 1)) {
+
+		me.i_x = setupData["i_x"];
+		me.i_y = setupData["i_y"];
+		me.ic_x = setupData["ic_x"];
+		me.ic_y = setupData["ic_y"];
+
+		console.log([ me.i_x, me.i_y, me.ic_x, me.ic_y ]);
+
+		for ( var i = me.i_x; i < me.i_x + me.ic_x; i++) {
+		    for ( var j = me.i_y; j < me.i_y + me.ic_y; j++) {
+
+			me.desktop.takenCells[j][i] = true;
+
+		    }
+		}
+
+		me.desktopStickMode = true;
+		me._x = me.i_x * me.desktop.boxSizeX;
+		me._y = me.i_y * me.desktop.boxSizeY;
+		
+		me.setPosition(me.i_x * me.desktop.boxSizeX, me.i_y * me.desktop.boxSizeY);
+
+		
+
+		me.setSize(me.ic_x * me.desktop.boxSizeX, me.ic_y * me.desktop.boxSizeY);
+
+		var oPom = me.getSize();
+
+		me.desktopGridStickButton.setType("unpin");
+		me.getHeader().show();
+
+		/*
+		 * Hide minimize, maximize, restore
+		 */
+		me.tools[2].hide();
+		me.tools[3].hide();
+		me.tools[4].hide();
+
+	    } else if (("maximized" in setupData) && (setupData["maximized"])) {
 
 		me.maximize();
 
@@ -165,31 +223,38 @@ Ext.define('Ext.dirac.core.Window', {
 		if ("data" in setupData) {
 		    me.currentState = setupData.currentState;
 		    me.loadedObject.currentState = setupData.currentState;
-		    
-		    if(me.currentState!="")
+
+		    if (me.currentState != "")
 			GLOBAL.APP.SM.addActiveState(me.loadedObject.self.getName(), me.currentState);
-		    
+
 		    me.loadedObject.loadState(setupData.data);
 		}
 
 	    }
 
-	} else {
-	    
-	    if((me.loadedObject.launcher.x != null)&&(me.loadedObject.launcher.y != null)){
-		
-		me.setPosition(me.loadedObject.launcher.x,me.loadedObject.launcher.y);
-		
-	    }else{
-		
-		me.setPosition(0,0);
-		
+	    if ("headerHidden" in setupData) {
+
+		if (setupData["headerHidden"] == 1)
+		    me.getHeader().hide();
+
 	    }
-	    
+
+	} else {
+
+	    if ((me.loadedObject.launcher.x != null) && (me.loadedObject.launcher.y != null)) {
+
+		me.setPosition(me.loadedObject.launcher.x, me.loadedObject.launcher.y);
+
+	    } else {
+
+		me.setPosition(0, 0);
+
+	    }
+
 	    if (!me.loadedObject.launcher.maximized) {
 
 		if ("width" in me.loadedObject.launcher) {
-		    
+
 		    me.setWidth(me.loadedObject.launcher.width);
 
 		} else {
@@ -199,7 +264,7 @@ Ext.define('Ext.dirac.core.Window', {
 		}
 
 		if ("height" in me.loadedObject.launcher) {
-		    
+
 		    me.setHeight(me.loadedObject.launcher.height);
 
 		} else {
@@ -207,7 +272,7 @@ Ext.define('Ext.dirac.core.Window', {
 		    me.setHeight(400);
 
 		}
-		
+
 	    } else {
 
 		me.maximize();
@@ -225,8 +290,13 @@ Ext.define('Ext.dirac.core.Window', {
 	    me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.currentState + "]", 20));
 	}
 
+	if (me.desktopStickMode)
+	    me.taskButton.setIconCls("system_pin_window");
+	else
+	    me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
+
 	me.setIconCls(me.loadedObject.launcher.iconCls);
-	me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
+
 	me.loadedObject.setContainer(me);
 
     },
@@ -297,13 +367,14 @@ Ext.define('Ext.dirac.core.Window', {
 	    /*
 	     * if the cache for the state of the started application exist
 	     */
-	    
+
 	    /*
-	     * A call to isStateLoaded can be used to see whether the application states have been loaded
-	     * */
-	    var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application",me.appClassName,"|"); 
-	    
-	    if (iAppStatesLoaded!=-2) {
+	     * A call to isStateLoaded can be used to see whether the
+	     * application states have been loaded
+	     */
+	    var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, "|");
+
+	    if (iAppStatesLoaded != -2) {
 
 		me.oprRefreshAppStates();
 
@@ -326,10 +397,10 @@ Ext.define('Ext.dirac.core.Window', {
 	    var funcAfterSave = function(sAppName, sStateName) {
 
 		me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
-		
-		if(me.currentState!="")
-		    GLOBAL.APP.SM.removeActiveState(sAppName,me.currentState);
-		
+
+		if (me.currentState != "")
+		    GLOBAL.APP.SM.removeActiveState(sAppName, me.currentState);
+
 		me.loadedObject.currentState = sStateName;
 		me.currentState = sStateName;
 		GLOBAL.APP.SM.addActiveState(sAppName, sStateName);
@@ -378,6 +449,15 @@ Ext.define('Ext.dirac.core.Window', {
 		type : "save",
 		menu : me.loadMenu
 	    });
+
+	    me.desktopGridStickButton = new Ext.dirac.utils.DiracToolButton({
+		type : "pin",
+		handler : function() {
+		    me.desktop.setDesktopStickMode(me);
+		}
+	    });
+
+	    me.addTool(me.desktopGridStickButton);
 
 	}
 
@@ -511,13 +591,13 @@ Ext.define('Ext.dirac.core.Window', {
 	var me = this;
 
 	me.statesMenu.removeAll();
-	
+
 	var oStates = GLOBAL.APP.SM.getApplicationStates("application", me.appClassName);
-	
+
 	for ( var i = 0, len = oStates.length; i < len; i++) {
-	    
+
 	    var stateName = oStates[i];
-		
+
 	    var oNewItem = Ext.create('Ext.menu.Item', {
 		text : stateName,
 		handler : Ext.bind(me.oprLoadAppStateFromCache, me, [ stateName ], false),
@@ -536,13 +616,13 @@ Ext.define('Ext.dirac.core.Window', {
 	}
 
 	me.statesMenu.add("-");
-	
+
 	var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", me.appClassName);
-	
+
 	for ( var i = 0, len = oRefs.length; i < len; i++) {
-	    
+
 	    var stateName = oRefs[i];
-	    
+
 	    var oNewItem = Ext.create('Ext.menu.Item', {
 		text : stateName,
 		handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [ me.appClassName, stateName ], false),
@@ -566,37 +646,37 @@ Ext.define('Ext.dirac.core.Window', {
     oprLoadAppStateFromCache : function(stateName) {
 
 	var me = this;
-	var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application",me.appClassName,stateName);
-	
-	switch(iStateLoaded){
-		case -1:
-	    		alert("The state does not exist !");
-	    		return;
-	    		break;
-		case -2: 
-		    	me.funcPostponedLoading = function() {
-    
-    				me.oprLoadAppStateFromCache(stateName);
-    
-    		    	}
-    
-		    	setTimeout(me.funcPostponedLoading, 1000);
-		    	return;
-	    	break;
+	var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, stateName);
+
+	switch (iStateLoaded) {
+	case -1:
+	    alert("The state does not exist !");
+	    return;
+	    break;
+	case -2:
+	    me.funcPostponedLoading = function() {
+
+		me.oprLoadAppStateFromCache(stateName);
+
+	    }
+
+	    setTimeout(me.funcPostponedLoading, 1000);
+	    return;
+	    break;
 	}
 
 	me.loadMask.show();
 
 	me.closeAllChildWindows();
-	
-	me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application",me.appClassName,stateName));
-	
-	if(me.currentState!="")
+
+	me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName));
+
+	if (me.currentState != "")
 	    GLOBAL.APP.SM.removeActiveState(me.appClassName, me.currentState);
-	
+
 	me.currentState = stateName;
 	me.loadedObject.currentState = stateName;
-	
+
 	GLOBAL.APP.SM.addActiveState(me.appClassName, stateName);
 	GLOBAL.APP.desktop.refreshUrlDesktopState();
 
@@ -666,7 +746,17 @@ Ext.define('Ext.dirac.core.Window', {
 	else if (me.maximized)
 	    oState = 1;
 
-	return me.loadedObject.self.getName() + ":" + me.currentState + ":" + oPos[0] + ":" + oPos[1] + ":" + me.getWidth() + ":" + me.getHeight() + ":" + oState;
+	var sRet = "";
+	sRet += me.loadedObject.self.getName() + ":";
+	sRet += me.currentState + ":";
+	sRet += oPos[0] + ":";
+	sRet += oPos[1] + ":";
+	sRet += me.getWidth() + ":";
+	sRet += me.getHeight() + ":";
+	sRet += oState + ":";
+	sRet += ((me.desktopStickMode) ? "1" : "0") + "," + ((me.getHeader().hidden) ? "1" : "0") + "," + me.i_x + "," + me.i_y + "," + me.ic_x + "," + me.ic_y;
+
+	return sRet;
 
     }
 
