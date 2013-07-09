@@ -1022,20 +1022,19 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
      * Overridden to preserve scroll position of pick list when list is realigned
      */
     alignPicker: function() {
-//        var me = this,
-//            picker = me.picker,
-//            pickerScrollPos = picker.getTargetEl().dom.scrollTop;
-//
-//        me.callParent(arguments);
-//
-//        if (me.isExpanded) {
-//            if (me.matchFieldWidth) {
-//                // Auto the height (it will be constrained by min and max width) unless there are no records to display.
-//                picker.setWidth(me.listWrapper.getWidth());
-//            }
-//
-//            picker.getTargetEl().dom.scrollTop = pickerScrollPos;
-//        }
+        var me = this,
+            picker = me.picker,
+            pickerScrollPos = picker.getTargetEl().dom.scrollTop;
+        me.callParent(arguments);
+
+        if (me.isExpanded) {
+            if (me.matchFieldWidth) {
+                // Auto the height (it will be constrained by min and max width) unless there are no records to display.
+                picker.setWidth(me.listWrapper.getWidth());
+            }
+
+            picker.getTargetEl().dom.scrollTop = pickerScrollPos;
+        }
         
     	
     	
@@ -1047,7 +1046,11 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
     	
     	oPicker.getEl().setStyle("border-top","solid 1px #B8DBFF");
     	var oPos = me.getPosition();
-    	oPicker.setPosition(oPos[0]+me.getWidth()-51,oPos[1]+ me.initialHeight);
+    	
+    	
+    	oPicker.suspendEvents(false);
+    	oPicker.setLocalXY(oPos[0]+me.getWidth()-51,oPos[1]+ me.initialHeight);
+    	oPicker.resumeEvents();
     	
     	var para = document.getElementById(me.getPicker().id);
         if(!document.getElementById(me.getPicker().id+"-search-input")){

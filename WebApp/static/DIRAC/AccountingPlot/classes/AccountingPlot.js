@@ -140,7 +140,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		    if (newValue == null)
 			return;
-		    console.log("ASK SERVER FOR THE DATA");
+		    
 		    me.leftPanel.body.mask("Wait ...");
 		    Ext.Ajax.request({
 			url : GLOBAL.BASE_URL + 'AccountingPlot/getSelectionData',
@@ -152,7 +152,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			success : function(response) {
 
 			    var oResult = Ext.JSON.decode(response.responseText);
-			    console.log("RESPONSE RECEIVED");
+			    
 			    if (oResult["success"] == "true")
 				me.applyDataToSelection(oResult, newValue);
 			    else
@@ -398,6 +398,27 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    me.__oprResizeImageAccordingToContainer();
 
 	};
+	
+	me.btnStretchPlot = new Ext.Button({
+
+	    text : 'Stretch Plot',
+	    handler : function() {
+		
+		me.__stretchPlotMode = !me.__stretchPlotMode;
+		me.__oprResizeImageAccordingToContainer();
+		if(me.__stretchPlotMode){
+		    
+		    me.btnStretchPlot.setText("Proportional Plot");
+		    
+		}else{
+		    
+		    me.btnStretchPlot.setText("Stretch Plot");
+		    
+		}
+	    },
+	    scope : me
+
+	});
 
 	me.refreshMenu = new Ext.menu.Menu({
 	    items : [ {
@@ -447,6 +468,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	});
 	
 	me.__additionalDataLoad = null;
+	me.__stretchPlotMode = false;
 	
 
     },
@@ -517,8 +539,8 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	var me = this;
 
-	var oList = Ext.JSON.decode(oData["result"]["plotsList"]);
-	
+	var oList = oData["result"]["plotsList"];
+
 	me.__oprDoubleElementItemList(oList);
 
 	var oStore = new Ext.data.SimpleStore({
@@ -530,7 +552,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	me.cmbPlotGenerate.bindStore(oStore);
 
-	var oSelectionData = Ext.JSON.decode(oData["result"]["selectionValues"]);
+	var oSelectionData = oData["result"]["selectionValues"];
 
 	var oSelectionOptions = me.descPlotType[sValue]["selectionConditions"];
 
@@ -583,7 +605,6 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	// we call the additional function
 	if (me.__additionalDataLoad != null) {
 	    me.__additionalDataLoad();
-	    console.log("ADDITIONAL FUNCTION EXECUTED");
 	    me.__additionalDataLoad = null;
 	}
 
@@ -596,7 +617,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	var me = this;
 
-	var oSelectionData = Ext.JSON.decode(oData["result"]["selectionValues"]);
+	var oSelectionData = oData["result"]["selectionValues"];
 
 	for ( var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
 
@@ -782,12 +803,22 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	if (me.plotImage == null)
 	    return;
+	
+	var a1 = me.rightPanel.getWidth() - 30;
+	var b1 = me.rightPanel.getHeight() - 70;
+	
+	if(me.__stretchPlotMode){
+	    
+	    me.plotImage.setWidth(a1);
+	    me.plotImage.setHeight(b1);
+	    
+	    return;
+	}
 
 	var a = me.plotImage.originalWidth;
 	var b = me.plotImage.originalHeight;
 
-	var a1 = me.rightPanel.getWidth() - 30;
-	var b1 = me.rightPanel.getHeight() - 70;
+	
 	if (a1 < 0)
 	    a1 = 0;
 	if (b1 < 0)
@@ -938,7 +969,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			    xtype : "button",
 			    menu : me.refreshMenu,
 			    text : "Auto refresh :  Disabled"
-			}, '->', "<a target='_blank' href='" + GLOBAL.BASE_URL + "AccountingPlot/getCsvPlotData?" + oHrefParams + "'>CSV data</a>" ]
+			},me.btnStretchPlot, '->', "<a target='_blank' href='" + GLOBAL.BASE_URL + "AccountingPlot/getCsvPlotData?" + oHrefParams + "'>CSV data</a>" ]
 		    });
 
 		    me.rightPanel.removeAll();
@@ -965,12 +996,11 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	me.plotParams = oParams;
 
-	console.log(oParams);	
 	if (!("_typeName" in oParams))
 	    return;
 
 	me.__additionalDataLoad = function() {
-
+	    
 	    me.cmbGroupBy.setValue(oParams["_grouping"]);
 	    me.cmbPlotGenerate.setValue(oParams["_plotName"]);
 	    me.cmbTimeSpan.setValue(oParams["_timeSelector"]);
@@ -1052,10 +1082,10 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		    for ( var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
 
 			var oNewUnderlinedName = "_" + me.fsetSpecialConditions.items.getAt(i).getName();
-
+			
 			if (oNewUnderlinedName == oParam) {
-
-			    me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam]);
+			   
+			    me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam].split(","));
 			    break;
 
 			}
@@ -1070,7 +1100,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	};
 	
-	console.log("POSTPONED FUNCTION PREPARED");
+	
 	
 	if (me.cmbDomain.getValue() == oParams["_typeName"]) {
 
@@ -1078,7 +1108,6 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    me.__additionalDataLoad = null;
 	}
 
-	console.log("VALUE CHANGED");
 	me.cmbDomain.setValue(oParams["_typeName"]);
 
     }

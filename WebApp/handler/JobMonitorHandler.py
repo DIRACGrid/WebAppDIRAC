@@ -25,23 +25,31 @@ class JobMonitorHandler(WebHandler):
     
     if not result["OK"]:
       self.finish(json.dumps({"success":"false", "error":result["Message"]}))
+      return
     
     result = result["Value"]
     
     if not result.has_key("TotalRecords"):
       self.finish(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
+      return
+      
     
     if not (result["TotalRecords"] > 0):
       self.finish(json.dumps({"success":"false", "result":"", "error":"There were no data matching your selection"}))
+      return
+      
     
     if not (result.has_key("ParameterNames") and result.has_key("Records")):
       self.finish(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
+      return
     
     if not (len(result["ParameterNames"]) > 0):
       self.finish(json.dumps({"success":"false", "result":"", "error":"ParameterNames field is missing"}))
+      return
     
     if not (len(result["Records"]) > 0):
       self.finish(json.dumps({"success":"false", "Message":"There are no data to display"}))
+      return
 
     callback = []
     jobs = result["Records"]

@@ -179,6 +179,14 @@ Ext.define('Ext.dirac.core.StartMenu', {
 		    listeners : {
 			render : function(oMenu, eOpts) {
 			    GLOBAL.APP.desktop.registerStartAppMenu(oMenu, oMenu.appClassName);
+			    console.log(["MENU",oMenu]);
+			    oMenu.menu.on("beforeshow",function(oMenu,eOpts){
+				    if(oMenu.items.length<=1)
+					return false;
+				    else
+					return true;
+				    
+				});
 			},
 			click:Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ item[0], item[2], null ]),
 			focus : function(cmp, e, eOpts) {
@@ -239,6 +247,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 				scope : me,
 				iconCls : "system_state_icon",
 				stateType : stateType,
+				minWidth:200,
 				menu : [ {
 				    text : "Share state",
 				    handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ stateName, oThisMenu.appClassName ], false),
@@ -252,6 +261,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 			    oNewItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
+				minWidth:200,
 				handler : Ext.bind(GLOBAL.APP.desktop.loadSharedStateByName, GLOBAL.APP.desktop, [ oThisMenu.appClassName, stateName ], false),
 				scope : me,
 				iconCls : "system_link_icon",
@@ -320,6 +330,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			
 			    var newItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
+				minWidth:200,
 				handler : Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ "app", oThisMenu.appClassName, {
 				    stateToLoad : stateName
 				} ], false),

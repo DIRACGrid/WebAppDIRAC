@@ -26,10 +26,7 @@ class AccountingPlotHandler(WebHandler):
   def __getUniqueKeyValues( self, typeName ):
     sessionData = SessionData().getData()
     userGroup = sessionData["user"]["group"]
-    if 'NormalUser' in CS.getPropertiesForGroup( userGroup ):
-      cacheKey = ( sessionData["user"]["username"], userGroup, sessionData["setup"], typeName )
-    else:
-      cacheKey = ( userGroup, sessionData["setup"], typeName )
+    cacheKey = ( sessionData["user"]["username"], userGroup, sessionData["setup"], typeName )
     data = AccountingPlotHandler.__keysCache.get( cacheKey )
     if not data:
       rpcClient = RPCClient( "Accounting/ReportGenerator" )
@@ -56,41 +53,42 @@ class AccountingPlotHandler(WebHandler):
       AccountingPlotHandler.__keysCache.add( cacheKey, 300, data )
     return data
 
+  @asyncGen
   def web_getSelectionData(self):
     callback = {}
     typeName = self.request.arguments["type"][0]
     #Get unique key values
-    retVal = self.__getUniqueKeyValues( typeName )
+    retVal = yield self.threadTask( self.__getUniqueKeyValues, typeName )
     if not retVal[ 'OK' ]:
-      self.write(json.dumps({"success":"false", "result":"", "error":retVal[ 'Message' ]}))
+      self.finish( {"success" : "false", "result" : "", "error" : retVal[ 'Message' ] } )
       return
-    callback["selectionValues"] = simplejson.dumps( retVal[ 'Value' ] )
+    callback["selectionValues"] = retVal[ 'Value' ]
     #Cache for plotsList?
     data = AccountingPlotHandler.__keysCache.get( "reportsList:%s" % typeName )
     if not data:
-      repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
-      retVal = repClient.listReports( typeName )
+      repClient = ReportsClient()
+      retVal = yield self.threadTask( repClient.listReports, typeName )
       if not retVal[ 'OK' ]:
-        self.write(json.dumps({"success":"false", "result":"", "error":retVal[ 'Message' ]}))
+        self.finish( { "success" : "false", "result" : "", "error" : retVal[ 'Message' ] } )
         return
-      data = simplejson.dumps( retVal[ 'Value' ] )
+      data = retVal[ 'Value' ]
       AccountingPlotHandler.__keysCache.add( "reportsList:%s" % typeName, 300, data )
     callback["plotsList"] = data
-    self.write(json.dumps({"success":"true", "result":callback}))
+    self.finish( {"success" : "true", "result" : callback } )
 
   def __parseFormParams(self):
     params = self.request.arguments
     pD = {}
     extraParams = {}
     pinDates = False
-  
+
     for name in params:
       if name.find( "_" ) != 0:
         continue
       value = params[ name ][0]
       name = name[1:]
       pD[ name ] = str( value )
-    
+
     print pD
     #Personalized title?
     if 'plotTitle' in pD:
@@ -137,7 +135,7 @@ class AccountingPlotHandler(WebHandler):
         start = Time.fromString( pD[ 'startTime' ] )
         del( pD[ 'startTime' ] )
     del( pD[ 'timeSelector' ] )
-  
+
     for k in pD:
       if k.find( "ex_" ) == 0:
         extraParams[ k[3:] ] = pD[ k ]
@@ -145,16 +143,17 @@ class AccountingPlotHandler(WebHandler):
     for selName in pD:
       pD[ selName ] = List.fromChar( pD[ selName ], "," )
     return S_OK( ( typeName, reportName, start, end, pD, grouping, extraParams ) )
-  
+
+  @asyncGen
   def web_generatePlot( self ):
     callback = {}
-    retVal =  self.__queryForPlot()
+    retVal =  yield self.threadTask( self.__queryForPlot )
     if retVal[ 'OK' ]:
       callback = { 'success' : True, 'data' : retVal[ 'Value' ][ 'plot' ] }
     else:
       callback = { 'success' : False, 'errors' : retVal[ 'Message' ] }
-    self.write(json.dumps(callback))
-  
+    self.finish( callback )
+
   def __queryForPlot( self ):
     retVal = self.__parseFormParams()
     if not retVal[ 'OK' ]:
@@ -163,7 +162,7 @@ class AccountingPlotHandler(WebHandler):
     repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
     retVal = repClient.generateDelayedPlot( *params )
     return retVal
-  
+
   @asyncGen
   def web_getPlotImg( self ):
     """
@@ -196,8 +195,8 @@ class AccountingPlotHandler(WebHandler):
     self.set_header('Pragma',"no-cache")
     self.set_header('Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ))
     self.finish(data)
-  
-  @asyncGen  
+
+  @asyncGen
   def web_getCsvPlotData( self ):
     callback = {}
     retVal = self.__parseFormParams()
@@ -235,8 +234,8 @@ class AccountingPlotHandler(WebHandler):
     self.set_header('Content-Disposition', 'attachment; filename="%s.csv"' % md5( str( params ) ).hexdigest())
     self.set_header('Content-Length', len( strData ))
     self.finish(strData)
-  
-  @asyncGen  
+
+  @asyncGen
   def web_getPlotData( self ):
     callback = {}
     retVal = self.__parseFormParams()
@@ -250,6 +249,4 @@ class AccountingPlotHandler(WebHandler):
       callback = {"success":"false","error":retVal[ 'Message' ]}
       self.finish(callback)
     rawData = retVal[ 'Value' ]
-    groupKeys = rawData[ 'data' ].keys()
-    groupKeys.sort()
-    self.finish(json.dumps(rawData['data']))
+    self.finish( rawData['data'] )

@@ -130,12 +130,22 @@ Ext.define('Ext.dirac.core.Window', {
 		me._x = me.i_x * me.desktop.boxSizeX;
 		me._y = me.i_y * me.desktop.boxSizeY;
 		
-		me.setPosition(me.i_x * me.desktop.boxSizeX, me.i_y * me.desktop.boxSizeY);
-
+		var oPos = me.getPosition();
 		
-
+		//console.log(["SITUATION",oPos[0],oPos[1],me.getWidth(),me.getHeight()]);
+		
+		me.suspendEvents(false);
+		me.setPosition(me.i_x * me.desktop.boxSizeX, me.i_y * me.desktop.boxSizeY);
+		//console.log(["POS", me.i_x * me.desktop.boxSizeX, me.i_y * me.desktop.boxSizeY]);
 		me.setSize(me.ic_x * me.desktop.boxSizeX, me.ic_y * me.desktop.boxSizeY);
-
+		//console.log(["SIZE", me.ic_x * me.desktop.boxSizeX, me.ic_y * me.desktop.boxSizeY]);
+		me.resumeEvents();
+		
+		var oPos = me.getPosition();
+		
+		//console.log(["SITUATION",oPos[0],oPos[1],me.getWidth(),me.getHeight()]);
+		
+		
 		var oPom = me.getSize();
 
 		me.desktopGridStickButton.setType("unpin");
