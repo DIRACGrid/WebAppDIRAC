@@ -106,7 +106,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    /*
 	     * If the user is not registered
 	     */
-	    /*if (location.protocol === 'http:') {
+	    if (location.protocol === 'http:') {
 		
 		var oHref = location.href;
 		var oQPosition = oHref.indexOf("?");
@@ -121,20 +121,20 @@ Ext.define('Ext.dirac.core.TaskBar', {
 		    sAddr = oHref;
 
 		}
-		
+		alert(location.hostname+":8443"+location.pathname);
 		me.items.push('-');
 		me.items.push({
 		    xtype : 'tbtext',
-		    text : "<a href='https://"+oHref+GLOBAL.BASE_URL+"'>Anonymous</a>"
+		    text : "<a href='https://"+location.hostname+":8443"+location.pathname+"'>Anonymous</a>"
 		});
 
-	    } else {*/
+	    } else {
 		me.items.push('-');
 		me.items.push({
 		    xtype : 'tbtext',
 		    text : "Anonymous"
 		});
-	    //}
+	    }
 	}
 
 	me.callParent();

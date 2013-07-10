@@ -46,6 +46,8 @@ Ext.define('Ext.dirac.core.Window', {
     ic_y : 0,
     _x : 0,
     _y : 0,
+    _before_pin_state : {},
+    _restore_state : {},
 
     initComponent : function() {
 
@@ -106,7 +108,7 @@ Ext.define('Ext.dirac.core.Window', {
     setLoadedObject : function(setupData) {
 
 	var me = this;
-
+	me.minimized = false;
 	if (setupData != null) {
 
 	    if (("desktopStickMode" in setupData) && (parseInt(setupData["desktopStickMode"]) == 1)) {
@@ -127,26 +129,29 @@ Ext.define('Ext.dirac.core.Window', {
 		}
 
 		me.desktopStickMode = true;
-		me._x = me.i_x * me.desktop.boxSizeX;
-		me._y = me.i_y * me.desktop.boxSizeY;
-		
+		me._x = Math.round(me.i_x * me.desktop.boxSizeX);
+		me._y = Math.round(me.i_y * me.desktop.boxSizeY);
+
 		var oPos = me.getPosition();
-		
-		//console.log(["SITUATION",oPos[0],oPos[1],me.getWidth(),me.getHeight()]);
-		
+
+		me.before_pin_x = me._x;
+		me.before_pin_y = me._y;
+		me.before_pin_width = Math.round(me.ic_x * me.desktop.boxSizeX);
+		me.before_pin_height = Math.round(me.ic_y * me.desktop.boxSizeY);
+
+		me._before_pin_state = {
+		    x : me.x,
+		    y : me.y,
+		    width : me.getWidth(),
+		    height : me.getHeight(),
+		    maximized : false,
+		    minimized : false
+		};
+
 		me.suspendEvents(false);
-		me.setPosition(me.i_x * me.desktop.boxSizeX, me.i_y * me.desktop.boxSizeY);
-		//console.log(["POS", me.i_x * me.desktop.boxSizeX, me.i_y * me.desktop.boxSizeY]);
-		me.setSize(me.ic_x * me.desktop.boxSizeX, me.ic_y * me.desktop.boxSizeY);
-		//console.log(["SIZE", me.ic_x * me.desktop.boxSizeX, me.ic_y * me.desktop.boxSizeY]);
+		me.setPosition(Math.round(me.i_x * me.desktop.boxSizeX), Math.round(me.i_y * me.desktop.boxSizeY));
+		me.setSize(Math.round(me.ic_x * me.desktop.boxSizeX), Math.round(me.ic_y * me.desktop.boxSizeY));
 		me.resumeEvents();
-		
-		var oPos = me.getPosition();
-		
-		//console.log(["SITUATION",oPos[0],oPos[1],me.getWidth(),me.getHeight()]);
-		
-		
-		var oPom = me.getSize();
 
 		me.desktopGridStickButton.setType("unpin");
 		me.getHeader().show();
@@ -154,9 +159,9 @@ Ext.define('Ext.dirac.core.Window', {
 		/*
 		 * Hide minimize, maximize, restore
 		 */
-		me.tools[2].hide();
 		me.tools[3].hide();
 		me.tools[4].hide();
+		me.tools[5].hide();
 
 	    } else if (("maximized" in setupData) && (setupData["maximized"])) {
 
@@ -306,8 +311,85 @@ Ext.define('Ext.dirac.core.Window', {
 	    me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
 
 	me.setIconCls(me.loadedObject.launcher.iconCls);
-
+	me._restore_state = {
+	    x : me.x,
+	    y : me.y,
+	    width : me.getWidth(),
+	    height : me.getHeight(),
+	    maximized : me.maximized,
+	    minimized : me.minimized
+	};
 	me.loadedObject.setContainer(me);
+
+    },
+
+    loadWindowFrameState : function(oData) {
+
+	var me = this;
+
+	me.suspendEvents(false);
+	me.minimized = false;
+	if (("maximized" in oData) && (oData["maximized"])) {
+
+	    me.maximize();
+
+	} else if (("minimized" in oData) && (oData["minimized"])) {
+
+	    if ("width" in setupData)
+		me.setWidth(parseInt(oData.width));
+
+	    if ("height" in setupData)
+		me.setHeight(parseInt(oData.height));
+
+	    me.desktop.minimizeWindow(me);
+
+	} else {
+
+	    if ("x" in oData) {
+		me.setPosition(parseInt(oData.x), parseInt(oData.y));
+	    }
+
+	    if ("width" in oData) {
+		me.setWidth(parseInt(oData.width));
+	    }
+
+	    if ("height" in oData) {
+		me.setHeight(parseInt(oData.height));
+	    }
+
+	    if ((!("height" in oData)) && (!("width" in oData))) {
+
+		if (!me.loadedObject.launcher.maximized) {
+		    if ("width" in me.loadedObject.launcher) {
+
+			me.setWidth(me.loadedObject.launcher.width);
+
+		    } else {
+
+			me.setWidth(600);
+
+		    }
+
+		    if ("height" in me.loadedObject.launcher) {
+
+			me.setHeight(me.loadedObject.launcher.height);
+
+		    } else {
+
+			me.setHeight(400);
+
+		    }
+		} else {
+
+		    me.maximize();
+
+		}
+
+	    }
+
+	}
+
+	me.resumeEvents();
 
     },
 
@@ -454,6 +536,8 @@ Ext.define('Ext.dirac.core.Window', {
 		} ]
 	    });
 
+	    
+	    
 	    me.addTool({
 		xtype : "diracToolButton",
 		type : "save",
@@ -466,8 +550,16 @@ Ext.define('Ext.dirac.core.Window', {
 		    me.desktop.setDesktopStickMode(me);
 		}
 	    });
-
+	    
 	    me.addTool(me.desktopGridStickButton);
+	    
+	    me.addTool({
+		xtype : "diracToolButton",
+		type : "toggle",
+		handler : function() {
+		    me.getHeader().hide();
+		}
+	    });
 
 	}
 

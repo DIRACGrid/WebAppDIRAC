@@ -212,11 +212,12 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 			    } else {
 				if (cmp.isStateMenuLoaded == 0) {
-
+				    cmp.setIconCls("loading_item");
 				    var oFunc = function(sAppName) {
 
 					cmp.oprRefreshAppStates();
 					cmp.isStateMenuLoaded = 2;
+					cmp.setIconCls("notepad");
 
 				    }
 

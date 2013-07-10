@@ -82,7 +82,7 @@ Ext.define('Ext.dirac.core.Desktop',
 	     */
 	    taskbarConfig : null,
 
-	    desktopGranularity : [ 6, 6 ],
+	    desktopGranularity : [ 12, 12 ],
 	    boxSizeX : 0,
 	    boxSizeY : 0,
 	    takenCells : null,
@@ -156,7 +156,7 @@ Ext.define('Ext.dirac.core.Desktop',
 		    }
 
 		});
-		console.log(oData);
+		
 		return oData;
 
 	    },
@@ -184,8 +184,8 @@ Ext.define('Ext.dirac.core.Desktop',
 		var iWidth = me.getWidth();
 		var iHeight = me.getHeight() - me.taskbar.getHeight();
 
-		me.boxSizeX = Math.floor(iWidth / me.desktopGranularity[1]);
-		me.boxSizeY = Math.floor(iHeight / me.desktopGranularity[0]);
+		me.boxSizeX = 1.0 * iWidth / me.desktopGranularity[1];
+		me.boxSizeY = 1.0 * iHeight / me.desktopGranularity[0];
 
 		for ( var i = 0, len = oData["data"].length; i < len; i++) {
 
@@ -289,16 +289,16 @@ Ext.define('Ext.dirac.core.Desktop',
 		    var iWidth = me.getWidth();
 		    var iHeight = me.getHeight() - me.taskbar.getHeight();
 
-		    me.boxSizeX = Math.floor(iWidth / me.desktopGranularity[1]);
-		    me.boxSizeY = Math.floor(iHeight / me.desktopGranularity[0]);
+		    me.boxSizeX = 1.0 * iWidth / me.desktopGranularity[1];
+		    me.boxSizeY = 1.0 * iHeight / me.desktopGranularity[0];
 
 		    me.windows.each(function(win) {
 			if (win.desktopStickMode) {
 
 			    var oPos = [ 0, 0 ];
 
-			    oPos[0] = win.i_x * me.boxSizeX;
-			    oPos[1] = win.i_y * me.boxSizeY;
+			    oPos[0] = Math.round(win.i_x * me.boxSizeX);
+			    oPos[1] = Math.round(win.i_y * me.boxSizeY);
 
 			    win._x = oPos[0];
 			    win._y = oPos[1];
@@ -306,7 +306,7 @@ Ext.define('Ext.dirac.core.Desktop',
 			    win.suspendEvent("resize");
 			    win.suspendEvent("move");
 			    win.setPosition(oPos[0], oPos[1]);
-			    win.setSize(me.boxSizeX * win.ic_x, me.boxSizeY * win.ic_y);
+			    win.setSize(Math.round(me.boxSizeX * win.ic_x), Math.round(me.boxSizeY * win.ic_y));
 			    win.resumeEvent("resize");
 			    win.resumeEvent("move");
 
@@ -860,9 +860,8 @@ Ext.define('Ext.dirac.core.Desktop',
 	     *          the window taskbar menu
 	     */
 	    onWindowMenuRestore : function() {
-		var me = this, win = me.windowMenu.theWin;
-
-		me.restoreWindow(win);
+		var me = this, oWin = me.windowMenu.theWin;
+		me.restoreWindow(oWin);
 	    },
 
 	    /**
@@ -1006,8 +1005,8 @@ Ext.define('Ext.dirac.core.Desktop',
 	     * @param {Ext.window.Window}
 	     *                win The window object getting minimized
 	     */
-	    restoreWindow : function(win) {
-		if (win.isVisible()) {
+	    restoreWindow : function(oWin) {
+		/*if (win.isVisible()) {
 		    win.getHeader().show();
 		    win.setWidth(this.getWidth() / 2);
 		    win.setHeight(this.getHeight() / 2);
@@ -1021,6 +1020,13 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		win.minimized = false;
 		this.refreshUrlDesktopState();
+		return win;*/
+		
+		var me = this;
+		oWin.show();
+		oWin.loadWindowFrameState(oWin._restore_state);
+		oWin.toFront();
+		me.refreshUrlDesktopState();
 		return win;
 	    },
 
@@ -1094,7 +1100,7 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		    if ((GLOBAL.MOUSE_X >= oWindow.x) && (GLOBAL.MOUSE_X <= oWindow.x + oWindow.getWidth()) && (GLOBAL.MOUSE_Y >= oWindow.y)
 			    && (GLOBAL.MOUSE_Y <= oWindow.y + oWindow.getHeader().getHeight())) {
-			
+
 			var oXDiff = GLOBAL.MOUSE_X - iX;
 			var oYDiff = GLOBAL.MOUSE_Y - iY;
 
@@ -1103,7 +1109,7 @@ Ext.define('Ext.dirac.core.Desktop',
 			var oNewX = iX + oXDiff % oBox[0];
 			var oNewY = iY + oYDiff % oBox[1];
 
-			var oCell = me.getGridCell(oNewX, oNewY, false); 
+			var oCell = me.getGridCell(oNewX, oNewY, false);
 
 			var bOK = true;
 
@@ -1144,8 +1150,8 @@ Ext.define('Ext.dirac.core.Desktop',
 			    oWindow.i_x = oCell[0];
 			    oWindow.i_y = oCell[1];
 
-			    oWindow._x = oWindow.i_x * oBox[0];
-			    oWindow._y = oWindow.i_y * oBox[1];
+			    oWindow._x = Math.round(oWindow.i_x * oBox[0]);
+			    oWindow._y = Math.round(oWindow.i_y * oBox[1]);
 
 			}
 
@@ -1172,15 +1178,12 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		    oWindow.suspendEvents(false);
 		    var oBox = me.getBoxSize();
-		    
-		    console.log([">>", oWindow.x, iWidth]);
-		    
+
 		    var iPomX = oWindow.x + iWidth - 10;
 		    var iPomY = oWindow.y + iHeight - 10;
 
 		    var oCell = me.getGridCell(iPomX, iPomY, true);
 		    console.log([ "RESIZE", me.getGridCell(iPomX, iPomY, false), oCell ]);
-		   
 
 		    var bOK = true;
 		    for ( var i = oWindow.i_x; i <= oCell[0]; i++) {
@@ -1200,7 +1203,7 @@ Ext.define('Ext.dirac.core.Desktop',
 			if (!bOK)
 			    break;
 
-		    }	    
+		    }
 
 		    if (bOK) {
 
@@ -1222,8 +1225,8 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		    }
 
-		    oWindow.setWidth(oWindow.ic_x * oBox[0]);
-		    oWindow.setHeight(oWindow.ic_y * oBox[1]);
+		    oWindow.setWidth(Math.round(oWindow.ic_x * oBox[0]));
+		    oWindow.setHeight(Math.round(oWindow.ic_y * oBox[1]));
 
 		    oWindow.resumeEvents();
 
@@ -1597,7 +1600,11 @@ Ext.define('Ext.dirac.core.Desktop',
 
 			    var me = this;
 			    if (button === 'yes') {
-				me.oprSendDataForSave(me.currentState, false);
+
+				var funcAfterSave = function(sAppName, sStateNameOld) {
+				};
+
+				GLOBAL.APP.SM.oprSaveAppState("application", "desktop", me, funcAfterSave);
 			    }
 
 			    me.closeAllActiveWindows();
@@ -1855,33 +1862,26 @@ Ext.define('Ext.dirac.core.Desktop',
 		var me = this;
 
 		var oBox = me.getBoxSize();
-		
+
 		var iBoxWidth = oBox[0];
 		var iBoxHeight = oBox[1];
-		
-		console.log(["BOX",iBoxWidth,iBoxHeight]);
-		console.log(["COORDS", iX, iY]);
-		
+
 		var iXAxis = Math.floor(iX / iBoxWidth);
 		var iYAxis = Math.floor(iY / iBoxHeight);
 
 		if (bWithFixNearestBorder) {
-		    
-		    var oResidualX = iX % iBoxWidth; 
-		    
+
+		    var oResidualX = iX % iBoxWidth;
+
 		    if (oResidualX < (iBoxWidth / 2))
 			iXAxis--;
 
 		    var oResidualY = iY % iBoxHeight;
-		    
-		   if (oResidualY < (iBoxHeight / 2))
+
+		    if (oResidualY < (iBoxHeight / 2))
 			iYAxis--;
-		    
-		    console.log(["RES", oResidualX, oResidualY]);
-		    console.log(["HALFS",iBoxWidth / 2,iBoxHeight / 2]);
+
 		}
-		
-		
 
 		if (iXAxis >= me.desktopGranularity[1]) {
 		    iXAxis = me.desktopGranularity[1] - 1;
@@ -1898,21 +1898,36 @@ Ext.define('Ext.dirac.core.Desktop',
 		    iYAxis = 0;
 
 		}
-		console.log("--------------------------------");
+
 		return [ iXAxis, iYAxis ];
 
 	    },
 
-	    findEmptyGridCell : function() {
+	    findEmptyGridCell : function(iXSize, iYSize) {
 
 		var me = this;
 		var oFound = false;
 		var oPosI = [ -1, -1 ];
 
-		for ( var i = 0; i < me.desktopGranularity[1]; i++) {
-		    for ( var j = 0; j < me.desktopGranularity[0]; j++) {
+		for ( var i = 0; i <= me.desktopGranularity[1] - iXSize; i++) {
+		    for ( var j = 0; j <= me.desktopGranularity[0] - iYSize; j++) {
 
-			if (!me.takenCells[j][i]) {
+			var bFree = true;
+
+			for ( var k1 = i; k1 < i + iXSize; k1++) {
+			    for ( var k2 = j; k2 < j + iYSize; k2++) {
+
+				if (me.takenCells[k2][k1]) {
+
+				    bFree = false;
+				    break;
+
+				}
+
+			    }
+			}
+
+			if (bFree) {
 
 			    oPosI[0] = i;
 			    oPosI[1] = j;
@@ -1939,34 +1954,53 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		if (oWin.desktopStickMode) {
 
-		    var oFindEmptyCell = me.findEmptyGridCell();
+		    var oDim = [ 2, 2 ];
+		    var oFindEmptyCell = me.findEmptyGridCell(oDim[0], oDim[1]);
+
+		    if (oFindEmptyCell[0] == -1) {
+			oDim = [ 1, 1 ];
+			oFindEmptyCell = me.findEmptyGridCell(oDim[0], oDim[1]);
+		    }
 
 		    if (oFindEmptyCell[0] >= 0) {
-
-			// oWin.restore();
-			me.takenCells[oFindEmptyCell[1]][oFindEmptyCell[0]] = true;
 
 			var oPos = [ 0, 0 ];
 			var oBox = me.getBoxSize();
 
-			oPos[0] = oFindEmptyCell[0] * oBox[0];
-			oPos[1] = oFindEmptyCell[1] * oBox[1];
+			oPos[0] = Math.round(oFindEmptyCell[0] * oBox[0]);
+			oPos[1] = Math.round(oFindEmptyCell[1] * oBox[1]);
 
-			oWin.restore();
-			oWin.toFront();
-			oWin.minimized = false;
+			oWin._before_pin_state = {
+			    x : oWin.x,
+			    y : oWin.y,
+			    width : oWin.getWidth(),
+			    height : oWin.getHeight(),
+			    maximized : oWin.maximized,
+			    minimized : oWin.minimized
+			};
 
 			oWin._x = oPos[0];
 			oWin._y = oPos[1];
 			oWin.i_x = oFindEmptyCell[0];
 			oWin.i_y = oFindEmptyCell[1];
-			oWin.ic_x = 1;
-			oWin.ic_y = 1;
+			oWin.ic_x = oDim[0];
+			oWin.ic_y = oDim[1];
+
+			for ( var i = oWin.i_x; i <= oWin.i_x + oWin.ic_x - 1; i++) {
+			    for ( var j = oWin.i_y; j <= oWin.i_y + oWin.ic_y - 1; j++) {
+				me.takenCells[j][i] = true;
+
+			    }
+			}
 
 			oWin.suspendEvents(false);
+
+			oWin.restore();
+			oWin.toFront();
+			oWin.minimized = false;
+
 			oWin.setPosition(oPos[0], oPos[1]);
-			oWin.setWidth(oBox[0]);
-			oWin.setHeight(oBox[1]);
+			oWin.setSize(Math.round(oBox[0] * oDim[0]), Math.round(oBox[1] * oDim[1]));
 			oWin.resumeEvents();
 			oWin.desktopGridStickButton.setType("unpin");
 			oWin.getHeader().show();
@@ -1974,9 +2008,10 @@ Ext.define('Ext.dirac.core.Desktop',
 			/*
 			 * Hide minimize, maximize, restore
 			 */
-			oWin.tools[2].hide();
+			
 			oWin.tools[3].hide();
 			oWin.tools[4].hide();
+			oWin.tools[5].hide();
 			oWin.taskButton.setIconCls("system_pin_window");
 
 		    } else {
@@ -1995,20 +2030,20 @@ Ext.define('Ext.dirac.core.Desktop',
 			}
 		    }
 
-		    oWin.desktopGridStickButton.setType("pin");
-
 		    /*
 		     * Show minimize, maximize, restore
 		     */
-		    oWin.tools[2].show();
 		    oWin.tools[3].show();
 		    oWin.tools[4].show();
+		    oWin.tools[5].show();
 
+		    oWin.loadWindowFrameState(oWin._before_pin_state);
+
+		    oWin.desktopGridStickButton.setType("pin");
 		    oWin.taskButton.setIconCls("notepad");
 
 		}
 
 		me.refreshUrlDesktopState();
 	    }
-
 	});
