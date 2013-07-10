@@ -6,8 +6,7 @@ from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
- 
-import simplejson
+
 import json
 import types
 import time
@@ -22,10 +21,10 @@ class ConfigurationManagerHandler(WebSocketHandler):
   def on_message(self, msg):
     self.log.info("RECEIVED %s" % msg)
     try:
-      params = simplejson.loads(msg)
+      params = json.loads(msg)
     except:
       gLogger.exception("No op defined")
-    
+
     if params["op"] == "init":
       self.__getRemoteConfiguration("init")
     elif params["op"] == "getSubnodes":
@@ -56,12 +55,12 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.__commitConfiguration()
     elif params["op"] == "showCurrentDiff":
       self.__showCurrentDiff()
-  
+
   def __getRemoteConfiguration(self, funcName):
     rpcClient = RPCClient(gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
     modCfg = Modificator(rpcClient)
     retVal = modCfg.loadFromRemote()
-    
+
     if retVal[ 'OK' ]:
       self.__configData[ 'cfgData' ] = modCfg
       self.__configData[ 'strCfgData' ] = str(modCfg)
@@ -71,30 +70,30 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.write_message(json.dumps({"success":1, "op":funcName, "version":version, "name":configName}))
     else:
       self.write_message(json.dumps({"success":0, "op":"getSubnodes", "message":"The configuration cannot be read from the remote !"}))
-    
+
   def __getSubnodes(self, parentNodeId, sectionPath):
-   
+
     gLogger.info("Expanding section", "%s" % sectionPath)
-      
+
     retData = []
     retVal = self.__getSubnodesForPath(sectionPath, retData)
-    
+
     if not retVal:
       gLogger.exception("Section does not exist", "%s -> %s" % (sectionPath, str(v)))
       self.write_message(json.dumps({"success":0, "op":"getSubnodes", "message":"Section %s does not exist: %s" % (sectionPath, str(v))}))
       return
-        
+
     self.write_message(json.dumps({"success":1, "op":"getSubnodes", "nodes":retData, "parentNodeId":parentNodeId}))
-  
+
   def __getSubnodesForPath(self, sectionPath, retData):
-    
+
     try:
       sectionCfg = self.__configData[ 'cfgData' ].getCFG()
       for section in [ section for section in sectionPath.split("/") if not section.strip() == "" ]:
         sectionCfg = sectionCfg[ section ]
     except Exception, v:
       return False
-    
+
     for entryName in sectionCfg.listAll():
       comment = sectionCfg.getComment(entryName)
       nodeDef = { 'text' : entryName, 'csName' : entryName, 'csComment' : comment }
@@ -103,17 +102,17 @@ class ConfigurationManagerHandler(WebSocketHandler):
       if not sectionCfg.isSection(entryName):
          nodeDef[ 'leaf' ] = True
          nodeDef[ 'csValue' ] = sectionCfg[ entryName ]
-         nodeDef[ 'text' ] = nodeDef[ 'text' ] + " = " + nodeDef[ 'csValue' ]  
-         
+         nodeDef[ 'text' ] = nodeDef[ 'text' ] + " = " + nodeDef[ 'csValue' ]
+
       # Comment magic
       htmlC = self.__htmlComment(comment)
       if htmlC:
         qtipDict = { 'text' : htmlC }
         nodeDef[ 'qtipCfg' ] = qtipDict
       retData.append(nodeDef)
-      
+
     return True
-  
+
   def __htmlComment(self, rawComment):
     commentLines = []
     commiter = ""
@@ -130,11 +129,11 @@ class ConfigurationManagerHandler(WebSocketHandler):
       return "%s<small><strong>%s</strong></small>" % ("<br/>".join(commentLines), commiter)
     else:
       return False
-    
+
   def __showConfigurationAsText(self):
     time.sleep(10)
     self.write_message(json.dumps({"success":1, "op":"showConfigurationAsText", "text":self.__configData[ 'strCfgData' ]}))
-  
+
   def __getBulkExpandedNodeData(self, nodes):
     nodesPaths = nodes.split("<<||>>")
     returnData = []
@@ -151,15 +150,15 @@ class ConfigurationManagerHandler(WebSocketHandler):
     except Exception, e:
       self.write_message(json.dumps({"success":0, "op":"setOptionValue", "message":"Can't decode path or value: %s" % str(e)}))
       return
-    
+
     self.__configData[ 'cfgData' ].setOptionValue(optionPath, optionValue)
-    
+
     if self.__configData[ 'cfgData' ].getValue(optionPath) == optionValue:
       gLogger.info("Set option value", "%s = %s" % (optionPath, optionValue))
       self.write_message(json.dumps({"success":1, "op":"setOptionValue", "parentNodeId":params["parentNodeId"], "value":optionValue}))
     else:
       self.write_message(json.dumps({"success":0, "op":"setOptionValue", "message":"Can't update %s" % optionPath}))
-      
+
   def __setComment(self, params):
     try:
       path = str(params[ 'path' ])
@@ -170,8 +169,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
     self.__configData[ 'cfgData' ].setComment(path, value)
     gLogger.info("Set comment", "%s = %s" % (path, value))
-    self.write_message(json.dumps({"success":1, "op":"setComment", "parentNodeId":params["parentNodeId"], "comment":self.__configData[ 'cfgData' ].getComment(path)}))    
-  
+    self.write_message(json.dumps({"success":1, "op":"setComment", "parentNodeId":params["parentNodeId"], "comment":self.__configData[ 'cfgData' ].getComment(path)}))
+
   def __copyKeyOld(self, params):
     try:
       originalPath = str(params[ 'copyFromPath' ]).strip()
@@ -192,10 +191,10 @@ class ConfigurationManagerHandler(WebSocketHandler):
 #         newPath = "/%s/%s" % ( "/".join( pathList[:-1] ), newName )
         if self.__configData[ 'cfgData' ].existsSection(toCopyPath):
           self.write_message(json.dumps({"success":1, "op":"copyKey", "parentNodeToId":params["parentNodeToId"], "parentNodeFromId":params["parentNodeFromId"], "newName":newName, "comment":self.__configData[ 'cfgData' ].getComment(newPath)}))
-          return 
+          return
         else:
           self.write_message(json.dumps({"success":1, "op":"copyKey", "parentNodeToId":params["parentNodeToId"], "parentNodeFromId":params["parentNodeFromId"], "value":self.__configData[ 'cfgData' ].getValue(newPath), "newName":newName, "comment":self.__configData[ 'cfgData' ].getComment(newPath)}))
-          return 
+          return
       else:
         self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Path can't be created. Exists already?"}))
         return
@@ -217,7 +216,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       if len(newName) == 0:
         self.write_message(json.dumps({"success":0, "op":"renameKey", "message":"Put any name for the entity!"}))
         return
-      
+
       if self.__configData[ 'cfgData' ].existsOption(keyPath) or self.__configData[ 'cfgData' ].existsSection(keyPath) :
         if self.__configData[ 'cfgData' ].renameKey(keyPath, newName):
           self.write_message(json.dumps({"success":1, "op":"renameKey", "parentNodeId":params["parentNodeId"], "newName":newName}))
@@ -314,7 +313,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return
     except Exception, e:
       self.write_message(json.dumps({"success":0, "op":"createOption", "message":"Can't create option: %s" % str(e)}))
-    
+
   def __moveNode(self, params):
     try:
       nodePath = params[ 'nodePath' ]
@@ -326,7 +325,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
     gLogger.info("Moving %s under %s before pos %s" % (nodePath, destinationParentPath, beforeOfIndex))
     cfgData = self.__configData[ 'cfgData' ].getCFG()
-    
+
     nodeDict = cfgData.getRecursive(nodePath)
     if not nodeDict:
       self.write_message(json.dumps({"success":0, "op":"moveNode", "message":"Moving entity does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}))
@@ -362,7 +361,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.write_message(json.dumps({"success":0, "op":"moveNode", "message":"Can't move node: %s" % str(e), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}))
       return
     self.write_message(json.dumps({"success":1, "op":"moveNode", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "beforeOfIndex":params["beforeOfIndex"]}))
-    
+
   def __copyKey(self, params):
     try:
       nodePath = params[ 'copyFromPath' ]
@@ -374,7 +373,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
 #     gLogger.info( "Moving %s under %s before pos %s" % ( nodePath, destinationParentPath, beforeOfIndex ) )
     cfgData = self.__configData[ 'cfgData' ].getCFG()
-    
+
     nodeDict = cfgData.getRecursive(nodePath)
     if not nodeDict:
       self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Moving entity does not exist"}))
@@ -405,7 +404,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Can't move node: %s" % str(e)}))
       return
     self.write_message(json.dumps({"success":1, "op":"copyKey", "newName":nodeDict['key'], "nodeId":params["nodeId"], "parentNodeToId":params["parentNodeToId"]}))
-  
+
   def __commitConfiguration(self):
     data = SessionData().getData()
     isAuth = False
@@ -421,7 +420,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.write_message(json.dumps({"success":0, "op":"commitConfiguration", "message":retDict[ 'Message' ]}))
       return
     self.write_message(json.dumps({"success":1, "op":"commitConfiguration"}))
-  
+
   def __authorizeAction(self):
     data = SessionData().getData()
     isAuth = False
@@ -429,7 +428,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       if "CSAdministrator" in data["user"]["properties"]:
         isAuth = True
     return isAuth
-  
+
   def __generateHTMLDiff(self, diffGen):
     diffList = []
     oldChange = False
@@ -453,7 +452,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       else:
         diffList.append(("", diffLine[1:], diffLine[1:]))
     return diffList
-  
+
   def __showCurrentDiff(self):
     if not self.__authorizeAction():
       return self.write_message(json.dumps({"success":0, "op":"showCurrentDiff", "message":"You are not authorized to commit configurations!! Bad boy!"}))
@@ -461,7 +460,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     return self.write_message(json.dumps({"success":1, "op":"showCurrentDiff", "html":self.render_string("ConfigurationManager/diffConfig.tpl",
                                                                                                          titles=("Server's version", "User's current version"),
                                                                                                          diffList=self.__generateHTMLDiff(diffGen))}))
-  
+
   '''
   def showDiff( self ):
     if not authorizeAction():
@@ -478,6 +477,6 @@ class ConfigurationManagerHandler(WebSocketHandler):
     c.diffList = self.__generateHTMLDiff( diffGen )
     return render( "/systems/configuration/diff.mako" )
   '''
-  
 
-    
+
+

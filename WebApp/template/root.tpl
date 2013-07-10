@@ -43,8 +43,8 @@
           GLOBAL.MOUSE_X = 0;
           GLOBAL.MOUSE_Y = 0;
           GLOBAL.IS_IE = false;
-          {% import simplejson %}
-          GLOBAL.USER_CREDENTIALS = {{ simplejson.dumps( credentials ) }}; 
+          {% import json %}
+          GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }}; 
 
           Ext.onReady(function () {
             	GLOBAL.BASE_URL = "{{base_url}}/";
@@ -65,8 +65,8 @@
           GLOBAL.MOUSE_X = 0;
           GLOBAL.MOUSE_Y = 0;
           GLOBAL.IS_IE = false;
-          {% import simplejson %}
-          GLOBAL.USER_CREDENTIALS = {{ simplejson.dumps( credentials ) }}; 
+          {% import json %}
+          GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }}; 
       
           Ext.onReady(function () {
               GLOBAL.BASE_URL = "{{base_url}}/";

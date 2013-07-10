@@ -9,9 +9,7 @@ from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
 import tempfile
 import datetime
-import simplejson
 import json
-import ast
 
 try:
   from hashlib import md5
