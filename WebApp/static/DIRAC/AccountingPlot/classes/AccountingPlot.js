@@ -13,8 +13,53 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
     loadState : function(oData) {
 
 	var me = this;
+	me.__stretchPlotMode = (oData.__stretchPlotMode == 1);
+
+	me.btnRefreshMenu.timeSpan = parseInt(oData.__auto_refresh_time);
+
+	switch (me.btnRefreshMenu.timeSpan) {
+
+	case 0:
+	    me.btnRefreshMenu.setText("Auto refresh : Disabled");
+	    break;
+	case 900000:
+	    me.btnRefreshMenu.setText("Auto refresh : Each 15m");
+	    break;
+	case 3600000:
+	    me.btnRefreshMenu.setText("Auto refresh : Each hour");
+	    break;
+	case 86400000:
+	    me.btnRefreshMenu.setText("Auto refresh : Each day");
+	    break;
+
+	}
 
 	me.__loadSelectionData(oData.plotParams);
+
+	if (me.btnRefreshMenu.timeSpan != 0) {
+
+	    clearInterval(me.rightPanel.refreshTimeout);
+	    me.rightPanel.refreshTimeout = setInterval(function() {
+
+		Ext.Ajax.request({
+		    url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
+		    params : me.plotParams,
+		    success : function(responseImg) {
+
+			responseImg = Ext.JSON.decode(responseImg.responseText);
+
+			if (responseImg["success"]) {
+
+			    me.plotImage.setSrc(GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + responseImg["data"] + "&nocache=" + (new Date()).getTime());
+			    me.rightPanel.setLoading('Loading Image ...');
+
+			}
+		    }
+		});
+
+	    }, me.btnRefreshMenu.timeSpan);
+
+	}
 
     },
 
@@ -26,7 +71,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	var me = this;
 	var oReturn = {};
 
-	oReturn.plotParams = me.plotParams;
+	oReturn.plotParams = me.__getSelectionParametars("save_state");
+	oReturn.__stretchPlotMode = ((me.__stretchPlotMode) ? 1 : 0);
+	oReturn.__auto_refresh_time = me.btnRefreshMenu.timeSpan;
 
 	return oReturn;
 
@@ -113,7 +160,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    Pilot : {
 		title : "Pilot",
 		selectionConditions : [ [ "User", "User" ], [ "UserGroup", "User Group" ], [ "Site", "Site" ], [ "GridCE", "Grid CE" ], [ "GridMiddleware", "Grid Middleware" ],
-			[ "GridResourcesBroker", "Grid Resource Broker" ], [ "GridStatus", "Grid Status" ] ]
+			[ "GridResourceBroker", "Grid Resource Broker" ], [ "GridStatus", "Grid Status" ] ]
 
 	    },
 	    SRMSpaceTokenDeployment : {
@@ -291,23 +338,26 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    handler : function() {
 
 		var oSetupData = {};
-		
-		oSetupData.x = me.getContainer().x+10;
-		oSetupData.y = me.getContainer().y+10;
+
+		oSetupData.x = me.getContainer().x + 10;
+		oSetupData.y = me.getContainer().y + 10;
 		oSetupData.width = me.getContainer().getWidth();
 		oSetupData.height = me.getContainer().getHeight();
 		oSetupData.currentState = "";
 
-		
 		oSetupData.desktopStickMode = 0;
 		oSetupData.hiddenHeader = 1;
 		oSetupData.i_x = 0;
 		oSetupData.i_y = 0;
 		oSetupData.ic_x = 0;
 		oSetupData.ic_y = 0;
-		
-		oSetupData.data = {plotParams: me.__getSelectionParametars()};
-		
+
+		oSetupData.data = {
+		    plotParams : me.__getSelectionParametars("save_state"),
+		    __stretchPlotMode : (me.__stretchPlotMode ? 1 : 0),
+		    __auto_refresh_time : me.btnRefreshMenu.timeSpan
+		};
+
 		GLOBAL.APP.desktop.createWindow("app", "DIRAC.AccountingPlot.classes.AccountingPlot", oSetupData);
 
 	    },
@@ -399,6 +449,27 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	};
 
+	me.btnStretchPlot = new Ext.Button({
+
+	    text : 'Proportional Plot',
+	    handler : function() {
+
+		me.__stretchPlotMode = !me.__stretchPlotMode;
+		me.__oprResizeImageAccordingToContainer();
+		if (me.__stretchPlotMode) {
+
+		    me.btnStretchPlot.setText("Proportional Plot");
+
+		} else {
+
+		    me.btnStretchPlot.setText("Stretch Plot");
+
+		}
+	    },
+	    scope : me
+
+	});
+
 	me.refreshMenu = new Ext.menu.Menu({
 	    items : [ {
 		text : 'Disabled',
@@ -442,10 +513,21 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		    }
 
 		    menuItem.parentMenu.up('button').setText("Auto refresh : " + menuItem.text);
+		    menuItem.parentMenu.up('button').timeSpan = menuItem.value;
 		}
 	    }
 	});
-	
+
+	me.btnRefreshMenu = new Ext.Button({
+
+	    menu : me.refreshMenu,
+	    text : "Auto refresh :  Disabled",
+	    timeSpan : 0
+
+	});
+
+	me.__additionalDataLoad = null;
+	me.__stretchPlotMode = true;
 
     },
 
@@ -547,6 +629,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    } else {
 
 		var oList = oSelectionData[oSelectionOptions[i][0]];
+
 		me.__oprDoubleElementItemList(oList);
 
 		var oMultiList = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
@@ -623,7 +706,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
     /*
      * OK
      */
-    __validateConditions : function() {
+    __validateConditions : function(bWithMessages) {
 
 	var me = this;
 	var bValid = true;
@@ -631,17 +714,23 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	// check if the plot type is chosen
 	if ((me.cmbDomain.getValue() == null) || (Ext.util.Format.trim(me.cmbDomain.getValue()) == "")) {
 
-	    alert("No category defined !");
+	    if (bWithMessages)
+		alert("No category defined !");
+
 	    bValid = false;
 
 	} else if ((me.cmbPlotGenerate.getValue() == null) || (Ext.util.Format.trim(me.cmbPlotGenerate.getValue()) == "")) {
 
-	    alert("No plot type defined !");
+	    if (bWithMessages)
+		alert("No plot type defined !");
+
 	    bValid = false;
 
 	} else if ((me.cmbGroupBy.getValue() == null) || (Ext.util.Format.trim(me.cmbGroupBy.getValue()) == "")) {
 
-	    alert("No data grouping defined !");
+	    if (bWithMessages)
+		alert("No data grouping defined !");
+
 	    bValid = false;
 
 	}
@@ -653,7 +742,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	case -1:
 	    if ((me.calendarFrom.getValue() == null) || (me.calendarTo.getValue() == null)) {
 
-		alert("No dates selected !");
+		if (bWithMessages)
+		    alert("No dates selected !");
+
 		bValid = false;
 
 	    }
@@ -661,7 +752,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	case -2:
 	    if (me.cmbQuarter.getValue().length == 0) {
 
-		alert("No quarters selected !");
+		if (bWithMessages)
+		    alert("No quarters selected !");
+
 		bValid = false;
 
 	    }
@@ -676,7 +769,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
     /*
      * OK
      */
-    __getSelectionParametars : function() {
+    __getSelectionParametars : function(sIntention) {
 
 	var me = this;
 
@@ -689,8 +782,6 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	    _typeName : sDomain
 
 	};
-
-	var sTitle = me.cmbDomain.getDisplayValue() + " :: " + me.cmbPlotGenerate.getDisplayValue() + " :: GROUP BY : " + me.cmbGroupBy.getDisplayValue();
 
 	// Time Selector
 
@@ -744,8 +835,14 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	for ( var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
 
 	    var oCondItem = me.fsetSpecialConditions.items.getAt(i);
-	    if (oCondItem.getValue().length != 0)
-		oParams["_" + oCondItem.getName()] = ((oCondItem.isInverseSelection()) ? oCondItem.getInverseSelection() : oCondItem.getValue().join(","));
+	    if (oCondItem.getValue().length != 0) {
+
+		if (sIntention == "show_plot") {
+		    oParams["_" + oCondItem.getName()] = ((oCondItem.isInverseSelection()) ? oCondItem.getInverseSelection() : oCondItem.getValue().join(","));
+		} else if (sIntention == "save_state") {
+		    oParams["_" + oCondItem.getName()] = [ ((oCondItem.isInverseSelection()) ? 1 : 0), oCondItem.getValue().join(",") ];
+		}
+	    }
 
 	}
 
@@ -779,17 +876,25 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	if (me.plotImage == null)
 	    return;
 
+	if (me.__stretchPlotMode) {
+	    me.plotImage.setWidth(me.rightPanel.getWidth() - 10);
+	    me.plotImage.setHeight(me.rightPanel.getHeight() - me.plotToolbar.getHeight() - 10);
+	    me.btnStretchPlot.setText("Proportional Plot");
+	    return;
+	} else {
+	    me.btnStretchPlot.setText("Stretch Plot");
+	}
+
 	var a = me.plotImage.originalWidth;
 	var b = me.plotImage.originalHeight;
 
-	var a1 = me.rightPanel.getWidth() - 30;
-	var b1 = me.rightPanel.getHeight() - 70;
+	var a1 = me.rightPanel.getWidth() - 10;
+	var b1 = me.rightPanel.getHeight() - me.plotToolbar.getHeight() - 10;
+
 	if (a1 < 0)
 	    a1 = 0;
 	if (b1 < 0)
 	    b1 = 0;
-	// console.log(["IMAGE",a,b]);
-	// console.log(["CONTAINER",a1,b1]);
 
 	if (b <= b1) {
 
@@ -845,10 +950,11 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	var me = this;
 
-	if (!me.__validateConditions())
+	if (!me.__validateConditions(true))
 	    return;
 
-	me.plotParams = me.__getSelectionParametars();
+	me.plotParams = me.__getSelectionParametars("show_plot");
+	me.plotParamsForSaveState = me.__getSelectionParametars("save_state");
 
 	Ext.Ajax.request({
 	    url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
@@ -914,29 +1020,10 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			    handler : function() {
 
 				var oThisButton = this;
-
-				Ext.Ajax.request({
-				    url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
-				    params : me.plotParams,
-				    success : function(responseImg) {
-
-					responseImg = Ext.JSON.decode(responseImg.responseText);
-
-					if (responseImg["success"]) {
-
-					    me.plotImage.setSrc(GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + responseImg["data"] + "&nocache=" + (new Date()).getTime());
-					    me.rightPanel.setLoading('Loading Image ...');
-
-					}
-				    }
-				});
+				me.__loadSelectionData(me.plotParamsForSaveState);
 
 			    }
-			}, {
-			    xtype : "button",
-			    menu : me.refreshMenu,
-			    text : "Auto refresh :  Disabled"
-			}, '->', "<a target='_blank' href='" + GLOBAL.BASE_URL + "AccountingPlot/getCsvPlotData?" + oHrefParams + "'>CSV data</a>" ]
+			}, me.btnRefreshMenu, me.btnStretchPlot, '->', "<a target='_blank' href='" + GLOBAL.BASE_URL + "AccountingPlot/getCsvPlotData?" + oHrefParams + "'>CSV data</a>" ]
 		    });
 
 		    me.rightPanel.removeAll();
@@ -1007,7 +1094,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		    me.advancedPin.setValue(false);
 
 	    } else
-		me.advancedPin.setValue(true);
+		me.advancedPin.setValue(false);
 
 	    if ("_ex_staticUnits" in oParams) {
 
@@ -1052,7 +1139,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			if (oNewUnderlinedName == oParam) {
 
-			    me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam]);
+			    me.fsetSpecialConditions.items.getAt(i).setInverseSelection((oParams[oParam][0] == 1));
+			    me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam][1].split(","));
+
 			    break;
 
 			}
@@ -1063,7 +1152,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 	    }
 
-	    me.__generatePlot();
+	    if (me.__validateConditions(false)) {
+		me.__generatePlot();
+	    }
 
 	};
 

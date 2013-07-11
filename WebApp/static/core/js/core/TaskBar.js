@@ -67,7 +67,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 
 			var me = this;
 
-			location.href = GLOBAL.BASE_URL + 'changeGroup?to='+me.text;
+			location.href = GLOBAL.BASE_URL + 'changeGroup?to=' + me.text;
 
 		    }
 		});
@@ -86,7 +86,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 
 			var me = this;
 
-			location.href = GLOBAL.BASE_URL + 'changeSetup?to='+me.text;
+			location.href = GLOBAL.BASE_URL + 'changeSetup?to=' + me.text;
 
 		    }
 		});
@@ -106,11 +106,35 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    /*
 	     * If the user is not registered
 	     */
-	    me.items.push('-');
-	    me.items.push({
-		xtype : 'tbtext',
-		text : "Anonymous"
-	    });
+	    if (location.protocol === 'http:') {
+		
+		var oHref = location.href;
+		var oQPosition = oHref.indexOf("?");
+		var sAddr = "";
+		
+		if (oQPosition != -1) {
+
+		    sAddr = oHref.substr(0, oQPosition);
+
+		} else {
+
+		    sAddr = oHref;
+
+		}
+		alert(location.hostname+":8443"+location.pathname);
+		me.items.push('-');
+		me.items.push({
+		    xtype : 'tbtext',
+		    text : "<a href='https://"+location.hostname+":8443"+location.pathname+"'>Anonymous</a>"
+		});
+
+	    } else {
+		me.items.push('-');
+		me.items.push({
+		    xtype : 'tbtext',
+		    text : "Anonymous"
+		});
+	    }
 	}
 
 	me.callParent();
@@ -219,7 +243,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
      * @return {Ext.button.Button} Button object added to the task bar
      */
     addTaskButton : function(win) {
-	
+
 	var config = {
 	    iconCls : win.iconCls,
 	    enableToggle : true,
@@ -246,23 +270,23 @@ Ext.define('Ext.dirac.core.TaskBar', {
      */
     onWindowBtnClick : function(btn) {
 	var win = btn.win;
-	
+
 	if (win.minimized || win.hidden) {
 	    win.minimized = false;
 	    win.show();
 	} else if (win.active) {
-	    if(!win.desktopStickMode){
-		//win.minimize();
+	    if (!win.desktopStickMode) {
+		// win.minimize();
 		win.minimized = true;
 		// win.maximized = false;
-		//me.refreshUrlDesktopState();
+		// me.refreshUrlDesktopState();
 		win.hide();
 	    }
 	} else {
 	    win.toFront();
 	}
-	
-	if(!("isChildWindow" in win))
+
+	if (!("isChildWindow" in win))
 	    win.desktop.refreshUrlDesktopState();
     },
 
