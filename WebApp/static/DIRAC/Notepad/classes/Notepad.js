@@ -18,6 +18,9 @@ Ext
 						var me = this;
 						
 						me.launcher.title = "Notepad";
+						me.launcher.maximized = false;
+						me.launcher.width = 400;
+						me.launcher.height = 400;
 
 						me.editor = new Ext.form.field.HtmlEditor(
 								{

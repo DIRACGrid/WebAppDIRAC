@@ -101,7 +101,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	    }
 
 	    oSelectionBox.setValue(oValues);
-	    console.log(["EVE KAKO SE VREDNOSTITE",oValues]);
 
 	} else {
 

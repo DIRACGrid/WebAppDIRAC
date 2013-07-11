@@ -81,3 +81,17 @@
      background-color: transparent;
 	
 }
+
+.accp-img-stretch{
+	
+	 background-image: url(../images/stretch.png) !important;
+     background-color: transparent;
+	
+}
+
+.accp-img-proportional{
+	
+	 background-image: url(../images/proportional.png) !important;
+     background-color: transparent;
+	
+}

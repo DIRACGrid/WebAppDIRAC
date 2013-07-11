@@ -95,7 +95,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	var me = this;
 	
-	console.log(oData);
 	
 	if (!me.isConnectionEstablished) {
 
