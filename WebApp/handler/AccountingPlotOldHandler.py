@@ -9,9 +9,7 @@ from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
 import tempfile
 import datetime
-import simplejson
 import json
-import ast
 
 try:
   from hashlib import md5
@@ -64,7 +62,7 @@ class AccountingPlotOldHandler(WebHandler):
     if not retVal[ 'OK' ]:
       self.write(json.dumps({"success":"false", "result":"", "error":retVal[ 'Message' ]}))
       return
-    callback["selectionValues"] = simplejson.dumps( retVal[ 'Value' ] )
+    callback["selectionValues"] = json.dumps( retVal[ 'Value' ] )
     #Cache for plotsList?
     data = AccountingPlotOldHandler.__keysCache.get( "reportsList:%s" % typeName )
     if not data:
@@ -73,7 +71,7 @@ class AccountingPlotOldHandler(WebHandler):
       if not retVal[ 'OK' ]:
         self.write(json.dumps({"success":"false", "result":"", "error":retVal[ 'Message' ]}))
         return
-      data = simplejson.dumps( retVal[ 'Value' ] )
+      data = json.dumps( retVal[ 'Value' ] )
       AccountingPlotOldHandler.__keysCache.add( "reportsList:%s" % typeName, 300, data )
     callback["plotsList"] = data
     self.write(json.dumps({"success":"true", "result":callback}))
@@ -83,14 +81,14 @@ class AccountingPlotOldHandler(WebHandler):
     pD = {}
     extraParams = {}
     pinDates = False
-  
+
     for name in params:
       if name.find( "_" ) != 0:
         continue
       value = params[ name ][0]
       name = name[1:]
       pD[ name ] = str( value )
-    
+
     print pD
     #Personalized title?
     if 'plotTitle' in pD:
@@ -137,7 +135,7 @@ class AccountingPlotOldHandler(WebHandler):
         start = Time.fromString( pD[ 'startTime' ] )
         del( pD[ 'startTime' ] )
     del( pD[ 'timeSelector' ] )
-  
+
     for k in pD:
       if k.find( "ex_" ) == 0:
         extraParams[ k[3:] ] = pD[ k ]
@@ -145,7 +143,7 @@ class AccountingPlotOldHandler(WebHandler):
     for selName in pD:
       pD[ selName ] = List.fromChar( pD[ selName ], "," )
     return S_OK( ( typeName, reportName, start, end, pD, grouping, extraParams ) )
-  
+
   def web_generatePlot( self ):
     callback = {}
     retVal =  self.__queryForPlot()
@@ -154,7 +152,7 @@ class AccountingPlotOldHandler(WebHandler):
     else:
       callback = { 'success' : False, 'errors' : retVal[ 'Message' ] }
     self.write(json.dumps(callback))
-  
+
   def __queryForPlot( self ):
     retVal = self.__parseFormParams()
     if not retVal[ 'OK' ]:
@@ -163,7 +161,7 @@ class AccountingPlotOldHandler(WebHandler):
     repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
     retVal = repClient.generateDelayedPlot( *params )
     return retVal
-  
+
   @asyncGen
   def web_getPlotImg( self ):
     """
@@ -196,8 +194,8 @@ class AccountingPlotOldHandler(WebHandler):
     self.set_header('Pragma',"no-cache")
     self.set_header('Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ))
     self.finish(data)
-  
-  @asyncGen  
+
+  @asyncGen
   def web_getCsvPlotData( self ):
     callback = {}
     retVal = self.__parseFormParams()
@@ -235,8 +233,8 @@ class AccountingPlotOldHandler(WebHandler):
     self.set_header('Content-Disposition', 'attachment; filename="%s.csv"' % md5( str( params ) ).hexdigest())
     self.set_header('Content-Length', len( strData ))
     self.finish(strData)
-  
-  @asyncGen  
+
+  @asyncGen
   def web_getPlotData( self ):
     callback = {}
     retVal = self.__parseFormParams()

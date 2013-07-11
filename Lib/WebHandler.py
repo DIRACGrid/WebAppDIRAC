@@ -224,6 +224,9 @@ class WebHandler( tornado.web.RequestHandler ):
     ok = auth.authQuery( "", self.__credDict, self.AUTH_PROPS )
     if ok and userDN:
       self.__credDict[ 'validGroup' ] = True
+      self.log.info( "AUTH OK: %s by %s@%s (%s)" % ( handlerRoute, self.__credDict[ 'username' ], self.__credDict[ 'group' ], userDN ) )
+    else:
+      self.log.info( "AUTH KO: %s by %s@%s" % ( handlerRoute, userDN, group ) )
     return ok
 
   def __checkPath( self, setup, group, route ):
