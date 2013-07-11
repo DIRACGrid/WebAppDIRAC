@@ -31,17 +31,20 @@ class FileCatalogHandler(WebHandler):
     gLogger.debug( "request: %s" % result )
     if not result[ "OK" ] :
       gLogger.error( "getSelectorGrid: %s" % result[ "Message" ] )
-      self.finish(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
+      self.finish({ "success" : "false" , "error" : result[ "Message" ] })
+      return
     result = result["Value"]
     callback = {}
     if not result.has_key( "FileMetaFields" ):
       error = "Service response has no FileMetaFields key"
       gLogger.error( "getSelectorGrid: %s" % error )
-      self.finish(json.dumps({ "success" : "false" , "error" : error }))
+      self.finish({ "success" : "false" , "error" : error })
+      return
     if not result.has_key( "DirectoryMetaFields" ):
       error = "Service response has no DirectoryMetaFields key"
       gLogger.error( "getSelectorGrid: %s" % error )
-      self.finish(json.dumps({ "success" : "false" , "error" : error }))
+      self.finish({ "success" : "false" , "error" : error })
+      return
     filemeta = result[ "FileMetaFields" ]
     if len( filemeta ) > 0 :
       for key , value in filemeta.items():
@@ -52,7 +55,7 @@ class FileCatalogHandler(WebHandler):
       for key , value in dirmeta.items():
         callback[key]= value.lower()
     gLogger.debug( "getSelectorGrid: Resulting callback %s" % callback )
-    self.finish(json.dumps({ "success" : "true" , "result" : callback}))
+    self.finish({ "success" : "true" , "result" : callback})
   
   '''
     Method to read all the available options for a metadata field
@@ -95,7 +98,8 @@ class FileCatalogHandler(WebHandler):
           compat[name][sign] += value[1].split(":::")
     
     except Exception, e:
-      self.finish(json.dumps({ "success" : "false" , "error" : "Metadata query error" }))
+      self.finish({ "success" : "false" , "error" : "Metadata query error" })
+      return
     
     path = "/";
     
@@ -110,13 +114,14 @@ class FileCatalogHandler(WebHandler):
     gLogger.always( result )
 
     if not result[ "OK" ]:
-      self.finish(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
+      self.finish({ "success" : "false" , "error" : result[ "Message" ] })
+      return
     
-    self.finish(json.dumps({ "success" : "true" , "result" : result["Value"] }))
+    self.finish({ "success" : "true" , "result" : result["Value"] })
   
   @asyncGen   
   def web_getFilesData( self ) :
-    RPC = RPCClient( "DataManagement/FileCatalog" )
+    RPC = RPCClient( "DataManagement/FileCatalog", timeout=3600 )
     req = self.__request()
     gLogger.always(req)
     gLogger.debug( "submit: incoming request %s" % req )
@@ -124,11 +129,13 @@ class FileCatalogHandler(WebHandler):
     gLogger.debug( "submit: result of findFilesByMetadataDetailed %s" % result )
     if not result[ "OK" ] :
       gLogger.error( "submit: %s" % result[ "Message" ] )
-      self.finish(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
+      self.finish({ "success" : "false" , "error" : result[ "Message" ] })
+      return
     result = result[ "Value" ]
 
     if not len(result) > 0:
-      self.finish(json.dumps({ "success" : "true" , "result" : [] , "total" : 0, "date":"-" }))
+      self.finish({ "success" : "true" , "result" : [] , "total" : 0, "date":"-" })
+      return
     
     total = result[ "TotalRecords" ]
     result = result[ "Records" ]
@@ -156,7 +163,7 @@ class FileCatalogHandler(WebHandler):
       callback.append({"fullfilename":key, "dirname": dirname, "filename" : filename , "date" : date , "size" : size ,
                             "metadata" : meta })
     timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
-    self.finish(json.dumps({ "success" : "true" , "result" : callback , "total" : total, "date":timestamp}))
+    self.finish({ "success" : "true" , "result" : callback , "total" : total, "date":timestamp})
 
     
   def __request(self):
@@ -324,7 +331,8 @@ class FileCatalogHandler(WebHandler):
     
     if not result[ "OK" ] :
       gLogger.error( "submit: %s" % result[ "Message" ] )
-      self.finish(json.dumps({ "success" : "false" , "error" : result[ "Message" ] }))
+      self.finish({ "success" : "false" , "error" : result[ "Message" ] })
+      return
     result = result[ "Value" ]
         
     retStrLines = []
@@ -338,3 +346,33 @@ class FileCatalogHandler(WebHandler):
     self.set_header('Content-Disposition', 'attachment; filename="%s.txt"' % md5( str( req ) ).hexdigest())
     self.set_header('Content-Length', len( strData ))
     self.finish(strData)
+    
+  @asyncGen  
+  def web_getSubnodeFiles( self ):
+    RPC = RPCClient( "DataManagement/FileCatalog" )
+    path = self.request.arguments["path"][0]
+#     print path
+#     path = "/vo.cta.in2p3.fr"
+    result = yield self.threadTask(RPC.listDirectory, path, False)
+    if not result[ "OK" ] :
+      gLogger.error( "submit: %s" % result[ "Message" ] )
+      self.finish({ "success" : "false" , "error" : result[ "Message" ] })
+      return
+#     print result
+    filesData = result["Value"]["Successful"][path]["Files"]
+    dirData = result["Value"]["Successful"][path]["SubDirs"]
+    
+    retData = []
+    
+    for entryName in dirData:
+      nodeDef = { 'text' : entryName.split("/")[-1] }
+      nodeDef[ 'leaf' ] = False
+      nodeDef[ 'expanded' ] = False
+      retData.append(nodeDef)
+      
+    for entryName in filesData:
+      nodeDef = { 'text' : entryName.split("/")[-1] }
+      nodeDef[ 'leaf' ] = True
+      retData.append(nodeDef)
+    
+    self.finish({"success" : "true", "nodes":retData})

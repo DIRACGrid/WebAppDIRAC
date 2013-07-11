@@ -28,7 +28,13 @@ Ext.define('Ext.dirac.core.TaskBar', {
     initComponent : function() {
 
 	var me = this;
-
+	
+	if (!GLOBAL.APP.configData.user.username) {
+	    
+	    GLOBAL.STATE_MANAGEMENT_ENABLED = false;
+	    
+	}
+	
 	me.startMenu = new Ext.dirac.core.StartMenu();
 
 	me.quickStart = new Ext.toolbar.Toolbar(me.getQuickStart());
@@ -48,7 +54,48 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    height : 14,
 	    width : 2, // TODO - there should be a CSS way here
 	    cls : 'x-toolbar-separator x-toolbar-separator-horizontal'
-	}, me.windowBar ];
+	}, me.windowBar, {
+	    xtype : 'tbtext',
+	    text : "Theme"
+	} ];
+
+	var sButtonThemeText = "Grey";
+
+	if (GLOBAL.WEB_THEME == "ext-all-neptune")
+	    sButtonThemeText = "Neptune";
+
+	if (GLOBAL.WEB_THEME == "ext-all")
+	    sButtonThemeText = "Classic";
+
+	var button_theme = {
+	    "text" : sButtonThemeText,
+	    "menu" : []
+	};
+
+	var oListTheme = [ "Grey", "Neptune", "Classic" ];
+
+	for ( var i = 0; i < oListTheme.length; i++) {
+	    button_theme.menu.push({
+		text : oListTheme[i],
+		handler : function() {
+
+		    var me = this;
+
+		    var oHref = location.href;
+
+		    var oQPosition = oHref.indexOf("?");
+
+		    if (oQPosition != -1) {
+			location.href = oHref.substr(0, oQPosition) + '?theme=' + me.text + "&" + GLOBAL.APP.desktop._state_related_url;
+		    } else {
+			location.href = oHref + '?theme=' + me.text + "&" + GLOBAL.APP.desktop._state_related_url;
+		    }
+
+		}
+	    });
+	}
+
+	me.items.push(button_theme);
 
 	if (GLOBAL.APP.configData.user.username) {
 	    /*
@@ -107,11 +154,11 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	     * If the user is not registered
 	     */
 	    if (location.protocol === 'http:') {
-		
+
 		var oHref = location.href;
 		var oQPosition = oHref.indexOf("?");
 		var sAddr = "";
-		
+
 		if (oQPosition != -1) {
 
 		    sAddr = oHref.substr(0, oQPosition);
@@ -121,22 +168,22 @@ Ext.define('Ext.dirac.core.TaskBar', {
 		    sAddr = oHref;
 
 		}
-		alert(location.hostname+":8443"+location.pathname);
+
 		me.items.push('-');
 		me.items.push({
 		    xtype : 'tbtext',
-		    text : "<a href='https://"+location.hostname+":8443"+location.pathname+"'>Anonymous</a>"
+		    text : "Visitor (<a href='https://" + location.hostname + ":8443" + location.pathname + "'>Secure connection</a>)"
 		});
 
 	    } else {
 		me.items.push('-');
 		me.items.push({
 		    xtype : 'tbtext',
-		    text : "Anonymous"
+		    text : "Visitor"
 		});
 	    }
 	}
-
+	
 	me.callParent();
     },
 

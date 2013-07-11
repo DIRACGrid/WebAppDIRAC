@@ -40,12 +40,12 @@ Ext.define('Ext.dirac.core.Window', {
 
     desktopStickMode : false,
 
-    i_x : 0,
-    i_y : 0,
-    ic_x : 0,
-    ic_y : 0,
-    _x : 0,
-    _y : 0,
+    i_x : -1,
+    i_y : -1,
+    ic_x : -1,
+    ic_y : -1,
+    _x : -1,
+    _y : -1,
     _before_pin_state : {},
     _restore_state : {},
 
@@ -118,7 +118,7 @@ Ext.define('Ext.dirac.core.Window', {
 		me.ic_x = setupData["ic_x"];
 		me.ic_y = setupData["ic_y"];
 
-		console.log([ me.i_x, me.i_y, me.ic_x, me.ic_y ]);
+		//console.log([ me.i_x, me.i_y, me.ic_x, me.ic_y ]);
 
 		for ( var i = me.i_x; i < me.i_x + me.ic_x; i++) {
 		    for ( var j = me.i_y; j < me.i_y + me.ic_y; j++) {
@@ -467,8 +467,9 @@ Ext.define('Ext.dirac.core.Window', {
 	    var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, "|");
 
 	    if (iAppStatesLoaded != -2) {
-
-		me.oprRefreshAppStates();
+		
+		if(GLOBAL.STATE_MANAGEMENT_ENABLED)
+		    me.oprRefreshAppStates();
 
 	    } else {
 
@@ -481,8 +482,9 @@ Ext.define('Ext.dirac.core.Window', {
 		    me.oprRefreshAppStates();
 
 		}
-
-		GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(me.appClassName, oFunc);
+		
+		if(GLOBAL.STATE_MANAGEMENT_ENABLED)
+		    GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(me.appClassName, oFunc);
 
 	    }
 
@@ -541,7 +543,7 @@ Ext.define('Ext.dirac.core.Window', {
 	    me.addTool({
 		xtype : "diracToolButton",
 		type : "save",
-		menu : me.loadMenu
+		menu : ((GLOBAL.STATE_MANAGEMENT_ENABLED)?me.loadMenu:[])
 	    });
 
 	    me.desktopGridStickButton = new Ext.dirac.utils.DiracToolButton({

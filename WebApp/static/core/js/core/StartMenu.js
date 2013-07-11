@@ -23,8 +23,8 @@ Ext.define('Ext.dirac.core.StartMenu', {
     defaultAlign : 'bl-tl',
 
     iconCls : 'user',
-    
-    height:300,
+
+    height : 300,
 
     floating : true,
 
@@ -44,24 +44,24 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	/*
 	 * Structuring the Start menu
 	 */
-	
+
 	me.title = ((GLOBAL.APP.configData.user.username) ? GLOBAL.APP.configData["user"]["username"] + "@" + GLOBAL.APP.configData["user"]["group"] : "Anonymous");
-	
+
 	me.menu = new Ext.menu.Menu({
 	    cls : 'ux-start-menu-body',
 	    border : false,
 	    floating : false
 	});
-	
+
 	me.menu.layout.align = 'stretch';
 
 	me.items = [ me.menu ];
 	me.layout = 'fit';
 
 	Ext.menu.Manager.register(me);
-	
+
 	me.callParent(arguments);
-	
+
 	me.toolbar = new Ext.toolbar.Toolbar({
 	    dock : 'right',
 	    cls : 'ux-start-menu-toolbar',
@@ -69,14 +69,16 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	    width : 100
 	});
 
-	me.toolbar.add([ '->', {
-	    text : 'State Loader',
-	    iconCls : 'system_state_icon',
-	    handler : function() {
-		GLOBAL.APP.SM.formStateLoader(GLOBAL.APP.desktop.cbAfterLoadSharedState,GLOBAL.APP.desktop.cbAfterSaveSharedState);
-	    },
-	    scope : GLOBAL.APP.SM
-	} ]);
+	if (GLOBAL.STATE_MANAGEMENT_ENABLED) {
+	    me.toolbar.add([ '->', {
+		text : 'State Loader',
+		iconCls : 'system_state_icon',
+		handler : function() {
+		    GLOBAL.APP.SM.formStateLoader(GLOBAL.APP.desktop.cbAfterLoadSharedState, GLOBAL.APP.desktop.cbAfterSaveSharedState);
+		},
+		scope : GLOBAL.APP.SM
+	    } ]);
+	}
 
 	me.toolbar.layout.align = 'stretch';
 	me.addDocked(me.toolbar);
@@ -84,19 +86,17 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	delete me.toolItems;
 
     },
-    
-  
-    afterRender:function(){
-	
+
+    afterRender : function() {
+
 	var me = this;
-	
+
 	for ( var j = 0; j < GLOBAL.APP.configData["menu"].length; j++)
 	    me.menu.add(me.getMenuStructureRec(GLOBAL.APP.configData["menu"][j]));
-	
+
 	this.callParent();
-	
+
     },
-    
 
     /**
      * Function to add an item (button, menu) to the menu of the start menu
@@ -137,7 +137,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	}
 	return me;
     },
-    
+
     /**
      * This method is used to recursively read the data about the start menu
      * 
@@ -154,10 +154,10 @@ Ext.define('Ext.dirac.core.StartMenu', {
 		menu : [],
 		iconCls : "system_folder"
 	    };
-	    
+
 	    for ( var i = 0; i < item[1].length; i++)
 		result.menu.push(me.getMenuStructureRec(item[1][i]));
-	    
+
 	    return result;
 
 	} else {
@@ -179,30 +179,34 @@ Ext.define('Ext.dirac.core.StartMenu', {
 		    listeners : {
 			render : function(oMenu, eOpts) {
 			    GLOBAL.APP.desktop.registerStartAppMenu(oMenu, oMenu.appClassName);
-			    console.log(["MENU",oMenu]);
-			    oMenu.menu.on("beforeshow",function(oMenu,eOpts){
-				    if(oMenu.items.length<=1)
-					return false;
-				    else
-					return true;
-				    
-				});
+
+			    oMenu.menu.on("beforeshow", function(oMenu, eOpts) {
+				if (oMenu.items.length <= 1)
+				    return false;
+				else
+				    return true;
+
+			    });
 			},
-			click:Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ item[0], item[2], null ]),
+			click : Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ item[0], item[2], null ]),
 			focus : function(cmp, e, eOpts) {
+
+			    if (!GLOBAL.STATE_MANAGEMENT_ENABLED)
+				return;
 
 			    /*
 			     * if the cache for the state of the started
 			     * application exist
 			     */
-			    
+
 			    /*
-			     * A call to isStateLoaded can be used to see whether the application states have been loaded
-			     * */
-			    
-			    var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application",sStartClass,"|"); 
-			    
-			    if (iAppStatesLoaded!=-2) {
+			     * A call to isStateLoaded can be used to see
+			     * whether the application states have been loaded
+			     */
+
+			    var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", sStartClass, "|");
+
+			    if (iAppStatesLoaded != -2) {
 
 				if (cmp.isStateMenuLoaded != 2) {
 
@@ -228,7 +232,6 @@ Ext.define('Ext.dirac.core.StartMenu', {
 				}
 
 			    }
-			    
 
 			}
 
@@ -248,7 +251,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 				scope : me,
 				iconCls : "system_state_icon",
 				stateType : stateType,
-				minWidth:200,
+				minWidth : 200,
 				menu : [ {
 				    text : "Share state",
 				    handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ stateName, oThisMenu.appClassName ], false),
@@ -262,7 +265,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 			    oNewItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
-				minWidth:200,
+				minWidth : 200,
 				handler : Ext.bind(GLOBAL.APP.desktop.loadSharedStateByName, GLOBAL.APP.desktop, [ oThisMenu.appClassName, stateName ], false),
 				scope : me,
 				iconCls : "system_link_icon",
@@ -322,16 +325,16 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			var oThisMenu = this;
 
 			oThisMenu.menu.removeAll();
-			
-			var oStates = GLOBAL.APP.SM.getApplicationStates("application",oThisMenu.appClassName);
-			
+
+			var oStates = GLOBAL.APP.SM.getApplicationStates("application", oThisMenu.appClassName);
+
 			for ( var i = 0, len = oStates.length; i < len; i++) {
-				
-			    var stateName=oStates[i];	
-			
+
+			    var stateName = oStates[i];
+
 			    var newItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
-				minWidth:200,
+				minWidth : 200,
 				handler : Ext.bind(GLOBAL.APP.desktop.createWindow, GLOBAL.APP.desktop, [ "app", oThisMenu.appClassName, {
 				    stateToLoad : stateName
 				} ], false),
@@ -350,13 +353,13 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			}
 
 			oThisMenu.menu.add("-");
-			
-			var oRefs = GLOBAL.APP.SM.getApplicationStates("reference",oThisMenu.appClassName);
-			
+
+			var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", oThisMenu.appClassName);
+
 			for ( var i = 0, len = oRefs.length; i < len; i++) {
-			    
-			    var stateName=oRefs[i];	
-			    
+
+			    var stateName = oRefs[i];
+
 			    var newItem = Ext.create('Ext.menu.Item', {
 				text : stateName,
 				handler : Ext.bind(GLOBAL.APP.desktop.loadSharedStateByName, GLOBAL.APP.desktop, [ oThisMenu.appClassName, stateName ], false),
@@ -388,5 +391,5 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	}
 
     },
-    
+
 });

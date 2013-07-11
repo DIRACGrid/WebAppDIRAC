@@ -141,6 +141,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    labelAlign : 'left',
 	    margin : 10,
 	    width : 400,
+	    enableKeyEvents:true,
 	    validateValue : function(sValue) {
 
 		sValue = Ext.util.Format.trim(sValue);
@@ -174,7 +175,27 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	    },
 	    validateOnChange : true,
-	    validateOnBlur : false
+	    validateOnBlur : false,
+	    listeners:{
+		
+		keypress:function(oTextField,e,eOpts){
+		    
+		    if(e.getCharCode()==13){
+			
+			if (me.txtStateName.isValid()) {
+
+			    var sStateName = me.txtStateName.getValue();
+
+			    me.oprSendDataForSave(sStateName, true);
+
+			}
+			
+		    }
+		    
+		    
+		}
+		
+	    }
 
 	});
 
@@ -712,6 +733,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    handler : function() {
 
 		if (me.txtLoadText.validate()) {
+		    GLOBAL.APP.desktop.closeAllActiveWindows();
+		    GLOBAL.APP.desktop.currentState = "";
+		    
 		    me.loadSharedState(me.txtLoadText.getValue(), null);
 		}
 	    },
@@ -760,7 +784,8 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		    oValid = false;
 
 		if (oValid) {
-
+		    GLOBAL.APP.desktop.closeAllActiveWindows();
+		    GLOBAL.APP.desktop.currentState = "";
 		    me.loadSharedState(me.txtLoadText.getValue(), null);
 		    me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), null);
 

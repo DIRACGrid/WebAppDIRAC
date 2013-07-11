@@ -9,7 +9,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
     extend : 'Ext.dirac.core.Module',
     requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.TextArea",
 	    "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface",
-	    'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping' ],
+	    'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping', 'Ext.tree.Panel', 'Ext.data.TreeStore' ],
 
     loadState : function(oData) {
 
@@ -33,11 +33,9 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
     },
 
     __postponedLoadState : function(oData) {
-	
+
 	var me = this;
-	console.log("LOAD DATA");
-	console.log(oData);
-	
+
 	if (me.queryData == null) {
 
 	    Ext.Function.defer(me.__postponedLoadState, 1000, me, [ oData ]);
@@ -56,13 +54,13 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		next : function() {
 
 		    var oIter = this;
-		    
-		    if(oIter.blocks.length==0){
+
+		    if (oIter.blocks.length == 0) {
 			oIter.finished = true;
 			me.setLoading(false);
 			return;
 		    }
-		    
+
 		    if (oIter.index == oIter.blocks.length - 1) {
 			oIter.finished = true;
 		    }
@@ -410,7 +408,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	me.checkboxFunctionDefinition += 'var oChecked=this.checked;';
 	me.checkboxFunctionDefinition += 'var oElems=Ext.query(\'#' + me.id + ' input.checkrow\');';
 	me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
-	me.checkboxFunctionDefinition += '"/>';
+	me.checkboxFunctionDefinition += '" class="meta-main-check-box"/>';
 
 	me.pagingToolbar = {};
 	me.pagingToolbar.updateStamp = new Ext.Button({
@@ -516,6 +514,62 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	    id : 'directoryGrouping'
 	});
 
+	var oRightPanel = new Ext.create('Ext.panel.Panel', {
+	    region : 'center',
+	    layout : 'border',
+	    header : false,
+	    bodyBorder : false,
+	    defaults : {
+		collapsible : true,
+		split : true
+	    }
+
+	});
+
+	me.treeFileCatalogStore = Ext.create('Ext.data.TreeStore', {
+	    proxy : {
+		type : 'ajax',
+		url : GLOBAL.BASE_URL + 'FileCatalog/getSubnodeFiles',
+		reader : {
+		    type : 'json',
+		    root : 'nodes'
+		}
+	    },
+	    root : {
+		text : '/'
+	    },
+	    listeners : {
+		beforeexpand : function(oNode, eOpts) {
+		    me.treeFileCatalogStore.proxy.extraParams = {
+			"path" : me.__getNodePath(oNode)
+		    };
+		}
+	    }
+	});
+
+	me.fileCatalogTree = new Ext.create('Ext.tree.Panel', {
+	    region : 'north',
+	    store : me.treeFileCatalogStore,
+	    header : false,
+	    height : 300,
+	    listeners : {
+
+		beforeitemcontextmenu : function(oView, oNode, item, index, e, eOpts) {
+		    e.preventDefault();
+		    if (!oNode.isLeaf()) {
+			me.sectionMenu.node = oNode;
+			me.sectionMenu.showAt(e.xy);
+		    }
+
+		    return false;
+		},
+
+		beforecontainercontextmenu : function(oView, e, eOpts) {
+		    return false;
+		}
+	    }
+	});
+
 	me.filesGrid = Ext.create('Ext.grid.Panel', {
 	    region : 'center',
 	    header : false,
@@ -537,7 +591,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		},
 		hideable : false,
 		fixed : true,
-		menuDisabled : true
+		menuDisabled : true,
+		align : "center"
 	    }, {
 		header : 'Directory',
 		sortable : true,
@@ -684,7 +739,9 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	oLeftPanel.addDocked([ queryPanelToolbarTop, me.queryPanelToolbarCenter ]);
 
-	me.add([ oLeftPanel, me.filesGrid ]);
+	oRightPanel.add([ me.fileCatalogTree, me.filesGrid ]);
+
+	me.add([ oLeftPanel, oRightPanel ]);
 
 	me.fieldsTypes = null;
 	me.queryData = null;
@@ -715,6 +772,26 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	me.funcAfterEveryBlockGetsBlured = null;
 	me.lastSubmittedQuery = "";
+
+	me.sectionMenu = new Ext.menu.Menu({
+	    width : 150,
+	    items : [ {
+		text : 'Set as starting path',
+		listeners : {
+		    click : me.oprSetStartPath
+		}
+	    } ],
+	    moduleObject : me
+	});
+
+    },
+
+    oprSetStartPath : function(oItem, e, eOpts) {
+
+	var oNode = oItem.parentMenu.node;
+	var oModule = oItem.parentMenu.moduleObject;
+
+	oModule.txtPathField.setValue(oModule.__getNodePath(oNode));
 
     },
 
@@ -1477,5 +1554,29 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	return oList;
 
-    }
+    },
+    __getNodePath : function(oNode) {
+	var sPath = ""
+	var oCopyRefNode = oNode;
+
+	if (oCopyRefNode.raw.text == "/") {
+	    sPath = "/";
+	} else {
+
+	    while (oCopyRefNode) {
+
+		if (oCopyRefNode.raw.text == "/")
+		    break;
+
+		// if (oCopyRefNode.get("text"))
+		sPath = "/" + oCopyRefNode.get("text") + sPath;
+		// else
+		// break;
+		oCopyRefNode = oCopyRefNode.parentNode;
+	    }
+	    if (!sPath)
+		return "/";
+	}
+	return sPath;
+    },
 });

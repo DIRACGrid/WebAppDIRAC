@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title>DIRAC :: DESKTOP</title>
 	<link rel="SHORTCUT ICON" href='/DIRAC/static/core/img/icons/system/favicon.ico'>
-    <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/{{ext_version}}/resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
     <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/css.css" />
     {% autoescape None %}
     <!-- GC -->
@@ -13,7 +13,7 @@
     <!-- <x-bootstrap> -->
 
     {% if _dev %}
-      <script type="text/javascript" src="/DIRAC/static/extjs/{{ext_version}}/ext-all-debug.js"></script>
+      <script type="text/javascript" src="/DIRAC/static/extjs/{{ext_version}}/ext-all.js"></script>
     {% else %}
       <script type="text/javascript" src="/DIRAC/static/core/build/all-classes.js"></script>
     {% end %}
@@ -45,6 +45,8 @@
           GLOBAL.IS_IE = false;
           {% import json %}
           GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }}; 
+          GLOBAL.WEB_THEME = "{{theme}}";
+          GLOBAL.STATE_MANAGEMENT_ENABLED = true;
 
           Ext.onReady(function () {
             	GLOBAL.BASE_URL = "{{base_url}}/";
@@ -66,7 +68,9 @@
           GLOBAL.MOUSE_Y = 0;
           GLOBAL.IS_IE = false;
           {% import json %}
-          GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }}; 
+          GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
+          GLOBAL.WEB_THEME = "{{theme}}"; 
+          GLOBAL.STATE_MANAGEMENT_ENABLED = true;
       
           Ext.onReady(function () {
               GLOBAL.BASE_URL = "{{base_url}}/";
