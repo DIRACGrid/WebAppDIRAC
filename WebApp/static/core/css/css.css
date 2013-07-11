@@ -307,3 +307,7 @@
     background-size:16px 16px;
 	
 }
+
+.loading_item {
+    background-image: url( ../img/icons/system/loading.gif ) !important;
+}

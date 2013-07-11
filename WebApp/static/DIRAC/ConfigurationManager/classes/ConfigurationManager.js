@@ -94,7 +94,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
     __sendSocketMessage : function(oData) {
 
 	var me = this;
-
+	
+	console.log(oData);
+	
 	if (!me.isConnectionEstablished) {
 
 	    var sMessage = "There is no connection established with the server.\nDo you want to reconnect now?";
@@ -145,7 +147,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	}
 	sWsuri += "//" + sLoc.host + GLOBAL.BASE_URL + 'ConfigurationManager';
 
-	socket = new WebSocket(sWsuri);
+	var socket = new WebSocket(sWsuri);
 
 	socket.onopen = function(e) {
 	    console.log("CONNECTED");
@@ -239,8 +241,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		case "setOptionValue":
 		    var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
 		    oNode.raw.csValue = oResponse.value;
-		    me.valuePanel.csValue = oResponse.value;
-		    me.txtOptionValuePanelTextArea.setValue(oResponse.value);
+		    me.valuePanel.csValue = oResponse.value;		    
+		    me.txtOptionValuePanelTextArea.setValue(me.__stringToList(oNode.raw.csValue).join("\n"));
 		    me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
 		    me.__setChangeMade(true);
 		    break;
@@ -428,7 +430,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	    me.btnViewConfigDifference = new Ext.Button({
 
-		text : 'View diffrence',
+		text : 'Show diff.',
 
 		iconCls : "cm-to-browse-icon",
 		handler : function() {
@@ -999,9 +1001,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	if (!sep) {
 	    sep = ",";
 	} else {
-	    stringValue = stringValue.replace(new RegExp(",", 'g'), "");
+	    stringValue = stringValue.replace(new RegExp(",", 'g'), sep);
 	}
-
+	
 	var vList = stringValue.split(sep);
 	var strippedList = [];
 	for ( var i = 0; i < vList.length; i++) {
@@ -1061,7 +1063,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	if (oNode.isLeaf()) {
 
 	    var sNewValue = oModule.__stringToList(oModule.txtOptionValuePanelTextArea.getValue(), "\n").join(",");
-
+	    
 	    oModule.__sendSocketMessage({
 		op : "setOptionValue",
 		path : oModule.__getNodePath(oNode),
@@ -1296,7 +1298,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	var sValue = window.prompt("What's the value of the new option?");
 	if (sValue == null)
 	    return;
-
+	sValue = oModule.__stringToList(sValue, "\n").join(",")
 	oModule.__sendSocketMessage({
 	    op : "createOption",
 	    path : oModule.__getNodePath(oNode),
