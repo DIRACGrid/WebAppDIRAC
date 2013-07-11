@@ -1298,7 +1298,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	var sValue = window.prompt("What's the value of the new option?");
 	if (sValue == null)
 	    return;
-
+	sValue = oModule.__stringToList(sValue, "\n").join(",")
 	oModule.__sendSocketMessage({
 	    op : "createOption",
 	    path : oModule.__getNodePath(oNode),
