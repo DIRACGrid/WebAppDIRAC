@@ -11,7 +11,10 @@ class CoreHandler( tornado.web.RequestHandler ):
   def get( self, setup, group, route ):
     if self.__action == "addSlash":
       o = urlparse.urlparse( self.request.uri )
-      nurl = "%s://%s%s/" % ( self.request.protocol, self.request.host, o.path )
+      proto = self.request.protocol
+      if 'X-Scheme' in self.request.headers:
+        proto = self.request.headers[ 'X-Scheme' ]
+      nurl = "%s://%s%s/" % ( proto, self.request.host, o.path )
       if o.query:
         nurl = "%s?%s" % ( nurl, o.query )
       self.redirect( nurl, permanent = True )
