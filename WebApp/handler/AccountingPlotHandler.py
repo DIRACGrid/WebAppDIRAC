@@ -18,7 +18,7 @@ except:
 
 class AccountingPlotHandler(WebHandler):
 
-  AUTH_PROPS = "authenticated"
+  AUTH_PROPS = "all"
   __keysCache = DictCache.DictCache()
 
   def __getUniqueKeyValues( self, typeName ):
