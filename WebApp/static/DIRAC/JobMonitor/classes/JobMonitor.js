@@ -254,7 +254,15 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	var me = this;
 
 	me.launcher.title = "Job Monitor";
-	me.launcher.maximized = true;
+	me.launcher.maximized = false;
+	
+	var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+	
+	me.launcher.width = oDimensions[0];
+	me.launcher.height = oDimensions[1]-GLOBAL.APP.desktop.taskbar.getHeight();
+
+	me.launcher.x = 0;
+	me.launcher.y = 0;
 
 	Ext.apply(me, {
 	    layout : 'border',

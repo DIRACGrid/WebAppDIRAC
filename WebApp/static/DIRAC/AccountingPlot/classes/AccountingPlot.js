@@ -646,7 +646,8 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			data : oList
 		    }),
 		    labelAlign : 'top',
-		    name : oSelectionOptions[i][0]
+		    name : oSelectionOptions[i][0],
+		    queryMode:"local"
 		});
 
 		me.fsetSpecialConditions.add(oMultiList);

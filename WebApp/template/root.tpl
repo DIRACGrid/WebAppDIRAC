@@ -13,7 +13,7 @@
     <!-- <x-bootstrap> -->
 
     {% if _dev %}
-      <script type="text/javascript" src="/DIRAC/static/extjs/{{ext_version}}/ext-all.js"></script>
+      <script type="text/javascript" src="/DIRAC/static/extjs/{{ext_version}}/ext-all-debug.js"></script>
     {% else %}
       <script type="text/javascript" src="/DIRAC/static/core/build/all-classes.js"></script>
     {% end %}

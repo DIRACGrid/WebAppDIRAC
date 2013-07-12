@@ -1024,11 +1024,14 @@ Ext.define('Ext.dirac.core.Desktop',
 		 */
 
 		var me = this;
+		oWin.suspendEvents(false);
+		oWin.restore();
+		oWin.resumeEvents();
 		oWin.show();
 		oWin.loadWindowFrameState(oWin._restore_state);
 		oWin.toFront();
 		me.refreshUrlDesktopState();
-		return win;
+		return oWin;
 	    },
 
 	    /**
