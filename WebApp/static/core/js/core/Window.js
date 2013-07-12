@@ -46,7 +46,15 @@ Ext.define('Ext.dirac.core.Window', {
     ic_y : -1,
     _x : -1,
     _y : -1,
-    _before_pin_state : {},
+    _before_pin_state : {
+	x : 0,
+	y : 0,
+	width : 200,
+	height : 200,
+	maximized : false,
+	minimized : false
+
+    },
     _restore_state : {},
 
     initComponent : function() {
@@ -118,7 +126,7 @@ Ext.define('Ext.dirac.core.Window', {
 		me.ic_x = setupData["ic_x"];
 		me.ic_y = setupData["ic_y"];
 
-		//console.log([ me.i_x, me.i_y, me.ic_x, me.ic_y ]);
+		// console.log([ me.i_x, me.i_y, me.ic_x, me.ic_y ]);
 
 		for ( var i = me.i_x; i < me.i_x + me.ic_x; i++) {
 		    for ( var j = me.i_y; j < me.i_y + me.ic_y; j++) {
@@ -139,14 +147,13 @@ Ext.define('Ext.dirac.core.Window', {
 		me.before_pin_width = Math.round(me.ic_x * me.desktop.boxSizeX);
 		me.before_pin_height = Math.round(me.ic_y * me.desktop.boxSizeY);
 
-		me._before_pin_state = {
-		    x : me.x,
-		    y : me.y,
-		    width : me.getWidth(),
-		    height : me.getHeight(),
-		    maximized : false,
-		    minimized : false
-		};
+		/*
+		 * me._before_pin_state = { x : me.x, y : me.y, width :
+		 * me.getWidth(), height : me.getHeight(), maximized : false,
+		 * minimized : false };
+		 */
+
+		me._before_pin_state = setupData["_before_pin_state"];
 
 		me.suspendEvents(false);
 		me.setPosition(Math.round(me.i_x * me.desktop.boxSizeX), Math.round(me.i_y * me.desktop.boxSizeY));
@@ -467,8 +474,8 @@ Ext.define('Ext.dirac.core.Window', {
 	    var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, "|");
 
 	    if (iAppStatesLoaded != -2) {
-		
-		if(GLOBAL.STATE_MANAGEMENT_ENABLED)
+
+		if (GLOBAL.STATE_MANAGEMENT_ENABLED)
 		    me.oprRefreshAppStates();
 
 	    } else {
@@ -482,8 +489,8 @@ Ext.define('Ext.dirac.core.Window', {
 		    me.oprRefreshAppStates();
 
 		}
-		
-		if(GLOBAL.STATE_MANAGEMENT_ENABLED)
+
+		if (GLOBAL.STATE_MANAGEMENT_ENABLED)
 		    GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(me.appClassName, oFunc);
 
 	    }
@@ -538,12 +545,10 @@ Ext.define('Ext.dirac.core.Window', {
 		} ]
 	    });
 
-	    
-	    
 	    me.addTool({
 		xtype : "diracToolButton",
 		type : "save",
-		menu : ((GLOBAL.STATE_MANAGEMENT_ENABLED)?me.loadMenu:[])
+		menu : ((GLOBAL.STATE_MANAGEMENT_ENABLED) ? me.loadMenu : [])
 	    });
 
 	    me.desktopGridStickButton = new Ext.dirac.utils.DiracToolButton({
@@ -552,9 +557,9 @@ Ext.define('Ext.dirac.core.Window', {
 		    me.desktop.setDesktopStickMode(me);
 		}
 	    });
-	    
+
 	    me.addTool(me.desktopGridStickButton);
-	    
+
 	    me.addTool({
 		xtype : "diracToolButton",
 		type : "toggle",

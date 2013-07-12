@@ -114,10 +114,10 @@ Ext
 		     *      `false`.
 		     * 
 		     * Controls the formatting of the form submit value of the
-		     * field as returned by {@link #getSubmitValue}
-		     *  - `true` for the field value to submit as a json encoded
-		     * array in a single GET/POST variable - `false` for the
-		     * field to submit as an array of GET/POST variables
+		     * field as returned by {@link #getSubmitValue} - `true` for
+		     * the field value to submit as a json encoded array in a
+		     * single GET/POST variable - `false` for the field to
+		     * submit as an array of GET/POST variables
 		     */
 		    encodeSubmitValue : false,
 
@@ -160,10 +160,9 @@ Ext
 		     * @cfg {Boolean} True to hide the currently selected values
 		     *      from the drop down list. These items are hidden via
 		     *      css to maintain simplicity in store and filter
-		     *      management.
-		     *  - `true` to hide currently selected values from the
-		     * drop down pick list - `false` to keep the item in the
-		     * pick list as a selected item
+		     *      management. - `true` to hide currently selected
+		     *      values from the drop down pick list - `false` to
+		     *      keep the item in the pick list as a selected item
 		     */
 		    filterPickList : false,
 
@@ -229,7 +228,6 @@ Ext
 		    // End of configuration options related to text field
 		    // behavior
 		    //
-
 		    //
 		    // Event signatures
 		    //
@@ -249,7 +247,6 @@ Ext
 		    //
 		    // End of event signatures
 		    //
-
 		    //
 		    // Configuration options that will break things if messed
 		    // with
@@ -555,6 +552,10 @@ Ext
 						return '<table style="padding:0;margin:0"><tr><td class="multselector-checkbox" style="padding:0px 5px 0px 0px;vertical-align:middle"></td><td style="padding:3px 0px 0px 0px;vertical-align:middle">{'
 							+ displayField + '}</td></tr></table>';
 					    },
+					    afterComponentLayout : function() {
+						var iNewValue = document.getElementById(me.getPicker().id + "-listEl").clientHeight - 25;
+						document.getElementById(me.getPicker().id + "-listEl").style.height = "" + iNewValue + "px";
+					    },
 					    listeners : {
 						refresh : function() {
 
@@ -724,7 +725,7 @@ Ext
 			if (me.filterPickList) {
 			    picker.addCls('x-boxselect-hideselections');
 			}
-			
+
 			return picker;
 		    },
 
@@ -863,13 +864,13 @@ Ext
 		     * selected value should be retained.
 		     * 
 		     * Slightly complicated logic. A record is considered
-		     * filtered and should be retained if:
-		     *  - It is not in the combo store and the store has no
-		     * filter or it is in the filtered data set (Happens when
-		     * our selected value is just part of a different load, page
-		     * or query) - It is not in the combo store and
-		     * forceSelection is false and it is in the value store
-		     * (Happens when our selected value was created manually)
+		     * filtered and should be retained if: - It is not in the
+		     * combo store and the store has no filter or it is in the
+		     * filtered data set (Happens when our selected value is
+		     * just part of a different load, page or query) - It is not
+		     * in the combo store and forceSelection is false and it is
+		     * in the value store (Happens when our selected value was
+		     * created manually)
 		     * 
 		     * @private
 		     */
@@ -893,8 +894,6 @@ Ext
 		     * @protected
 		     */
 		    doRawQuery : function() {
-			
-			
 			var me = this, rawValue = me.inputEl.dom.value;
 
 			if (me.multiSelect) {
@@ -1066,11 +1065,8 @@ Ext
 			    inputField.style.borderBottom = 'solid 1px #DDDDDD';
 			    inputField.style.width = '100%';
 			    inputField.onkeyup = function() {
-				
 				document.getElementById(me.id + "-inputEl").value = inputField.value;
-				
 				me.doRawQuery();
-				
 			    };
 			    para.insertBefore(inputField, para.firstChild);
 			    document.getElementById(me.id + "-inputEl").style.width = "1px";
@@ -1118,17 +1114,16 @@ Ext
 
 		    /**
 		     * Handles keyDown processing of key-based selection of
-		     * labelled items. Supported keyboard controls:
-		     *  - If pick list is expanded
-		     *  - `CTRL-A` will select all the items in the pick list
-		     *  - If the cursor is at the beginning of the input field
-		     * and there are values present
-		     *  - `CTRL-A` will highlight all the currently selected
-		     * values - `BACKSPACE` and `DELETE` will remove any
-		     * currently highlighted selected values - `RIGHT` and
-		     * `LEFT` will move the current highlight in the appropriate
-		     * direction - `SHIFT-RIGHT` and `SHIFT-LEFT` will add to
-		     * the current highlight in the appropriate direction
+		     * labelled items. Supported keyboard controls: - If pick
+		     * list is expanded - `CTRL-A` will select all the items in
+		     * the pick list - If the cursor is at the beginning of the
+		     * input field and there are values present - `CTRL-A` will
+		     * highlight all the currently selected values - `BACKSPACE`
+		     * and `DELETE` will remove any currently highlighted
+		     * selected values - `RIGHT` and `LEFT` will move the
+		     * current highlight in the appropriate direction -
+		     * `SHIFT-RIGHT` and `SHIFT-LEFT` will add to the current
+		     * highlight in the appropriate direction
 		     * 
 		     * @protected
 		     */
@@ -1578,17 +1573,14 @@ Ext
 
 		    /**
 		     * Sets the specified value(s) into the field. The following
-		     * value formats are recognised:
-		     *  - Single Values
-		     *  - A string associated to this field's configured
-		     * {@link #valueField} - A record containing at least this
-		     * field's configured {@link #valueField} and
-		     * {@link #displayField}
-		     *  - Multiple Values
-		     *  - If {@link #multiSelect} is `true`, a string containing
-		     * multiple strings as specified in the Single Values
-		     * section above, concatenated in to one string with each
-		     * entry separated by this field's configured
+		     * value formats are recognised: - Single Values - A string
+		     * associated to this field's configured {@link #valueField} -
+		     * A record containing at least this field's configured
+		     * {@link #valueField} and {@link #displayField} - Multiple
+		     * Values - If {@link #multiSelect} is `true`, a string
+		     * containing multiple strings as specified in the Single
+		     * Values section above, concatenated in to one string with
+		     * each entry separated by this field's configured
 		     * {@link #delimiter} - An array of strings as specified in
 		     * the Single Values section above - An array of records as
 		     * specified in the Single Values section above

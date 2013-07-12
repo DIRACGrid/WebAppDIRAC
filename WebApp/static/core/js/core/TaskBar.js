@@ -113,8 +113,18 @@ Ext.define('Ext.dirac.core.TaskBar', {
 		    handler : function() {
 
 			var me = this;
+			
+			 var oHref = location.href;
 
-			location.href = GLOBAL.BASE_URL + 'changeGroup?to=' + me.text;
+			    var oQPosition = oHref.indexOf("?");
+			    
+			    if (oQPosition != -1) {
+				
+				location.href = oHref.substr(0, oQPosition) + 'changeGroup?to=' + me.text;
+			    } else {
+				
+				location.href = oHref + 'changeGroup?to=' + me.text;
+			    }
 
 		    }
 		});

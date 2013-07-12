@@ -127,7 +127,8 @@ Ext.define('Ext.dirac.core.Desktop',
 				i_x : win.i_x,
 				i_y : win.i_y,
 				ic_x : win.ic_x,
-				ic_y : win.ic_y
+				ic_y : win.ic_y,
+				_before_pin_state : win._before_pin_state
 			    };
 
 			} else if (win.loadedObjectType == "link") {
@@ -147,7 +148,8 @@ Ext.define('Ext.dirac.core.Desktop',
 				i_x : win.i_x,
 				i_y : win.i_y,
 				ic_x : win.ic_x,
-				ic_y : win.ic_y
+				ic_y : win.ic_y,
+				_before_pin_state : win._before_pin_state
 			    };
 
 			}
@@ -1974,9 +1976,9 @@ Ext.define('Ext.dirac.core.Desktop',
 		    var oLocatedAsPrev = false;
 		    var oFindEmptyCell = [ -1, -1 ];
 		    var oDim = [ 2, 2 ];
-		    
+
 		    if (oWin.i_x != -1) {
-			
+
 			var bAreAllFree = true;
 
 			for ( var i = oWin.i_x; i <= oWin.i_x + oWin.ic_x - 1; i++) {
@@ -1996,14 +1998,12 @@ Ext.define('Ext.dirac.core.Desktop',
 			if (bAreAllFree) {
 
 			    oFindEmptyCell = [ oWin.i_x, oWin.i_y ];
-			    oDim = [oWin.ic_x, oWin.ic_y ];
+			    oDim = [ oWin.ic_x, oWin.ic_y ];
 			    oLocatedAsPrev = true;
 
 			}
 
 		    }
-
-		    
 
 		    if (!oLocatedAsPrev) {
 
