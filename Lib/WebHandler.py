@@ -124,7 +124,7 @@ class WebHandler( tornado.web.RequestHandler ):
       headers = self.request.headers
       if headers[ 'X-Scheme' ] == "https" and headers[ 'X-Ssl_client_verify' ] == 'SUCCESS':
         DN = headers[ 'X-Ssl_client_s_dn' ]
-        self.__credDict[ 'subject' ] = DN
+        self.__credDict[ 'DN' ] = DN
         self.__credDict[ 'issuer' ] = headers[ 'X-Ssl_client_i_dn' ]
         result = Registry.getUsernameForDN( DN )
         if not result[ 'OK' ]:
@@ -163,7 +163,7 @@ class WebHandler( tornado.web.RequestHandler ):
       cl.append( self.__credDict[ 'username' ] )
       if self.__credDict.get( 'validGroup', False ):
         cl.append( "@%s" % self.__credDict[ 'group' ] )
-      cl.append( " (%s)" % self.__credDict[ 'subject' ] )
+      cl.append( " (%s)" % self.__credDict[ 'DN' ] )
     summ = "%s %s" % ( summ, "".join( cl ) )
     return summ
 
@@ -176,7 +176,7 @@ class WebHandler( tornado.web.RequestHandler ):
     return cls.__log
 
   def getUserDN( self ):
-    return self.__credDict.get( 'subject', '' )
+    return self.__credDict.get( 'DN', '' )
 
   def getUserName( self ):
     return self.__credDict.get( 'username', '' )
@@ -221,7 +221,7 @@ class WebHandler( tornado.web.RequestHandler ):
         if result[ 'OK' ]:
           self.__credDict[ 'group' ] = result[ 'Value' ]
     auth = AuthManager( Conf.getAuthSectionForHandler( handlerRoute ) )
-    ok = auth.authQuery( "", self.__credDict, self.AUTH_PROPS )
+    ok = auth.authQuery( "", self.__credDict, self.AUTH_PROPS ) 
     if ok and userDN:
       self.__credDict[ 'validGroup' ] = True
       self.log.info( "AUTH OK: %s by %s@%s (%s)" % ( handlerRoute, self.__credDict[ 'username' ], self.__credDict[ 'group' ], userDN ) )
