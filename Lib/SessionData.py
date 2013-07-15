@@ -140,6 +140,6 @@ class SessionData( object ):
     #Calculate baseURL
     baseURL = [ Conf.rootURL().strip( "/" ),
                 "s:%s" % data[ 'setup' ],
-                "g:%s" % credDict.get( 'group', 'anon' )  ]
+                "g:%s" % credDict.get( 'group', '' )  ]
     data[ 'baseURL' ] = "/%s" % "/".join( baseURL )
     return data

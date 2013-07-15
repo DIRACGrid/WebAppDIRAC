@@ -220,11 +220,27 @@ class WebHandler( tornado.web.RequestHandler ):
         result = Registry.findDefaultGroupForDN( userDN )
         if result[ 'OK' ]:
           self.__credDict[ 'group' ] = result[ 'Value' ]
+    self.__credDict[ 'validGroup' ] = False
+
+    if type( self.AUTH_PROPS ) not in ( types.ListType, types.TupleType ):
+      self.AUTH_PROPS = [ p.strip() for p in self.AUTH_PROPS.split( "," ) if p.strip() ]
+    allAllowed = False
+    for p in self.AUTH_PROPS:
+      if p.lower() in ( 'all', 'any' ):
+        allAllowed = True
+
     auth = AuthManager( Conf.getAuthSectionForHandler( handlerRoute ) )
-    ok = auth.authQuery( "", self.__credDict, self.AUTH_PROPS ) 
-    if ok and userDN:
-      self.__credDict[ 'validGroup' ] = True
-      self.log.info( "AUTH OK: %s by %s@%s (%s)" % ( handlerRoute, self.__credDict[ 'username' ], self.__credDict[ 'group' ], userDN ) )
+    ok = auth.authQuery( "", self.__credDict, self.AUTH_PROPS )
+    if ok:
+      if userDN:
+        self.__credDict[ 'validGroup' ] = True
+        self.log.info( "AUTH OK: %s by %s@%s (%s)" % ( handlerRoute, self.__credDict[ 'username' ], self.__credDict[ 'group' ], userDN ) )
+      else:
+        self.__credDict[ 'validDN' ] = False
+        self.log.info( "AUTH OK: %s by visitor" % ( handlerRoute ) )
+    elif allAllowed:
+      self.log.info( "AUTH ALL: %s by %s" % ( handlerRoute, userDN ) )
+      ok = True
     else:
       self.log.info( "AUTH KO: %s by %s@%s" % ( handlerRoute, userDN, group ) )
     return ok
