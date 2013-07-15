@@ -19,22 +19,28 @@
     {% end %}
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
-    {% if _dev %}
-          Ext.Loader.setPath({
-      {% for extName in extensions %}
-        {% if extName != 'WebAppDIRAC' %}
+      //Wrap console.log if it does not exist
+      if (typeof console == "undefined") {
+        window.console = {
+          log: function () {}
+        };
+      }
+     {% if _dev %}
+       Ext.Loader.setPath({
+       {% for extName in extensions %}
+          {% if extName != 'WebAppDIRAC' %}
             {{ escape( extName ) }}: "{{ escape( '/DIRAC/static/%s' % ( extName ) ) }}",
-        {% end %}
-      {% end %}
+          {% end %}
+       {% end %}
             'Ext.dirac.core': '/DIRAC/static/core/js/core',
             'Ext.dirac.utils': '/DIRAC/static/core/js/utils',
             'Ext.ux.form':'/DIRAC/static/extjs/{{ext_version}}/examples/ux/form'
           });
 
           Ext.require(['Ext.dirac.core.App','Ext.*']);
-		  
-		  var GLOBAL = {};
-		  	
+
+          var GLOBAL = {};
+
           GLOBAL.APP = null;
           GLOBAL.BASE_URL = "";
           GLOBAL.EXTJS_VERSION = "{{ext_version}}";
@@ -44,21 +50,21 @@
           GLOBAL.MOUSE_Y = 0;
           GLOBAL.IS_IE = false;
           {% import json %}
-          GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }}; 
+          GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
 
           Ext.onReady(function () {
-            	GLOBAL.BASE_URL = "{{base_url}}/";
-              	GLOBAL.APP = new Ext.dirac.core.App();
-              	setTimeout(function(){
-                	Ext.get("app-dirac-loading").hide();
-                	Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ...");
-              	},1000);
+            GLOBAL.BASE_URL = "{{base_url}}/";
+            GLOBAL.APP = new Ext.dirac.core.App();
+            setTimeout(function(){
+              Ext.get("app-dirac-loading").hide();
+              Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ...");
+            },1000);
           });
       {% else %}
-      	  var GLOBAL = {};
-		  	
+          var GLOBAL = {};
+
           GLOBAL.APP = null;
           GLOBAL.BASE_URL = "";
           GLOBAL.EXTJS_VERSION = "{{ext_version}}";
@@ -69,9 +75,9 @@
           GLOBAL.IS_IE = false;
           {% import json %}
           GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
-          GLOBAL.WEB_THEME = "{{theme}}"; 
+          GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
-      
+
           Ext.onReady(function () {
               GLOBAL.BASE_URL = "{{base_url}}/";
               GLOBAL.APP = new Ext.dirac.core.App();
