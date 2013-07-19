@@ -1,7 +1,6 @@
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.CFG import CFG
@@ -366,7 +365,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     return {"success":1, "op":"copyKey", "newName":nodeDict['key'], "nodeId":params["nodeId"], "parentNodeToId":params["parentNodeToId"]}
 
   def __commitConfiguration(self):
-    data = SessionData().getData()
+    data = self.getSessionData()
     isAuth = False
     if "properties" in data["user"]:
       if "CSAdministrator" in data["user"]["properties"]:
@@ -380,7 +379,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     return {"success":1, "op":"commitConfiguration"}
 
   def __authorizeAction(self):
-    data = SessionData().getData()
+    data = self.SessionData()
     isAuth = False
     if "properties" in data["user"]:
       if "CSAdministrator" in data["user"]["properties"]:

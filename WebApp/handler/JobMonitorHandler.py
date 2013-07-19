@@ -1,7 +1,6 @@
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
 import json
@@ -10,43 +9,43 @@ import ast
 class JobMonitorHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
-     
+
   def index(self):
     pass
-  
+
   def web_standalone(self):
-    self.render("JobMonitor/standalone.tpl", config_data = json.dumps(SessionData().getData()))
-  
+    self.render("JobMonitor/standalone.tpl", config_data = json.dumps(self.getSessionData()))
+
   @asyncGen
   def web_getJobData(self):
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
     req = self.__request()
     result = yield self.threadTask(RPC.getJobPageSummaryWeb,req, self.globalSort , self.pageNumber, self.numberOfJobs)
-    
+
     if not result["OK"]:
       self.finish(json.dumps({"success":"false", "error":result["Message"]}))
       return
-    
+
     result = result["Value"]
-    
+
     if not result.has_key("TotalRecords"):
       self.finish(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
       return
-      
-    
+
+
     if not (result["TotalRecords"] > 0):
       self.finish(json.dumps({"success":"false", "result":"", "error":"There were no data matching your selection"}))
       return
-      
-    
+
+
     if not (result.has_key("ParameterNames") and result.has_key("Records")):
       self.finish(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
       return
-    
+
     if not (len(result["ParameterNames"]) > 0):
       self.finish(json.dumps({"success":"false", "result":"", "error":"ParameterNames field is missing"}))
       return
-    
+
     if not (len(result["Records"]) > 0):
       self.finish(json.dumps({"success":"false", "Message":"There are no data to display"}))
       return
@@ -65,10 +64,10 @@ class JobMonitorHandler(WebHandler):
       st = self.__dict2string({})
       extra = result["Extras"]
       timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
-      callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":timestamp } 
+      callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":timestamp }
     else:
       callback = {"success":"true", "result":callback, "total":total, "date":None}
-             
+
     self.finish(json.dumps(callback))
 
   def __dict2string(self, req):
@@ -82,10 +81,10 @@ class JobMonitorHandler(WebHandler):
     result = result.strip()
     result = result[:-1]
     return result
-  
+
   @asyncGen
   def web_getSelectionData(self):
-    sData = SessionData().getData() 
+    sData = self.getSessionData()
     callback = {}
     group = sData["user"]["group"]
     user = sData["user"]["username"]
@@ -127,7 +126,7 @@ class JobMonitorHandler(WebHandler):
           site.append([str(i)])
         for i in s:
           if i not in tier1:
-            site.append([str(i)]) 
+            site.append([str(i)])
       else:
         site = [["Nothing to display"]]
     else:
@@ -207,23 +206,23 @@ class JobMonitorHandler(WebHandler):
         owner = [["Error happened on service side"]]
       callback["owner"] = owner
     self.finish(callback)
-    
+
   def __request(self):
     self.pageNumber = 0
     self.numberOfJobs = 25
     self.globalSort = [["JobID","DESC"]]
-    sData = SessionData().getData() 
+    sData = self.getSessionData()
     req = {}
     group = sData["user"]["group"]
     user = sData["user"]["username"]
-    
+
     if self.request.arguments.has_key("limit") and len(self.request.arguments["limit"][0]) > 0:
       self.numberOfJobs = int(self.request.arguments["limit"][0])
       if self.request.arguments.has_key("start") and len(self.request.arguments["start"][0]) > 0:
         self.pageNumber = int(self.request.arguments["start"][0])
       else:
         self.pageNumber = 0
-    
+
     if self.request.arguments.has_key("ids") and len(self.request.arguments["ids"][0]) > 0:
       req["JobID"] = []
       reqIds = str(self.request.arguments["ids"][0]).split(',');
@@ -240,27 +239,27 @@ class JobMonitorHandler(WebHandler):
       separator = result["Value"]
     else:
       separator = ","
-      
+
     if self.request.arguments.has_key("prod") and len(self.request.arguments["prod"][0]) > 0:
       if str(self.request.arguments["prod"][0]) != "":
         req["JobGroup"] = str(self.request.arguments["prod"][0]).split(separator)
-        
+
     if self.request.arguments.has_key("site") and len(self.request.arguments["site"][0]) > 0:
       if str(self.request.arguments["site"][0]) != "":
         req["Site"] = [x.strip() for x in str(self.request.arguments["site"][0]).split(separator)]
-        
+
     if self.request.arguments.has_key("status") and len(self.request.arguments["status"][0]) > 0:
       if str(self.request.arguments["status"][0]) != "":
         req["Status"] = str(self.request.arguments["status"][0]).split(separator)
-        
+
     if self.request.arguments.has_key("minorstat") and len(self.request.arguments["minorstat"][0]) > 0:
       if str(self.request.arguments["minorstat"][0]) != "":
         req["MinorStatus"] = str(self.request.arguments["minorstat"][0]).split(separator)
-        
+
     if self.request.arguments.has_key("app") and len(self.request.arguments["app"][0]) > 0:
       if str(self.request.arguments["app"][0]) != "":
         req["ApplicationStatus"] = str(self.request.arguments["app"][0]).split(separator)
-        
+
     if self.request.arguments.has_key("types") and len(self.request.arguments["types"][0]) > 0:
       if str(self.request.arguments["types"][0]) != "":
         req["JobType"] = str(self.request.arguments["types"][0]).split(separator)
@@ -268,37 +267,37 @@ class JobMonitorHandler(WebHandler):
     if self.request.arguments.has_key("owner") and len(self.request.arguments["owner"][0]) > 0:
       if str(self.request.arguments["owner"][0]) != "":
         req["Owner"] = str(self.request.arguments["owner"][0]).split(separator)
-        
+
     if self.request.arguments.has_key("startDate") and len(self.request.arguments["startDate"][0]) > 0:
       if str(self.request.arguments["startDate"][0]) != "YYYY-mm-dd":
         if self.request.arguments.has_key("startTime") and len(self.request.arguments["startTime"][0]) > 0:
           req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
         else:
           req["FromDate"] = str(self.request.arguments["startDate"][0])
-          
+
     if self.request.arguments.has_key("endDate") and len(self.request.arguments["endDate"][0]) > 0:
       if str(self.request.arguments["endDate"][0]) != "YYYY-mm-dd":
         if self.request.arguments.has_key("endTime") and len(self.request.arguments["endTime"][0]) > 0:
           req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
         else:
           req["ToDate"] = str(self.request.arguments["endDate"][0])
-          
+
     if self.request.arguments.has_key("date") and len(self.request.arguments["date"][0]) > 0:
       if str(self.request.arguments["date"][0]) != "YYYY-mm-dd":
         req["LastUpdate"] = str(self.request.arguments["date"][0])
-        
+
     if self.request.arguments.has_key("sort") and len(self.request.arguments["sort"][0]) > 0:
       sortValue = self.request.arguments["sort"][0]
       #converting the string into a dictionary
       sortValue = ast.literal_eval(sortValue.strip("[]"))
       self.globalSort = [[sortValue["property"],sortValue["direction"]]]
     return req
-  
+
   @asyncGen
   def web_jobAction( self ):
     ids = self.request.arguments["ids"][0].split(",")
     ids = [int(i) for i in ids ]
-    
+
     RPC = RPCClient("WorkloadManagement/JobManager")
     if self.request.arguments["action"][0] == "delete":
       result = yield self.threadTask(RPC.deleteJob,ids)
@@ -308,8 +307,8 @@ class JobMonitorHandler(WebHandler):
       result = yield self.threadTask(RPC.rescheduleJob,ids)
     elif self.request.arguments["action"][0] == "reset":
       result = yield self.threadTask(RPC.resetJob,ids)
-      
-    callback = {}  
+
+    callback = {}
     if result["OK"]:
       callback = {"success":"true","result":""}
     else:
@@ -320,12 +319,12 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success":"false","error":result["Message"]}
     self.finish(callback)
-   
-  @asyncGen  
+
+  @asyncGen
   def web_jobData( self ):
     id = int(self.request.arguments["id"][0])
-    callback = {}  
-    
+    callback = {}
+
     if self.request.arguments["data_kind"][0] == "getJDL":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
       result = yield self.threadTask(RPC.getJobJDL,id)
@@ -333,7 +332,7 @@ class JobMonitorHandler(WebHandler):
         callback = {"success":"true","result":result["Value"]}
       else:
         callback = {"success":"false","error":result["Message"]}
-    #--------------------------------------------------------------------------------    
+    #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getBasicInfo":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
       result = yield self.threadTask(RPC.getJobSummary,id)
@@ -344,7 +343,7 @@ class JobMonitorHandler(WebHandler):
         callback = {"success":"true","result":items}
       else:
         callback = {"success":"false","error":result["Message"]}
-    #--------------------------------------------------------------------------------    
+    #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getParams":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
       result = yield self.threadTask(RPC.getJobParameters,id)
@@ -407,7 +406,7 @@ class JobMonitorHandler(WebHandler):
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
       result = yield self.threadTask(RPC.getJobParameters,id)
       if result["OK"]:
-        attr = result["Value"]        
+        attr = result["Value"]
         if attr.has_key("StagerReport"):
           callback = {"success":"true","result":attr["StagerReport"]}
         else:

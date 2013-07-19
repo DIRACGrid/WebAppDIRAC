@@ -9,7 +9,6 @@ from WebAppDIRAC.Lib import Conf
 
 class SessionData( object ):
 
-
   __disetConfig = ThreadConfig()
   __handlers = {}
   __groupMenu = {}
@@ -31,7 +30,11 @@ class SessionData( object ):
     cls.__extensions.append( "DIRAC" )
     cls.__extensions.append( "WebAppDIRAC" )
 
-  def __isGroupAuthApp( self, appLoc, credDict ):
+  def __init__( self, credDict, setup ):
+    self.__credDict = credDict
+    self.__setup = setup
+
+  def __isGroupAuthApp( self, appLoc ):
     handlerLoc = "/".join( List.fromChar( appLoc, "." )[1:] )
     if not handlerLoc:
       return False
@@ -40,9 +43,9 @@ class SessionData( object ):
       return False
     handler = self.__handlers[ handlerLoc ]
     auth = AuthManager( Conf.getAuthSectionForHandler( handlerLoc ) )
-    return auth.authQuery( "", credDict, handler.AUTH_PROPS )
+    return auth.authQuery( "", dict( self.__credDict ), handler.AUTH_PROPS )
 
-  def __generateSchema( self, base, path, credDict ):
+  def __generateSchema( self, base, path ):
     """
     Generate a menu schema based on the user credentials
     """
@@ -54,7 +57,7 @@ class SessionData( object ):
       return schema
     sectionsList = result[ 'Value' ]
     for sName in sectionsList:
-      subSchema = self.__generateSchema( base, "%s/%s" % ( path, sName ), credDict )
+      subSchema = self.__generateSchema( base, "%s/%s" % ( path, sName ) )
       if subSchema:
         schema.append( ( sName, subSchema ) )
     result = gConfig.getOptions( fullName )
@@ -66,42 +69,20 @@ class SessionData( object ):
       if opVal.find( "link|" ) == 0:
         schema.append( ( "link", opName, opVal[5:] ) )
         continue
-      if self.__isGroupAuthApp( opVal, credDict ):
+      if self.__isGroupAuthApp( opVal ):
         schema.append( ( "app", opName, opVal ) )
     return schema
 
-  def __getCredDict( self, DN, group ):
-    """
-    Generate a credDict based on the credentials
-    """
-    if not group or not DN:
-      return {}
-    users = Registry.getUsersInGroup( group )
-    if not users:
-      gLogger.error( "Group %s does not have any user!" % group )
-      return {}
-    result = Registry.getUsernameForDN( DN )
-    if not result[ 'OK' ]:
-      return {}
-    user = result[ 'Value' ]
-    if user not in users:
-      return {}
-    return { 'DN' : DN, 'group' : group,
-             'username' : user, 'properties' : Registry.getPropertiesForGroup( group ) }
-
-
-
-  def __getGroupMenu( self, credDict, group ):
+  def __getGroupMenu( self ):
     """
     Load the schema from the CS and filter based on the group
     """
     #Somebody coming from HTTPS and not with a valid group
-    if group and not 'group' in credDict:
-      group = ""
+    group = self.__credDict.get( "group", "" )
     #Cache time!
     if group not in self.__groupMenu:
       base = "%s/Schema" % ( Conf.BASECS )
-      self.__groupMenu[ group ] = self.__generateSchema( base, "", credDict )
+      self.__groupMenu[ group ] = self.__generateSchema( base, "" )
     return self.__groupMenu[ group ]
 
 
@@ -122,17 +103,15 @@ class SessionData( object ):
     return cls.__extVersion
 
   def getData( self ):
-    DN = self.__disetConfig.getDN()
-    group = self.__disetConfig.getGroup()
-    credDict = self.__getCredDict( DN, group )
-    data = { 'menu' : self.__getGroupMenu( credDict, group ),
-             'user' :  credDict,
+    data = { 'menu' : self.__getGroupMenu(),
+             'user' :  self.__credDict,
              'validGroups' : [],
-             'setup' : self.__disetConfig.getSetup() or gConfig.getValue( "/DIRAC/Setup", "" ),
+             'setup' : self.__setup,
              'validSetups' : gConfig.getSections( "/DIRAC/Setups" )[ 'Value' ],
              'extensions' : self.__extensions,
              'extVersion' : self.getExtJSVersion() }
     #Add valid groups if known
+    DN = self.__credDict.get( "DN", "" )
     if DN:
       result = Registry.getGroupsForDN( DN )
       if result[ 'OK' ]:
@@ -140,6 +119,6 @@ class SessionData( object ):
     #Calculate baseURL
     baseURL = [ Conf.rootURL().strip( "/" ),
                 "s:%s" % data[ 'setup' ],
-                "g:%s" % credDict.get( 'group', '' )  ]
+                "g:%s" % self.__credDict.get( 'group', '' )  ]
     data[ 'baseURL' ] = "/%s" % "/".join( baseURL )
     return data

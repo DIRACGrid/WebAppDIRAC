@@ -2,7 +2,6 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
-from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR
 from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities import Time, List, DictCache
@@ -22,7 +21,7 @@ class AccountingPlotHandler(WebHandler):
   __keysCache = DictCache.DictCache()
 
   def __getUniqueKeyValues( self, typeName ):
-    sessionData = SessionData().getData()
+    sessionData = self.getSessionData()
     cacheKey = ( sessionData["user"].get( "username", "" ),
                  sessionData["user"].get( "group", "" ),
                  sessionData["setup"],

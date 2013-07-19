@@ -5,6 +5,7 @@ from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.DISET.AuthManager import AuthManager
+from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
 
 import ssl
@@ -89,7 +90,6 @@ class WebHandler( tornado.web.RequestHandler ):
         exc_info = sys.exc_info()
         ioloop.add_callback( lambda : genTask.runner.handle_exception( *exc_info ) )
 
-
     #Put the task in the thread :)
     def threadJob( tmethod, *targs, **tkwargs ):
       tkwargs[ 'callback' ] = tornado.stack_context.wrap( tkwargs[ 'callback' ] )
@@ -113,18 +113,20 @@ class WebHandler( tornado.web.RequestHandler ):
     super( WebHandler, self ).__init__( *args, **kwargs )
     if not WebHandler.__log:
       WebHandler.__log = gLogger.getSubLogger( self.__class__.__name__ )
+    self.__credDict = {}
+    self.__setup = Conf.setup()
     self.__processCredentials()
     self.__disetConfig.reset()
     self.__disetConfig.setDecorator( self.__disetBlockDecor )
     self.__disetDump = self.__disetConfig.dump()
     match = self.PATH_RE.match( self.request.path )
     self._pathResult = self.__checkPath( *match.groups() )
+    self.__sessionData = SessionData( self.__credDict, self.__setup )
 
   def __processCredentials( self ):
     """
     Extract the user credentials based on the certificate or what comes from the balancer
     """
-    self.__credDict = {}
     #NGINX
     if Conf.balancer() == "nginx":
       headers = self.request.headers
@@ -196,6 +198,9 @@ class WebHandler( tornado.web.RequestHandler ):
   def isRegisteredUser( self ):
     return self.__credDict.get( 'validDN', "" ) and self.__credDict.get( 'validGroup', "" )
 
+  def getSessionData( self ):
+    return self.__sessionData.getData()
+
   def actionURL( self, action = "" ):
     """
     Given an action name for the handler, return the URL
@@ -262,9 +267,8 @@ class WebHandler( tornado.web.RequestHandler ):
       iP = route.rfind( "/" )
       methodName = route[ iP + 1: ]
       handlerRoute = route[ :iP ]
-    if not setup:
-      setup = Conf.setup()
-    self.__setup = setup
+    if setup:
+      self.__setup = setup
     if not self.__auth( handlerRoute, group ):
       return WErr( 401, "Unauthorized, bad boy!" )
 
