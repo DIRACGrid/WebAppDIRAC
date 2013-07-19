@@ -47,8 +47,7 @@ def asyncWithCallback( method ):
   return tornado.web.asynchronous( method )
 
 def asyncGen( method ):
-  return tornado.web.asynchronous( tornado.gen.engine( method ) )
-
+  return tornado.gen.coroutine( method )
 
 class WebHandler( tornado.web.RequestHandler ):
 
@@ -66,8 +65,7 @@ class WebHandler( tornado.web.RequestHandler ):
   PATH_RE = ""
 
   #Helper function to create threaded gen.Tasks with automatic callback and execption handling
-  @classmethod
-  def threadTask( cls, method, *args, **kwargs ):
+  def threadTask( self, method, *args, **kwargs ):
     """
     Helper method to generate a gen.Task and automatically call the callback when the real
     method ends. THIS IS SPARTAAAAAAAAAA
@@ -81,7 +79,8 @@ class WebHandler( tornado.web.RequestHandler ):
       method = cargs[0]
       disetConf = cargs[1]
       cargs = cargs[2]
-      cls.__disetConfig.load( disetConf )
+      self.__disetConfig.reset()
+      self.__disetConfig.load( disetConf )
       ioloop = tornado.ioloop.IOLoop.instance()
       try:
         result = method( *cargs, **ckwargs )
@@ -94,12 +93,17 @@ class WebHandler( tornado.web.RequestHandler ):
     #Put the task in the thread :)
     def threadJob( tmethod, *targs, **tkwargs ):
       tkwargs[ 'callback' ] = tornado.stack_context.wrap( tkwargs[ 'callback' ] )
-      targs = ( tmethod, cls.__disetConfig.dump(), targs )
-      cls.__threadPool.generateJobAndQueueIt( cbMethod, args = targs, kwargs = tkwargs )
+      targs = ( tmethod, self.__disetDump, targs )
+      self.__threadPool.generateJobAndQueueIt( cbMethod, args = targs, kwargs = tkwargs )
 
     #Return a YieldPoint
     genTask = tornado.gen.Task( threadJob, method, *args, **kwargs )
     return genTask
+
+  def __disetBlockDecor( self, func ):
+    def wrapper( *args, **kwargs ):
+      raise RuntimeError( "All DISET calls must be made from inside a Threaded Task! Bad boy!" )
+    return wrapper
 
 
   def __init__( self, *args, **kwargs ):
@@ -111,6 +115,8 @@ class WebHandler( tornado.web.RequestHandler ):
       WebHandler.__log = gLogger.getSubLogger( self.__class__.__name__ )
     self.__processCredentials()
     self.__disetConfig.reset()
+    self.__disetConfig.setDecorator( self.__disetBlockDecor )
+    self.__disetDump = self.__disetConfig.dump()
     match = self.PATH_RE.match( self.request.path )
     self._pathResult = self.__checkPath( *match.groups() )
 
@@ -269,6 +275,7 @@ class WebHandler( tornado.web.RequestHandler ):
     if group:
       self.__disetConfig.setGroup( group )
     self.__disetConfig.setSetup( setup )
+    self.__disetDump = self.__disetConfig.dump()
 
     return WOK( methodName )
 
