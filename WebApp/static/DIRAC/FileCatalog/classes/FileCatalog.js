@@ -792,6 +792,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	var oModule = oItem.parentMenu.moduleObject;
 
 	oModule.txtPathField.setValue(oModule.__getNodePath(oNode));
+	oModule.__getQueryData(true);
 
     },
 
@@ -822,6 +823,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	// set those data as extraParams in
 	me.filesGrid.store.proxy.extraParams = oSendData;
+	me.filesGrid.store.currentPage = 1;
 	me.filesGrid.store.load();
     },
 

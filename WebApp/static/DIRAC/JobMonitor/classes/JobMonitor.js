@@ -72,6 +72,21 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	me.timeSearchElementsGroup.calenTo.setValue(data.leftMenu.calenTo);
 	me.timeSearchElementsGroup.cmbTimeTo.setValue(data.leftMenu.cmbTimeTo);
 
+	if (data.pageSize) {
+
+	    me.pagingToolbar.pageSizeCombo.suspendEvents(false);
+	    me.pagingToolbar.pageSizeCombo.setValue(data.pageSize);
+	    me.pagingToolbar.pageSizeCombo.resumeEvents();
+
+	}
+
+	if (data.leftPanelCollapsed) {
+
+	    if (data.leftPanelCollapsed)
+		me.leftPanel.collapse();
+
+	}
+
     },
 
     __cancelPreviousDataRequest : function() {
@@ -128,6 +143,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		"sortState" : col.sortState
 	    };
 
+	    console.log("SORT STATE: ");
+	    console.log(col.sortState);
+
 	}
 
 	// show/hide for selectors and their selected data (including NOT
@@ -153,6 +171,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	oReturn.leftMenu.calenTo = me.timeSearchElementsGroup.calenTo.getValue();
 	oReturn.leftMenu.cmbTimeTo = me.timeSearchElementsGroup.cmbTimeTo.getValue();
 	oReturn.leftMenu.timeSearchPanelHidden = me.timeSearchPanel.hidden;
+
+	oReturn.pageSize = me.pagingToolbar.pageSizeCombo.getValue();
+	oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
 
 	return oReturn;
 
@@ -255,11 +276,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	me.launcher.title = "Job Monitor";
 	me.launcher.maximized = false;
-	
+
 	var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
-	
+
 	me.launcher.width = oDimensions[0];
-	me.launcher.height = oDimensions[1]-GLOBAL.APP.desktop.taskbar.getHeight();
+	me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
 
 	me.launcher.x = 0;
 	me.launcher.y = 0;
@@ -577,13 +598,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		},
 		timeout : 1800000
 	    },
-
-	    // alternatively, a Ext.data.Model name can be given
-	    // (see Ext.data.Store for an example)
 	    fields : me.dataFields,
 	    autoLoad : true,
 	    remoteSort : true,
-	    pageSize : 25,
+	    pageSize : 100,
 	    listeners : {
 
 		load : function(oStore, records, successful, eOpts) {
@@ -685,7 +703,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		data : [ [ 25 ], [ 50 ], [ 100 ], [ 200 ], [ 500 ], [ 1000 ] ]
 	    }),
 	    triggerAction : 'all',
-	    value : 25,
+	    value : 100,
 	    width : 50
 	});
 
@@ -831,7 +849,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		hideable : false,
 		fixed : true,
 		menuDisabled : true,
-		align:"center"
+		align : "center"
 	    }, {
 		header : 'JobId',
 		sortable : true,
@@ -997,7 +1015,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 
-		    if(cellIndex!=0){	
+		    if (cellIndex != 0) {
 			me.contextGridMenu.showAt(e.xy);
 		    }
 
@@ -1005,6 +1023,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	    }
 	});
+	
+	me.grid.columns[1].setSortState("DESC");
 
 	/*
 	 * -----------------------------------------------------------------------------------------------------------

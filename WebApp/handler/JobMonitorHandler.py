@@ -419,7 +419,7 @@ class JobMonitorHandler(WebHandler):
       RPC = RPCClient("WorkloadManagement/WMSAdministrator")
       result = yield self.threadTask(RPC.getJobPilotOutput,id)
       if result["OK"]:
-        if mode == "out" and result["Value"].has_key("StdOut"):
+        if result["Value"].has_key("StdOut"):
           callback = {"success":"true","result":result["Value"]["StdOut"]}
       else:
         callback = {"success":"false","error":result["Message"]}
@@ -428,7 +428,7 @@ class JobMonitorHandler(WebHandler):
       RPC = RPCClient("WorkloadManagement/WMSAdministrator")
       result = yield self.threadTask(RPC.getJobPilotOutput,id)
       if result["OK"]:
-        if mode == "err" and result["Value"].has_key("StdErr"):
+        if result["Value"].has_key("StdErr"):
           callback = {"success":"true","result":result["Value"]["StdErr"]}
       else:
         callback = {"success":"false","error":result["Message"]}

@@ -23,7 +23,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
     /**
      * @cfg {String} startBtnText The text for the Start Button.
      */
-    startBtnText : 'Start',
+    startBtnText : '',
 
     initComponent : function() {
 
