@@ -553,8 +553,16 @@ Ext
 							+ displayField + '}</td></tr></table>';
 					    },
 					    afterComponentLayout : function() {
-						var iNewValue = document.getElementById(me.getPicker().id + "-listEl").clientHeight - 25;
+						
+						var iNewValue = 0;
+						
+						if(me.store.getCount()>7)
+						    iNewValue = document.getElementById(me.getPicker().id + "-listEl").clientHeight - 25;
+						else
+						    iNewValue = document.getElementById(me.getPicker().id + "-listEl").clientHeight;
+						
 						document.getElementById(me.getPicker().id + "-listEl").style.height = "" + iNewValue + "px";
+						
 					    },
 					    listeners : {
 						refresh : function() {
