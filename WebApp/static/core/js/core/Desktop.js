@@ -1365,7 +1365,6 @@ Ext.define('Ext.dirac.core.Desktop',
 		    __dirac_restore : null,
 		    __dirac_destroy : null,
 		    __dirac_boxready : null,
-		    __dirac_destroy : null,
 		    __dirac_move : null,
 		    __dirac_resize : null
 		});

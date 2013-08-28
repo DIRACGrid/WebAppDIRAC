@@ -18,16 +18,11 @@ Ext.define('Ext.dirac.core.App', {
     },
 
     requires : [ 'Ext.container.Viewport', 'Ext.dirac.core.Desktop', 'Ext.window.MessageBox', 'Ext.dirac.core.ShortcutModel', 'Ext.dirac.core.CommonFunctions', 'Ext.dirac.core.StateManagement' ],
+
     /**
      * @property {boolean} isReady
      */
     isReady : false,
-
-    /**
-     * @property {List} useQuickTips ?
-     */
-
-    useQuickTips : true,
 
     validApplications : {},
 
@@ -76,6 +71,9 @@ Ext.define('Ext.dirac.core.App', {
 	    };
 	}();
 
+	/*
+	 * Getting the configuration data from the server
+	 */
 	Ext.Ajax.request({
 	    url : GLOBAL.BASE_URL + 'getConfigData',
 	    params : {},
@@ -86,12 +84,21 @@ Ext.define('Ext.dirac.core.App', {
 
 		me.configData = configData;
 
+		/*
+		 * After the config data are being received from the server, we
+		 * have to extract the list of valid application that a user can
+		 * start through the start menu
+		 */
 		me.__readValidApplication();
 
+		/*
+		 * After the valid applications have been extracted, the
+		 * initialization method has to be called
+		 */
 		if (Ext.isReady) {
-		    Ext.Function.defer(me.init, 10, me);
+		    Ext.Function.defer(me.__init, 10, me);
 		} else {
-		    Ext.onReady(me.init, me);
+		    Ext.onReady(me.__init, me);
 		}
 	    },
 	    failure : function(response) {
@@ -100,24 +107,38 @@ Ext.define('Ext.dirac.core.App', {
 	    }
 	});
 
+	/*
+	 * Creating an object providing common functions
+	 */
 	me.CF = new Ext.dirac.core.CommonFunctions();
+
+	/*
+	 * Creating an object for state management
+	 */
 	me.SM = new Ext.dirac.core.StateManagement();
 
 	GLOBAL.IS_IE = document.all ? true : false
 
+	/*
+	 * Starting capturing the X, Y coordinates of the mouse cursor
+	 */
 	// If NS -- that is, !IE -- then set up for mouse capture
 	if (!GLOBAL.IS_IE)
 	    document.captureEvents(Event.MOUSEMOVE)
 
 	    // Set-up to use getMouseXY function onMouseMove
 	document.onmousemove = me.__getMouseXY;
-	// Main function to retrieve mouse x-y pos.s
+
 	me.callParent();
 
     },
 
+    /**
+     * @private Function to be called when the mouse changes its position
+     * @param e
+     */
     __getMouseXY : function(e) {
-	
+
 	if (GLOBAL.IS_IE) { // grab the x-y pos.s if browser is IE
 	    GLOBAL.MOUSE_X = event.clientX + document.body.scrollLeft
 	    GLOBAL.MOUSE_Y = event.clientY + document.body.scrollTop
@@ -132,9 +153,14 @@ Ext.define('Ext.dirac.core.App', {
 	if (GLOBAL.MOUSE_Y < 0) {
 	    GLOBAL.MOUSE_Y = 0
 	}
-	
+
 	return true
     },
+
+    /**
+     * @private Function used to extract a list of valid applications out of the
+     *          config data
+     */
     __readValidApplication : function() {
 
 	var me = this;
@@ -144,6 +170,10 @@ Ext.define('Ext.dirac.core.App', {
 
     },
 
+    /**
+     * @private Main recursive function used to extract the names of the valid
+     *          applications
+     */
     __getAppRecursivelyFromConfig : function(item) {
 
 	var me = this;
@@ -173,28 +203,20 @@ Ext.define('Ext.dirac.core.App', {
 
     },
 
-    init : function() {
+    /**
+     * @private Initialization function setting the desktop
+     */
+    __init : function() {
 
 	var me = this, desktopCfg;
 
-	/*
-	 * ?
-	 */
-	if (me.useQuickTips) {
-	    Ext.QuickTips.init();
-	}
+	Ext.QuickTips.init();
 
 	/*
 	 * Creating the main desktop obbject
 	 */
 	desktopCfg = {
-	    contextMenuItems : [
-	    // {
-	    // text : 'Change Settings',
-	    // handler : me.onSettings,
-	    // scope : me
-	    // }
-	    ],
+	    contextMenuItems : [],
 	    shortcuts : Ext.create('Ext.data.Store', {
 		model : 'Ext.dirac.core.ShortcutModel',
 		data : {}
@@ -205,6 +227,9 @@ Ext.define('Ext.dirac.core.App', {
 
 	me.desktop = null;
 
+	/*
+	 * Creating the desktop object
+	 */
 	me.desktop = new Ext.dirac.core.Desktop(desktopCfg);
 
 	me.viewport = new Ext.container.Viewport({
@@ -218,12 +243,26 @@ Ext.define('Ext.dirac.core.App', {
 	me.fireEvent('ready', me);
     },
 
+    /**
+     * Function that is used to check whether an application is valid or not
+     * 
+     * @param {String}
+     *                sAppName The class name of the application
+     * @return {Boolean}
+     */
     isValidApplication : function(sAppName) {
 
 	return (sAppName in this.validApplications);
 
     },
 
+    /**
+     * Function that is used to get the title of an application
+     * 
+     * @param {String}
+     *                sAppName The class name of the application
+     * @return {String}
+     */
     getApplicationTitle : function(sAppName) {
 
 	if (sAppName in this.validApplications) {
@@ -234,6 +273,12 @@ Ext.define('Ext.dirac.core.App', {
 
     },
 
+    /**
+     * Function that is used to get a reference to the desktop object
+     * 
+     * @return {Ext.dirac.core.Desktop}
+     * 
+     */
     getDesktop : function() {
 	return this.desktop;
     },

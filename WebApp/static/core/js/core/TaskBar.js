@@ -24,6 +24,8 @@ Ext.define('Ext.dirac.core.TaskBar', {
      * @cfg {String} startBtnText The text for the Start Button.
      */
     startBtnText : '',
+    
+    height:28,
 
     initComponent : function() {
 
@@ -37,8 +39,6 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	
 	me.startMenu = new Ext.dirac.core.StartMenu();
 
-	me.quickStart = new Ext.toolbar.Toolbar(me.getQuickStart());
-
 	me.windowBar = new Ext.toolbar.Toolbar(me.getWindowBarConfig());
 
 	me.items = [ {
@@ -48,12 +48,6 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	    menu : me.startMenu,
 	    menuAlign : 'bl-tl',
 	    text : me.startBtnText
-	}, me.quickStart, {
-	    xtype : 'splitter',
-	    html : '&#160;',
-	    height : 14,
-	    width : 2, // TODO - there should be a CSS way here
-	    cls : 'x-toolbar-separator x-toolbar-separator-horizontal'
 	}, me.windowBar, {
 	    xtype : 'tbtext',
 	    text : "Theme"
@@ -201,37 +195,6 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	var me = this;
 	me.callParent();
 	me.windowBar.el.on('contextmenu', me.onButtonContextMenu, me);
-    },
-
-    /**
-     * This method returns the configuration object for the Quick Start toolbar.
-     * A derived class can override this method, call the base version to build
-     * the config and then modify the returned object before returning it.
-     */
-    getQuickStart : function() {
-	var me = this, ret = {
-	    minWidth : 20,
-	    width : 60,
-	    items : [],
-	    enableOverflow : true
-	};
-
-	Ext.each(this.quickStart, function(item) {
-	    ret.items.push({
-		tooltip : {
-		    text : item.name,
-		    align : 'bl-tl'
-		},
-		// tooltip: item.name,
-		overflowText : item.name,
-		iconCls : item.iconCls,
-		module : item.module,
-		handler : me.onQuickStartClick,
-		scope : me
-	    });
-	});
-
-	return ret;
     },
 
     /**
