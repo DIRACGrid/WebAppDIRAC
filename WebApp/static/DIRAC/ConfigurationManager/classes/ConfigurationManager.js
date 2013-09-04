@@ -564,6 +564,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	    labelAlign : "top",
 	    flex : 1
 	});
+	
 	me.txtCommentValuePanelTextArea = new Ext.create('Ext.form.field.TextArea', {
 	    fieldLabel : "Comment",
 	    labelAlign : "top",

@@ -82,10 +82,11 @@ Ext.define('Ext.dirac.core.Desktop',
 	     */
 	    taskbarConfig : null,
 
+	    /**
+	     * @cfg {Array} desktopGranularity Defines the dimension of the
+	     *      matrix used for pinning apps
+	     */
 	    desktopGranularity : [ 12, 12 ],
-	    boxSizeX : 0,
-	    boxSizeY : 0,
-	    takenCells : null,
 
 	    getStateData : function() {
 
@@ -203,6 +204,11 @@ Ext.define('Ext.dirac.core.Desktop',
 	    initComponent : function() {
 		var me = this;
 
+		// the width of a desktop cell used for pinning
+		me.boxSizeX = 0;
+		// the height of a desktop cell used for pinning
+		me.boxSizeY = 0;
+
 		/*
 		 * The taskbar object has a taskbar and a menu that appears when
 		 * we right click on a task within the taskbar
@@ -230,9 +236,6 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		me.callParent();
 
-		me.shortcutsView = me.items.getAt(1);
-		me.shortcutsView.on('itemclick', me.onShortcutItemClick, me);
-
 		/*
 		 * Setting the wallpaper
 		 */
@@ -242,6 +245,8 @@ Ext.define('Ext.dirac.core.Desktop',
 		    me.setWallpaper(wallpaper, me.wallpaperStretch);
 		}
 
+		// the matrix that registers what cells from the desktop are
+		// taken and what are not
 		me.takenCells = [];
 
 		for ( var i = 0; i < me.desktopGranularity[0]; i++) {
@@ -261,31 +266,24 @@ Ext.define('Ext.dirac.core.Desktop',
 	    },
 
 	    /**
-	     * @private click handler called when a shortcut item is clicked
-	     * @param e
+	     * @private method executed after the desktop has been rendered
 	     */
-	    onShortcutItemClick : function(dataView, record) {
-		/*
-		 * var me = this, module = me.app.getModule(record.data.module),
-		 * win = module && module.createWindow();
-		 * 
-		 * if (win) { me.restoreWindow(win); } else
-		 * me.app.createWindow(record.data.module);
-		 */
-
-	    },
-
 	    afterRender : function() {
 		var me = this;
 		me.callParent();
 		me.el.on('contextmenu', me.onDesktopMenu, me);
 
+		// load the state of the desktop described in the URL
 		me.__oprLoadUrlState();
 
 	    },
 
 	    listeners : {
 
+		/**
+		 * @private Resize event handler. All existing windows are being
+		 *          resized.
+		 */
 		resize : function(oComp, w, h, ow, oh, eOpts) {
 
 		    var me = oComp;
@@ -293,9 +291,11 @@ Ext.define('Ext.dirac.core.Desktop',
 		    var iWidth = me.getWidth();
 		    var iHeight = me.getHeight() - me.taskbar.getHeight();
 
+		    // we calculate the new dimensions of the cells
 		    me.boxSizeX = 1.0 * iWidth / me.desktopGranularity[1];
 		    me.boxSizeY = 1.0 * iHeight / me.desktopGranularity[0];
 
+		    // we resize each window, which is pinned
 		    me.windows.each(function(win) {
 			if (win.desktopStickMode) {
 
@@ -321,6 +321,11 @@ Ext.define('Ext.dirac.core.Desktop',
 
 	    },
 
+	    /**
+	     * @private Method called to load the state of the desktop described
+	     *          in the URL. This method is called after the desktop has
+	     *          been rendered.
+	     */
 	    __oprLoadUrlState : function() {
 
 		var me = this;
@@ -329,10 +334,14 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		GLOBAL.URL_STATE = Ext.util.Format.trim(GLOBAL.URL_STATE);
 
+		// if the URL state is not empty
 		if (GLOBAL.URL_STATE.length != "") {
 
+		    // we get two parts of the URL state
 		    var oParts = GLOBAL.URL_STATE.split("|");
 
+		    // if the number of parts differ from 2, it means that it is
+		    // a mistake
 		    if (oParts.length != 2) {
 
 			me.refreshUrlDesktopState();
@@ -340,20 +349,46 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		    }
 
+		    // if the indicator for desktop loaded state is not valid
 		    if ((parseInt(oParts[0]) != 0) && (parseInt(oParts[0]) != 1)) {
 
 			oValid = false;
 
 		    }
 
+		    /*
+		     * if the indicator for desktop loaded state is 0, it means
+		     * that no desktop state has been loaded, but only
+		     * particular apps
+		     */
 		    if (parseInt(oParts[0]) == 0) {
 
 			var oApps = oParts[1].split("^");
 
+			// for each application in the URL state
 			for ( var i = 0; i < oApps.length; i++) {
 
 			    var oAppParts = oApps[i].split(":");
 
+			    /*
+			     * for each application there must be 8 data
+			     * describing their state Each application is
+			     * described with 8 parameters [A:B:C:D:E:F:G:H] A -
+			     * the name of the main app class B - the name of a
+			     * state. If no state is loaded then B is empty C -
+			     * X position at the desktop D - Y position at the
+			     * desktop E - Width of the window F - Height of the
+			     * window G - Indicator whether the app is in
+			     * minimized state (-1), maximized state (1). 0
+			     * otherwise. H - [P1,P2,P3,P4,P5,P6] P1 - 0 if the
+			     * app is pinned; 1 if the app is pinned P2 - 0 if
+			     * the header is visible; 1 if the header is hidden
+			     * P3 - X matrix index if the app is pinned P4 - Y
+			     * matrix index if the app is pinned P5 - Number of
+			     * cells regarding the X axis the app takes P6 -
+			     * Number of cells regarding the Y axis the app
+			     * takes
+			     */
 			    if (oAppParts.length != 8) {
 
 				oValid = false;
@@ -361,6 +396,10 @@ Ext.define('Ext.dirac.core.Desktop',
 
 			    }
 
+			    /*
+			     * if the application is valid i.e. it can be
+			     * accessed by the user and the other data are valid
+			     */
 			    if (!GLOBAL.APP.isValidApplication(oAppParts[0]) || isNaN(parseInt(oAppParts[2])) || isNaN(parseInt(oAppParts[3])) || isNaN(parseInt(oAppParts[4]))
 				    || isNaN(parseInt(oAppParts[5])) || isNaN(parseInt(oAppParts[6]))) {
 
@@ -373,6 +412,8 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		    }
 
+		    // in the case of loaded desktop state, we check whether a
+		    // name of the desktop state exists
 		    if (parseInt(oParts[0]) == 1) {
 
 			if (Ext.util.Format.trim(oParts[1]) == "") {
@@ -398,6 +439,10 @@ Ext.define('Ext.dirac.core.Desktop',
 
 			for ( var i = 0, len = oApps.length; i < len; i++) {
 
+			    /*
+			     * For each application we prepare the data before
+			     * we load into a window.
+			     */
 			    var oAppItems = oApps[i].split(":");
 
 			    var oSetupData = {};
@@ -440,6 +485,8 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		} else {
 
+		    // if the data are not valid, we refresh the URL in the
+		    // browser
 		    me.refreshUrlDesktopState();
 
 		}
@@ -489,11 +536,20 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		}
 
+		/*
+		 * if the state management is enabled, first we read the states
+		 * and the references and then we load them into the desktop
+		 * menu.
+		 */
 		if (GLOBAL.STATE_MANAGEMENT_ENABLED)
 		    GLOBAL.APP.SM.oprReadApplicationStatesAndReferences("desktop", oFunc);
 
+		/*
+		 * Function that is executed after a state has been saved
+		 */
 		var funcAfterSave = function(sAppName, sStateName) {
 
+		    // we create new item
 		    var oNewItem = Ext.create('Ext.menu.Item', {
 			text : sStateName,
 			handler : Ext.bind(me.oprLoadDesktopState, me, [ sStateName ], false),
@@ -507,19 +563,26 @@ Ext.define('Ext.dirac.core.Desktop',
 			} ]
 		    });
 
+		    // and we insert at the beginning of the menu
 		    me.statesMenu.insert(0, oNewItem);
 
+		    // if there is an active desktop state, we have to remove it
 		    if (me.currentState != "")
 			GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
 
+		    // if there is a state, we set it as an active state
 		    me.currentState = sStateName;
 		    GLOBAL.APP.SM.addActiveState(sAppName, sStateName);
 		    me.refreshUrlDesktopState();
 
 		};
 
+		/*
+		 * Function that is executed after a state has been removed
+		 */
 		var funcAfterRemove = function(sStateType, sAppName, sStateName) {
 
+		    // we only remove the item from the desktop menu
 		    for ( var i = 0; i < me.statesMenu.items.length; i++) {
 
 			if (me.statesMenu.items.getAt(i).text == sStateName) {
@@ -533,6 +596,7 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		}
 
+		// we create the items of the desktop menu
 		ret.items.push(
 
 		{
@@ -549,6 +613,8 @@ Ext.define('Ext.dirac.core.Desktop',
 		    minWindows : 1
 		});
 
+		// we append the items for state management, only if the state
+		// management is enabled
 		if (GLOBAL.STATE_MANAGEMENT_ENABLED)
 		    ret.items.push('-', {
 			text : "Load state",
@@ -581,12 +647,17 @@ Ext.define('Ext.dirac.core.Desktop',
 		return ret;
 	    },
 
+	    /**
+	     * @private Method called to load the desktop states into the
+	     *          desktop menu after they've been read from the server.
+	     */
 	    oprReadDesktopStatesFromCache : function() {
 
 		var me = this;
 
 		me.statesMenu.removeAll();
 
+		// creating items for the states
 		var oStates = GLOBAL.APP.SM.getApplicationStates("application", "desktop");
 
 		for ( var i = 0, len = oStates.length; i < len; i++) {
@@ -613,9 +684,9 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		me.statesMenu.add("-");
 
+		// creating items for the state links
 		var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", "desktop");
 
-		// for ( var sStateName in oRefs) {
 		for ( var i = 0, len = oRefs.length; i < len; i++) {
 
 		    var sStateName = oRefs[i];
@@ -735,10 +806,11 @@ Ext.define('Ext.dirac.core.Desktop',
 		var items = menu.items.items, win = menu.theWin;
 
 		if (win.desktopStickMode) {
-
-		    items[2].setDisabled(true); // Restore
-		    items[3].setDisabled(true); // Restore
-		    items[4].setDisabled(true); // Restore
+		    // if the active window is pinned, then restore, minimize,
+		    // maximize items are disabled
+		    items[2].setDisabled(true);
+		    items[3].setDisabled(true);
+		    items[4].setDisabled(true);
 
 		} else {
 
@@ -761,7 +833,7 @@ Ext.define('Ext.dirac.core.Desktop',
 		    items[1].show();
 
 		    items[0].menu = win.loadMenu;
-
+		    // setting the Pin/Unpin text
 		    if (win.desktopStickMode) {
 
 			items[6].setText("Unpin");
@@ -772,6 +844,7 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		    }
 
+		    // setting the Show/Hide header text
 		    if (win.getHeader().hidden) {
 
 			items[7].setText("Show header");
@@ -820,7 +893,7 @@ Ext.define('Ext.dirac.core.Desktop',
 	    },
 
 	    /**
-	     * @private Handler called when the Minimize option is choicen from
+	     * @private Handler called when the Pin/Unpin option is choicen from
 	     *          the window taskbar menu
 	     */
 	    onWindowMenuPin : function() {
@@ -843,6 +916,10 @@ Ext.define('Ext.dirac.core.Desktop',
 
 	    },
 
+	    /**
+	     * @private Handler called when the Show/Hide header option is
+	     *          choicen from the window taskbar menu
+	     */
 	    onWindowMenuHeader : function() {
 		var me = this, win = me.windowMenu.theWin;
 		var items = me.windowMenu.items.items;
@@ -997,11 +1074,15 @@ Ext.define('Ext.dirac.core.Desktop',
 	     */
 	    minimizeWindow : function(win) {
 		win.minimized = true;
-		// win.maximized = false;
 		this.refreshUrlDesktopState();
 		win.hide();
 	    },
 
+	    /**
+	     * @private Handler called when the window gets maximized
+	     * @param {Ext.window.Window}
+	     *                win The window object getting maximized
+	     */
 	    maximizeWindow : function(win) {
 		win.getHeader().hide();
 		win.maximize();
@@ -1014,16 +1095,6 @@ Ext.define('Ext.dirac.core.Desktop',
 	     *                win The window object getting minimized
 	     */
 	    restoreWindow : function(oWin) {
-		/*
-		 * if (win.isVisible()) { win.getHeader().show();
-		 * win.setWidth(this.getWidth() / 2);
-		 * win.setHeight(this.getHeight() / 2); win.setPosition(50, 50);
-		 * win.maximized = false; win.restore(); win.toFront(); } else {
-		 * win.show(); }
-		 * 
-		 * win.minimized = false; this.refreshUrlDesktopState(); return
-		 * win;
-		 */
 
 		var me = this;
 		oWin.suspendEvents(false);
@@ -1034,6 +1105,7 @@ Ext.define('Ext.dirac.core.Desktop',
 		oWin.toFront();
 		me.refreshUrlDesktopState();
 		return oWin;
+
 	    },
 
 	    /**
@@ -1064,7 +1136,7 @@ Ext.define('Ext.dirac.core.Desktop',
 		    me.refreshUrlDesktopState();
 		}
 		me.taskbar.removeTaskButton(win.taskButton);
-		me.updateActiveWindow();
+		me.updateDeactiveWindow();
 
 		/*
 		 * Close all other child windows
@@ -1075,6 +1147,10 @@ Ext.define('Ext.dirac.core.Desktop',
 		    }
 		}
 
+		/*
+		 * if it is not child window remove the current state out of
+		 * active states
+		 */
 		if (!win.isChildWindow) {
 
 		    if (win.currentState != "")
@@ -1083,6 +1159,10 @@ Ext.define('Ext.dirac.core.Desktop',
 		    me.refreshUrlDesktopState();
 		}
 
+		/*
+		 * if the window was pinned we free all the cells taken by the
+		 * application
+		 */
 		if (win.desktopGridStickButton.type == "unpin") {
 		    for ( var i = win.i_x; i <= win.i_x + win.ic_x - 1; i++) {
 			for ( var j = win.i_y; j <= win.i_y + win.ic_y - 1; j++) {
@@ -1093,31 +1173,51 @@ Ext.define('Ext.dirac.core.Desktop',
 
 	    },
 
+	    /**
+	     * @private Handler called when the window gets moved
+	     * @param {Ext.window.Window}
+	     *                oWindow The object window getting moved
+	     * @param {int}
+	     *                iX The X coordinate of the window
+	     * @param {int}
+	     *                iY The Y coordinate of the window
+	     */
 	    onWindowMove : function(oWindow, iX, iY, eOpts) {
 
 		var me = this;
 
-		// console.log([ "MOVE", iX, iY, GLOBAL.MOUSE_X, GLOBAL.MOUSE_Y
-		// ]);
-
+		// if there is a user defined handler for the move event of the
+		// window
 		if (oWindow.__dirac_move != null)
 		    oWindow.__dirac_move(oWindow, iX, iY, eOpts);
 
+		// if the window is in the pinned state
 		if (oWindow.desktopStickMode) {
 
+		    // if the mouse is within the constraints of the window
+		    // header
 		    if ((GLOBAL.MOUSE_X >= oWindow.x) && (GLOBAL.MOUSE_X <= oWindow.x + oWindow.getWidth()) && (GLOBAL.MOUSE_Y >= oWindow.y)
 			    && (GLOBAL.MOUSE_Y <= oWindow.y + oWindow.getHeader().getHeight())) {
 
+			// we calculate the distance of the mouse cursor
+			// regarding X and Y axes
 			var oXDiff = GLOBAL.MOUSE_X - iX;
 			var oYDiff = GLOBAL.MOUSE_Y - iY;
 
 			var oBox = me.getBoxSize();
 
+			// calculation of the new X and Y coordinates of the
+			// cursor
 			var oNewX = iX + oXDiff % oBox[0];
 			var oNewY = iY + oYDiff % oBox[1];
 
+			// geting the cell where the new cursor coordinates lay
 			var oCell = me.getGridCell(oNewX, oNewY, false);
 
+			/*
+			 * we check whether the cells needed by the app starting
+			 * from the oCell, are not taken
+			 */
 			var bOK = true;
 
 			for ( var i = oCell[0]; i <= oCell[0] + oWindow.ic_x - 1; i++) {
@@ -1139,6 +1239,7 @@ Ext.define('Ext.dirac.core.Desktop',
 
 			}
 
+			// if the destination cells are free i.e. not taken
 			if (bOK) {
 
 			    // we free the previous cells
@@ -1148,20 +1249,25 @@ Ext.define('Ext.dirac.core.Desktop',
 				}
 			    }
 
+			    // we occupy the new cells of the new position
 			    for ( var i = oCell[0]; i <= oCell[0] + oWindow.ic_x - 1; i++) {
 				for ( var j = oCell[1]; j <= oCell[1] + oWindow.ic_y - 1; j++) {
 				    me.takenCells[j][i] = true;
 				}
 			    }
 
+			    // we change the indexes of the top left cell taken
+			    // by the app
 			    oWindow.i_x = oCell[0];
 			    oWindow.i_y = oCell[1];
 
+			    // we record the coordinates of the application
 			    oWindow._x = Math.round(oWindow.i_x * oBox[0]);
 			    oWindow._y = Math.round(oWindow.i_y * oBox[1]);
 
 			}
 
+			// we apply the coordinates
 			oWindow.suspendEvents(false);
 			oWindow.setPosition(oWindow._x, oWindow._y);
 			oWindow.resumeEvents();
@@ -1173,14 +1279,26 @@ Ext.define('Ext.dirac.core.Desktop',
 
 	    },
 
+	    /**
+	     * @private Handler called when the window gets resized
+	     * @param {Ext.window.Window}
+	     *                win The object window getting resized
+	     * @param {int}
+	     *                iWidth The new width of the window
+	     * @param {int}
+	     *                iHeight The new height of the window
+	     */
 	    onWindowResize : function(oWindow, iWidth, iHeight, eOpts) {
 
 		var me = this;
 
+		// if there is a user defined handler for the resize event of
+		// the window
 		if (oWindow.__dirac_resize != null) {
 		    oWindow.__dirac_resize(oWindow, iWidth, iHeight, eOpts);
 		}
 
+		// if the window is in the pinned state
 		if (oWindow.desktopStickMode) {
 
 		    oWindow.suspendEvents(false);
@@ -1189,10 +1307,13 @@ Ext.define('Ext.dirac.core.Desktop',
 		    var iPomX = oWindow.x + iWidth - 10;
 		    var iPomY = oWindow.y + iHeight - 10;
 
+		    // getting the indexes of the bottom right cell
 		    var oCell = me.getGridCell(iPomX, iPomY, true);
-		    // console.log([ "RESIZE", me.getGridCell(iPomX, iPomY,
-		    // false), oCell ]);
 
+		    /*
+		     * we check whether the cells needed by the app starting
+		     * from the [i_x,i_y], are not taken
+		     */
 		    var bOK = true;
 		    for ( var i = oWindow.i_x; i <= oCell[0]; i++) {
 			for ( var j = oWindow.i_y; j <= oCell[1]; j++) {
@@ -1213,6 +1334,7 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		    }
 
+		    // if the destination cells are free i.e. not taken
 		    if (bOK) {
 
 			// we free the previous cells
@@ -1222,17 +1344,20 @@ Ext.define('Ext.dirac.core.Desktop',
 			    }
 			}
 
+			// we occupy the new cells of the new position
 			for ( var i = oWindow.i_x; i <= oCell[0]; i++) {
 			    for ( var j = oWindow.i_y; j <= oCell[1]; j++) {
 				me.takenCells[j][i] = true;
 			    }
 			}
 
+			// we set up the new cell dimensions of the window
 			oWindow.ic_x = oCell[0] - oWindow.i_x + 1;
 			oWindow.ic_y = oCell[1] - oWindow.i_y + 1;
 
 		    }
 
+		    // we are setting the new dimensions of the window
 		    oWindow.setWidth(Math.round(oWindow.ic_x * oBox[0]));
 		    oWindow.setHeight(Math.round(oWindow.ic_y * oBox[1]));
 
@@ -1243,11 +1368,17 @@ Ext.define('Ext.dirac.core.Desktop',
 		me.refreshUrlDesktopState();
 	    },
 
+	    /**
+	     * @private Method to print the matrix of the desktop cells
+	     * @param {String}
+	     *                sWhere Some label that will refer to the place
+	     *                where this function was called
+	     */
 	    printTakenCellsMatrix : function(sWhere) {
 
 		var me = this;
 
-		// console.log(sWhere);
+		console.log(sWhere);
 
 		var s = "";
 
@@ -1262,618 +1393,14 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		}
 
-		// console.log(s);
+		console.log(s);
 
 	    },
-
+	    
 	    /**
-	     * Function to create a window and to load the module defined by the
-	     * moduleName
-	     * 
-	     * @param {String}
-	     *                moduleName The name of the module (the JavaScript
-	     *                class) to be loaded
+	     * Function to get the indexes of the underlying cell in the desktop
+	     * cell matrix regarding the cursor position (iX,iY)
 	     */
-	    createWindow : function(loadedObjectType, moduleName, setupData) {
-
-		Ext.get("app-dirac-loading").show();
-
-		if (loadedObjectType == "app") {
-
-		    var oParts = moduleName.split(".");
-		    var sStartClass = "";
-
-		    if (oParts.length == 2)
-			sStartClass = moduleName + ".classes." + oParts[1];
-		    else
-			sStartClass = moduleName;
-
-		    if (GLOBAL.DEV == 0) {
-
-			var oConfig = {
-			    enabled : true,
-			    paths : {}
-			};
-
-			oConfig["paths"][oParts[0] + "." + oParts[1] + ".classes"] = "static/" + oParts[0] + "/" + oParts[1] + "/build";
-
-			Ext.Loader.setConfig(oConfig);
-
-		    }
-
-		    Ext.require(sStartClass, function() {
-
-			var me = this;
-
-			var instance = Ext.create(sStartClass, {});
-
-			var config = {
-			    desktop : me,
-			    setupData : setupData,
-			    loadedObject : instance,
-			    loadedObjectType : "app"
-			};
-
-			var window = me.initWindow(config);
-			window.show();
-
-		    }, this);
-
-		} else if (loadedObjectType == "link") {
-		    var me = this;
-
-		    var window = me.initWindow({
-			setupData : setupData,
-			loadedObjectType : "link",
-			linkToLoad : moduleName
-		    });
-
-		    window.show();
-
-		}
-
-	    },
-
-	    /**
-	     * Function that is used by modules to create windows with some
-	     * content. This function does configuration of the window object.
-	     * 
-	     * @param {Object}
-	     *                config Configuration and content of the window
-	     */
-
-	    initWindow : function(config) {
-
-		var me = this, win, cfg = Ext.applyIf(config || {}, {
-		    stateful : false,
-		    isWindow : true,
-		    constrainHeader : false,
-		    minimizable : true,
-		    maximizable : true,
-		    animCollapse : false,
-		    border : false,
-		    hideMode : 'offsets',
-		    layout : 'fit',
-		    x : 0,
-		    y : 0,
-		    __dirac_activate : null,
-		    __dirac_beforeshow : null,
-		    __dirac_afterrender : null,
-		    __dirac_deactivate : null,
-		    __dirac_minimize : null,
-		    __dirac_maximize : null,
-		    __dirac_restore : null,
-		    __dirac_destroy : null,
-		    __dirac_boxready : null,
-		    __dirac_move : null,
-		    __dirac_resize : null
-		});
-
-		win = me.add(new Ext.dirac.core.Window(cfg));
-
-		me.windows.add(win);
-
-		win.taskButton = me.taskbar.addTaskButton(win);
-
-		win.on({
-		    activate : me.updateActiveWindow2,
-		    beforeshow : me.updateActiveWindow,
-		    afterrender : me.hideMessageBox,
-		    deactivate : me.updateActiveWindow,
-		    minimize : me.minimizeWindow,
-		    maximize : me.maximizeWindow,
-		    restore : me.restoreWindow,
-		    destroy : me.onWindowClose,
-		    move : me.onWindowMove,
-		    resize : me.onWindowResize,
-		    scope : me
-		});
-
-		win.on({
-		    boxready : function() {
-			win.dd.xTickSize = me.xTickSize;
-			win.dd.yTickSize = me.yTickSize;
-
-			if (win.resizer) {
-			    win.resizer.widthIncrement = me.xTickSize;
-			    win.resizer.heightIncrement = me.yTickSize;
-			}
-		    },
-		    single : true
-		});
-
-		// replace normal window close
-		win.doClose = function() {
-		    win.el.disableShadow();
-		    win.destroy();
-		    win.doClose = Ext.emptyFn;
-		};
-
-		return win;
-	    },
-
-	    hideMessageBox : function() {
-		Ext.get("app-dirac-loading").hide();
-	    },
-
-	    /**
-	     * @private Function to update the active window
-	     */
-	    updateActiveWindow : function() {
-		var me = this, activeWindow = me.getActiveWindow(), last = me.lastActiveWindow;
-		if (activeWindow === last) {
-		    return;
-		}
-
-		if (last) {
-		    if (last.el.dom) {
-			last.addCls(me.inactiveWindowCls);
-			last.removeCls(me.activeWindowCls);
-		    }
-		    last.active = false;
-		}
-
-		me.lastActiveWindow = activeWindow;
-
-		if (activeWindow) {
-		    activeWindow.addCls(me.activeWindowCls);
-		    activeWindow.removeCls(me.inactiveWindowCls);
-		    activeWindow.minimized = false;
-		    activeWindow.active = true;
-
-		}
-
-		me.taskbar.setActiveButton(activeWindow && activeWindow.taskButton);
-
-	    },
-
-	    updateActiveWindow2 : function() {
-		var me = this, activeWindow = me.getActiveWindow(), last = me.lastActiveWindow;
-		if (activeWindow === last) {
-		    return;
-		}
-
-		if (last) {
-		    if (last.el.dom) {
-			last.addCls(me.inactiveWindowCls);
-			last.removeCls(me.activeWindowCls);
-		    }
-		    last.active = false;
-		}
-
-		me.lastActiveWindow = activeWindow;
-
-		if (activeWindow) {
-		    activeWindow.addCls(me.activeWindowCls);
-		    activeWindow.removeCls(me.inactiveWindowCls);
-		    activeWindow.minimized = false;
-		    activeWindow.active = true;
-		}
-
-		me.taskbar.setActiveButton(activeWindow && activeWindow.taskButton);
-
-		if (activeWindow.__dirac_activate != null) {
-		    activeWindow.__dirac_activate(activeWindow);
-		}
-
-	    },
-
-	    /*
-	     * -------------------------BROADCAST METHODS FOR THE ACTIVE
-	     * WINDOWS-------------------------
-	     */
-
-	    /**
-	     * Function to add new state to the instances of the same module
-	     * 
-	     * @param {String}
-	     *                stateName This is the name od the state
-	     * @param {String}
-	     *                appName Name of the module
-	     * @param {Object}
-	     *                stateData Data of the module that define its state
-	     */
-	    addStateToExistingWindows : function(stateType, stateName, appName) {
-
-		var me = this;
-
-		me.windows.each(function(item, index, len) {
-		    if (item.getAppClassName() == appName)
-			item.addNewState(stateType, stateName);
-		});
-
-		if (appName in me.registerStartMenus)
-		    me.registerStartMenus[appName].addNewState(stateType, stateName);
-
-	    },
-
-	    /**
-	     * Function used to refresh the states of a certain module
-	     * (application) and to update all instances of the module that are
-	     * active at the moment
-	     * 
-	     * @param {String}
-	     *                appName Name of the module (application)
-	     */
-	    oprRefreshAllAppStates : function(appName) {
-
-		var me = this;
-
-		/*
-		 * If the Ajax is not successful then the states will remain the
-		 * same
-		 */
-
-		var oFunc = function(sAppName) {
-
-		    me.windows.each(function(item, index, len) {
-			if (item.getAppClassName() == appName)
-			    item.oprRefreshAppStates();
-		    });
-
-		    if (appName in me.registerStartMenus)
-			me.registerStartMenus[appName].oprRefreshAppStates();
-
-		}
-
-		GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(appName, oFunc);
-
-	    },
-
-	    /**
-	     * Function to remove a state from the state lists of the instances
-	     * of the same module
-	     * 
-	     * @param {String}
-	     *                stateName Name of the state
-	     * @param {String}
-	     *                appName Name of the module (application)
-	     */
-	    removeStateFromWindows : function(sStateType, sStateName, sAppName) {
-
-		var me = this;
-
-		me.windows.each(function(item, index, len) {
-		    if (item.getAppClassName() == sAppName)
-			item.removeState(sStateType, sStateName);
-		});
-
-		if (sAppName in me.registerStartMenus)
-		    me.registerStartMenus[sAppName].removeState(sStateType, sStateName);
-
-	    },
-
-	    /**
-	     * Function to load a desktop state
-	     * 
-	     * @param {String}
-	     *                stateName The name of the state
-	     */
-	    oprLoadDesktopState : function(sStateName) {
-
-		/*
-		 * First we have to check whether some other state is currently
-		 * in use so we have to give possibility to choose whether they
-		 * want to continue to the chosen state or not
-		 */
-
-		var me = this;
-
-		var iCount = me.windows.getCount();
-
-		if (iCount > 0) {
-
-		    /*
-		     * Two cases: - There is an active desktop state - There is
-		     * no active desktop state
-		     */
-		    if (me.currentState == '') {
-
-			var ret = Ext.MessageBox.confirm('Confirm', 'Are you sure you want to close windows without saving them ?', function(button) {
-
-			    var me = this;
-			    if (button === 'yes') {
-
-				me.closeAllActiveWindows();
-
-				me.__loadDesktopStateData(sStateName);
-
-			    }
-			}, me);
-
-		    } else {
-
-			var ret = Ext.MessageBox.confirm('Confirm', 'There is an active desktop state. Do you want to save the state before we load the new one ?', function(button) {
-
-			    var me = this;
-			    if (button === 'yes') {
-
-				var funcAfterSave = function(sAppName, sStateNameOld) {
-				};
-
-				GLOBAL.APP.SM.oprSaveAppState("application", "desktop", me, funcAfterSave);
-			    }
-
-			    me.closeAllActiveWindows();
-			    me.__loadDesktopStateData(sStateName);
-
-			}, me);
-
-		    }
-		} else {
-
-		    me.__loadDesktopStateData(sStateName);
-
-		}
-
-	    },
-
-	    /**
-	     * Function to create all windows from a desktop state
-	     * 
-	     * @param {String}
-	     *                stateName The name of the state
-	     */
-	    __loadDesktopStateData : function(sStateName) {
-
-		var me = this;
-
-		var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", "desktop", sStateName);
-
-		switch (iStateLoaded) {
-		case -1:
-		    alert("The state does not exist !");
-		    return;
-		    break;
-		case -2:
-		    me.funcPostponedLoading = function() {
-
-			me.__loadDesktopStateData(sStateName);
-
-		    }
-
-		    setTimeout(me.funcPostponedLoading, 1000);
-		    return;
-		    break;
-		}
-
-		me.loadState(GLOBAL.APP.SM.getStateData("application", "desktop", sStateName));
-
-		if (me.currentState != "")
-		    GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
-
-		me.currentState = sStateName;
-		GLOBAL.APP.SM.addActiveState("desktop", sStateName);
-
-		me.refreshUrlDesktopState();
-
-	    },
-
-	    /**
-	     * Function to close all active windows
-	     */
-	    closeAllActiveWindows : function() {
-
-		var me = this;
-
-		me.windows.each(function(win) {
-
-		    win.close();
-
-		});
-
-	    },
-
-	    /**
-	     * Function to refresh the list of desktop states
-	     */
-	    oprRefreshAllDesktopStates : function() {
-
-		var me = this;
-
-		var oFunc = function(sAppName) {
-
-		    me.oprReadDesktopStatesFromCache();
-
-		}
-
-		GLOBAL.APP.SM.oprReadApplicationStatesAndReferences("desktop", oFunc);
-
-	    },
-
-	    addDesktopReference : function(stateName) {
-
-		var me = this;
-
-		var newItem = Ext.create('Ext.menu.Item', {
-		    text : stateName,
-		    handler : Ext.bind(me.loadSharedStateByName, me, [ "desktop", stateName ], false),
-		    scope : me,
-		    iconCls : "system_link_icon",
-		});
-
-		me.statesMenu.add(newItem);
-
-	    },
-
-	    removeDesktopReference : function() {
-
-		var me = this;
-
-		for ( var i = me.statesMenu.items.length - 1; i >= 0; i--) {
-
-		    if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator")
-			break;
-
-		    if (me.statesMenu.items.getAt(i).text == stateName) {
-
-			me.statesMenu.remove(me.menu.items.getAt(i));
-			break;
-
-		    }
-
-		}
-
-	    },
-
-	    /*
-	     * ---------------------------------END: MANAGEMENT OF DESKTOP
-	     * STATES--------------------------------------------
-	     */
-
-	    refreshUrlDesktopState : function() {
-
-		var me = this;
-
-		var sNewUrlState = "";
-
-		var sThemeText = "Grey";
-
-		if (GLOBAL.WEB_THEME == "ext-all-neptune")
-		    sThemeText = "Neptune";
-
-		if (GLOBAL.WEB_THEME == "ext-all")
-		    sThemeText = "Classic";
-
-		if (me.currentState != "") {
-
-		    me._state_related_url = "url_state=1|" + me.currentState;
-		    sNewUrlState = "?theme=" + sThemeText + "&url_state=1|" + me.currentState;
-
-		} else {
-
-		    for ( var i = 0; i < me.windows.getCount(); i++) {
-			var oWin = me.windows.getAt(i);
-
-			if ((oWin != undefined) && (oWin != null) && (!oWin.isChildWindow))
-			    sNewUrlState += ((sNewUrlState == "") ? "" : "^") + oWin.getUrlDescription();
-		    }
-
-		    me._state_related_url = "url_state=0|" + sNewUrlState;
-		    sNewUrlState = "?theme=" + sThemeText + "&url_state=0|" + sNewUrlState;
-
-		}
-
-		var oHref = location.href;
-		var oQPosition = oHref.indexOf("?");
-		if (oQPosition != -1) {
-
-		    sNewUrlState = oHref.substr(0, oQPosition) + sNewUrlState;
-
-		} else {
-
-		    sNewUrlState = oHref + sNewUrlState;
-
-		}
-
-		window.history.pushState("X", "ExtTop - Desktop Sample App", sNewUrlState);
-
-	    },
-
-	    loadSharedStateByName : function(sAppName, sStateName) {
-
-		var me = this;
-
-		var oData = GLOBAL.APP.SM.getStateData("reference", sAppName, sStateName);
-		GLOBAL.APP.SM.loadSharedState(oData["link"], me.cbAfterLoadSharedState);
-
-	    },
-
-	    registerStartAppMenu : function(oMenu, sAppClassName) {
-
-		var me = this;
-		me.registerStartMenus[sAppClassName] = oMenu;
-
-	    },
-
-	    getDesktopDimensions : function() {
-
-		var me = this;
-
-		return [ me.getWidth(), me.getHeight() ];
-
-	    },
-
-	    getBoxSize : function() {
-
-		var me = this;
-
-		return [ me.boxSizeX, me.boxSizeY ];
-
-	    },
-
-	    /*-----------------IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
-
-	    cbAfterLoadSharedState : function(sLink, oDataReceived) {
-
-		var me = GLOBAL.APP.desktop;
-
-		var oDataItems = sLink.split("|");
-
-		if (oDataItems[0] != "desktop") {
-
-		    var oSetupData = {
-			"data" : oDataReceived,
-			"currentState" : ""
-		    };
-
-		    me.createWindow("app", oDataItems[0], oSetupData);
-
-		} else {
-
-		    for ( var i = 0, len = oDataReceived["data"].length; i < len; i++) {
-
-			var appStateData = oDataReceived["data"][i];
-
-			if (appStateData.name)
-			    me.createWindow(appStateData.loadedObjectType, appStateData.name, appStateData);
-
-		    }
-
-		    if (me.currentState != "")
-			GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
-
-		    me.currentState = "";
-
-		}
-
-	    },
-
-	    cbAfterSaveSharedState : function(sLinkName, sLink) {
-
-		var me = GLOBAL.APP.desktop;
-
-		var oDataItems = sLink.split("|");
-
-		if (oDataItems[0] != "desktop") {
-		    me.addStateToExistingWindows("reference", sLinkName, oDataItems[0]);
-		} else {
-		    me.addDesktopReference(sLinkName);
-		}
-
-	    },
-
-	    /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
 	    getGridCell : function(iX, iY, bWithFixNearestBorder) {
 
 		var me = this;
@@ -1920,6 +1447,15 @@ Ext.define('Ext.dirac.core.Desktop',
 
 	    },
 
+	    /**
+	     * Function to find an empty area into the desktop cell matrix with
+	     * dimensions iXSize, iYSize
+	     * 
+	     * @param {int}
+	     *                iXSize Number of cells regarding the X axis
+	     * @param {int}
+	     *                iYSize Number of cells regarding the Y axis
+	     */
 	    findEmptyGridCell : function(iXSize, iYSize) {
 
 		var me = this;
@@ -1963,6 +1499,12 @@ Ext.define('Ext.dirac.core.Desktop',
 
 	    },
 
+	    /**
+	     * Function to activate/deactivate the pinning state of a window
+	     * 
+	     * @param {Ext.dirac.core.Window}
+	     *                oWin The window object
+	     */
 	    setDesktopStickMode : function(oWin) {
 
 		var me = this;
@@ -2100,5 +1642,658 @@ Ext.define('Ext.dirac.core.Desktop',
 		}
 
 		me.refreshUrlDesktopState();
+	    },
+
+	    /**
+	     * Function to create a window and to load the module defined by the
+	     * moduleName
+	     * 
+	     * @param {String}
+	     *                loadedObjectType The type of the object to be
+	     *                loaded [app|link]
+	     * @param {String}
+	     *                moduleName The name of the module (the JavaScript
+	     *                class) to be loaded
+	     * @param {String}
+	     *                setupData Data needed by the app during loading
+	     *                process
+	     * 
+	     */
+	    createWindow : function(loadedObjectType, moduleName, setupData) {
+
+		Ext.get("app-dirac-loading").show();
+
+		if (loadedObjectType == "app") {
+
+		    var oParts = moduleName.split(".");
+		    var sStartClass = "";
+
+		    if (oParts.length == 2)
+			sStartClass = moduleName + ".classes." + oParts[1];
+		    else
+			sStartClass = moduleName;
+
+		    // if the development mod is off, we set up diffrent path to
+		    // load javascript
+		    if (GLOBAL.DEV == 0) {
+
+			var oConfig = {
+			    enabled : true,
+			    paths : {}
+			};
+
+			oConfig["paths"][oParts[0] + "." + oParts[1] + ".classes"] = "static/" + oParts[0] + "/" + oParts[1] + "/build";
+
+			Ext.Loader.setConfig(oConfig);
+
+		    }
+
+		    Ext.require(sStartClass, function() {
+
+			var me = this;
+
+			// creating an object of the demeanded application
+			var instance = Ext.create(sStartClass, {});
+
+			var config = {
+			    desktop : me,
+			    setupData : setupData,
+			    loadedObject : instance,
+			    loadedObjectType : "app"
+			};
+
+			// initializing window
+			var window = me.initWindow(config);
+
+			// showing window
+			window.show();
+
+		    }, this);
+
+		} else if (loadedObjectType == "link") {
+		    var me = this;
+
+		    var window = me.initWindow({
+			setupData : setupData,
+			loadedObjectType : "link",
+			linkToLoad : moduleName
+		    });
+
+		    // showing window
+		    window.show();
+
+		}
+
+	    },
+
+	    /**
+	     * Function that is used by modules to create windows with some
+	     * content. This function does configuration of the window object.
+	     * 
+	     * @param {Object}
+	     *                config Configuration and content of the window
+	     */
+
+	    initWindow : function(config) {
+
+		var me = this, win, cfg = Ext.applyIf(config || {}, {
+		    stateful : false,
+		    isWindow : true,
+		    constrainHeader : false,
+		    minimizable : true,
+		    maximizable : true,
+		    animCollapse : false,
+		    border : false,
+		    hideMode : 'offsets',
+		    layout : 'fit',
+		    x : 0,
+		    y : 0,
+		    __dirac_activate : null,
+		    __dirac_beforeshow : null,
+		    __dirac_afterrender : null,
+		    __dirac_deactivate : null,
+		    __dirac_minimize : null,
+		    __dirac_maximize : null,
+		    __dirac_restore : null,
+		    __dirac_destroy : null,
+		    __dirac_boxready : null,
+		    __dirac_move : null,
+		    __dirac_resize : null
+		});
+
+		// creating the window
+		win = me.add(new Ext.dirac.core.Window(cfg));
+
+		// we add the window to the windows collections
+		me.windows.add(win);
+
+		// adding taskbar button related to the window
+		win.taskButton = me.taskbar.addTaskButton(win);
+
+		// setting event handlers for some events of the window
+		win.on({
+		    activate : me.updateActiveWindow,
+		    beforeshow : me.updateDeactiveWindow,
+		    afterrender : me.hideMessageBox,
+		    deactivate : me.updateDeactiveWindow,
+		    minimize : me.minimizeWindow,
+		    maximize : me.maximizeWindow,
+		    restore : me.restoreWindow,
+		    destroy : me.onWindowClose,
+		    move : me.onWindowMove,
+		    resize : me.onWindowResize,
+		    scope : me
+		});
+
+		win.on({
+		    boxready : function() {
+			win.dd.xTickSize = me.xTickSize;
+			win.dd.yTickSize = me.yTickSize;
+
+			if (win.resizer) {
+			    win.resizer.widthIncrement = me.xTickSize;
+			    win.resizer.heightIncrement = me.yTickSize;
+			}
+		    },
+		    single : true
+		});
+
+		// replace normal window close
+		win.doClose = function() {
+		    win.el.disableShadow();
+		    win.destroy();
+		    win.doClose = Ext.emptyFn;
+		};
+
+		return win;
+	    },
+
+	    hideMessageBox : function() {
+		Ext.get("app-dirac-loading").hide();
+	    },
+
+	    /**
+	     * @private Function to update the active window
+	     */
+	    updateDeactiveWindow : function() {
+		var me = this, activeWindow = me.getActiveWindow(), last = me.lastActiveWindow;
+		if (activeWindow === last) {
+		    return;
+		}
+
+		if (last) {
+		    if (last.el.dom) {
+			last.addCls(me.inactiveWindowCls);
+			last.removeCls(me.activeWindowCls);
+		    }
+		    last.active = false;
+		}
+
+		me.lastActiveWindow = activeWindow;
+
+		if (activeWindow) {
+		    activeWindow.addCls(me.activeWindowCls);
+		    activeWindow.removeCls(me.inactiveWindowCls);
+		    activeWindow.minimized = false;
+		    activeWindow.active = true;
+		}
+
+		me.taskbar.setActiveButton(activeWindow && activeWindow.taskButton);
+
+	    },
+
+	    updateActiveWindow : function() {
+		var me = this, activeWindow = me.getActiveWindow(), last = me.lastActiveWindow;
+		if (activeWindow === last) {
+		    return;
+		}
+
+		if (last) {
+		    if (last.el.dom) {
+			last.addCls(me.inactiveWindowCls);
+			last.removeCls(me.activeWindowCls);
+		    }
+		    last.active = false;
+		}
+
+		me.lastActiveWindow = activeWindow;
+
+		if (activeWindow) {
+		    activeWindow.addCls(me.activeWindowCls);
+		    activeWindow.removeCls(me.inactiveWindowCls);
+		    activeWindow.minimized = false;
+		    activeWindow.active = true;
+		}
+
+		me.taskbar.setActiveButton(activeWindow && activeWindow.taskButton);
+
+		if (activeWindow.__dirac_activate != null) {
+		    activeWindow.__dirac_activate(activeWindow);
+		}
+
+	    },
+
+	    /*
+	     * BROADCAST METHODS FOR THE ACTIVE WINDOWS
+	     */
+
+	    /**
+	     * Function to add new state to the instances of the same module
+	     * 
+	     * @param {String}
+	     *                stateName This is the name od the state
+	     * @param {String}
+	     *                appName Name of the module
+	     * @param {Object}
+	     *                stateData Data of the module that define its state
+	     */
+	    addStateToExistingWindows : function(stateType, stateName, appName) {
+
+		var me = this;
+
+		me.windows.each(function(item, index, len) {
+		    if (item.getAppClassName() == appName)
+			item.addNewState(stateType, stateName);
+		});
+
+		if (appName in me.registerStartMenus)
+		    me.registerStartMenus[appName].addNewState(stateType, stateName);
+
+	    },
+
+	    /**
+	     * Function used to refresh the states of a certain module
+	     * (application) and to update all instances of the module that are
+	     * active at the moment
+	     * 
+	     * @param {String}
+	     *                appName Name of the module (application)
+	     */
+	    oprRefreshAllAppStates : function(appName) {
+
+		var me = this;
+
+		/*
+		 * If the Ajax is not successful then the states will remain the
+		 * same
+		 */
+
+		var oFunc = function(sAppName) {
+
+		    me.windows.each(function(item, index, len) {
+			if (item.getAppClassName() == appName)
+			    item.oprRefreshAppStates();
+		    });
+
+		    if (appName in me.registerStartMenus)
+			me.registerStartMenus[appName].oprRefreshAppStates();
+
+		}
+
+		GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(appName, oFunc);
+
+	    },
+
+	    /**
+	     * Function to remove a state from the state lists of the instances
+	     * of the same module
+	     * 
+	     * @param {String}
+	     *                stateName Name of the state
+	     * @param {String}
+	     *                appName Name of the module (application)
+	     */
+	    removeStateFromWindows : function(sStateType, sStateName, sAppName) {
+
+		var me = this;
+
+		me.windows.each(function(item, index, len) {
+		    if (item.getAppClassName() == sAppName)
+			item.removeState(sStateType, sStateName);
+		});
+
+		if (sAppName in me.registerStartMenus)
+		    me.registerStartMenus[sAppName].removeState(sStateType, sStateName);
+
+	    },
+
+	    /**
+	     * Function to load a desktop state
+	     * 
+	     * @param {String}
+	     *                stateName The name of the state
+	     */
+	    oprLoadDesktopState : function(sStateName) {
+
+		/*
+		 * First we have to check whether some other state is currently
+		 * in use so we have to give possibility to choose whether they
+		 * want to continue to the chosen state or not
+		 */
+
+		var me = this;
+
+		var iCount = me.windows.getCount();
+
+		if (iCount > 0) {
+
+		    if (me.currentState == '') {
+
+			/*
+			 * There is no active desktop state
+			 */
+
+			var ret = Ext.MessageBox.confirm('Confirm', 'Are you sure you want to close windows without saving them ?', function(button) {
+
+			    var me = this;
+			    if (button === 'yes') {
+
+				me.closeAllActiveWindows();
+
+				me.__loadDesktopStateData(sStateName);
+
+			    }
+			}, me);
+
+		    } else {
+
+			/*
+			 * There is an active desktop state
+			 */
+
+			var ret = Ext.MessageBox.confirm('Confirm', 'There is an active desktop state. Do you want to save the state before we load the new one ?', function(button) {
+
+			    var me = this;
+			    if (button === 'yes') {
+
+				var funcAfterSave = function(sAppName, sStateNameOld) {
+				};
+
+				GLOBAL.APP.SM.oprSaveAppState("application", "desktop", me, funcAfterSave);
+			    }
+
+			    me.closeAllActiveWindows();
+			    me.__loadDesktopStateData(sStateName);
+
+			}, me);
+
+		    }
+		} else {
+
+		    // if there are no windows open
+		    me.__loadDesktopStateData(sStateName);
+
+		}
+
+	    },
+
+	    /**
+	     * Function to create all windows from a desktop state
+	     * 
+	     * @param {String}
+	     *                stateName The name of the state
+	     */
+	    __loadDesktopStateData : function(sStateName) {
+
+		var me = this;
+
+		var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", "desktop", sStateName);
+
+		switch (iStateLoaded) {
+		case -1:
+		    alert("The state does not exist !");
+		    return;
+		    break;
+		case -2:
+		    me.funcPostponedLoading = function() {
+
+			me.__loadDesktopStateData(sStateName);
+
+		    }
+
+		    setTimeout(me.funcPostponedLoading, 1000);
+		    return;
+		    break;
+		}
+
+		me.loadState(GLOBAL.APP.SM.getStateData("application", "desktop", sStateName));
+
+		if (me.currentState != "")
+		    GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
+
+		me.currentState = sStateName;
+		GLOBAL.APP.SM.addActiveState("desktop", sStateName);
+
+		me.refreshUrlDesktopState();
+
+	    },
+
+	    /**
+	     * Function to close all active windows
+	     */
+	    closeAllActiveWindows : function() {
+
+		var me = this;
+
+		me.windows.each(function(win) {
+
+		    win.close();
+
+		});
+
+	    },
+
+	    /**
+	     * Function to refresh the list of desktop states
+	     */
+	    oprRefreshAllDesktopStates : function() {
+
+		var me = this;
+
+		var oFunc = function(sAppName) {
+
+		    me.oprReadDesktopStatesFromCache();
+
+		}
+
+		GLOBAL.APP.SM.oprReadApplicationStatesAndReferences("desktop", oFunc);
+
+	    },
+
+	    /**
+	     * Function to add new desktop link to the menu
+	     */
+	    addDesktopReference : function(stateName) {
+
+		var me = this;
+
+		var newItem = Ext.create('Ext.menu.Item', {
+		    text : stateName,
+		    handler : Ext.bind(me.loadSharedStateByName, me, [ "desktop", stateName ], false),
+		    scope : me,
+		    iconCls : "system_link_icon",
+		});
+
+		me.statesMenu.add(newItem);
+
+	    },
+
+	    /**
+	     * Function to remove desktop link out of the menu
+	     */
+	    removeDesktopReference : function() {
+
+		var me = this;
+
+		for ( var i = me.statesMenu.items.length - 1; i >= 0; i--) {
+
+		    if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator")
+			break;
+
+		    if (me.statesMenu.items.getAt(i).text == stateName) {
+
+			me.statesMenu.remove(me.menu.items.getAt(i));
+			break;
+
+		    }
+
+		}
+
+	    },
+
+	    /*
+	     * END: MANAGEMENT OF DESKTOP STATES
+	     */
+
+	    /**
+	     * Function to refresh the state of the desktop working area in the
+	     * URL
+	     */
+	    refreshUrlDesktopState : function() {
+
+		var me = this;
+
+		var sNewUrlState = "";
+
+		var sThemeText = "Grey";
+
+		if (GLOBAL.WEB_THEME == "ext-all-neptune")
+		    sThemeText = "Neptune";
+
+		if (GLOBAL.WEB_THEME == "ext-all")
+		    sThemeText = "Classic";
+
+		if (me.currentState != "") {
+
+		    // if there is an active desktop state
+		    me._state_related_url = "url_state=1|" + me.currentState;
+		    sNewUrlState = "?theme=" + sThemeText + "&url_state=1|" + me.currentState;
+
+		} else {
+
+		    // if there is NO active desktop state
+		    for ( var i = 0; i < me.windows.getCount(); i++) {
+			var oWin = me.windows.getAt(i);
+
+			if ((oWin != undefined) && (oWin != null) && (!oWin.isChildWindow))
+			    sNewUrlState += ((sNewUrlState == "") ? "" : "^") + oWin.getUrlDescription();
+		    }
+
+		    me._state_related_url = "url_state=0|" + sNewUrlState;
+		    sNewUrlState = "?theme=" + sThemeText + "&url_state=0|" + sNewUrlState;
+
+		}
+
+		var oHref = location.href;
+		var oQPosition = oHref.indexOf("?");
+
+		if (oQPosition != -1) {
+
+		    sNewUrlState = oHref.substr(0, oQPosition) + sNewUrlState;
+
+		} else {
+
+		    sNewUrlState = oHref + sNewUrlState;
+
+		}
+
+		window.history.pushState("X", "ExtTop - Desktop Sample App", sNewUrlState);
+
+	    },
+
+	    loadSharedStateByName : function(sAppName, sStateName) {
+
+		var me = this;
+
+		var oData = GLOBAL.APP.SM.getStateData("reference", sAppName, sStateName);
+		GLOBAL.APP.SM.loadSharedState(oData["link"], me.cbAfterLoadSharedState);
+
+	    },
+
+	    /**
+	     * Function to register the submenu of an application within the
+	     * main menu
+	     */
+	    registerStartAppMenu : function(oMenu, sAppClassName) {
+
+		var me = this;
+		me.registerStartMenus[sAppClassName] = oMenu;
+
+	    },
+
+	    /**
+	     * Function to get the dimensions of the desktop
+	     */
+	    getDesktopDimensions : function() {
+
+		var me = this;
+
+		return [ me.getWidth(), me.getHeight() ];
+
+	    },
+
+	    /**
+	     * Function to get the dimensions of a desktop cell
+	     */
+	    getBoxSize : function() {
+
+		var me = this;
+
+		return [ me.boxSizeX, me.boxSizeY ];
+
+	    },
+
+	    /*-----------------IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
+
+	    cbAfterLoadSharedState : function(sLink, oDataReceived) {
+
+		var me = GLOBAL.APP.desktop;
+
+		var oDataItems = sLink.split("|");
+
+		if (oDataItems[0] != "desktop") {
+
+		    var oSetupData = {
+			"data" : oDataReceived,
+			"currentState" : ""
+		    };
+
+		    me.createWindow("app", oDataItems[0], oSetupData);
+
+		} else {
+
+		    for ( var i = 0, len = oDataReceived["data"].length; i < len; i++) {
+
+			var appStateData = oDataReceived["data"][i];
+
+			if (appStateData.name)
+			    me.createWindow(appStateData.loadedObjectType, appStateData.name, appStateData);
+
+		    }
+
+		    if (me.currentState != "")
+			GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
+
+		    me.currentState = "";
+
+		}
+
+	    },
+
+	    cbAfterSaveSharedState : function(sLinkName, sLink) {
+
+		var me = GLOBAL.APP.desktop;
+
+		var oDataItems = sLink.split("|");
+
+		if (oDataItems[0] != "desktop") {
+		    me.addStateToExistingWindows("reference", sLinkName, oDataItems[0]);
+		} else {
+		    me.addDesktopReference(sLinkName);
+		}
+
 	    }
+
+	    /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
+
 	});

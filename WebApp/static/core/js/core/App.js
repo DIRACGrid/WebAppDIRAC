@@ -83,7 +83,7 @@ Ext.define('Ext.dirac.core.App', {
 		var configData = Ext.JSON.decode(response.responseText);
 
 		me.configData = configData;
-
+		console.log(me.configData)
 		/*
 		 * After the config data are being received from the server, we
 		 * have to extract the list of valid application that a user can
