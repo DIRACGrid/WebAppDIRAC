@@ -8,13 +8,31 @@
 Ext.define('Ext.dirac.core.StateManagement', {
     requires : [],
 
+    /*
+     * Cache serves to save the application states and references
+     */
     cache : {
 	application : {},
 	reference : {}
     },
 
+    /*
+     * A list of active states on the desktop
+     */
     activeStates : [],
 
+    /**
+     * Function that serves to check whether a state has been loaded or not
+     * 
+     * @param {String}
+     *                sStateType The type of the state [application|reference]
+     * @param {String}
+     *                sAppName Application class name
+     * @param {String}
+     *                sStateName The name of the state
+     * @return {int} 1 - state exists in the cache -1 - state does not exist -2 -
+     *         the application cache has not been loaded yet
+     */
     isStateLoaded : function(sStateType, sAppName, sStateName) {
 
 	var me = this;
@@ -37,6 +55,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
 
+    /**
+     * Function for getting a list of existing state names
+     * 
+     * @param {String}
+     *                sStateType The type of the state [application|reference]
+     * @param {String}
+     *                sAppName Application class name
+     * @return {Array}
+     * 
+     */
     getApplicationStates : function(sStateType, sAppName) {
 
 	var me = this;
@@ -49,6 +77,18 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
 
+    /**
+     * Function for getting the data related to a state
+     * 
+     * @param {String}
+     *                sStateType The type of the state [application|reference]
+     * @param {String}
+     *                sAppName Application class name
+     * @param {String}
+     *                sStateName The name of the state
+     * @return {Object|boolean} False is returned in case when the state is non
+     *         existing or has not been loaded yet
+     */
     getStateData : function(sStateType, sAppName, sStateName) {
 
 	var me = this;
@@ -63,6 +103,15 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
 
+    /**
+     * Function for reading the states and references from the server
+     * 
+     * @param {String}
+     *                sAppName Application class name
+     * @param {Function}
+     *                cbAfterRefresh A function to be executed after the states
+     *                and references have been successfully read
+     */
     oprReadApplicationStatesAndReferences : function(sAppName, cbAfterRefresh) {
 
 	var me = this;
@@ -125,6 +174,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
     /**
      * Function called when the Save As ... button from the SAVE window menu is
      * clicked
+     * 
+     * @param {String}
+     *                sStateType The type of the state [application|reference]
+     * @param {String}
+     *                sAppName Application class name
+     * @param {Object}
+     *                oAppObject The application object
+     * @param {Function}
+     *                cbAfterSave Function that is executed after the save has
+     *                been saved
      */
     formSaveState : function(sStateType, sAppName, oAppObject, cbAfterSave) {
 
@@ -141,7 +200,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    labelAlign : 'left',
 	    margin : 10,
 	    width : 400,
-	    enableKeyEvents:true,
+	    enableKeyEvents : true,
 	    validateValue : function(sValue) {
 
 		sValue = Ext.util.Format.trim(sValue);
@@ -176,12 +235,12 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    },
 	    validateOnChange : true,
 	    validateOnBlur : false,
-	    listeners:{
-		
-		keypress:function(oTextField,e,eOpts){
-		    
-		    if(e.getCharCode()==13){
-			
+	    listeners : {
+
+		keypress : function(oTextField, e, eOpts) {
+
+		    if (e.getCharCode() == 13) {
+
 			if (me.txtStateName.isValid()) {
 
 			    var sStateName = me.txtStateName.getValue();
@@ -189,16 +248,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			    me.oprSendDataForSave(sStateName, true);
 
 			}
-			
+
 		    }
-		    
-		    
+
 		}
-		
+
 	    }
 
 	});
 
+	// button for saving the state
 	me.btnSaveState = new Ext.Button({
 
 	    text : 'Save',
@@ -219,6 +278,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	});
 
+	// button to close the save form
 	me.btnCancelSaveState = new Ext.Button({
 
 	    text : 'Cancel',
@@ -247,6 +307,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    items : [ oToolbar, me.txtStateName ]
 	});
 
+	// initializing window showing the saving form
 	me.saveWindow = Ext.create('widget.window', {
 	    height : 120,
 	    width : 500,
@@ -263,6 +324,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     /**
      * Function called when the Save button from the SAVE window menu is clicked
+     * 
+     * @param {String}
+     *                sStateType The type of the state [application|reference]
+     * @param {String}
+     *                sAppName Application class name
+     * @param {Object}
+     *                oAppObject The application object
+     * @param {Function}
+     *                cbAfterSave Function that is executed after the save has
+     *                been saved
      */
     oprSaveAppState : function(sStateType, sAppName, oAppObject, cbAfterSave) {
 
@@ -283,6 +354,13 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	}
     },
 
+    /**
+     * Function for checking whether a state name is valid or not
+     * 
+     * @param {String}
+     *                sStateName The name of the state
+     * @return {boolean}
+     */
     __isValidStateName : function(sStateName) {
 
 	var regExpr = /^([0-9a-zA-Z\.\_\-]+)+$/;
@@ -350,6 +428,13 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     /**
      * Function to create and open the form for managing the desktop states
+     * 
+     * @param {String}
+     *                sAppName Application class name
+     * @param {Function}
+     *                cbAfterRemove A function to be executed after a state has
+     *                been removed
+     * 
      */
     formManageStates : function(sAppName, cbAfterRemove) {
 
@@ -435,18 +520,20 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    } ]
 	});
 
+	// creating the window
 	me.manageWindow = Ext.create('widget.window', {
 	    height : 280,
 	    width : 500,
 	    title : 'Manage states :: ' + GLOBAL.APP.getApplicationTitle(sAppName),
 	    layout : 'border',
 	    modal : true,
-	    resizable:false,
+	    resizable : false,
 	    items : [ oToolbar, oPanel ]
 	});
 
 	me.manageWindow.show();
 
+	// filling the lists of the form with states and references
 	me.__oprFillSelectFieldWithStates();
 
     },
@@ -503,6 +590,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
 
+    /**
+     * Function to check whether a state is active i.e. loaded into the
+     * application
+     * 
+     * @param {String}
+     *                sAppName Application class name
+     * @param {String}
+     *                sStateName The name of the state
+     * 
+     */
     isAnyActiveState : function(sAppName, sStateName) {
 
 	var me = this;
@@ -522,6 +619,15 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
 
+    /**
+     * Function to register new state as an active one
+     * 
+     * @param {String}
+     *                sAppName Application class name
+     * @param {String}
+     *                sStateName The name of the state
+     * 
+     */
     addActiveState : function(sAppName, sStateName) {
 
 	var me = this;
@@ -530,6 +636,15 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
 
+    /**
+     * Function to remove a state out of the activeStates list
+     * 
+     * @param {String}
+     *                sAppName Application class name
+     * @param {String}
+     *                sStateName The name of the state
+     * 
+     */
     removeActiveState : function(sAppName, sStateName) {
 
 	var me = this;
@@ -544,6 +659,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    me.activeStates.splice(iIndex, 1);
     },
 
+    /**
+     * Function to delete all selected states or references from the form lists
+     */
     oprDeleteSelectedStates : function() {
 
 	var me = this;
@@ -641,6 +759,15 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     /*-----------------------------------------------SHARE STATE-----------------------------------------------*/
 
+    /**
+     * Function called when we want to share a state.
+     * 
+     * @param {String}
+     *                sAppName Application class name
+     * @param {String}
+     *                sStateName The name of the state
+     * 
+     */
     oprShareState : function(sStateName, sAppName) {
 
 	var me = this;
@@ -676,6 +803,17 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
 
+    /**
+     * Function to create and show the form for saving or loading a shared state
+     * 
+     * @param {Function}
+     *                cbAfterLoad Function to be executed after the shared state
+     *                has been loaded
+     * @param {Function}
+     *                cbAfterSave Function to be executed after the shared state
+     *                has been saved
+     * 
+     */
     formStateLoader : function(cbAfterLoad, cbAfterSave) {
 
 	var me = this;
@@ -735,7 +873,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		if (me.txtLoadText.validate()) {
 		    GLOBAL.APP.desktop.closeAllActiveWindows();
 		    GLOBAL.APP.desktop.currentState = "";
-		    
+
 		    me.loadSharedState(me.txtLoadText.getValue(), null);
 		}
 	    },
@@ -833,6 +971,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
 
+    /**
+     * Function executed when the shared state has to be loaded
+     * 
+     * @param {Object}
+     *                oData Data related to the shared state
+     * @param {Function}
+     *                cbAfterLoadSharedState Function to be executed after the
+     *                shared state has been loaded
+     * 
+     */
     loadSharedState : function(oData, cbAfterLoadSharedState) {
 
 	var me = this;
@@ -880,6 +1028,17 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
     },
 
+    /**
+     * Function executed when the shared state has to be saved
+     * 
+     * @param {String}
+     *                sRefName The name for the shared state
+     * @param {String}
+     *                sRef The description link for the shared state
+     * @param {Function}
+     *                cbAfterSaveSharedState Function to be executed after the
+     *                shared state has been saved
+     */
     saveSharedState : function(sRefName, sRef, cbAfterSaveSharedState) {
 
 	var me = this;

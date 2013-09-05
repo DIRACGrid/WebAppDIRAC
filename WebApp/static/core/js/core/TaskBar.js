@@ -24,19 +24,19 @@ Ext.define('Ext.dirac.core.TaskBar', {
      * @cfg {String} startBtnText The text for the Start Button.
      */
     startBtnText : '',
-    
-    height:28,
+
+    height : 28,
 
     initComponent : function() {
 
 	var me = this;
-	
+
 	if (!GLOBAL.APP.configData.user.username) {
-	    
+
 	    GLOBAL.STATE_MANAGEMENT_ENABLED = false;
-	    
+
 	}
-	
+
 	me.startMenu = new Ext.dirac.core.StartMenu();
 
 	me.windowBar = new Ext.toolbar.Toolbar(me.getWindowBarConfig());
@@ -107,18 +107,18 @@ Ext.define('Ext.dirac.core.TaskBar', {
 		    handler : function() {
 
 			var me = this;
-			
-			 var oHref = location.href;
 
-			    var oQPosition = oHref.indexOf("?");
-			    
-			    if (oQPosition != -1) {
-				
-				location.href = oHref.substr(0, oQPosition) + 'changeGroup?to=' + me.text;
-			    } else {
-				
-				location.href = oHref + 'changeGroup?to=' + me.text;
-			    }
+			var oHref = location.href;
+
+			var oQPosition = oHref.indexOf("?");
+
+			if (oQPosition != -1) {
+
+			    location.href = oHref.substr(0, oQPosition) + 'changeGroup?to=' + me.text;
+			} else {
+
+			    location.href = oHref + 'changeGroup?to=' + me.text;
+			}
 
 		    }
 		});
@@ -187,7 +187,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 		});
 	    }
 	}
-	
+
 	me.callParent();
     },
 
@@ -195,25 +195,6 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	var me = this;
 	me.callParent();
 	me.windowBar.el.on('contextmenu', me.onButtonContextMenu, me);
-    },
-
-    /**
-     * Event handler executed when a button from the quick bar is clicked
-     * 
-     * @param {Ext.button.Button}
-     *                btn Button that has been clicked
-     */
-    onQuickStartClick : function(btn) {
-	// var module = this.app.getModule(btn.module),
-	// window;
-	//
-	// if (module) {
-	// window = module.createWindow();
-	// window.show();
-	// }
-	/*
-	 * This to be implemented
-	 */
     },
 
     /**

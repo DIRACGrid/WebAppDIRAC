@@ -885,7 +885,7 @@ Ext.define('Ext.dirac.core.Desktop',
 	    onWindowMenuMinimize : function() {
 		var me = this, win = me.windowMenu.theWin;
 
-		// win.minimize();
+		//win.minimize();
 		win.minimized = true;
 		// win.maximized = false;
 		me.refreshUrlDesktopState();
@@ -1164,11 +1164,9 @@ Ext.define('Ext.dirac.core.Desktop',
 		 * application
 		 */
 		if (win.desktopGridStickButton.type == "unpin") {
-		    for ( var i = win.i_x; i <= win.i_x + win.ic_x - 1; i++) {
-			for ( var j = win.i_y; j <= win.i_y + win.ic_y - 1; j++) {
-			    me.takenCells[j][i] = false;
-			}
-		    }
+		    
+		    me.setDesktopMatrixCells(win.i_x,win.i_x + win.ic_x - 1,win.i_y,win.i_y + win.ic_y - 1,false);
+		   
 		}
 
 	    },
@@ -1243,18 +1241,10 @@ Ext.define('Ext.dirac.core.Desktop',
 			if (bOK) {
 
 			    // we free the previous cells
-			    for ( var i = oWindow.i_x; i <= oWindow.i_x + oWindow.ic_x - 1; i++) {
-				for ( var j = oWindow.i_y; j <= oWindow.i_y + oWindow.ic_y - 1; j++) {
-				    me.takenCells[j][i] = false;
-				}
-			    }
+			    me.setDesktopMatrixCells(oWindow.i_x,oWindow.i_x + oWindow.ic_x - 1,oWindow.i_y,oWindow.i_y + oWindow.ic_y - 1,false);
 
 			    // we occupy the new cells of the new position
-			    for ( var i = oCell[0]; i <= oCell[0] + oWindow.ic_x - 1; i++) {
-				for ( var j = oCell[1]; j <= oCell[1] + oWindow.ic_y - 1; j++) {
-				    me.takenCells[j][i] = true;
-				}
-			    }
+			    me.setDesktopMatrixCells(oCell[0], oCell[0] + oWindow.ic_x - 1, oCell[1], oCell[1] + oWindow.ic_y - 1,true);
 
 			    // we change the indexes of the top left cell taken
 			    // by the app
@@ -1336,21 +1326,13 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		    // if the destination cells are free i.e. not taken
 		    if (bOK) {
-
+			
 			// we free the previous cells
-			for ( var i = oWindow.i_x; i <= oWindow.i_x + oWindow.ic_x - 1; i++) {
-			    for ( var j = oWindow.i_y; j <= oWindow.i_y + oWindow.ic_y - 1; j++) {
-				me.takenCells[j][i] = false;
-			    }
-			}
+			me.setDesktopMatrixCells(oWindow.i_x,oWindow.i_x + oWindow.ic_x - 1,oWindow.i_y,oWindow.i_y + oWindow.ic_y - 1, false);
 
 			// we occupy the new cells of the new position
-			for ( var i = oWindow.i_x; i <= oCell[0]; i++) {
-			    for ( var j = oWindow.i_y; j <= oCell[1]; j++) {
-				me.takenCells[j][i] = true;
-			    }
-			}
-
+			me.setDesktopMatrixCells(oWindow.i_x, oCell[0], oWindow.i_y, oCell[1], true);
+			
 			// we set up the new cell dimensions of the window
 			oWindow.ic_x = oCell[0] - oWindow.i_x + 1;
 			oWindow.ic_y = oCell[1] - oWindow.i_y + 1;
@@ -1581,13 +1563,8 @@ Ext.define('Ext.dirac.core.Desktop',
 			oWin.ic_x = oDim[0];
 			oWin.ic_y = oDim[1];
 
-			for ( var i = oWin.i_x; i <= oWin.i_x + oWin.ic_x - 1; i++) {
-			    for ( var j = oWin.i_y; j <= oWin.i_y + oWin.ic_y - 1; j++) {
-				me.takenCells[j][i] = true;
-
-			    }
-			}
-
+			me.setDesktopMatrixCells(oWin.i_x, oWin.i_x + oWin.ic_x - 1, oWin.i_y, oWin.i_y + oWin.ic_y - 1, true);
+			
 			oWin.suspendEvents(false);
 
 			oWin.restore();
@@ -1618,13 +1595,8 @@ Ext.define('Ext.dirac.core.Desktop',
 		    }
 
 		} else {
-
-		    // release the cells
-		    for ( var i = oWin.i_x; i <= oWin.i_x + oWin.ic_x - 1; i++) {
-			for ( var j = oWin.i_y; j <= oWin.i_y + oWin.ic_y - 1; j++) {
-			    me.takenCells[j][i] = false;
-			}
-		    }
+		    
+		    me.setDesktopMatrixCells(oWin.i_x, oWin.i_x + oWin.ic_x - 1, oWin.i_y, oWin.i_y + oWin.ic_y - 1, false);
 
 		    /*
 		     * Show minimize, maximize, restore
@@ -1642,6 +1614,34 @@ Ext.define('Ext.dirac.core.Desktop',
 		}
 
 		me.refreshUrlDesktopState();
+	    },
+	    
+	    /**
+	     * Function to set/unset the cells of particular region of the desktop cells matrix
+	     * 
+	     * 
+	     * @param {int}
+	     *                iXMin Starting X index
+	     * @param {int}
+	     *                iXMax Ending X index
+	     * @param {int}
+	     *                iYMin Starting Y index
+	     * @param {int}
+	     *                iYMax Ending Y index                
+	     * @param {boolean}
+	     *                bSetValue The setter value
+	     * 
+	     */
+	    setDesktopMatrixCells:function(iXMin,iXMax,iYMin,iYMax,bSetValue){
+		
+		var me = this;
+		
+		for ( var i = iXMin; i <= iXMax; i++) {
+		    for ( var j = iYMin; j <= iYMax; j++) {
+			me.takenCells[j][i] = bSetValue;
+		    }
+		}
+		
 	    },
 
 	    /**

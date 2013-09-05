@@ -36,36 +36,74 @@ Ext.define('Ext.dirac.core.Window', {
      */
     desktop : null,
 
+    /**
+     * @cfg {String} Configuration property that sets the resizable borders of a
+     *      window
+     */
     resizeHandles : "s e se",
-
-    desktopStickMode : false,
-
-    i_x : -1,
-    i_y : -1,
-    ic_x : -1,
-    ic_y : -1,
-    _x : -1,
-    _y : -1,
-    _before_pin_state : {
-	x : 0,
-	y : 0,
-	width : 200,
-	height : 200,
-	maximized : false,
-	minimized : false
-
-    },
-    _restore_state : {},
 
     initComponent : function() {
 
 	var me = this;
+
+	// property indicating whether the window is pinned or not
+	me.desktopStickMode = false;
+
+	/*
+	 * if the window is pinned, then this is the matrix index regarding the
+	 * X axis
+	 */
+	me.i_x = -1;
+
+	/*
+	 * if the window is pinned, then this is the matrix index regarding the
+	 * Y axis
+	 */
+	me.i_y = -1;
+
+	/*
+	 * if the window is pinned, then this is the number of cells taken by
+	 * the app regarding the X axis
+	 */
+	me.ic_x = -1;
+
+	/*
+	 * if the window is pinned, then this is the number of cells taken by
+	 * the app regarding the Y axis
+	 */
+	me.ic_y = -1;
+
+	/*
+	 * if the window is pinned, then this is the X coordinate of the window
+	 */
+	me._x = -1;
+
+	/*
+	 * if the window is pinned, then this is the Y coordinate of the window
+	 */
+	me._y = -1;
+
+	/*
+	 * This data structure saves the state before the app gets pinned
+	 */
+	me._before_pin_state = {
+	    x : 0,
+	    y : 0,
+	    width : 200,
+	    height : 200,
+	    maximized : false,
+	    minimized : false
+
+	};
+
+	me._restore_state = {};
 
 	me.loadMask = new Ext.LoadMask(me, {
 	    msg : "Loading ..."
 	});
 
 	if (me.loadedObjectType == "app") {
+	    // setting the app object as an item in the window
 	    me.items = [ me.loadedObject ];
 	    me.appClassName = me.loadedObject.self.getName();
 	} else if (me.loadedObjectType == "link") {
@@ -79,6 +117,7 @@ Ext.define('Ext.dirac.core.Window', {
 	    me.appClassName = "link";
 	}
 
+	// a list of the child windows
 	me.childWindows = [];
 
 	me.callParent();
@@ -88,7 +127,9 @@ Ext.define('Ext.dirac.core.Window', {
     afterShow : function() {
 
 	var me = this;
+
 	me.callParent();
+
 	if (me.loadedObjectType == "app")
 	    me.setLoadedObject(me.setupData);
 	else if (me.loadedObjectType == "link")
@@ -96,6 +137,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 	GLOBAL.APP.desktop.refreshUrlDesktopState();
 
+	// removing the dblclick event handler from the window header
 	me.header.un({
 	    dblclick : {
 		fn : me.toggleMaximize,
@@ -116,46 +158,36 @@ Ext.define('Ext.dirac.core.Window', {
     setLoadedObject : function(setupData) {
 
 	var me = this;
+
 	me.minimized = false;
+
 	if (setupData != null) {
 
 	    if (("desktopStickMode" in setupData) && (parseInt(setupData["desktopStickMode"]) == 1)) {
-
+		/*
+		 * if the applcation has to be pinned
+		 */
 		me.i_x = setupData["i_x"];
 		me.i_y = setupData["i_y"];
 		me.ic_x = setupData["ic_x"];
 		me.ic_y = setupData["ic_y"];
 
-		// console.log([ me.i_x, me.i_y, me.ic_x, me.ic_y ]);
-
-		for ( var i = me.i_x; i < me.i_x + me.ic_x; i++) {
-		    for ( var j = me.i_y; j < me.i_y + me.ic_y; j++) {
-
-			me.desktop.takenCells[j][i] = true;
-
-		    }
-		}
-
+		/*
+		 * Taking the cells where the window is going to reside
+		 */
+		me.desktop.setDesktopMatrixCells(me.i_x,me.i_x + me.ic_x - 1, me.i_y, me.i_y + me.ic_y - 1, true);
+		
 		me.desktopStickMode = true;
+
 		me._x = Math.round(me.i_x * me.desktop.boxSizeX);
 		me._y = Math.round(me.i_y * me.desktop.boxSizeY);
 
 		var oPos = me.getPosition();
 
-		me.before_pin_x = me._x;
-		me.before_pin_y = me._y;
-		me.before_pin_width = Math.round(me.ic_x * me.desktop.boxSizeX);
-		me.before_pin_height = Math.round(me.ic_y * me.desktop.boxSizeY);
-
-		/*
-		 * me._before_pin_state = { x : me.x, y : me.y, width :
-		 * me.getWidth(), height : me.getHeight(), maximized : false,
-		 * minimized : false };
-		 */
-
 		me._before_pin_state = setupData["_before_pin_state"];
 
 		me.suspendEvents(false);
+		// setting the position and the size of the window
 		me.setPosition(Math.round(me.i_x * me.desktop.boxSizeX), Math.round(me.i_y * me.desktop.boxSizeY));
 		me.setSize(Math.round(me.ic_x * me.desktop.boxSizeX), Math.round(me.ic_y * me.desktop.boxSizeY));
 		me.resumeEvents();
@@ -172,9 +204,16 @@ Ext.define('Ext.dirac.core.Window', {
 
 	    } else if (("maximized" in setupData) && (setupData["maximized"])) {
 
+		/*
+		 * If it is not pinned but maximized
+		 */
 		me.maximize();
 
 	    } else if (("minimized" in setupData) && (setupData["minimized"])) {
+
+		/*
+		 * If it is not pinned but minimized
+		 */
 
 		if ("width" in setupData)
 		    me.setWidth(parseInt(setupData.width));
@@ -186,6 +225,9 @@ Ext.define('Ext.dirac.core.Window', {
 
 	    } else {
 
+		/*
+		 * If the window is not maximized nor minimized nor pinned
+		 */
 		if ("x" in setupData) {
 		    me.setPosition(parseInt(setupData.x), parseInt(setupData.y));
 		}
@@ -198,6 +240,7 @@ Ext.define('Ext.dirac.core.Window', {
 		    me.setHeight(parseInt(setupData.height));
 		}
 
+		// if no width nor height are set up
 		if ((!("height" in setupData)) && (!("width" in setupData))) {
 
 		    if (!me.loadedObject.launcher.maximized) {
@@ -230,18 +273,21 @@ Ext.define('Ext.dirac.core.Window', {
 
 	    }
 
+	    // setting the Z-index
 	    if ("zIndex" in setupData) {
 
 		me.setZIndex(setupData.zIndex);
 
 	    }
 
+	    // if there is a state to load, we load that state
 	    if ("stateToLoad" in setupData) {
 
 		me.oprLoadAppStateFromCache(setupData["stateToLoad"]);
 
 	    } else {
 
+		// if there is no state to load, but only data to apply
 		if ("data" in setupData) {
 		    me.currentState = setupData.currentState;
 		    me.loadedObject.currentState = setupData.currentState;
@@ -254,6 +300,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 	    }
 
+	    // if the header of the window has to be hidden
 	    if ("headerHidden" in setupData) {
 
 		if (setupData["headerHidden"] == 1)
@@ -262,6 +309,8 @@ Ext.define('Ext.dirac.core.Window', {
 	    }
 
 	} else {
+
+	    // if no setupdata is provided
 
 	    if ((me.loadedObject.launcher.x != null) && (me.loadedObject.launcher.y != null)) {
 
@@ -302,6 +351,10 @@ Ext.define('Ext.dirac.core.Window', {
 
 	}
 
+	/*
+	 * Setting other properties related to the window
+	 */
+
 	if (me.currentState == "") {
 
 	    me.setTitle(me.loadedObject.launcher.title);
@@ -318,6 +371,10 @@ Ext.define('Ext.dirac.core.Window', {
 	    me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
 
 	me.setIconCls(me.loadedObject.launcher.iconCls);
+
+	/*
+	 * 
+	 */
 	me._restore_state = {
 	    x : me.x,
 	    y : me.y,
@@ -326,10 +383,19 @@ Ext.define('Ext.dirac.core.Window', {
 	    maximized : me.maximized,
 	    minimized : me.minimized
 	};
+
+	// making relation between the application and the window container
 	me.loadedObject.setContainer(me);
 
     },
 
+    /**
+     * Function invoked when the window gets restored to the previous state at
+     * the desktop. The function is used in the Desktop object.
+     *  
+     * @param {Object}
+     *                oData Data to be applied
+     */
     loadWindowFrameState : function(oData) {
 
 	var me = this;
@@ -400,6 +466,12 @@ Ext.define('Ext.dirac.core.Window', {
 
     },
 
+    /**
+     * Function to set a state of the window where a link has been loaded
+     * 
+     * @param {Object}
+     *                setupData Setup data
+     */
     setPropertiesWhenLink : function(setupData) {
 
 	var me = this;
@@ -451,6 +523,7 @@ Ext.define('Ext.dirac.core.Window', {
 	return this.currentState;
 
     },
+
     /**
      * Overriden function, inherited from Ext.window.Window used to set up the
      * buttons at the top right corner of the window
@@ -588,6 +661,8 @@ Ext.define('Ext.dirac.core.Window', {
      * Function for adding new state within the list of existing states
      * 
      * @param {String}
+     *                stateType The type of the state [application|reference]
+     * @param {String}
      *                stateName The name of the state
      */
     addNewState : function(stateType, stateName) {
@@ -637,9 +712,12 @@ Ext.define('Ext.dirac.core.Window', {
 	}
 
     },
+
     /**
      * Function for removing a state from the list of existing states
      * 
+     * @param {String}
+     *                stateType The type of the state [application|reference]
      * @param {String}
      *                stateName The name of the state
      */
@@ -699,8 +777,10 @@ Ext.define('Ext.dirac.core.Window', {
 
 	var me = this;
 
+	// first we remove all items from the menu
 	me.statesMenu.removeAll();
 
+	// first we fill the menu with the states
 	var oStates = GLOBAL.APP.SM.getApplicationStates("application", me.appClassName);
 
 	for ( var i = 0, len = oStates.length; i < len; i++) {
@@ -726,6 +806,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 	me.statesMenu.add("-");
 
+	// then we fill the menu with the refrences
 	var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", me.appClassName);
 
 	for ( var i = 0, len = oRefs.length; i < len; i++) {
@@ -755,6 +836,8 @@ Ext.define('Ext.dirac.core.Window', {
     oprLoadAppStateFromCache : function(stateName) {
 
 	var me = this;
+
+	// checking whether the state exists or not
 	var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, stateName);
 
 	switch (iStateLoaded) {
@@ -774,6 +857,10 @@ Ext.define('Ext.dirac.core.Window', {
 	    break;
 	}
 
+	/*
+	 * loading the state data and setting other properties related to the
+	 * window
+	 */
 	me.loadMask.show();
 
 	me.closeAllChildWindows();
@@ -795,6 +882,12 @@ Ext.define('Ext.dirac.core.Window', {
 
     },
 
+    /**
+     * Function to load module state with data from the cache
+     * 
+     * @param {String}
+     *                stateName The name of the state
+     */
     oprGetChildWindow : function(sTitle, oModal, oWidth, oHeight) {
 
 	var me = this;
@@ -815,6 +908,12 @@ Ext.define('Ext.dirac.core.Window', {
 
     },
 
+    /**
+     * Function to remove a child window from the list of child windows
+     * 
+     * @param {Ext.dirac.core.Window}
+     *                oChildWindow Rference to the child window
+     */
     removeChildWindowFromList : function(oChildWindow) {
 
 	var me = this;
@@ -831,6 +930,10 @@ Ext.define('Ext.dirac.core.Window', {
 
     },
 
+    /**
+     * Function to close all child windows
+     * 
+     */
     closeAllChildWindows : function() {
 
 	var me = this;
@@ -840,6 +943,10 @@ Ext.define('Ext.dirac.core.Window', {
 
     },
 
+    /**
+     * Function to get the data describing the state of the window at the
+     * desktop area
+     */
     getUrlDescription : function() {
 
 	var me = this;
