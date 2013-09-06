@@ -1163,10 +1163,12 @@ Ext.define('Ext.dirac.core.Desktop',
 		 * if the window was pinned we free all the cells taken by the
 		 * application
 		 */
-		if (win.desktopGridStickButton.type == "unpin") {
-		    
-		    me.setDesktopMatrixCells(win.i_x,win.i_x + win.ic_x - 1,win.i_y,win.i_y + win.ic_y - 1,false);
-		   
+		if(win.desktopGridStickButton){
+        		if (win.desktopGridStickButton.type == "unpin") {
+        		    
+        		    me.setDesktopMatrixCells(win.i_x,win.i_x + win.ic_x - 1,win.i_y,win.i_y + win.ic_y - 1,false);
+        		   
+        		}
 		}
 
 	    },

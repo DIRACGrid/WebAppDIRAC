@@ -119,13 +119,18 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	
 	if(bChange){
 	    
-	    me.btnCommitConfiguration.show();
-	    me.btnViewConfigDifference.show();
+	    if(me.btnCommitConfiguration)
+		me.btnCommitConfiguration.show();
+	    
+	    if(me.btnViewConfigDifference)
+		me.btnViewConfigDifference.show();
 	    
 	}else{
+	    if(me.btnCommitConfiguration)
+		me.btnCommitConfiguration.hide();
 	    
-	    me.btnCommitConfiguration.hide();
-	    me.btnViewConfigDifference.hide();
+	    if(me.btnViewConfigDifference)
+		me.btnViewConfigDifference.hide();
 	    
 	}
 	

@@ -162,7 +162,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	    },
 	    failure : function(response) {
 
-		me.cache[sStateType][sAppName] = {};
+		me.cache["application"][sAppName] = {};
 		me.cache["reference"][sAppName] = {};
 
 		Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
@@ -975,20 +975,20 @@ Ext.define('Ext.dirac.core.StateManagement', {
      * Function executed when the shared state has to be loaded
      * 
      * @param {Object}
-     *                oData Data related to the shared state
+     *                sLinkDescription String describing the shared state
      * @param {Function}
      *                cbAfterLoadSharedState Function to be executed after the
      *                shared state has been loaded
      * 
      */
-    loadSharedState : function(oData, cbAfterLoadSharedState) {
+    loadSharedState : function(sLinkDescription, cbAfterLoadSharedState) {
 
 	var me = this;
 
 	if ((cbAfterLoadSharedState != null) && (cbAfterLoadSharedState != undefined))
 	    me.__cbAfterLoadSharedState = cbAfterLoadSharedState;
 
-	var oDataItems = oData.split("|");
+	var oDataItems = sLinkDescription.split("|");
 
 	if (oDataItems.length != 4) {
 
@@ -1013,7 +1013,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		var oDataReceived = Ext.JSON.decode(response.responseText);
 
 		if (me.__cbAfterLoadSharedState != null)
-		    me.__cbAfterLoadSharedState(oData, oDataReceived);
+		    me.__cbAfterLoadSharedState(sLinkDescription, oDataReceived);
 
 		if (me.manageWindow)
 		    me.manageWindow.close();
