@@ -51,7 +51,7 @@ Ext.define('Ext.dirac.core.App', {
 		    var m = Ext.DomHelper.append(msgCt, createBox(title, s), true);
 		    m.hide();
 		    m.slideIn('t').ghost("t", {
-			delay : 1000,
+			delay : 2000,
 			remove : true
 		    });
 

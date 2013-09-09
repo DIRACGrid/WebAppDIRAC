@@ -24,31 +24,31 @@ class JobMonitorHandler(WebHandler):
     result = yield self.threadTask(RPC.getJobPageSummaryWeb,req, self.globalSort , self.pageNumber, self.numberOfJobs)
     
     if not result["OK"]:
-      self.finish({"success":"false", "error":result["Message"]})
+      self.finish({"success":"false","result":[], "total":0, "error":result["Message"]})
       return
     
     result = result["Value"]
     
     if not result.has_key("TotalRecords"):
-      self.finish({"success":"false", "result":"", "error":"Data structure is corrupted"})
+      self.finish({"success":"false", "result":[], "total":-1, "error":"Data structure is corrupted"})
       return
       
     
     if not (result["TotalRecords"] > 0):
-      self.finish({"success":"false", "result":"", "error":"There were no data matching your selection"})
+      self.finish({"success":"false", "result":[], "total":0, "error":"There were no data matching your selection"})
       return
       
     
     if not (result.has_key("ParameterNames") and result.has_key("Records")):
-      self.finish({"success":"false", "result":"", "error":"Data structure is corrupted"})
+      self.finish({"success":"false", "result":[], "total":-1, "error":"Data structure is corrupted"})
       return
     
     if not (len(result["ParameterNames"]) > 0):
-      self.finish({"success":"false", "result":"", "error":"ParameterNames field is missing"})
+      self.finish({"success":"false", "result":[], "total":-1, "error":"ParameterNames field is missing"})
       return
     
     if not (len(result["Records"]) > 0):
-      self.finish({"success":"false", "Message":"There are no data to display"})
+      self.finish({"success":"false", "result":[], "total":0, "Message":"There are no data to display"})
       return
 
     callback = []

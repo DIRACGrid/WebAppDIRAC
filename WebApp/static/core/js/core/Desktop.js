@@ -873,9 +873,7 @@ Ext.define('Ext.dirac.core.Desktop',
 	     */
 	    onWindowMenuMaximize : function() {
 		var me = this, win = me.windowMenu.theWin;
-
 		win.maximize();
-		win.toFront();
 	    },
 
 	    /**
@@ -885,11 +883,11 @@ Ext.define('Ext.dirac.core.Desktop',
 	    onWindowMenuMinimize : function() {
 		var me = this, win = me.windowMenu.theWin;
 
-		//win.minimize();
-		win.minimized = true;
+		win.minimize();
+		// win.minimized = true;
 		// win.maximized = false;
-		me.refreshUrlDesktopState();
-		win.hide();
+		// me.refreshUrlDesktopState();
+		// win.hide();
 	    },
 
 	    /**
@@ -946,7 +944,9 @@ Ext.define('Ext.dirac.core.Desktop',
 	     */
 	    onWindowMenuRestore : function() {
 		var me = this, oWin = me.windowMenu.theWin;
-		me.restoreWindow(oWin);
+		oWin.restore();
+		oWin.minimized = false;
+		me.refreshUrlDesktopState();
 	    },
 
 	    /**
@@ -1085,27 +1085,8 @@ Ext.define('Ext.dirac.core.Desktop',
 	     */
 	    maximizeWindow : function(win) {
 		win.getHeader().hide();
-		win.maximize();
+		win.minimized = false;
 		win.toFront();
-	    },
-
-	    /**
-	     * @private Handler called when the window gets restored
-	     * @param {Ext.window.Window}
-	     *                win The window object getting minimized
-	     */
-	    restoreWindow : function(oWin) {
-
-		var me = this;
-		oWin.suspendEvents(false);
-		oWin.restore();
-		oWin.resumeEvents();
-		oWin.show();
-		oWin.loadWindowFrameState(oWin._restore_state);
-		oWin.toFront();
-		me.refreshUrlDesktopState();
-		return oWin;
-
 	    },
 
 	    /**
@@ -1163,12 +1144,12 @@ Ext.define('Ext.dirac.core.Desktop',
 		 * if the window was pinned we free all the cells taken by the
 		 * application
 		 */
-		if(win.desktopGridStickButton){
-        		if (win.desktopGridStickButton.type == "unpin") {
-        		    
-        		    me.setDesktopMatrixCells(win.i_x,win.i_x + win.ic_x - 1,win.i_y,win.i_y + win.ic_y - 1,false);
-        		   
-        		}
+		if (win.desktopGridStickButton) {
+		    if (win.desktopGridStickButton.type == "unpin") {
+
+			me.setDesktopMatrixCells(win.i_x, win.i_x + win.ic_x - 1, win.i_y, win.i_y + win.ic_y - 1, false);
+
+		    }
 		}
 
 	    },
@@ -1243,10 +1224,10 @@ Ext.define('Ext.dirac.core.Desktop',
 			if (bOK) {
 
 			    // we free the previous cells
-			    me.setDesktopMatrixCells(oWindow.i_x,oWindow.i_x + oWindow.ic_x - 1,oWindow.i_y,oWindow.i_y + oWindow.ic_y - 1,false);
+			    me.setDesktopMatrixCells(oWindow.i_x, oWindow.i_x + oWindow.ic_x - 1, oWindow.i_y, oWindow.i_y + oWindow.ic_y - 1, false);
 
 			    // we occupy the new cells of the new position
-			    me.setDesktopMatrixCells(oCell[0], oCell[0] + oWindow.ic_x - 1, oCell[1], oCell[1] + oWindow.ic_y - 1,true);
+			    me.setDesktopMatrixCells(oCell[0], oCell[0] + oWindow.ic_x - 1, oCell[1], oCell[1] + oWindow.ic_y - 1, true);
 
 			    // we change the indexes of the top left cell taken
 			    // by the app
@@ -1328,13 +1309,13 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		    // if the destination cells are free i.e. not taken
 		    if (bOK) {
-			
+
 			// we free the previous cells
-			me.setDesktopMatrixCells(oWindow.i_x,oWindow.i_x + oWindow.ic_x - 1,oWindow.i_y,oWindow.i_y + oWindow.ic_y - 1, false);
+			me.setDesktopMatrixCells(oWindow.i_x, oWindow.i_x + oWindow.ic_x - 1, oWindow.i_y, oWindow.i_y + oWindow.ic_y - 1, false);
 
 			// we occupy the new cells of the new position
 			me.setDesktopMatrixCells(oWindow.i_x, oCell[0], oWindow.i_y, oCell[1], true);
-			
+
 			// we set up the new cell dimensions of the window
 			oWindow.ic_x = oCell[0] - oWindow.i_x + 1;
 			oWindow.ic_y = oCell[1] - oWindow.i_y + 1;
@@ -1380,7 +1361,7 @@ Ext.define('Ext.dirac.core.Desktop',
 		console.log(s);
 
 	    },
-	    
+
 	    /**
 	     * Function to get the indexes of the underlying cell in the desktop
 	     * cell matrix regarding the cursor position (iX,iY)
@@ -1566,7 +1547,7 @@ Ext.define('Ext.dirac.core.Desktop',
 			oWin.ic_y = oDim[1];
 
 			me.setDesktopMatrixCells(oWin.i_x, oWin.i_x + oWin.ic_x - 1, oWin.i_y, oWin.i_y + oWin.ic_y - 1, true);
-			
+
 			oWin.suspendEvents(false);
 
 			oWin.restore();
@@ -1597,7 +1578,7 @@ Ext.define('Ext.dirac.core.Desktop',
 		    }
 
 		} else {
-		    
+
 		    me.setDesktopMatrixCells(oWin.i_x, oWin.i_x + oWin.ic_x - 1, oWin.i_y, oWin.i_y + oWin.ic_y - 1, false);
 
 		    /*
@@ -1617,9 +1598,10 @@ Ext.define('Ext.dirac.core.Desktop',
 
 		me.refreshUrlDesktopState();
 	    },
-	    
+
 	    /**
-	     * Function to set/unset the cells of particular region of the desktop cells matrix
+	     * Function to set/unset the cells of particular region of the
+	     * desktop cells matrix
 	     * 
 	     * 
 	     * @param {int}
@@ -1629,21 +1611,21 @@ Ext.define('Ext.dirac.core.Desktop',
 	     * @param {int}
 	     *                iYMin Starting Y index
 	     * @param {int}
-	     *                iYMax Ending Y index                
+	     *                iYMax Ending Y index
 	     * @param {boolean}
 	     *                bSetValue The setter value
 	     * 
 	     */
-	    setDesktopMatrixCells:function(iXMin,iXMax,iYMin,iYMax,bSetValue){
-		
+	    setDesktopMatrixCells : function(iXMin, iXMax, iYMin, iYMax, bSetValue) {
+
 		var me = this;
-		
+
 		for ( var i = iXMin; i <= iXMax; i++) {
 		    for ( var j = iYMin; j <= iYMax; j++) {
 			me.takenCells[j][i] = bSetValue;
 		    }
 		}
-		
+
 	    },
 
 	    /**
@@ -1780,7 +1762,6 @@ Ext.define('Ext.dirac.core.Desktop',
 		    deactivate : me.updateDeactiveWindow,
 		    minimize : me.minimizeWindow,
 		    maximize : me.maximizeWindow,
-		    restore : me.restoreWindow,
 		    destroy : me.onWindowClose,
 		    move : me.onWindowMove,
 		    resize : me.onWindowResize,
@@ -2296,6 +2277,6 @@ Ext.define('Ext.dirac.core.Desktop',
 
 	    }
 
-	    /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
+	/*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
 
 	});

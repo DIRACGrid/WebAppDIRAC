@@ -606,12 +606,26 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		load : function(oStore, records, successful, eOpts) {
 
-		    if (oStore.proxy.reader.rawData)
-			me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+		    var bResponseOK = (oStore.proxy.reader.rawData["success"] == "true");
 
-		    me.dataStore.remoteSort = false;
-		    me.dataStore.sort();
-		    me.dataStore.remoteSort = true;
+		    if (!bResponseOK) {
+
+			alert(oStore.proxy.reader.rawData["error"]);
+			
+			if(parseInt(oStore.proxy.reader.rawData["total"])==0){
+			    
+			    me.dataStore.removeAll();
+			    
+			}
+
+		    } else {
+			if (oStore.proxy.reader.rawData)
+			    me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+
+			me.dataStore.remoteSort = false;
+			me.dataStore.sort();
+			me.dataStore.remoteSort = true;
+		    }
 
 		},
 
@@ -1023,7 +1037,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	    }
 	});
-	
+
 	me.grid.columns[1].setSortState("DESC");
 
 	/*

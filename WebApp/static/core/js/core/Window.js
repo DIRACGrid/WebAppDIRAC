@@ -119,7 +119,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 	// a list of the child windows
 	me.childWindows = [];
-
+	me.oneTimeAfterShow = false;
 	me.callParent();
 
     },
@@ -130,21 +130,24 @@ Ext.define('Ext.dirac.core.Window', {
 
 	me.callParent();
 
-	if (me.loadedObjectType == "app")
-	    me.setLoadedObject(me.setupData);
-	else if (me.loadedObjectType == "link")
-	    me.setPropertiesWhenLink(me.setupData);
+	if (!me.oneTimeAfterShow) {
+	    if (me.loadedObjectType == "app")
+		me.setLoadedObject(me.setupData);
+	    else if (me.loadedObjectType == "link")
+		me.setPropertiesWhenLink(me.setupData);
 
-	GLOBAL.APP.desktop.refreshUrlDesktopState();
+	    GLOBAL.APP.desktop.refreshUrlDesktopState();
 
-	// removing the dblclick event handler from the window header
-	me.header.un({
-	    dblclick : {
-		fn : me.toggleMaximize,
-		element : 'el',
-		scope : me
-	    }
-	});
+	    // removing the dblclick event handler from the window header
+	    me.header.un({
+		dblclick : {
+		    fn : me.toggleMaximize,
+		    element : 'el',
+		    scope : me
+		}
+	    });
+	    me.oneTimeAfterShow = true;
+	}
 
     },
 
@@ -175,8 +178,8 @@ Ext.define('Ext.dirac.core.Window', {
 		/*
 		 * Taking the cells where the window is going to reside
 		 */
-		me.desktop.setDesktopMatrixCells(me.i_x,me.i_x + me.ic_x - 1, me.i_y, me.i_y + me.ic_y - 1, true);
-		
+		me.desktop.setDesktopMatrixCells(me.i_x, me.i_x + me.ic_x - 1, me.i_y, me.i_y + me.ic_y - 1, true);
+
 		me.desktopStickMode = true;
 
 		me._x = Math.round(me.i_x * me.desktop.boxSizeX);
@@ -392,7 +395,7 @@ Ext.define('Ext.dirac.core.Window', {
     /**
      * Function invoked when the window gets restored to the previous state at
      * the desktop. The function is used in the Desktop object.
-     *  
+     * 
      * @param {Object}
      *                oData Data to be applied
      */

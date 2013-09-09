@@ -867,7 +867,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	if ("path" in oSendData)
 	    req["path"] = oSendData["path"];
 
-	var sText = JSON.stringify(req);
+	var sText = JSON.stringify(req["selection"]);
 
 	var iTab = 0;
 	var sNewText = "";
@@ -909,7 +909,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 	}
 
-	return sNewText;
+	return "metaDict = " + sNewText + "path = " + req["path"];
 
     },
 

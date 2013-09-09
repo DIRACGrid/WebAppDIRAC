@@ -273,15 +273,13 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	var win = btn.win;
 
 	if (win.minimized || win.hidden) {
+
 	    win.minimized = false;
 	    win.show();
+
 	} else if (win.active) {
 	    if (!win.desktopStickMode) {
-		// win.minimize();
-		win.minimized = true;
-		// win.maximized = false;
-		// me.refreshUrlDesktopState();
-		win.hide();
+		win.minimize();
 	    }
 	} else {
 	    win.toFront();
