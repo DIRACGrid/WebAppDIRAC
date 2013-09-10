@@ -5,53 +5,47 @@
  * http://www.sencha.com/license
  */
 
-Ext
-		.define(
-				'DIRAC.Notepad.classes.Notepad',
-				{
-					extend : 'Ext.dirac.core.Module',
+Ext.define('DIRAC.Notepad.classes.Notepad', {
+	extend : 'Ext.dirac.core.Module',
 
-					requires : [ 'Ext.form.field.HtmlEditor'],
+	requires : [ 'Ext.form.field.HtmlEditor' ],
 
-					initComponent : function() {
+	initComponent : function() {
 
-						var me = this;
-						
-						me.launcher.title = "Notepad";
-						me.launcher.maximized = false;
-						me.launcher.width = 400;
-						me.launcher.height = 400;
+		var me = this;
 
-						me.editor = new Ext.form.field.HtmlEditor(
-								{
-									value : [
-											'Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>',
-											'Give it a try!' ].join('')
-									
-								});
+		me.launcher.title = "Notepad";
+		me.launcher.maximized = false;
+		me.launcher.width = 400;
+		me.launcher.height = 400;
 
-						Ext.apply(me, {
-							layout : 'fit',
-							items : [ me.editor ]
-						});
+		me.editor = new Ext.form.field.HtmlEditor({
+			value : [ 'Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>', 'Give it a try!' ].join('')
 
-						me.callParent(arguments);
+		});
 
-					},
+		Ext.apply(me, {
+			layout : 'fit',
+			items : [ me.editor ]
+		});
 
-					loadState : function(data) {
+		me.callParent(arguments);
 
-						var me = this;
-						me.editor.setValue(data["text"]);
+	},
 
-					},
+	loadState : function(data) {
 
-					getStateData : function() {
+		var me = this;
+		me.editor.setValue(data["text"]);
 
-						var me = this;
-						return {
-							text : me.editor.getValue()
-						};
+	},
 
-					}
-				});
+	getStateData : function() {
+
+		var me = this;
+		return {
+			text : me.editor.getValue()
+		};
+
+	}
+});
