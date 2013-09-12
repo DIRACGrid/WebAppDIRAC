@@ -3,9 +3,9 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title>DIRAC :: DESKTOP</title>
-	<link rel="SHORTCUT ICON" href='/DIRAC/static/core/img/icons/system/favicon.ico'>
-    <link rel="stylesheet" type="text/css" href="/DIRAC/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
-    <link rel="stylesheet" type="text/css" href="/DIRAC/static/core/css/css.css" />
+	<link rel="SHORTCUT ICON" href='{{base_url}}/static/core/img/icons/system/favicon.ico'>
+    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
+    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     {% autoescape None %}
     <!-- GC -->
 
@@ -13,9 +13,9 @@
     <!-- <x-bootstrap> -->
 
     {% if _dev %}
-      <script type="text/javascript" src="/DIRAC/static/extjs/{{ext_version}}/ext-all.js"></script>
+      <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all.js"></script>
     {% else %}
-      <script type="text/javascript" src="/DIRAC/static/core/build/all-classes.js"></script>
+      <script type="text/javascript" src="{{base_url}}/static/core/build/all-classes.js"></script>
     {% end %}
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
@@ -29,12 +29,12 @@
        Ext.Loader.setPath({
        {% for extName in extensions %}
           {% if extName != 'WebAppDIRAC' %}
-            {{ escape( extName ) }}: "{{ escape( '/DIRAC/static/%s' % ( extName ) ) }}",
+            {{ escape( extName ) }}: "{{ escape( '%s/static/%s' % ( base_url, extName ) ) }}",
           {% end %}
        {% end %}
-            'Ext.dirac.core': '/DIRAC/static/core/js/core',
-            'Ext.dirac.utils': '/DIRAC/static/core/js/utils',
-            'Ext.ux.form':'/DIRAC/static/extjs/{{ext_version}}/examples/ux/form'
+            'Ext.dirac.core': '{{base_url}}/static/core/js/core',
+            'Ext.dirac.utils': '{{base_url}}/static/core/js/utils',
+            'Ext.ux.form':'{{base_url}}/static/extjs/{{ext_version}}/examples/ux/form'
           });
 
           Ext.require(['Ext.dirac.core.App','Ext.*']);
@@ -97,7 +97,7 @@
         <table>
           <tr>
             <td style="width:100px;">
-              <img src="/DIRAC/static/core/img/icons/system/_logo_waiting.gif" style="margin-right:8px;float:left;vertical-align:top;width:100%;"/>
+              <img src="{{base_url}}/static/core/img/icons/system/_logo_waiting.gif" style="margin-right:8px;float:left;vertical-align:top;width:100%;"/>
             </td>
             <td style="width:200px;vertical-align:middle;text-align:left;padding:5px 0px 5px 15px;font-size:14px">
               DIRAC
