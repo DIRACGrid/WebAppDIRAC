@@ -143,9 +143,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				"sortState" : col.sortState
 			};
 
-			console.log("SORT STATE: ");
-			console.log(col.sortState);
-
 		}
 
 		// show/hide for selectors and their selected data (including NOT
@@ -655,7 +652,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "JobAdministrator") != -1)) {
 			me.pagingToolbar.btnReset = new Ext.Button({
-				text : 'Reset',
+				text : '',
 				iconCls : "jm-reset-button-icon",
 				handler : function() {
 
@@ -663,7 +660,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					me.__oprJobAction("reset", "");
 
 				},
-				scope : me
+				scope : me,
+				tooltip : "Reset"
 			});
 		}
 
@@ -705,6 +703,33 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			scope : me,
 			tooltip : "Delete"
 		});
+		
+		me.pagingToolbar.btnGetIdList = new Ext.Button({
+			text : '',
+			iconCls : "jm-id-list-icon",
+			handler : function() {
+
+				var oItems = [];
+				
+				var oElems = Ext.query("#" + me.id + " input.checkrow");
+
+				for ( var i = 0; i < oElems.length; i++)
+					if (oElems[i].checked)
+						oItems.push(oElems[i].value);
+
+				if (oItems.length < 1) {
+					alert('No jobs were selected');
+					return;
+				}else{
+					
+					Ext.MessageBox.alert("IDs of selected jobs", oItems.join("; "));
+					
+				}
+
+			},
+			scope : me,
+			tooltip : "Get Selected IDs"
+		});
 
 		me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
 			allowBlank : false,
@@ -730,11 +755,19 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			me.oprLoadGridData();
 		}, me);
 
-		var pagingToolbarItems = [ me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
-				me.pagingToolbar.pageSizeCombo, '-' ];
+		var pagingToolbarItems = [];
 
-		if (me.pagingToolbar.btnReset != null)
-			pagingToolbarItems.unshift(me.pagingToolbar.btnReset);
+		if (me.pagingToolbar.btnReset != null){
+			
+			pagingToolbarItems = [me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReset, me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
+			                  				me.pagingToolbar.pageSizeCombo, '-' ];
+			
+		}else{
+			
+			pagingToolbarItems = [me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
+			                  				me.pagingToolbar.pageSizeCombo, '-' ];
+			
+		}
 
 		me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
 			store : me.dataStore,
@@ -742,9 +775,40 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			displayMsg : 'Displaying topics {0} - {1} of {2}',
 			items : pagingToolbarItems,
 			emptyMsg : "No topics to display",
-			prependButtons : true
+			prependButtons : true,
+			layout : {
+				overflowHandler : 'Scroller'
+			}
 		});
-
+		
+		if (me.pagingToolbar.btnReset != null){
+			
+			/*
+			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: 
+			 * ANY OTHER NEW ELEMENT MAY HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
+			 */
+			me.pagingToolbar.toolbar.items.insert(6,me.pagingToolbar.toolbar.items.items[23]);
+			me.pagingToolbar.toolbar.items.insert(9,me.pagingToolbar.toolbar.items.items[25]);
+			me.pagingToolbar.toolbar.items.insert(26,me.pagingToolbar.toolbar.items.items[10]);
+			/*
+			 * -------------------------------END-------------------------------
+			 */
+			
+		}else{
+			
+			/*
+			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: 
+			 * ANY OTHER NEW ELEMENT MAY HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
+			 */
+			me.pagingToolbar.toolbar.items.insert(5,me.pagingToolbar.toolbar.items.items[22]);
+			me.pagingToolbar.toolbar.items.insert(8,me.pagingToolbar.toolbar.items.items[24]);
+			me.pagingToolbar.toolbar.items.insert(25,me.pagingToolbar.toolbar.items.items[9]);
+			/*
+			 * -------------------------------END-------------------------------
+			 */
+			
+		}
+		
 		me.contextGridMenu = new Ext.menu.Menu({
 			items : [ {
 				handler : function() {

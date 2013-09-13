@@ -15,7 +15,7 @@ class PilotMonitorHandler(WebHandler):
   def web_getJobData(self):
     RPC = RPCClient("WorkloadManagement/WMSAdministrator")
     req = self.__request()
-    result = yield self.threadTask(RPC.getJobPageSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
+    result = yield self.threadTask(RPC.getPilotMonitorWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
     
     if not result["OK"]:
       self.finish({"success":"false","result":[], "total":0, "error":result["Message"]})
@@ -166,9 +166,9 @@ class PilotMonitorHandler(WebHandler):
     if self.request.arguments.has_key("pilotId") and len(self.request.arguments["pilotId"][0]) > 0:
       pageNumber = 0
       req["PilotJobReference"] = str(self.request.arguments["pilotId"][0])
-    elif self.request.arguments.has_key("taskQueueID") and len(self.request.arguments["taskQueueID"][0]) > 0:
+    elif self.request.arguments.has_key("taskQueueId") and len(self.request.arguments["taskQueueId"][0]) > 0:
       pageNumber = 0
-      req["TaskQueueID"] = str(self.request.arguments["taskQueueID"][0])
+      req["TaskQueueID"] = str(self.request.arguments["taskQueueId"][0])
     else:
       result = gConfig.getOption("/Website/ListSeparator")
       if result["OK"]:
@@ -188,13 +188,17 @@ class PilotMonitorHandler(WebHandler):
         if str(self.request.arguments["status"][0]) != "":
           req["Status"] = str(self.request.arguments["status"][0]).split(separator)
           
-      if self.request.arguments.has_key("destination") and len(self.request.arguments["destination"][0]) > 0:
-        if str(self.request.arguments["destination"][0]) != "":
-          req["DestinationSite"] = str(self.request.arguments["destination"][0]).split(separator)
+      if self.request.arguments.has_key("computingElement") and len(self.request.arguments["computingElement"][0]) > 0:
+        if str(self.request.arguments["computingElement"][0]) != "":
+          req["DestinationSite"] = str(self.request.arguments["computingElement"][0]).split(separator)
           
       if self.request.arguments.has_key("ownerGroup") and len(self.request.arguments["ownerGroup"][0]) > 0:
         if str(self.request.arguments["ownerGroup"][0]) != "":
           req["OwnerGroup"] = str(self.request.arguments["ownerGroup"][0]).split(separator)
+      
+      if self.request.arguments.has_key("owner") and len(self.request.arguments["owner"][0]) > 0:
+        if str(self.request.arguments["owner"][0]) != "":
+          req["Owner"] = str(self.request.arguments["owner"][0]).split(separator)
               
       if self.request.arguments.has_key("startDate") and len(self.request.arguments["startDate"][0]) > 0:
         if str(self.request.arguments["startDate"][0]) != "YYYY-mm-dd":
@@ -222,18 +226,18 @@ class PilotMonitorHandler(WebHandler):
     return req
   
   @asyncGen
-  def web_jobAction( self ):
+  def web_getJobInfoData( self ):
     callback = {}
     data = self.request.arguments["data"][0]
     
     RPC = RPCClient("WorkloadManagement/WMSAdministrator")
-    if self.request.arguments["action"][0] == "getPilotOutput":
+    if self.request.arguments["data_kind"][0] == "getPilotOutput":
       result = yield self.threadTask(RPC.getPilotOutput,data)
       if result["OK"]:
         callback = {"success":"true","result":result["Value"]["StdOut"]}
       else:
         callback = {"success":"false","error":result["Message"]}
-    elif self.request.arguments["action"][0] == "getPilotError":
+    elif self.request.arguments["data_kind"][0] == "getPilotError":
       result = yield self.threadTask(RPC.getPilotOutput,data)
       if result["OK"]:
         if len(result["Value"]["StdErr"]) > 0:
@@ -241,8 +245,8 @@ class PilotMonitorHandler(WebHandler):
         else:
           callback = {"success":"false","error":"Pilot Error is empty"}
       else:
-        c.result = {"success":"false","error":result["Message"]}
-    elif self.request.arguments["action"][0] == "getPilotLoggingInfo":
+        callback = {"success":"false","error":result["Message"]}
+    elif self.request.arguments["data_kind"][0] == "getLoggingInfo":
       result = yield self.threadTask(RPC.getPilotLoggingInfo,data)
       if result["OK"]:
         callback = {"success":"true","result":result["Value"]}

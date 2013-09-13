@@ -63,8 +63,9 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		else
 			me.timeSearchPanel.hide();
 		// END - For the time span searching sub-panel
-
-		me.textJobId.setValue(data.leftMenu.txtJobId);
+		
+		me.textTaskQueueId.setValue(data.leftMenu.textTaskQueueId);
+		me.textJobReference.setValue(data.leftMenu.textJobReference);
 		me.timeSearchElementsGroup.cmbTimeSpan.setValue(data.leftMenu.cmbTimeSpan);
 		me.timeSearchElementsGroup.calenFrom.setValue(data.leftMenu.calenFrom);
 
@@ -143,9 +144,6 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				"sortState" : col.sortState
 			};
 
-			console.log("SORT STATE: ");
-			console.log(col.sortState);
-
 		}
 
 		// show/hide for selectors and their selected data (including NOT
@@ -164,7 +162,8 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		}
 
 		// the state of the selectors, text fields and time
-		oReturn.leftMenu.txtJobId = me.textJobId.getValue();
+		oReturn.leftMenu.textTaskQueueId = me.textTaskQueueId.getValue();
+		oReturn.leftMenu.textJobReference = me.textJobReference.getValue();
 		oReturn.leftMenu.cmbTimeSpan = me.timeSearchElementsGroup.cmbTimeSpan.getValue();
 		oReturn.leftMenu.calenFrom = me.timeSearchElementsGroup.calenFrom.getValue();
 		oReturn.leftMenu.cmbTimeFrom = me.timeSearchElementsGroup.cmbTimeFrom.getValue();
@@ -185,7 +184,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 	}, {
 		name : 'LastUpdateTime',
 		type : 'date',
-		dateFormat : 'Y-n-j h:i:s'
+		dateFormat : 'Y-m-d H:i:s'
 	}, {
 		name : 'DestinationSite'
 	}, {
@@ -210,7 +209,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 	}, {
 		name : 'SubmissionTime',
 		type : 'date',
-		dateFormat : 'Y-n-j h:i:s'
+		dateFormat : 'Y-m-d H:i:s'
 	}, {
 		name : 'PilotJobReference'
 	}, {
@@ -221,7 +220,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		var me = this;
 
-		me.launcher.title = "Job Monitor";
+		me.launcher.title = "Pilot Monitor";
 		me.launcher.maximized = false;
 
 		var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
@@ -519,15 +518,6 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 				me.__oprRefreshStoresForSelectors(response, false);
 
-				/*
-				 * if (me.currentState == "") { if ("properties" in
-				 * GLOBAL.USER_CREDENTIALS) { if
-				 * ((Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "NormalUser") !=
-				 * -1) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties,
-				 * "JobSharing") == -1)) { me.cmbSelectors["owner"].setValue([
-				 * GLOBAL.USER_CREDENTIALS.username ]); } } }
-				 */
-
 				me.bDataSelectionLoaded = true;
 
 			},
@@ -607,22 +597,6 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			text : 'Updated: -'
 		});
 
-		me.pagingToolbar.btnReset = null;
-
-		if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "JobAdministrator") != -1)) {
-			me.pagingToolbar.btnReset = new Ext.Button({
-				text : 'Reset',
-				iconCls : "jm-reset-button-icon",
-				handler : function() {
-
-					var me = this;
-					me.__oprJobAction("reset", "");
-
-				},
-				scope : me
-			});
-		}
-
 		me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
 			allowBlank : false,
 			displayField : 'number',
@@ -649,9 +623,6 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		var pagingToolbarItems = [ '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
 
-		if (me.pagingToolbar.btnReset != null)
-			pagingToolbarItems.unshift(me.pagingToolbar.btnReset);
-
 		me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
 			store : me.dataStore,
 			displayInfo : true,
@@ -669,12 +640,12 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				text : 'Show Job'
 			}, '-', {
 				handler : function() {
-
+					me.__oprGetJobData("getPilotOutput");
 				},
 				text : 'Pilot Output'
 			}, {
 				handler : function() {
-
+					me.__oprGetJobData("getPilotError");
 				},
 				text : 'Pilot Error'
 			}, {
@@ -721,7 +692,8 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				header : 'PilotJobReference',
 				sortable : true,
 				dataIndex : 'PilotJobReference',
-				align : 'left'
+				align : 'left',
+				flex:1
 			}, {
 				header : 'Status',
 				sortable : true,
@@ -731,17 +703,20 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				header : 'Site',
 				sortable : true,
 				dataIndex : 'GridSite',
-				align : 'left'
+				align : 'left',
+				flex:1
 			}, {
 				header : 'ComputingElement',
 				sortable : true,
 				dataIndex : 'DestinationSite',
-				align : 'left'
+				align : 'left',
+				flex:1
 			}, {
 				header : 'Broker',
 				sortable : true,
 				dataIndex : 'Broker',
-				align : 'left'
+				align : 'left',
+				flex:1
 			}, {
 				header : 'CurrentJobID',
 				sortable : true,
@@ -799,13 +774,15 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				sortable : true,
 				dataIndex : 'LastUpdateTime',
 				align : 'left',
-				renderer : Ext.util.Format.dateRenderer('Y-m-d H:i:s')
+				renderer : Ext.util.Format.dateRenderer('Y-m-d H:i:s'),
+				width : 150
 			}, {
 				header : 'SubmissionTime [UTC]',
 				sortable : true,
 				dataIndex : 'SubmissionTime',
 				align : 'left',
-				renderer : Ext.util.Format.dateRenderer('Y-m-d H:i:s')
+				renderer : Ext.util.Format.dateRenderer('Y-m-d H:i:s'),
+				width : 150
 			} ],
 			rendererChkBox : function(val) {
 				return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
@@ -837,6 +814,16 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 
 					if (cellIndex != 0) {
+						
+						var oJobId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
+						var oStatus = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Status");
+						
+						var items = me.contextGridMenu.items.items;
+						
+						items[0].setDisabled(oJobId == '-');
+						items[2].setDisabled(oStatus != 'Done');
+						items[3].setDisabled(oStatus != 'Done');
+						
 						me.contextGridMenu.showAt(e.xy);
 					}
 
@@ -845,7 +832,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			}
 		});
 
-		me.grid.columns[1].setSortState("DESC");
+		//me.grid.columns[1].setSortState("DESC");
 
 		/*
 		 * -----------------------------------------------------------------------------------------------------------
@@ -965,7 +952,10 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		var me = this;
 		var bValid = true;
 
-		if (!me.textJobId.validate())
+		if (!me.textTaskQueueId.validate())
+			bValid = false;
+
+		if (!me.textJobReference.validate())
 			bValid = false;
 
 		return bValid;
@@ -1053,12 +1043,13 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 				site : ((me.cmbSelectors.site.isInverseSelection()) ? me.cmbSelectors.site.getInverseSelection() : me.cmbSelectors.site.getValue().join(",")),
 				status : ((me.cmbSelectors.status.isInverseSelection()) ? me.cmbSelectors.status.getInverseSelection() : me.cmbSelectors.status.getValue().join(",")),
-				minorstat : ((me.cmbSelectors.minorStatus.isInverseSelection()) ? me.cmbSelectors.minorStatus.getInverseSelection() : me.cmbSelectors.minorStatus.getValue().join(",")),
-				app : ((me.cmbSelectors.appStatus.isInverseSelection()) ? me.cmbSelectors.appStatus.getInverseSelection() : me.cmbSelectors.appStatus.getValue().join(",")),
+				computingElement : ((me.cmbSelectors.computingElement.isInverseSelection()) ? me.cmbSelectors.computingElement.getInverseSelection() : me.cmbSelectors.computingElement.getValue().join(",")),
+				ownerGroup : ((me.cmbSelectors.ownerGroup.isInverseSelection()) ? me.cmbSelectors.ownerGroup.getInverseSelection() : me.cmbSelectors.ownerGroup.getValue().join(",")),
 				owner : ((me.cmbSelectors.owner.isInverseSelection()) ? me.cmbSelectors.owner.getInverseSelection() : me.cmbSelectors.owner.getValue().join(",")),
-				prod : ((me.cmbSelectors.jobGroup.isInverseSelection()) ? me.cmbSelectors.jobGroup.getInverseSelection() : me.cmbSelectors.jobGroup.getValue().join(",")),
-				types : ((me.cmbSelectors.jobType.isInverseSelection()) ? me.cmbSelectors.jobType.getInverseSelection() : me.cmbSelectors.jobType.getValue().join(",")),
-				ids : me.textJobId.getValue(),
+				broker : ((me.cmbSelectors.broker.isInverseSelection()) ? me.cmbSelectors.broker.getInverseSelection() : me.cmbSelectors.broker.getValue().join(",")),
+
+				pilotId : me.textJobReference.getValue(),
+				taskQueueId : me.textTaskQueueId.getValue(),
 				limit : me.pagingToolbar.pageSizeCombo.getValue(),
 				startDate : sStartDate,
 				startTime : sStartTime,
@@ -1078,84 +1069,31 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		var me = this;
 		me.cmbSelectors.site.setValue([]);
 		me.cmbSelectors.status.setValue([]);
-		me.cmbSelectors.minorStatus.setValue([]);
-		me.cmbSelectors.appStatus.setValue([]);
+		me.cmbSelectors.computingElement.setValue([]);
+		me.cmbSelectors.ownerGroup.setValue([]);
 		me.cmbSelectors.owner.setValue([]);
-		me.cmbSelectors.jobGroup.setValue([]);
-		me.cmbSelectors.jobType.setValue([]);
-		me.textJobId.setValue("");
+		me.cmbSelectors.broker.setValue([]);
+
+		me.textJobReference.setValue("");
+		me.textTaskQueueId.setValue("");
 
 		me.oprLoadGridData();
 
 	},
-	__oprJobAction : function(oAction, oId) {
 
-		var me = this;
-		var oItems = [];
-
-		if ((oId == null) || (oId == '') || (oId == undefined)) {
-
-			var oElems = Ext.query("#" + me.id + " input.checkrow");
-
-			for ( var i = 0; i < oElems.length; i++)
-				if (oElems[i].checked)
-					oItems.push(oElems[i].value);
-
-			if (oItems.length < 1) {
-				alert('No jobs were selected');
-				return;
-			}
-
-		} else {
-			oItems[0] = oId;
-		}
-
-		var c = false;
-
-		if (oItems.length == 1)
-			c = confirm('Are you sure you want to ' + oAction + ' ' + oItems[0] + '?');
-		else
-			c = confirm('Are you sure you want to ' + oAction + ' these jobs?');
-
-		if (c === false)
-			return;
-
-		Ext.Ajax.request({
-			url : GLOBAL.BASE_URL + 'PilotMonitor/jobAction',
-			method : 'POST',
-			params : {
-				action : oAction,
-				ids : oItems.join(",")
-			},
-			success : function(response) {
-				var jsonData = Ext.JSON.decode(response.responseText);
-				if (jsonData['success'] == 'false') {
-					alert('Error: ' + jsonData['error']);
-					return;
-				} else {
-					if (jsonData.showResult) {
-						var html = '';
-						for ( var i = 0; i < jsonData.showResult.length; i++) {
-							html = html + jsonData.showResult[i] + '<br>';
-						}
-						Ext.Msg.alert('Result:', html);
-					}
-					me.grid.store.load();
-				}
-			}
-		});
-	},
 	__oprGetJobData : function(oDataKind) {
 
 		var me = this;
-		var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
+		var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "PilotJobReference");
+
 		me.getContainer().body.mask("Wait ...");
+
 		Ext.Ajax.request({
-			url : GLOBAL.BASE_URL + 'PilotMonitor/jobData',
+			url : GLOBAL.BASE_URL + 'PilotMonitor/getJobInfoData',
 			method : 'POST',
 			params : {
 				data_kind : oDataKind,
-				id : oId
+				data : oId
 			},
 			scope : me,
 			success : function(response) {
@@ -1165,86 +1103,17 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 				if (jsonData["success"] == "true") {
 
-					if (oDataKind == "getJDL") {
-						// text
-						me.__oprPrepareAndShowWindowText(jsonData["result"], "JDL for JobID:" + oId);
+					if (oDataKind == "getPilotOutput") {
 
-					} else if (oDataKind == "getBasicInfo") {
-						// grid
-						me.__oprPrepareAndShowWindowGrid(jsonData["result"], "Attributes for JobID:" + oId, [ "name", "value" ], [ {
-							text : 'Name',
-							flex : 1,
-							sortable : false,
-							dataIndex : 'name'
-						}, {
-							text : 'Value',
-							flex : 1,
-							sortable : false,
-							dataIndex : 'value'
-						} ]);
+						me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Output for Job Reference:" + oId);
 
-					} else if (oDataKind == "getParams") {
-						// grid
-						me.__oprPrepareAndShowWindowGrid(jsonData["result"], "Parameters for JobID:" + oId, [ "name", "value" ], [ {
-							text : 'Name',
-							flex : 1,
-							sortable : false,
-							dataIndex : 'name'
-						}, {
-							text : 'Value',
-							flex : 1,
-							sortable : false,
-							dataIndex : 'value'
-						} ]);
+					} else if (oDataKind == "getPilotError") {
+
+						me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Error for Job Reference:" + oId);
 
 					} else if (oDataKind == "getLoggingInfo") {
-						// grid
-						me.__oprPrepareAndShowWindowGrid(jsonData["result"], "Attributes for JobID:" + oId, [ "status", "minor_status", "app_status", "date_time", "source" ], [ {
-							text : 'Source',
-							flex : 1,
-							sortable : false,
-							dataIndex : 'source'
-						}, {
-							text : 'Status',
-							flex : 1,
-							sortable : false,
-							dataIndex : 'status'
-						}, {
-							text : 'Minor Status',
-							flex : 1,
-							sortable : false,
-							dataIndex : 'minor_status'
-						}, {
-							text : 'Application Status',
-							flex : 1,
-							sortable : false,
-							dataIndex : 'app_status'
-						}, {
-							text : 'Date Time',
-							flex : 1,
-							sortable : false,
-							dataIndex : 'date_time'
-						} ]);
 
-					} else if (oDataKind == "getStandardOutput") {
-						// text
-						me.__oprPrepareAndShowWindowText(jsonData["result"], "Standard output for JobID:" + oId);
-					} else if (oDataKind == "getLogURL") {
-						// ?
-
-					} else if (oDataKind == "getPending") {
-						// ?
-
-					} else if (oDataKind == "getStagerReport") {
-						// ?
-
-					} else if (oDataKind == "getPilotStdOut") {
-						// text
-						me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot StdOut for JobID:" + oId);
-
-					} else if (oDataKind == "getPilotStdErr") {
-						// text
-						me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot StdErr for JobID:" + oId);
+						me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Logging Info for Job Reference:" + oId);
 
 					}
 
@@ -1257,6 +1126,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			}
 		});
 	},
+
 	__oprPrepareAndShowWindowText : function(sTextToShow, sTitle) {
 
 		var me = this;
