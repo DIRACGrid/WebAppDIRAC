@@ -2,8 +2,8 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-    <title>DIRAC :: DESKTOP</title>
-	<link rel="SHORTCUT ICON" href='{{base_url}}/static/core/img/icons/system/favicon.ico'>
+    <title>{{title}}</title>
+    <link rel="SHORTCUT ICON" href='{{base_url}}/static/core/img/icons/system/favicon.ico'>
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     {% autoescape None %}

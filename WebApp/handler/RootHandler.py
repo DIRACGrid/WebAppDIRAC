@@ -57,6 +57,6 @@ class RootHandler(WebHandler):
     self.render( "root.tpl", base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
                  ext_version = data[ 'extVersion' ], url_state = url_state,
                  extensions = data[ 'extensions' ],
-                 credentials = data[ 'user' ],
+                 credentials = data[ 'user' ], title = Conf.getTitle(),
                  theme = theme_name )
 
