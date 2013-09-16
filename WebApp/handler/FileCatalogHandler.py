@@ -333,12 +333,14 @@ class FileCatalogHandler(WebHandler):
       gLogger.error( "submit: %s" % result[ "Message" ] )
       self.finish({ "success" : "false" , "error" : result[ "Message" ] })
       return
+    
     result = result[ "Value" ]
-        
     retStrLines = []
-    for key , value in result.items() :
-      for fileName in value:
-        retStrLines.append(key+"/"+fileName)
+    
+    if len(result)>0:
+      for key , value in result.items() :
+        for fileName in value:
+          retStrLines.append(key+"/"+fileName)
     
     strData = "\n".join(retStrLines)
     

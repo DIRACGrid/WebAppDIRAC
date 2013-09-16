@@ -441,19 +441,19 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		}, me);
 
 		me.pagingToolbar.btnGrouping = new Ext.Button({
-			text : 'Ungroup',
+			tooltip : 'Ungroup',
 			iconCls : "meta-ungroup-icon",
 			handler : function() {
 
 				if (me.groupingFeature.disabled) {
 					me.groupingFeature.enable();
-					me.pagingToolbar.btnGrouping.setText("Ungroup");
+					me.pagingToolbar.btnGrouping.setTooltip("Ungroup");
 					me.pagingToolbar.btnGrouping.setIconCls("meta-ungroup-icon");
 					me.filesGrid.columns[1].hide();
 				} else {
 
 					me.groupingFeature.disable();
-					me.pagingToolbar.btnGrouping.setText("Group");
+					me.pagingToolbar.btnGrouping.setTooltip("Group");
 					me.pagingToolbar.btnGrouping.setIconCls("meta-group-icon");
 
 					me.filesGrid.columns[1].show();
@@ -467,7 +467,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		});
 
 		me.pagingToolbar.btnSaveFile = new Ext.Button({
-			text : 'Save',
+			tooltip : 'Save',
 			iconCls : "meta-save-icon",
 			handler : function() {
 				me.__getMetadataFile();
@@ -476,7 +476,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		});
 
 		me.pagingToolbar.btnShowQuery = new Ext.Button({
-			text : 'Show Query',
+			tooltip : 'Show Query',
 			iconCls : "meta-query-icon",
 			handler : function() {
 
@@ -495,7 +495,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			scope : me
 		});
 
-		var pagingToolbarItems = [ me.pagingToolbar.btnGrouping, me.pagingToolbar.btnSaveFile, me.pagingToolbar.btnShowQuery, '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
+		var pagingToolbarItems = [ me.pagingToolbar.btnGrouping, me.pagingToolbar.btnSaveFile, me.pagingToolbar.btnShowQuery, '-', '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
 				me.pagingToolbar.pageSizeCombo, '-' ];
 
 		me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
@@ -506,7 +506,41 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			emptyMsg : "No topics to display",
 			prependButtons : true
 		});
+		
+		for ( var i = 0; i < me.pagingToolbar.toolbar.items.length; i++) {
 
+			if (me.pagingToolbar.toolbar.items.getAt(i).itemId == "refresh") {
+
+				me.pagingToolbar.toolbar.items.getAt(i).setIconCls("meta-submit-icon");
+				me.pagingToolbar.toolbar.items.getAt(i).setTooltip("Submit");
+				me.pagingToolbar.toolbar.items.getAt(i).handler = function() {
+					if (me.__isEveryBlockBlured()) {
+
+						me.oprLoadFilesGridData();
+
+					} else {
+
+						me.funcAfterEveryBlockGetsBlured = function() {
+
+							me.oprLoadFilesGridData();
+
+						};
+
+						me.btnSubmitLeftPanel.focus();
+					}
+				};
+
+				break;
+
+			}
+
+		}
+		
+		console.log(me.pagingToolbar.toolbar.items);
+		me.pagingToolbar.toolbar.items.insert(4, me.pagingToolbar.toolbar.items.items[21]);
+		me.pagingToolbar.toolbar.items.insert(24, me.pagingToolbar.toolbar.items.items[7]);
+		me.pagingToolbar.toolbar.items.insert(21, me.pagingToolbar.toolbar.items.items[22]);
+		
 		me.groupingFeature = Ext.create('Ext.grid.feature.Grouping', {
 			groupHeaderTpl : '{columnName}: {name} ({rows.length} Item{[values.rows.length > 1 ? "s" : ""]})',
 			hideGroupedHeader : true,
@@ -909,7 +943,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 		}
 
-		return "metaDict = " + sNewText + "path = " + req["path"];
+		return "metaDict = " + sNewText + 'path = "' + req["path"] + '"';
 
 	},
 
@@ -1326,7 +1360,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 		}
 
-		location.href = GLOBAL.BASE_URL + 'FileCatalog/getMetadataFilesInFile?path=' + encodeURIComponent(me.txtPathField.getValue()) + "&selection=" + encodeURIComponent(oSendData.join("<|>"));
+		if (oSendData.length > 0)
+			location.href = GLOBAL.BASE_URL + 'FileCatalog/getMetadataFilesInFile?path=' + encodeURIComponent(me.txtPathField.getValue()) + "&selection=" + encodeURIComponent(oSendData.join("<|>"));
 
 	},
 

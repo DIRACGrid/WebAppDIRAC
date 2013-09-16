@@ -334,7 +334,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			text : 'New',
 			margin : 3,
-			iconCls : "accp-submit-icon",
+			iconCls : "accp-img-new-plot",
 			handler : function() {
 
 				var oSetupData = {};
@@ -415,9 +415,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		 */
 		me.btnRefreshPlot = new Ext.Button({
 
-			text : 'Update',
+			text : 'Plot',
 			margin : 3,
-			iconCls : "accp-refresh-icon",
+			iconCls : "accp-submit-icon",
 			handler : function() {
 				me.__generatePlot();
 			},
@@ -745,7 +745,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		switch (me.cmbTimeSpan.getValue()) {
 
 		case -1:
-			if ((me.calendarFrom.getValue() == null) || (me.calendarTo.getValue() == null)) {
+			if ((me.calendarFrom.getValue() == null) && (me.calendarTo.getValue() == null)) {
 
 				if (bWithMessages)
 					alert("No dates selected !");
@@ -798,7 +798,10 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			oParams._startTime = me.calendarFrom.getValue();
 			oParams._endTime = me.calendarTo.getValue();
-
+	
+			oParams._startTime = oParams._startTime.getFullYear()+"-"+((oParams._startTime.getMonth() < 10) ? "0" : "")+oParams._startTime.getMonth()+"-"+((oParams._startTime.getDate() < 10) ? "0" : "")+oParams._startTime.getDate();
+			oParams._endTime = oParams._endTime.getFullYear()+"-"+((oParams._endTime.getMonth() < 10) ? "0" : "")+oParams._endTime.getMonth()+"-"+((oParams._endTime.getDate() < 10) ? "0" : "")+oParams._endTime.getDate();
+			
 		} else if (iTimeSpan == -2) {
 
 			oParams._timeSelector = -2;

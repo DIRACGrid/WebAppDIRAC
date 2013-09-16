@@ -509,7 +509,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			iconCls : "jm-submit-icon",
 			handler : function() {
 				me.oprLoadGridData();
-				// me.oprSelectorsRefreshWithSubmit(true);
 			},
 			scope : me
 
@@ -596,7 +595,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				timeout : 1800000
 			},
 			fields : me.dataFields,
-			autoLoad : true,
+			autoLoad : false,
 			remoteSort : true,
 			pageSize : 100,
 			listeners : {
@@ -703,14 +702,14 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			scope : me,
 			tooltip : "Delete"
 		});
-		
+
 		me.pagingToolbar.btnGetIdList = new Ext.Button({
 			text : '',
 			iconCls : "jm-id-list-icon",
 			handler : function() {
 
 				var oItems = [];
-				
+
 				var oElems = Ext.query("#" + me.id + " input.checkrow");
 
 				for ( var i = 0; i < oElems.length; i++)
@@ -720,10 +719,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				if (oItems.length < 1) {
 					alert('No jobs were selected');
 					return;
-				}else{
-					
+				} else {
+
 					Ext.MessageBox.alert("IDs of selected jobs", oItems.join("; "));
-					
+
 				}
 
 			},
@@ -757,16 +756,16 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var pagingToolbarItems = [];
 
-		if (me.pagingToolbar.btnReset != null){
-			
-			pagingToolbarItems = [me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReset, me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
-			                  				me.pagingToolbar.pageSizeCombo, '-' ];
-			
-		}else{
-			
-			pagingToolbarItems = [me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
-			                  				me.pagingToolbar.pageSizeCombo, '-' ];
-			
+		if (me.pagingToolbar.btnReset != null) {
+
+			pagingToolbarItems = [ me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReset, me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->',
+					me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+
+		} else {
+
+			pagingToolbarItems = [ me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-',
+					'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+
 		}
 
 		me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
@@ -780,35 +779,37 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				overflowHandler : 'Scroller'
 			}
 		});
-		
-		if (me.pagingToolbar.btnReset != null){
-			
+
+		if (me.pagingToolbar.btnReset != null) {
+
 			/*
-			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: 
-			 * ANY OTHER NEW ELEMENT MAY HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
+			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: ANY OTHER NEW ELEMENT MAY
+			 * HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
 			 */
-			me.pagingToolbar.toolbar.items.insert(6,me.pagingToolbar.toolbar.items.items[23]);
-			me.pagingToolbar.toolbar.items.insert(9,me.pagingToolbar.toolbar.items.items[25]);
-			me.pagingToolbar.toolbar.items.insert(26,me.pagingToolbar.toolbar.items.items[10]);
-			/*
-			 * -------------------------------END-------------------------------
-			 */
-			
-		}else{
-			
-			/*
-			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: 
-			 * ANY OTHER NEW ELEMENT MAY HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
-			 */
-			me.pagingToolbar.toolbar.items.insert(5,me.pagingToolbar.toolbar.items.items[22]);
-			me.pagingToolbar.toolbar.items.insert(8,me.pagingToolbar.toolbar.items.items[24]);
-			me.pagingToolbar.toolbar.items.insert(25,me.pagingToolbar.toolbar.items.items[9]);
+			me.pagingToolbar.toolbar.items.insert(6, me.pagingToolbar.toolbar.items.items[23]);
+			me.pagingToolbar.toolbar.items.insert(24, me.pagingToolbar.toolbar.items.items[25]);
+			me.pagingToolbar.toolbar.items.insert(26, me.pagingToolbar.toolbar.items.items[9]);
+			me.pagingToolbar.toolbar.items.insert(6, me.pagingToolbar.toolbar.items.items[9]);
 			/*
 			 * -------------------------------END-------------------------------
 			 */
-			
+
+		} else {
+
+			/*
+			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: ANY OTHER NEW ELEMENT MAY
+			 * HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
+			 */
+			me.pagingToolbar.toolbar.items.insert(5, me.pagingToolbar.toolbar.items.items[22]);
+			me.pagingToolbar.toolbar.items.insert(23, me.pagingToolbar.toolbar.items.items[24]);
+			me.pagingToolbar.toolbar.items.insert(25, me.pagingToolbar.toolbar.items.items[8]);
+			me.pagingToolbar.toolbar.items.insert(5, me.pagingToolbar.toolbar.items.items[8]);
+			/*
+			 * -------------------------------END-------------------------------
+			 */
+
 		}
-		
+
 		me.contextGridMenu = new Ext.menu.Menu({
 			items : [ {
 				handler : function() {
@@ -1107,6 +1108,18 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		me.grid.columns[1].setSortState("DESC");
 
+		for ( var i = 0; i < me.pagingToolbar.toolbar.items.length; i++) {
+
+			if (me.pagingToolbar.toolbar.items.getAt(i).itemId == "refresh") {
+
+				me.pagingToolbar.toolbar.items.getAt(i).setIconCls("jm-submit-icon");
+				me.pagingToolbar.toolbar.items.getAt(i).setTooltip("Submit");
+				break;
+
+			}
+
+		}
+
 		/*
 		 * -----------------------------------------------------------------------------------------------------------
 		 * DEFINITION OF THE MAIN CONTAINER
@@ -1179,6 +1192,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				me.pagingToolbar.toolbar.items.getAt(i).handler = function() {
 					me.oprLoadGridData();
 				};
+
 				break;
 
 			}
@@ -1186,6 +1200,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		}
 
 		this.callParent();
+
 	},
 
 	__oprRefreshStoresForSelectors : function(oData, bRefreshStores) {
@@ -1330,6 +1345,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			// set those data as extraParams in
 			me.grid.store.proxy.extraParams = extraParams;
 			me.grid.store.load();
+
+			var oCheckbox = Ext.query("#" + me.id + " input.jm-main-check-box");
+			oCheckbox[0].checked = false;
 		}
 
 	},
