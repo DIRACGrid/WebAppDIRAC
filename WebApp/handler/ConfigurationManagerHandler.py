@@ -418,22 +418,5 @@ class ConfigurationManagerHandler(WebSocketHandler):
                                                                                                          titles=("Server's version", "User's current version"),
                                                                                                          diffList=self.__generateHTMLDiff(diffGen))}))
 
-  '''
-  def showDiff( self ):
-    if not authorizeAction():
-      return S_ERROR( "You are not authorized to get diff's!! Bad boy!" )
-    try:
-      fromDate = str( request.params[ 'fromVersion' ] )
-      toDate = str( request.params[ 'toVersion' ] )
-    except Exception, e:
-      c.error = "Can't decode params: %s" % e
-      return render( "/error.mako" )
-    modifier = self.__getModificator()
-    diffGen = modifier.getVersionDiff( fromDate, toDate )
-    c.titles = ( "From version %s" % fromDate, "To version %s" % toDate )
-    c.diffList = self.__generateHTMLDiff( diffGen )
-    return render( "/systems/configuration/diff.mako" )
-  '''
-
 
 

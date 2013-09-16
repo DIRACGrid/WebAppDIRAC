@@ -13,25 +13,25 @@
  */
 
 Ext.define('Ext.dirac.core.CommonFunctions', {
-    requires : [],
+	requires : [],
 
-    getFieldValueFromSelectedRow : function(oGrid, oFieldName) {
+	getFieldValueFromSelectedRow : function(oGrid, oFieldName) {
 
-	var oVal = "";
-	var oSelectedRecords = oGrid.getSelectionModel().getSelection();
+		var oVal = "";
+		var oSelectedRecords = oGrid.getSelectionModel().getSelection();
 
-	if (oSelectedRecords.length > 0)
-	    oVal = oSelectedRecords[0].get(oFieldName);
+		if (oSelectedRecords.length > 0)
+			oVal = oSelectedRecords[0].get(oFieldName);
 
-	return oVal;
-    },
+		return oVal;
+	},
 
-    doubleItemValue : function(oList) {
+	doubleItemValue : function(oList) {
 
-	for ( var i = 0; i < oList.length; i++)
-	    oList[i] = [ oList[i], oList[i] ];
+		for ( var i = 0; i < oList.length; i++)
+			oList[i] = [ oList[i], oList[i] ];
 
-	return oList;
+		return oList;
 
-    }
+	}
 });

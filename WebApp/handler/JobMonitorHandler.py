@@ -23,31 +23,31 @@ class JobMonitorHandler(WebHandler):
     result = yield self.threadTask(RPC.getJobPageSummaryWeb,req, self.globalSort , self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:
-      self.finish(json.dumps({"success":"false", "error":result["Message"]}))
+      self.finish({"success":"false","result":[], "total":0, "error":result["Message"]})
       return
 
     result = result["Value"]
 
     if not result.has_key("TotalRecords"):
-      self.finish(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
+      self.finish({"success":"false", "result":[], "total":-1, "error":"Data structure is corrupted"})
       return
 
 
     if not (result["TotalRecords"] > 0):
-      self.finish(json.dumps({"success":"false", "result":"", "error":"There were no data matching your selection"}))
+      self.finish({"success":"false", "result":[], "total":0, "error":"There were no data matching your selection"})
       return
 
 
     if not (result.has_key("ParameterNames") and result.has_key("Records")):
-      self.finish(json.dumps({"success":"false", "result":"", "error":"Data structure is corrupted"}))
+      self.finish({"success":"false", "result":[], "total":-1, "error":"Data structure is corrupted"})
       return
 
     if not (len(result["ParameterNames"]) > 0):
-      self.finish(json.dumps({"success":"false", "result":"", "error":"ParameterNames field is missing"}))
+      self.finish({"success":"false", "result":[], "total":-1, "error":"ParameterNames field is missing"})
       return
 
     if not (len(result["Records"]) > 0):
-      self.finish(json.dumps({"success":"false", "Message":"There are no data to display"}))
+      self.finish({"success":"false", "result":[], "total":0, "Message":"There are no data to display"})
       return
 
     callback = []
@@ -67,8 +67,7 @@ class JobMonitorHandler(WebHandler):
       callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":timestamp }
     else:
       callback = {"success":"true", "result":callback, "total":total, "date":None}
-
-    self.finish(json.dumps(callback))
+    self.finish(callback)
 
   def __dict2string(self, req):
     result = ""
@@ -418,7 +417,7 @@ class JobMonitorHandler(WebHandler):
       RPC = RPCClient("WorkloadManagement/WMSAdministrator")
       result = yield self.threadTask(RPC.getJobPilotOutput,id)
       if result["OK"]:
-        if mode == "out" and result["Value"].has_key("StdOut"):
+        if result["Value"].has_key("StdOut"):
           callback = {"success":"true","result":result["Value"]["StdOut"]}
       else:
         callback = {"success":"false","error":result["Message"]}
@@ -427,7 +426,7 @@ class JobMonitorHandler(WebHandler):
       RPC = RPCClient("WorkloadManagement/WMSAdministrator")
       result = yield self.threadTask(RPC.getJobPilotOutput,id)
       if result["OK"]:
-        if mode == "err" and result["Value"].has_key("StdErr"):
+        if result["Value"].has_key("StdErr"):
           callback = {"success":"true","result":result["Value"]["StdErr"]}
       else:
         callback = {"success":"false","error":result["Message"]}

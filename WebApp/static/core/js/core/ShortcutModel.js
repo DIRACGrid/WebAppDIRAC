@@ -11,12 +11,12 @@
  *          desktop shortcuts.
  */
 Ext.define('Ext.dirac.core.ShortcutModel', {
-    extend : 'Ext.data.Model',
-    fields : [ {
-	name : 'name'
-    }, {
-	name : 'iconCls'
-    }, {
-	name : 'module'
-    } ]
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'name'
+	}, {
+		name : 'iconCls'
+	}, {
+		name : 'module'
+	} ]
 });

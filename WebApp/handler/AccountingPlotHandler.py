@@ -170,19 +170,19 @@ class AccountingPlotHandler(WebHandler):
     callback = {}
     if 'file' not in self.request.arguments:
       callback = {"success":"false","error":"Maybe you forgot the file?"}
-      self.finish(json.dumps(callback))
+      self.finish(callback)
       return
     plotImageFile = str( self.request.arguments[ 'file' ][0] )
     if plotImageFile.find( ".png" ) < -1:
       callback = {"success":"false","error":"Not a valid image!"}
-      self.finish(json.dumps(callback))
+      self.finish(callback)
       return
     transferClient = TransferClient( "Accounting/ReportGenerator" )
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal[ 'OK' ]:
       callback = {"success":"false","error":retVal[ 'Message' ]}
-      self.finish(json.dumps(callback))
+      self.finish(callback)
       return
     tempFile.seek( 0 )
     data = tempFile.read()
