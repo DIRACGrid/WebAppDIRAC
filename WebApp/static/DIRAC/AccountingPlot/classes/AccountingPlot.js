@@ -788,6 +788,15 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		};
 
+		var fixTime = function( st ) {
+			var year = st.getFullYear().toString();
+			var month = st.getMonth() + 1;
+			month = ( month < 10 ? "0" : "" ) + month;
+			var day = st.getDate();
+			day = ( day < 10 ? "0" : "" ) + day;
+			return year + "-" + month + "-" + day;
+		};
+
 		// Time Selector
 
 		iTimeSpan = me.cmbTimeSpan.getValue();
@@ -796,8 +805,8 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			oParams._timeSelector = -1;
 
-			oParams._startTime = me.calendarFrom.getValue();
-			oParams._endTime = me.calendarTo.getValue();
+			oParams._startTime = fixTime( me.calendarFrom.getValue() );
+			oParams._endTime = fixTime( me.calendarTo.getValue() );
 
 		} else if (iTimeSpan == -2) {
 

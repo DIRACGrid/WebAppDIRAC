@@ -132,6 +132,7 @@ class AccountingPlotHandler(WebHandler):
         return S_ERROR( "Missing starTime!" )
       else:
         start = Time.fromString( pD[ 'startTime' ] )
+        print "ASD", start
         del( pD[ 'startTime' ] )
     del( pD[ 'timeSelector' ] )
 
