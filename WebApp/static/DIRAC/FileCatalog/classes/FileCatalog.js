@@ -506,7 +506,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			emptyMsg : "No topics to display",
 			prependButtons : true
 		});
-		
+
 		for ( var i = 0; i < me.pagingToolbar.toolbar.items.length; i++) {
 
 			if (me.pagingToolbar.toolbar.items.getAt(i).itemId == "refresh") {
@@ -535,12 +535,12 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			}
 
 		}
-		
+
 		console.log(me.pagingToolbar.toolbar.items);
 		me.pagingToolbar.toolbar.items.insert(4, me.pagingToolbar.toolbar.items.items[21]);
 		me.pagingToolbar.toolbar.items.insert(24, me.pagingToolbar.toolbar.items.items[7]);
 		me.pagingToolbar.toolbar.items.insert(21, me.pagingToolbar.toolbar.items.items[22]);
-		
+
 		me.groupingFeature = Ext.create('Ext.grid.feature.Grouping', {
 			groupHeaderTpl : '{columnName}: {name} ({rows.length} Item{[values.rows.length > 1 ? "s" : ""]})',
 			hideGroupedHeader : true,
