@@ -15,44 +15,52 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var me = this;
 
-		for ( var i = 0; i < me.grid.columns.length; i++) {
+		var bToRealod = false;
 
-			var col = me.grid.columns[i];
-			col.setWidth(data.columns[col.getSortParam()].width);
-			if (data.columns[col.getSortParam()].hidden)
-				col.hide();
-			else
-				col.show();
+		if (data.columns) {
+			for ( var i = 0; i < me.grid.columns.length; i++) {
 
-			var sortState = data.columns[col.getSortParam()].sortState;
+				var col = me.grid.columns[i];
+				col.setWidth(data.columns[col.getSortParam()].width);
+				if (data.columns[col.getSortParam()].hidden)
+					col.hide();
+				else
+					col.show();
 
-			if (sortState != null)
-				col.setSortState(sortState);
+				var sortState = data.columns[col.getSortParam()].sortState;
 
+				if (sortState != null)
+					col.setSortState(sortState);
+
+			}
 		}
 
-		for ( var i = 0; i < me.selectorMenu.items.length - 1; i++) {
+		if (data.leftMenu.selectors) {
+			for ( var i = 0; i < me.selectorMenu.items.length - 1; i++) {
 
-			var item = me.selectorMenu.items.getAt(i);
+				var item = me.selectorMenu.items.getAt(i);
 
-			item.setChecked(!data.leftMenu.selectors[item.relatedCmbField].hidden);
+				item.setChecked(!data.leftMenu.selectors[item.relatedCmbField].hidden);
 
-			if (!data.leftMenu.selectors[item.relatedCmbField].hidden)
-				me.cmbSelectors[item.relatedCmbField].show();
-			else
-				me.cmbSelectors[item.relatedCmbField].hide();
+				if (!data.leftMenu.selectors[item.relatedCmbField].hidden)
+					me.cmbSelectors[item.relatedCmbField].show();
+				else
+					me.cmbSelectors[item.relatedCmbField].hide();
 
-			/*
-			 * this can be done only if the store is being loaded, otherwise has to be
-			 * postponed
-			 */
-			me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected, ((i == me.selectorMenu.items.length - 2) ? true
-					: false));
+				/*
+				 * this can be done only if the store is being loaded, otherwise has to
+				 * be postponed
+				 */
+				me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected, (i == me.selectorMenu.items.length - 2));
 
-			me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
+				me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
+
+			}
+		} else {
+
+			bToReload = true;
 
 		}
-
 		// For the time span searching sub-panel
 		var item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
 
@@ -87,6 +95,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		}
 
+		if (bToReload) {
+
+			me.oprLoadGridData();
+
+		}
+
 	},
 
 	__cancelPreviousDataRequest : function() {
@@ -112,6 +126,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			if (bLastOne) {
 				me.__cancelPreviousDataRequest();
+
 				me.oprLoadGridData();
 			}
 

@@ -63,7 +63,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		else
 			me.timeSearchPanel.hide();
 		// END - For the time span searching sub-panel
-		
+
 		me.textTaskQueueId.setValue(data.leftMenu.textTaskQueueId);
 		me.textJobReference.setValue(data.leftMenu.textJobReference);
 		me.timeSearchElementsGroup.cmbTimeSpan.setValue(data.leftMenu.cmbTimeSpan);
@@ -636,6 +636,33 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			items : [ {
 				handler : function() {
 
+					var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
+					if (oId != '-') {
+						var oSetupData = {};
+						var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+						oSetupData.x = 0;
+						oSetupData.y = 0;
+						oSetupData.width = oDimensions[0];
+						oSetupData.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+						oSetupData.currentState = "";
+
+						oSetupData.desktopStickMode = 0;
+						oSetupData.hiddenHeader = 1;
+						oSetupData.i_x = 0;
+						oSetupData.i_y = 0;
+						oSetupData.ic_x = 0;
+						oSetupData.ic_y = 0;
+						
+						var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
+						
+						oSetupData.data = {
+							leftMenu : {
+								txtJobId : oId
+							}
+						};
+						console.log(oSetupData);
+						GLOBAL.APP.desktop.createWindow("app", "DIRAC.JobMonitor.classes.JobMonitor", oSetupData);
+					}
 				},
 				text : 'Show Job'
 			}, '-', {
@@ -693,7 +720,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				sortable : true,
 				dataIndex : 'PilotJobReference',
 				align : 'left',
-				flex:1
+				flex : 1
 			}, {
 				header : 'Status',
 				sortable : true,
@@ -704,19 +731,19 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				sortable : true,
 				dataIndex : 'GridSite',
 				align : 'left',
-				flex:1
+				flex : 1
 			}, {
 				header : 'ComputingElement',
 				sortable : true,
 				dataIndex : 'DestinationSite',
 				align : 'left',
-				flex:1
+				flex : 1
 			}, {
 				header : 'Broker',
 				sortable : true,
 				dataIndex : 'Broker',
 				align : 'left',
-				flex:1
+				flex : 1
 			}, {
 				header : 'CurrentJobID',
 				sortable : true,
@@ -814,16 +841,16 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 
 					if (cellIndex != 0) {
-						
+
 						var oJobId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
 						var oStatus = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Status");
-						
+
 						var items = me.contextGridMenu.items.items;
-						
+
 						items[0].setDisabled(oJobId == '-');
 						items[2].setDisabled(oStatus != 'Done');
 						items[3].setDisabled(oStatus != 'Done');
-						
+
 						me.contextGridMenu.showAt(e.xy);
 					}
 
@@ -832,7 +859,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			}
 		});
 
-		//me.grid.columns[1].setSortState("DESC");
+		// me.grid.columns[1].setSortState("DESC");
 
 		/*
 		 * -----------------------------------------------------------------------------------------------------------
