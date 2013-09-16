@@ -10,6 +10,10 @@ BASECS = "/WebApp"
 def getCSValue( opt, defValue = None ):
   return gConfig.getValue( "%s/%s" % ( BASECS, opt ), defValue )
 
+def getTitle():
+  defVal = gConfig.getValue( "/DIRAC/Configuration/Name", gConfig.getValue( "/DIRAC/Setup" ) )
+  return "%s - DIRAC" % gConfig.getValue( "%s/Title" % BASECS, defVal  )
+
 def devMode():
   return getCSValue( "DevelopMode", True )
 

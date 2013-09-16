@@ -788,6 +788,15 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		};
 
+		var fixTime = function( st ) {
+			var year = st.getFullYear().toString();
+			var month = st.getMonth() + 1;
+			month = ( month < 10 ? "0" : "" ) + month;
+			var day = st.getDate();
+			day = ( day < 10 ? "0" : "" ) + day;
+			return year + "-" + month + "-" + day;
+		};
+
 		// Time Selector
 
 		iTimeSpan = me.cmbTimeSpan.getValue();
@@ -796,12 +805,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			oParams._timeSelector = -1;
 
-			oParams._startTime = me.calendarFrom.getValue();
-			oParams._endTime = me.calendarTo.getValue();
-	
-			oParams._startTime = oParams._startTime.getFullYear()+"-"+((oParams._startTime.getMonth() < 10) ? "0" : "")+oParams._startTime.getMonth()+"-"+((oParams._startTime.getDate() < 10) ? "0" : "")+oParams._startTime.getDate();
-			oParams._endTime = oParams._endTime.getFullYear()+"-"+((oParams._endTime.getMonth() < 10) ? "0" : "")+oParams._endTime.getMonth()+"-"+((oParams._endTime.getDate() < 10) ? "0" : "")+oParams._endTime.getDate();
-			
+			oParams._startTime = fixTime( me.calendarFrom.getValue() );
+			oParams._endTime = fixTime( me.calendarTo.getValue() );
+
 		} else if (iTimeSpan == -2) {
 
 			oParams._timeSelector = -2;

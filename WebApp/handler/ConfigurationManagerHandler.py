@@ -1,7 +1,6 @@
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.CFG import CFG
@@ -18,58 +17,64 @@ class ConfigurationManagerHandler(WebSocketHandler):
   def on_open(self):
     self.__configData = {}
 
+  @asyncGen
   def on_message(self, msg):
+
     self.log.info("RECEIVED %s" % msg)
     try:
       params = json.loads(msg)
     except:
       gLogger.exception("No op defined")
 
+    res = False
     if params["op"] == "init":
-      self.__getRemoteConfiguration("init")
+      res = self.__getRemoteConfiguration( "init" )
     elif params["op"] == "getSubnodes":
-      self.__getSubnodes(params["node"], params["nodePath"])
+      res = self.__getSubnodes(params["node"], params["nodePath"])
     elif params["op"] == "showConfigurationAsText":
-      self.__showConfigurationAsText()
+      res = self.__showConfigurationAsText()
     elif params["op"] == "resetConfiguration":
-      self.__getRemoteConfiguration("resetConfiguration")
+      res = self.__getRemoteConfiguration( "resetConfiguration" )
     elif params["op"] == "getBulkExpandedNodeData":
-      self.__getBulkExpandedNodeData(params["nodes"])
+      res = self.__getBulkExpandedNodeData(params["nodes"])
     elif params["op"] == "setOptionValue":
-      self.__setOptionValue(params)
+      res = self.__setOptionValue(params)
     elif params["op"] == "setComment":
-      self.__setComment(params)
+      res = self.__setComment(params)
     elif params["op"] == "copyKey":
-      self.__copyKey(params)
+      res = self.__copyKey(params)
     elif params["op"] == "renameKey":
-      self.__renameKey(params)
+      res = self.__renameKey(params)
     elif params["op"] == "deleteKey":
-      self.__deleteKey(params)
+      res = self.__deleteKey(params)
     elif params["op"] == "createSection":
-      self.__createSection(params)
+      res = self.__createSection(params)
     elif params["op"] == "createOption":
-      self.__createOption(params)
+      res = self.__createOption(params)
     elif params["op"] == "moveNode":
-      self.__moveNode(params)
+      res = self.__moveNode(params)
     elif params["op"] == "commitConfiguration":
-      self.__commitConfiguration()
+      res = self.__commitConfiguration()
     elif params["op"] == "showCurrentDiff":
-      self.__showCurrentDiff()
+      res = self.__showCurrentDiff()
+
+    if res:
+      self.write_message( res )
 
   def __getRemoteConfiguration(self, funcName):
     rpcClient = RPCClient(gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
     modCfg = Modificator(rpcClient)
     retVal = modCfg.loadFromRemote()
 
-    if retVal[ 'OK' ]:
-      self.__configData[ 'cfgData' ] = modCfg
-      self.__configData[ 'strCfgData' ] = str(modCfg)
-      print modCfg.getOptions("/DIRAC/Configuration/Version")
-      version = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Version"])
-      configName = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Name"])
-      self.write_message(json.dumps({"success":1, "op":funcName, "version":version, "name":configName}))
-    else:
-      self.write_message(json.dumps({"success":0, "op":"getSubnodes", "message":"The configuration cannot be read from the remote !"}))
+    if not retVal[ 'OK' ]:
+      return {"success":0, "op":"getSubnodes", "message":"The configuration cannot be read from the remote !"}
+
+    self.__configData[ 'cfgData' ] = modCfg
+    self.__configData[ 'strCfgData' ] = str(modCfg)
+    print modCfg.getOptions("/DIRAC/Configuration/Version")
+    version = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Version"])
+    configName = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Name"])
+    return {"success":1, "op":funcName, "version":version, "name":configName}
 
   def __getSubnodes(self, parentNodeId, sectionPath):
 
@@ -80,10 +85,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
     if not retVal:
       gLogger.exception("Section does not exist", "%s -> %s" % (sectionPath, str(v)))
-      self.write_message(json.dumps({"success":0, "op":"getSubnodes", "message":"Section %s does not exist: %s" % (sectionPath, str(v))}))
-      return
+      return {"success":0, "op":"getSubnodes", "message":"Section %s does not exist: %s" % (sectionPath, str(v))}
 
-    self.write_message(json.dumps({"success":1, "op":"getSubnodes", "nodes":retData, "parentNodeId":parentNodeId}))
+    return {"success":1, "op":"getSubnodes", "nodes":retData, "parentNodeId":parentNodeId}
 
   def __getSubnodesForPath(self, sectionPath, retData):
 
@@ -131,8 +135,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
       return False
 
   def __showConfigurationAsText(self):
-    time.sleep(10)
-    self.write_message(json.dumps({"success":1, "op":"showConfigurationAsText", "text":self.__configData[ 'strCfgData' ]}))
+    #time.sleep(10)
+    return {"success":1, "op":"showConfigurationAsText", "text":self.__configData[ 'strCfgData' ]}
 
   def __getBulkExpandedNodeData(self, nodes):
     nodesPaths = nodes.split("<<||>>")
@@ -141,35 +145,32 @@ class ConfigurationManagerHandler(WebSocketHandler):
       pathData = []
       if self.__getSubnodesForPath(nodePath, pathData):
         returnData.append([nodePath, pathData])
-    self.write_message(json.dumps({"success":1, "op":"getBulkExpandedNodeData", "data":returnData}))
+    return {"success":1, "op":"getBulkExpandedNodeData", "data":returnData}
 
   def __setOptionValue(self, params):
     try:
       optionPath = str(params[ 'path' ])
       optionValue = str(params[ 'value' ])
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"setOptionValue", "message":"Can't decode path or value: %s" % str(e)}))
-      return
+      return {"success":0, "op":"setOptionValue", "message":"Can't decode path or value: %s" % str(e)}
 
     self.__configData[ 'cfgData' ].setOptionValue(optionPath, optionValue)
 
     if self.__configData[ 'cfgData' ].getValue(optionPath) == optionValue:
       gLogger.info("Set option value", "%s = %s" % (optionPath, optionValue))
-      self.write_message(json.dumps({"success":1, "op":"setOptionValue", "parentNodeId":params["parentNodeId"], "value":optionValue}))
-    else:
-      self.write_message(json.dumps({"success":0, "op":"setOptionValue", "message":"Can't update %s" % optionPath}))
+      return {"success":1, "op":"setOptionValue", "parentNodeId":params["parentNodeId"], "value":optionValue}
+    return {"success":0, "op":"setOptionValue", "message":"Can't update %s" % optionPath}
 
   def __setComment(self, params):
     try:
       path = str(params[ 'path' ])
       value = str(params[ 'value' ])
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"setComment", "message":"Can't decode path or value: %s" % str(e)}))
-      return
+      return {"success":0, "op":"setComment", "message":"Can't decode path or value: %s" % str(e)}
 
     self.__configData[ 'cfgData' ].setComment(path, value)
     gLogger.info("Set comment", "%s = %s" % (path, value))
-    self.write_message(json.dumps({"success":1, "op":"setComment", "parentNodeId":params["parentNodeId"], "comment":self.__configData[ 'cfgData' ].getComment(path)}))
+    return {"success":1, "op":"setComment", "parentNodeId":params["parentNodeId"], "comment":self.__configData[ 'cfgData' ].getComment(path)}
 
   def __copyKeyOld(self, params):
     try:
@@ -177,94 +178,73 @@ class ConfigurationManagerHandler(WebSocketHandler):
       toCopyPath = str(params[ 'copyToPath' ]).strip()
       newName = str(params[ 'newName' ]).strip()
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Can't decode parameter: %s" % str(e)}))
-      return
+      return {"success":0, "op":"copyKey", "message":"Can't decode parameter: %s" % str(e)}
     try:
       if len(originalPath) == 0:
-        self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Parent path is not valid"}))
-        return
+        return {"success":0, "op":"copyKey", "message":"Parent path is not valid"}
       if len(newName) == 0:
-        self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Put any name for the new key!"}))
-        return
+        return {"success":0, "op":"copyKey", "message":"Put any name for the new key!"}
       if self.__configData[ 'cfgData' ].copyKey(originalPath, newName):
         pathList = List.fromChar(originalPath, "/")
 #         newPath = "/%s/%s" % ( "/".join( pathList[:-1] ), newName )
         if self.__configData[ 'cfgData' ].existsSection(toCopyPath):
-          self.write_message(json.dumps({"success":1, "op":"copyKey", "parentNodeToId":params["parentNodeToId"], "parentNodeFromId":params["parentNodeFromId"], "newName":newName, "comment":self.__configData[ 'cfgData' ].getComment(newPath)}))
-          return
+          return {"success":1, "op":"copyKey", "parentNodeToId":params["parentNodeToId"], "parentNodeFromId":params["parentNodeFromId"], "newName":newName, "comment":self.__configData[ 'cfgData' ].getComment(newPath)}
         else:
-          self.write_message(json.dumps({"success":1, "op":"copyKey", "parentNodeToId":params["parentNodeToId"], "parentNodeFromId":params["parentNodeFromId"], "value":self.__configData[ 'cfgData' ].getValue(newPath), "newName":newName, "comment":self.__configData[ 'cfgData' ].getComment(newPath)}))
-          return
+          return {"success":1, "op":"copyKey", "parentNodeToId":params["parentNodeToId"], "parentNodeFromId":params["parentNodeFromId"], "value":self.__configData[ 'cfgData' ].getValue(newPath), "newName":newName, "comment":self.__configData[ 'cfgData' ].getComment(newPath)}
       else:
-        self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Path can't be created. Exists already?"}))
-        return
+        return {"success":0, "op":"copyKey", "message":"Path can't be created. Exists already?"}
     except Exception, e:
       raise
-      self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Can't create path: %s" % str(e)}))
+      return {"success":0, "op":"copyKey", "message":"Can't create path: %s" % str(e)}
 
   def __renameKey(self, params):
     try:
       keyPath = str(params[ 'path' ]).strip()
       newName = str(params[ 'newName' ]).strip()
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"renameKey", "message":"Can't decode parameter: %s" % str(e)}))
-      return
+      return {"success":0, "op":"renameKey", "message":"Can't decode parameter: %s" % str(e)}
     try:
       if len(keyPath) == 0:
-        self.write_message(json.dumps({"success":0, "op":"renameKey", "message":"Entity path is not valid"}))
-        return
+        return {"success":0, "op":"renameKey", "message":"Entity path is not valid"}
       if len(newName) == 0:
-        self.write_message(json.dumps({"success":0, "op":"renameKey", "message":"Put any name for the entity!"}))
-        return
+        return {"success":0, "op":"renameKey", "message":"Put any name for the entity!"}
 
       if self.__configData[ 'cfgData' ].existsOption(keyPath) or self.__configData[ 'cfgData' ].existsSection(keyPath) :
         if self.__configData[ 'cfgData' ].renameKey(keyPath, newName):
-          self.write_message(json.dumps({"success":1, "op":"renameKey", "parentNodeId":params["parentNodeId"], "newName":newName}))
-          return
+          return {"success":1, "op":"renameKey", "parentNodeId":params["parentNodeId"], "newName":newName}
         else:
-          self.write_message(json.dumps({"success":0, "op":"renameKey", "message":"There was a problem while renaming"}))
-          return
+          return {"success":0, "op":"renameKey", "message":"There was a problem while renaming"}
       else:
-        self.write_message(json.dumps({"success":0, "op":"renameKey", "message":"Path doesn't exist"}))
-        return
+        return {"success":0, "op":"renameKey", "message":"Path doesn't exist"}
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"renameKey", "message":"Can't rename entity: %s" % str(e)}))
-      return
+      return {"success":0, "op":"renameKey", "message":"Can't rename entity: %s" % str(e)}
 
   def __deleteKey(self, params):
     try:
       keyPath = str(params[ 'path' ]).strip()
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"deleteKey", "message":"Can't decode parameter: %s" % str(e)}))
-      return
+      return {"success":0, "op":"deleteKey", "message":"Can't decode parameter: %s" % str(e)}
     try:
       if len(keyPath) == 0:
-        self.write_message(json.dumps({"success":0, "op":"deleteKey", "message":"Entity path is not valid"}))
-        return
+        return {"success":0, "op":"deleteKey", "message":"Entity path is not valid"}
       if self.__configData[ 'cfgData' ].removeOption(keyPath) or self.__configData[ 'cfgData' ].removeSection(keyPath):
-        self.write_message(json.dumps({"success":1, "op":"deleteKey", "parentNodeId":params["parentNodeId"]}))
-        return
+        return {"success":1, "op":"deleteKey", "parentNodeId":params["parentNodeId"]}
       else:
-        self.write_message(json.dumps({"success":0, "op":"deleteKey", "message":"Entity doesn't exist"}))
-        return
+        return {"success":0, "op":"deleteKey", "message":"Entity doesn't exist"}
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"deleteKey", "message":"Can't rename entity: %s" % str(e)}))
-      return
+      return {"success":0, "op":"deleteKey", "message":"Can't rename entity: %s" % str(e)}
 
   def __createSection(self, params):
     try:
       parentPath = str(params[ 'path' ]).strip()
       sectionName = str(params[ 'name' ]).strip()
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"createSection", "message":"Can't decode parameter: %s" % str(e)}))
-      return
+      return {"success":0, "op":"createSection", "message":"Can't decode parameter: %s" % str(e)}
     try:
       if len(parentPath) == 0:
-        self.write_message(json.dumps({"success":0, "op":"createSection", "message":"Parent path is not valid"}))
-        return
+        return {"success":0, "op":"createSection", "message":"Parent path is not valid"}
       if len(sectionName) == 0:
-        self.write_message(json.dumps({"success":0, "op":"createSection", "message":"Put any name for the section!"}))
-        return
+        return {"success":0, "op":"createSection", "message":"Put any name for the section!"}
       sectionPath = "%s/%s" % (parentPath, sectionName)
       gLogger.info("Creating section", "%s" % sectionPath)
       if self.__configData[ 'cfgData' ].createSection(sectionPath):
@@ -273,13 +253,11 @@ class ConfigurationManagerHandler(WebSocketHandler):
         if htmlC:
           qtipDict = { 'text' : htmlC }
           nD[ 'qtipCfg' ] = qtipDict
-        self.write_message(json.dumps({"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD}))
-        return
+        return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD}
       else:
-        self.write_message(json.dumps({"success":0, "op":"createSection", "message":"Section can't be created. It already exists?"}))
-        return
+        return {"success":0, "op":"createSection", "message":"Section can't be created. It already exists?"}
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"createSection", "message":"Can't create section: %s" % str(e)}))
+      return {"success":0, "op":"createSection", "message":"Can't create section: %s" % str(e)}
 
   def __createOption(self, params):
     try:
@@ -287,32 +265,25 @@ class ConfigurationManagerHandler(WebSocketHandler):
       optionName = str(params[ 'name' ]).strip()
       optionValue = str(params[ 'value' ]).strip()
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"createOption", "message":"Can't decode parameter: %s" % str(e)}))
-      return
+      return {"success":0, "op":"createOption", "message":"Can't decode parameter: %s" % str(e)}
     try:
       if len(parentPath) == 0:
-        self.write_message(json.dumps({"success":0, "op":"createOption", "message":"Parent path is not valid"}))
-        return
+        return {"success":0, "op":"createOption", "message":"Parent path is not valid"}
       if len(optionName) == 0:
-        self.write_message(json.dumps({"success":0, "op":"createOption", "message":"Put any name for the option!"}))
-        return
+        return {"success":0, "op":"createOption", "message":"Put any name for the option!"}
       if "/" in optionName:
-        self.write_message(json.dumps({"success":0, "op":"createOption", "message":"Options can't have a / in the name"}))
-        return
+        return {"success":0, "op":"createOption", "message":"Options can't have a / in the name"}
       if len(optionValue) == 0:
-        self.write_message(json.dumps({"success":0, "op":"createOption", "message":"Options should have values!"}))
-        return
+        return {"success":0, "op":"createOption", "message":"Options should have values!"}
       optionPath = "%s/%s" % (parentPath, optionName)
       gLogger.info("Creating option", "%s = %s" % (optionPath, optionValue))
       if not self.__configData[ 'cfgData' ].existsOption(optionPath):
         self.__configData[ 'cfgData' ].setOptionValue(optionPath, optionValue)
-        self.write_message(json.dumps({"success":1, "op":"createOption", "parentNodeId":params["parentNodeId"], "optionName":optionName, "value":self.__configData[ 'cfgData' ].getValue(optionPath), "comment":self.__configData[ 'cfgData' ].getComment(optionPath)}))
-        return
+        return {"success":1, "op":"createOption", "parentNodeId":params["parentNodeId"], "optionName":optionName, "value":self.__configData[ 'cfgData' ].getValue(optionPath), "comment":self.__configData[ 'cfgData' ].getComment(optionPath)}
       else:
-        self.write_message(json.dumps({"success":0, "op":"createOption", "message":"Option can't be created. It already exists?"}))
-        return
+        return {"success":0, "op":"createOption", "message":"Option can't be created. It already exists?"}
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"createOption", "message":"Can't create option: %s" % str(e)}))
+      return {"success":0, "op":"createOption", "message":"Can't create option: %s" % str(e)}
 
   def __moveNode(self, params):
     try:
@@ -320,29 +291,24 @@ class ConfigurationManagerHandler(WebSocketHandler):
       destinationParentPath = params[ 'newParentPath' ]
       beforeOfIndex = int(params[ 'beforeOfIndex' ])
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"moveNode", "message":"Can't decode parameter: %s" % str(e), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}))
-      return
+      return {"success":0, "op":"moveNode", "message":"Can't decode parameter: %s" % str(e), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}
 
     gLogger.info("Moving %s under %s before pos %s" % (nodePath, destinationParentPath, beforeOfIndex))
     cfgData = self.__configData[ 'cfgData' ].getCFG()
 
     nodeDict = cfgData.getRecursive(nodePath)
     if not nodeDict:
-      self.write_message(json.dumps({"success":0, "op":"moveNode", "message":"Moving entity does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}))
-      return
+      return {"success":0, "op":"moveNode", "message":"Moving entity does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}
     oldParentDict = cfgData.getRecursive(nodePath, -1)
     newParentDict = cfgData.getRecursive(destinationParentPath)
     if type(newParentDict) == types.StringType:
-      self.write_message(json.dumps({"success":0, "op":"moveNode", "message":"Destination is not a section", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}))
-      return
+      return {"success":0, "op":"moveNode", "message":"Destination is not a section", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}
     if not newParentDict:
-      self.write_message(json.dumps({"success":0, "op":"moveNode", "message":"Destination does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}))
-      return
+      return {"success":0, "op":"moveNode", "message":"Destination does not exist", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}
     # Calculate the old parent path
     oldParentPath = "/%s" % "/".join(List.fromChar(nodePath, "/")[:-1])
     if not oldParentPath == destinationParentPath and newParentDict['value'].existsKey(nodeDict['key']):
-      self.write_message(json.dumps({"success":0, "op":"moveNode", "message":"Another entry with the same name already exists", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}))
-      return
+      return {"success":0, "op":"moveNode", "message":"Another entry with the same name already exists", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}
 
     try:
       brothers = newParentDict[ 'value' ].listAll()
@@ -358,9 +324,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
           addArgs[ key ] = nodeDict[ key ]
       newParentDict[ 'value' ].addKey(**addArgs)
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"moveNode", "message":"Can't move node: %s" % str(e), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}))
-      return
-    self.write_message(json.dumps({"success":1, "op":"moveNode", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "beforeOfIndex":params["beforeOfIndex"]}))
+      return {"success":0, "op":"moveNode", "message":"Can't move node: %s" % str(e), "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "oldIndex":params["oldIndex"]}
+    return {"success":1, "op":"moveNode", "nodeId":params["nodeId"], "parentOldId":params["parentOldId"], "parentNewId":params["parentNewId"], "beforeOfIndex":params["beforeOfIndex"]}
 
   def __copyKey(self, params):
     try:
@@ -368,29 +333,24 @@ class ConfigurationManagerHandler(WebSocketHandler):
       destinationParentPath = params[ 'copyToPath' ]
       newNodeName = params[ 'newName' ]
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Can't decode parameter: %s" % str(e)}))
-      return
+      return {"success":0, "op":"copyKey", "message":"Can't decode parameter: %s" % str(e)}
 
 #     gLogger.info( "Moving %s under %s before pos %s" % ( nodePath, destinationParentPath, beforeOfIndex ) )
     cfgData = self.__configData[ 'cfgData' ].getCFG()
 
     nodeDict = cfgData.getRecursive(nodePath)
     if not nodeDict:
-      self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Moving entity does not exist"}))
-      return
+      return {"success":0, "op":"copyKey", "message":"Moving entity does not exist"}
     oldParentDict = cfgData.getRecursive(nodePath, -1)
     newParentDict = cfgData.getRecursive(destinationParentPath)
     if type(newParentDict) == types.StringType:
-      self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Destination is not a section"}))
-      return
+      return {"success":0, "op":"copyKey", "message":"Destination is not a section"}
     if not newParentDict:
-      self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Destination does not exist"}))
-      return
+      return {"success":0, "op":"copyKey", "message":"Destination does not exist"}
     # Calculate the old parent path
     oldParentPath = "/%s" % "/".join(List.fromChar(nodePath, "/")[:-1])
     if not oldParentPath == destinationParentPath and newParentDict['value'].existsKey(newNodeName):
-      self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Another entry with the same name already exists"}))
-      return
+      return {"success":0, "op":"copyKey", "message":"Another entry with the same name already exists"}
 
     try:
       brothers = newParentDict[ 'value' ].listAll()
@@ -401,28 +361,25 @@ class ConfigurationManagerHandler(WebSocketHandler):
           addArgs[ key ] = nodeDict[ key ]
       newParentDict[ 'value' ].addKey(**addArgs)
     except Exception, e:
-      self.write_message(json.dumps({"success":0, "op":"copyKey", "message":"Can't move node: %s" % str(e)}))
-      return
-    self.write_message(json.dumps({"success":1, "op":"copyKey", "newName":nodeDict['key'], "nodeId":params["nodeId"], "parentNodeToId":params["parentNodeToId"]}))
+      return {"success":0, "op":"copyKey", "message":"Can't move node: %s" % str(e)}
+    return {"success":1, "op":"copyKey", "newName":nodeDict['key'], "nodeId":params["nodeId"], "parentNodeToId":params["parentNodeToId"]}
 
   def __commitConfiguration(self):
-    data = SessionData().getData()
+    data = self.getSessionData()
     isAuth = False
     if "properties" in data["user"]:
       if "CSAdministrator" in data["user"]["properties"]:
         isAuth = True
     if not isAuth:
-      self.write_message(json.dumps({"success":0, "op":"commitConfiguration", "message":"You are not authorized to commit configurations!! Bad boy!"}))
-      return
+      return {"success":0, "op":"commitConfiguration", "message":"You are not authorized to commit configurations!! Bad boy!"}
     gLogger.always("User %s is commiting a new configuration version" % data["user"]["DN"])
     retDict = self.__configData[ 'cfgData' ].commit()
     if not retDict[ 'OK' ]:
-      self.write_message(json.dumps({"success":0, "op":"commitConfiguration", "message":retDict[ 'Message' ]}))
-      return
-    self.write_message(json.dumps({"success":1, "op":"commitConfiguration"}))
+      return {"success":0, "op":"commitConfiguration", "message":retDict[ 'Message' ]}
+    return {"success":1, "op":"commitConfiguration"}
 
   def __authorizeAction(self):
-    data = SessionData().getData()
+    data = self.SessionData()
     isAuth = False
     if "properties" in data["user"]:
       if "CSAdministrator" in data["user"]["properties"]:
@@ -455,7 +412,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
   def __showCurrentDiff(self):
     if not self.__authorizeAction():
-      return self.write_message(json.dumps({"success":0, "op":"showCurrentDiff", "message":"You are not authorized to commit configurations!! Bad boy!"}))
+      return {"success":0, "op":"showCurrentDiff", "message":"You are not authorized to commit configurations!! Bad boy!"}
     diffGen = self.__configData[ 'cfgData' ].showCurrentDiff()
     return self.write_message(json.dumps({"success":1, "op":"showCurrentDiff", "html":self.render_string("ConfigurationManager/diffConfig.tpl",
                                                                                                          titles=("Server's version", "User's current version"),

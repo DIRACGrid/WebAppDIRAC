@@ -2,7 +2,6 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
-from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR
 from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities import Time, List, DictCache
@@ -22,9 +21,11 @@ class AccountingPlotHandler(WebHandler):
   __keysCache = DictCache.DictCache()
 
   def __getUniqueKeyValues( self, typeName ):
-    sessionData = SessionData().getData()
-    userGroup = sessionData["user"]["group"]
-    cacheKey = ( sessionData["user"]["username"], userGroup, sessionData["setup"], typeName )
+    sessionData = self.getSessionData()
+    cacheKey = ( sessionData["user"].get( "username", "" ),
+                 sessionData["user"].get( "group", "" ),
+                 sessionData["setup"],
+                 typeName )
     data = AccountingPlotHandler.__keysCache.get( cacheKey )
     if not data:
       rpcClient = RPCClient( "Accounting/ReportGenerator" )
@@ -131,6 +132,7 @@ class AccountingPlotHandler(WebHandler):
         return S_ERROR( "Missing starTime!" )
       else:
         start = Time.fromString( pD[ 'startTime' ] )
+        print "ASD", start
         del( pD[ 'startTime' ] )
     del( pD[ 'timeSelector' ] )
     

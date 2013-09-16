@@ -3,7 +3,6 @@ import urlparse
 from DIRAC import gConfig
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
-from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 
 class RootHandler(WebHandler):
@@ -38,26 +37,26 @@ class RootHandler(WebHandler):
     self.redirect( "/%s%s" % ( "/".join( url ), qs ) )
 
   def web_getConfigData( self ):
-    self.finish(SessionData().getData())
+    self.finish( self.getSessionData() )
 
   def web_index(self):
     # Render base template
-    data = SessionData().getData()
-    
+    data = self.getSessionData()
+
     url_state = ""
     if self.request.arguments.has_key("url_state") and len(self.request.arguments["url_state"][0]) > 0:
       url_state = self.request.arguments["url_state"][0]
-      
-    theme_name = "ext-all-gray"  
+
+    theme_name = "ext-all-gray"
     if self.request.arguments.has_key("theme") and len(self.request.arguments["theme"][0]) > 0:
       if self.request.arguments["theme"][0]=="Neptune":
         theme_name = "ext-all-neptune"
       if self.request.arguments["theme"][0]=="Classic":
         theme_name = "ext-all"
-        
+
     self.render( "root.tpl", base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
                  ext_version = data[ 'extVersion' ], url_state = url_state,
                  extensions = data[ 'extensions' ],
-                 credentials = data[ 'user' ],
+                 credentials = data[ 'user' ], title = Conf.getTitle(),
                  theme = theme_name )
 

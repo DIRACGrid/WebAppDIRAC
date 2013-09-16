@@ -542,7 +542,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 				minWidth : 200,
 				menu : [ {
 					text : "Share state",
-					handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ sStateName, "dekstop" ], false),
+					handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ sStateName, "desktop" ], false),
 					iconCls : "system_share_state_icon"
 				} ]
 			});
