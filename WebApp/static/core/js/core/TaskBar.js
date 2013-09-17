@@ -176,7 +176,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 				me.items.push('-');
 				me.items.push({
 					xtype : 'tbtext',
-					text : "Visitor (<a href='https://" + location.hostname + ":8443" + location.pathname + "'>Secure connection</a>)"
+					text : "Visitor (<a href='https://" + location.host.replace( "8080", "8443" ) + location.pathname + "'>Secure connection</a>)"
 				});
 
 			} else {
