@@ -610,9 +610,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				timeout : 1800000
 			},
 			fields : me.dataFields,
-			autoLoad : false,
 			remoteSort : true,
 			pageSize : 100,
+			dontLoadOnCreation : false,
 			listeners : {
 
 				load : function(oStore, records, successful, eOpts) {
@@ -643,6 +643,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				beforeload : function(oStore, oOperation, eOpts) {
 
 					me.dataStore.lastDataRequest = oOperation;
+
+					if (!oStore.dontLoadOnCreation) {
+						oStore.dontLoadOnCreation = true;
+						return false;
+					} else {
+						return true;
+					}
 
 				}
 
@@ -736,7 +743,72 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					return;
 				} else {
 
-					Ext.MessageBox.alert("IDs of selected jobs", oItems.join("; "));
+					// Ext.MessageBox.alert("IDs of selected jobs", oItems.join("; "));
+
+					var oWindow = me.getContainer().oprGetChildWindow("IDs of selected jobs", false, 700, 500);
+
+					var oTextArea = new Ext.create('Ext.form.field.TextArea', {
+						value : oItems.join(","),
+						cls : "jm-textbox-help-window",
+						flex : 1
+					});
+
+					var oCombo = new Ext.form.field.ComboBox({
+						allowBlank : false,
+						displayField : 'character',
+						editable : false,
+						mode : 'local',
+						store : new Ext.data.SimpleStore({
+							fields : [ 'character' ],
+							data : [ [ "SEMI-COLON" ], [ "COMMA" ], [ "EMPTY SPACE" ] ]
+						}),
+						triggerAction : 'all',
+						value : "COMMA",
+						width : 200,
+						idsItems : oItems,
+						textArea : oTextArea,
+						listeners : {
+
+							"change" : function(combo, newValue, oldValue, eOpts) {
+
+								switch (newValue) {
+
+								case "SEMI-COLON":
+									combo.textArea.setValue(combo.idsItems.join(";"));
+									break;
+								case "COMMA":
+									combo.textArea.setValue(combo.idsItems.join(","));
+									break;
+								case "EMPTY SPACE":
+									combo.textArea.setValue(combo.idsItems.join(" "));
+									break;
+
+								}
+
+							}
+
+						}
+					});
+
+					var oToolb = new Ext.create('Ext.toolbar.Toolbar', {
+						dock : "top",
+						items : [ oCombo ]
+					});
+
+					oWindow.add(new Ext.create('Ext.panel.Panel', {
+						floatable : false,
+						autoScroll : true,
+						autoHeight : true,
+						layout : {
+							type : 'vbox',
+							align : 'stretch',
+							pack : 'start'
+						},
+						dockedItems: [oToolb],
+						items : [ oTextArea ]
+					}) );
+
+					oWindow.show();
 
 				}
 
