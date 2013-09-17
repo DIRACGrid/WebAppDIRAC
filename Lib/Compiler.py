@@ -1,6 +1,7 @@
 import tempfile
 import os
 import subprocess
+import gzip
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers.CSGlobals import getInstalledExtensions
@@ -78,14 +79,34 @@ class Compiler(object):
     return S_OK()
 
 
+  def __zip( self, staticPath, stack = "" ):
+    c = 0
+    l = "|/-\\"
+    for entry in os.listdir( staticPath ):
+      n = stack + l[c%len(l)]
+      ePath = os.path.join( staticPath, entry )
+      if os.path.isdir( ePath ):
+        self.__zip( ePath, n )
+        continue
+      print "%s%s\r" % (n, " " * ( 20 - len( n ) ) ),
+      c += 1
+      inf = gzip.open( "%s.gz" % ePath, "wb", 9 )
+      with open( ePath, "rb" ) as outf:
+        buf = outf.read( 8192 )
+        while buf:
+          inf.write( buf )
+          buf = outf.read( 8192 )
+      inf.close()
+
 
   def run( self ):
+    staticPath = os.path.join( self.__webAppPath, "static" )
     gLogger.notice( "Compiling core" )
     result = self.__writeINFile( "core.tpl" )
     if not result[ 'OK' ]:
       return result
     inFile = result[ 'Value' ]
-    outFile = os.path.join( self.__webAppPath, "static", "core", "build", "index.html" )
+    outFile = os.path.join( staticPath, "core", "build", "index.html" )
     gLogger.verbose( " IN file written to %s" % inFile )
 
     cmd = [ 'sencha', '-sdk', self.__sdkPath, 'compile', '-classpath=%s' % ",".join( self.__classPaths ),
@@ -116,6 +137,8 @@ class Compiler(object):
           if not result[ 'OK' ]:
             return result
 
+    gLogger.verbose( "Zipping static files" )
+    self.__zip( staticPath )
     return S_OK()
 
 
