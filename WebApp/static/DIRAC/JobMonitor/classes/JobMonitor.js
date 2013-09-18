@@ -333,6 +333,18 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			autoScroll : true
 		});
 
+		me.statisticsPanel = new Ext.create('Ext.panel.Panel', {
+			title : 'Statistics',
+			region : 'center',
+			floatable : false,
+			autoScroll : true,
+			hidden : true,
+			collapsible : false,
+			layout : "border"
+		});
+		
+		
+
 		me.cmbSelectors = {
 			site : null,
 			status : null,
@@ -636,6 +648,19 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						me.dataStore.remoteSort = false;
 						me.dataStore.sort();
 						me.dataStore.remoteSort = true;
+
+						// setting the data into the statistics grid
+
+						var oExtraData = oStore.proxy.reader.rawData["extra"];
+
+						me.statisticsSelectionGrid.store.removeAll();
+
+						for ( var key in oExtraData)
+							me.statisticsSelectionGrid.store.add({
+								"key" : key,
+								"value" : oExtraData[key]
+							});
+
 					}
 
 				},
@@ -725,6 +750,16 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			tooltip : "Delete"
 		});
 
+		me.pagingToolbar.btnGoToStatistics = new Ext.Button({
+			text : '',
+			iconCls : "jm-pie-icon",
+			handler : function() {
+				me.grid.hide();
+				me.statisticsPanel.show();
+			},
+			tooltip : "Go to the statistics panel"
+		});
+
 		me.pagingToolbar.btnGetIdList = new Ext.Button({
 			text : '',
 			iconCls : "jm-id-list-icon",
@@ -804,9 +839,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 							align : 'stretch',
 							pack : 'start'
 						},
-						dockedItems: [oToolb],
+						dockedItems : [ oToolb ],
 						items : [ oTextArea ]
-					}) );
+					}));
 
 					oWindow.show();
 
@@ -845,13 +880,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		if (me.pagingToolbar.btnReset != null) {
 
-			pagingToolbarItems = [ me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReset, me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->',
-					me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+			pagingToolbarItems = [ me.pagingToolbar.btnGoToStatistics, '-', me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReset, me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill,
+					me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
 
 		} else {
 
-			pagingToolbarItems = [ me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-',
-					'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+			pagingToolbarItems = [ me.pagingToolbar.btnGoToStatistics, '-', me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-',
+					'->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
 
 		}
 
@@ -873,10 +908,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: ANY OTHER NEW ELEMENT MAY
 			 * HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
 			 */
-			me.pagingToolbar.toolbar.items.insert(6, me.pagingToolbar.toolbar.items.items[23]);
-			me.pagingToolbar.toolbar.items.insert(24, me.pagingToolbar.toolbar.items.items[25]);
-			me.pagingToolbar.toolbar.items.insert(26, me.pagingToolbar.toolbar.items.items[9]);
-			me.pagingToolbar.toolbar.items.insert(6, me.pagingToolbar.toolbar.items.items[9]);
+			me.pagingToolbar.toolbar.items.insert(8, me.pagingToolbar.toolbar.items.items[25]);
+			me.pagingToolbar.toolbar.items.insert(26, me.pagingToolbar.toolbar.items.items[27]);
+			me.pagingToolbar.toolbar.items.insert(28, me.pagingToolbar.toolbar.items.items[11]);
+			me.pagingToolbar.toolbar.items.insert(8, me.pagingToolbar.toolbar.items.items[11]);
 			/*
 			 * -------------------------------END-------------------------------
 			 */
@@ -887,10 +922,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: ANY OTHER NEW ELEMENT MAY
 			 * HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
 			 */
-			me.pagingToolbar.toolbar.items.insert(5, me.pagingToolbar.toolbar.items.items[22]);
-			me.pagingToolbar.toolbar.items.insert(23, me.pagingToolbar.toolbar.items.items[24]);
-			me.pagingToolbar.toolbar.items.insert(25, me.pagingToolbar.toolbar.items.items[8]);
-			me.pagingToolbar.toolbar.items.insert(5, me.pagingToolbar.toolbar.items.items[8]);
+			me.pagingToolbar.toolbar.items.insert(7, me.pagingToolbar.toolbar.items.items[24]);
+			me.pagingToolbar.toolbar.items.insert(25, me.pagingToolbar.toolbar.items.items[26]);
+			me.pagingToolbar.toolbar.items.insert(27, me.pagingToolbar.toolbar.items.items[10]);
+			me.pagingToolbar.toolbar.items.insert(7, me.pagingToolbar.toolbar.items.items[10]);
 			/*
 			 * -------------------------------END-------------------------------
 			 */
@@ -1207,12 +1242,113 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		}
 
+		/* Definition of the statistics panel */
+
+		var oCombo = new Ext.form.field.ComboBox({
+			allowBlank : false,
+			displayField : 'category',
+			editable : false,
+			mode : 'local',
+			store : new Ext.data.SimpleStore({
+				fields : [ 'category' ],
+				data : [ [ "Status" ], [ "Site" ], [ "Minor Status" ], [ "Application Status" ], [ "Owner" ], [ "Job Group" ] ]
+			}),
+			triggerAction : 'all',
+			value : "Status",
+			flex : 1,
+			listeners : {
+
+				"change" : function(combo, newValue, oldValue, eOpts) {
+
+				}
+
+			}
+		});
+
+		me.statisticsSelectionGridToolbar = new Ext.create('Ext.toolbar.Toolbar', {
+			dock : "top",
+			items : [ oCombo ]
+		});
+
+		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
+			region : 'west',
+			store : new Ext.data.ArrayStore({
+				fields : [ "key", "value" ],
+				data : []
+			}),
+			width : 300,
+			header : false,
+			border : 0,
+			viewConfig : {
+				stripeRows : true,
+				enableTextSelection : true
+			},
+			dockedItems : [ me.statisticsSelectionGridToolbar ],
+			columns : [ {
+				header : '',
+				width : 26,
+				sortable : false,
+				dataIndex : 'key',
+				renderer : function(value, metaData, record, row, col, store, gridView) {
+					return this.rendererStatus(value);
+				},
+				hideable : false,
+				fixed : true,
+				menuDisabled : true
+			}, {
+				header : 'Key',
+				sortable : true,
+				dataIndex : 'key',
+				align : 'left',
+				hideable : false,
+				width : 150
+			}, {
+				header : 'Value',
+				flex : 1,
+				sortable : true,
+				dataIndex : 'value',
+				align : 'left'
+			} ],
+			rendererStatus : function(value) {
+				if ((value == 'Done') || (value == 'Completed') || (value == 'Good') || (value == 'Active') || (value == 'Cleared') || (value == 'Completing')) {
+					return '<img src="static/DIRAC/JobMonitor/images/done.gif"/>';
+				} else if (value == 'Bad') {
+					return '<img src="static/DIRAC/JobMonitor/images/bad.gif"/>';
+				} else if ((value == 'Failed') || (value == 'Bad') || (value == 'Banned') || (value == 'Aborted')) {
+					return '<img src="static/DIRAC/JobMonitor/images/failed.gif"/>';
+				} else if ((value == 'Waiting') || (value == 'Stopped') || (value == 'Poor') || (value == 'Probing')) {
+					return '<img src="static/DIRAC/JobMonitor/images/waiting.gif"/>';
+				} else if (value == 'Deleted') {
+					return '<img src="static/DIRAC/JobMonitor/images/deleted.gif"/>';
+				} else if (value == 'Matched') {
+					return '<img src="static/DIRAC/JobMonitor/images/matched.gif"/>';
+				} else if ((value == 'Running') || (value == 'Active') || (value == 'Fair')) {
+					return '<img src="static/DIRAC/JobMonitor/images/running.gif"/>';
+				} else if (value == 'NoMask') {
+					return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
+				} else {
+					return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
+				}
+			},
+		});
+
+		me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
+			region : 'center',
+			floatable : false,
+			layout : 'anchor',
+			autoScroll : true
+		});
+
+		me.statisticsPanel.add([ me.statisticsSelectionGrid, me.statisticsPlotPanel ]);
+
+		/* END - Definition of the statistics panel */
+
 		/*
 		 * -----------------------------------------------------------------------------------------------------------
 		 * DEFINITION OF THE MAIN CONTAINER
 		 * -----------------------------------------------------------------------------------------------------------
 		 */
-		me.add([ me.leftPanel, me.grid ]);
+		me.add([ me.leftPanel, me.statisticsPanel, me.grid ]);
 
 	},
 
@@ -1267,6 +1403,18 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			xtype : "diracToolButton",
 			type : "down",
 			menu : me.selectorMenu
+		});
+
+		me.statisticsPanel.getHeader().addTool({
+			xtype : "diracToolButton",
+			type : "down",
+			handler : function() {
+
+				me.statisticsPanel.hide();
+				me.grid.show();
+
+			},
+			tooltip : "Go back to the grid view"
 		});
 
 		// Change the handler of the refresh button of the paging toolbar
