@@ -334,7 +334,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		});
 
 		me.statisticsPanel = new Ext.create('Ext.panel.Panel', {
-			title : 'Statistics',
+			header : false,
 			region : 'center',
 			floatable : false,
 			autoScroll : true,
@@ -342,8 +342,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			collapsible : false,
 			layout : "border"
 		});
-		
-		
 
 		me.cmbSelectors = {
 			site : null,
@@ -1244,7 +1242,26 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		/* Definition of the statistics panel */
 
-		var oCombo = new Ext.form.field.ComboBox({
+		me.statisticsGridComboMain = new Ext.form.field.ComboBox({
+			allowBlank : false,
+			displayField : 'set',
+			editable : false,
+			mode : 'local',
+			store : new Ext.data.SimpleStore({
+				fields : [ 'set' ],
+				data : [ [ "Selected Statistics" ], [ "Global Statistics" ] ]
+			}),
+			triggerAction : 'all',
+			value : "Selected Statistics",
+			flex : 1,
+			listeners : {
+
+				"change" : me.funcOnChangeEitherCombo
+
+			}
+		});
+
+		me.statisticsGridCombo = new Ext.form.field.ComboBox({
 			allowBlank : false,
 			displayField : 'category',
 			editable : false,
@@ -1258,16 +1275,33 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			flex : 1,
 			listeners : {
 
-				"change" : function(combo, newValue, oldValue, eOpts) {
-
-				}
+				"change" : me.funcOnChangeEitherCombo
 
 			}
 		});
 
-		me.statisticsSelectionGridToolbar = new Ext.create('Ext.toolbar.Toolbar', {
-			dock : "top",
-			items : [ oCombo ]
+		var oButtonForPlot = new Ext.Button({
+
+			text : 'Plot',
+			margin : 0,
+			iconCls : "jm-pie-icon",
+			handler : function() {
+
+			},
+			scope : me,
+			defaultAlign : "c"
+		});
+
+		var oButtonGoToGrid = new Ext.Button({
+
+			margin : 0,
+			iconCls : "jm-grid-icon",
+			handler : function() {
+				me.grid.show();
+				me.statisticsPanel.hide();
+			},
+			scope : me,
+
 		});
 
 		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
@@ -1283,7 +1317,16 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				stripeRows : true,
 				enableTextSelection : true
 			},
-			dockedItems : [ me.statisticsSelectionGridToolbar ],
+			dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
+				dock : "top",
+				items : [ oButtonGoToGrid, '-', oButtonForPlot ]
+			}), new Ext.create('Ext.toolbar.Toolbar', {
+				dock : "top",
+				items : [ me.statisticsGridComboMain ]
+			}), new Ext.create('Ext.toolbar.Toolbar', {
+				dock : "top",
+				items : [ me.statisticsGridCombo ]
+			}) ],
 			columns : [ {
 				header : '',
 				width : 26,
@@ -1352,6 +1395,78 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	},
 
+	funcOnChangeEitherCombo : function(combo, newValue, oldValue, eOpts) {
+
+		var me = this;
+
+		var sSet = me.statisticsGridComboMain.getValue();
+		var sCategory = me.statisticsGridCombo.getValue();
+
+		if (sSet == "Selected Statistics") {
+			
+			var oData = me.getSelectionData();
+			oData.statsField = sCategory;
+			
+			Ext.Ajax.request({
+				url : GLOBAL.BASE_URL + 'JobMonitor/getStatisticsData',
+				params : oData,
+				scope : me,
+				success : function(response) {
+
+					if (response["success"] == "true") {
+						me.statisticsSelectionGrid.store.removeAll();
+
+						for ( var key in response["result"]) {
+							me.statisticsSelectionGrid.store.add({
+								"key" : key,
+								"value" : oExtraData[key]
+							});
+						}
+					} else {
+						alert(response["error"]);
+					}
+
+				},
+				failure : function(response) {
+
+					Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				}
+			});
+		} else {
+
+			Ext.Ajax.request({
+				url : GLOBAL.BASE_URL + 'JobMonitor/getStatisticsData',
+				params : {
+					getStat : sCategory,
+					globalStat : true
+				},
+				scope : me,
+				success : function(response) {
+
+					if (response["success"] == "true") {
+						me.statisticsSelectionGrid.store.removeAll();
+
+						for ( var key in response["result"]) {
+							me.statisticsSelectionGrid.store.add({
+								"key" : key,
+								"value" : oExtraData[key]
+							});
+						}
+					} else {
+						alert(response["error"]);
+					}
+
+				},
+				failure : function(response) {
+
+					Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				}
+			});
+
+		}
+
+	},
+
 	afterRender : function() {
 		var me = this;
 
@@ -1403,18 +1518,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			xtype : "diracToolButton",
 			type : "down",
 			menu : me.selectorMenu
-		});
-
-		me.statisticsPanel.getHeader().addTool({
-			xtype : "diracToolButton",
-			type : "down",
-			handler : function() {
-
-				me.statisticsPanel.hide();
-				me.grid.show();
-
-			},
-			tooltip : "Go back to the grid view"
 		});
 
 		// Change the handler of the refresh button of the paging toolbar
@@ -1517,68 +1620,78 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		});
 
 	},
+	
+	getSelectionData:function(){
+		
+		var me = this;
+		
+		// if a value in time span has been selected
+		var sStartDate = me.timeSearchElementsGroup.calenFrom.getRawValue();
+		var sStartTime = me.timeSearchElementsGroup.cmbTimeFrom.getValue();
+		var sEndDate = me.timeSearchElementsGroup.calenTo.getRawValue();
+		var sEndTime = me.timeSearchElementsGroup.cmbTimeTo.getValue();
+
+		var iSpanValue = me.timeSearchElementsGroup.cmbTimeSpan.getValue();
+
+		if ((iSpanValue != null) && (iSpanValue != 5)) {
+
+			var oNowJs = new Date();
+			var oBegin = null;
+
+			switch (iSpanValue) {
+			case 1:
+				oBegin = Ext.Date.add(oNowJs, Ext.Date.HOUR, -1);
+				break;
+			case 2:
+				oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -1);
+				break;
+			case 3:
+				oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -7);
+				break;
+			case 4:
+				oBegin = Ext.Date.add(oNowJs, Ext.Date.MONTH, -1);
+				break;
+			}
+
+			sStartDate = Ext.Date.format(oBegin, "Y-m-d");
+			sEndDate = Ext.Date.format(oNowJs, "Y-m-d");
+			sStartTime = Ext.Date.format(oBegin, "H:i");
+			sEndTime = Ext.Date.format(oNowJs, "H:i");
+
+		}
+
+		// Collect data for filtration
+		var extraParams = {
+
+			site : ((me.cmbSelectors.site.isInverseSelection()) ? me.cmbSelectors.site.getInverseSelection() : me.cmbSelectors.site.getValue().join(",")),
+			status : ((me.cmbSelectors.status.isInverseSelection()) ? me.cmbSelectors.status.getInverseSelection() : me.cmbSelectors.status.getValue().join(",")),
+			minorstat : ((me.cmbSelectors.minorStatus.isInverseSelection()) ? me.cmbSelectors.minorStatus.getInverseSelection() : me.cmbSelectors.minorStatus.getValue().join(",")),
+			app : ((me.cmbSelectors.appStatus.isInverseSelection()) ? me.cmbSelectors.appStatus.getInverseSelection() : me.cmbSelectors.appStatus.getValue().join(",")),
+			owner : ((me.cmbSelectors.owner.isInverseSelection()) ? me.cmbSelectors.owner.getInverseSelection() : me.cmbSelectors.owner.getValue().join(",")),
+			prod : ((me.cmbSelectors.jobGroup.isInverseSelection()) ? me.cmbSelectors.jobGroup.getInverseSelection() : me.cmbSelectors.jobGroup.getValue().join(",")),
+			types : ((me.cmbSelectors.jobType.isInverseSelection()) ? me.cmbSelectors.jobType.getInverseSelection() : me.cmbSelectors.jobType.getValue().join(",")),
+			ids : me.textJobId.getValue(),
+			limit : me.pagingToolbar.pageSizeCombo.getValue(),
+			startDate : sStartDate,
+			startTime : sStartTime,
+			endDate : sEndDate,
+			endTime : sEndTime
+
+		};
+		
+		return extraParams;
+		
+		
+	},
+	
 	oprLoadGridData : function() {
 
 		var me = this;
 
 		if (me.__oprValidateBeforeSubmit()) {
 
-			// if a value in time span has been selected
-			var sStartDate = me.timeSearchElementsGroup.calenFrom.getRawValue();
-			var sStartTime = me.timeSearchElementsGroup.cmbTimeFrom.getValue();
-			var sEndDate = me.timeSearchElementsGroup.calenTo.getRawValue();
-			var sEndTime = me.timeSearchElementsGroup.cmbTimeTo.getValue();
-
-			var iSpanValue = me.timeSearchElementsGroup.cmbTimeSpan.getValue();
-
-			if ((iSpanValue != null) && (iSpanValue != 5)) {
-
-				var oNowJs = new Date();
-				var oBegin = null;
-
-				switch (iSpanValue) {
-				case 1:
-					oBegin = Ext.Date.add(oNowJs, Ext.Date.HOUR, -1);
-					break;
-				case 2:
-					oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -1);
-					break;
-				case 3:
-					oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -7);
-					break;
-				case 4:
-					oBegin = Ext.Date.add(oNowJs, Ext.Date.MONTH, -1);
-					break;
-				}
-
-				sStartDate = Ext.Date.format(oBegin, "Y-m-d");
-				sEndDate = Ext.Date.format(oNowJs, "Y-m-d");
-				sStartTime = Ext.Date.format(oBegin, "H:i");
-				sEndTime = Ext.Date.format(oNowJs, "H:i");
-
-			}
-
-			// Collect data for filtration
-			var extraParams = {
-
-				site : ((me.cmbSelectors.site.isInverseSelection()) ? me.cmbSelectors.site.getInverseSelection() : me.cmbSelectors.site.getValue().join(",")),
-				status : ((me.cmbSelectors.status.isInverseSelection()) ? me.cmbSelectors.status.getInverseSelection() : me.cmbSelectors.status.getValue().join(",")),
-				minorstat : ((me.cmbSelectors.minorStatus.isInverseSelection()) ? me.cmbSelectors.minorStatus.getInverseSelection() : me.cmbSelectors.minorStatus.getValue().join(",")),
-				app : ((me.cmbSelectors.appStatus.isInverseSelection()) ? me.cmbSelectors.appStatus.getInverseSelection() : me.cmbSelectors.appStatus.getValue().join(",")),
-				owner : ((me.cmbSelectors.owner.isInverseSelection()) ? me.cmbSelectors.owner.getInverseSelection() : me.cmbSelectors.owner.getValue().join(",")),
-				prod : ((me.cmbSelectors.jobGroup.isInverseSelection()) ? me.cmbSelectors.jobGroup.getInverseSelection() : me.cmbSelectors.jobGroup.getValue().join(",")),
-				types : ((me.cmbSelectors.jobType.isInverseSelection()) ? me.cmbSelectors.jobType.getInverseSelection() : me.cmbSelectors.jobType.getValue().join(",")),
-				ids : me.textJobId.getValue(),
-				limit : me.pagingToolbar.pageSizeCombo.getValue(),
-				startDate : sStartDate,
-				startTime : sStartTime,
-				endDate : sEndDate,
-				endTime : sEndTime
-
-			};
-
 			// set those data as extraParams in
-			me.grid.store.proxy.extraParams = extraParams;
+			me.grid.store.proxy.extraParams = me.getSelectionData();
 			me.grid.store.load();
 
 			var oCheckbox = Ext.query("#" + me.id + " input.jm-main-check-box");

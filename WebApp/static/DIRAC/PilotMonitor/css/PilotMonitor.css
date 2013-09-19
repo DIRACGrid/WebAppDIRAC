@@ -1,75 +1,82 @@
-.jm-reschedule-icon{
+.pm-reschedule-icon{
 	
 	 background-image: url(../images/reschedule.gif) !important;
      background-color: transparent;
 	
 }
 
-.jm-kill-icon{
+.pm-kill-icon{
 	
 	 background-image: url(../images/close.gif) !important;
      background-color: transparent;
 	
 }
 
-.jm-delete-icon{
+.pm-delete-icon{
 	
 	 background-image: url(../images/delete.gif) !important;
      background-color: transparent;
 	
 }
 
-.jm-refresh-icon{
+.pm-refresh-icon{
 	
 	 background-image: url(../images/refresh.gif) !important;
      background-color: transparent;
 	
 }
 
-.jm-submit-icon{
+.pm-submit-icon{
 	
 	 background-image: url(../images/submit.gif) !important;
      background-color: transparent;
 	
 }
 
-.jm-reset-icon{
+.pm-reset-icon{
 	
 	 background-image: url(../images/reset.gif) !important;
      background-color: transparent;
 	
 }
 
-.jm-reset-button-icon{
+.pm-reset-button-icon{
 	
 	 background-image: url(../images/resetButton.gif) !important;
      background-color: transparent;
 	
 }
 
-.jm-action-gif-icon{
+.pm-action-gif-icon{
 	
 	 background-image: url(../images/action.gif) !important;
      background-color: transparent;
 	
 }
 
-.jm-addfile-gif-icon{
+.pm-addfile-gif-icon{
 	
 	 background-image: url(../images/addfile.gif) !important;
      background-color: transparent;
 	
 }
 
-.jm-textbox-help-window textarea.x-form-field{
+.pm-textbox-help-window textarea.x-form-field{
 	
 	font-family: Courier,monospace !important;	
 	
 
 }
 
-.jm-main-check-box{
+.pm-main-check-box{
 	
 	margin:3px 0px 3px 0px !important;
+	
+}
+
+.pm-id-list-icon{
+	
+	 background-image: url(../images/id_list.png) !important;
+     background-color: transparent;
 	
 }
