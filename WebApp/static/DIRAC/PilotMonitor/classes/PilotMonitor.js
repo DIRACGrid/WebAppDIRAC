@@ -63,7 +63,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		else
 			me.timeSearchPanel.hide();
 		// END - For the time span searching sub-panel
-		
+
 		me.textTaskQueueId.setValue(data.leftMenu.textTaskQueueId);
 		me.textJobReference.setValue(data.leftMenu.textJobReference);
 		me.timeSearchElementsGroup.cmbTimeSpan.setValue(data.leftMenu.cmbTimeSpan);
@@ -412,7 +412,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 			text : 'Reset Time Panel',
 			margin : 3,
-			iconCls : "jm-reset-button-icon",
+			iconCls : "pm-reset-button-icon",
 			handler : function() {
 
 				me.timeSearchElementsGroup.cmbTimeTo.setValue(null);
@@ -478,7 +478,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 			text : 'Submit',
 			margin : 3,
-			iconCls : "jm-submit-icon",
+			iconCls : "pm-submit-icon",
 			handler : function() {
 				me.oprLoadGridData();
 				// me.oprSelectorsRefreshWithSubmit(true);
@@ -493,7 +493,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 			text : 'Reset',
 			margin : 3,
-			iconCls : "jm-reset-button-icon",
+			iconCls : "pm-reset-button-icon",
 			handler : function() {
 				me.oprResetSelectionOptions();
 			},
@@ -588,7 +588,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		me.checkboxFunctionDefinition += 'var oChecked=this.checked;';
 		me.checkboxFunctionDefinition += 'var oElems=Ext.query(\'#' + me.id + ' input.checkrow\');';
 		me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
-		me.checkboxFunctionDefinition += '" class="jm-main-check-box"/>';
+		me.checkboxFunctionDefinition += '" class="pm-main-check-box"/>';
 
 		me.pagingToolbar = {};
 		me.pagingToolbar.updateStamp = new Ext.Button({
@@ -621,7 +621,54 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			me.oprLoadGridData();
 		}, me);
 
-		var pagingToolbarItems = [ '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+		me.btnPilotInJobMonitor = new Ext.Button({
+			text : '',
+			iconCls : "pm-id-list-icon",
+			handler : function() {
+
+				var me = this;
+
+				var oElems = Ext.query('#' + me.id + ' input.checkrow');
+
+				var oValues = "";
+				for ( var i = 0; i < oElems.length; i++) {
+
+					if (oElems[i].checked && (oElems[i].value != '-'))
+						oValues += ((oValues == "") ? "" : ",") + oElems[i].value;
+				}
+
+				if (oValues != "") {
+
+					var oSetupData = {};
+					var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+					oSetupData.x = 0;
+					oSetupData.y = 0;
+					oSetupData.width = oDimensions[0];
+					oSetupData.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+					oSetupData.currentState = "";
+
+					oSetupData.desktopStickMode = 0;
+					oSetupData.hiddenHeader = 1;
+					oSetupData.i_x = 0;
+					oSetupData.i_y = 0;
+					oSetupData.ic_x = 0;
+					oSetupData.ic_y = 0;
+
+					oSetupData.data = {
+						leftMenu : {
+							txtJobId : oValues
+						}
+					};
+
+					GLOBAL.APP.desktop.createWindow("app", "DIRAC.JobMonitor.classes.JobMonitor", oSetupData);
+				}
+
+			},
+			scope : me,
+			tooltip : "Show Jobs in JobMonitor"
+		});
+
+		var pagingToolbarItems = [ me.btnPilotInJobMonitor, '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
 
 		me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
 			store : me.dataStore,
@@ -636,6 +683,33 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			items : [ {
 				handler : function() {
 
+					var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
+					if (oId != '-') {
+						var oSetupData = {};
+						var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+						oSetupData.x = 0;
+						oSetupData.y = 0;
+						oSetupData.width = oDimensions[0];
+						oSetupData.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+						oSetupData.currentState = "";
+
+						oSetupData.desktopStickMode = 0;
+						oSetupData.hiddenHeader = 1;
+						oSetupData.i_x = 0;
+						oSetupData.i_y = 0;
+						oSetupData.ic_x = 0;
+						oSetupData.ic_y = 0;
+
+						var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
+
+						oSetupData.data = {
+							leftMenu : {
+								txtJobId : oId
+							}
+						};
+
+						GLOBAL.APP.desktop.createWindow("app", "DIRAC.JobMonitor.classes.JobMonitor", oSetupData);
+					}
 				},
 				text : 'Show Job'
 			}, '-', {
@@ -671,7 +745,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				id : 'checkBox',
 				width : 26,
 				sortable : false,
-				dataIndex : 'JobIDcheckBox',
+				dataIndex : 'CurrentJobID',
 				renderer : function(value, metaData, record, row, col, store, gridView) {
 					return this.rendererChkBox(value);
 				},
@@ -693,7 +767,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				sortable : true,
 				dataIndex : 'PilotJobReference',
 				align : 'left',
-				flex:1
+				flex : 1
 			}, {
 				header : 'Status',
 				sortable : true,
@@ -704,19 +778,19 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				sortable : true,
 				dataIndex : 'GridSite',
 				align : 'left',
-				flex:1
+				flex : 1
 			}, {
 				header : 'ComputingElement',
 				sortable : true,
 				dataIndex : 'DestinationSite',
 				align : 'left',
-				flex:1
+				flex : 1
 			}, {
 				header : 'Broker',
 				sortable : true,
 				dataIndex : 'Broker',
 				align : 'left',
-				flex:1
+				flex : 1
 			}, {
 				header : 'CurrentJobID',
 				sortable : true,
@@ -814,16 +888,16 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 
 					if (cellIndex != 0) {
-						
+
 						var oJobId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
 						var oStatus = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Status");
-						
+
 						var items = me.contextGridMenu.items.items;
-						
+
 						items[0].setDisabled(oJobId == '-');
 						items[2].setDisabled(oStatus != 'Done');
 						items[3].setDisabled(oStatus != 'Done');
-						
+
 						me.contextGridMenu.showAt(e.xy);
 					}
 
@@ -832,7 +906,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			}
 		});
 
-		//me.grid.columns[1].setSortState("DESC");
+		// me.grid.columns[1].setSortState("DESC");
 
 		/*
 		 * -----------------------------------------------------------------------------------------------------------
@@ -1135,7 +1209,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 			value : sTextToShow,
-			cls : "jm-textbox-help-window"
+			cls : "pm-textbox-help-window"
 
 		});
 

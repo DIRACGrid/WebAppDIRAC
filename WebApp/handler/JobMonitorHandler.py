@@ -431,3 +431,54 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success":"false","error":result["Message"]}
     self.finish(callback)
+  
+  @asyncGen  
+  def web_getStatisticsData(self):
+    req = self.__request()
+    print req
+    RPC = RPCClient("WorkloadManagement/JobMonitoring")
+    
+    selector = self.request.arguments["statsField"][0]
+    
+    if selector == "Minor Status":
+      selector = "MinorStatus"
+    elif selector == "Application Status":
+      selector = "ApplicationStatus"
+    elif selector == "Job Group":
+      selector = "JobGroup"
+    
+    result = yield self.threadTask(RPC.getJobStats,selector,req)
+    print result
+    if result["OK"]:
+      callback = []
+      result = dict(result["Value"])
+      keylist = result.keys()
+      keylist.sort()
+      if selector == "Site":
+        tier1 = gConfig.getValue("/Website/PreferredSites",[])
+        if len(tier1) > 0:
+          tier1.sort()
+          for i in tier1:
+            if result.has_key(i):
+              countryCode = i.rsplit(".",1)[1]
+              callback.append({"key":i,"value":result[i],"code":countryCode})
+      for key in keylist:
+        if selector == "Site" and tier1:
+          if key not in tier1:
+            try:
+              countryCode = key.rsplit(".",1)[1]
+            except:
+              countryCode = "Unknown"
+            callback.append({"key":key,"value":result[key],"code":countryCode})
+        elif selector == "Site" and not tier1:
+          try:
+            countryCode = key.rsplit(".",1)[1]
+          except:
+            countryCode = "Unknown"
+          callback.append({"key":key,"value":result[key],"code":countryCode})
+        else:
+          callback.append({"key":key,"value":result[key]})
+      callback = {"success":"true","result":callback}
+    else:
+      callback = {"success":"false","error":result["Message"]}
+    self.finish(callback)
