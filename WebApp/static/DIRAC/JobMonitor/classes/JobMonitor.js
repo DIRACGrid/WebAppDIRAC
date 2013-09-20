@@ -656,7 +656,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						for ( var key in oExtraData)
 							me.statisticsSelectionGrid.store.add({
 								"key" : key,
-								"value" : oExtraData[key]
+								"value" : oExtraData[key],
+								"code" : ""
 							});
 
 					}
@@ -1258,7 +1259,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 				"change" : me.funcOnChangeEitherCombo
 
-			}
+			},
+			moduleObject : me
 		});
 
 		me.statisticsGridCombo = new Ext.form.field.ComboBox({
@@ -1277,7 +1279,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 				"change" : me.funcOnChangeEitherCombo
 
-			}
+			},
+			moduleObject : me
 		});
 
 		var oButtonForPlot = new Ext.Button({
@@ -1285,9 +1288,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			text : 'Plot',
 			margin : 0,
 			iconCls : "jm-pie-icon",
-			handler : function() {
-
-			},
+			handler : me.createPlotFromGridData,
 			scope : me,
 			defaultAlign : "c"
 		});
@@ -1307,7 +1308,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
 			region : 'west',
 			store : new Ext.data.ArrayStore({
-				fields : [ "key", "value" ],
+				fields : [ "key", "value", "code" ],
 				data : []
 			}),
 			width : 300,
@@ -1375,11 +1376,54 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 		});
 
+		me.btnShowPlotAsPng = new Ext.Button({
+
+			margin : 0,
+			iconCls : "jm-pie-icon",
+			handler : function() {
+
+				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
+
+				var iHeight = me.statisticsPlotPanel.getHeight() - 100;
+
+				var iWidth = me.statisticsPlotPanel.getWidth() - 20;
+
+				var canvas = document.createElement('canvas');
+				canvas.setAttribute('width', iWidth);
+				canvas.setAttribute('height', iHeight);
+
+				document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
+
+				canvg(canvas, sSvgElement);
+				var imgData = canvas.toDataURL("image/png");
+
+				// var img = document.createElement('img');
+				// img.src = imgData;
+				// document.getElementById(me.id+'-statistics-plot-png').appendChild(img);
+				window.location = imgData.replace("image/png", "image/octet-stream");
+
+			},
+			scope : me,
+
+		});
+
 		me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
 			region : 'center',
 			floatable : false,
 			layout : 'anchor',
-			autoScroll : true
+			autoScroll : true,
+			items : [ new Ext.create('Ext.toolbar.Toolbar', {
+				dock : "top",
+				border : 0,
+				items : [ me.btnShowPlotAsPng ]
+			}), {
+				html : "<div id='" + me.id + "-statistics-plot' style='width:100%;'></div>",
+				xtype : "box"
+			}, {
+				html : "<div id='" + me.id + "-statistics-plot-png' style='width:100%;'></div>",
+				xtype : "box",
+				hidden : true
+			} ]
 		});
 
 		me.statisticsPanel.add([ me.statisticsSelectionGrid, me.statisticsPlotPanel ]);
@@ -1397,73 +1441,113 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	funcOnChangeEitherCombo : function(combo, newValue, oldValue, eOpts) {
 
-		var me = this;
+		var me = combo.moduleObject;
 
 		var sSet = me.statisticsGridComboMain.getValue();
 		var sCategory = me.statisticsGridCombo.getValue();
 
+		me.statisticsGridComboMain.setDisabled(true);
+		me.statisticsGridCombo.setDisabled(true);
+
 		if (sSet == "Selected Statistics") {
-			
+
 			var oData = me.getSelectionData();
 			oData.statsField = sCategory;
-			
+
+			me.statisticsSelectionGrid.body.mask("Wait ...");
+
 			Ext.Ajax.request({
 				url : GLOBAL.BASE_URL + 'JobMonitor/getStatisticsData',
 				params : oData,
 				scope : me,
 				success : function(response) {
+					var response = Ext.JSON.decode(response.responseText);
 
 					if (response["success"] == "true") {
 						me.statisticsSelectionGrid.store.removeAll();
 
-						for ( var key in response["result"]) {
-							me.statisticsSelectionGrid.store.add({
-								"key" : key,
-								"value" : oExtraData[key]
-							});
-						}
+						me.statisticsSelectionGrid.store.add(response["result"]);
+
 					} else {
 						alert(response["error"]);
 					}
 
+					me.statisticsSelectionGrid.body.unmask();
+					me.statisticsGridComboMain.setDisabled(false);
+					me.statisticsGridCombo.setDisabled(false);
 				},
 				failure : function(response) {
-
+					me.statisticsGridComboMain.setDisabled(false);
+					me.statisticsGridCombo.setDisabled(false);
+					me.statisticsSelectionGrid.body.unmask();
 					Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 				}
 			});
 		} else {
 
+			me.statisticsSelectionGrid.body.mask("Wait ...");
+
 			Ext.Ajax.request({
 				url : GLOBAL.BASE_URL + 'JobMonitor/getStatisticsData',
 				params : {
-					getStat : sCategory,
+					statsField : sCategory,
 					globalStat : true
 				},
 				scope : me,
 				success : function(response) {
+					var response = Ext.JSON.decode(response.responseText);
 
 					if (response["success"] == "true") {
 						me.statisticsSelectionGrid.store.removeAll();
 
-						for ( var key in response["result"]) {
-							me.statisticsSelectionGrid.store.add({
-								"key" : key,
-								"value" : oExtraData[key]
-							});
-						}
+						me.statisticsSelectionGrid.store.add(response["result"]);
+
 					} else {
 						alert(response["error"]);
 					}
-
+					me.statisticsSelectionGrid.body.unmask();
+					me.statisticsGridComboMain.setDisabled(false);
+					me.statisticsGridCombo.setDisabled(false);
 				},
 				failure : function(response) {
-
+					me.statisticsSelectionGrid.body.unmask();
+					me.statisticsGridComboMain.setDisabled(false);
+					me.statisticsGridCombo.setDisabled(false);
 					Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 				}
 			});
 
 		}
+
+	},
+
+	createPlotFromGridData : function() {
+
+		var me = this;
+
+		var oStore = me.statisticsSelectionGrid.getStore();
+		var oData = [ [ "Key", "Value" ] ];
+
+		for ( var i = 0; i < oStore.getCount(); i++) {
+
+			oData.push([ oStore.getAt(i).get("key"), oStore.getAt(i).get("value") ]);
+
+		}
+
+		var data = google.visualization.arrayToDataTable(oData);
+
+		var options = {
+			title : 'Grid Statistics'
+		};
+
+		var iHeight = me.statisticsPlotPanel.getHeight() - 100;
+		document.getElementById(me.id + "-statistics-plot").style.height = "" + iHeight + "px";
+
+		var iWidth = me.statisticsPlotPanel.getWidth() - 20;
+		document.getElementById(me.id + "-statistics-plot").style.width = "" + iWidth + "px";
+
+		var chart = new google.visualization.PieChart(document.getElementById(me.id + "-statistics-plot"));
+		chart.draw(data, options);
 
 	},
 
@@ -1620,11 +1704,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		});
 
 	},
-	
-	getSelectionData:function(){
-		
+
+	getSelectionData : function() {
+
 		var me = this;
-		
+
 		// if a value in time span has been selected
 		var sStartDate = me.timeSearchElementsGroup.calenFrom.getRawValue();
 		var sStartTime = me.timeSearchElementsGroup.cmbTimeFrom.getValue();
@@ -1678,12 +1762,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			endTime : sEndTime
 
 		};
-		
+
 		return extraParams;
-		
-		
+
 	},
-	
+
 	oprLoadGridData : function() {
 
 		var me = this;
