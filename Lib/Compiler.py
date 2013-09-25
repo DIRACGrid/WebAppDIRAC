@@ -84,6 +84,8 @@ class Compiler(object):
     l = "|/-\\"
     for entry in os.listdir( staticPath ):
       n = stack + l[c%len(l)]
+      if entry[-3:] == ".gz":
+        continue
       ePath = os.path.join( staticPath, entry )
       if os.path.isdir( ePath ):
         self.__zip( ePath, n )
@@ -101,6 +103,7 @@ class Compiler(object):
 
   def run( self ):
     staticPath = os.path.join( self.__webAppPath, "static" )
+    self.__zip( staticPath )
     gLogger.notice( "Compiling core" )
     result = self.__writeINFile( "core.tpl" )
     if not result[ 'OK' ]:
@@ -137,7 +140,7 @@ class Compiler(object):
           if not result[ 'OK' ]:
             return result
 
-    gLogger.verbose( "Zipping static files" )
+    gLogger.notice( "Zipping static files" )
     self.__zip( staticPath )
     return S_OK()
 
