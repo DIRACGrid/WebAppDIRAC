@@ -334,7 +334,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			text : 'New',
 			margin : 3,
-			iconCls : "accp-submit-icon",
+			iconCls : "accp-img-new-plot",
 			handler : function() {
 
 				var oSetupData = {};
@@ -415,9 +415,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		 */
 		me.btnRefreshPlot = new Ext.Button({
 
-			text : 'Update',
+			text : 'Plot',
 			margin : 3,
-			iconCls : "accp-refresh-icon",
+			iconCls : "accp-submit-icon",
 			handler : function() {
 				me.__generatePlot();
 			},
@@ -745,7 +745,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		switch (me.cmbTimeSpan.getValue()) {
 
 		case -1:
-			if ((me.calendarFrom.getValue() == null) || (me.calendarTo.getValue() == null)) {
+			if ((me.calendarFrom.getValue() == null) && (me.calendarTo.getValue() == null)) {
 
 				if (bWithMessages)
 					alert("No dates selected !");
@@ -788,12 +788,12 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		};
 
-		var fixTime = function( st ) {
+		var fixTime = function(st) {
 			var year = st.getFullYear().toString();
 			var month = st.getMonth() + 1;
-			month = ( month < 10 ? "0" : "" ) + month;
+			month = (month < 10 ? "0" : "") + month;
 			var day = st.getDate();
-			day = ( day < 10 ? "0" : "" ) + day;
+			day = (day < 10 ? "0" : "") + day;
 			return year + "-" + month + "-" + day;
 		};
 
@@ -805,8 +805,8 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			oParams._timeSelector = -1;
 
-			oParams._startTime = fixTime( me.calendarFrom.getValue() );
-			oParams._endTime = fixTime( me.calendarTo.getValue() );
+			oParams._startTime = fixTime(me.calendarFrom.getValue());
+			oParams._endTime = fixTime(me.calendarTo.getValue());
 
 		} else if (iTimeSpan == -2) {
 

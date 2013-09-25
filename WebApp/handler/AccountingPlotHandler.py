@@ -135,7 +135,10 @@ class AccountingPlotHandler(WebHandler):
         print "ASD", start
         del( pD[ 'startTime' ] )
     del( pD[ 'timeSelector' ] )
-
+    
+    print start
+    print end
+    
     for k in pD:
       if k.find( "ex_" ) == 0:
         extraParams[ k[3:] ] = pD[ k ]

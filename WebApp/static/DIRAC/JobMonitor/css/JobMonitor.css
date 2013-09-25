@@ -68,6 +68,20 @@
 	
 }
 
+.jm-pie-icon{
+	
+	 background-image: url(../images/pie.png) !important;
+     background-color: transparent;
+	
+}
+
+.jm-grid-icon{
+	
+	 background-image: url(../images/grid.png) !important;
+     background-color: transparent;
+	
+}
+
 .jm-textbox-help-window textarea.x-form-field{
 	
 	font-family: Courier,monospace !important;	

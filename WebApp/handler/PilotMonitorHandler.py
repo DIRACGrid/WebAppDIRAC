@@ -71,7 +71,7 @@ class PilotMonitorHandler(WebHandler):
   @asyncGen
   def web_getSelectionData(self):
     
-    sData = SessionData().getData()
+    sData = self.getSessionData()
     group = sData["user"]["group"]
     user = sData["user"]["username"]  
     callback = {}

@@ -15,44 +15,52 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var me = this;
 
-		for ( var i = 0; i < me.grid.columns.length; i++) {
+		var bToRealod = false;
 
-			var col = me.grid.columns[i];
-			col.setWidth(data.columns[col.getSortParam()].width);
-			if (data.columns[col.getSortParam()].hidden)
-				col.hide();
-			else
-				col.show();
+		if (data.columns) {
+			for ( var i = 0; i < me.grid.columns.length; i++) {
 
-			var sortState = data.columns[col.getSortParam()].sortState;
+				var col = me.grid.columns[i];
+				col.setWidth(data.columns[col.getSortParam()].width);
+				if (data.columns[col.getSortParam()].hidden)
+					col.hide();
+				else
+					col.show();
 
-			if (sortState != null)
-				col.setSortState(sortState);
+				var sortState = data.columns[col.getSortParam()].sortState;
 
+				if (sortState != null)
+					col.setSortState(sortState);
+
+			}
 		}
 
-		for ( var i = 0; i < me.selectorMenu.items.length - 1; i++) {
+		if (data.leftMenu.selectors) {
+			for ( var i = 0; i < me.selectorMenu.items.length - 1; i++) {
 
-			var item = me.selectorMenu.items.getAt(i);
+				var item = me.selectorMenu.items.getAt(i);
 
-			item.setChecked(!data.leftMenu.selectors[item.relatedCmbField].hidden);
+				item.setChecked(!data.leftMenu.selectors[item.relatedCmbField].hidden);
 
-			if (!data.leftMenu.selectors[item.relatedCmbField].hidden)
-				me.cmbSelectors[item.relatedCmbField].show();
-			else
-				me.cmbSelectors[item.relatedCmbField].hide();
+				if (!data.leftMenu.selectors[item.relatedCmbField].hidden)
+					me.cmbSelectors[item.relatedCmbField].show();
+				else
+					me.cmbSelectors[item.relatedCmbField].hide();
 
-			/*
-			 * this can be done only if the store is being loaded, otherwise has to be
-			 * postponed
-			 */
-			me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected, ((i == me.selectorMenu.items.length - 2) ? true
-					: false));
+				/*
+				 * this can be done only if the store is being loaded, otherwise has to
+				 * be postponed
+				 */
+				me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected, (i == me.selectorMenu.items.length - 2));
 
-			me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
+				me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
+
+			}
+		} else {
+
+			bToReload = true;
 
 		}
-
 		// For the time span searching sub-panel
 		var item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
 
@@ -87,6 +95,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		}
 
+		if (bToReload) {
+
+			me.oprLoadGridData();
+
+		}
+
 	},
 
 	__cancelPreviousDataRequest : function() {
@@ -112,6 +126,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			if (bLastOne) {
 				me.__cancelPreviousDataRequest();
+
 				me.oprLoadGridData();
 			}
 
@@ -318,6 +333,16 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			autoScroll : true
 		});
 
+		me.statisticsPanel = new Ext.create('Ext.panel.Panel', {
+			header : false,
+			region : 'center',
+			floatable : false,
+			autoScroll : true,
+			hidden : true,
+			collapsible : false,
+			layout : "border"
+		});
+
 		me.cmbSelectors = {
 			site : null,
 			status : null,
@@ -509,7 +534,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			iconCls : "jm-submit-icon",
 			handler : function() {
 				me.oprLoadGridData();
-				// me.oprSelectorsRefreshWithSubmit(true);
 			},
 			scope : me
 
@@ -596,9 +620,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				timeout : 1800000
 			},
 			fields : me.dataFields,
-			autoLoad : true,
 			remoteSort : true,
 			pageSize : 100,
+			dontLoadOnCreation : false,
 			listeners : {
 
 				load : function(oStore, records, successful, eOpts) {
@@ -622,6 +646,20 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						me.dataStore.remoteSort = false;
 						me.dataStore.sort();
 						me.dataStore.remoteSort = true;
+
+						// setting the data into the statistics grid
+
+						var oExtraData = oStore.proxy.reader.rawData["extra"];
+
+						me.statisticsSelectionGrid.store.removeAll();
+
+						for ( var key in oExtraData)
+							me.statisticsSelectionGrid.store.add({
+								"key" : key,
+								"value" : oExtraData[key],
+								"code" : ""
+							});
+
 					}
 
 				},
@@ -629,6 +667,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				beforeload : function(oStore, oOperation, eOpts) {
 
 					me.dataStore.lastDataRequest = oOperation;
+
+					if (!oStore.dontLoadOnCreation) {
+						oStore.dontLoadOnCreation = true;
+						return false;
+					} else {
+						return true;
+					}
 
 				}
 
@@ -703,14 +748,24 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			scope : me,
 			tooltip : "Delete"
 		});
-		
+
+		me.pagingToolbar.btnGoToStatistics = new Ext.Button({
+			text : '',
+			iconCls : "jm-pie-icon",
+			handler : function() {
+				me.grid.hide();
+				me.statisticsPanel.show();
+			},
+			tooltip : "Go to the statistics panel"
+		});
+
 		me.pagingToolbar.btnGetIdList = new Ext.Button({
 			text : '',
 			iconCls : "jm-id-list-icon",
 			handler : function() {
 
 				var oItems = [];
-				
+
 				var oElems = Ext.query("#" + me.id + " input.checkrow");
 
 				for ( var i = 0; i < oElems.length; i++)
@@ -720,10 +775,75 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				if (oItems.length < 1) {
 					alert('No jobs were selected');
 					return;
-				}else{
-					
-					Ext.MessageBox.alert("IDs of selected jobs", oItems.join("; "));
-					
+				} else {
+
+					// Ext.MessageBox.alert("IDs of selected jobs", oItems.join("; "));
+
+					var oWindow = me.getContainer().oprGetChildWindow("IDs of selected jobs", false, 700, 500);
+
+					var oTextArea = new Ext.create('Ext.form.field.TextArea', {
+						value : oItems.join(","),
+						cls : "jm-textbox-help-window",
+						flex : 1
+					});
+
+					var oCombo = new Ext.form.field.ComboBox({
+						allowBlank : false,
+						displayField : 'character',
+						editable : false,
+						mode : 'local',
+						store : new Ext.data.SimpleStore({
+							fields : [ 'character' ],
+							data : [ [ "SEMI-COLON" ], [ "COMMA" ], [ "EMPTY SPACE" ] ]
+						}),
+						triggerAction : 'all',
+						value : "COMMA",
+						width : 200,
+						idsItems : oItems,
+						textArea : oTextArea,
+						listeners : {
+
+							"change" : function(combo, newValue, oldValue, eOpts) {
+
+								switch (newValue) {
+
+								case "SEMI-COLON":
+									combo.textArea.setValue(combo.idsItems.join(";"));
+									break;
+								case "COMMA":
+									combo.textArea.setValue(combo.idsItems.join(","));
+									break;
+								case "EMPTY SPACE":
+									combo.textArea.setValue(combo.idsItems.join(" "));
+									break;
+
+								}
+
+							}
+
+						}
+					});
+
+					var oToolb = new Ext.create('Ext.toolbar.Toolbar', {
+						dock : "top",
+						items : [ oCombo ]
+					});
+
+					oWindow.add(new Ext.create('Ext.panel.Panel', {
+						floatable : false,
+						autoScroll : true,
+						autoHeight : true,
+						layout : {
+							type : 'vbox',
+							align : 'stretch',
+							pack : 'start'
+						},
+						dockedItems : [ oToolb ],
+						items : [ oTextArea ]
+					}));
+
+					oWindow.show();
+
 				}
 
 			},
@@ -757,16 +877,16 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var pagingToolbarItems = [];
 
-		if (me.pagingToolbar.btnReset != null){
-			
-			pagingToolbarItems = [me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReset, me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
-			                  				me.pagingToolbar.pageSizeCombo, '-' ];
-			
-		}else{
-			
-			pagingToolbarItems = [me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
-			                  				me.pagingToolbar.pageSizeCombo, '-' ];
-			
+		if (me.pagingToolbar.btnReset != null) {
+
+			pagingToolbarItems = [ me.pagingToolbar.btnGoToStatistics, '-', me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReset, me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill,
+					me.pagingToolbar.btnDelete, '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+
+		} else {
+
+			pagingToolbarItems = [ me.pagingToolbar.btnGoToStatistics, '-', me.pagingToolbar.btnGetIdList, '-', me.pagingToolbar.btnReschedule, me.pagingToolbar.btnKill, me.pagingToolbar.btnDelete, '-',
+					'->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-' ];
+
 		}
 
 		me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
@@ -780,35 +900,37 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				overflowHandler : 'Scroller'
 			}
 		});
-		
-		if (me.pagingToolbar.btnReset != null){
-			
+
+		if (me.pagingToolbar.btnReset != null) {
+
 			/*
-			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: 
-			 * ANY OTHER NEW ELEMENT MAY HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
+			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: ANY OTHER NEW ELEMENT MAY
+			 * HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
 			 */
-			me.pagingToolbar.toolbar.items.insert(6,me.pagingToolbar.toolbar.items.items[23]);
-			me.pagingToolbar.toolbar.items.insert(9,me.pagingToolbar.toolbar.items.items[25]);
-			me.pagingToolbar.toolbar.items.insert(26,me.pagingToolbar.toolbar.items.items[10]);
-			/*
-			 * -------------------------------END-------------------------------
-			 */
-			
-		}else{
-			
-			/*
-			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: 
-			 * ANY OTHER NEW ELEMENT MAY HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
-			 */
-			me.pagingToolbar.toolbar.items.insert(5,me.pagingToolbar.toolbar.items.items[22]);
-			me.pagingToolbar.toolbar.items.insert(8,me.pagingToolbar.toolbar.items.items[24]);
-			me.pagingToolbar.toolbar.items.insert(25,me.pagingToolbar.toolbar.items.items[9]);
+			me.pagingToolbar.toolbar.items.insert(8, me.pagingToolbar.toolbar.items.items[25]);
+			me.pagingToolbar.toolbar.items.insert(26, me.pagingToolbar.toolbar.items.items[27]);
+			me.pagingToolbar.toolbar.items.insert(28, me.pagingToolbar.toolbar.items.items[11]);
+			me.pagingToolbar.toolbar.items.insert(8, me.pagingToolbar.toolbar.items.items[11]);
 			/*
 			 * -------------------------------END-------------------------------
 			 */
-			
+
+		} else {
+
+			/*
+			 * PAY ATTENTION TO TOOLBAR ITEMS REORDERING: ANY OTHER NEW ELEMENT MAY
+			 * HAVE UNPREDICTED OUTCOME OF THE CODE THAT FOLLOWS
+			 */
+			me.pagingToolbar.toolbar.items.insert(7, me.pagingToolbar.toolbar.items.items[24]);
+			me.pagingToolbar.toolbar.items.insert(25, me.pagingToolbar.toolbar.items.items[26]);
+			me.pagingToolbar.toolbar.items.insert(27, me.pagingToolbar.toolbar.items.items[10]);
+			me.pagingToolbar.toolbar.items.insert(7, me.pagingToolbar.toolbar.items.items[10]);
+			/*
+			 * -------------------------------END-------------------------------
+			 */
+
 		}
-		
+
 		me.contextGridMenu = new Ext.menu.Menu({
 			items : [ {
 				handler : function() {
@@ -1107,12 +1229,325 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		me.grid.columns[1].setSortState("DESC");
 
+		for ( var i = 0; i < me.pagingToolbar.toolbar.items.length; i++) {
+
+			if (me.pagingToolbar.toolbar.items.getAt(i).itemId == "refresh") {
+
+				me.pagingToolbar.toolbar.items.getAt(i).setIconCls("jm-submit-icon");
+				me.pagingToolbar.toolbar.items.getAt(i).setTooltip("Submit");
+				break;
+
+			}
+
+		}
+
+		/* Definition of the statistics panel */
+
+		me.statisticsGridComboMain = new Ext.form.field.ComboBox({
+			allowBlank : false,
+			displayField : 'set',
+			editable : false,
+			mode : 'local',
+			store : new Ext.data.SimpleStore({
+				fields : [ 'set' ],
+				data : [ [ "Selected Statistics" ], [ "Global Statistics" ] ]
+			}),
+			triggerAction : 'all',
+			value : "Selected Statistics",
+			flex : 1,
+			listeners : {
+
+				"change" : me.funcOnChangeEitherCombo
+
+			},
+			moduleObject : me
+		});
+
+		me.statisticsGridCombo = new Ext.form.field.ComboBox({
+			allowBlank : false,
+			displayField : 'category',
+			editable : false,
+			mode : 'local',
+			store : new Ext.data.SimpleStore({
+				fields : [ 'category' ],
+				data : [ [ "Status" ], [ "Site" ], [ "Minor Status" ], [ "Application Status" ], [ "Owner" ], [ "Job Group" ] ]
+			}),
+			triggerAction : 'all',
+			value : "Status",
+			flex : 1,
+			listeners : {
+
+				"change" : me.funcOnChangeEitherCombo
+
+			},
+			moduleObject : me
+		});
+
+		var oButtonForPlot = new Ext.Button({
+
+			text : 'Plot',
+			margin : 0,
+			iconCls : "jm-pie-icon",
+			handler : me.createPlotFromGridData,
+			scope : me,
+			defaultAlign : "c"
+		});
+
+		var oButtonGoToGrid = new Ext.Button({
+
+			margin : 0,
+			iconCls : "jm-grid-icon",
+			handler : function() {
+				me.grid.show();
+				me.statisticsPanel.hide();
+			},
+			scope : me,
+
+		});
+
+		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
+			region : 'west',
+			store : new Ext.data.ArrayStore({
+				fields : [ "key", "value", "code" ],
+				data : []
+			}),
+			width : 300,
+			header : false,
+			border : 0,
+			viewConfig : {
+				stripeRows : true,
+				enableTextSelection : true
+			},
+			dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
+				dock : "top",
+				items : [ oButtonGoToGrid, '-', oButtonForPlot ]
+			}), new Ext.create('Ext.toolbar.Toolbar', {
+				dock : "top",
+				items : [ me.statisticsGridComboMain ]
+			}), new Ext.create('Ext.toolbar.Toolbar', {
+				dock : "top",
+				items : [ me.statisticsGridCombo ]
+			}) ],
+			columns : [ {
+				header : '',
+				width : 26,
+				sortable : false,
+				dataIndex : 'key',
+				renderer : function(value, metaData, record, row, col, store, gridView) {
+					return this.rendererStatus(value);
+				},
+				hideable : false,
+				fixed : true,
+				menuDisabled : true
+			}, {
+				header : 'Key',
+				sortable : true,
+				dataIndex : 'key',
+				align : 'left',
+				hideable : false,
+				width : 150
+			}, {
+				header : 'Value',
+				flex : 1,
+				sortable : true,
+				dataIndex : 'value',
+				align : 'left'
+			} ],
+			rendererStatus : function(value) {
+				if ((value == 'Done') || (value == 'Completed') || (value == 'Good') || (value == 'Active') || (value == 'Cleared') || (value == 'Completing')) {
+					return '<img src="static/DIRAC/JobMonitor/images/done.gif"/>';
+				} else if (value == 'Bad') {
+					return '<img src="static/DIRAC/JobMonitor/images/bad.gif"/>';
+				} else if ((value == 'Failed') || (value == 'Bad') || (value == 'Banned') || (value == 'Aborted')) {
+					return '<img src="static/DIRAC/JobMonitor/images/failed.gif"/>';
+				} else if ((value == 'Waiting') || (value == 'Stopped') || (value == 'Poor') || (value == 'Probing')) {
+					return '<img src="static/DIRAC/JobMonitor/images/waiting.gif"/>';
+				} else if (value == 'Deleted') {
+					return '<img src="static/DIRAC/JobMonitor/images/deleted.gif"/>';
+				} else if (value == 'Matched') {
+					return '<img src="static/DIRAC/JobMonitor/images/matched.gif"/>';
+				} else if ((value == 'Running') || (value == 'Active') || (value == 'Fair')) {
+					return '<img src="static/DIRAC/JobMonitor/images/running.gif"/>';
+				} else if (value == 'NoMask') {
+					return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
+				} else {
+					return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
+				}
+			},
+		});
+
+		me.btnShowPlotAsPng = new Ext.Button({
+
+			margin : 0,
+			iconCls : "jm-pie-icon",
+			handler : function() {
+
+				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
+
+				var iHeight = me.statisticsPlotPanel.getHeight() - 100;
+
+				var iWidth = me.statisticsPlotPanel.getWidth() - 20;
+
+				var canvas = document.createElement('canvas');
+				canvas.setAttribute('width', iWidth);
+				canvas.setAttribute('height', iHeight);
+
+				document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
+
+				canvg(canvas, sSvgElement);
+				var imgData = canvas.toDataURL("image/png");
+
+				// var img = document.createElement('img');
+				// img.src = imgData;
+				// document.getElementById(me.id+'-statistics-plot-png').appendChild(img);
+				window.location = imgData.replace("image/png", "image/octet-stream");
+
+			},
+			scope : me,
+
+		});
+
+		me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
+			region : 'center',
+			floatable : false,
+			layout : 'anchor',
+			autoScroll : true,
+			items : [ new Ext.create('Ext.toolbar.Toolbar', {
+				dock : "top",
+				border : 0,
+				items : [ me.btnShowPlotAsPng ]
+			}), {
+				html : "<div id='" + me.id + "-statistics-plot' style='width:100%;'></div>",
+				xtype : "box"
+			}, {
+				html : "<div id='" + me.id + "-statistics-plot-png' style='width:100%;'></div>",
+				xtype : "box",
+				hidden : true
+			} ]
+		});
+
+		me.statisticsPanel.add([ me.statisticsSelectionGrid, me.statisticsPlotPanel ]);
+
+		/* END - Definition of the statistics panel */
+
 		/*
 		 * -----------------------------------------------------------------------------------------------------------
 		 * DEFINITION OF THE MAIN CONTAINER
 		 * -----------------------------------------------------------------------------------------------------------
 		 */
-		me.add([ me.leftPanel, me.grid ]);
+		me.add([ me.leftPanel, me.statisticsPanel, me.grid ]);
+
+	},
+
+	funcOnChangeEitherCombo : function(combo, newValue, oldValue, eOpts) {
+
+		var me = combo.moduleObject;
+
+		var sSet = me.statisticsGridComboMain.getValue();
+		var sCategory = me.statisticsGridCombo.getValue();
+
+		me.statisticsGridComboMain.setDisabled(true);
+		me.statisticsGridCombo.setDisabled(true);
+
+		if (sSet == "Selected Statistics") {
+
+			var oData = me.getSelectionData();
+			oData.statsField = sCategory;
+
+			me.statisticsSelectionGrid.body.mask("Wait ...");
+
+			Ext.Ajax.request({
+				url : GLOBAL.BASE_URL + 'JobMonitor/getStatisticsData',
+				params : oData,
+				scope : me,
+				success : function(response) {
+					var response = Ext.JSON.decode(response.responseText);
+
+					if (response["success"] == "true") {
+						me.statisticsSelectionGrid.store.removeAll();
+
+						me.statisticsSelectionGrid.store.add(response["result"]);
+
+					} else {
+						alert(response["error"]);
+					}
+
+					me.statisticsSelectionGrid.body.unmask();
+					me.statisticsGridComboMain.setDisabled(false);
+					me.statisticsGridCombo.setDisabled(false);
+				},
+				failure : function(response) {
+					me.statisticsGridComboMain.setDisabled(false);
+					me.statisticsGridCombo.setDisabled(false);
+					me.statisticsSelectionGrid.body.unmask();
+					Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				}
+			});
+		} else {
+
+			me.statisticsSelectionGrid.body.mask("Wait ...");
+
+			Ext.Ajax.request({
+				url : GLOBAL.BASE_URL + 'JobMonitor/getStatisticsData',
+				params : {
+					statsField : sCategory,
+					globalStat : true
+				},
+				scope : me,
+				success : function(response) {
+					var response = Ext.JSON.decode(response.responseText);
+
+					if (response["success"] == "true") {
+						me.statisticsSelectionGrid.store.removeAll();
+
+						me.statisticsSelectionGrid.store.add(response["result"]);
+
+					} else {
+						alert(response["error"]);
+					}
+					me.statisticsSelectionGrid.body.unmask();
+					me.statisticsGridComboMain.setDisabled(false);
+					me.statisticsGridCombo.setDisabled(false);
+				},
+				failure : function(response) {
+					me.statisticsSelectionGrid.body.unmask();
+					me.statisticsGridComboMain.setDisabled(false);
+					me.statisticsGridCombo.setDisabled(false);
+					Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				}
+			});
+
+		}
+
+	},
+
+	createPlotFromGridData : function() {
+
+		var me = this;
+
+		var oStore = me.statisticsSelectionGrid.getStore();
+		var oData = [ [ "Key", "Value" ] ];
+
+		for ( var i = 0; i < oStore.getCount(); i++) {
+
+			oData.push([ oStore.getAt(i).get("key"), oStore.getAt(i).get("value") ]);
+
+		}
+
+		var data = google.visualization.arrayToDataTable(oData);
+
+		var options = {
+			title : 'Grid Statistics'
+		};
+
+		var iHeight = me.statisticsPlotPanel.getHeight() - 100;
+		document.getElementById(me.id + "-statistics-plot").style.height = "" + iHeight + "px";
+
+		var iWidth = me.statisticsPlotPanel.getWidth() - 20;
+		document.getElementById(me.id + "-statistics-plot").style.width = "" + iWidth + "px";
+
+		var chart = new google.visualization.PieChart(document.getElementById(me.id + "-statistics-plot"));
+		chart.draw(data, options);
 
 	},
 
@@ -1179,6 +1614,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				me.pagingToolbar.toolbar.items.getAt(i).handler = function() {
 					me.oprLoadGridData();
 				};
+
 				break;
 
 			}
@@ -1186,6 +1622,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		}
 
 		this.callParent();
+
 	},
 
 	__oprRefreshStoresForSelectors : function(oData, bRefreshStores) {
@@ -1267,69 +1704,81 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		});
 
 	},
+
+	getSelectionData : function() {
+
+		var me = this;
+
+		// if a value in time span has been selected
+		var sStartDate = me.timeSearchElementsGroup.calenFrom.getRawValue();
+		var sStartTime = me.timeSearchElementsGroup.cmbTimeFrom.getValue();
+		var sEndDate = me.timeSearchElementsGroup.calenTo.getRawValue();
+		var sEndTime = me.timeSearchElementsGroup.cmbTimeTo.getValue();
+
+		var iSpanValue = me.timeSearchElementsGroup.cmbTimeSpan.getValue();
+
+		if ((iSpanValue != null) && (iSpanValue != 5)) {
+
+			var oNowJs = new Date();
+			var oBegin = null;
+
+			switch (iSpanValue) {
+			case 1:
+				oBegin = Ext.Date.add(oNowJs, Ext.Date.HOUR, -1);
+				break;
+			case 2:
+				oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -1);
+				break;
+			case 3:
+				oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -7);
+				break;
+			case 4:
+				oBegin = Ext.Date.add(oNowJs, Ext.Date.MONTH, -1);
+				break;
+			}
+
+			sStartDate = Ext.Date.format(oBegin, "Y-m-d");
+			sEndDate = Ext.Date.format(oNowJs, "Y-m-d");
+			sStartTime = Ext.Date.format(oBegin, "H:i");
+			sEndTime = Ext.Date.format(oNowJs, "H:i");
+
+		}
+
+		// Collect data for filtration
+		var extraParams = {
+
+			site : ((me.cmbSelectors.site.isInverseSelection()) ? me.cmbSelectors.site.getInverseSelection() : me.cmbSelectors.site.getValue().join(",")),
+			status : ((me.cmbSelectors.status.isInverseSelection()) ? me.cmbSelectors.status.getInverseSelection() : me.cmbSelectors.status.getValue().join(",")),
+			minorstat : ((me.cmbSelectors.minorStatus.isInverseSelection()) ? me.cmbSelectors.minorStatus.getInverseSelection() : me.cmbSelectors.minorStatus.getValue().join(",")),
+			app : ((me.cmbSelectors.appStatus.isInverseSelection()) ? me.cmbSelectors.appStatus.getInverseSelection() : me.cmbSelectors.appStatus.getValue().join(",")),
+			owner : ((me.cmbSelectors.owner.isInverseSelection()) ? me.cmbSelectors.owner.getInverseSelection() : me.cmbSelectors.owner.getValue().join(",")),
+			prod : ((me.cmbSelectors.jobGroup.isInverseSelection()) ? me.cmbSelectors.jobGroup.getInverseSelection() : me.cmbSelectors.jobGroup.getValue().join(",")),
+			types : ((me.cmbSelectors.jobType.isInverseSelection()) ? me.cmbSelectors.jobType.getInverseSelection() : me.cmbSelectors.jobType.getValue().join(",")),
+			ids : me.textJobId.getValue(),
+			limit : me.pagingToolbar.pageSizeCombo.getValue(),
+			startDate : sStartDate,
+			startTime : sStartTime,
+			endDate : sEndDate,
+			endTime : sEndTime
+
+		};
+
+		return extraParams;
+
+	},
+
 	oprLoadGridData : function() {
 
 		var me = this;
 
 		if (me.__oprValidateBeforeSubmit()) {
 
-			// if a value in time span has been selected
-			var sStartDate = me.timeSearchElementsGroup.calenFrom.getRawValue();
-			var sStartTime = me.timeSearchElementsGroup.cmbTimeFrom.getValue();
-			var sEndDate = me.timeSearchElementsGroup.calenTo.getRawValue();
-			var sEndTime = me.timeSearchElementsGroup.cmbTimeTo.getValue();
-
-			var iSpanValue = me.timeSearchElementsGroup.cmbTimeSpan.getValue();
-
-			if ((iSpanValue != null) && (iSpanValue != 5)) {
-
-				var oNowJs = new Date();
-				var oBegin = null;
-
-				switch (iSpanValue) {
-				case 1:
-					oBegin = Ext.Date.add(oNowJs, Ext.Date.HOUR, -1);
-					break;
-				case 2:
-					oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -1);
-					break;
-				case 3:
-					oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -7);
-					break;
-				case 4:
-					oBegin = Ext.Date.add(oNowJs, Ext.Date.MONTH, -1);
-					break;
-				}
-
-				sStartDate = Ext.Date.format(oBegin, "Y-m-d");
-				sEndDate = Ext.Date.format(oNowJs, "Y-m-d");
-				sStartTime = Ext.Date.format(oBegin, "H:i");
-				sEndTime = Ext.Date.format(oNowJs, "H:i");
-
-			}
-
-			// Collect data for filtration
-			var extraParams = {
-
-				site : ((me.cmbSelectors.site.isInverseSelection()) ? me.cmbSelectors.site.getInverseSelection() : me.cmbSelectors.site.getValue().join(",")),
-				status : ((me.cmbSelectors.status.isInverseSelection()) ? me.cmbSelectors.status.getInverseSelection() : me.cmbSelectors.status.getValue().join(",")),
-				minorstat : ((me.cmbSelectors.minorStatus.isInverseSelection()) ? me.cmbSelectors.minorStatus.getInverseSelection() : me.cmbSelectors.minorStatus.getValue().join(",")),
-				app : ((me.cmbSelectors.appStatus.isInverseSelection()) ? me.cmbSelectors.appStatus.getInverseSelection() : me.cmbSelectors.appStatus.getValue().join(",")),
-				owner : ((me.cmbSelectors.owner.isInverseSelection()) ? me.cmbSelectors.owner.getInverseSelection() : me.cmbSelectors.owner.getValue().join(",")),
-				prod : ((me.cmbSelectors.jobGroup.isInverseSelection()) ? me.cmbSelectors.jobGroup.getInverseSelection() : me.cmbSelectors.jobGroup.getValue().join(",")),
-				types : ((me.cmbSelectors.jobType.isInverseSelection()) ? me.cmbSelectors.jobType.getInverseSelection() : me.cmbSelectors.jobType.getValue().join(",")),
-				ids : me.textJobId.getValue(),
-				limit : me.pagingToolbar.pageSizeCombo.getValue(),
-				startDate : sStartDate,
-				startTime : sStartTime,
-				endDate : sEndDate,
-				endTime : sEndTime
-
-			};
-
 			// set those data as extraParams in
-			me.grid.store.proxy.extraParams = extraParams;
+			me.grid.store.proxy.extraParams = me.getSelectionData();
 			me.grid.store.load();
+
+			var oCheckbox = Ext.query("#" + me.id + " input.jm-main-check-box");
+			oCheckbox[0].checked = false;
 		}
 
 	},

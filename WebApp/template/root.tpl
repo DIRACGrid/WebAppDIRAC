@@ -4,6 +4,12 @@
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title>{{title}}</title>
     <link rel="SHORTCUT ICON" href='{{base_url}}/static/core/img/icons/system/favicon.ico'>
+    
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/rgbcolor.js"></script> 
+	<script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/StackBlur.js"></script>
+	<script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/canvg.js"></script>
+	 
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     {% autoescape None %}
@@ -19,6 +25,7 @@
     {% end %}
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
       //Wrap console.log if it does not exist
       if (typeof console == "undefined") {
         window.console = {
