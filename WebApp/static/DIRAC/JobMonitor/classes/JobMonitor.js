@@ -648,17 +648,21 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						me.dataStore.remoteSort = true;
 
 						// setting the data into the statistics grid
+						if ((me.statisticsGridComboMain.getValue() == "Selected Statistics") && (me.statisticsGridCombo.getValue() == "Status")) {
+							var oExtraData = oStore.proxy.reader.rawData["extra"];
 
-						var oExtraData = oStore.proxy.reader.rawData["extra"];
+							me.statisticsSelectionGrid.store.removeAll();
 
-						me.statisticsSelectionGrid.store.removeAll();
+							for ( var key in oExtraData)
+								me.statisticsSelectionGrid.store.add({
+									"key" : key,
+									"value" : oExtraData[key],
+									"code" : ""
+								});
 
-						for ( var key in oExtraData)
-							me.statisticsSelectionGrid.store.add({
-								"key" : key,
-								"value" : oExtraData[key],
-								"code" : ""
-							});
+							me.createPlotFromGridData("Selected Statistics :: Status");
+
+						}
 
 					}
 
@@ -753,8 +757,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			text : '',
 			iconCls : "jm-pie-icon",
 			handler : function() {
-				me.grid.hide();
-				me.statisticsPanel.show();
+				// me.grid.hide();
+				// me.statisticsPanel.show();
+				me.centralWorkPanel.getLayout().setActiveItem(1);
 			},
 			tooltip : "Go to the statistics panel"
 		});
@@ -1283,23 +1288,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			moduleObject : me
 		});
 
-		var oButtonForPlot = new Ext.Button({
-
-			text : 'Plot',
-			margin : 0,
-			iconCls : "jm-pie-icon",
-			handler : me.createPlotFromGridData,
-			scope : me,
-			defaultAlign : "c"
-		});
-
 		var oButtonGoToGrid = new Ext.Button({
 
 			margin : 0,
 			iconCls : "jm-grid-icon",
 			handler : function() {
-				me.grid.show();
-				me.statisticsPanel.hide();
+				me.centralWorkPanel.getLayout().setActiveItem(0);
 			},
 			scope : me,
 
@@ -1320,7 +1314,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
-				items : [ oButtonGoToGrid, '-', oButtonForPlot ]
+				items : [ oButtonGoToGrid ]
 			}), new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
 				items : [ me.statisticsGridComboMain ]
@@ -1397,14 +1391,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				canvg(canvas, sSvgElement);
 				var imgData = canvas.toDataURL("image/png");
 
-				// var img = document.createElement('img');
-				// img.src = imgData;
-				// document.getElementById(me.id+'-statistics-plot-png').appendChild(img);
 				window.location = imgData.replace("image/png", "image/octet-stream");
 
 			},
 			scope : me,
-
+			tooltip : "Save pie chart as PNG image"
 		});
 
 		me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
@@ -1426,6 +1417,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			} ]
 		});
 
+		me.statisticsPlotPanel.onResize = function(width, height, oldWidth, oldHeight) {
+
+			me.createPlotFromGridData(me.statisticsGridComboMain.getValue() + " :: " + me.statisticsGridCombo.getValue());
+
+		};
+
 		me.statisticsPanel.add([ me.statisticsSelectionGrid, me.statisticsPlotPanel ]);
 
 		/* END - Definition of the statistics panel */
@@ -1435,7 +1432,18 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		 * DEFINITION OF THE MAIN CONTAINER
 		 * -----------------------------------------------------------------------------------------------------------
 		 */
-		me.add([ me.leftPanel, me.statisticsPanel, me.grid ]);
+
+		me.centralWorkPanel = new Ext.create('Ext.panel.Panel', {
+			floatable : false,
+			autoScroll : true,
+			layout : 'card',
+			region : "center",
+			header : false,
+			border : false,
+			items : [ me.grid, me.statisticsPanel ]
+		});
+
+		me.add([ me.leftPanel, me.centralWorkPanel ]);
 
 	},
 
@@ -1467,6 +1475,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						me.statisticsSelectionGrid.store.removeAll();
 
 						me.statisticsSelectionGrid.store.add(response["result"]);
+
+						me.createPlotFromGridData(sSet + " :: " + sCategory);
 
 					} else {
 						alert(response["error"]);
@@ -1502,6 +1512,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 						me.statisticsSelectionGrid.store.add(response["result"]);
 
+						me.createPlotFromGridData(sSet + " :: " + sCategory);
+
 					} else {
 						alert(response["error"]);
 					}
@@ -1521,7 +1533,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	},
 
-	createPlotFromGridData : function() {
+	createPlotFromGridData : function(sTitle) {
 
 		var me = this;
 
@@ -1537,7 +1549,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		var data = google.visualization.arrayToDataTable(oData);
 
 		var options = {
-			title : 'Grid Statistics'
+			title : sTitle
 		};
 
 		var iHeight = me.statisticsPlotPanel.getHeight() - 100;
