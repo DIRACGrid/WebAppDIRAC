@@ -806,7 +806,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			oParams._timeSelector = -1;
 
 			oParams._startTime = fixTime(me.calendarFrom.getValue());
-			oParams._endTime = fixTime(me.calendarTo.getValue());
+			
+			if(oParams._endTime != null)
+				oParams._endTime = fixTime(me.calendarTo.getValue());
 
 		} else if (iTimeSpan == -2) {
 

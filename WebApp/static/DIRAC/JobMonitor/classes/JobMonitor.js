@@ -1299,6 +1299,34 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		});
 
+		me.btnShowPlotAsPng = new Ext.Button({
+
+			margin : 0,
+			iconCls : "jm-pie-icon",
+			handler : function() {
+
+				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
+
+				var iHeight = me.statisticsPlotPanel.getHeight() - 100;
+
+				var iWidth = me.statisticsPlotPanel.getWidth() - 20;
+
+				var canvas = document.createElement('canvas');
+				canvas.setAttribute('width', iWidth);
+				canvas.setAttribute('height', iHeight);
+
+				document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
+
+				canvg(canvas, sSvgElement);
+				var imgData = canvas.toDataURL("image/png");
+
+				window.location = imgData.replace("image/png", "image/octet-stream");
+
+			},
+			scope : me,
+			tooltip : "Save pie chart as PNG image"
+		});
+		
 		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
 			region : 'west',
 			store : new Ext.data.ArrayStore({
@@ -1314,7 +1342,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
-				items : [ oButtonGoToGrid ]
+				items : [ oButtonGoToGrid, me.btnShowPlotAsPng ]
 			}), new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
 				items : [ me.statisticsGridComboMain ]
@@ -1370,44 +1398,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 		});
 
-		me.btnShowPlotAsPng = new Ext.Button({
-
-			margin : 0,
-			iconCls : "jm-pie-icon",
-			handler : function() {
-
-				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
-
-				var iHeight = me.statisticsPlotPanel.getHeight() - 100;
-
-				var iWidth = me.statisticsPlotPanel.getWidth() - 20;
-
-				var canvas = document.createElement('canvas');
-				canvas.setAttribute('width', iWidth);
-				canvas.setAttribute('height', iHeight);
-
-				document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
-
-				canvg(canvas, sSvgElement);
-				var imgData = canvas.toDataURL("image/png");
-
-				window.location = imgData.replace("image/png", "image/octet-stream");
-
-			},
-			scope : me,
-			tooltip : "Save pie chart as PNG image"
-		});
-
 		me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
 			region : 'center',
 			floatable : false,
 			layout : 'anchor',
 			autoScroll : true,
-			items : [ new Ext.create('Ext.toolbar.Toolbar', {
-				dock : "top",
-				border : 0,
-				items : [ me.btnShowPlotAsPng ]
-			}), {
+			items : [ {
 				html : "<div id='" + me.id + "-statistics-plot' style='width:100%;'></div>",
 				xtype : "box"
 			}, {
