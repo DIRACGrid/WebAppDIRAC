@@ -17,7 +17,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	extend : 'Ext.panel.Panel',
 	alias : 'widget.desktop',
 	mixins : [ "Ext.dirac.core.Stateful" ],
-	uses : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', // dataview
+	uses : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 
 	'Ext.dirac.core.Window', 'Ext.dirac.core.TaskBar', 'Ext.dirac.core.Wallpaper' ],
 
 	activeWindowCls : 'ux-desktop-active-win',

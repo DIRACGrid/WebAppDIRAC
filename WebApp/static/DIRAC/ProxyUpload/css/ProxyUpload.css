@@ -1,0 +1,20 @@
+.pu-upload-icon{
+	
+	 background-image: url(../images/upload.png) !important;
+     background-color: transparent;
+	
+}
+
+.pu-close-icon{
+	
+	 background-image: url(../images/close.gif) !important;
+     background-color: transparent;
+	
+}
+
+.pu-reset-icon{
+	
+	 background-image: url(../images/reset.gif) !important;
+     background-color: transparent;
+	
+}

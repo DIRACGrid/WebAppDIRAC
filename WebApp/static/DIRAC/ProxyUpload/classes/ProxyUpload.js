@@ -8,7 +8,7 @@
 Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 	extend : 'Ext.dirac.core.Module',
 
-	requires : [ 'Ext.toolbar.Toolbar', 'Ext.button.Button', 'Ext.form.field.File', 'Ext.form.field.Text' ],
+	requires : [ 'Ext.toolbar.Toolbar', 'Ext.button.Button', 'Ext.form.field.File', 'Ext.form.field.Text', 'Ext.panel.Panel', 'Ext.form.Panel' ],
 
 	initComponent : function() {
 
@@ -77,7 +77,7 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 		});
 
 		var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
-			dock : 'bottom',
+			dock : 'top',
 			layout : {
 				pack : 'center'
 			},
@@ -85,10 +85,7 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 		});
 
 		me.uploadField = new Ext.create('Ext.form.field.File', {
-			name : 'photo',
 			fieldLabel : 'Certificate',
-			msgTarget : 'side',
-			allowBlank : false,
 			anchor : '100%',
 			buttonText : 'Browse',
 			labelAlign : 'left'
@@ -96,33 +93,30 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 
 		me.passwordField = new Ext.create('Ext.form.field.Text', {
 			fieldLabel : 'p12 Password',
-			allowBlank : false,
 			inputType : "password",
 			anchor : '100%',
 			labelAlign : 'left'
 		});
 
-		var oMainPanel = new Ext.create('Ext.panel.Panel', {
+		var oMainPanel = new Ext.create('Ext.form.Panel', {
 			floatable : false,
 			region : "center",
 			layout : "anchor",
+			header : false,
+			bodyPadding : 5,
 			autoScroll : true,
 			dockedItems : [ oPanelButtons ],
 			items : [
 					me.uploadField,
 					me.passwordField,
 					{
-						html : "We are not keeping neither your private key nor password for p12 file on our service. While we try to make this " + "process as secure as possible by using "
-								+ "SSL to encrypt the p12 file with your credentials when it is sent to the server, "
-								+ "for maximum security, we recommend that you manually convert and upload the proxy using DIRAC client commands:",
+						html : "<div style='padding:5px;background-color:#FFFF94'>"
+								+ "<b>Important !</b><br/><br/>We are not keeping neither your private key nor password for p12 file on our service. While we try to make this "
+								+ "process as secure as possible by using " + "SSL to encrypt the p12 file with your credentials when it is sent to the server, "
+								+ "for maximum security, we recommend that you manually convert and upload the proxy using DIRAC client commands:" + "<br/><br/><b>dirac-cert-convert.sh YOUR_P12_FILE_NAME.p12</b>"
+								+ "<br/><b>dirac-proxy-init -U -g GROUP_NAME</b></div>",
 						xtype : "box",
-						anchor : '100%',
-						padding : 3
-					}, {
-						html : "<b>dirac-cert-convert.sh YOUR_P12_FILE_NAME.p12</b>" + "<br/><b>dirac-proxy-init -U -g GROUP_NAME</b>",
-						xtype : "box",
-						anchor : '100%',
-						padding : 3
+						anchor : '100%'
 					} ]
 		});
 

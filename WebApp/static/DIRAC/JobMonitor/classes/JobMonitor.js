@@ -693,7 +693,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.pagingToolbar = {};
 		me.pagingToolbar.updateStamp = new Ext.Button({
 			disabled : true,
-			// disabledClass:'my-disabled',
 			text : 'Updated: -'
 		});
 
@@ -831,8 +830,51 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					var oToolb = new Ext.create('Ext.toolbar.Toolbar', {
 						dock : "top",
-						items : [ oCombo ]
+						idsItems : oItems,
+						textArea : oTextArea,
+						items : [ {
+							xtype : "button",
+							text : 'COMMA',
+							handler : function() {
+
+								var me = this;
+								var parent = me.up("toolbar");
+
+								parent.textArea.setValue(parent.idsItems.join(","));
+
+							},
+							toggleGroup : me.id + "-ids-separator",
+							allowDepress : false
+						}, {
+							xtype : "button",
+							text : 'SEMI-COLON',
+							handler : function() {
+
+								var me = this;
+								var parent = me.up("toolbar");
+
+								parent.textArea.setValue(parent.idsItems.join(";"));
+
+							},
+							toggleGroup : me.id + "-ids-separator",
+
+							allowDepress : false
+						}, {
+							xtype : "button",
+							text : 'EMPTY SPACE',
+							handler : function() {
+								var me = this;
+								var parent = me.up("toolbar");
+
+								parent.textArea.setValue(parent.idsItems.join(" "));
+							},
+							toggleGroup : me.id + "-ids-separator",
+
+							allowDepress : false
+						} ]
 					});
+
+					oToolb.items.getAt(0).toggle();
 
 					oWindow.add(new Ext.create('Ext.panel.Panel', {
 						floatable : false,
@@ -1326,7 +1368,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			scope : me,
 			tooltip : "Save pie chart as PNG image"
 		});
-		
+
 		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
 			region : 'west',
 			store : new Ext.data.ArrayStore({
