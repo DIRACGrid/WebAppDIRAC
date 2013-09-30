@@ -59,75 +59,93 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 		me.textualFields = {
 			"JobName" : {
 				mandatory : true,
-				object : null
+				object : null,
+				value : 'DIRAC_' + GLOBAL.USER_CREDENTIALS.username + '_' + Math.floor(Math.random() * 1000001)
 			},
 			"Executable" : {
 				mandatory : true,
-				object : null
+				object : null,
+				value : "/bin/ls"
 			},
 			"Arguments" : {
 				mandatory : true,
-				object : null
+				object : null,
+				value : "-ltrA"
 			},
 			"OutputSandbox" : {
 				mandatory : true,
-				object : null
+				object : null,
+				value : "std.out, std.err"
 			},
 			"InputData" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : ""
 			},
 			"OutputData" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : ""
 			},
 			"OutputSE" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : "DIRAC-USER"
 			},
 			"OutputPath" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : ""
 			},
 			"CPUTime" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : "86400"
 			},
 			"Site" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : ""
 			},
 			"BannedSite" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : ""
 			},
 			"Platform" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : "Linux_x86_64_glibc-2.5"
 			},
 			"Priority" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : "5"
 			},
 			"StdError" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : "std.err"
 			},
 			"StdOutput" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : "std.out"
 			},
 			"Parameters" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : "0"
 			},
 			"ParameterStart" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : "0"
 			},
 			"ParameterStep" : {
 				mandatory : false,
-				object : null
+				object : null,
+				value : "1"
 			}
 		};
 
@@ -139,7 +157,8 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 			},
 			scope : me,
-			menu : []
+			menu : [],
+			tooltip:'Click to add more parameters to the JDL'
 
 		});
 
@@ -150,7 +169,8 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 				me.textualFields[sKey].object = new Ext.create('Ext.form.field.Text', {
 					fieldLabel : sKey,
 					anchor : '100%',
-					labelAlign : 'left'
+					labelAlign : 'left',
+					value : me.textualFields[sKey].value
 				});
 
 			} else {
@@ -159,6 +179,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 					fieldLabel : sKey,
 					anchor : '100%',
 					labelAlign : 'left',
+					value : me.textualFields[sKey].value,
 					hidden : true
 				});
 
@@ -186,13 +207,20 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 		}
 
+		me.btnProxyStatus = new Ext.Button({
+
+			text : 'Proxy Status',
+			handler : function() {
+				me.proxyCheckerFunction();
+			},
+			scope : me,
+			tooltip:'Proxy status updates automatically once per day'
+
+		});
+
 		var oTopToolbar = new Ext.create('Ext.toolbar.Toolbar', {
 			dock : 'top',
-			items : [ {
-				xtype : "button",
-				text : "Proxy Status:",
-
-			}, '->', me.btnAddParameters ]
+			items : [ me.btnProxyStatus, '->', me.btnAddParameters ]
 		});
 
 		me.btnSubmit = new Ext.Button({
@@ -225,7 +253,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			margin : 1,
 			iconCls : "jl-close-icon",
 			handler : function() {
-
+				me.getContainer().close();
 			},
 			scope : me
 
@@ -249,34 +277,89 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			dockedItems : [ oTopToolbar, oBottomToolbar ],
 			items : [ me.fsetJdlSection, me.fsetInputSandboxSection ]
 		});
-		
+
 		me.oprAddNewFileField();
-		
+
 		me.add([ oMainPanel ]);
+		me.proxyCheckerFunction();
 
 	},
 
 	oprAddNewFileField : function() {
-		
+
 		var me = this;
-		
+
 		var oFileField = new Ext.create('Ext.form.field.File', {
 			anchor : '100%',
 			buttonText : 'Browse',
-			moduleObject: me,
-			listeners:{
-				
-				change:function( oComp, sValue, eOpts ){
-					
-					if(sValue!="")
+			moduleObject : me,
+			listeners : {
+
+				change : function(oComp, sValue, eOpts) {
+
+					if (sValue != "")
 						oComp.moduleObject.oprAddNewFileField();
-					
+
 				}
-				
+
 			}
 		});
 
 		me.fsetInputSandboxSection.add(oFileField);
+
+	},
+
+	proxyCheckerFunction : function() {
+
+		var me = this;
+
+		me.showProxyStatus('check');
+
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + 'JobLaunchpad/getProxyStatus',
+			method : 'POST',
+			success : function(response) {
+
+				var jsonData = Ext.JSON.decode(response.responseText);
+
+				if (jsonData['success'] == 'false') {
+
+					me.showProxyStatus('false');
+
+				} else {
+
+					if (jsonData['result'] == 'false') {
+
+						me.showProxyStatus('false');
+
+					} else {
+
+						me.showProxyStatus('true');
+
+					}
+				}
+			},
+			failure : function(response) {
+				me.showProxyStatus('neutral');
+			}
+		});
+	},
+
+	showProxyStatus : function(sMode) {
+
+		var me = this, sBtnText = 'Proxy Status: ';
+
+		if (sMode == 'true') {
+			sBtnText = sBtnText + '<span style="color:#009900; font-weight:bold">Valid</span>';
+		} else if (sMode == 'false') {
+			sBtnText = sBtnText + '<span style="color:#FF0000; font-weight:bold">Not Valid</span>';
+		} else if (sMode == 'check') {
+			sBtnText = sBtnText + '<span style="color:#FF9900; font-weight:bold">Checking</span>';
+		} else {
+			sBtnText = sBtnText + '<span style="font-weight:bold">Unknown</span>';
+		}
+
+		me.btnProxyStatus.setText(sBtnText);
 
 	}
 
