@@ -158,7 +158,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			},
 			scope : me,
 			menu : [],
-			tooltip:'Click to add more parameters to the JDL'
+			tooltip : 'Click to add more parameters to the JDL'
 
 		});
 
@@ -170,7 +170,8 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 					fieldLabel : sKey,
 					anchor : '100%',
 					labelAlign : 'left',
-					value : me.textualFields[sKey].value
+					value : me.textualFields[sKey].value,
+					name : sKey
 				});
 
 			} else {
@@ -180,7 +181,8 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 					anchor : '100%',
 					labelAlign : 'left',
 					value : me.textualFields[sKey].value,
-					hidden : true
+					hidden : true,
+					name : sKey
 				});
 
 				me.btnAddParameters.menu.add({
@@ -214,7 +216,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 				me.proxyCheckerFunction();
 			},
 			scope : me,
-			tooltip:'Proxy status updates automatically once per day'
+			tooltip : 'Proxy status updates automatically once per day'
 
 		});
 
@@ -229,7 +231,16 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			margin : 1,
 			iconCls : "jl-submit-icon",
 			handler : function() {
+				me.mainFormPanel.submit({
+					url : GLOBAL.BASE_URL + 'JobLaunchpad/jobSubmit',
+					success : function(form, action) {
+						alert("CHECK");
+					},
+					failure : function(form, action) {
+						alert("ERROR");
+					}
 
+				});
 			},
 			scope : me
 
@@ -241,7 +252,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			margin : 1,
 			iconCls : "jl-reset-icon",
 			handler : function() {
-
+				
 			},
 			scope : me
 
@@ -267,7 +278,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			items : [ me.btnSubmit, me.btnReset, me.btnClose ]
 		});
 
-		var oMainPanel = new Ext.create('Ext.form.Panel', {
+		me.mainFormPanel = new Ext.create('Ext.form.Panel', {
 			floatable : false,
 			region : "center",
 			layout : "anchor",
@@ -280,7 +291,8 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 		me.oprAddNewFileField();
 
-		me.add([ oMainPanel ]);
+		me.add([ me.mainFormPanel ]);
+
 		me.proxyCheckerFunction();
 
 	},
@@ -289,16 +301,55 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 		var me = this;
 
+		var sFileFieldName = "fileField" + me.fsetInputSandboxSection.items.getCount();
+
 		var oFileField = new Ext.create('Ext.form.field.File', {
 			anchor : '100%',
 			buttonText : 'Browse',
 			moduleObject : me,
+			name : sFileFieldName,
 			listeners : {
 
 				change : function(oComp, sValue, eOpts) {
 
-					if (sValue != "")
+					/*
+					 * First we check wheather there are empty file fields. If there is an
+					 * empty field, new field is not added to the list.
+					 */
+
+					var iLength = oComp.moduleObject.fsetInputSandboxSection.items.getCount();
+					var bAddFile = true;
+
+					for ( var i = 0; i < iLength; i++) {
+						var oItem = oComp.moduleObject.fsetInputSandboxSection.getComponent(i);
+						if (!oItem.getValue()) {
+							var bAddFile = false;
+						}
+					}
+					if (bAddFile) {
+
 						oComp.moduleObject.oprAddNewFileField();
+
+					}
+
+					/*
+					 * Then we calculate the size of the files. the function bytesToSize
+					 * is used here.
+					 */
+
+					var iSize = 0;
+
+					for ( var i = 0; i < iLength; i++) {
+						var oItem = oComp.moduleObject.fsetInputSandboxSection.getComponent(i);
+						var iFileSize = oComp.moduleObject.getFileSize(oItem.fileInputEl.dom);
+
+						if (iFileSize >= 0) {
+							iSize = iSize + iFileSize;
+						}
+					}
+
+					console.log("Number of files " + iLength);
+					console.log("The size of all files: " + oComp.moduleObject.bytesToSize(iSize, 2));
 
 				}
 
@@ -309,6 +360,61 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 	},
 
+	bytesToSize : function(bytes, precision) {
+		var kilobyte = 1024;
+		var megabyte = kilobyte * 1024;
+		var gigabyte = megabyte * 1024;
+		var terabyte = gigabyte * 1024;
+		if ((bytes >= 0) && (bytes < kilobyte)) {
+			return bytes + ' B';
+		} else if ((bytes >= kilobyte) && (bytes < megabyte)) {
+			return (bytes / kilobyte).toFixed(precision) + ' KB';
+		} else if ((bytes >= megabyte) && (bytes < gigabyte)) {
+			return (bytes / megabyte).toFixed(precision) + ' MB';
+		} else if ((bytes >= gigabyte) && (bytes < terabyte)) {
+			return (bytes / gigabyte).toFixed(precision) + ' GB';
+		} else if (bytes >= terabyte) {
+			return (bytes / terabyte).toFixed(precision) + ' TB';
+		} else {
+			return bytes + ' B';
+		}
+	},
+
+	getFileSize : function(oInputFile) {
+
+		/*
+		 * Can't use `typeof FileReader === "function"` because apparently it comes
+		 * back as "object" on some browsers. So just see if it's there at all
+		 */
+
+		if (!window.FileReader) {
+			// The file API isn't supported on this browser yet
+			return -5;
+		}
+
+		if (!oInputFile) {
+			return -4;
+		} else if (!oInputFile.files) {
+			return -3;
+		} else if (!oInputFile.files[0]) {
+			return -2;
+		} else {
+			var oFile = oInputFile.files[0];
+			return oFile.size;
+		}
+	},
+	setUpParameters : function() {
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + 'JobLaunchpad/getLaunchpadOpts',
+			method : 'POST',
+			success : function(response) {
+				console.log(response.responseText);
+			},
+			failure : function(response) {
+				me.showProxyStatus('neutral');
+			}
+		});
+	},
 	proxyCheckerFunction : function() {
 
 		var me = this;
