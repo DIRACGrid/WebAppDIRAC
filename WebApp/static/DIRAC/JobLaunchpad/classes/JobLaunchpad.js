@@ -231,10 +231,31 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			margin : 1,
 			iconCls : "jl-submit-icon",
 			handler : function() {
+				me.getContainer().body.mask("Wait ...");
 				me.mainFormPanel.submit({
 					url : GLOBAL.BASE_URL + 'JobLaunchpad/jobSubmit',
 					success : function(form, action) {
-						alert("CHECK");
+						
+						me.getContainer().body.unmask();
+						if(action.result.success == 'false'){
+	             alert('Error: ' + action.result.error);
+	          }else{
+	          	alert('Your Job ID is ' + action.result.result);
+	            var warn = Ext.Msg.show({
+	              animEl: 'elId',
+	              buttons:{ok:'Ok',cancel:'Show Job'},
+	              icon: Ext.MessageBox.INFO,
+	              fn:function(btn){
+	                warn.hide();
+	                if(btn == 'cancel'){
+	                  showJob(action.result.result);
+	                }
+	              },
+	              minWidth:300,
+	              msg:'Your Job ID is ' + action.result.result,
+	              title:'Success '
+	            });
+	          }
 					},
 					failure : function(form, action) {
 						alert("ERROR");
@@ -294,6 +315,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 		me.add([ me.mainFormPanel ]);
 
 		me.proxyCheckerFunction();
+		me.setUpParameters();
 
 	},
 

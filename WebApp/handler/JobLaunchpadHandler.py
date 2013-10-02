@@ -94,37 +94,33 @@ class JobLaunchpadHandler(WebHandler):
   def web_getLaunchpadOpts(self):
     delimiter = gConfig.getValue("/Website/Launchpad/ListSeparator" , ',')
     options = self.__getOptionsFromCS(delimiter=delimiter)
-    platform = self.__getPlatform()
-    if platform and options:
-      if not options.has_key("Platform"):
-        options[ "Platform" ] = platform
-      else:
-        csPlatform = list(options[ "Platform" ])
-        allPlatforms = csPlatform + platform
-        platform = uniqueElements(allPlatforms)
-        options[ "Platform" ] = platform
+#     platform = self.__getPlatform()
+#     if platform and options:
+#       if not options.has_key("Platform"):
+#         options[ "Platform" ] = platform
+#       else:
+#         csPlatform = list(options[ "Platform" ])
+#         allPlatforms = csPlatform + platform
+#         platform = uniqueElements(allPlatforms)
+#         options[ "Platform" ] = platform
     gLogger.debug("Combined options from CS: %s" % options)
     override = gConfig.getValue("/Website/Launchpad/OptionsOverride" , False)
     gLogger.info("end __getLaunchpadOpts")
-    import pprint
-    pprint.pprint(options)
+#     import pprint
+#     pprint.pprint(options)
     self.write({"success":"true", "result":options, "override":override, "separator":delimiter})
   
   def __canRunJobs(self):
-    data = self.SessionData()
+    data = self.getSessionData()
     isAuth = False
     if "properties" in data["user"]:
       if "NormalUser" in data["user"]["properties"]:
         isAuth = True
     return isAuth
   
-  # @asyncGen
+  @asyncGen
   def web_jobSubmit(self):
-    '''
-    import pprint
-    pprint.pprint(self.request.files)
-    self.write({"success":True})
-    '''
+   
     # self.set_header('Content-type', "text/html")  # Otherwise the browser would offer you to download a JobSubmit file
     if not self.__canRunJobs():
       self.finish({"success":"false", "error":"You are not allowed to run the jobs"})

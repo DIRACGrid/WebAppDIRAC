@@ -745,13 +745,27 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		switch (me.cmbTimeSpan.getValue()) {
 
 		case -1:
-			if ((me.calendarFrom.getValue() == null) && (me.calendarTo.getValue() == null)) {
+			if (me.calendarFrom.getValue() == null) {
 
 				if (bWithMessages)
-					alert("No dates selected !");
+					alert("No start date selected !");
 
 				bValid = false;
 
+			}
+			
+			if((me.calendarFrom.getValue() != null)&&(me.calendarTo.getValue() != null)){
+				
+				if(me.calendarFrom.getValue()>me.calendarTo.getValue()){
+					
+					if (bWithMessages)
+						alert("Selected dates are not valid !");
+
+					bValid = false;
+					
+					
+				}
+				
 			}
 			break;
 		case -2:
@@ -807,7 +821,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			oParams._startTime = fixTime(me.calendarFrom.getValue());
 			
-			if(oParams._endTime != null)
+			if(me.calendarTo.getValue() != null)
 				oParams._endTime = fixTime(me.calendarTo.getValue());
 
 		} else if (iTimeSpan == -2) {

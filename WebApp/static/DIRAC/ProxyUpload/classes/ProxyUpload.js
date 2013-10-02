@@ -47,6 +47,43 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 			iconCls : "pu-upload-icon",
 			handler : function() {
 
+				var sFileName = me.uploadField.getValue();
+				var sPassword = me.passwordField.getValue();
+
+				if ((sFileName != "") && (sPassword != "")) {
+
+					if (sFileName.substr(-4) != '.p12') {
+						alert('You have to choose the *.p12 file with you credentials');
+						return;
+					}
+					
+					me.getContainer().body.mask("Wait ...");
+					
+					me.mainFormPanel.submit({
+
+						url : GLOBAL.BASE_URL + 'ProxyUpload/proxyUpload',
+						success : function(form, action) {
+							me.getContainer().body.unmask();
+							if (action.result.success == "false") {
+
+								alert(action.result.error);
+
+							} else {
+
+								alert(action.result.result);
+
+							}
+							
+							me.passwordField.setValue("");
+						},
+						failure : function(form, action) {
+							me.getContainer().body.unmask();
+						}
+					});
+
+				} else {
+					alert("Both fields are mandatory !");
+				}
 			},
 			scope : me
 
@@ -58,7 +95,8 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 			margin : 1,
 			iconCls : "pu-reset-icon",
 			handler : function() {
-
+				me.uploadField.setValue("");
+				me.passwordField.setValue("");
 			},
 			scope : me
 
@@ -70,7 +108,7 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 			margin : 1,
 			iconCls : "pu-close-icon",
 			handler : function() {
-
+				me.getContainer().close();
 			},
 			scope : me
 
@@ -95,10 +133,11 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 			fieldLabel : 'p12 Password',
 			inputType : "password",
 			anchor : '100%',
-			labelAlign : 'left'
+			labelAlign : 'left',
+			name : "pass_p12"
 		});
 
-		var oMainPanel = new Ext.create('Ext.form.Panel', {
+		me.mainFormPanel = new Ext.create('Ext.form.Panel', {
 			floatable : false,
 			region : "center",
 			layout : "anchor",
@@ -120,7 +159,7 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 					} ]
 		});
 
-		me.add([ oMainPanel ]);
+		me.add([ me.mainFormPanel ]);
 
 	}
 
