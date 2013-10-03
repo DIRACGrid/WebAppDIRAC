@@ -35,6 +35,41 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
 	},
 
+	alert : function(sMessage, sType) {
+
+		switch (sType) {
+
+		case "error":
+			Ext.MessageBox.show({
+				title : 'Error',
+				msg : sMessage,
+				buttons : Ext.MessageBox.OK,
+				icon : Ext.MessageBox.ERROR
+			});
+			break;
+
+		case "info":
+			Ext.MessageBox.show({
+				title : 'Information',
+				msg : sMessage,
+				buttons : Ext.MessageBox.OK,
+				icon : Ext.MessageBox.INFO
+			});
+			break;
+
+		case "warning":
+			Ext.MessageBox.show({
+				title : 'Warning',
+				msg : sMessage,
+				buttons : Ext.MessageBox.OK,
+				icon : Ext.MessageBox.WARNING
+			});
+			break;
+
+		}
+
+	},
+
 	job_status_palette : {
 		'Received' : '#D9E7F8',
 		'Checking' : '#FAFAFA',

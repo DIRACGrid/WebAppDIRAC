@@ -1544,7 +1544,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 			} else {
 
-				alert("No available space on the desktop can be found !");
+				GLOBAL.APP.CF.alert("No available space on the desktop can be found !","warning");
 				oWin.desktopStickMode = false;
 
 			}
@@ -1992,7 +1992,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 		switch (iStateLoaded) {
 		case -1:
-			alert("The state does not exist !");
+			GLOBAL.APP.CF.alert("The state does not exist !","warning");
 			return;
 			break;
 		case -2:

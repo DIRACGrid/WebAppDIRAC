@@ -830,7 +830,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 		switch (iStateLoaded) {
 		case -1:
-			alert("The state does not exist !");
+			GLOBAL.APP.CF.alert("The state does not exist !","warning");
 			return;
 			break;
 		case -2:

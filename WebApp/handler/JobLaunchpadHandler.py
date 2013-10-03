@@ -1,6 +1,7 @@
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
@@ -205,9 +206,7 @@ class JobLaunchpadHandler(WebHandler):
     if exception_counter == 0:
       jdl = jdl + sndBox
       from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
-      jobManager = WMSClient(getRPCClient("WorkloadManagement/JobManager"),
-                             getRPCClient("WorkloadManagement/SandboxStore"),
-                             getTransferClient("WorkloadManagement/SandboxStore"))
+      jobManager = WMSClient()
       jdl = str(jdl)
       gLogger.info("J D L : ", jdl)
       try:

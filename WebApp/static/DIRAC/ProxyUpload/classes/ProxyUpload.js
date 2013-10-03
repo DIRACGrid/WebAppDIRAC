@@ -18,10 +18,12 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 		me.launcher.maximized = false;
 
 		me.launcher.width = 400;
-		me.launcher.height = 400;
+		me.launcher.height = 350;
 
-		me.launcher.x = 0;
-		me.launcher.y = 0;
+		var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+
+		me.launcher.x = oDimensions[0] / 2 - me.launcher.width / 2;
+		me.launcher.y = oDimensions[1] / 2 - me.launcher.height / 2;
 
 		Ext.apply(me, {
 			layout : 'border',
@@ -53,12 +55,12 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 				if ((sFileName != "") && (sPassword != "")) {
 
 					if (sFileName.substr(-4) != '.p12') {
-						alert('You have to choose the *.p12 file with you credentials');
+						GLOBAL.APP.CF.alert('You have to choose the *.p12 file with you credentials', "warning");
 						return;
 					}
-					
+
 					me.getContainer().body.mask("Wait ...");
-					
+
 					me.mainFormPanel.submit({
 
 						url : GLOBAL.BASE_URL + 'ProxyUpload/proxyUpload',
@@ -66,14 +68,14 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 							me.getContainer().body.unmask();
 							if (action.result.success == "false") {
 
-								alert(action.result.error);
+								GLOBAL.APP.CF.alert(action.result.error,"error");
 
 							} else {
 
-								alert(action.result.result);
+								GLOBAL.APP.CF.alert(action.result.result, "info");
 
 							}
-							
+
 							me.passwordField.setValue("");
 						},
 						failure : function(form, action) {
@@ -82,7 +84,7 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 					});
 
 				} else {
-					alert("Both fields are mandatory !");
+					GLOBAL.APP.CF.alert("Both fields are mandatory !", "warning");
 				}
 			},
 			scope : me
@@ -95,31 +97,19 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 			margin : 1,
 			iconCls : "pu-reset-icon",
 			handler : function() {
-				me.uploadField.setValue("");
+				me.uploadField.reset();// fileInputEl.dom.value = "";
 				me.passwordField.setValue("");
 			},
 			scope : me
 
 		});
 
-		me.btnClose = new Ext.Button({
-
-			text : 'Close',
-			margin : 1,
-			iconCls : "pu-close-icon",
-			handler : function() {
-				me.getContainer().close();
-			},
-			scope : me
-
-		});
-
 		var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
-			dock : 'top',
+			dock : 'bottom',
 			layout : {
 				pack : 'center'
 			},
-			items : [ me.btnUpload, me.btnReset, me.btnClose ]
+			items : [ me.btnUpload, me.btnReset ]
 		});
 
 		me.uploadField = new Ext.create('Ext.form.field.File', {
@@ -146,17 +136,15 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 			autoScroll : true,
 			dockedItems : [ oPanelButtons ],
 			items : [
-					me.uploadField,
-					me.passwordField,
 					{
-						html : "<div style='padding:5px;background-color:#FFFF94'>"
-								+ "<b>Important !</b><br/><br/>We are not keeping neither your private key nor password for p12 file on our service. While we try to make this "
+						html : "<div style='padding:5px 5px 10px 5px;background-color:#FFFF94;margin-bottom:20px;'>"
+								+ "<h2>Important !</h2><div style='text-align:justify'>We are not keeping neither your private key nor password for p12 file on our service. While we try to make this "
 								+ "process as secure as possible by using " + "SSL to encrypt the p12 file with your credentials when it is sent to the server, "
-								+ "for maximum security, we recommend that you manually convert and upload the proxy using DIRAC client commands:" + "<br/><br/><b>dirac-cert-convert.sh YOUR_P12_FILE_NAME.p12</b>"
+								+ "for maximum security, we recommend that you manually convert and upload the proxy using DIRAC client commands:</div>" + "<br/><b>dirac-cert-convert.sh YOUR_P12_FILE_NAME.p12</b>"
 								+ "<br/><b>dirac-proxy-init -U -g GROUP_NAME</b></div>",
 						xtype : "box",
 						anchor : '100%'
-					} ]
+					}, me.uploadField, me.passwordField, ]
 		});
 
 		me.add([ me.mainFormPanel ]);

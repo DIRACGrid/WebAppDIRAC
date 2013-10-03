@@ -5,16 +5,10 @@
 	
 }
 
-.pu-close-icon{
-	
-	 background-image: url(../images/close.gif) !important;
-     background-color: transparent;
-	
-}
 
 .pu-reset-icon{
 	
-	 background-image: url(../images/reset.gif) !important;
+	 background-image: url(../images/resetButton.gif) !important;
      background-color: transparent;
 	
 }

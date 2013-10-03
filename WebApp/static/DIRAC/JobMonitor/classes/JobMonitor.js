@@ -631,7 +631,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					if (!bResponseOK) {
 
-						alert(oStore.proxy.reader.rawData["error"]);
+						GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "error");
 
 						if (parseInt(oStore.proxy.reader.rawData["total"]) == 0) {
 
@@ -777,7 +777,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						oItems.push(oElems[i].value);
 
 				if (oItems.length < 1) {
-					alert('No jobs were selected');
+					GLOBAL.APP.CF.alert('No jobs were selected', "error");
 					return;
 				} else {
 
@@ -1517,7 +1517,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						me.createPlotFromGridData(sSet + " :: " + sCategory);
 
 					} else {
-						alert(response["error"]);
+						GLOBAL.APP.CF.alert(response["error"], "error");
 					}
 
 					me.statisticsSelectionGrid.body.unmask();
@@ -1553,7 +1553,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						me.createPlotFromGridData(sSet + " :: " + sCategory);
 
 					} else {
-						alert(response["error"]);
+						GLOBAL.APP.CF.alert(response["error"], "error");
 					}
 					me.statisticsSelectionGrid.body.unmask();
 					me.statisticsGridComboMain.setDisabled(false);
@@ -1861,7 +1861,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					oItems.push(oElems[i].value);
 
 			if (oItems.length < 1) {
-				alert('No jobs were selected');
+				GLOBAL.APP.CF.alert('No jobs were selected', "error");
 				return;
 			}
 
@@ -1889,7 +1889,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			success : function(response) {
 				var jsonData = Ext.JSON.decode(response.responseText);
 				if (jsonData['success'] == 'false') {
-					alert('Error: ' + jsonData['error']);
+					GLOBAL.APP.CF.alert('Error: ' + jsonData['error'], "error");
 					return;
 				} else {
 					if (jsonData.showResult) {
@@ -2009,7 +2009,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 				} else {
 
-					alert(jsonData["error"]);
+					GLOBAL.APP.CF.alert(jsonData["error"], "error");
 
 				}
 

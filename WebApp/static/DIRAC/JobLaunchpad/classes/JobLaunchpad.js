@@ -235,30 +235,60 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 				me.mainFormPanel.submit({
 					url : GLOBAL.BASE_URL + 'JobLaunchpad/jobSubmit',
 					success : function(form, action) {
-						
+
 						me.getContainer().body.unmask();
-						if(action.result.success == 'false'){
-	             alert('Error: ' + action.result.error);
-	          }else{
-	          	alert('Your Job ID is ' + action.result.result);
-	            var warn = Ext.Msg.show({
-	              animEl: 'elId',
-	              buttons:{ok:'Ok',cancel:'Show Job'},
-	              icon: Ext.MessageBox.INFO,
-	              fn:function(btn){
-	                warn.hide();
-	                if(btn == 'cancel'){
-	                  showJob(action.result.result);
-	                }
-	              },
-	              minWidth:300,
-	              msg:'Your Job ID is ' + action.result.result,
-	              title:'Success '
-	            });
-	          }
+						if (action.result.success == 'false') {
+							GLOBAL.APP.CF.alert('Error: ' + action.result.error, 'error');
+						} else {
+
+							var oWarn = Ext.MessageBox.show({
+								title : 'Success',
+								msg : 'Your Job ID is ' + action.result.result,
+								buttons : Ext.MessageBox.OKYES,
+								buttonText : {
+									ok : "OK",
+									no : "Show Job"
+								},
+								fn : function(oButton) {
+
+									oWarn.hide();
+
+									if (oButton == "no") {
+
+										var oSetupData = {};
+										var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+										oSetupData.x = 0;
+										oSetupData.y = 0;
+										oSetupData.width = oDimensions[0];
+										oSetupData.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+										oSetupData.currentState = "";
+
+										oSetupData.desktopStickMode = 0;
+										oSetupData.hiddenHeader = 1;
+										oSetupData.i_x = 0;
+										oSetupData.i_y = 0;
+										oSetupData.ic_x = 0;
+										oSetupData.ic_y = 0;
+
+										oSetupData.data = {
+											leftMenu : {
+												txtJobId : action.result.result
+											}
+										};
+
+										GLOBAL.APP.desktop.createWindow("app", "DIRAC.JobMonitor.classes.JobMonitor", oSetupData);
+
+									}
+
+								},
+								animateTarget : 'mb4',
+								icon : Ext.MessageBox.QUESTION
+							});
+
+						}
 					},
 					failure : function(form, action) {
-						alert("ERROR");
+						GLOBAL.APP.CF.alert("Error", "error");
 					}
 
 				});
@@ -273,19 +303,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			margin : 1,
 			iconCls : "jl-reset-icon",
 			handler : function() {
-				
-			},
-			scope : me
 
-		});
-
-		me.btnClose = new Ext.Button({
-
-			text : 'Close',
-			margin : 1,
-			iconCls : "jl-close-icon",
-			handler : function() {
-				me.getContainer().close();
 			},
 			scope : me
 
@@ -296,7 +314,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			layout : {
 				pack : 'center'
 			},
-			items : [ me.btnSubmit, me.btnReset, me.btnClose ]
+			items : [ me.btnSubmit, me.btnReset ]
 		});
 
 		me.mainFormPanel = new Ext.create('Ext.form.Panel', {
