@@ -66,19 +66,23 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 						url : GLOBAL.BASE_URL + 'ProxyUpload/proxyUpload',
 						success : function(form, action) {
 							me.getContainer().body.unmask();
+							
 							if (action.result.success == "false") {
 
 								GLOBAL.APP.CF.alert(action.result.error,"error");
 
 							} else {
-
-								GLOBAL.APP.CF.alert(action.result.result, "info");
+								var resultText = action.result.result;
+								resultText = resultText.replace(new RegExp("\n", 'g'), "<br/>");
+								GLOBAL.APP.CF.alert(resultText, "info");
 
 							}
 
 							me.passwordField.setValue("");
 						},
 						failure : function(form, action) {
+							me.uploadField.reset();
+							me.passwordField.setValue("");
 							me.getContainer().body.unmask();
 						}
 					});

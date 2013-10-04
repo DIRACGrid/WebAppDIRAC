@@ -1,4 +1,5 @@
 
+from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
@@ -14,16 +15,16 @@ class JobMonitorHandler(WebHandler):
     pass
 
   def web_standalone(self):
-    self.render("JobMonitor/standalone.tpl", config_data = json.dumps(self.getSessionData()))
+    self.render("JobMonitor/standalone.tpl", config_data=json.dumps(self.getSessionData()))
 
   @asyncGen
   def web_getJobData(self):
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
     req = self.__request()
-    result = yield self.threadTask(RPC.getJobPageSummaryWeb,req, self.globalSort , self.pageNumber, self.numberOfJobs)
+    result = yield self.threadTask(RPC.getJobPageSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:
-      self.finish({"success":"false","result":[], "total":0, "error":result["Message"]})
+      self.finish({"success":"false", "result":[], "total":0, "error":result["Message"]})
       return
 
     result = result["Value"]
@@ -95,8 +96,8 @@ class JobMonitorHandler(WebHandler):
       if result["OK"]:
         prod = []
         prods = result["Value"]
-        if len(prods)>0:
-          #prod.append([str("All")])
+        if len(prods) > 0:
+          # prod.append([str("All")])
           tmp = []
           for keys in prods:
             try:
@@ -113,13 +114,13 @@ class JobMonitorHandler(WebHandler):
         gLogger.error("RPC.getProductionIds() return error: %s" % result["Message"])
         prod = [["Error happened on service side"]]
       callback["prod"] = prod
-###
+# ##
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
     result = yield self.threadTask(RPC.getSites)
     if result["OK"]:
-      tier1 = gConfig.getValue("/Website/PreferredSites",[]) # Always return a list
+      tier1 = gConfig.getValue("/Website/PreferredSites", [])  # Always return a list
       site = []
-      if len(result["Value"])>0:
+      if len(result["Value"]) > 0:
         s = list(result["Value"])
         for i in tier1:
           site.append([str(i)])
@@ -132,11 +133,11 @@ class JobMonitorHandler(WebHandler):
       gLogger.error("RPC.getSites() return error: %s" % result["Message"])
       site = [["Error happened on service side"]]
     callback["site"] = site
-###
+# ##
     result = yield self.threadTask(RPC.getStates)
     if result["OK"]:
       stat = []
-      if len(result["Value"])>0:
+      if len(result["Value"]) > 0:
         for i in result["Value"]:
           stat.append([str(i)])
       else:
@@ -145,13 +146,13 @@ class JobMonitorHandler(WebHandler):
       gLogger.error("RPC.getStates() return error: %s" % result["Message"])
       stat = [["Error happened on service side"]]
     callback["status"] = stat
-###
+# ##
     result = yield self.threadTask(RPC.getMinorStates)
     if result["OK"]:
       stat = []
-      if len(result["Value"])>0:
+      if len(result["Value"]) > 0:
         for i in result["Value"]:
-          i = i.replace(",",";")
+          i = i.replace(",", ";")
           stat.append([i])
       else:
         stat = [["Nothing to display"]]
@@ -159,13 +160,13 @@ class JobMonitorHandler(WebHandler):
       gLogger.error("RPC.getMinorStates() return error: %s" % result["Message"])
       stat = [["Error happened on service side"]]
     callback["minorstat"] = stat
-###
+# ##
     result = yield self.threadTask(RPC.getApplicationStates)
     if result["OK"]:
       app = []
-      if len(result["Value"])>0:
+      if len(result["Value"]) > 0:
         for i in result["Value"]:
-          i = i.replace(",",";")
+          i = i.replace(",", ";")
           app.append([i])
       else:
         app = [["Nothing to display"]]
@@ -173,13 +174,13 @@ class JobMonitorHandler(WebHandler):
       gLogger.error("RPC.getApplicationstates() return error: %s" % result["Message"])
       app = [["Error happened on service side"]]
     callback["app"] = app
-###
+# ##
     result = yield self.threadTask(RPC.getJobTypes)
     if result["OK"]:
       types = []
-      if len(result["Value"])>0:
+      if len(result["Value"]) > 0:
         for i in result["Value"]:
-          i = i.replace(",",";")
+          i = i.replace(",", ";")
           types.append([i])
       else:
         types = [["Nothing to display"]]
@@ -187,15 +188,15 @@ class JobMonitorHandler(WebHandler):
       gLogger.error("RPC.getJobTypes() return error: %s" % result["Message"])
       types = [["Error happened on service side"]]
     callback["types"] = types
-###
-    #groupProperty = credentials.getProperties(group)
+# ##
+    # groupProperty = credentials.getProperties(group)
     if user == "Anonymous":
       callback["owner"] = [["Insufficient rights"]]
     else:
       result = yield self.threadTask(RPC.getOwners)
       if result["OK"]:
         owner = []
-        if len(result["Value"])>0:
+        if len(result["Value"]) > 0:
           for i in result["Value"]:
             owner.append([str(i)])
         else:
@@ -209,7 +210,7 @@ class JobMonitorHandler(WebHandler):
   def __request(self):
     self.pageNumber = 0
     self.numberOfJobs = 25
-    self.globalSort = [["JobID","DESC"]]
+    self.globalSort = [["JobID", "DESC"]]
     sData = self.getSessionData()
     req = {}
     group = sData["user"]["group"]
@@ -228,11 +229,11 @@ class JobMonitorHandler(WebHandler):
       for i in reqIds:
         testI = i.split('-')
         if len(testI) == 2:
-          rangeID = range(int(testI[0].strip(' ')),int(testI[1].strip(' '))+1)
+          rangeID = range(int(testI[0].strip(' ')), int(testI[1].strip(' ')) + 1)
           req["JobID"].extend(rangeID)
         else:
           req["JobID"].append(i)
-    #groupProperty = credentials.getProperties(group)
+    # groupProperty = credentials.getProperties(group)
     result = gConfig.getOption("/Website/ListSeparator")
     if result["OK"]:
       separator = result["Value"]
@@ -287,149 +288,149 @@ class JobMonitorHandler(WebHandler):
 
     if self.request.arguments.has_key("sort") and len(self.request.arguments["sort"][0]) > 0:
       sortValue = self.request.arguments["sort"][0]
-      #converting the string into a dictionary
+      # converting the string into a dictionary
       sortValue = ast.literal_eval(sortValue.strip("[]"))
-      self.globalSort = [[sortValue["property"],sortValue["direction"]]]
+      self.globalSort = [[sortValue["property"], sortValue["direction"]]]
     return req
 
   @asyncGen
-  def web_jobAction( self ):
+  def web_jobAction(self):
     ids = self.request.arguments["ids"][0].split(",")
     ids = [int(i) for i in ids ]
 
     RPC = RPCClient("WorkloadManagement/JobManager")
     if self.request.arguments["action"][0] == "delete":
-      result = yield self.threadTask(RPC.deleteJob,ids)
+      result = yield self.threadTask(RPC.deleteJob, ids)
     elif self.request.arguments["action"][0] == "kill":
-      result = yield self.threadTask(RPC.killJob,ids)
+      result = yield self.threadTask(RPC.killJob, ids)
     elif self.request.arguments["action"][0] == "reschedule":
-      result = yield self.threadTask(RPC.rescheduleJob,ids)
+      result = yield self.threadTask(RPC.rescheduleJob, ids)
     elif self.request.arguments["action"][0] == "reset":
-      result = yield self.threadTask(RPC.resetJob,ids)
+      result = yield self.threadTask(RPC.resetJob, ids)
 
     callback = {}
     if result["OK"]:
-      callback = {"success":"true","result":""}
+      callback = {"success":"true", "result":""}
     else:
       if result.has_key("InvalidJobIDs"):
-        callback = {"success":"false","error":"Invalid JobIDs: %s" % result["InvalidJobIDs"]}
+        callback = {"success":"false", "error":"Invalid JobIDs: %s" % result["InvalidJobIDs"]}
       elif result.has_key("NonauthorizedJobIDs"):
-        callback = {"success":"false","error":"You are nonauthorized to %s jobs with JobID: %s" % (self.request.arguments["action"][0],result["NonauthorizedJobIDs"])}
+        callback = {"success":"false", "error":"You are nonauthorized to %s jobs with JobID: %s" % (self.request.arguments["action"][0], result["NonauthorizedJobIDs"])}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     self.finish(callback)
 
   @asyncGen
-  def web_jobData( self ):
+  def web_jobData(self):
     id = int(self.request.arguments["id"][0])
     callback = {}
 
     if self.request.arguments["data_kind"][0] == "getJDL":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobJDL,id)
+      result = yield self.threadTask(RPC.getJobJDL, id)
       if result["OK"]:
-        callback = {"success":"true","result":result["Value"]}
+        callback = {"success":"true", "result":result["Value"]}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getBasicInfo":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobSummary,id)
+      result = yield self.threadTask(RPC.getJobSummary, id)
       if result["OK"]:
         items = []
-        for key,value in result["Value"].items():
-          items.append([key,value])
-        callback = {"success":"true","result":items}
+        for key, value in result["Value"].items():
+          items.append([key, value])
+        callback = {"success":"true", "result":items}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getParams":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters,id)
+      result = yield self.threadTask(RPC.getJobParameters, id)
       if result["OK"]:
         attr = result["Value"]
         items = []
         for i in attr.items():
           if i[0] != "StandardOutput":
-            items.append([i[0],i[1]])
-        callback = {"success":"true","result":items}
+            items.append([i[0], i[1]])
+        callback = {"success":"true", "result":items}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getLoggingInfo":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobLoggingInfo,id)
+      result = yield self.threadTask(RPC.getJobLoggingInfo, id)
       if result["OK"]:
-        callback = {"success":"true","result":result["Value"]}
+        callback = {"success":"true", "result":result["Value"]}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getStandardOutput":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters,id)
+      result = yield self.threadTask(RPC.getJobParameters, id)
       attr = result["Value"]
       if result["OK"]:
         if attr.has_key("StandardOutput"):
-          callback = {"success":"true","result":attr["StandardOutput"]}
+          callback = {"success":"true", "result":attr["StandardOutput"]}
         else:
-          callback = {"success":"false","error":"Not accessible yet"}
+          callback = {"success":"false", "error":"Not accessible yet"}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getPending":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters,id)
+      result = yield self.threadTask(RPC.getJobParameters, id)
       if result["OK"]:
         items = []
         for i in result["Value"].items():
           if i[0] != "StandardOutput":
-            items.append([i[0],i[1]])
-        callback = {"success":"true","result":items}
+            items.append([i[0], i[1]])
+        callback = {"success":"true", "result":items}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getLogURL":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters,id)
+      result = yield self.threadTask(RPC.getJobParameters, id)
       if result["OK"]:
         attr = result["Value"]
         if attr.has_key("Log URL"):
           url = attr["Log URL"].split('"')
-          callback = {"success":"true","result":url[1]}
+          callback = {"success":"true", "result":url[1]}
         else:
-          callback = {"success":"false","error":"No URL found"}
+          callback = {"success":"false", "error":"No URL found"}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getStagerReport":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters,id)
+      result = yield self.threadTask(RPC.getJobParameters, id)
       if result["OK"]:
         attr = result["Value"]
         if attr.has_key("StagerReport"):
-          callback = {"success":"true","result":attr["StagerReport"]}
+          callback = {"success":"true", "result":attr["StagerReport"]}
         else:
-          callback = {"success":"false","error":"StagerReport not available"}
+          callback = {"success":"false", "error":"StagerReport not available"}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getPilotStdOut":
       RPC = RPCClient("WorkloadManagement/WMSAdministrator")
-      result = yield self.threadTask(RPC.getJobPilotOutput,id)
+      result = yield self.threadTask(RPC.getJobPilotOutput, id)
       if result["OK"]:
         if result["Value"].has_key("StdOut"):
-          callback = {"success":"true","result":result["Value"]["StdOut"]}
+          callback = {"success":"true", "result":result["Value"]["StdOut"]}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getPilotStdErr":
       RPC = RPCClient("WorkloadManagement/WMSAdministrator")
-      result = yield self.threadTask(RPC.getJobPilotOutput,id)
+      result = yield self.threadTask(RPC.getJobPilotOutput, id)
       if result["OK"]:
         if result["Value"].has_key("StdErr"):
-          callback = {"success":"true","result":result["Value"]["StdErr"]}
+          callback = {"success":"true", "result":result["Value"]["StdErr"]}
       else:
-        callback = {"success":"false","error":result["Message"]}
+        callback = {"success":"false", "error":result["Message"]}
     self.finish(callback)
   
   @asyncGen  
@@ -447,7 +448,7 @@ class JobMonitorHandler(WebHandler):
     elif selector == "Job Group":
       selector = "JobGroup"
     
-    result = yield self.threadTask(RPC.getJobStats,selector,req)
+    result = yield self.threadTask(RPC.getJobStats, selector, req)
     print result
     if result["OK"]:
       callback = []
@@ -455,30 +456,63 @@ class JobMonitorHandler(WebHandler):
       keylist = result.keys()
       keylist.sort()
       if selector == "Site":
-        tier1 = gConfig.getValue("/Website/PreferredSites",[])
+        tier1 = gConfig.getValue("/Website/PreferredSites", [])
         if len(tier1) > 0:
           tier1.sort()
           for i in tier1:
             if result.has_key(i):
-              countryCode = i.rsplit(".",1)[1]
-              callback.append({"key":i,"value":result[i],"code":countryCode})
+              countryCode = i.rsplit(".", 1)[1]
+              callback.append({"key":i, "value":result[i], "code":countryCode})
       for key in keylist:
         if selector == "Site" and tier1:
           if key not in tier1:
             try:
-              countryCode = key.rsplit(".",1)[1]
+              countryCode = key.rsplit(".", 1)[1]
             except:
               countryCode = "Unknown"
-            callback.append({"key":key,"value":result[key],"code":countryCode})
+            callback.append({"key":key, "value":result[key], "code":countryCode})
         elif selector == "Site" and not tier1:
           try:
-            countryCode = key.rsplit(".",1)[1]
+            countryCode = key.rsplit(".", 1)[1]
           except:
             countryCode = "Unknown"
-          callback.append({"key":key,"value":result[key],"code":countryCode})
+          callback.append({"key":key, "value":result[key], "code":countryCode})
         else:
-          callback.append({"key":key,"value":result[key]})
-      callback = {"success":"true","result":callback}
+          callback.append({"key":key, "value":result[key]})
+      callback = {"success":"true", "result":callback}
     else:
-      callback = {"success":"false","error":result["Message"]}
+      callback = {"success":"false", "error":result["Message"]}
     self.finish(callback)
+   
+  @asyncGen  
+  def web_getSandbox(self):
+    if 'jobID' not in self.request.arguments:
+      self.finish("Maybe you forgot the jobID ?");
+      return
+    jobID = int(self.request.arguments['jobID'][0])
+    sbType = 'Output'
+    if 'sandbox' in self.request.arguments:
+      sbType = str(self.request.arguments['sandbox'][0])
+    
+    userData = self.getSessionData()
+        
+    client = SandboxStoreClient(useCertificates=True,
+                                delegatedDN=str(userData["user"]["DN"]),
+                                delegatedGroup=str(userData["user"]["group"]),
+                                setup=userData["setup"])
+    
+    result = yield self.threadTask(client.downloadSandboxForJob, jobID, sbType, inMemory=True)
+    
+    if not result['OK']:
+      self.finish("Error: %s" % result['Message'])
+      return
+    
+    data = result['Value']
+    fname = "%s_%sSandbox.tar" % (str(jobID), sbType)
+    self.set_header('Content-type','application/x-tar')
+    self.set_header('Content-Disposition','attachment; filename="%s"' % fname)
+    self.set_header('Content-Length',len( data ))
+    self.set_header('Cache-Control',"no-cache, no-store, must-revalidate, max-age=0")
+    self.set_header('Pragma',"no-cache")
+    self.finish(data)
+    

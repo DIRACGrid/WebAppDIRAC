@@ -176,15 +176,6 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 			} else {
 
-				me.textualFields[sKey].object = new Ext.create('Ext.form.field.Text', {
-					fieldLabel : sKey,
-					anchor : '100%',
-					labelAlign : 'left',
-					value : me.textualFields[sKey].value,
-					hidden : true,
-					name : sKey
-				});
-
 				me.btnAddParameters.menu.add({
 					xtype : 'menucheckitem',
 					text : sKey,
@@ -195,9 +186,9 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 						var me = this;
 
 						if (item.checked)
-							me.textualFields[item.relatedCmbField].object.show();
+							me.__createJdlField(item.relatedCmbField);
 						else
-							me.textualFields[item.relatedCmbField].object.hide();
+							me.__destroyJdlField(item.relatedCmbField);
 
 					},
 					scope : me
@@ -444,11 +435,29 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 		}
 	},
 	setUpParameters : function() {
+
+		var me = this;
+
 		Ext.Ajax.request({
 			url : GLOBAL.BASE_URL + 'JobLaunchpad/getLaunchpadOpts',
 			method : 'POST',
 			success : function(response) {
 				console.log(response.responseText);
+				var response = Ext.JSON.decode(response.responseText);
+
+				if (response["success"] == "true") {
+
+					for ( var sKey in response["result"]) {
+
+						me.textualFields[sKey]["value"] = response["result"][sKey];
+
+						if (me.textualFields[sKey]["object"] != null)
+							me.textualFields[sKey]["object"].setValue(response["result"][sKey]);
+
+					}
+
+				}
+
 			},
 			failure : function(response) {
 				me.showProxyStatus('neutral');
@@ -506,6 +515,31 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 		}
 
 		me.btnProxyStatus.setText(sBtnText);
+
+	},
+
+	__createJdlField : function(sFieldName) {
+
+		var me = this;
+
+		me.textualFields[sFieldName].object = new Ext.create('Ext.form.field.Text', {
+			fieldLabel : sFieldName,
+			anchor : '100%',
+			labelAlign : 'left',
+			value : me.textualFields[sFieldName].value,
+			name : sFieldName
+		});
+
+		me.fsetJdlSection.add(me.textualFields[sFieldName].object);
+
+	},
+
+	__destroyJdlField : function(sFieldName) {
+
+		var me = this;
+
+		me.fsetJdlSection.remove(me.textualFields[sFieldName].object);
+		Ext.destroy(me.textualFields[sFieldName].object);
 
 	}
 

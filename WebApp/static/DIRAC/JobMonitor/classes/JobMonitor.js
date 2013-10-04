@@ -631,7 +631,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					if (!bResponseOK) {
 
-						GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "error");
+						GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "info");
 
 						if (parseInt(oStore.proxy.reader.rawData["total"]) == 0) {
 
@@ -1066,10 +1066,16 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				menu : {
 					items : [ {
 						handler : function() {
+
+							me.__getSandbox(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Input");
+
 						},
 						text : 'Get input file(s)'
 					}, {
 						handler : function() {
+
+							me.__getSandbox(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Output");
+
 						},
 						text : 'Get output file(s)'
 					} ]
@@ -2055,6 +2061,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		oWindow.add(oGrid);
 		oWindow.show();
+
+	},
+
+	__getSandbox : function(sId, sType) {
+
+		var sUrl = GLOBAL.BASE_URL + 'JobMonitor/getSandbox?jobID=' + sId + '&sandbox=' + sType;
+		window.open(sUrl, 'Input Sandbox file', 'width=400,height=200');
 
 	}
 
