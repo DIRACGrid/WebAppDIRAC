@@ -6,6 +6,7 @@ from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.List import uniqueElements
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 import tempfile
 import json
 import ast
@@ -38,6 +39,11 @@ class JobLaunchpadHandler(WebHandler):
     gLogger.info("\033[0;31m userHasProxy(%s, %s, %s) \033[0m" % (userDN, group, validSeconds))
     
     result = proxyManager.userHasProxy(userDN, group, validSeconds)
+    
+#     obj = Operations()
+    
+#     print obj.getSections("Launchpad")
+#     print obj.getOptionsDict("Launchpad/"+obj.getSections("Launchpad")["Value"][0])
     
     if result["OK"]:
       if result["Value"]:
@@ -185,12 +191,11 @@ class JobLaunchpadHandler(WebHandler):
       import os
       storePath = tempfile.mkdtemp(prefix='DIRAC_')
       try:
-        for file in store:
-          name = os.path.join(storePath , file.filename.lstrip(os.sep))
+        for fileObj in store:
+          name = os.path.join(storePath , fileObj.filename.lstrip(os.sep))
           
           tFile = open(name , 'w')
-          shutil.copyfileobj(file.file, tFile)
-          file.file.close()
+          tFile.write(fileObj.body)
           tFile.close()
           
           fileNameList.append(name)
@@ -206,7 +211,8 @@ class JobLaunchpadHandler(WebHandler):
     if exception_counter == 0:
       jdl = jdl + sndBox
       from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
-      jobManager = WMSClient()
+      
+      jobManager = WMSClient(useCertificates=True)
       jdl = str(jdl)
       gLogger.info("J D L : ", jdl)
       try:

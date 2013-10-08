@@ -379,8 +379,9 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 						}
 					}
 
-					console.log("Number of files " + iLength);
-					console.log("The size of all files: " + oComp.moduleObject.bytesToSize(iSize, 2));
+					// console.log("Number of files " + iLength);
+					// console.log("The size of all files: " +
+					// oComp.moduleObject.bytesToSize(iSize, 2));
 
 				}
 
@@ -442,7 +443,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			url : GLOBAL.BASE_URL + 'JobLaunchpad/getLaunchpadOpts',
 			method : 'POST',
 			success : function(response) {
-				console.log(response.responseText);
+
 				var response = Ext.JSON.decode(response.responseText);
 
 				if (response["success"] == "true") {
