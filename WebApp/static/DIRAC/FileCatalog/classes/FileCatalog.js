@@ -73,7 +73,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 					if (!(oBlockData[0] in me.queryData)) {
 						oIter.finished = true;
 						oIter.error_message = "'" + oBlockData[0] + "' was not found in the current set of metadata fields !";
-						alert(oIter.error_message);
+						GLOBAL.APP.CF.alert(oIter.error_message, "error");
 						me.setLoading(false);
 						return;
 					}
@@ -92,7 +92,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 								oIter.finished = true;
 								oIter.error_message = "'" + oDataArray[i] + "' value was not found as a value of the '" + oBlockData[0] + "' field !";
-								alert(oIter.error_message);
+								GLOBAL.APP.CF.alert(oIter.error_message, "error");
 								me.setLoading(false);
 								return;
 
@@ -108,7 +108,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 							oIter.finished = true;
 							oIter.error_message = "'" + oBlockData[4] + "' value was not found as a value of the '" + oBlockData[0] + "' field !";
-							alert(oIter.error_message);
+							GLOBAL.APP.CF.alert(oIter.error_message, "error");
 							me.setLoading(false);
 							return;
 
@@ -394,6 +394,9 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 				load : function(oStore, records, successful, eOpts) {
 
+					if (oStore.proxy.reader.rawData["total"] == 0)
+						GLOBAL.APP.CF.alert("There were no data matching your selection !", "info");
+
 					me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
 					me.queryPanel.body.unmask();
 					me.metadataCatalogGrid.body.unmask();
@@ -536,7 +539,6 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 		}
 
-		console.log(me.pagingToolbar.toolbar.items);
 		me.pagingToolbar.toolbar.items.insert(4, me.pagingToolbar.toolbar.items.items[21]);
 		me.pagingToolbar.toolbar.items.insert(24, me.pagingToolbar.toolbar.items.items[7]);
 		me.pagingToolbar.toolbar.items.insert(21, me.pagingToolbar.toolbar.items.items[22]);
@@ -798,7 +800,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 					me.__getQueryData(true);
 
 				} else {
-					alert(oResponse.error);
+					GLOBAL.APP.CF.alert(oResponse.error, "error");
 				}
 
 			}
@@ -1307,7 +1309,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 					} else {
 
-						alert(oResponse.error);
+						GLOBAL.APP.CF.alert(oResponse.error, "error");
 						me.queryPanel.body.unmask();
 
 					}
@@ -1423,7 +1425,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 				} else {
 
-					alert(oResponse.error);
+					GLOBAL.APP.CF.alert(oResponse.error, "error");
 					me.metadataCatalogGrid.body.unmask();
 
 				}

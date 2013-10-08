@@ -189,12 +189,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 			var oResponse = JSON.parse(e.data);
 
-			// console.log("----RESPONSE----");
-			// console.log(oResponse);
-
 			if (parseInt(oResponse.success) == 0) {
 
-				alert(oResponse.message);
+				GLOBAL.APP.CF.alert(oResponse.message, "error");
 
 				switch (oResponse.op) {
 
@@ -280,7 +277,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 					me.__setChangeMade(true);
 					break;
 				case "commitConfiguration":
-					alert("The changes in the configuration have been successfuly commited !");
+					GLOBAL.APP.CF.alert("The changes in the configuration have been successfuly commited !", "info");
 					me.btnCommitConfiguration.show();
 					me.btnViewConfigDifference.show();
 					me.__setChangeMade(false);

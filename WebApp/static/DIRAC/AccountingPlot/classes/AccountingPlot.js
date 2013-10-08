@@ -203,7 +203,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 							if (oResult["success"] == "true")
 								me.applyDataToSelection(oResult, newValue);
 							else
-								alert(oResult["error"]);
+								GLOBAL.APP.CF.alert(oResult["error"], "error");
 							me.leftPanel.body.unmask();
 						}
 					});
@@ -399,7 +399,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 						if (oResult["success"] == "true")
 							me.applySpecialConditions(oResult);
 						else
-							alert(oResult["error"]);
+							GLOBAL.APP.CF.alert(oResult["error"], "error");
 						me.leftPanel.body.unmask();
 					}
 				});
@@ -720,21 +720,21 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		if ((me.cmbDomain.getValue() == null) || (Ext.util.Format.trim(me.cmbDomain.getValue()) == "")) {
 
 			if (bWithMessages)
-				alert("No category defined !");
+				GLOBAL.APP.CF.alert("No category defined !", "warning");
 
 			bValid = false;
 
 		} else if ((me.cmbPlotGenerate.getValue() == null) || (Ext.util.Format.trim(me.cmbPlotGenerate.getValue()) == "")) {
 
 			if (bWithMessages)
-				alert("No plot type defined !");
+				GLOBAL.APP.CF.alert("No plot type defined !", "warning");
 
 			bValid = false;
 
 		} else if ((me.cmbGroupBy.getValue() == null) || (Ext.util.Format.trim(me.cmbGroupBy.getValue()) == "")) {
 
 			if (bWithMessages)
-				alert("No data grouping defined !");
+				GLOBAL.APP.CF.alert("No data grouping defined !", "warning");
 
 			bValid = false;
 
@@ -745,12 +745,25 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		switch (me.cmbTimeSpan.getValue()) {
 
 		case -1:
-			if ((me.calendarFrom.getValue() == null) && (me.calendarTo.getValue() == null)) {
+			if (me.calendarFrom.getValue() == null) {
 
 				if (bWithMessages)
-					alert("No dates selected !");
+					GLOBAL.APP.CF.alert("No start date selected !", "warning");
 
 				bValid = false;
+
+			}
+
+			if ((me.calendarFrom.getValue() != null) && (me.calendarTo.getValue() != null)) {
+
+				if (me.calendarFrom.getValue() > me.calendarTo.getValue()) {
+
+					if (bWithMessages)
+						GLOBAL.APP.CF.alert("Selected dates are not valid !", "warning");
+
+					bValid = false;
+
+				}
 
 			}
 			break;
@@ -758,7 +771,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			if (me.cmbQuarter.getValue().length == 0) {
 
 				if (bWithMessages)
-					alert("No quarters selected !");
+					GLOBAL.APP.CF.alert("No quarters selected !", "warning");
 
 				bValid = false;
 
@@ -806,7 +819,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			oParams._timeSelector = -1;
 
 			oParams._startTime = fixTime(me.calendarFrom.getValue());
-			oParams._endTime = fixTime(me.calendarTo.getValue());
+
+			if (me.calendarTo.getValue() != null)
+				oParams._endTime = fixTime(me.calendarTo.getValue());
 
 		} else if (iTimeSpan == -2) {
 
@@ -1048,7 +1063,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 					me.rightPanel.setLoading('Loading Image ...');
 
 				} else {
-					alert(response["errors"]);
+					GLOBAL.APP.CF.alert(response["errors"], "error");
 				}
 
 			},

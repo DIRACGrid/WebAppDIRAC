@@ -340,7 +340,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			autoScroll : true,
 			hidden : true,
 			collapsible : false,
-			layout : "border"
+			layout : "border",
+			defaults : {
+				collapsible : true,
+				split : true
+			}
 		});
 
 		me.cmbSelectors = {
@@ -631,7 +635,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					if (!bResponseOK) {
 
-						alert(oStore.proxy.reader.rawData["error"]);
+						GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "info");
 
 						if (parseInt(oStore.proxy.reader.rawData["total"]) == 0) {
 
@@ -648,17 +652,21 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						me.dataStore.remoteSort = true;
 
 						// setting the data into the statistics grid
+						if ((me.statisticsGridComboMain.getValue() == "Selected Statistics") && (me.statisticsGridCombo.getValue() == "Status")) {
+							var oExtraData = oStore.proxy.reader.rawData["extra"];
 
-						var oExtraData = oStore.proxy.reader.rawData["extra"];
+							me.statisticsSelectionGrid.store.removeAll();
 
-						me.statisticsSelectionGrid.store.removeAll();
+							for ( var key in oExtraData)
+								me.statisticsSelectionGrid.store.add({
+									"key" : key,
+									"value" : oExtraData[key],
+									"code" : ""
+								});
 
-						for ( var key in oExtraData)
-							me.statisticsSelectionGrid.store.add({
-								"key" : key,
-								"value" : oExtraData[key],
-								"code" : ""
-							});
+							me.createPlotFromGridData("Selected Statistics :: Status");
+
+						}
 
 					}
 
@@ -689,7 +697,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.pagingToolbar = {};
 		me.pagingToolbar.updateStamp = new Ext.Button({
 			disabled : true,
-			// disabledClass:'my-disabled',
 			text : 'Updated: -'
 		});
 
@@ -753,8 +760,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			text : '',
 			iconCls : "jm-pie-icon",
 			handler : function() {
-				me.grid.hide();
-				me.statisticsPanel.show();
+				// me.grid.hide();
+				// me.statisticsPanel.show();
+				me.centralWorkPanel.getLayout().setActiveItem(1);
 			},
 			tooltip : "Go to the statistics panel"
 		});
@@ -773,7 +781,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						oItems.push(oElems[i].value);
 
 				if (oItems.length < 1) {
-					alert('No jobs were selected');
+					GLOBAL.APP.CF.alert('No jobs were selected', "error");
 					return;
 				} else {
 
@@ -826,8 +834,51 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					var oToolb = new Ext.create('Ext.toolbar.Toolbar', {
 						dock : "top",
-						items : [ oCombo ]
+						idsItems : oItems,
+						textArea : oTextArea,
+						items : [ {
+							xtype : "button",
+							text : 'COMMA',
+							handler : function() {
+
+								var me = this;
+								var parent = me.up("toolbar");
+
+								parent.textArea.setValue(parent.idsItems.join(","));
+
+							},
+							toggleGroup : me.id + "-ids-separator",
+							allowDepress : false
+						}, {
+							xtype : "button",
+							text : 'SEMI-COLON',
+							handler : function() {
+
+								var me = this;
+								var parent = me.up("toolbar");
+
+								parent.textArea.setValue(parent.idsItems.join(";"));
+
+							},
+							toggleGroup : me.id + "-ids-separator",
+
+							allowDepress : false
+						}, {
+							xtype : "button",
+							text : 'EMPTY SPACE',
+							handler : function() {
+								var me = this;
+								var parent = me.up("toolbar");
+
+								parent.textArea.setValue(parent.idsItems.join(" "));
+							},
+							toggleGroup : me.id + "-ids-separator",
+
+							allowDepress : false
+						} ]
 					});
+
+					oToolb.items.getAt(0).toggle();
 
 					oWindow.add(new Ext.create('Ext.panel.Panel', {
 						floatable : false,
@@ -1019,10 +1070,16 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				menu : {
 					items : [ {
 						handler : function() {
+
+							me.__getSandbox(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Input");
+
 						},
 						text : 'Get input file(s)'
 					}, {
 						handler : function() {
+
+							me.__getSandbox(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Output");
+
 						},
 						text : 'Get output file(s)'
 					} ]
@@ -1283,26 +1340,43 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			moduleObject : me
 		});
 
-		var oButtonForPlot = new Ext.Button({
-
-			text : 'Plot',
-			margin : 0,
-			iconCls : "jm-pie-icon",
-			handler : me.createPlotFromGridData,
-			scope : me,
-			defaultAlign : "c"
-		});
-
 		var oButtonGoToGrid = new Ext.Button({
 
 			margin : 0,
 			iconCls : "jm-grid-icon",
 			handler : function() {
-				me.grid.show();
-				me.statisticsPanel.hide();
+				me.centralWorkPanel.getLayout().setActiveItem(0);
 			},
 			scope : me,
 
+		});
+
+		me.btnShowPlotAsPng = new Ext.Button({
+
+			margin : 0,
+			iconCls : "jm-save-icon",
+			handler : function() {
+
+				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
+
+				var iHeight = me.statisticsPlotPanel.getHeight() - 100;
+
+				var iWidth = me.statisticsPlotPanel.getWidth() - 20;
+
+				var canvas = document.createElement('canvas');
+				canvas.setAttribute('width', iWidth);
+				canvas.setAttribute('height', iHeight);
+
+				document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
+
+				canvg(canvas, sSvgElement);
+				var imgData = canvas.toDataURL("image/png");
+
+				window.location = imgData.replace("image/png", "image/octet-stream");
+
+			},
+			scope : me,
+			tooltip : "Save pie chart as PNG image"
 		});
 
 		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
@@ -1320,7 +1394,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
-				items : [ oButtonGoToGrid, '-', oButtonForPlot ]
+				items : [ oButtonGoToGrid, me.btnShowPlotAsPng ]
 			}), new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
 				items : [ me.statisticsGridComboMain ]
@@ -1376,47 +1450,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 		});
 
-		me.btnShowPlotAsPng = new Ext.Button({
-
-			margin : 0,
-			iconCls : "jm-pie-icon",
-			handler : function() {
-
-				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
-
-				var iHeight = me.statisticsPlotPanel.getHeight() - 100;
-
-				var iWidth = me.statisticsPlotPanel.getWidth() - 20;
-
-				var canvas = document.createElement('canvas');
-				canvas.setAttribute('width', iWidth);
-				canvas.setAttribute('height', iHeight);
-
-				document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
-
-				canvg(canvas, sSvgElement);
-				var imgData = canvas.toDataURL("image/png");
-
-				// var img = document.createElement('img');
-				// img.src = imgData;
-				// document.getElementById(me.id+'-statistics-plot-png').appendChild(img);
-				window.location = imgData.replace("image/png", "image/octet-stream");
-
-			},
-			scope : me,
-
-		});
-
 		me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
 			region : 'center',
 			floatable : false,
 			layout : 'anchor',
 			autoScroll : true,
-			items : [ new Ext.create('Ext.toolbar.Toolbar', {
-				dock : "top",
-				border : 0,
-				items : [ me.btnShowPlotAsPng ]
-			}), {
+			items : [ {
 				html : "<div id='" + me.id + "-statistics-plot' style='width:100%;'></div>",
 				xtype : "box"
 			}, {
@@ -1425,6 +1464,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				hidden : true
 			} ]
 		});
+
+		me.statisticsPlotPanel.onResize = function(width, height, oldWidth, oldHeight) {
+
+			me.createPlotFromGridData(me.statisticsGridComboMain.getValue() + " :: " + me.statisticsGridCombo.getValue());
+
+		};
 
 		me.statisticsPanel.add([ me.statisticsSelectionGrid, me.statisticsPlotPanel ]);
 
@@ -1435,7 +1480,18 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		 * DEFINITION OF THE MAIN CONTAINER
 		 * -----------------------------------------------------------------------------------------------------------
 		 */
-		me.add([ me.leftPanel, me.statisticsPanel, me.grid ]);
+
+		me.centralWorkPanel = new Ext.create('Ext.panel.Panel', {
+			floatable : false,
+			autoScroll : true,
+			layout : 'card',
+			region : "center",
+			header : false,
+			border : false,
+			items : [ me.grid, me.statisticsPanel ]
+		});
+
+		me.add([ me.leftPanel, me.centralWorkPanel ]);
 
 	},
 
@@ -1468,8 +1524,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 						me.statisticsSelectionGrid.store.add(response["result"]);
 
+						me.createPlotFromGridData(sSet + " :: " + sCategory);
+
 					} else {
-						alert(response["error"]);
+						GLOBAL.APP.CF.alert(response["error"], "error");
 					}
 
 					me.statisticsSelectionGrid.body.unmask();
@@ -1502,8 +1560,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 						me.statisticsSelectionGrid.store.add(response["result"]);
 
+						me.createPlotFromGridData(sSet + " :: " + sCategory);
+
 					} else {
-						alert(response["error"]);
+						GLOBAL.APP.CF.alert(response["error"], "error");
 					}
 					me.statisticsSelectionGrid.body.unmask();
 					me.statisticsGridComboMain.setDisabled(false);
@@ -1521,7 +1581,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	},
 
-	createPlotFromGridData : function() {
+	createPlotFromGridData : function(sTitle) {
 
 		var me = this;
 
@@ -1537,7 +1597,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		var data = google.visualization.arrayToDataTable(oData);
 
 		var options = {
-			title : 'Grid Statistics'
+			title : sTitle
 		};
 
 		var iHeight = me.statisticsPlotPanel.getHeight() - 100;
@@ -1811,7 +1871,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					oItems.push(oElems[i].value);
 
 			if (oItems.length < 1) {
-				alert('No jobs were selected');
+				GLOBAL.APP.CF.alert('No jobs were selected', "error");
 				return;
 			}
 
@@ -1839,7 +1899,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			success : function(response) {
 				var jsonData = Ext.JSON.decode(response.responseText);
 				if (jsonData['success'] == 'false') {
-					alert('Error: ' + jsonData['error']);
+					GLOBAL.APP.CF.alert('Error: ' + jsonData['error'], "error");
 					return;
 				} else {
 					if (jsonData.showResult) {
@@ -1959,7 +2019,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 				} else {
 
-					alert(jsonData["error"]);
+					GLOBAL.APP.CF.alert(jsonData["error"], "error");
 
 				}
 
@@ -2005,6 +2065,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		oWindow.add(oGrid);
 		oWindow.show();
+
+	},
+
+	__getSandbox : function(sId, sType) {
+
+		var sUrl = GLOBAL.BASE_URL + 'JobMonitor/getSandbox?jobID=' + sId + '&sandbox=' + sType;
+		window.open(sUrl, 'Input Sandbox file', 'width=400,height=200');
 
 	}
 
