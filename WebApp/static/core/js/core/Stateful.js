@@ -32,6 +32,6 @@ Ext.define('Ext.dirac.core.Stateful', {
 	 *          data Data used to set up the state
 	 */
 	loadState : function(oData) {
-	},
+	}
 
 });

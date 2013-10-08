@@ -40,11 +40,6 @@ class JobLaunchpadHandler(WebHandler):
     
     result = proxyManager.userHasProxy(userDN, group, validSeconds)
     
-#     obj = Operations()
-    
-#     print obj.getSections("Launchpad")
-#     print obj.getOptionsDict("Launchpad/"+obj.getSections("Launchpad")["Value"][0])
-    
     if result["OK"]:
       if result["Value"]:
         return {"success":"true", "result":"true"}
@@ -99,6 +94,26 @@ class JobLaunchpadHandler(WebHandler):
     return options
     
   def web_getLaunchpadOpts(self):
+    
+    defaultParams = {"JobName" :        [1,'DIRAC'],
+                     "Executable" :     [1,"/bin/ls"],
+                     "Arguments" :      [1,"-ltrA"],
+                     "OutputSandbox" :  [1,"std.out, std.err"],
+                     "InputData" :      [0,""],
+                     "OutputData" :     [0,""],
+                     "OutputSE" :       [0,"DIRAC-USER"],
+                     "OutputPath":      [0,""],
+                     "CPUTime" :        [0,"86400"],
+                     "Site" :           [0,""],
+                     "BannedSite" :     [0,""],
+                     "Platform" :       [0,"Linux_x86_64_glibc-2.5"],
+                     "Priority" :       [0,"5"],
+                     "StdError" :       [0,"std.err"],
+                     "StdOutput" :      [0,"std.out"],
+                     "Parameters" :     [0,"0"],
+                     "ParameterStart" : [0,"0"],
+                     "ParameterStep" :  [0,"1"]}
+    
     delimiter = gConfig.getValue("/Website/Launchpad/ListSeparator" , ',')
     options = self.__getOptionsFromCS(delimiter=delimiter)
 #     platform = self.__getPlatform()
@@ -113,9 +128,27 @@ class JobLaunchpadHandler(WebHandler):
     gLogger.debug("Combined options from CS: %s" % options)
     override = gConfig.getValue("/Website/Launchpad/OptionsOverride" , False)
     gLogger.info("end __getLaunchpadOpts")
-#     import pprint
-#     pprint.pprint(options)
-    self.write({"success":"true", "result":options, "override":override, "separator":delimiter})
+    
+#    Updating the default values from OptionsOverride configuration branch
+    for key in options:
+      defaultParams[key][1] = options[key][0]
+      
+#    Reading of the predefined sets of launchpad parameters values
+    
+    obj = Operations()
+    predefinedSets = {}
+    
+    launchpadSections = obj.getSections("Launchpad")
+    import pprint
+    if launchpadSections['OK']:
+      for section in launchpadSections["Value"]:
+        predefinedSets[section] = {}
+        sectionOptions = obj.getOptionsDict("Launchpad/" + section)
+        pprint.pprint(sectionOptions)
+        if sectionOptions['OK']:
+          predefinedSets[section] = sectionOptions["Value"]
+    
+    self.write({"success":"true", "result":defaultParams, "predefinedSets":predefinedSets})
   
   def __canRunJobs(self):
     data = self.getSessionData()

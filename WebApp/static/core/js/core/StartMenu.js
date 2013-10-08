@@ -222,7 +222,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 										cmp.isStateMenuLoaded = 2;
 										cmp.setIconCls("notepad");
 
-									}
+									};
 
 									GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(sStartClass, oFunc);
 
@@ -389,6 +389,6 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 		}
 
-	},
+	}
 
 });

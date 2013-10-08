@@ -8,7 +8,7 @@
 Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 	extend : 'Ext.dirac.core.Module',
 
-	requires : [ 'Ext.panel.Panel', 'Ext.form.FieldSet', "Ext.menu.CheckItem", 'Ext.button.Button', 'Ext.toolbar.Toolbar', 'Ext.form.Panel' ],
+	requires : [ 'Ext.panel.Panel', 'Ext.form.FieldSet', "Ext.menu.CheckItem", 'Ext.button.Button', 'Ext.toolbar.Toolbar', 'Ext.form.Panel', 'Ext.tree.Panel', 'Ext.data.TreeStore', 'Ext.menu.Menu' ],
 
 	initComponent : function() {
 
@@ -40,6 +40,13 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 		var me = this;
 
+		me.fsetPredefinedSetsSection = Ext.create('Ext.form.FieldSet', {
+			title : 'Predefined Sets of Launchpad Values',
+			collapsible : true,
+			layout : 'anchor',
+			padding : 5
+		});
+
 		me.fsetJdlSection = Ext.create('Ext.form.FieldSet', {
 			title : 'JDL',
 			collapsible : true,
@@ -57,96 +64,97 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 		me.fsetInputSandboxSection.add(me.uploadField);
 
 		me.textualFields = {
-			"JobName" : {
-				mandatory : true,
-				object : null,
-				value : 'DIRAC_' + GLOBAL.USER_CREDENTIALS.username + '_' + Math.floor(Math.random() * 1000001)
-			},
-			"Executable" : {
-				mandatory : true,
-				object : null,
-				value : "/bin/ls"
-			},
-			"Arguments" : {
-				mandatory : true,
-				object : null,
-				value : "-ltrA"
-			},
-			"OutputSandbox" : {
-				mandatory : true,
-				object : null,
-				value : "std.out, std.err"
-			},
-			"InputData" : {
-				mandatory : false,
-				object : null,
-				value : ""
-			},
-			"OutputData" : {
-				mandatory : false,
-				object : null,
-				value : ""
-			},
-			"OutputSE" : {
-				mandatory : false,
-				object : null,
-				value : "DIRAC-USER"
-			},
-			"OutputPath" : {
-				mandatory : false,
-				object : null,
-				value : ""
-			},
-			"CPUTime" : {
-				mandatory : false,
-				object : null,
-				value : "86400"
-			},
-			"Site" : {
-				mandatory : false,
-				object : null,
-				value : ""
-			},
-			"BannedSite" : {
-				mandatory : false,
-				object : null,
-				value : ""
-			},
-			"Platform" : {
-				mandatory : false,
-				object : null,
-				value : "Linux_x86_64_glibc-2.5"
-			},
-			"Priority" : {
-				mandatory : false,
-				object : null,
-				value : "5"
-			},
-			"StdError" : {
-				mandatory : false,
-				object : null,
-				value : "std.err"
-			},
-			"StdOutput" : {
-				mandatory : false,
-				object : null,
-				value : "std.out"
-			},
-			"Parameters" : {
-				mandatory : false,
-				object : null,
-				value : "0"
-			},
-			"ParameterStart" : {
-				mandatory : false,
-				object : null,
-				value : "0"
-			},
-			"ParameterStep" : {
-				mandatory : false,
-				object : null,
-				value : "1"
-			}
+		// "JobName" : {
+		// mandatory : true,
+		// object : null,
+		// value : 'DIRAC_' + GLOBAL.USER_CREDENTIALS.username + '_' +
+		// Math.floor(Math.random() * 1000001)
+		// },
+		// "Executable" : {
+		// mandatory : true,
+		// object : null,
+		// value : "/bin/ls"
+		// },
+		// "Arguments" : {
+		// mandatory : true,
+		// object : null,
+		// value : "-ltrA"
+		// },
+		// "OutputSandbox" : {
+		// mandatory : true,
+		// object : null,
+		// value : "std.out, std.err"
+		// },
+		// "InputData" : {
+		// mandatory : false,
+		// object : null,
+		// value : ""
+		// },
+		// "OutputData" : {
+		// mandatory : false,
+		// object : null,
+		// value : ""
+		// },
+		// "OutputSE" : {
+		// mandatory : false,
+		// object : null,
+		// value : "DIRAC-USER"
+		// },
+		// "OutputPath" : {
+		// mandatory : false,
+		// object : null,
+		// value : ""
+		// },
+		// "CPUTime" : {
+		// mandatory : false,
+		// object : null,
+		// value : "86400"
+		// },
+		// "Site" : {
+		// mandatory : false,
+		// object : null,
+		// value : ""
+		// },
+		// "BannedSite" : {
+		// mandatory : false,
+		// object : null,
+		// value : ""
+		// },
+		// "Platform" : {
+		// mandatory : false,
+		// object : null,
+		// value : "Linux_x86_64_glibc-2.5"
+		// },
+		// "Priority" : {
+		// mandatory : false,
+		// object : null,
+		// value : "5"
+		// },
+		// "StdError" : {
+		// mandatory : false,
+		// object : null,
+		// value : "std.err"
+		// },
+		// "StdOutput" : {
+		// mandatory : false,
+		// object : null,
+		// value : "std.out"
+		// },
+		// "Parameters" : {
+		// mandatory : false,
+		// object : null,
+		// value : "0"
+		// },
+		// "ParameterStart" : {
+		// mandatory : false,
+		// object : null,
+		// value : "0"
+		// },
+		// "ParameterStep" : {
+		// mandatory : false,
+		// object : null,
+		// value : "1"
+		// }
 		};
 
 		me.btnAddParameters = new Ext.Button({
@@ -161,44 +169,6 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			tooltip : 'Click to add more parameters to the JDL'
 
 		});
-
-		for ( var sKey in me.textualFields) {
-
-			if (me.textualFields[sKey].mandatory) {
-
-				me.textualFields[sKey].object = new Ext.create('Ext.form.field.Text', {
-					fieldLabel : sKey,
-					anchor : '100%',
-					labelAlign : 'left',
-					value : me.textualFields[sKey].value,
-					name : sKey
-				});
-
-			} else {
-
-				me.btnAddParameters.menu.add({
-					xtype : 'menucheckitem',
-					text : sKey,
-					relatedCmbField : sKey,
-					checked : false,
-					handler : function(item, e) {
-
-						var me = this;
-
-						if (item.checked)
-							me.__createJdlField(item.relatedCmbField);
-						else
-							me.__destroyJdlField(item.relatedCmbField);
-
-					},
-					scope : me
-				});
-
-			}
-
-			me.fsetJdlSection.add(me.textualFields[sKey].object);
-
-		}
 
 		me.btnProxyStatus = new Ext.Button({
 
@@ -316,15 +286,46 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			bodyPadding : 5,
 			autoScroll : true,
 			dockedItems : [ oTopToolbar, oBottomToolbar ],
-			items : [ me.fsetJdlSection, me.fsetInputSandboxSection ]
+			items : [ me.fsetPredefinedSetsSection, me.fsetJdlSection, me.fsetInputSandboxSection ]
+		});
+
+		me.predefinedSetsMenu = new Ext.menu.Menu({
+			width : 250,
+			items : [ {
+				text : 'Apply to the selected parameters',
+				moduleObject : me,
+				listeners : {
+					click : me.__oprApplyToJdl
+				}
+			} ]
 		});
 
 		me.oprAddNewFileField();
 
 		me.add([ me.mainFormPanel ]);
 
+		me.setUpParametersAndPredefinedConfig();
 		me.proxyCheckerFunction();
-		me.setUpParameters();
+
+	},
+
+	__oprApplyToJdl : function() {
+
+		var me = this.moduleObject;
+
+		var sPredefinedSet = me.predefinedSetsMenu.node.raw.text;
+
+		for ( var sKey in me.predefinedSets[sPredefinedSet]) {
+
+			if (sKey in me.textualFields) {
+				if (me.textualFields[sKey].object != null) {
+
+					me.textualFields[sKey].object.setValue(me.predefinedSets[sPredefinedSet][sKey]);
+
+				}
+			}
+
+		}
 
 	},
 
@@ -435,7 +436,8 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			return oFile.size;
 		}
 	},
-	setUpParameters : function() {
+
+	setUpParametersAndPredefinedConfig : function() {
 
 		var me = this;
 
@@ -446,18 +448,59 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 				var response = Ext.JSON.decode(response.responseText);
 
-				if (response["success"] == "true") {
+				for ( var sKey in response["result"]) {
 
-					for ( var sKey in response["result"]) {
+					me.textualFields[sKey] = {};
+					me.textualFields[sKey].value = response["result"][sKey][1];
 
-						me.textualFields[sKey]["value"] = response["result"][sKey];
+					// special treatment of the case JobName
+					if (sKey == "JobName") {
 
-						if (me.textualFields[sKey]["object"] != null)
-							me.textualFields[sKey]["object"].setValue(response["result"][sKey]);
+						me.textualFields[sKey].value = me.textualFields[sKey].value + '_' + GLOBAL.USER_CREDENTIALS.username + '_' + Math.floor(Math.random() * 1000001);
 
 					}
 
+					if (parseInt(response["result"][sKey][0], 10) == 1) {
+
+						me.textualFields[sKey].mandatory = true;
+
+						me.textualFields[sKey].object = new Ext.create('Ext.form.field.Text', {
+							fieldLabel : sKey,
+							anchor : '100%',
+							labelAlign : 'left',
+							value : me.textualFields[sKey].value,
+							name : sKey
+						});
+
+					} else {
+
+						me.textualFields[sKey].mandatory = false;
+
+						me.btnAddParameters.menu.add({
+							xtype : 'menucheckitem',
+							text : sKey,
+							relatedCmbField : sKey,
+							checked : false,
+							handler : function(item, e) {
+
+								var me = this;
+
+								if (item.checked)
+									me.__createJdlField(item.relatedCmbField);
+								else
+									me.__destroyJdlField(item.relatedCmbField);
+
+							},
+							scope : me
+						});
+
+					}
+
+					me.fsetJdlSection.add(me.textualFields[sKey].object);
+
 				}
+
+				me.__createPrededinedSetsTree(response["predefinedSets"]);
 
 			},
 			failure : function(response) {
@@ -465,6 +508,103 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			}
 		});
 	},
+
+	__createPrededinedSetsTree : function(oPredefinedSets) {
+
+		var me = this;
+
+		me.predefinedSets = oPredefinedSets;
+
+		var iNumberOfSets = 0;
+
+		for ( var sKey in me.predefinedSets)
+			iNumberOfSets++;
+
+		// if there are predefined sets we show those within a section
+		// if not, the section is not shown
+		if (iNumberOfSets > 0) {
+
+			me.predefinedSetsTreeStore = Ext.create('Ext.data.TreeStore', {
+				proxy : {
+					type : 'localstorage'
+				},
+				root : {
+					text : 'Available Sets'
+				}
+			});
+
+			var oRoot = me.predefinedSetsTreeStore.getRootNode();
+
+			for ( var sKeySet in me.predefinedSets) {
+
+				var oNewSetNode = oRoot.createNode({
+					text : sKeySet,
+					leaf : false,
+					predefinedSets : true
+				});
+
+				oRoot.appendChild(oNewSetNode);
+
+				for ( var sKeyOption in me.predefinedSets[sKeySet]) {
+
+					var oNewOptionNode = oRoot.createNode({
+						text : sKeyOption + " = " + me.predefinedSets[sKeySet][sKeyOption],
+						leaf : true
+					});
+
+					oNewSetNode.appendChild(oNewOptionNode);
+
+				}
+
+			}
+
+			oRoot.expand();
+
+			me.predefinedSetsTreePanel = new Ext.create('Ext.tree.Panel', {
+				store : me.predefinedSetsTreeStore,
+				header : false,
+				bodyBorder : false,
+				border : false,
+				listeners : {
+
+					beforeitemcontextmenu : function(oView, oNode, item, index, e, eOpts) {
+
+						if (oNode.raw.predefinedSets) {
+
+							e.preventDefault();
+
+							me.predefinedSetsMenu.node = oNode;
+							me.predefinedSetsMenu.showAt(e.xy);
+
+							return false;
+
+						} else {
+
+							return true;
+
+						}
+
+					},
+
+					beforecontainercontextmenu : function(oView, e, eOpts) {
+
+						return false;
+
+					}
+
+				}
+			});
+
+			me.fsetPredefinedSetsSection.add(me.predefinedSetsTreePanel);
+
+		} else {
+
+			me.fsetPredefinedSetsSection.hide();
+
+		}
+
+	},
+
 	proxyCheckerFunction : function() {
 
 		var me = this;
