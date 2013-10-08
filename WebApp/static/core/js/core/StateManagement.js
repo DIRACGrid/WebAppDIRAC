@@ -743,7 +743,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 						});
 
 					} else
-						Ext.MessageBox.alert('Message', 'The state <b>' + oSelectField.options[i].value + '</b> you are willing to delete is curently in use !');
+						GLOBAL.APP.CF.alert('The state <b>' + oSelectField.options[i].value + '</b> you are willing to delete is curently in use !', 'warning');
 
 				} else {
 
@@ -894,7 +894,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 				if ((Ext.util.Format.trim(sValue) != "") && (sValue.split("|").length == 4)) {
 					return true;
 				} else {
-					alert("The value in the 'Shared State' field is not valid !");
+					GLOBAL.APP.CF.alert("The value in the 'Shared State' field is not valid !", "warning");
 					return false;
 				}
 
@@ -918,7 +918,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 					return true;
 
 				} else {
-					alert("The 'Name' field cannot be empty !");
+					GLOBAL.APP.CF.alert("The 'Name' field cannot be empty !", "warning");
 					return false;
 				}
 
@@ -998,7 +998,11 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 		});
 
-		var oToolbar = new Ext.toolbar.Toolbar();
+		var oToolbar = new Ext.toolbar.Toolbar({
+
+			border : false
+
+		});
 
 		oToolbar.add([ me.btnLoadSharedState, me.btnSaveSharedState, me.btnLoadAndSaveSharedState ]);
 
@@ -1056,7 +1060,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 		if (oDataItems.length != 4) {
 
-			alert("The 'Load' data you entered is not valid !");
+			GLOBAL.APP.CF.alert("The 'Load' data you entered is not valid !", "warning");
 			return;
 
 		}
@@ -1126,7 +1130,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 		if (me.isStateLoaded("reference", oDataItems[0], sRefName) == 1) {
 
-			alert("The name for the link already exists !");
+			GLOBAL.APP.CF.alert("The name for the link already exists !", "warning");
 			return;
 		}
 

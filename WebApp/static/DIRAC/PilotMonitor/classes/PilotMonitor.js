@@ -556,7 +556,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 					if (!bResponseOK) {
 
-						alert(oStore.proxy.reader.rawData["error"]);
+						GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "error");
 
 						if (parseInt(oStore.proxy.reader.rawData["total"]) == 0) {
 
@@ -1193,7 +1193,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 				} else {
 
-					alert(jsonData["error"]);
+					GLOBAL.APP.CF.alert(jsonData["error"], "error");
 
 				}
 

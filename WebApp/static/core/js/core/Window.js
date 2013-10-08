@@ -609,14 +609,16 @@ Ext.define('Ext.dirac.core.Window', {
 			me.addTool({
 				xtype : "diracToolButton",
 				type : "save",
-				menu : ((GLOBAL.STATE_MANAGEMENT_ENABLED) ? me.loadMenu : [])
+				menu : ((GLOBAL.STATE_MANAGEMENT_ENABLED) ? me.loadMenu : []),
+				tooltip : "Save state menu"
 			});
 
 			me.desktopGridStickButton = new Ext.dirac.utils.DiracToolButton({
 				type : "pin",
 				handler : function() {
 					me.desktop.setDesktopStickMode(me);
-				}
+				},
+				tooltip : "Pin/Unpin window onto the desktop"
 			});
 
 			me.addTool(me.desktopGridStickButton);
@@ -626,7 +628,8 @@ Ext.define('Ext.dirac.core.Window', {
 				type : "toggle",
 				handler : function() {
 					me.getHeader().hide();
-				}
+				},
+				tooltip : "Hide window header"
 			});
 
 		}
@@ -830,7 +833,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 		switch (iStateLoaded) {
 		case -1:
-			alert("The state does not exist !");
+			GLOBAL.APP.CF.alert("The state does not exist !", "warning");
 			return;
 			break;
 		case -2:

@@ -94,3 +94,10 @@
 	margin:3px 0px 3px 0px !important;
 	
 }
+
+.jm-save-icon{
+	
+	 background-image: url(../images/save.png) !important;
+     background-color: transparent;
+	
+}
