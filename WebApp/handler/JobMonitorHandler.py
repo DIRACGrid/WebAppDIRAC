@@ -509,10 +509,10 @@ class JobMonitorHandler(WebHandler):
     
     data = result['Value']
     fname = "%s_%sSandbox.tar" % (str(jobID), sbType)
-    self.set_header('Content-type','application/x-tar')
-    self.set_header('Content-Disposition','attachment; filename="%s"' % fname)
-    self.set_header('Content-Length',len( data ))
-    self.set_header('Cache-Control',"no-cache, no-store, must-revalidate, max-age=0")
-    self.set_header('Pragma',"no-cache")
+    self.set_header('Content-type', 'application/x-tar')
+    self.set_header('Content-Disposition', 'attachment; filename="%s"' % fname)
+    self.set_header('Content-Length', len(data))
+    self.set_header('Cache-Control', "no-cache, no-store, must-revalidate, max-age=0")
+    self.set_header('Pragma', "no-cache")
     self.finish(data)
     

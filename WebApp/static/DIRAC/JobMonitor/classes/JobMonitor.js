@@ -340,7 +340,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			autoScroll : true,
 			hidden : true,
 			collapsible : false,
-			layout : "border"
+			layout : "border",
+			defaults : {
+				collapsible : true,
+				split : true
+			}
 		});
 
 		me.cmbSelectors = {
@@ -1350,7 +1354,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.btnShowPlotAsPng = new Ext.Button({
 
 			margin : 0,
-			iconCls : "jm-pie-icon",
+			iconCls : "jm-save-icon",
 			handler : function() {
 
 				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;

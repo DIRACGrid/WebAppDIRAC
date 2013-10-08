@@ -394,6 +394,9 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 				load : function(oStore, records, successful, eOpts) {
 
+					if (oStore.proxy.reader.rawData["total"] == 0)
+						GLOBAL.APP.CF.alert("There were no data matching your selection !", "info");
+
 					me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
 					me.queryPanel.body.unmask();
 					me.metadataCatalogGrid.body.unmask();
@@ -536,7 +539,6 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 		}
 
-		console.log(me.pagingToolbar.toolbar.items);
 		me.pagingToolbar.toolbar.items.insert(4, me.pagingToolbar.toolbar.items.items[21]);
 		me.pagingToolbar.toolbar.items.insert(24, me.pagingToolbar.toolbar.items.items[7]);
 		me.pagingToolbar.toolbar.items.insert(21, me.pagingToolbar.toolbar.items.items[22]);
