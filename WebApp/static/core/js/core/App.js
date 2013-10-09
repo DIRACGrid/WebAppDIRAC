@@ -221,7 +221,7 @@ Ext.define('Ext.dirac.core.App', {
 				model : 'Ext.dirac.core.ShortcutModel',
 				data : {}
 			}),
-			wallpaper : '/' + GLOBAL.NS + '/static/core/img/wallpapers/dirac_background_6.png',
+			wallpaper : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_background_6.png',
 			wallpaperStretch : false
 		};
 

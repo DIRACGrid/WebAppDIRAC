@@ -95,24 +95,24 @@ class JobLaunchpadHandler(WebHandler):
     
   def web_getLaunchpadOpts(self):
     
-    defaultParams = {"JobName" :        [1,'DIRAC'],
-                     "Executable" :     [1,"/bin/ls"],
-                     "Arguments" :      [1,"-ltrA"],
-                     "OutputSandbox" :  [1,"std.out, std.err"],
-                     "InputData" :      [0,""],
-                     "OutputData" :     [0,""],
-                     "OutputSE" :       [0,"DIRAC-USER"],
-                     "OutputPath":      [0,""],
-                     "CPUTime" :        [0,"86400"],
-                     "Site" :           [0,""],
-                     "BannedSite" :     [0,""],
-                     "Platform" :       [0,"Linux_x86_64_glibc-2.5"],
-                     "Priority" :       [0,"5"],
-                     "StdError" :       [0,"std.err"],
-                     "StdOutput" :      [0,"std.out"],
-                     "Parameters" :     [0,"0"],
-                     "ParameterStart" : [0,"0"],
-                     "ParameterStep" :  [0,"1"]}
+    defaultParams = {"JobName" :        [1, 'DIRAC'],
+                     "Executable" :     [1, "/bin/ls"],
+                     "Arguments" :      [1, "-ltrA"],
+                     "OutputSandbox" :  [1, "std.out, std.err"],
+                     "InputData" :      [0, ""],
+                     "OutputData" :     [0, ""],
+                     "OutputSE" :       [0, "DIRAC-USER"],
+                     "OutputPath":      [0, ""],
+                     "CPUTime" :        [0, "86400"],
+                     "Site" :           [0, ""],
+                     "BannedSite" :     [0, ""],
+                     "Platform" :       [0, "Linux_x86_64_glibc-2.5"],
+                     "Priority" :       [0, "5"],
+                     "StdError" :       [0, "std.err"],
+                     "StdOutput" :      [0, "std.out"],
+                     "Parameters" :     [0, "0"],
+                     "ParameterStart" : [0, "0"],
+                     "ParameterStep" :  [0, "1"]}
     
     delimiter = gConfig.getValue("/Website/Launchpad/ListSeparator" , ',')
     options = self.__getOptionsFromCS(delimiter=delimiter)
@@ -172,11 +172,16 @@ class JobLaunchpadHandler(WebHandler):
       
     jdl = ""
     params = {}
+    lfns = []
     
     for tmp in self.request.arguments:
       try:
         if len(self.request.arguments[tmp][0]) > 0:
-          params[tmp] = self.request.arguments[tmp][0]
+          if tmp[:8] == "lfnField":
+            if len(self.request.arguments[tmp][0].strip()) > 0:
+              lfns.append("LFN:" + self.request.arguments[tmp][0])
+          else:
+            params[tmp] = self.request.arguments[tmp][0]
       except:
         pass
     for item in params:
@@ -236,8 +241,8 @@ class JobLaunchpadHandler(WebHandler):
         exception_counter = 1
         callback = {"success":"false", "error":"An EXCEPTION happens during saving your sandbox file(s): %s" % str(x)}
         
-    if len(fileNameList) > 0 and exception_counter == 0:
-      sndBox = "InputSandbox = {\"" + "\",\"".join(fileNameList) + "\"};"
+    if ((len(fileNameList) > 0) or (len(lfns) > 0)) and exception_counter == 0:
+      sndBox = "InputSandbox = {\"" + "\",\"".join(fileNameList + lfns) + "\"};"
     else:
       sndBox = ""
       
@@ -245,7 +250,7 @@ class JobLaunchpadHandler(WebHandler):
       jdl = jdl + sndBox
       from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
       
-      jobManager = WMSClient(useCertificates=True)
+      jobManager = WMSClient(useCertificates=True, timeout = 1800 )
       jdl = str(jdl)
       gLogger.info("J D L : ", jdl)
       try:

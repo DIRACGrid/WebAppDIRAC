@@ -1244,18 +1244,22 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	},
 
 	__oprMenuCreateSubsection : function(oItem, e, eOpts) {
+
+		var oFunc = function(oModule, oNode) {
+
+			oModule.__sendSocketMessage({
+				op : "createSection",
+				path : oModule.__getNodePath(oNode),
+				name : oModule.txtElementName.getValue(),
+				parentNodeId : oNode.getId()
+			});
+
+		};
+
 		var oNode = oItem.parentMenu.node;
 		var oModule = oItem.parentMenu.moduleObject;
-		var sNewName = window.prompt("What's the name of the new section?");
-		if (sNewName == null)
-			return;
 
-		oModule.__sendSocketMessage({
-			op : "createSection",
-			path : oModule.__getNodePath(oNode),
-			name : sNewName,
-			parentNodeId : oNode.getId()
-		});
+		oModule.formCreateElement("subsection", oFunc, oNode);
 
 	},
 
@@ -1287,22 +1291,24 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	},
 
 	__oprMenuCreateOption : function(oItem, e, eOpts) {
+
+		var oFunc = function(oModule, oNode) {
+
+			var sValue = oModule.__stringToList(oModule.txtElementValue.getValue(), "\n").join(",")
+
+			oModule.__sendSocketMessage({
+				op : "createOption",
+				path : oModule.__getNodePath(oNode),
+				name : oModule.txtElementName.getValue(),
+				value : sValue,
+				parentNodeId : oNode.getId()
+			});
+		}
+
 		var oNode = oItem.parentMenu.node;
 		var oModule = oItem.parentMenu.moduleObject;
-		var sNewName = window.prompt("What's the name of the new option?");
-		if (sNewName == null)
-			return;
-		var sValue = window.prompt("What's the value of the new option?");
-		if (sValue == null)
-			return;
-		sValue = oModule.__stringToList(sValue, "\n").join(",")
-		oModule.__sendSocketMessage({
-			op : "createOption",
-			path : oModule.__getNodePath(oNode),
-			name : sNewName,
-			value : sValue,
-			parentNodeId : oNode.getId()
-		});
+
+		oModule.formCreateElement("option", oFunc, oNode);
 
 	},
 
@@ -1360,6 +1366,114 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		oNewParent.insertChild(parseInt(oResponse.beforeOfIndex), oNode);
 		me.waitForMoveResponse = false;
+
+	},
+
+	formCreateElement : function(sType, funcCreateElement, oNode) {
+
+		var me = this;
+
+		me.txtElementName = Ext.create('Ext.form.field.Text', {
+
+			fieldLabel : "Name",
+			labelAlign : 'left',
+			allowBlank : false,
+			margin : 10,
+			anchor : '100%'
+
+		});
+
+		me.txtElementValue = Ext.create('Ext.form.field.Text', {
+			fieldLabel : "Value",
+			labelAlign : 'left',
+			margin : 10,
+			width : 400,
+			allowBlank : false,
+			hidden : ((sType == "subsection") ? true : false),
+			anchor : '100%'
+		});
+
+		me.txtElementConfig = Ext.create('Ext.form.field.TextArea', {
+			fieldLabel : "Config",
+			labelAlign : 'left',
+			margin : 10,
+			width : 400,
+			hidden : ((sType == "subsection") ? false : true),
+			anchor : '100%',
+			rows : 10
+		});
+
+		// button for saving the state
+		me.btnCreateElement = new Ext.Button({
+
+			text : 'Save',
+			margin : 3,
+			iconCls : "toolbar-other-save",
+			handler : function() {
+
+				var bValid = me.txtElementName.validate();
+
+				if (sType == "option")
+					bValid = bValid && me.txtElementValue.validate();
+
+				if (bValid) {
+					funcCreateElement(me, oNode);
+					me.createElementWindow.close();
+				}
+
+			},
+			scope : me
+
+		});
+
+		// button to close the save form
+		me.btnCancelCreateElement = new Ext.Button({
+
+			text : 'Cancel',
+			margin : 3,
+			iconCls : "toolbar-other-close",
+			handler : function() {
+
+				me.createElementWindow.close();
+
+			},
+			scope : me
+
+		});
+
+		var oToolbar = new Ext.toolbar.Toolbar({
+			border : false
+		});
+
+		oToolbar.add([ me.btnCreateElement, me.btnCancelCreateElement ]);
+
+		var oPanel = new Ext.create('Ext.panel.Panel', {
+			autoHeight : true,
+			border : false,
+			layout : "anchor",
+			items : [ oToolbar, me.txtElementName, me.txtElementValue, me.txtElementConfig ]
+		});
+
+		var sTitle = "Create an option";
+		var iHeight = 200;
+
+		if (sType == "subsection") {
+			sTitle = "Create a subsection";
+			iHeight = 280;
+		}
+
+		// initializing window showing the saving form
+		me.createElementWindow = Ext.create('widget.window', {
+			height : iHeight,
+			width : 500,
+			title : sTitle,
+			layout : 'fit',
+			modal : true,
+			items : oPanel
+		});
+
+		me.createElementWindow.show();
+		me.txtElementName.focus();
 
 	}
 

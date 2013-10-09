@@ -63,7 +63,7 @@
 
           Ext.onReady(function () {
             GLOBAL.BASE_URL = "{{base_url}}/";
-            GLOBAL.NS = GLOBAL.BASE_URL.split("/")[1];
+            GLOBAL.ROOT_URL = "{{root_url}}/";
             GLOBAL.APP = new Ext.dirac.core.App();
             setTimeout(function(){
               Ext.get("app-dirac-loading").hide();
@@ -88,7 +88,7 @@
 
           Ext.onReady(function () {
               GLOBAL.BASE_URL = "{{base_url}}/";
-              GLOBAL.NS = GLOBAL.BASE_URL.split("/")[1];
+              GLOBAL.ROOT_URL = "{{root_url}}/";
               GLOBAL.APP = new Ext.dirac.core.App();
               setTimeout(function(){
                 Ext.get("app-dirac-loading").hide();

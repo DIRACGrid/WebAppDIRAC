@@ -58,5 +58,5 @@ class RootHandler(WebHandler):
                  ext_version = data[ 'extVersion' ], url_state = url_state,
                  extensions = data[ 'extensions' ],
                  credentials = data[ 'user' ], title = Conf.getTitle(),
-                 theme = theme_name )
+                 theme = theme_name, root_url = Conf.rootURL() )
 

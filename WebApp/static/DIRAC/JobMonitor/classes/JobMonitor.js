@@ -1839,6 +1839,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			var oCheckbox = Ext.query("#" + me.id + " input.jm-main-check-box");
 			oCheckbox[0].checked = false;
+
 		}
 
 	},
@@ -1909,7 +1910,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						}
 						Ext.Msg.alert('Result:', html);
 					}
-					me.grid.store.load();
+
+					me.oprLoadGridData();
 				}
 			}
 		});

@@ -63,107 +63,12 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 		me.fsetInputSandboxSection.add(me.uploadField);
 
-		me.textualFields = {
-		// "JobName" : {
-		// mandatory : true,
-		// object : null,
-		// value : 'DIRAC_' + GLOBAL.USER_CREDENTIALS.username + '_' +
-		// Math.floor(Math.random() * 1000001)
-		// },
-		// "Executable" : {
-		// mandatory : true,
-		// object : null,
-		// value : "/bin/ls"
-		// },
-		// "Arguments" : {
-		// mandatory : true,
-		// object : null,
-		// value : "-ltrA"
-		// },
-		// "OutputSandbox" : {
-		// mandatory : true,
-		// object : null,
-		// value : "std.out, std.err"
-		// },
-		// "InputData" : {
-		// mandatory : false,
-		// object : null,
-		// value : ""
-		// },
-		// "OutputData" : {
-		// mandatory : false,
-		// object : null,
-		// value : ""
-		// },
-		// "OutputSE" : {
-		// mandatory : false,
-		// object : null,
-		// value : "DIRAC-USER"
-		// },
-		// "OutputPath" : {
-		// mandatory : false,
-		// object : null,
-		// value : ""
-		// },
-		// "CPUTime" : {
-		// mandatory : false,
-		// object : null,
-		// value : "86400"
-		// },
-		// "Site" : {
-		// mandatory : false,
-		// object : null,
-		// value : ""
-		// },
-		// "BannedSite" : {
-		// mandatory : false,
-		// object : null,
-		// value : ""
-		// },
-		// "Platform" : {
-		// mandatory : false,
-		// object : null,
-		// value : "Linux_x86_64_glibc-2.5"
-		// },
-		// "Priority" : {
-		// mandatory : false,
-		// object : null,
-		// value : "5"
-		// },
-		// "StdError" : {
-		// mandatory : false,
-		// object : null,
-		// value : "std.err"
-		// },
-		// "StdOutput" : {
-		// mandatory : false,
-		// object : null,
-		// value : "std.out"
-		// },
-		// "Parameters" : {
-		// mandatory : false,
-		// object : null,
-		// value : "0"
-		// },
-		// "ParameterStart" : {
-		// mandatory : false,
-		// object : null,
-		// value : "0"
-		// },
-		// "ParameterStep" : {
-		// mandatory : false,
-		// object : null,
-		// value : "1"
-		// }
-		};
+		me.textualFields = {};
 
 		me.btnAddParameters = new Ext.Button({
 
 			text : 'Add Parameters',
 			iconCls : "jl-plus-icon",
-			handler : function() {
-
-			},
 			scope : me,
 			menu : [],
 			tooltip : 'Click to add more parameters to the JDL'
@@ -204,7 +109,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 							var oWarn = Ext.MessageBox.show({
 								title : 'Success',
-								msg : 'Your Job ID is ' + action.result.result,
+								msg : 'Your Job ID is ' + action.result.result.join(", "),
 								buttons : Ext.MessageBox.OKYES,
 								buttonText : {
 									ok : "OK",
@@ -264,7 +169,37 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			margin : 1,
 			iconCls : "jl-reset-icon",
 			handler : function() {
+				
+				//first go through all optional fields and see if they are checked, remove and unchecked
+				for ( var i = 0; i < me.btnAddParameters.menu.items.length; i++) {
 
+					var oItem = me.btnAddParameters.menu.items.getAt(i);
+
+					if (oItem.checked) {
+						oItem.setChecked(false);
+						me.__destroyJdlField(oItem.text);
+					}
+
+				}
+				
+				
+				//go through the text fields and set the default values of the mandatory fields
+				for(var sKey in me.textualFields){
+					
+					if(me.textualFields[sKey].mandatory){
+						
+						me.textualFields[sKey].object.setValue(me.textualFields[sKey].value);
+						
+					}
+					
+				}
+				
+				//second remove all items from input sandbox container
+				me.fsetInputSandboxSection.removeAll();
+				me.oprAddNewFileField();
+				me.oprAddNewLfnTextField();
+				me.proxyCheckerFunction();
+				
 			},
 			scope : me
 
@@ -301,6 +236,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 		});
 
 		me.oprAddNewFileField();
+		me.oprAddNewLfnTextField();
 
 		me.add([ me.mainFormPanel ]);
 
@@ -322,6 +258,10 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 					me.textualFields[sKey].object.setValue(me.predefinedSets[sPredefinedSet][sKey]);
 
+				}else{
+					
+					me.__createJdlField(sKey,me.predefinedSets[sPredefinedSet][sKey],true);
+					
 				}
 			}
 
@@ -351,13 +291,23 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 					var iLength = oComp.moduleObject.fsetInputSandboxSection.items.getCount();
 					var bAddFile = true;
+					var iIndex = 0;
 
 					for ( var i = 0; i < iLength; i++) {
 						var oItem = oComp.moduleObject.fsetInputSandboxSection.getComponent(i);
-						if (!oItem.getValue()) {
-							var bAddFile = false;
+						
+						if(oItem.self.getName()!="Ext.form.field.Text"){
+							
+							if (!oItem.getValue()) {
+								bAddFile = false;
+							}
+							
+							iIndex++;
+							
 						}
+						
 					}
+					
 					if (bAddFile) {
 
 						oComp.moduleObject.oprAddNewFileField();
@@ -373,10 +323,13 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 					for ( var i = 0; i < iLength; i++) {
 						var oItem = oComp.moduleObject.fsetInputSandboxSection.getComponent(i);
-						var iFileSize = oComp.moduleObject.getFileSize(oItem.fileInputEl.dom);
-
-						if (iFileSize >= 0) {
-							iSize = iSize + iFileSize;
+						
+						if(oItem.self.getName()!="Ext.form.field.Text"){
+							var iFileSize = oComp.moduleObject.getFileSize(oItem.fileInputEl.dom);
+	
+							if (iFileSize >= 0) {
+								iSize = iSize + iFileSize;
+							}
 						}
 					}
 
@@ -388,8 +341,65 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 			}
 		});
+		
+		var iLength = me.fsetInputSandboxSection.items.getCount();
+		var iWhereInsert = 0;
 
-		me.fsetInputSandboxSection.add(oFileField);
+		for ( var i = 0; i < iLength; i++) {
+			var oItem = me.fsetInputSandboxSection.getComponent(i);
+			if(oItem.self.getName()=="Ext.form.field.Text"){
+				
+				break;
+				
+			}else{
+				
+				iWhereInsert++;
+				
+			}
+			
+		}
+		
+		me.fsetInputSandboxSection.insert(iWhereInsert,oFileField);
+
+	},
+	
+	oprAddNewLfnTextField : function() {
+
+		var me = this;
+
+		var sLfnTextFieldName = "lfnField" + me.fsetInputSandboxSection.items.getCount();
+
+		var oLfnTextField = new Ext.create('Ext.form.field.Text', {
+			fieldLabel : "LFN",
+			anchor : '100%',
+			labelAlign : 'left',
+			labelWidth: 30,
+			name : sLfnTextFieldName,
+			enableKeyEvents : true,
+			listeners : {
+
+				keypress : function(oTextField, e, eOpts) {
+					
+					if (e.getCharCode() == 13) {
+						
+						if(oTextField.getValue()!=""){
+							
+							var oItem = me.oprAddNewLfnTextField();
+							oItem.focus();
+							
+						}
+						
+					}
+
+				}
+
+			}
+
+		});
+
+		me.fsetInputSandboxSection.add(oLfnTextField);
+		
+		return oLfnTextField;
 
 	},
 
@@ -659,19 +669,49 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 	},
 
-	__createJdlField : function(sFieldName) {
+	__createJdlField : function(sFieldName, sValue, bSetCheckbox) {
 
 		var me = this;
+
+		var sCalValue = "";
+
+		if (sValue) {
+
+			sCalValue = sValue;
+
+		} else {
+
+			sCalValue = me.textualFields[sFieldName].value;
+
+		}
+
+		if (!bSetCheckbox)
+			bSetCheckbox = false;
 
 		me.textualFields[sFieldName].object = new Ext.create('Ext.form.field.Text', {
 			fieldLabel : sFieldName,
 			anchor : '100%',
 			labelAlign : 'left',
-			value : me.textualFields[sFieldName].value,
+			value : sCalValue,
 			name : sFieldName
 		});
 
 		me.fsetJdlSection.add(me.textualFields[sFieldName].object);
+
+		if (bSetCheckbox) {
+
+			for ( var i = 0; i < me.btnAddParameters.menu.items.length; i++) {
+
+				var oItem = me.btnAddParameters.menu.items.getAt(i);
+
+				if (oItem.text == sFieldName) {
+					oItem.setChecked(true);
+					break;
+				}
+
+			}
+
+		}
 
 	},
 
@@ -681,6 +721,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 		me.fsetJdlSection.remove(me.textualFields[sFieldName].object);
 		Ext.destroy(me.textualFields[sFieldName].object);
+		me.textualFields[sFieldName].object = null;
 
 	}
 
