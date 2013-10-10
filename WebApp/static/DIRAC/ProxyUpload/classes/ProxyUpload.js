@@ -49,47 +49,8 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 			iconCls : "pu-upload-icon",
 			handler : function() {
 
-				var sFileName = me.uploadField.getValue();
-				var sPassword = me.passwordField.getValue();
+				me.__oprUploadFile();
 
-				if ((sFileName != "") && (sPassword != "")) {
-
-					if (sFileName.substr(-4) != '.p12') {
-						GLOBAL.APP.CF.alert('You have to choose the *.p12 file with you credentials', "warning");
-						return;
-					}
-
-					me.getContainer().body.mask("Wait ...");
-
-					me.mainFormPanel.submit({
-
-						url : GLOBAL.BASE_URL + 'ProxyUpload/proxyUpload',
-						success : function(form, action) {
-							me.getContainer().body.unmask();
-							
-							if (action.result.success == "false") {
-
-								GLOBAL.APP.CF.alert(action.result.error,"error");
-
-							} else {
-								var resultText = action.result.result;
-								resultText = resultText.replace(new RegExp("\n", 'g'), "<br/>");
-								GLOBAL.APP.CF.alert(resultText, "info");
-
-							}
-
-							me.passwordField.setValue("");
-						},
-						failure : function(form, action) {
-							me.uploadField.reset();
-							me.passwordField.setValue("");
-							me.getContainer().body.unmask();
-						}
-					});
-
-				} else {
-					GLOBAL.APP.CF.alert("Both fields are mandatory !", "warning");
-				}
 			},
 			scope : me
 
@@ -128,7 +89,21 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 			inputType : "password",
 			anchor : '100%',
 			labelAlign : 'left',
-			name : "pass_p12"
+			name : "pass_p12",
+			enableKeyEvents : true,
+			listeners : {
+
+				keypress : function(oTextField, e, eOpts) {
+
+					if (e.getCharCode() == 13) {
+
+						me.__oprUploadFile();
+
+					}
+
+				}
+
+			}
 		});
 
 		me.mainFormPanel = new Ext.create('Ext.form.Panel', {
@@ -152,6 +127,54 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 		});
 
 		me.add([ me.mainFormPanel ]);
+
+	},
+
+	__oprUploadFile : function() {
+
+		var me = this;
+
+		var sFileName = me.uploadField.getValue();
+		var sPassword = me.passwordField.getValue();
+
+		if ((sFileName != "") && (sPassword != "")) {
+
+			if (sFileName.substr(-4) != '.p12') {
+				GLOBAL.APP.CF.alert('You have to choose the *.p12 file with you credentials', "warning");
+				return;
+			}
+
+			me.getContainer().body.mask("Wait ...");
+
+			me.mainFormPanel.submit({
+
+				url : GLOBAL.BASE_URL + 'ProxyUpload/proxyUpload',
+				success : function(form, action) {
+					me.getContainer().body.unmask();
+
+					if (action.result.success == "false") {
+
+						GLOBAL.APP.CF.alert(action.result.error, "error");
+
+					} else {
+						var resultText = action.result.result;
+						resultText = resultText.replace(new RegExp("\n", 'g'), "<br/>");
+						GLOBAL.APP.CF.alert(resultText, "info");
+
+					}
+
+					me.passwordField.setValue("");
+				},
+				failure : function(form, action) {
+					me.uploadField.reset();
+					me.passwordField.setValue("");
+					me.getContainer().body.unmask();
+				}
+			});
+
+		} else {
+			GLOBAL.APP.CF.alert("Both fields are mandatory !", "warning");
+		}
 
 	}
 

@@ -28,13 +28,13 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
     res = False
     if params["op"] == "init":
-      res = self.__getRemoteConfiguration( "init" )
+      res = self.__getRemoteConfiguration("init")
     elif params["op"] == "getSubnodes":
       res = self.__getSubnodes(params["node"], params["nodePath"])
     elif params["op"] == "showConfigurationAsText":
       res = self.__showConfigurationAsText()
     elif params["op"] == "resetConfiguration":
-      res = self.__getRemoteConfiguration( "resetConfiguration" )
+      res = self.__getRemoteConfiguration("resetConfiguration")
     elif params["op"] == "getBulkExpandedNodeData":
       res = self.__getBulkExpandedNodeData(params["nodes"])
     elif params["op"] == "setOptionValue":
@@ -59,7 +59,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       res = self.__showCurrentDiff()
 
     if res:
-      self.write_message( res )
+      self.write_message(res)
 
   def __getRemoteConfiguration(self, funcName):
     rpcClient = RPCClient(gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
@@ -135,7 +135,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       return False
 
   def __showConfigurationAsText(self):
-    #time.sleep(10)
+    # time.sleep(10)
     return {"success":1, "op":"showConfigurationAsText", "text":self.__configData[ 'strCfgData' ]}
 
   def __getBulkExpandedNodeData(self, nodes):
@@ -238,6 +238,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     try:
       parentPath = str(params[ 'path' ]).strip()
       sectionName = str(params[ 'name' ]).strip()
+      configText = str(params[ 'config' ]).strip()
     except Exception, e:
       return {"success":0, "op":"createSection", "message":"Can't decode parameter: %s" % str(e)}
     try:
@@ -247,13 +248,24 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return {"success":0, "op":"createSection", "message":"Put any name for the section!"}
       sectionPath = "%s/%s" % (parentPath, sectionName)
       gLogger.info("Creating section", "%s" % sectionPath)
+      
       if self.__configData[ 'cfgData' ].createSection(sectionPath):
         nD = { 'text' : sectionName, 'csName' : sectionName, 'csComment' : self.__configData[ 'cfgData' ].getComment(sectionPath) }
         htmlC = self.__htmlComment(nD[ 'csComment' ])
         if htmlC:
           qtipDict = { 'text' : htmlC }
           nD[ 'qtipCfg' ] = qtipDict
-        return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD}
+#       If config Text is provided then a section is created out of that text    
+        if configText != "":
+          cfgData = self.__configData[ 'cfgData' ].getCFG()
+          newCFG = CFG()
+          newCFG.loadFromBuffer(configText)
+          self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath,newCFG)
+#           newCreatedSection = cfgData.getRecursive(sectionPath)["value"]
+#           newCreatedSection.loadFromBuffer(configText)
+          return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD, "sectionFromConfig": 1}
+        else:
+          return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD, "sectionFromConfig": 0}
       else:
         return {"success":0, "op":"createSection", "message":"Section can't be created. It already exists?"}
     except Exception, e:

@@ -374,6 +374,16 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 						});
 
 					}
+				},
+				collapse : function(oNode, eOpts) {
+
+					// remove the path from the
+					var oNodePath = me.__getNodePath(oNode);
+					oNode.removeAll();
+					oNode.appendChild({});
+					me.__oprUnsetPathAsExpanded(oNodePath);
+					console.log(me.expansionState)
+
 				}
 			}
 		});
@@ -722,6 +732,40 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		me.valuePanel.setTitle("[No node selected]");
 
 	},
+
+	__oprUnsetPathAsExpanded : function(sPath) {
+
+		var me = this;
+		var oParts = sPath.split("/");
+
+		// The first element is always empty
+		var oTemp = me.expansionState;
+		var oStartIndex = 0;
+
+		if (sPath == "/")
+			oStartIndex = 1;
+
+		for ( var i = oStartIndex; i < oParts.length; i++) {
+
+			if (oParts[i] in oTemp) {
+
+				if (i == oParts.length - 1) {
+
+					console.log(" == "+oParts[i])
+					
+					delete oTemp[oParts[i]];
+					
+				}else{
+					
+					oTemp = oTemp[oParts[i]];
+					
+				}
+
+			}
+		}
+
+	},
+
 	__oprPathAsExpanded : function(sPath, bInsertIntoStructure) {
 
 		var me = this;
@@ -1251,6 +1295,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 				op : "createSection",
 				path : oModule.__getNodePath(oNode),
 				name : oModule.txtElementName.getValue(),
+				config : oModule.txtElementConfig.getValue(),
 				parentNodeId : oNode.getId()
 			});
 
@@ -1266,9 +1311,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	__cbMenuCreateSubsection : function(oResponse) {
 
 		var me = this;
+
 		var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
 
 		var csData = oResponse.node;
+
 		var newCfg = {
 			text : csData.csName,
 			csName : csData.csName,

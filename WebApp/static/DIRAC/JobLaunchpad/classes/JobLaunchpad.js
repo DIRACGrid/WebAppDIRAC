@@ -169,8 +169,9 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			margin : 1,
 			iconCls : "jl-reset-icon",
 			handler : function() {
-				
-				//first go through all optional fields and see if they are checked, remove and unchecked
+
+				// first go through all optional fields and see if they are checked,
+				// remove and unchecked
 				for ( var i = 0; i < me.btnAddParameters.menu.items.length; i++) {
 
 					var oItem = me.btnAddParameters.menu.items.getAt(i);
@@ -181,25 +182,25 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 					}
 
 				}
-				
-				
-				//go through the text fields and set the default values of the mandatory fields
-				for(var sKey in me.textualFields){
-					
-					if(me.textualFields[sKey].mandatory){
-						
+
+				// go through the text fields and set the default values of the
+				// mandatory fields
+				for ( var sKey in me.textualFields) {
+
+					if (me.textualFields[sKey].mandatory) {
+
 						me.textualFields[sKey].object.setValue(me.textualFields[sKey].value);
-						
+
 					}
-					
+
 				}
-				
-				//second remove all items from input sandbox container
+
+				// second remove all items from input sandbox container
 				me.fsetInputSandboxSection.removeAll();
 				me.oprAddNewFileField();
 				me.oprAddNewLfnTextField();
 				me.proxyCheckerFunction();
-				
+
 			},
 			scope : me
 
@@ -209,9 +210,31 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			dock : 'bottom',
 			layout : {
 				pack : 'center'
-			},
-			items : [ me.btnSubmit, me.btnReset ]
+			}
 		});
+
+		if ("properties" in GLOBAL.USER_CREDENTIALS) {
+			if (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "NormalUser") != -1) {
+
+				oBottomToolbar.add([ me.btnSubmit, me.btnReset ]);
+
+			} else {
+
+				oBottomToolbar.add([ {
+					xtype : 'tbtext',
+					text : "<b style='color:red'>The selected group is not allowed to submit new jobs !</b>"
+				} ]);
+
+			}
+
+		} else {
+
+			oBottomToolbar.add([ {
+				xtype : 'tbtext',
+				text : "<b style='color:red'>The selected group is not allowed to submit new jobs !</b>"
+			} ]);
+
+		}
 
 		me.mainFormPanel = new Ext.create('Ext.form.Panel', {
 			floatable : false,
@@ -253,16 +276,45 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 		for ( var sKey in me.predefinedSets[sPredefinedSet]) {
 
-			if (sKey in me.textualFields) {
-				if (me.textualFields[sKey].object != null) {
+			if (sKey != "InputSandbox") {
 
-					me.textualFields[sKey].object.setValue(me.predefinedSets[sPredefinedSet][sKey]);
+				if (sKey in me.textualFields) {
+					if (me.textualFields[sKey].object != null) {
 
-				}else{
-					
-					me.__createJdlField(sKey,me.predefinedSets[sPredefinedSet][sKey],true);
-					
+						me.textualFields[sKey].object.setValue(me.predefinedSets[sPredefinedSet][sKey]);
+
+					} else {
+
+						me.__createJdlField(sKey, me.predefinedSets[sPredefinedSet][sKey], true);
+
+					}
 				}
+
+			} else {
+
+				// remove all text fields and create new ones from the value to be
+				// applied
+
+				for ( var i = me.fsetInputSandboxSection.items.length - 1; i >= 0; i--) {
+
+					var oItem = me.fsetInputSandboxSection.getComponent(i);
+
+					if (oItem.self.getName() == 'Ext.form.field.Text') {
+
+						me.fsetInputSandboxSection.remove(oItem);
+						Ext.destroy(oItem);
+
+					}
+
+				}
+
+				// now create new ones
+				var oLfns = me.predefinedSets[sPredefinedSet][sKey].split(",");
+
+				for ( var i = 0; i < oLfns.length; i++) {
+					me.oprAddNewLfnTextField(oLfns[i].substr(4));
+				}
+
 			}
 
 		}
@@ -295,19 +347,19 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 					for ( var i = 0; i < iLength; i++) {
 						var oItem = oComp.moduleObject.fsetInputSandboxSection.getComponent(i);
-						
-						if(oItem.self.getName()!="Ext.form.field.Text"){
-							
+
+						if (oItem.self.getName() != "Ext.form.field.Text") {
+
 							if (!oItem.getValue()) {
 								bAddFile = false;
 							}
-							
+
 							iIndex++;
-							
+
 						}
-						
+
 					}
-					
+
 					if (bAddFile) {
 
 						oComp.moduleObject.oprAddNewFileField();
@@ -323,10 +375,10 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 					for ( var i = 0; i < iLength; i++) {
 						var oItem = oComp.moduleObject.fsetInputSandboxSection.getComponent(i);
-						
-						if(oItem.self.getName()!="Ext.form.field.Text"){
+
+						if (oItem.self.getName() != "Ext.form.field.Text") {
 							var iFileSize = oComp.moduleObject.getFileSize(oItem.fileInputEl.dom);
-	
+
 							if (iFileSize >= 0) {
 								iSize = iSize + iFileSize;
 							}
@@ -341,29 +393,29 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 			}
 		});
-		
+
 		var iLength = me.fsetInputSandboxSection.items.getCount();
 		var iWhereInsert = 0;
 
 		for ( var i = 0; i < iLength; i++) {
 			var oItem = me.fsetInputSandboxSection.getComponent(i);
-			if(oItem.self.getName()=="Ext.form.field.Text"){
-				
+			if (oItem.self.getName() == "Ext.form.field.Text") {
+
 				break;
-				
-			}else{
-				
+
+			} else {
+
 				iWhereInsert++;
-				
+
 			}
-			
+
 		}
-		
-		me.fsetInputSandboxSection.insert(iWhereInsert,oFileField);
+
+		me.fsetInputSandboxSection.insert(iWhereInsert, oFileField);
 
 	},
-	
-	oprAddNewLfnTextField : function() {
+
+	oprAddNewLfnTextField : function(sValue) {
 
 		var me = this;
 
@@ -373,22 +425,23 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			fieldLabel : "LFN",
 			anchor : '100%',
 			labelAlign : 'left',
-			labelWidth: 30,
+			labelWidth : 30,
 			name : sLfnTextFieldName,
+			value : ((sValue) ? sValue : ""),
 			enableKeyEvents : true,
 			listeners : {
 
 				keypress : function(oTextField, e, eOpts) {
-					
+
 					if (e.getCharCode() == 13) {
-						
-						if(oTextField.getValue()!=""){
-							
+
+						if (oTextField.getValue() != "") {
+
 							var oItem = me.oprAddNewLfnTextField();
 							oItem.focus();
-							
+
 						}
-						
+
 					}
 
 				}
@@ -398,7 +451,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 		});
 
 		me.fsetInputSandboxSection.add(oLfnTextField);
-		
+
 		return oLfnTextField;
 
 	},

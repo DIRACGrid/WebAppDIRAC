@@ -582,6 +582,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 				}
 			}
 		});
+		
+		me.treeFileCatalogStore.getRootNode().expand();
 
 		me.fileCatalogTree = new Ext.create('Ext.tree.Panel', {
 			region : 'north',
