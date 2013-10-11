@@ -4,6 +4,7 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
+from WebAppDIRAC.WebApp.handler.Palette import Palette
 import json
 import ast
 
@@ -436,7 +437,9 @@ class JobMonitorHandler(WebHandler):
   @asyncGen  
   def web_getStatisticsData(self):
     req = self.__request()
-    print req
+    
+    paletteColor = Palette()
+    
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
     
     selector = self.request.arguments["statsField"][0]
@@ -449,7 +452,7 @@ class JobMonitorHandler(WebHandler):
       selector = "JobGroup"
     
     result = yield self.threadTask(RPC.getJobStats, selector, req)
-    print result
+    
     if result["OK"]:
       callback = []
       result = dict(result["Value"])
@@ -462,7 +465,7 @@ class JobMonitorHandler(WebHandler):
           for i in tier1:
             if result.has_key(i):
               countryCode = i.rsplit(".", 1)[1]
-              callback.append({"key":i, "value":result[i], "code":countryCode})
+              callback.append({"key":i, "value":result[i], "code":countryCode, "color": paletteColor.getColor(countryCode) })
       for key in keylist:
         if selector == "Site" and tier1:
           if key not in tier1:
@@ -470,15 +473,15 @@ class JobMonitorHandler(WebHandler):
               countryCode = key.rsplit(".", 1)[1]
             except:
               countryCode = "Unknown"
-            callback.append({"key":key, "value":result[key], "code":countryCode})
+            callback.append({"key":key, "value":result[key], "code":countryCode, "color": paletteColor.getColor(key) })
         elif selector == "Site" and not tier1:
           try:
             countryCode = key.rsplit(".", 1)[1]
           except:
             countryCode = "Unknown"
-          callback.append({"key":key, "value":result[key], "code":countryCode})
+          callback.append({"key":key, "value":result[key], "code":countryCode, "color": paletteColor.getColor(key) })
         else:
-          callback.append({"key":key, "value":result[key]})
+          callback.append({"key":key, "value":result[key], "code":"", "color": paletteColor.getColor(key) })
       callback = {"success":"true", "result":callback}
     else:
       callback = {"success":"false", "error":result["Message"]}
@@ -487,7 +490,7 @@ class JobMonitorHandler(WebHandler):
   @asyncGen  
   def web_getSandbox(self):
     if 'jobID' not in self.request.arguments:
-      self.finish("Maybe you forgot the jobID ?");
+      self.finish({"success":"false", "error":"Maybe you forgot the jobID ?"});
       return
     jobID = int(self.request.arguments['jobID'][0])
     sbType = 'Output'
@@ -504,7 +507,11 @@ class JobMonitorHandler(WebHandler):
     result = yield self.threadTask(client.downloadSandboxForJob, jobID, sbType, inMemory=True)
     
     if not result['OK']:
-      self.finish("Error: %s" % result['Message'])
+      self.finish({"success":"false", "error":"Error: %s" % result['Message']})
+      return
+    
+    if "check" in self.request.arguments:
+      self.finish({"success":"true"})
       return
     
     data = result['Value']

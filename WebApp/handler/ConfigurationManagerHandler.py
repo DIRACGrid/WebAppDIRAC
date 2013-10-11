@@ -260,7 +260,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
           cfgData = self.__configData[ 'cfgData' ].getCFG()
           newCFG = CFG()
           newCFG.loadFromBuffer(configText)
-          self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath,newCFG)
+          self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
 #           newCreatedSection = cfgData.getRecursive(sectionPath)["value"]
 #           newCreatedSection.loadFromBuffer(configText)
           return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD, "sectionFromConfig": 1}
@@ -400,35 +400,47 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
   def __generateHTMLDiff(self, diffGen):
     diffList = []
+    linesDiffList = []
     oldChange = False
+    lineNumber = 0
     for diffLine in diffGen:
       if diffLine[0] == "-":
         diffList.append(("del", diffLine[1:], ""))
+        linesDiffList.append(["del", lineNumber])
+        lineNumber = lineNumber + 1
       elif diffLine[0] == "+":
         if oldChange:
           diffList[-1] = ("mod", diffList[-1][1], diffLine[1:])
+          linesDiffList[-1] = ["mod", lineNumber]
           oldChange = False
         else:
           diffList.append(("add", "", diffLine[1:]))
+          linesDiffList.append(["add", lineNumber])
+          lineNumber = lineNumber + 1
       elif diffLine[0] == "?":
         if diffList[-1][0] == 'del':
           oldChange = True
         elif diffList[-1][0] == "mod":
           diffList[-1] = ("conflict", diffList[-1][1], diffList[-1][2])
+          linesDiffList[-1] = ["conflict", lineNumber]
         elif diffList[-1][0] == "add":
           diffList[-2] = ("mod", diffList[-2][1], diffList[-1][2])
+          linesDiffList[-2] = ["mod", lineNumber]
           del(diffList[-1])
+          lineNumber = lineNumber - 1
       else:
         diffList.append(("", diffLine[1:], diffLine[1:]))
-    return diffList
+      
+    return {"diff":diffList, "lines": linesDiffList, "totalLines": lineNumber}
 
   def __showCurrentDiff(self):
     if not self.__authorizeAction():
       return {"success":0, "op":"showCurrentDiff", "message":"You are not authorized to commit configurations!! Bad boy!"}
     diffGen = self.__configData[ 'cfgData' ].showCurrentDiff()
-    return self.write_message(json.dumps({"success":1, "op":"showCurrentDiff", "html":self.render_string("ConfigurationManager/diffConfig.tpl",
+    processedData = self.__generateHTMLDiff(diffGen)
+    return self.write_message(json.dumps({"success":1, "op":"showCurrentDiff", "lines":processedData["lines"], "totalLines": processedData["totalLines"], "html":self.render_string("ConfigurationManager/diffConfig.tpl",
                                                                                                          titles=("Server's version", "User's current version"),
-                                                                                                         diffList=self.__generateHTMLDiff(diffGen))}))
+                                                                                                         diffList=processedData["diff"])}))
 
 
 

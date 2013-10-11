@@ -408,6 +408,20 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				} else
 					return true;
 
+			},
+			enableKeyEvents : true,
+			listeners : {
+
+				keypress : function(oTextField, e, eOpts) {
+
+					if (e.getCharCode() == 13) {
+
+						me.oprLoadGridData();
+
+					}
+
+				}
+
 			}
 		});
 
@@ -651,23 +665,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						me.dataStore.sort();
 						me.dataStore.remoteSort = true;
 
-						// setting the data into the statistics grid
-						if ((me.statisticsGridComboMain.getValue() == "Selected Statistics") && (me.statisticsGridCombo.getValue() == "Status")) {
-							var oExtraData = oStore.proxy.reader.rawData["extra"];
-
-							me.statisticsSelectionGrid.store.removeAll();
-
-							for ( var key in oExtraData)
-								me.statisticsSelectionGrid.store.add({
-									"key" : key,
-									"value" : oExtraData[key],
-									"code" : ""
-								});
-
-							me.createPlotFromGridData("Selected Statistics :: Status");
-
-						}
-
 					}
 
 				},
@@ -705,7 +702,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "JobAdministrator") != -1)) {
 			me.pagingToolbar.btnReset = new Ext.Button({
 				text : '',
-				iconCls : "jm-reset-button-icon",
+				iconCls : "jm-red-reset-icon",
 				handler : function() {
 
 					var me = this;
@@ -1389,10 +1386,23 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			tooltip : "Save pie chart as PNG image"
 		});
 
+		me.btnPlotSettings = new Ext.Button({
+
+			margin : 0,
+			iconCls : "jm-pie-icon",
+			handler : function() {
+
+				me.formPlotSettings();
+
+			},
+			scope : me,
+			tooltip : "Plot settings"
+		});
+
 		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
 			region : 'west',
 			store : new Ext.data.ArrayStore({
-				fields : [ "key", "value", "code" ],
+				fields : [ "key", "value", "code", "color" ],
 				data : []
 			}),
 			width : 300,
@@ -1404,7 +1414,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
-				items : [ oButtonGoToGrid, me.btnShowPlotAsPng ]
+				items : [ oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings ]
 			}), new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
 				items : [ me.statisticsGridComboMain ]
@@ -1505,6 +1515,77 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 	},
 
+	formPlotSettings : function() {
+
+		var me = this;
+
+		if (!"plotSettings" in me)
+			me.plotSettings = {};
+
+		me.plotSettings.txtPlotTitle = Ext.create('Ext.form.field.Text', {
+
+			fieldLabel : "Title",
+			labelAlign : 'left',
+			allowBlank : false,
+			margin : 10,
+			anchor : '100%',
+			value : me.plotSettings.backupSettings.title
+
+		});
+
+		me.plotSettings.cmbLegendPosition = new Ext.create('Ext.form.field.ComboBox', {
+			labelAlign : 'left',
+			fieldLabel : 'Legend position',
+			store : new Ext.data.SimpleStore({
+				fields : [ 'value', 'text' ],
+				data : [ [ "right", "right" ], [ "left", "left" ], [ "top", "top" ], [ "bottom", "bottom" ], [ "none", "none" ] ]
+			}),
+			displayField : "text",
+			valueField : "value",
+			anchor : "100%",
+			margin : 10,
+			value : me.plotSettings.backupSettings.legend
+		});
+
+		// button for saving the state
+		me.plotSettings.btnApplySettings = new Ext.Button({
+
+			text : 'Apply',
+			margin : 3,
+			iconCls : "toolbar-other-save",
+			handler : function() {
+				var me = this;
+				me.createPlotFromGridData(me.plotSettings.txtPlotTitle.getValue(), me.plotSettings.cmbLegendPosition.getValue());
+			},
+			scope : me
+
+		});
+
+		var oToolbar = new Ext.toolbar.Toolbar({
+			border : false
+		});
+
+		oToolbar.add([ me.plotSettings.btnApplySettings ]);
+
+		var oPanel = new Ext.create('Ext.panel.Panel', {
+			autoHeight : true,
+			border : false,
+			layout : "anchor",
+			items : [ oToolbar, me.plotSettings.txtPlotTitle, me.plotSettings.cmbLegendPosition, me.txtElementConfig ]
+		});
+
+		// initializing window showing the saving form
+		Ext.create('widget.window', {
+			height : 300,
+			width : 500,
+			title : "Plot Settings",
+			layout : 'fit',
+			modal : true,
+			items : oPanel
+		}).show();
+
+	},
+
 	funcOnChangeEitherCombo : function() {
 
 		var me = this;
@@ -1595,28 +1676,50 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var me = this;
 
-		if (!sLegendPosition)
-			sLegendPosition = "right";
+		if (!sLegendPosition) {
+			if (("plotSettings" in me) && ("backupSettings" in me.plotSettings)) {
+				sLegendPosition = me.plotSettings.backupSettings.legend;
+			} else {
+				sLegendPosition = "right";
+			}
+		}
 
 		var oStore = me.statisticsSelectionGrid.getStore();
 		var oData = [ [ "Key", "Value" ] ];
+		var oColors = [];
 
 		for ( var i = 0; i < oStore.getCount(); i++) {
 
 			oData.push([ oStore.getAt(i).get("key"), oStore.getAt(i).get("value") ]);
+			oColors.push(oStore.getAt(i).get("color"));
 
 		}
 
 		var data = google.visualization.arrayToDataTable(oData);
 
+		var oNow = new Date();
+
 		var options = {
-			title : sTitle,
+			title : sTitle + " (" + oNow.toString() + ")",
 			legend : {
 				position : sLegendPosition
-			}
+			},
+			colors: oColors
 		};
 
-		var iHeight = me.statisticsPlotPanel.getHeight() - 100;
+		
+		console.log(oColors);
+		console.log(options);
+		
+		if (!("plotSettings" in me))
+			me.plotSettings = {};
+
+		me.plotSettings.backupSettings = {
+			"title" : sTitle,
+			"legend" : sLegendPosition
+		};
+
+		var iHeight = me.statisticsPlotPanel.getHeight() - 20;
 		document.getElementById(me.id + "-statistics-plot").style.height = "" + iHeight + "px";
 
 		var iWidth = me.statisticsPlotPanel.getWidth() - 20;
@@ -1624,6 +1727,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var chart = new google.visualization.PieChart(document.getElementById(me.id + "-statistics-plot"));
 		chart.draw(data, options);
+		
 
 	},
 
@@ -2094,9 +2198,38 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	},
 
 	__getSandbox : function(sId, sType) {
+		
+		var me = this;
+		
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + 'JobMonitor/getSandbox',
+			params : {
+				jobID : sId,
+				sandbox : sType,
+				check : 1
+			},
+			scope : me,
+			success : function(response) {
 
-		var sUrl = GLOBAL.BASE_URL + 'JobMonitor/getSandbox?jobID=' + sId + '&sandbox=' + sType;
-		window.open(sUrl, 'Input Sandbox file', 'width=400,height=200');
+				var me = this;
+				var response = Ext.JSON.decode(response.responseText);
+
+				if (response["success"] == "true") {
+
+					var sUrl = GLOBAL.BASE_URL + 'JobMonitor/getSandbox?jobID=' + sId + '&sandbox=' + sType;
+					window.open(sUrl, 'Input Sandbox file', 'width=400,height=200');
+					
+				} else {
+
+					GLOBAL.APP.CF.alert(response["error"], "error");
+
+				}
+
+			},
+			failure : function(response) {
+				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+			}
+		});
 
 	}
 

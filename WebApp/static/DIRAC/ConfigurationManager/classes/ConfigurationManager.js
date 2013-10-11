@@ -221,7 +221,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 					me.__showConfigTextInWindow(oResponse.text);
 					break;
 				case "showCurrentDiff":
-					me.__showConfigDiffInWindow(oResponse.html);
+					me.__showConfigDiffInWindow(oResponse);
 					me.btnCommitConfiguration.show();
 					me.btnViewConfigDifference.show();
 					break;
@@ -751,14 +751,14 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 				if (i == oParts.length - 1) {
 
-					console.log(" == "+oParts[i])
-					
+					console.log(" == " + oParts[i])
+
 					delete oTemp[oParts[i]];
-					
-				}else{
-					
+
+				} else {
+
 					oTemp = oTemp[oParts[i]];
-					
+
 				}
 
 			}
@@ -888,20 +888,81 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	},
 
-	__showConfigDiffInWindow : function(sHtml) {
+	__showConfigDiffInWindow : function(oResponse) {
 
 		var me = this;
-		var oWindow = me.getContainer().oprGetChildWindow("Current Configuration Difference", false, 700, 500);
+
+		var iWinHeight = 500;
+
+		var oWindow = me.getContainer().oprGetChildWindow("Current Configuration Difference", false, 700, iWinHeight);
 		sHtml = sHtml.replace(new RegExp("&amp;nbsp;", 'g'), "&nbsp;");
-		var oPanel = new Ext.create('Ext.panel.Panel', {
-			html : sHtml,
+
+		var oCodePanel = new Ext.create('Ext.panel.Panel', {
+			region : "center",
+			html : oResponse.html,
 			layout : "fit",
 			autoScroll : true,
 			bodyPadding : 5
 		});
+
+		var oBlocksPanel = new Ext.create('Ext.panel.Panel', {
+			region : "east",
+			layout : "absolute",
+			bodyPadding : 5,
+			codePanel : oCodePanel,
+			width : 50
+		});
+
+		var oPanel = new Ext.create('Ext.panel.Panel', {
+			layout : "border",
+			autoScroll : true,
+			bodyPadding : 5,
+			items : [oCodePanel, oBlocksPanel]
+		});
+
 		oWindow.add(oPanel);
 		oWindow.show();
 		oWindow.maximize();
+
+		var delta_pos = 1.0 * (oWindow.height - 10 - oWindow.getHeader().height) / parseFloat(oResponse.totalLines);
+		var oElem = Ext.query("tr.cm-config-diff")[0];
+		var iHeight = oElem.height;
+
+		var oBlocksToAdd = [];
+
+		for ( var i = 0; i < oResponse.lines.length; i++) {
+
+			var sColor = "#ffffff";
+			
+			switch(oResponse.lines[i][0]){
+			
+			case "del": sColor = "#ff3300";
+				break;
+			case "mod": sColor = "#ffff00";
+				break;
+			case "add": sColor = "#009900";
+				break;
+			case "conflict": sColor = "#000000";
+				break;
+			
+			}
+			
+			oBlocksToAdd.push({
+				xtype : "panel",
+				header : false,
+				border : false,
+				bodyStyle : {
+					background: sColor;
+				},
+				height : 1 + ((delta_pos < 1.0) ? 1 : Math.ceil(delta_pos)),
+				x : 0,
+				y : Math.ceil(delta_pos * parseFloat(oResponse.lines[i][1])),
+				html: '&nbsp;'
+			});
+
+		}
+		
+		oBlocksPanel.add(oBlocksToAdd);
 
 	},
 
