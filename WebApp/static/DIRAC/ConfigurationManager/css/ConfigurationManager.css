@@ -68,5 +68,5 @@ table.cm-config-diff {
 
 .cm-config-diff tr.conflict {
 	background-image: none !important;
-	background-color: #FFA;
+	background-color: #EEEEEE;
 }

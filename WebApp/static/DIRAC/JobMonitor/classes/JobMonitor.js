@@ -1366,7 +1366,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
 
-				var iHeight = me.statisticsPlotPanel.getHeight() - 100;
+				var iHeight = me.statisticsPlotPanel.getHeight() - 20;
 
 				var iWidth = me.statisticsPlotPanel.getWidth() - 20;
 
@@ -1374,9 +1374,21 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				canvas.setAttribute('width', iWidth);
 				canvas.setAttribute('height', iHeight);
 
-				document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
+				//oContext.drawImage(oImage, 600, 450, 600, 450, 0, 0, 600, 450);
 
-				canvg(canvas, sSvgElement);
+				//document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
+				
+				canvg(canvas, sSvgElement, {ignoreClear: true});
+				
+				var oContext = canvas.getContext("2d");
+
+				var oImage = new Image();
+				oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_background_6.png';
+				
+				oContext.drawImage(oImage, 300, 250, 900, 650, iWidth*0.66, iHeight*0.66, iWidth/3, iHeight/3);
+								
+				document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
+				
 				var imgData = canvas.toDataURL("image/png");
 
 				window.location = imgData.replace("image/png", "image/octet-stream");
@@ -1476,7 +1488,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			layout : 'anchor',
 			header : false,
 			items : [ {
-				html : "<div id='" + me.id + "-statistics-plot' style='width:100%;'></div>",
+				html : "<div id='" + me.id + "-statistics-plot' class='jm-statistics-plot-background' style='width:100%;'></div>",
 				xtype : "box"
 			}, {
 				html : "<div id='" + me.id + "-statistics-plot-png' style='width:100%;'></div>",
@@ -1704,13 +1716,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			legend : {
 				position : sLegendPosition
 			},
-			colors: oColors
+			colors : oColors
+			//backgroundColor: "transparent"
 		};
 
-		
-		console.log(oColors);
-		console.log(options);
-		
 		if (!("plotSettings" in me))
 			me.plotSettings = {};
 
@@ -1727,7 +1736,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var chart = new google.visualization.PieChart(document.getElementById(me.id + "-statistics-plot"));
 		chart.draw(data, options);
-		
 
 	},
 
@@ -2198,9 +2206,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	},
 
 	__getSandbox : function(sId, sType) {
-		
+
 		var me = this;
-		
+
 		Ext.Ajax.request({
 			url : GLOBAL.BASE_URL + 'JobMonitor/getSandbox',
 			params : {
@@ -2218,7 +2226,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					var sUrl = GLOBAL.BASE_URL + 'JobMonitor/getSandbox?jobID=' + sId + '&sandbox=' + sType;
 					window.open(sUrl, 'Input Sandbox file', 'width=400,height=200');
-					
+
 				} else {
 
 					GLOBAL.APP.CF.alert(response["error"], "error");

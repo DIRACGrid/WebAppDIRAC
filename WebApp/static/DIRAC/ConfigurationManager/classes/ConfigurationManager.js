@@ -188,7 +188,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		socket.onmessage = function(e) {
 
 			var oResponse = JSON.parse(e.data);
-
+			console.log(oResponse);
 			if (parseInt(oResponse.success) == 0) {
 
 				GLOBAL.APP.CF.alert(oResponse.message, "error");
@@ -382,7 +382,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 					oNode.removeAll();
 					oNode.appendChild({});
 					me.__oprUnsetPathAsExpanded(oNodePath);
-					console.log(me.expansionState)
 
 				}
 			}
@@ -444,11 +443,17 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 				iconCls : "cm-to-browse-icon",
 				handler : function() {
+
 					me.__sendSocketMessage({
 						op : "showCurrentDiff"
 					});
 					me.btnCommitConfiguration.hide();
 					me.btnViewConfigDifference.hide();
+
+					/*
+					 * var oResponse = {}; me.__showConfigDiffInWindow(oResponse);
+					 */
+
 				},
 				scope : me,
 				hidden : true
@@ -751,8 +756,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 				if (i == oParts.length - 1) {
 
-					console.log(" == " + oParts[i])
-
 					delete oTemp[oParts[i]];
 
 				} else {
@@ -895,7 +898,44 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		var iWinHeight = 500;
 
 		var oWindow = me.getContainer().oprGetChildWindow("Current Configuration Difference", false, 700, iWinHeight);
-		sHtml = sHtml.replace(new RegExp("&amp;nbsp;", 'g'), "&nbsp;");
+
+		/*------------------------TEST------------------------*/
+		/*
+		 * var sTestHtml = ''; var oTestLines = [];
+		 * 
+		 * sTestHtml += '<table class="cm-config-diff">'; sTestHtml += '<tr>';
+		 * sTestHtml += "<th>Server's version</th>"; sTestHtml += "<th>User's
+		 * current version</th>"; sTestHtml += '</tr>';
+		 * 
+		 * oResponse.totalLines = 300;
+		 * 
+		 * for ( var i = 0; i < oResponse.totalLines; i++) {
+		 * 
+		 * var cClass = ""; var fRandom = Math.random();
+		 * 
+		 * if (fRandom < 0.5) cClass = ""; else if (fRandom < 0.6) cClass = "del";
+		 * else if (fRandom < 0.7) cClass = "conflict"; else if (fRandom < 0.8)
+		 * cClass = "add"; else if (fRandom <= 1.0) cClass = "mod";
+		 * 
+		 * if (cClass != "") oTestLines.push([ cClass, i ]);
+		 * 
+		 * var sRow = Math.random().toString(36).substring(7);
+		 * 
+		 * sTestHtml += '<tr ' + ((cClass != "") ? " id='diff-line-" + i + "' class='" + cClass + "'" : "") + '>';
+		 * sTestHtml += "<th>" + sRow + "</th>"; sTestHtml += "<th>" + sRow + "</th>";
+		 * sTestHtml += '</tr>';
+		 *  }
+		 * 
+		 * sTestHtml += '</table>';
+		 * 
+		 * oResponse.html = sTestHtml; oResponse.lines = oTestLines;
+		 */
+
+		/*------------------------ END TEST------------------------*/
+
+		oResponse.html = oResponse.html.replace(new RegExp("&amp;nbsp;", 'g'), "&nbsp;");
+
+		oResponse.html = oResponse.html.replace(new RegExp("id='", 'g'), "id='" + me.id + "-");
 
 		var oCodePanel = new Ext.create('Ext.panel.Panel', {
 			region : "center",
@@ -908,60 +948,86 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		var oBlocksPanel = new Ext.create('Ext.panel.Panel', {
 			region : "east",
 			layout : "absolute",
-			bodyPadding : 5,
 			codePanel : oCodePanel,
-			width : 50
+			width : 50,
+			totalLines: oResponse.totalLines,
+			listeners:{
+				
+				resize:function( oComp, width, height, oldWidth, oldHeight, eOpts ){
+						
+						var delta_pos = 1.0 * (height - 10) / parseFloat(oComp.totalLines);
+		
+						for(var i=0;i<oComp.items.length;i++){
+							
+							var oItem = oComp.getComponent(i);
+							
+							oItem.setPosition(0, Math.ceil(delta_pos * parseFloat(oItem.lineNumber)));
+							
+						}
+					
+				}
+				
+				
+			}
 		});
 
 		var oPanel = new Ext.create('Ext.panel.Panel', {
 			layout : "border",
 			autoScroll : true,
-			bodyPadding : 5,
-			items : [oCodePanel, oBlocksPanel]
+			bodyPadding : 0,
+			items : [ oCodePanel, oBlocksPanel ]
 		});
 
 		oWindow.add(oPanel);
 		oWindow.show();
 		oWindow.maximize();
+		
+		var delta_pos = 1.0 * (oBlocksPanel.getHeight() - 10) / parseFloat(oResponse.totalLines);
 
-		var delta_pos = 1.0 * (oWindow.height - 10 - oWindow.getHeader().height) / parseFloat(oResponse.totalLines);
-		var oElem = Ext.query("tr.cm-config-diff")[0];
-		var iHeight = oElem.height;
+		var oElem = Ext.query("table.cm-config-diff tr")[0];
+		var iHeight = oElem.offsetHeight;
 
 		var oBlocksToAdd = [];
 
 		for ( var i = 0; i < oResponse.lines.length; i++) {
 
 			var sColor = "#ffffff";
-			
-			switch(oResponse.lines[i][0]){
-			
-			case "del": sColor = "#ff3300";
+
+			switch (oResponse.lines[i][0]) {
+
+			case "del":
+				sColor = "#FAA";
 				break;
-			case "mod": sColor = "#ffff00";
+			case "mod":
+				sColor = "#FFA";
 				break;
-			case "add": sColor = "#009900";
+			case "add":
+				sColor = "#AFA";
 				break;
-			case "conflict": sColor = "#000000";
+			case "conflict":
+				sColor = "#EEEEEE";
 				break;
-			
+
 			}
-			
+
 			oBlocksToAdd.push({
 				xtype : "panel",
 				header : false,
 				border : false,
 				bodyStyle : {
-					background: sColor;
+					background : sColor
 				},
+				width:50,
+				lineNumber: oResponse.lines[i][1],
 				height : 1 + ((delta_pos < 1.0) ? 1 : Math.ceil(delta_pos)),
 				x : 0,
 				y : Math.ceil(delta_pos * parseFloat(oResponse.lines[i][1])),
-				html: '&nbsp;'
+				layout : "fit",
+				html : '<a href="#' + me.id + '-diff-line-' + oResponse.lines[i][1] + '" style="display:block;width:100%">&nbsp;</a>',
 			});
 
 		}
-		
+
 		oBlocksPanel.add(oBlocksToAdd);
 
 	},

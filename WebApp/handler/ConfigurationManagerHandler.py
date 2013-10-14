@@ -391,7 +391,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     return {"success":1, "op":"commitConfiguration"}
 
   def __authorizeAction(self):
-    data = self.SessionData()
+    data = self.getSessionData()
     isAuth = False
     if "properties" in data["user"]:
       if "CSAdministrator" in data["user"]["properties"]:
@@ -405,31 +405,32 @@ class ConfigurationManagerHandler(WebSocketHandler):
     lineNumber = 0
     for diffLine in diffGen:
       if diffLine[0] == "-":
-        diffList.append(("del", diffLine[1:], ""))
+        diffList.append(("del", diffLine[1:], "", lineNumber))
         linesDiffList.append(["del", lineNumber])
         lineNumber = lineNumber + 1
       elif diffLine[0] == "+":
         if oldChange:
-          diffList[-1] = ("mod", diffList[-1][1], diffLine[1:])
+          diffList[-1] = ("mod", diffList[-1][1], diffLine[1:], lineNumber)
           linesDiffList[-1] = ["mod", lineNumber]
           oldChange = False
         else:
-          diffList.append(("add", "", diffLine[1:]))
+          diffList.append(("add", "", diffLine[1:], lineNumber))
           linesDiffList.append(["add", lineNumber])
           lineNumber = lineNumber + 1
       elif diffLine[0] == "?":
         if diffList[-1][0] == 'del':
           oldChange = True
         elif diffList[-1][0] == "mod":
-          diffList[-1] = ("conflict", diffList[-1][1], diffList[-1][2])
+          diffList[-1] = ("conflict", diffList[-1][1], diffList[-1][2], lineNumber)
           linesDiffList[-1] = ["conflict", lineNumber]
         elif diffList[-1][0] == "add":
-          diffList[-2] = ("mod", diffList[-2][1], diffList[-1][2])
+          diffList[-2] = ("mod", diffList[-2][1], diffList[-1][2], lineNumber)
           linesDiffList[-2] = ["mod", lineNumber]
           del(diffList[-1])
           lineNumber = lineNumber - 1
       else:
-        diffList.append(("", diffLine[1:], diffLine[1:]))
+        diffList.append(("", diffLine[1:], diffLine[1:], lineNumber))
+        lineNumber = lineNumber + 1
       
     return {"diff":diffList, "lines": linesDiffList, "totalLines": lineNumber}
 
