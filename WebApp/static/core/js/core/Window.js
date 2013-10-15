@@ -163,7 +163,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 		if (setupData != null) {
 
-			if (("desktopStickMode" in setupData) && (parseInt(setupData["desktopStickMode"]) == 1)) {
+			if (("desktopStickMode" in setupData) && (parseInt(setupData["desktopStickMode"], 10) == 1)) {
 				/*
 				 * if the applcation has to be pinned
 				 */
@@ -216,10 +216,10 @@ Ext.define('Ext.dirac.core.Window', {
 				 */
 
 				if ("width" in setupData)
-					me.setWidth(parseInt(setupData.width));
+					me.setWidth(parseInt(setupData.width, 10));
 
 				if ("height" in setupData)
-					me.setHeight(parseInt(setupData.height));
+					me.setHeight(parseInt(setupData.height, 10));
 
 				me.desktop.minimizeWindow(me);
 
@@ -229,15 +229,15 @@ Ext.define('Ext.dirac.core.Window', {
 				 * If the window is not maximized nor minimized nor pinned
 				 */
 				if ("x" in setupData) {
-					me.setPosition(parseInt(setupData.x), parseInt(setupData.y));
+					me.setPosition(parseInt(setupData.x, 10), parseInt(setupData.y, 10));
 				}
 
 				if ("width" in setupData) {
-					me.setWidth(parseInt(setupData.width));
+					me.setWidth(parseInt(setupData.width, 10));
 				}
 
 				if ("height" in setupData) {
-					me.setHeight(parseInt(setupData.height));
+					me.setHeight(parseInt(setupData.height, 10));
 				}
 
 				// if no width nor height are set up
@@ -390,6 +390,8 @@ Ext.define('Ext.dirac.core.Window', {
 
 		me.suspendEvents(false);
 		me.minimized = false;
+		console.log("DATA PASSED");
+		console.log(oData);
 		if (("maximized" in oData) && (oData["maximized"])) {
 
 			me.maximize();
@@ -397,25 +399,25 @@ Ext.define('Ext.dirac.core.Window', {
 		} else if (("minimized" in oData) && (oData["minimized"])) {
 
 			if ("width" in setupData)
-				me.setWidth(parseInt(oData.width));
+				me.setWidth(parseInt(oData.width, 10));
 
 			if ("height" in setupData)
-				me.setHeight(parseInt(oData.height));
+				me.setHeight(parseInt(oData.height, 10));
 
 			me.desktop.minimizeWindow(me);
 
 		} else {
 
 			if ("x" in oData) {
-				me.setPosition(parseInt(oData.x), parseInt(oData.y));
+				me.setPosition(parseInt(oData.x, 10), parseInt(oData.y, 10));
 			}
 
 			if ("width" in oData) {
-				me.setWidth(parseInt(oData.width));
+				me.setWidth(parseInt(oData.width, 10));
 			}
 
 			if ("height" in oData) {
-				me.setHeight(parseInt(oData.height));
+				me.setHeight(parseInt(oData.height, 10));
 			}
 
 			if ((!("height" in oData)) && (!("width" in oData))) {
@@ -695,7 +697,7 @@ Ext.define('Ext.dirac.core.Window', {
 				handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [ me.appClassName, stateName ], false),
 				scope : me,
 				iconCls : "system_link_icon",
-				stateType : stateType,
+				stateType : stateType
 			});
 
 			me.statesMenu.add(newItem);

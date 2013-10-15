@@ -548,6 +548,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			autoLoad : true,
 			remoteSort : true,
 			pageSize : 100,
+			dontLoadOnCreation : false,
 			listeners : {
 
 				load : function(oStore, records, successful, eOpts) {
@@ -574,10 +575,17 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 					}
 
 				},
-
+				
 				beforeload : function(oStore, oOperation, eOpts) {
 
 					me.dataStore.lastDataRequest = oOperation;
+
+					if (!oStore.dontLoadOnCreation) {
+						oStore.dontLoadOnCreation = true;
+						return false;
+					} else {
+						return true;
+					}
 
 				}
 
@@ -1135,6 +1143,9 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			// set those data as extraParams in
 			me.grid.store.proxy.extraParams = extraParams;
 			me.grid.store.load();
+			
+			var oCheckbox = Ext.query("#" + me.id + " input.pm-main-check-box");
+			oCheckbox[0].checked = false;
 		}
 
 	},

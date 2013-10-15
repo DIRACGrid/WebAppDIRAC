@@ -188,7 +188,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		socket.onmessage = function(e) {
 
 			var oResponse = JSON.parse(e.data);
-
+			console.log(oResponse);
 			if (parseInt(oResponse.success) == 0) {
 
 				GLOBAL.APP.CF.alert(oResponse.message, "error");
@@ -221,7 +221,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 					me.__showConfigTextInWindow(oResponse.text);
 					break;
 				case "showCurrentDiff":
-					me.__showConfigDiffInWindow(oResponse.html);
+					me.__showConfigDiffInWindow(oResponse);
 					me.btnCommitConfiguration.show();
 					me.btnViewConfigDifference.show();
 					break;
@@ -374,6 +374,15 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 						});
 
 					}
+				},
+				collapse : function(oNode, eOpts) {
+
+					// remove the path from the
+					var oNodePath = me.__getNodePath(oNode);
+					oNode.removeAll();
+					oNode.appendChild({});
+					me.__oprUnsetPathAsExpanded(oNodePath);
+
 				}
 			}
 		});
@@ -434,11 +443,17 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 				iconCls : "cm-to-browse-icon",
 				handler : function() {
+
 					me.__sendSocketMessage({
 						op : "showCurrentDiff"
 					});
 					me.btnCommitConfiguration.hide();
 					me.btnViewConfigDifference.hide();
+
+					/*
+					 * var oResponse = {}; me.__showConfigDiffInWindow(oResponse);
+					 */
+
 				},
 				scope : me,
 				hidden : true
@@ -722,6 +737,38 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		me.valuePanel.setTitle("[No node selected]");
 
 	},
+
+	__oprUnsetPathAsExpanded : function(sPath) {
+
+		var me = this;
+		var oParts = sPath.split("/");
+
+		// The first element is always empty
+		var oTemp = me.expansionState;
+		var oStartIndex = 0;
+
+		if (sPath == "/")
+			oStartIndex = 1;
+
+		for ( var i = oStartIndex; i < oParts.length; i++) {
+
+			if (oParts[i] in oTemp) {
+
+				if (i == oParts.length - 1) {
+
+					delete oTemp[oParts[i]];
+
+				} else {
+
+					oTemp = oTemp[oParts[i]];
+
+				}
+
+			}
+		}
+
+	},
+
 	__oprPathAsExpanded : function(sPath, bInsertIntoStructure) {
 
 		var me = this;
@@ -844,20 +891,144 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 	},
 
-	__showConfigDiffInWindow : function(sHtml) {
+	__showConfigDiffInWindow : function(oResponse) {
 
 		var me = this;
-		var oWindow = me.getContainer().oprGetChildWindow("Current Configuration Difference", false, 700, 500);
-		sHtml = sHtml.replace(new RegExp("&amp;nbsp;", 'g'), "&nbsp;");
-		var oPanel = new Ext.create('Ext.panel.Panel', {
-			html : sHtml,
+
+		var iWinHeight = 500;
+
+		var oWindow = me.getContainer().oprGetChildWindow("Current Configuration Difference", false, 700, iWinHeight);
+
+		/*------------------------TEST------------------------*/
+		/*
+		 * var sTestHtml = ''; var oTestLines = [];
+		 * 
+		 * sTestHtml += '<table class="cm-config-diff">'; sTestHtml += '<tr>';
+		 * sTestHtml += "<th>Server's version</th>"; sTestHtml += "<th>User's
+		 * current version</th>"; sTestHtml += '</tr>';
+		 * 
+		 * oResponse.totalLines = 300;
+		 * 
+		 * for ( var i = 0; i < oResponse.totalLines; i++) {
+		 * 
+		 * var cClass = ""; var fRandom = Math.random();
+		 * 
+		 * if (fRandom < 0.5) cClass = ""; else if (fRandom < 0.6) cClass = "del";
+		 * else if (fRandom < 0.7) cClass = "conflict"; else if (fRandom < 0.8)
+		 * cClass = "add"; else if (fRandom <= 1.0) cClass = "mod";
+		 * 
+		 * if (cClass != "") oTestLines.push([ cClass, i ]);
+		 * 
+		 * var sRow = Math.random().toString(36).substring(7);
+		 * 
+		 * sTestHtml += '<tr ' + ((cClass != "") ? " id='diff-line-" + i + "' class='" + cClass + "'" : "") + '>';
+		 * sTestHtml += "<th>" + sRow + "</th>"; sTestHtml += "<th>" + sRow + "</th>";
+		 * sTestHtml += '</tr>';
+		 *  }
+		 * 
+		 * sTestHtml += '</table>';
+		 * 
+		 * oResponse.html = sTestHtml; oResponse.lines = oTestLines;
+		 */
+
+		/*------------------------ END TEST------------------------*/
+
+		oResponse.html = oResponse.html.replace(new RegExp("&amp;nbsp;", 'g'), "&nbsp;");
+
+		oResponse.html = oResponse.html.replace(new RegExp("id='", 'g'), "id='" + me.id + "-");
+
+		var oCodePanel = new Ext.create('Ext.panel.Panel', {
+			region : "center",
+			html : oResponse.html,
 			layout : "fit",
 			autoScroll : true,
 			bodyPadding : 5
 		});
+
+		var oBlocksPanel = new Ext.create('Ext.panel.Panel', {
+			region : "east",
+			layout : "absolute",
+			codePanel : oCodePanel,
+			width : 50,
+			totalLines: oResponse.totalLines,
+			listeners:{
+				
+				resize:function( oComp, width, height, oldWidth, oldHeight, eOpts ){
+						
+						var delta_pos = 1.0 * (height - 10) / parseFloat(oComp.totalLines);
+		
+						for(var i=0;i<oComp.items.length;i++){
+							
+							var oItem = oComp.getComponent(i);
+							
+							oItem.setPosition(0, Math.ceil(delta_pos * parseFloat(oItem.lineNumber)));
+							
+						}
+					
+				}
+				
+				
+			}
+		});
+
+		var oPanel = new Ext.create('Ext.panel.Panel', {
+			layout : "border",
+			autoScroll : false,
+			bodyPadding : 0,
+			items : [ oCodePanel, oBlocksPanel ]
+		});
+
 		oWindow.add(oPanel);
 		oWindow.show();
 		oWindow.maximize();
+		
+		var delta_pos = 1.0 * (oBlocksPanel.getHeight() - 10) / parseFloat(oResponse.totalLines);
+
+		var oElem = Ext.query("table.cm-config-diff tr")[0];
+		var iHeight = oElem.offsetHeight;
+
+		var oBlocksToAdd = [];
+
+		for ( var i = 0; i < oResponse.lines.length; i++) {
+
+			var sColor = "#ffffff";
+
+			switch (oResponse.lines[i][0]) {
+
+			case "del":
+				sColor = "#FAA";
+				break;
+			case "mod":
+				sColor = "#FFA";
+				break;
+			case "add":
+				sColor = "#AFA";
+				break;
+			case "conflict":
+				sColor = "#EEEEEE";
+				break;
+
+			}
+
+			oBlocksToAdd.push({
+				xtype : "panel",
+				header : false,
+				border : false,
+				bodyStyle : {
+					background : sColor
+				},
+				width:50,
+				lineNumber: oResponse.lines[i][1],
+				height : 1 + ((delta_pos < 1.0) ? 1 : Math.ceil(delta_pos)),
+				x : 0,
+				y : Math.ceil(delta_pos * parseFloat(oResponse.lines[i][1])),
+				layout : "fit",
+				html : '<a href="#' + me.id + '-diff-line-' + oResponse.lines[i][1] + '" style="display:block;width:100%">&nbsp;</a>',
+			});
+
+		}
+
+		oBlocksPanel.add(oBlocksToAdd);
 
 	},
 
@@ -1244,27 +1415,34 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	},
 
 	__oprMenuCreateSubsection : function(oItem, e, eOpts) {
+
+		var oFunc = function(oModule, oNode) {
+
+			oModule.__sendSocketMessage({
+				op : "createSection",
+				path : oModule.__getNodePath(oNode),
+				name : oModule.txtElementName.getValue(),
+				config : oModule.txtElementConfig.getValue(),
+				parentNodeId : oNode.getId()
+			});
+
+		};
+
 		var oNode = oItem.parentMenu.node;
 		var oModule = oItem.parentMenu.moduleObject;
-		var sNewName = window.prompt("What's the name of the new section?");
-		if (sNewName == null)
-			return;
 
-		oModule.__sendSocketMessage({
-			op : "createSection",
-			path : oModule.__getNodePath(oNode),
-			name : sNewName,
-			parentNodeId : oNode.getId()
-		});
+		oModule.formCreateElement("subsection", oFunc, oNode);
 
 	},
 
 	__cbMenuCreateSubsection : function(oResponse) {
 
 		var me = this;
+
 		var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
 
 		var csData = oResponse.node;
+
 		var newCfg = {
 			text : csData.csName,
 			csName : csData.csName,
@@ -1287,22 +1465,24 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	},
 
 	__oprMenuCreateOption : function(oItem, e, eOpts) {
+
+		var oFunc = function(oModule, oNode) {
+
+			var sValue = oModule.__stringToList(oModule.txtElementValue.getValue(), "\n").join(",")
+
+			oModule.__sendSocketMessage({
+				op : "createOption",
+				path : oModule.__getNodePath(oNode),
+				name : oModule.txtElementName.getValue(),
+				value : sValue,
+				parentNodeId : oNode.getId()
+			});
+		}
+
 		var oNode = oItem.parentMenu.node;
 		var oModule = oItem.parentMenu.moduleObject;
-		var sNewName = window.prompt("What's the name of the new option?");
-		if (sNewName == null)
-			return;
-		var sValue = window.prompt("What's the value of the new option?");
-		if (sValue == null)
-			return;
-		sValue = oModule.__stringToList(sValue, "\n").join(",")
-		oModule.__sendSocketMessage({
-			op : "createOption",
-			path : oModule.__getNodePath(oNode),
-			name : sNewName,
-			value : sValue,
-			parentNodeId : oNode.getId()
-		});
+
+		oModule.formCreateElement("option", oFunc, oNode);
 
 	},
 
@@ -1360,6 +1540,114 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		oNewParent.insertChild(parseInt(oResponse.beforeOfIndex), oNode);
 		me.waitForMoveResponse = false;
+
+	},
+
+	formCreateElement : function(sType, funcCreateElement, oNode) {
+
+		var me = this;
+
+		me.txtElementName = Ext.create('Ext.form.field.Text', {
+
+			fieldLabel : "Name",
+			labelAlign : 'left',
+			allowBlank : false,
+			margin : 10,
+			anchor : '100%'
+
+		});
+
+		me.txtElementValue = Ext.create('Ext.form.field.Text', {
+			fieldLabel : "Value",
+			labelAlign : 'left',
+			margin : 10,
+			width : 400,
+			allowBlank : false,
+			hidden : ((sType == "subsection") ? true : false),
+			anchor : '100%'
+		});
+
+		me.txtElementConfig = Ext.create('Ext.form.field.TextArea', {
+			fieldLabel : "Config",
+			labelAlign : 'left',
+			margin : 10,
+			width : 400,
+			hidden : ((sType == "subsection") ? false : true),
+			anchor : '100%',
+			rows : 10
+		});
+
+		// button for saving the state
+		me.btnCreateElement = new Ext.Button({
+
+			text : 'Save',
+			margin : 3,
+			iconCls : "toolbar-other-save",
+			handler : function() {
+
+				var bValid = me.txtElementName.validate();
+
+				if (sType == "option")
+					bValid = bValid && me.txtElementValue.validate();
+
+				if (bValid) {
+					funcCreateElement(me, oNode);
+					me.createElementWindow.close();
+				}
+
+			},
+			scope : me
+
+		});
+
+		// button to close the save form
+		me.btnCancelCreateElement = new Ext.Button({
+
+			text : 'Cancel',
+			margin : 3,
+			iconCls : "toolbar-other-close",
+			handler : function() {
+
+				me.createElementWindow.close();
+
+			},
+			scope : me
+
+		});
+
+		var oToolbar = new Ext.toolbar.Toolbar({
+			border : false
+		});
+
+		oToolbar.add([ me.btnCreateElement, me.btnCancelCreateElement ]);
+
+		var oPanel = new Ext.create('Ext.panel.Panel', {
+			autoHeight : true,
+			border : false,
+			layout : "anchor",
+			items : [ oToolbar, me.txtElementName, me.txtElementValue, me.txtElementConfig ]
+		});
+
+		var sTitle = "Create an option";
+		var iHeight = 200;
+
+		if (sType == "subsection") {
+			sTitle = "Create a subsection";
+			iHeight = 280;
+		}
+
+		// initializing window showing the saving form
+		me.createElementWindow = Ext.create('widget.window', {
+			height : iHeight,
+			width : 500,
+			title : sTitle,
+			layout : 'fit',
+			modal : true,
+			items : oPanel
+		});
+
+		me.createElementWindow.show();
+		me.txtElementName.focus();
 
 	}
 
