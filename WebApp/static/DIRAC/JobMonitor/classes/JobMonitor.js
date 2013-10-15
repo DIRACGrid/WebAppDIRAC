@@ -1366,9 +1366,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
 
-				var iHeight = me.statisticsPlotPanel.getHeight() - 20;
+				var iHeight = me.statisticsPlotPanel.getHeight()*2;
 
-				var iWidth = me.statisticsPlotPanel.getWidth() - 20;
+				var iWidth = me.statisticsPlotPanel.getWidth()*2;
 
 				var canvas = document.createElement('canvas');
 				canvas.setAttribute('width', iWidth);
@@ -1382,11 +1382,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				oContext.fill();
 
 				var oImage = new Image();
-				oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_symbol_background_b.png';
+				oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png';
 
 				oImage.onload = function() {
-
-					oContext.drawImage(oImage, 0, 0);
+					
+					console.log([oImage.clientWidth,oImage.clientHeight]);
+					
+					oContext.drawImage(oImage, 0,0,iWidth,iHeight);
 
 					oContext.drawSvg(sSvgElement, 0, 0);
 

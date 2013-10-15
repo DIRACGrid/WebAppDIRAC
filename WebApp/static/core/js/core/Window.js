@@ -390,6 +390,8 @@ Ext.define('Ext.dirac.core.Window', {
 
 		me.suspendEvents(false);
 		me.minimized = false;
+		console.log("DATA PASSED");
+		console.log(oData);
 		if (("maximized" in oData) && (oData["maximized"])) {
 
 			me.maximize();

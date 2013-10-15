@@ -433,7 +433,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 				data : [ [ 25 ], [ 50 ], [ 100 ], [ 200 ], [ 500 ], [ 1000 ] ]
 			}),
 			triggerAction : 'all',
-			value : 25,
+			value : 100,
 			width : 50
 		});
 

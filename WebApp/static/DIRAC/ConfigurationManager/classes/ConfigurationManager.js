@@ -973,7 +973,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		var oPanel = new Ext.create('Ext.panel.Panel', {
 			layout : "border",
-			autoScroll : true,
+			autoScroll : false,
 			bodyPadding : 0,
 			items : [ oCodePanel, oBlocksPanel ]
 		});
