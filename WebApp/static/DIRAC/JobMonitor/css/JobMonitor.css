@@ -1,118 +1,84 @@
-.jm-reschedule-icon{
-	
-	 background-image: url(../images/reschedule.gif) !important;
-     background-color: transparent;
-	
+.jm-reschedule-icon {
+	background-image: url(../images/reschedule.gif) !important;
+	background-color: transparent;
 }
 
-.jm-kill-icon{
-	
-	 background-image: url(../images/close.gif) !important;
-     background-color: transparent;
-	
+.jm-kill-icon {
+	background-image: url(../images/close.gif) !important;
+	background-color: transparent;
 }
 
-.jm-delete-icon{
-	
-	 background-image: url(../images/delete.gif) !important;
-     background-color: transparent;
-	
+.jm-delete-icon {
+	background-image: url(../images/delete.gif) !important;
+	background-color: transparent;
 }
 
-.jm-refresh-icon{
-	
-	 background-image: url(../images/refresh.gif) !important;
-     background-color: transparent;
-	
+.jm-refresh-icon {
+	background-image: url(../images/refresh.gif) !important;
+	background-color: transparent;
 }
 
-.jm-submit-icon{
-	
-	 background-image: url(../images/submit.gif) !important;
-     background-color: transparent;
-	
+.jm-submit-icon {
+	background-image: url(../images/submit.gif) !important;
+	background-color: transparent;
 }
 
-.jm-reset-icon{
-	
-	 background-image: url(../images/reset.gif) !important;
-     background-color: transparent;
-	
+.jm-reset-icon {
+	background-image: url(../images/reset.gif) !important;
+	background-color: transparent;
 }
 
-.jm-reset-button-icon{
-	
-	 background-image: url(../images/resetButton.gif) !important;
-     background-color: transparent;
-	
+.jm-reset-button-icon {
+	background-image: url(../images/resetButton.gif) !important;
+	background-color: transparent;
 }
 
-.jm-action-gif-icon{
-	
-	 background-image: url(../images/action.gif) !important;
-     background-color: transparent;
-	
+.jm-action-gif-icon {
+	background-image: url(../images/action.gif) !important;
+	background-color: transparent;
 }
 
-.jm-addfile-gif-icon{
-	
-	 background-image: url(../images/addfile.gif) !important;
-     background-color: transparent;
-	
+.jm-addfile-gif-icon {
+	background-image: url(../images/addfile.gif) !important;
+	background-color: transparent;
 }
 
-.jm-id-list-icon{
-	
-	 background-image: url(../images/id_list.png) !important;
-     background-color: transparent;
-	
+.jm-id-list-icon {
+	background-image: url(../images/id_list.png) !important;
+	background-color: transparent;
 }
 
-.jm-pie-icon{
-	
-	 background-image: url(../images/pie.png) !important;
-     background-color: transparent;
-	
+.jm-pie-icon {
+	background-image: url(../images/pie.png) !important;
+	background-color: transparent;
 }
 
-.jm-grid-icon{
-	
-	 background-image: url(../images/grid.png) !important;
-     background-color: transparent;
-	
+.jm-grid-icon {
+	background-image: url(../images/grid.png) !important;
+	background-color: transparent;
 }
 
-.jm-textbox-help-window textarea.x-form-field{
-	
-	font-family: Courier,monospace !important;	
-	
-
+.jm-textbox-help-window textarea.x-form-field {
+	font-family: Courier, monospace !important;
 }
 
-.jm-main-check-box{
-	
-	margin:3px 0px 3px 0px !important;
-	
+.jm-main-check-box {
+	margin: 3px 0px 3px 0px !important;
 }
 
-.jm-save-icon{
-	
-	 background-image: url(../images/save.png) !important;
-     background-color: transparent;
-	
+.jm-save-icon {
+	background-image: url(../images/save.png) !important;
+	background-color: transparent;
 }
 
-.jm-red-reset-icon{
-	
-	 background-image: url(../images/resetButtonRed.png) !important;
-     background-color: transparent;
-	
+.jm-red-reset-icon {
+	background-image: url(../images/resetButtonRed.png) !important;
+	background-color: transparent;
 }
 
-.jm-statistics-plot-background{
-	
-	/*background-image: url(../../../core/img/icons/system/_logo_waiting.gif) !important;
-	background-position: right bottom;
-	background-repeat: no-repeat;*/ 
-	
+.jm-statistics-plot-background {
+	background-image:
+		url(../../../core/img/wallpapers/dirac_symbol_background_a.png)
+		!important;
+	background-repeat: repeat;
 }

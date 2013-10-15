@@ -1374,24 +1374,26 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				canvas.setAttribute('width', iWidth);
 				canvas.setAttribute('height', iHeight);
 
-				//oContext.drawImage(oImage, 600, 450, 600, 450, 0, 0, 600, 450);
-
-				//document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
-				
-				canvg(canvas, sSvgElement, {ignoreClear: true});
-				
 				var oContext = canvas.getContext("2d");
 
-				var oImage = new Image();
-				oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_background_6.png';
-				
-				oContext.drawImage(oImage, 300, 250, 900, 650, iWidth*0.66, iHeight*0.66, iWidth/3, iHeight/3);
-								
-				document.getElementById(me.id + '-statistics-plot-png').appendChild(canvas);
-				
-				var imgData = canvas.toDataURL("image/png");
+				oContext.beginPath();
+				oContext.rect(0, 0, iWidth, iHeight);
+				oContext.fillStyle = "#FFFFFF";
+				oContext.fill();
 
-				window.location = imgData.replace("image/png", "image/octet-stream");
+				var oImage = new Image();
+				oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_symbol_background_b.png';
+
+				oImage.onload = function() {
+
+					oContext.drawImage(oImage, 0, 0);
+
+					oContext.drawSvg(sSvgElement, 0, 0);
+
+					var imgData = canvas.toDataURL("image/png");
+					window.location = imgData.replace("image/png", "image/octet-stream");
+
+				}
 
 			},
 			scope : me,
@@ -1485,15 +1487,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
 			region : 'center',
 			floatable : false,
-			layout : 'anchor',
+			layout : 'fit',
 			header : false,
 			items : [ {
-				html : "<div id='" + me.id + "-statistics-plot' class='jm-statistics-plot-background' style='width:100%;'></div>",
-				xtype : "box"
-			}, {
-				html : "<div id='" + me.id + "-statistics-plot-png' style='width:100%;'></div>",
+				html : "<div id='" + me.id + "-statistics-plot' style='width:100%;'></div>",
 				xtype : "box",
-				hidden : true
+				cls : 'jm-statistics-plot-background'
 			} ]
 		});
 
@@ -1716,8 +1715,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			legend : {
 				position : sLegendPosition
 			},
-			colors : oColors
-			//backgroundColor: "transparent"
+			colors : oColors,
+			backgroundColor : "transparent",
+			chartArea : {
+				width : "80%",
+				height : "80%"
+			}
 		};
 
 		if (!("plotSettings" in me))
