@@ -28,13 +28,13 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
     res = False
     if params["op"] == "init":
-      res = self.__getRemoteConfiguration( "init" )
+      res = self.__getRemoteConfiguration("init")
     elif params["op"] == "getSubnodes":
       res = self.__getSubnodes(params["node"], params["nodePath"])
     elif params["op"] == "showConfigurationAsText":
       res = self.__showConfigurationAsText()
     elif params["op"] == "resetConfiguration":
-      res = self.__getRemoteConfiguration( "resetConfiguration" )
+      res = self.__getRemoteConfiguration("resetConfiguration")
     elif params["op"] == "getBulkExpandedNodeData":
       res = self.__getBulkExpandedNodeData(params["nodes"])
     elif params["op"] == "setOptionValue":
@@ -59,7 +59,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       res = self.__showCurrentDiff()
 
     if res:
-      self.write_message( res )
+      self.write_message(res)
 
   def __getRemoteConfiguration(self, funcName):
     rpcClient = RPCClient(gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
@@ -135,7 +135,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       return False
 
   def __showConfigurationAsText(self):
-    #time.sleep(10)
+    # time.sleep(10)
     return {"success":1, "op":"showConfigurationAsText", "text":self.__configData[ 'strCfgData' ]}
 
   def __getBulkExpandedNodeData(self, nodes):
@@ -238,6 +238,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     try:
       parentPath = str(params[ 'path' ]).strip()
       sectionName = str(params[ 'name' ]).strip()
+      configText = str(params[ 'config' ]).strip()
     except Exception, e:
       return {"success":0, "op":"createSection", "message":"Can't decode parameter: %s" % str(e)}
     try:
@@ -247,13 +248,24 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return {"success":0, "op":"createSection", "message":"Put any name for the section!"}
       sectionPath = "%s/%s" % (parentPath, sectionName)
       gLogger.info("Creating section", "%s" % sectionPath)
+      
       if self.__configData[ 'cfgData' ].createSection(sectionPath):
         nD = { 'text' : sectionName, 'csName' : sectionName, 'csComment' : self.__configData[ 'cfgData' ].getComment(sectionPath) }
         htmlC = self.__htmlComment(nD[ 'csComment' ])
         if htmlC:
           qtipDict = { 'text' : htmlC }
           nD[ 'qtipCfg' ] = qtipDict
-        return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD}
+#       If config Text is provided then a section is created out of that text    
+        if configText != "":
+          cfgData = self.__configData[ 'cfgData' ].getCFG()
+          newCFG = CFG()
+          newCFG.loadFromBuffer(configText)
+          self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
+#           newCreatedSection = cfgData.getRecursive(sectionPath)["value"]
+#           newCreatedSection.loadFromBuffer(configText)
+          return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD, "sectionFromConfig": 1}
+        else:
+          return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD, "sectionFromConfig": 0}
       else:
         return {"success":0, "op":"createSection", "message":"Section can't be created. It already exists?"}
     except Exception, e:
@@ -379,7 +391,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     return {"success":1, "op":"commitConfiguration"}
 
   def __authorizeAction(self):
-    data = self.SessionData()
+    data = self.getSessionData()
     isAuth = False
     if "properties" in data["user"]:
       if "CSAdministrator" in data["user"]["properties"]:
@@ -388,35 +400,48 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
   def __generateHTMLDiff(self, diffGen):
     diffList = []
+    linesDiffList = []
     oldChange = False
+    lineNumber = 0
     for diffLine in diffGen:
       if diffLine[0] == "-":
-        diffList.append(("del", diffLine[1:], ""))
+        diffList.append(("del", diffLine[1:], "", lineNumber))
+        linesDiffList.append(["del", lineNumber])
+        lineNumber = lineNumber + 1
       elif diffLine[0] == "+":
         if oldChange:
-          diffList[-1] = ("mod", diffList[-1][1], diffLine[1:])
+          diffList[-1] = ("mod", diffList[-1][1], diffLine[1:], lineNumber)
+          linesDiffList[-1] = ["mod", lineNumber]
           oldChange = False
         else:
-          diffList.append(("add", "", diffLine[1:]))
+          diffList.append(("add", "", diffLine[1:], lineNumber))
+          linesDiffList.append(["add", lineNumber])
+          lineNumber = lineNumber + 1
       elif diffLine[0] == "?":
         if diffList[-1][0] == 'del':
           oldChange = True
         elif diffList[-1][0] == "mod":
-          diffList[-1] = ("conflict", diffList[-1][1], diffList[-1][2])
+          diffList[-1] = ("conflict", diffList[-1][1], diffList[-1][2], lineNumber)
+          linesDiffList[-1] = ["conflict", lineNumber]
         elif diffList[-1][0] == "add":
-          diffList[-2] = ("mod", diffList[-2][1], diffList[-1][2])
+          diffList[-2] = ("mod", diffList[-2][1], diffList[-1][2], lineNumber)
+          linesDiffList[-2] = ["mod", lineNumber]
           del(diffList[-1])
+          lineNumber = lineNumber - 1
       else:
-        diffList.append(("", diffLine[1:], diffLine[1:]))
-    return diffList
+        diffList.append(("", diffLine[1:], diffLine[1:], lineNumber))
+        lineNumber = lineNumber + 1
+      
+    return {"diff":diffList, "lines": linesDiffList, "totalLines": lineNumber}
 
   def __showCurrentDiff(self):
     if not self.__authorizeAction():
       return {"success":0, "op":"showCurrentDiff", "message":"You are not authorized to commit configurations!! Bad boy!"}
     diffGen = self.__configData[ 'cfgData' ].showCurrentDiff()
-    return self.write_message(json.dumps({"success":1, "op":"showCurrentDiff", "html":self.render_string("ConfigurationManager/diffConfig.tpl",
+    processedData = self.__generateHTMLDiff(diffGen)
+    return self.write_message(json.dumps({"success":1, "op":"showCurrentDiff", "lines":processedData["lines"], "totalLines": processedData["totalLines"], "html":self.render_string("ConfigurationManager/diffConfig.tpl",
                                                                                                          titles=("Server's version", "User's current version"),
-                                                                                                         diffList=self.__generateHTMLDiff(diffGen))}))
+                                                                                                         diffList=processedData["diff"])}))
 
 
 

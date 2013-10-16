@@ -1009,7 +1009,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		var oPanel = new Ext.create('Ext.panel.Panel', {
 			autoHeight : true,
 			border : false,
-			items : [ oToolbar, me.txtLoadText, me.txtRefName, ]
+			items : [ oToolbar, me.txtLoadText, me.txtRefName ]
 		});
 
 		me.__cbAfterLoadSharedState = cbAfterLoad;
@@ -1179,7 +1179,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			}
 		});
 
-	},
+	}
 
 /*-----------------------------------------------END - SHARE STATE-----------------------------------------------*/
 

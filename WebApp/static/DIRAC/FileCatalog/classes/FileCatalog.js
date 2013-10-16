@@ -389,7 +389,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 				name : "fullfilename"
 			} ],
 			remoteSort : true,
-			pageSize : 25,
+			pageSize : 100,
 			listeners : {
 
 				load : function(oStore, records, successful, eOpts) {
@@ -433,7 +433,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 				data : [ [ 25 ], [ 50 ], [ 100 ], [ 200 ], [ 500 ], [ 1000 ] ]
 			}),
 			triggerAction : 'all',
-			value : 25,
+			value : 100,
 			width : 50
 		});
 
@@ -582,6 +582,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 				}
 			}
 		});
+
+		me.treeFileCatalogStore.getRootNode().expand();
 
 		me.fileCatalogTree = new Ext.create('Ext.tree.Panel', {
 			region : 'north',

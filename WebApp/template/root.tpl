@@ -63,6 +63,7 @@
 
           Ext.onReady(function () {
             GLOBAL.BASE_URL = "{{base_url}}/";
+            GLOBAL.ROOT_URL = "{{root_url}}/";
             GLOBAL.APP = new Ext.dirac.core.App();
             setTimeout(function(){
               Ext.get("app-dirac-loading").hide();
@@ -87,6 +88,7 @@
 
           Ext.onReady(function () {
               GLOBAL.BASE_URL = "{{base_url}}/";
+              GLOBAL.ROOT_URL = "{{root_url}}/";
               GLOBAL.APP = new Ext.dirac.core.App();
               setTimeout(function(){
                 Ext.get("app-dirac-loading").hide();
@@ -106,7 +108,7 @@
             <td style="width:100px;">
               <img src="{{base_url}}/static/core/img/icons/system/_logo_waiting.gif" style="margin-right:8px;float:left;vertical-align:top;width:100%;"/>
             </td>
-            <td style="width:200px;vertical-align:middle;text-align:left;padding:5px 0px 5px 15px;font-size:14px">
+            <td style="width:300px;vertical-align:middle;text-align:left;padding:5px 0px 5px 15px;font-size:14px">
               DIRAC
                 <br />
                 <span id="app-dirac-loading-msg">Loading data and resources...</span>

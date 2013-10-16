@@ -17,8 +17,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	extend : 'Ext.panel.Panel',
 	alias : 'widget.desktop',
 	mixins : [ "Ext.dirac.core.Stateful" ],
-	uses : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 
-	'Ext.dirac.core.Window', 'Ext.dirac.core.TaskBar', 'Ext.dirac.core.Wallpaper' ],
+	uses : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.core.Window', 'Ext.dirac.core.TaskBar', 'Ext.dirac.core.Wallpaper' ],
 
 	activeWindowCls : 'ux-desktop-active-win',
 	inactiveWindowCls : 'ux-desktop-inactive-win',
@@ -343,7 +342,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 			}
 
 			// if the indicator for desktop loaded state is not valid
-			if ((parseInt(oParts[0]) != 0) && (parseInt(oParts[0]) != 1)) {
+			if ((parseInt(oParts[0], 10) != 0) && (parseInt(oParts[0], 10) != 1)) {
 
 				oValid = false;
 
@@ -353,7 +352,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 			 * if the indicator for desktop loaded state is 0, it means that no
 			 * desktop state has been loaded, but only particular apps
 			 */
-			if (parseInt(oParts[0]) == 0) {
+			if (parseInt(oParts[0], 10) == 0) {
 
 				var oApps = oParts[1].split("^");
 
@@ -387,8 +386,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 					 * if the application is valid i.e. it can be accessed by the user and
 					 * the other data are valid
 					 */
-					if (!GLOBAL.APP.isValidApplication(oAppParts[0]) || isNaN(parseInt(oAppParts[2])) || isNaN(parseInt(oAppParts[3])) || isNaN(parseInt(oAppParts[4])) || isNaN(parseInt(oAppParts[5]))
-							|| isNaN(parseInt(oAppParts[6]))) {
+					if (!GLOBAL.APP.isValidApplication(oAppParts[0]) || isNaN(parseInt(oAppParts[2], 10)) || isNaN(parseInt(oAppParts[3], 10)) || isNaN(parseInt(oAppParts[4], 10))
+							|| isNaN(parseInt(oAppParts[5], 10)) || isNaN(parseInt(oAppParts[6], 10))) {
 
 						oValid = false;
 						break;
@@ -401,7 +400,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 			// in the case of loaded desktop state, we check whether a
 			// name of the desktop state exists
-			if (parseInt(oParts[0]) == 1) {
+			if (parseInt(oParts[0], 10) == 1) {
 
 				if (Ext.util.Format.trim(oParts[1]) == "") {
 
@@ -420,7 +419,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 			if ((oParts.length != 2) || (Ext.util.Format.trim(oParts[1]).length == 0))
 				return;
 
-			if (parseInt(oParts[0]) == 0) {
+			if (parseInt(oParts[0], 10) == 0) {
 				// non desktop state
 				var oApps = oParts[1].split("^");
 
@@ -443,12 +442,12 @@ Ext.define('Ext.dirac.core.Desktop', {
 					oSetupData.height = oAppItems[5];
 
 					var oPinnedData = oAppItems[7].split(",");
-					oSetupData.desktopStickMode = parseInt(oPinnedData[0]);
-					oSetupData.hiddenHeader = parseInt(oPinnedData[1]);
-					oSetupData.i_x = parseInt(oPinnedData[2]);
-					oSetupData.i_y = parseInt(oPinnedData[3]);
-					oSetupData.ic_x = parseInt(oPinnedData[4]);
-					oSetupData.ic_y = parseInt(oPinnedData[5]);
+					oSetupData.desktopStickMode = parseInt(oPinnedData[0], 10);
+					oSetupData.hiddenHeader = parseInt(oPinnedData[1], 10);
+					oSetupData.i_x = parseInt(oPinnedData[2], 10);
+					oSetupData.i_y = parseInt(oPinnedData[3], 10);
+					oSetupData.ic_x = parseInt(oPinnedData[4], 10);
+					oSetupData.ic_y = parseInt(oPinnedData[5], 10);
 
 					switch (Ext.util.Format.trim(oAppItems[6])) {
 
@@ -519,7 +518,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 			me.oprReadDesktopStatesFromCache();
 
-		}
+		};
 
 		/*
 		 * if the state management is enabled, first we read the states and the
@@ -1544,7 +1543,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 			} else {
 
-				GLOBAL.APP.CF.alert("No available space on the desktop can be found !","warning");
+				GLOBAL.APP.CF.alert("No available space on the desktop can be found !", "warning");
 				oWin.desktopStickMode = false;
 
 			}
@@ -1992,7 +1991,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 		switch (iStateLoaded) {
 		case -1:
-			GLOBAL.APP.CF.alert("The state does not exist !","warning");
+			GLOBAL.APP.CF.alert("The state does not exist !", "warning");
 			return;
 			break;
 		case -2:
@@ -2062,7 +2061,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 			text : stateName,
 			handler : Ext.bind(me.loadSharedStateByName, me, [ "desktop", stateName ], false),
 			scope : me,
-			iconCls : "system_link_icon",
+			iconCls : "system_link_icon"
 		});
 
 		me.statesMenu.add(newItem);
