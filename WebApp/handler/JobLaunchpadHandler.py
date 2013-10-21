@@ -132,6 +132,8 @@ class JobLaunchpadHandler(WebHandler):
 #    Updating the default values from OptionsOverride configuration branch
     
     for key in options:
+      if key not in defaultParams:
+        defaultParams[key] = [ 0, "" ]                                                                                                 
       defaultParams[key][1] = options[key][0]
       
 #    Reading of the predefined sets of launchpad parameters values

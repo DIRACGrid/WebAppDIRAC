@@ -313,7 +313,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		me.advancedPlotTitle = Ext.create('Ext.form.field.Text', {
 
-			fieldLabel : "Pilot Title",
+			fieldLabel : "Plot Title",
 			labelAlign : 'top',
 			anchor : "100%"
 		});
@@ -670,6 +670,8 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			me.__additionalDataLoad();
 			me.__additionalDataLoad = null;
 		}
+		
+		me.advancedPlotTitle.setValue("");
 
 	},
 

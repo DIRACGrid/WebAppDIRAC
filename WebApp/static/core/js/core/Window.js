@@ -182,8 +182,10 @@ Ext.define('Ext.dirac.core.Window', {
 				me._y = Math.round(me.i_y * me.desktop.boxSizeY);
 
 				var oPos = me.getPosition();
-
-				me._before_pin_state = setupData["_before_pin_state"];
+				
+				
+				if("_before_pin_state" in setupData)
+					me._before_pin_state = setupData["_before_pin_state"];
 
 				me.suspendEvents(false);
 				// setting the position and the size of the window
