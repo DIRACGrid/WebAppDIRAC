@@ -74,9 +74,9 @@ Ext.define('Ext.dirac.core.StartMenu', {
 				text : 'State Loader',
 				iconCls : 'system_state_icon',
 				handler : function() {
-					GLOBAL.APP.SM.formStateLoader(GLOBAL.APP.desktop.cbAfterLoadSharedState, GLOBAL.APP.desktop.cbAfterSaveSharedState);
+					GLOBAL.APP.desktop.SM.formStateLoader(GLOBAL.APP.desktop.cbAfterLoadSharedState, GLOBAL.APP.desktop.cbAfterSaveSharedState);
 				},
-				scope : GLOBAL.APP.SM
+				scope : GLOBAL.APP.desktop.SM
 			} ]);
 		}
 
@@ -203,7 +203,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 							 * application states have been loaded
 							 */
 
-							var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", sStartClass, "|");
+							var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", sStartClass, "|");//OK
 
 							if (iAppStatesLoaded != -2) {
 
@@ -216,7 +216,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 							} else {
 								if (cmp.isStateMenuLoaded == 0) {
 									cmp.setIconCls("loading_item");
-									var oFunc = function(sAppName) {
+									var oFunc = function(iCode, sAppName) {
 
 										cmp.oprRefreshAppStates();
 										cmp.isStateMenuLoaded = 2;
@@ -224,7 +224,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 									};
 
-									GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(sStartClass, oFunc);
+									GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(sStartClass, oFunc);//OK
 
 									cmp.isStateMenuLoaded = 1;
 
@@ -253,7 +253,23 @@ Ext.define('Ext.dirac.core.StartMenu', {
 								minWidth : 200,
 								menu : [ {
 									text : "Share state",
-									handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ stateName, oThisMenu.appClassName ], false),
+									handler : function() {
+
+										GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, stateName, function(rCode, rAppName, rStateName, rMessage) {
+
+											if (rCode == 1) {
+
+												var oHtml = "";
+												oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+												oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
+
+												Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
+
+											}
+
+										});
+
+									},
 									iconCls : "system_share_state_icon"
 								} ]
 							});
@@ -325,7 +341,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 						oThisMenu.menu.removeAll();
 
-						var oStates = GLOBAL.APP.SM.getApplicationStates("application", oThisMenu.appClassName);
+						var oStates = GLOBAL.APP.SM.getApplicationStates("application", oThisMenu.appClassName);//OK
 
 						for ( var i = 0, len = oStates.length; i < len; i++) {
 
@@ -342,7 +358,23 @@ Ext.define('Ext.dirac.core.StartMenu', {
 								stateType : "application",
 								menu : [ {
 									text : "Share state",
-									handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ stateName, oThisMenu.appClassName ], false),
+									handler : function() {
+
+										GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, stateName, function(rCode, rAppName, rStateName, rMessage) {
+
+											if (rCode == 1) {
+
+												var oHtml = "";
+												oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+												oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
+
+												Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
+
+											}
+
+										});
+
+									},
 									iconCls : "system_share_state_icon"
 								} ]
 							});
@@ -353,7 +385,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 
 						oThisMenu.menu.add("-");
 
-						var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", oThisMenu.appClassName);
+						var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", oThisMenu.appClassName);//OK
 
 						for ( var i = 0, len = oRefs.length; i < len; i++) {
 

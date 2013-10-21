@@ -292,7 +292,7 @@ Ext.define('Ext.dirac.core.Window', {
 					me.loadedObject.currentState = setupData.currentState;
 
 					if (me.currentState != "")
-						GLOBAL.APP.SM.addActiveState(me.loadedObject.self.getName(), me.currentState);
+						GLOBAL.APP.SM.oprAddActiveState(me.loadedObject.self.getName(), me.currentState);//OK
 
 					me.loadedObject.loadState(setupData.data);
 				}
@@ -532,7 +532,7 @@ Ext.define('Ext.dirac.core.Window', {
 			 * A call to isStateLoaded can be used to see whether the application
 			 * states have been loaded
 			 */
-			var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, "|");
+			var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, "|");//OK
 
 			if (iAppStatesLoaded != -2) {
 
@@ -545,9 +545,11 @@ Ext.define('Ext.dirac.core.Window', {
 				 * if the application cache does not exist
 				 */
 
-				var oFunc = function(sAppName) {
+				var oFunc = function(iCode, sAppName) {
 
-					me.oprRefreshAppStates();
+					if(iCode == 1){
+						me.oprRefreshAppStates();
+					}
 
 				}
 
@@ -561,11 +563,11 @@ Ext.define('Ext.dirac.core.Window', {
 				me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
 
 				if (me.currentState != "")
-					GLOBAL.APP.SM.removeActiveState(sAppName, me.currentState);
+					GLOBAL.APP.SM.oprRemoveActiveState(sAppName, me.currentState);//OK
 
 				me.loadedObject.currentState = sStateName;
 				me.currentState = sStateName;
-				GLOBAL.APP.SM.addActiveState(sAppName, sStateName);
+				GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
 				me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
 				me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]", 20));
 				GLOBAL.APP.desktop.refreshUrlDesktopState();
@@ -586,12 +588,12 @@ Ext.define('Ext.dirac.core.Window', {
 				}, {
 					text : "Save",
 					iconCls : "toolbar-other-save",
-					handler : Ext.bind(GLOBAL.APP.SM.oprSaveAppState, GLOBAL.APP.SM, [ "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave ], false),
+					handler : Ext.bind(me.desktop.SM.oprSaveAppState, me.desktop.SM, [ "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave ], false),
 					scope : me
 				}, {
 					text : "Save As ...",
 					iconCls : "toolbar-other-save",
-					handler : Ext.bind(GLOBAL.APP.SM.formSaveState, GLOBAL.APP.SM, [ "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave ], false),
+					handler : Ext.bind(me.desktop.SM.formSaveState, me.desktop.SM, [ "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave ], false),
 					scope : me
 				}, {
 					text : "Refresh states",
@@ -601,7 +603,7 @@ Ext.define('Ext.dirac.core.Window', {
 				}, {
 					text : "Manage states ...",
 					iconCls : "toolbar-other-manage",
-					handler : Ext.bind(GLOBAL.APP.SM.formManageStates, GLOBAL.APP.SM, [ me.loadedObject.self.getName(), funcAfterRemove ], false),
+					handler : Ext.bind(me.desktop.SM.formManageStates, me.desktop.SM, [ me.loadedObject.self.getName(), funcAfterRemove ], false),
 					scope : me
 				} ]
 			});
@@ -670,7 +672,23 @@ Ext.define('Ext.dirac.core.Window', {
 				stateType : stateType,
 				menu : [ {
 					text : "Share state",
-					handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ stateName, me.loadedObject.self.getName() ], false),
+					handler : function() {
+
+						GLOBAL.APP.SM.oprShareState(me.loadedObject.self.getName(), stateName, function(rCode, rAppName, rStateName, rMessage) {
+
+							if (rCode == 1) {
+
+								var oHtml = "";
+								oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+								oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
+
+								Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
+
+							}
+
+						});
+
+					},
 					iconCls : "system_share_state_icon"
 				} ]
 			});
@@ -772,7 +790,7 @@ Ext.define('Ext.dirac.core.Window', {
 		me.statesMenu.removeAll();
 
 		// first we fill the menu with the states
-		var oStates = GLOBAL.APP.SM.getApplicationStates("application", me.appClassName);
+		var oStates = GLOBAL.APP.SM.getApplicationStates("application", me.appClassName);//OK
 
 		for ( var i = 0, len = oStates.length; i < len; i++) {
 
@@ -786,7 +804,23 @@ Ext.define('Ext.dirac.core.Window', {
 				stateType : "application",
 				menu : [ {
 					text : "Share state",
-					handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ stateName, me.appClassName ], false),
+					handler : function() {
+
+						GLOBAL.APP.SM.oprShareState(me.appClassName, stateName, function(rCode, rAppName, rStateName, rMessage) {
+
+							if (rCode == 1) {
+
+								var oHtml = "";
+								oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+								oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
+
+								Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
+
+							}
+
+						});
+
+					},
 					iconCls : "system_share_state_icon"
 				} ]
 			});
@@ -798,7 +832,7 @@ Ext.define('Ext.dirac.core.Window', {
 		me.statesMenu.add("-");
 
 		// then we fill the menu with the refrences
-		var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", me.appClassName);
+		var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", me.appClassName);//OK
 
 		for ( var i = 0, len = oRefs.length; i < len; i++) {
 
@@ -829,7 +863,7 @@ Ext.define('Ext.dirac.core.Window', {
 		var me = this;
 
 		// checking whether the state exists or not
-		var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, stateName);
+		var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, stateName);//OK
 
 		switch (iStateLoaded) {
 		case -1:
@@ -855,15 +889,15 @@ Ext.define('Ext.dirac.core.Window', {
 
 		me.closeAllChildWindows();
 
-		me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName));
+		me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName));//OK
 
 		if (me.currentState != "")
-			GLOBAL.APP.SM.removeActiveState(me.appClassName, me.currentState);
+			GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);//OK
 
 		me.currentState = stateName;
 		me.loadedObject.currentState = stateName;
 
-		GLOBAL.APP.SM.addActiveState(me.appClassName, stateName);
+		GLOBAL.APP.SM.oprAddActiveState(me.appClassName, stateName);//OK
 		GLOBAL.APP.desktop.refreshUrlDesktopState();
 
 		me.setTitle(me.loadedObject.launcher.title + " [" + stateName + "]");

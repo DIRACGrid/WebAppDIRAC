@@ -256,6 +256,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 		}
 
 		me._state_related_url = "";
+		
+		me.SM = new Ext.dirac.core.DesktopStateManagement();
 
 	},
 
@@ -514,7 +516,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		// reading the existing states of the desktop for that user
 		me.statesMenu = new Ext.menu.Menu();
 
-		var oFunc = function(sAppName) {
+		var oFunc = function(iCode, sAppName) {
 
 			me.oprReadDesktopStatesFromCache();
 
@@ -525,7 +527,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		 * references and then we load them into the desktop menu.
 		 */
 		if (GLOBAL.STATE_MANAGEMENT_ENABLED)
-			GLOBAL.APP.SM.oprReadApplicationStatesAndReferences("desktop", oFunc);
+			GLOBAL.APP.SM.oprReadApplicationStatesAndReferences("desktop", oFunc);// OK
 
 		/*
 		 * Function that is executed after a state has been saved
@@ -541,7 +543,23 @@ Ext.define('Ext.dirac.core.Desktop', {
 				minWidth : 200,
 				menu : [ {
 					text : "Share state",
-					handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ sStateName, "desktop" ], false),
+					handler : function() {
+
+						GLOBAL.APP.SM.oprShareState("desktop", sStateName, function(rCode, rAppName, rStateName, rMessage) {
+
+							if (rCode == 1) {
+
+								var oHtml = "";
+								oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+								oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
+
+								Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
+
+							}
+
+						});
+
+					},
 					iconCls : "system_share_state_icon"
 				} ]
 			});
@@ -551,11 +569,11 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 			// if there is an active desktop state, we have to remove it
 			if (me.currentState != "")
-				GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
+				GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);// OK
 
 			// if there is a state, we set it as an active state
 			me.currentState = sStateName;
-			GLOBAL.APP.SM.addActiveState(sAppName, sStateName);
+			GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);// OK
 			me.refreshUrlDesktopState();
 
 		};
@@ -606,13 +624,13 @@ Ext.define('Ext.dirac.core.Desktop', {
 			}, {
 				text : "Save",
 				iconCls : "toolbar-other-save",
-				handler : Ext.bind(GLOBAL.APP.SM.oprSaveAppState, GLOBAL.APP.SM, [ "application", "desktop", me, funcAfterSave ], false),
+				handler : Ext.bind(me.SM.oprSaveAppState, me.SM, [ "application", "desktop", me, funcAfterSave ], false),
 				minWindows : 1,
 				scope : me
 			}, {
 				text : "Save As ...",
 				iconCls : "toolbar-other-save",
-				handler : Ext.bind(GLOBAL.APP.SM.formSaveState, GLOBAL.APP.SM, [ "application", "desktop", me, funcAfterSave ], false),
+				handler : Ext.bind(me.SM.formSaveState, me.SM, [ "application", "desktop", me, funcAfterSave ], false),
 				minWindows : 1,
 				scope : me
 			}, {
@@ -623,7 +641,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 			}, {
 				text : "Manage states ...",
 				iconCls : "toolbar-other-manage",
-				handler : Ext.bind(GLOBAL.APP.SM.formManageStates, GLOBAL.APP.SM, [ "desktop", funcAfterRemove ], false),
+				handler : Ext.bind(me.SM.formManageStates, me.SM, [ "desktop", funcAfterRemove ], false),
 				scope : me
 			})
 
@@ -641,7 +659,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		me.statesMenu.removeAll();
 
 		// creating items for the states
-		var oStates = GLOBAL.APP.SM.getApplicationStates("application", "desktop");
+		var oStates = GLOBAL.APP.SM.getApplicationStates("application", "desktop");// OK
 
 		for ( var i = 0, len = oStates.length; i < len; i++) {
 
@@ -656,7 +674,23 @@ Ext.define('Ext.dirac.core.Desktop', {
 				minWidth : 200,
 				menu : [ {
 					text : "Share state",
-					handler : Ext.bind(GLOBAL.APP.SM.oprShareState, GLOBAL.APP.SM, [ sStateName, "desktop" ], false),
+					handler : function() {
+
+						GLOBAL.APP.SM.oprShareState("desktop", sStateName, function(rCode, rAppName, rStateName, rMessage) {
+
+							if (rCode == 1) {
+
+								var oHtml = "";
+								oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+								oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
+
+								Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
+
+							}
+
+						});
+
+					},
 					iconCls : "system_share_state_icon"
 				} ]
 			});
@@ -668,7 +702,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		me.statesMenu.add("-");
 
 		// creating items for the state links
-		var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", "desktop");
+		var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", "desktop");// OK
 
 		for ( var i = 0, len = oRefs.length; i < len; i++) {
 
@@ -1085,7 +1119,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		if (me.windows.getCount() == 0) {
 
 			if (me.currentState != "")
-				GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
+				GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);// OK
 
 			me.currentState = '';
 			me.refreshUrlDesktopState();
@@ -1108,7 +1142,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		if (!win.isChildWindow) {
 
 			if (win.currentState != "")
-				GLOBAL.APP.SM.removeActiveState(win.loadedObject.self.getName(), win.currentState);
+				GLOBAL.APP.SM.oprRemoveActiveState(win.loadedObject.self.getName(), win.currentState);// OK
 
 			me.refreshUrlDesktopState();
 		}
@@ -1868,15 +1902,16 @@ Ext.define('Ext.dirac.core.Desktop', {
 		 * If the Ajax is not successful then the states will remain the same
 		 */
 
-		var oFunc = function(sAppName) {
+		var oFunc = function(iCode, sAppName) {
+			if (iCode == 1) {
+				me.windows.each(function(item, index, len) {
+					if (item.getAppClassName() == appName)
+						item.oprRefreshAppStates();
+				});
 
-			me.windows.each(function(item, index, len) {
-				if (item.getAppClassName() == appName)
-					item.oprRefreshAppStates();
-			});
-
-			if (appName in me.registerStartMenus)
-				me.registerStartMenus[appName].oprRefreshAppStates();
+				if (appName in me.registerStartMenus)
+					me.registerStartMenus[appName].oprRefreshAppStates();
+			}
 
 		}
 
@@ -1959,7 +1994,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 						var funcAfterSave = function(sAppName, sStateNameOld) {
 						};
 
-						GLOBAL.APP.SM.oprSaveAppState("application", "desktop", me, funcAfterSave);
+						me.SM.oprSaveAppState("application", "desktop", me, funcAfterSave);
 					}
 
 					me.closeAllActiveWindows();
@@ -2009,10 +2044,10 @@ Ext.define('Ext.dirac.core.Desktop', {
 		me.loadState(GLOBAL.APP.SM.getStateData("application", "desktop", sStateName));
 
 		if (me.currentState != "")
-			GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
+			GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);//OK
 
 		me.currentState = sStateName;
-		GLOBAL.APP.SM.addActiveState("desktop", sStateName);
+		GLOBAL.APP.SM.oprAddActiveState("desktop", sStateName);//OK
 
 		me.refreshUrlDesktopState();
 
@@ -2040,9 +2075,11 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 		var me = this;
 
-		var oFunc = function(sAppName) {
-
-			me.oprReadDesktopStatesFromCache();
+		var oFunc = function(iCode, sAppName) {
+			
+			if(iCode == 1){
+				me.oprReadDesktopStatesFromCache();
+			}
 
 		}
 
@@ -2155,7 +2192,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		var me = this;
 
 		var oData = GLOBAL.APP.SM.getStateData("reference", sAppName, sStateName);
-		GLOBAL.APP.SM.loadSharedState(oData["link"], me.cbAfterLoadSharedState);
+		GLOBAL.APP.SM.oprLoadSharedState(oData["link"], me.cbAfterLoadSharedState);
 
 	},
 
@@ -2220,7 +2257,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 			}
 
 			if (me.currentState != "")
-				GLOBAL.APP.SM.removeActiveState("desktop", me.currentState);
+				GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);
 
 			me.currentState = "";
 
@@ -2240,7 +2277,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 			me.addDesktopReference(sLinkName);
 		}
 
-	}
+	},
 
 /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
 
