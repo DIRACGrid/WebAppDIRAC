@@ -1,10 +1,3 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-
 /**
  * @class Ext.dirac.core.StartMenu Startmenu as a part of the taskbar. An object
  *        of this class has two main parts: - Menu (on the left side) - Toolbar
