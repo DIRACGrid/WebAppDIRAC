@@ -1142,6 +1142,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 			// set those data as extraParams in
 			me.grid.store.proxy.extraParams = extraParams;
+			me.grid.store.currentPage = 1;
 			me.grid.store.load();
 			
 			var oCheckbox = Ext.query("#" + me.id + " input.pm-main-check-box");

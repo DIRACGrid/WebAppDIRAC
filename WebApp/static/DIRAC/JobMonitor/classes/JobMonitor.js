@@ -1366,9 +1366,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
 
-				var iHeight = me.statisticsPlotPanel.getHeight()*2;
+				var iHeight = me.statisticsPlotPanel.getHeight();
 
-				var iWidth = me.statisticsPlotPanel.getWidth()*2;
+				var iWidth = me.statisticsPlotPanel.getWidth();
 
 				var canvas = document.createElement('canvas');
 				canvas.setAttribute('width', iWidth);
@@ -1968,6 +1968,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			// set those data as extraParams in
 			me.grid.store.proxy.extraParams = me.getSelectionData();
+			me.grid.store.currentPage = 1;
 			me.grid.store.load();
 
 			var oCheckbox = Ext.query("#" + me.id + " input.jm-main-check-box");

@@ -92,7 +92,6 @@ Ext.define('Ext.dirac.core.Window', {
 			height : 200,
 			maximized : false,
 			minimized : false
-
 		};
 
 		me.loadMask = new Ext.LoadMask(me, {
@@ -390,8 +389,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 		me.suspendEvents(false);
 		me.minimized = false;
-		console.log("DATA PASSED");
-		console.log(oData);
+		
 		if (("maximized" in oData) && (oData["maximized"])) {
 
 			me.maximize();
