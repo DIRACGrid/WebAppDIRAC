@@ -20,19 +20,21 @@ Ext.define('Ext.dirac.core.Module', {
 
 	constructor : function(config) {
 
-		this.launcher = {
+		this.launcher = {};
 
-			title : 'Module',
-			iconCls : 'notepad',
-			width : 0,
-			height : 0,
-			maximized : true,
-			x : null,
-			y : null
-		};
+		/*
+		 * title : 'Module', iconCls : 'notepad', width : 0, height : 0, maximized :
+		 * true, x : null, y : null
+		 */
 
 		this.callParent();
 		this.loadCSS();
+	},
+
+	setLauncherElements : function(oLauncherData) {
+
+		this.launcher = oLauncherData;
+
 	},
 
 	setContainer : function(oContainer) {

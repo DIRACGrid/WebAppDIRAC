@@ -230,7 +230,10 @@ Ext.define('Ext.dirac.core.App', {
 		/*
 		 * Creating the desktop object
 		 */
-		me.desktop = new Ext.dirac.core.Desktop(desktopCfg);
+		
+		var sCamelStyle = GLOBAL.VIEW_ID.charAt(0).toUpperCase()+GLOBAL.VIEW_ID.substr(1);
+	
+		me.desktop = Ext.create("Ext.dirac.core."+sCamelStyle,desktopCfg);
 
 		me.viewport = new Ext.container.Viewport({
 			layout : 'fit',

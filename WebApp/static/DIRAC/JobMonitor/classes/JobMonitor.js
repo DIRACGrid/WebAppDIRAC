@@ -289,7 +289,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.launcher.title = "Job Monitor";
 		me.launcher.maximized = false;
 
-		var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+		var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
 
 		me.launcher.width = oDimensions[0];
 		me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();

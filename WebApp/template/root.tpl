@@ -60,6 +60,7 @@
           GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
+          GLOBAL.VIEW_ID = "desktop";
 
           Ext.onReady(function () {
             GLOBAL.BASE_URL = "{{base_url}}/";
@@ -85,6 +86,7 @@
           GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
+          GLOBAL.VIEW_ID = "desktop";
 
           Ext.onReady(function () {
               GLOBAL.BASE_URL = "{{base_url}}/";

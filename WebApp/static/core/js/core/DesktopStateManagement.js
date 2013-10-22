@@ -5,30 +5,25 @@
  */
 
 Ext.define('Ext.dirac.core.DesktopStateManagement', {
-	requires : [],
+	requires : [ 'Ext.form.field.Text', 'Ext.button.Button', 'Ext.toolbar.Toolbar', 'Ext.panel.Panel' ],
 
-	﻿	/**
-		 * Function called when the Save As ... button from the SAVE window menu is
-		 * clicked
-		 * 
-		 * @param {String}
-		 *          sStateType The type of the state [application|reference]
-		 * @param {String}
-		 *          sAppName Application class name
-		 * @param {Object}
-		 *          oAppObject The application object
-		 * @param {Function}
-		 *          cbAfterSave Function that is executed after the save has been
-		 *          saved
-		 */
+	/**
+	 * Function called when the Save As ... button from the SAVE window menu is
+	 * clicked
+	 * 
+	 * @param {String}
+	 *          sStateType The type of the state [application|reference]
+	 * @param {String}
+	 *          sAppName Application class name
+	 * @param {Object}
+	 *          oAppObject The application object
+	 * @param {Function}
+	 *          cbAfterSave Function that is executed after the save has been
+	 *          saved
+	 */
 	formSaveState : function(sStateType, sAppName, oAppObject, cbAfterSave) {
 
 		var me = this;
-
-		me.__oAppObject = oAppObject;
-		me.__cbAfterSave = cbAfterSave;
-		me.__sStateType = sStateType;
-		me.__sAppName = sAppName;
 
 		me.txtStateName = Ext.create('Ext.form.field.Text', {
 
@@ -81,7 +76,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 							var sStateName = me.txtStateName.getValue();
 
-							me.oprSendDataForSave(sStateName, true);
+							GLOBAL.APP.SM.oprSendDataForSave(oAppObject, sStateType, sStateName, cbAfterSave);
 
 						}
 
@@ -105,7 +100,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 					var sStateName = me.txtStateName.getValue();
 
-					me.oprSendDataForSave(sStateName, true);
+					GLOBAL.APP.SM.oprSendDataForSave(oAppObject, sStateType, sStateName, cbAfterSave);
 
 				}
 
@@ -123,9 +118,6 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 			handler : function() {
 
 				me.txtStateName.setValue("");
-				me.__oAppObject = null;
-				me.__cbAfterSave = null;
-				me.__sStateType = null;
 				me.saveWindow.hide();
 
 			},
@@ -133,7 +125,9 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 		});
 
-		var oToolbar = new Ext.toolbar.Toolbar();
+		var oToolbar = new Ext.toolbar.Toolbar({
+			border : false
+		});
 
 		oToolbar.add([ me.btnSaveState, me.btnCancelSaveState ]);
 
@@ -157,7 +151,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 		me.txtStateName.focus();
 
 	},
-	
+
 	/**
 	 * Function called when the Save button from the SAVE window menu is clicked
 	 * 
@@ -181,15 +175,11 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 		} else {
 
-			me.__oAppObject = oAppObject;
-			me.__cbAfterSave = cbAfterSave;
-			me.__sStateType = sStateType;
-			me.__sAppName = sAppName;
+			GLOBAL.APP.SM.oprSendDataForSave(oAppObject, sStateType, oAppObject.currentState, cbAfterSave);
 
-			me.oprSendDataForSave(oAppObject.currentState, false);
 		}
 	},
-	
+
 	/**
 	 * Function to create and open the form for managing the desktop states
 	 * 
@@ -310,17 +300,20 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 		var me = this;
 		var oSelectEl = document.getElementById(me.manageWindow.getId()).getElementsByTagName("select")[0];
 
-		for (i = oSelectEl.length - 1; i >= 0; i--)
+		for ( var i = oSelectEl.length - 1; i >= 0; i--) {
 			oSelectEl.remove(i);
+		}
 
 		var sAppName = me.manageWindow.items.getAt(1).appName;
 
-		for ( var sStateName in me.cache.application[sAppName]) {
+		var oAppStates = GLOBAL.APP.SM.getApplicationStates("application", sAppName);
+
+		for ( var i = 0; i < oAppStates.length; i++) {
 
 			var elOptNew = document.createElement('option');
 
-			elOptNew.text = sStateName;
-			elOptNew.value = sStateName;
+			elOptNew.text = oAppStates[i];
+			elOptNew.value = oAppStates[i];
 
 			try {
 				oSelectEl.add(elOptNew, null); // standards compliant; doesn't
@@ -333,15 +326,18 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 		oSelectEl = document.getElementById(me.manageWindow.getId()).getElementsByTagName("select")[1];
 
-		for (i = oSelectEl.length - 1; i >= 0; i--)
+		for ( var i = oSelectEl.length - 1; i >= 0; i--) {
 			oSelectEl.remove(i);
+		}
 
-		for ( var sStateName in me.cache.reference[sAppName]) {
+		var oAppRefs = GLOBAL.APP.SM.getApplicationStates("reference", sAppName);
+
+		for ( var i = 0; i < oAppRefs.length; i++) {
 
 			var elOptNew = document.createElement('option');
 
-			elOptNew.text = sStateName;
-			elOptNew.value = sStateName;
+			elOptNew.text = oAppRefs[i];
+			elOptNew.value = oAppRefs[i];
 
 			try {
 				oSelectEl.add(elOptNew, null); // standards compliant; doesn't
@@ -353,7 +349,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 		}
 
 	},
-	
+
 	/**
 	 * Function to delete all selected states or references from the form lists
 	 */
@@ -380,50 +376,34 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 				var oStateName = oSelectField.options[i].value;
 				if (iWhoSelect == 0) {
 
-					if (!me.isAnyActiveState(sAppName, oStateName)) {
+					if (!GLOBAL.APP.SM.isAnyActiveState(sAppName, oStateName)) {
 
-						/*
-						 * If the Ajax is not successful then the item wont be deleted.
-						 */
-						Ext.Ajax.request({
-							url : GLOBAL.BASE_URL + 'UP/delAppState',
-							params : {
-								app : sAppName,
-								name : oStateName,
-								obj : "application"
-							},
-							success : Ext.bind(me.cbDeleteSelectedStates, me, [ i, oSelectField, iWhoSelect ], true),
-							failure : function(response) {
+						var cbFunc = function(rCode, rAppName, rStateType, rStateName) {
 
-								if (response.status == 400)
-									Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-								else
-									Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
-
+							if (rCode == 1) {
+								me.manageWindow.items.getAt(1).cbAfterRemove("application", oStateName, sAppName);
+								oSelectField.remove(i);
 							}
-						});
+
+						};
+
+						GLOBAL.APP.SM.oprDeleteState(sAppName, "application", oStateName, cbFunc);
 
 					} else
 						GLOBAL.APP.CF.alert('The state <b>' + oSelectField.options[i].value + '</b> you are willing to delete is curently in use !', 'warning');
 
 				} else {
 
-					Ext.Ajax.request({
-						url : GLOBAL.BASE_URL + 'UP/delAppState',
-						params : {
-							app : sAppName,
-							name : oStateName,
-							obj : "reference"
-						},
-						success : Ext.bind(me.cbDeleteSelectedStates, me, [ i, oSelectField, iWhoSelect ], true),
-						failure : function(response) {
+					var cbFunc = function(rCode, rAppName, rStateType, rStateName) {
 
-							if (response.status == 400)
-								Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-							else
-								Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+						if (rCode == 1) {
+							me.manageWindow.items.getAt(1).cbAfterRemove("application", oStateName, sAppName);
+							oSelectField.remove(i);
 						}
-					});
+
+					};
+
+					GLOBAL.APP.SM.oprDeleteState(sAppName, "reference", oStateName, cbFunc);
 
 				}
 
@@ -431,44 +411,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 		}
 
 	},
-	
-	/**
-	 * Callback of the oprDeleteSelectedStates function
-	 * 
-	 * @param {Integer}
-	 *          index index of the selected element
-	 * @param {DOMObject}
-	 *          oSelectEl the select element of the management form
-	 */
-	cbDeleteSelectedStates : function(response, options, index, oSelectEl, iWhoSelect) {
 
-		if (response.status == 200) {
-
-			var me = this;
-
-			var sStateName = oSelectEl.options[index].value;
-			var sAppName = me.manageWindow.items.getAt(1).appName;
-
-			if (iWhoSelect == 0)
-				delete me.cache["application"][sAppName][sStateName];
-			else
-				delete me.cache["reference"][sAppName][sStateName];
-
-			me.manageWindow.items.getAt(1).cbAfterRemove(((iWhoSelect == 0) ? "application" : "reference"), sStateName, sAppName);
-
-			oSelectEl.remove(index);
-
-		} else {
-
-			if (response.status == 400)
-				Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-			else
-				Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
-
-		}
-
-	},
-	
 	/**
 	 * Function to create and show the form for saving or loading a shared state
 	 * 
@@ -540,7 +483,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 					GLOBAL.APP.desktop.closeAllActiveWindows();
 					GLOBAL.APP.desktop.currentState = "";
 
-					me.loadSharedState(me.txtLoadText.getValue(), null);
+					GLOBAL.APP.SM.loadSharedState(me.txtLoadText.getValue(), null);
 				}
 			},
 			scope : me
@@ -564,7 +507,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 				if (oValid) {
 
-					me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), null);
+					GLOBAL.APP.SM.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), null);
 
 				}
 
@@ -590,8 +533,8 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 				if (oValid) {
 					GLOBAL.APP.desktop.closeAllActiveWindows();
 					GLOBAL.APP.desktop.currentState = "";
-					me.loadSharedState(me.txtLoadText.getValue(), null);
-					me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), null);
+					GLOBAL.APP.SM.loadSharedState(me.txtLoadText.getValue(), null);
+					GLOBAL.APP.SM.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), null);
 
 				}
 
@@ -614,9 +557,6 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 			items : [ oToolbar, me.txtLoadText, me.txtRefName ]
 		});
 
-		me.__cbAfterLoadSharedState = cbAfterLoad;
-		me.__cbAfterSaveSharedState = cbAfterSave;
-
 		me.manageWindow = Ext.create('widget.window', {
 			height : 200,
 			width : 500,
@@ -625,22 +565,10 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 			modal : true,
 			items : [ oPanel ],
 			iconCls : "system_state_icon",
-			listeners : {
-
-				close : function(oPanel, eOpts) {
-
-					me.__cbAfterLoadSharedState = null;
-					me.__cbAfterSaveSharedState = null;
-
-				}
-
-			}
 		});
 
 		me.manageWindow.show();
 
 	}
-	
-	
 
 });

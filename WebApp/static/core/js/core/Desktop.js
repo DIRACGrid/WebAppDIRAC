@@ -14,7 +14,7 @@
  * 
  */
 Ext.define('Ext.dirac.core.Desktop', {
-	extend : 'Ext.panel.Panel',
+	extend : 'Ext.dirac.core.AppView',
 	alias : 'widget.desktop',
 	mixins : [ "Ext.dirac.core.Stateful" ],
 	uses : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.core.Window', 'Ext.dirac.core.TaskBar', 'Ext.dirac.core.Wallpaper' ],
@@ -198,6 +198,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 	initComponent : function() {
 		var me = this;
 
+		me.ID = "desktop";
+
 		// the width of a desktop cell used for pinning
 		me.boxSizeX = 0;
 		// the height of a desktop cell used for pinning
@@ -256,7 +258,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		}
 
 		me._state_related_url = "";
-		
+
 		me.SM = new Ext.dirac.core.DesktopStateManagement();
 
 	},
@@ -2044,10 +2046,10 @@ Ext.define('Ext.dirac.core.Desktop', {
 		me.loadState(GLOBAL.APP.SM.getStateData("application", "desktop", sStateName));
 
 		if (me.currentState != "")
-			GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);//OK
+			GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);// OK
 
 		me.currentState = sStateName;
-		GLOBAL.APP.SM.oprAddActiveState("desktop", sStateName);//OK
+		GLOBAL.APP.SM.oprAddActiveState("desktop", sStateName);// OK
 
 		me.refreshUrlDesktopState();
 
@@ -2076,8 +2078,8 @@ Ext.define('Ext.dirac.core.Desktop', {
 		var me = this;
 
 		var oFunc = function(iCode, sAppName) {
-			
-			if(iCode == 1){
+
+			if (iCode == 1) {
 				me.oprReadDesktopStatesFromCache();
 			}
 
@@ -2209,7 +2211,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	/**
 	 * Function to get the dimensions of the desktop
 	 */
-	getDesktopDimensions : function() {
+	getViewMainDimensions : function() {
 
 		var me = this;
 

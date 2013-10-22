@@ -158,6 +158,18 @@ Ext.define('Ext.dirac.core.Window', {
 
 		var me = this;
 
+		if (me.loadedObject != null) {
+			me.loadedObject.setLauncherElements({
+				title : 'Module',
+				iconCls : 'notepad',
+				width : 0,
+				height : 0,
+				maximized : true,
+				x : null,
+				y : null
+			});
+		}
+
 		me.minimized = false;
 
 		if (setupData != null) {
@@ -292,7 +304,7 @@ Ext.define('Ext.dirac.core.Window', {
 					me.loadedObject.currentState = setupData.currentState;
 
 					if (me.currentState != "")
-						GLOBAL.APP.SM.oprAddActiveState(me.loadedObject.self.getName(), me.currentState);//OK
+						GLOBAL.APP.SM.oprAddActiveState(me.loadedObject.self.getName(), me.currentState);// OK
 
 					me.loadedObject.loadState(setupData.data);
 				}
@@ -389,7 +401,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 		me.suspendEvents(false);
 		me.minimized = false;
-		
+
 		if (("maximized" in oData) && (oData["maximized"])) {
 
 			me.maximize();
@@ -532,7 +544,7 @@ Ext.define('Ext.dirac.core.Window', {
 			 * A call to isStateLoaded can be used to see whether the application
 			 * states have been loaded
 			 */
-			var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, "|");//OK
+			var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, "|");// OK
 
 			if (iAppStatesLoaded != -2) {
 
@@ -547,7 +559,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 				var oFunc = function(iCode, sAppName) {
 
-					if(iCode == 1){
+					if (iCode == 1) {
 						me.oprRefreshAppStates();
 					}
 
@@ -563,7 +575,7 @@ Ext.define('Ext.dirac.core.Window', {
 				me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
 
 				if (me.currentState != "")
-					GLOBAL.APP.SM.oprRemoveActiveState(sAppName, me.currentState);//OK
+					GLOBAL.APP.SM.oprRemoveActiveState(sAppName, me.currentState);// OK
 
 				me.loadedObject.currentState = sStateName;
 				me.currentState = sStateName;
@@ -790,7 +802,7 @@ Ext.define('Ext.dirac.core.Window', {
 		me.statesMenu.removeAll();
 
 		// first we fill the menu with the states
-		var oStates = GLOBAL.APP.SM.getApplicationStates("application", me.appClassName);//OK
+		var oStates = GLOBAL.APP.SM.getApplicationStates("application", me.appClassName);// OK
 
 		for ( var i = 0, len = oStates.length; i < len; i++) {
 
@@ -832,7 +844,7 @@ Ext.define('Ext.dirac.core.Window', {
 		me.statesMenu.add("-");
 
 		// then we fill the menu with the refrences
-		var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", me.appClassName);//OK
+		var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", me.appClassName);// OK
 
 		for ( var i = 0, len = oRefs.length; i < len; i++) {
 
@@ -863,7 +875,7 @@ Ext.define('Ext.dirac.core.Window', {
 		var me = this;
 
 		// checking whether the state exists or not
-		var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, stateName);//OK
+		var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, stateName);// OK
 
 		switch (iStateLoaded) {
 		case -1:
@@ -889,15 +901,15 @@ Ext.define('Ext.dirac.core.Window', {
 
 		me.closeAllChildWindows();
 
-		me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName));//OK
+		me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName));// OK
 
 		if (me.currentState != "")
-			GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);//OK
+			GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);// OK
 
 		me.currentState = stateName;
 		me.loadedObject.currentState = stateName;
 
-		GLOBAL.APP.SM.oprAddActiveState(me.appClassName, stateName);//OK
+		GLOBAL.APP.SM.oprAddActiveState(me.appClassName, stateName);// OK
 		GLOBAL.APP.desktop.refreshUrlDesktopState();
 
 		me.setTitle(me.loadedObject.launcher.title + " [" + stateName + "]");

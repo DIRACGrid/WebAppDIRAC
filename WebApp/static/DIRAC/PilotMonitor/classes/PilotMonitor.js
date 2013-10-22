@@ -223,7 +223,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		me.launcher.title = "Pilot Monitor";
 		me.launcher.maximized = false;
 
-		var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+		var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
 
 		me.launcher.width = oDimensions[0];
 		me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
@@ -648,7 +648,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				if (oValues != "") {
 
 					var oSetupData = {};
-					var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+					var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
 					oSetupData.x = 0;
 					oSetupData.y = 0;
 					oSetupData.width = oDimensions[0];
@@ -694,7 +694,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 					var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
 					if (oId != '-') {
 						var oSetupData = {};
-						var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+						var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
 						oSetupData.x = 0;
 						oSetupData.y = 0;
 						oSetupData.width = oDimensions[0];
