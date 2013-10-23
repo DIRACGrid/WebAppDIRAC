@@ -58,13 +58,17 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		var me = this;
 
-		me.launcher.title = "Configuration Manager";
-		me.launcher.maximized = false;
-		var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+		if (GLOBAL.VIEW_ID == "desktop") {
 
-		me.launcher.height = oDimensions[1] / 2;
-		me.launcher.width = oDimensions[0] / 2;
+			me.launcher.title = "Configuration Manager";
+			me.launcher.maximized = false;
+			var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
 
+			me.launcher.height = oDimensions[1] / 2;
+			me.launcher.width = oDimensions[0] / 2;
+
+		}
+		
 		Ext.apply(me, {
 			layout : 'border',
 			bodyBorder : false,
@@ -923,8 +927,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		 * 
 		 * sTestHtml += '<tr ' + ((cClass != "") ? " id='diff-line-" + i + "' class='" + cClass + "'" : "") + '>';
 		 * sTestHtml += "<th>" + sRow + "</th>"; sTestHtml += "<th>" + sRow + "</th>";
-		 * sTestHtml += '</tr>';
-		 *  }
+		 * sTestHtml += '</tr>'; }
 		 * 
 		 * sTestHtml += '</table>';
 		 * 
@@ -950,24 +953,23 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			layout : "absolute",
 			codePanel : oCodePanel,
 			width : 50,
-			totalLines: oResponse.totalLines,
-			listeners:{
-				
-				resize:function( oComp, width, height, oldWidth, oldHeight, eOpts ){
-						
-						var delta_pos = 1.0 * (height - 10) / parseFloat(oComp.totalLines);
-		
-						for(var i=0;i<oComp.items.length;i++){
-							
-							var oItem = oComp.getComponent(i);
-							
-							oItem.setPosition(0, Math.ceil(delta_pos * parseFloat(oItem.lineNumber)));
-							
-						}
-					
+			totalLines : oResponse.totalLines,
+			listeners : {
+
+				resize : function(oComp, width, height, oldWidth, oldHeight, eOpts) {
+
+					var delta_pos = 1.0 * (height - 10) / parseFloat(oComp.totalLines);
+
+					for ( var i = 0; i < oComp.items.length; i++) {
+
+						var oItem = oComp.getComponent(i);
+
+						oItem.setPosition(0, Math.ceil(delta_pos * parseFloat(oItem.lineNumber)));
+
+					}
+
 				}
-				
-				
+
 			}
 		});
 
@@ -981,7 +983,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		oWindow.add(oPanel);
 		oWindow.show();
 		oWindow.maximize();
-		
+
 		var delta_pos = 1.0 * (oBlocksPanel.getHeight() - 10) / parseFloat(oResponse.totalLines);
 
 		var oElem = Ext.query("table.cm-config-diff tr")[0];
@@ -1017,8 +1019,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 				bodyStyle : {
 					background : sColor
 				},
-				width:50,
-				lineNumber: oResponse.lines[i][1],
+				width : 50,
+				lineNumber : oResponse.lines[i][1],
 				height : 1 + ((delta_pos < 1.0) ? 1 : Math.ceil(delta_pos)),
 				x : 0,
 				y : Math.ceil(delta_pos * parseFloat(oResponse.lines[i][1])),

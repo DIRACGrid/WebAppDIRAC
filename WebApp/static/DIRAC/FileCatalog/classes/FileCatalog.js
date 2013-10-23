@@ -204,12 +204,16 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	initComponent : function() {
 
 		var me = this;
-
-		me.launcher.title = "File Catalog";
-		me.launcher.maximized = true;
+		
+		if (GLOBAL.VIEW_ID == "desktop") {
+			
+			me.launcher.title = "File Catalog";
+			me.launcher.maximized = true;
+		
+		}
 
 		me.__loadingStateDataStruct = null;
-
+		
 		Ext.apply(me, {
 			layout : 'border',
 			bodyBorder : false,

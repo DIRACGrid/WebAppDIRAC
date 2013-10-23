@@ -46,7 +46,7 @@ Ext.define('Ext.dirac.core.StartMenu', {
 		 */
 
 		me.title = ((GLOBAL.APP.configData.user.username) ? GLOBAL.APP.configData["user"]["username"] + "@" + GLOBAL.APP.configData["user"]["group"] : "Anonymous");
-
+		
 		me.menu = new Ext.menu.Menu({
 			cls : 'ux-start-menu-body',
 			border : false,
@@ -54,12 +54,12 @@ Ext.define('Ext.dirac.core.StartMenu', {
 		});
 
 		me.menu.layout.align = 'stretch';
-
+		
 		me.items = [ me.menu ];
 		me.layout = 'fit';
 
 		Ext.menu.Manager.register(me);
-
+		
 		me.callParent(arguments);
 
 		me.toolbar = new Ext.toolbar.Toolbar({
@@ -68,21 +68,20 @@ Ext.define('Ext.dirac.core.StartMenu', {
 			vertical : true,
 			width : 100
 		});
-
+		
 		if (GLOBAL.STATE_MANAGEMENT_ENABLED) {
 			me.toolbar.add([ '->', {
 				text : 'State Loader',
 				iconCls : 'system_state_icon',
 				handler : function() {
 					GLOBAL.APP.desktop.SM.formStateLoader(GLOBAL.APP.desktop.cbAfterLoadSharedState, GLOBAL.APP.desktop.cbAfterSaveSharedState);
-				},
-				scope : GLOBAL.APP.desktop.SM
+				}
 			} ]);
 		}
 
 		me.toolbar.layout.align = 'stretch';
 		me.addDocked(me.toolbar);
-
+		
 		delete me.toolItems;
 
 	},
@@ -90,12 +89,11 @@ Ext.define('Ext.dirac.core.StartMenu', {
 	afterRender : function() {
 
 		var me = this;
-
+		
 		for ( var j = 0; j < GLOBAL.APP.configData["menu"].length; j++)
 			me.menu.add(me.getMenuStructureRec(GLOBAL.APP.configData["menu"][j]));
 
 		this.callParent();
-
 	},
 
 	/**
@@ -253,9 +251,11 @@ Ext.define('Ext.dirac.core.StartMenu', {
 								minWidth : 200,
 								menu : [ {
 									text : "Share state",
+									stateName: stateName,
 									handler : function() {
-
-										GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, stateName, function(rCode, rAppName, rStateName, rMessage) {
+										var oThisItem = this;
+										
+										GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, oThisItem.stateName , function(rCode, rAppName, rStateName, rMessage) {
 
 											if (rCode == 1) {
 
@@ -358,9 +358,13 @@ Ext.define('Ext.dirac.core.StartMenu', {
 								stateType : "application",
 								menu : [ {
 									text : "Share state",
+									stateName: stateName,
 									handler : function() {
-
-										GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, stateName, function(rCode, rAppName, rStateName, rMessage) {
+										
+										var oThisItem = this;
+										
+										
+										GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, oThisItem.stateName , function(rCode, rAppName, rStateName, rMessage) {
 
 											if (rCode == 1) {
 

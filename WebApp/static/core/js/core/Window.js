@@ -158,18 +158,6 @@ Ext.define('Ext.dirac.core.Window', {
 
 		var me = this;
 
-		if (me.loadedObject != null) {
-			me.loadedObject.setLauncherElements({
-				title : 'Module',
-				iconCls : 'notepad',
-				width : 0,
-				height : 0,
-				maximized : true,
-				x : null,
-				y : null
-			});
-		}
-
 		me.minimized = false;
 
 		if (setupData != null) {
@@ -570,24 +558,30 @@ Ext.define('Ext.dirac.core.Window', {
 
 			}
 
-			var funcAfterSave = function(sAppName, sStateName) {
+			var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
 
-				me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
+				if ((iCode == 1) && (me.currentState != sStateName)) {
 
-				if (me.currentState != "")
-					GLOBAL.APP.SM.oprRemoveActiveState(sAppName, me.currentState);// OK
+					me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
 
-				me.loadedObject.currentState = sStateName;
-				me.currentState = sStateName;
-				GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-				me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
-				me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]", 20));
-				GLOBAL.APP.desktop.refreshUrlDesktopState();
+					if (me.currentState != "")
+						GLOBAL.APP.SM.oprRemoveActiveState(sAppName, me.currentState);
+
+					me.loadedObject.currentState = sStateName;
+					me.currentState = sStateName;
+					GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
+					me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
+					me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]", 20));
+					GLOBAL.APP.desktop.refreshUrlDesktopState();
+
+					if (GLOBAL.APP.desktop.SM.saveWindow)
+						GLOBAL.APP.desktop.SM.saveWindow.close();
+				}
 
 			};
 
 			var funcAfterRemove = function(sStateType, sAppName, sStateName) {
-
+				
 				me.desktop.removeStateFromWindows(sStateType, sAppName, sStateName);
 
 			}

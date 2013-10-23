@@ -220,16 +220,20 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		var me = this;
 
-		me.launcher.title = "Pilot Monitor";
-		me.launcher.maximized = false;
+		if (GLOBAL.VIEW_ID == "desktop") {
 
-		var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
+			me.launcher.title = "Pilot Monitor";
+			me.launcher.maximized = false;
 
-		me.launcher.width = oDimensions[0];
-		me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+			var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
 
-		me.launcher.x = 0;
-		me.launcher.y = 0;
+			me.launcher.width = oDimensions[0];
+			me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
 
 		Ext.apply(me, {
 			layout : 'border',
@@ -575,7 +579,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 					}
 
 				},
-				
+
 				beforeload : function(oStore, oOperation, eOpts) {
 
 					me.dataStore.lastDataRequest = oOperation;
@@ -1144,7 +1148,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			me.grid.store.proxy.extraParams = extraParams;
 			me.grid.store.currentPage = 1;
 			me.grid.store.load();
-			
+
 			var oCheckbox = Ext.query("#" + me.id + " input.pm-main-check-box");
 			oCheckbox[0].checked = false;
 		}

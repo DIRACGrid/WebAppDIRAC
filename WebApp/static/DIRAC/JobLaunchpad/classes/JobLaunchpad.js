@@ -14,14 +14,18 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 		var me = this;
 
-		me.launcher.title = "Job Launchpad";
-		me.launcher.maximized = false;
+		if (GLOBAL.VIEW_ID == "desktop") {
 
-		me.launcher.width = 600;
-		me.launcher.height = 600;
+			me.launcher.title = "Job Launchpad";
+			me.launcher.maximized = false;
 
-		me.launcher.x = 0;
-		me.launcher.y = 0;
+			me.launcher.width = 600;
+			me.launcher.height = 600;
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
 
 		Ext.apply(me, {
 			layout : 'border',

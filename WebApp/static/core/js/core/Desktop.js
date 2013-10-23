@@ -14,10 +14,10 @@
  * 
  */
 Ext.define('Ext.dirac.core.Desktop', {
-	extend : 'Ext.dirac.core.AppView',
+	extend : 'Ext.panel.Panel',
 	alias : 'widget.desktop',
+	requires : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.core.Window', 'Ext.dirac.core.TaskBar', 'Ext.dirac.core.Wallpaper', 'Ext.dirac.core.DesktopStateManagement' ],
 	mixins : [ "Ext.dirac.core.Stateful" ],
-	uses : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.core.Window', 'Ext.dirac.core.TaskBar', 'Ext.dirac.core.Wallpaper' ],
 
 	activeWindowCls : 'ux-desktop-active-win',
 	inactiveWindowCls : 'ux-desktop-inactive-win',
@@ -211,6 +211,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 		 */
 		me.windowMenu = new Ext.menu.Menu(me.createWindowMenu());
 
+		me.SM = new Ext.dirac.core.DesktopStateManagement();
 		me.bbar = me.taskbar = new Ext.dirac.core.TaskBar(me.taskbarConfig);
 		me.taskbar.windowMenu = me.windowMenu;
 
@@ -230,11 +231,12 @@ Ext.define('Ext.dirac.core.Desktop', {
 			id : me.id + '_wallpaper'
 		}, me.createDataView() ];
 
-		me.callParent();
+		me.callParent(arguments);
 
 		/*
 		 * Setting the wallpaper
 		 */
+
 		var wallpaper = me.wallpaper;
 		me.wallpaper = me.items.getAt(0);
 		if (wallpaper) {
@@ -258,8 +260,6 @@ Ext.define('Ext.dirac.core.Desktop', {
 		}
 
 		me._state_related_url = "";
-
-		me.SM = new Ext.dirac.core.DesktopStateManagement();
 
 	},
 
@@ -519,15 +519,14 @@ Ext.define('Ext.dirac.core.Desktop', {
 		me.statesMenu = new Ext.menu.Menu();
 
 		var oFunc = function(iCode, sAppName) {
-
 			me.oprReadDesktopStatesFromCache();
-
 		};
 
 		/*
 		 * if the state management is enabled, first we read the states and the
 		 * references and then we load them into the desktop menu.
 		 */
+
 		if (GLOBAL.STATE_MANAGEMENT_ENABLED)
 			GLOBAL.APP.SM.oprReadApplicationStatesAndReferences("desktop", oFunc);// OK
 
@@ -1682,7 +1681,17 @@ Ext.define('Ext.dirac.core.Desktop', {
 				var me = this;
 
 				// creating an object of the demeanded application
-				var instance = Ext.create(sStartClass, {});
+				var instance = Ext.create(sStartClass, {
+					launcherElements : {
+						title : 'Module',
+						iconCls : 'notepad',
+						width : 0,
+						height : 0,
+						maximized : true,
+						x : null,
+						y : null
+					}
+				});
 
 				var config = {
 					desktop : me,
@@ -1930,7 +1939,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	 * @param {String}
 	 *          appName Name of the module (application)
 	 */
-	removeStateFromWindows : function(sStateType, sStateName, sAppName) {
+	removeStateFromWindows : function(sStateType, sAppName, sStateName ) {
 
 		var me = this;
 
@@ -2232,7 +2241,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	/*-----------------IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
 
-	cbAfterLoadSharedState : function(sLink, oDataReceived) {
+	cbAfterLoadSharedState : function(iCode, sLink, oDataReceived) {
 
 		var me = GLOBAL.APP.desktop;
 
@@ -2267,7 +2276,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 
 	},
 
-	cbAfterSaveSharedState : function(sLinkName, sLink) {
+	cbAfterSaveSharedState : function(iCode, sLinkName, sLink) {
 
 		var me = GLOBAL.APP.desktop;
 
@@ -2279,7 +2288,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 			me.addDesktopReference(sLinkName);
 		}
 
-	},
+	}
 
 /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
 

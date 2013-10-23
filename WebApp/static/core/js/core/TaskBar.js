@@ -30,7 +30,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 	initComponent : function() {
 
 		var me = this;
-
+		
 		if (!GLOBAL.APP.configData.user.username) {
 
 			GLOBAL.STATE_MANAGEMENT_ENABLED = false;
@@ -38,7 +38,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 		}
 
 		me.startMenu = new Ext.dirac.core.StartMenu();
-
+		
 		me.windowBar = new Ext.toolbar.Toolbar(me.getWindowBarConfig());
 
 		me.items = [ {
@@ -52,7 +52,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 			xtype : 'tbtext',
 			text : "Theme"
 		} ];
-
+		
 		var sButtonThemeText = "Grey";
 
 		if (GLOBAL.WEB_THEME == "ext-all-neptune")
@@ -88,7 +88,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 				}
 			});
 		}
-
+		
 		me.items.push(button_theme);
 
 		if (GLOBAL.APP.configData.user.username) {
@@ -122,7 +122,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 
 					}
 				});
-
+			
 			me.group_button = new Ext.button.Button(button_data);
 
 			var setup_data = {
@@ -141,13 +141,14 @@ Ext.define('Ext.dirac.core.TaskBar', {
 
 					}
 				});
-
+			
 			me.setup_button = new Ext.button.Button(setup_data);
 			me.items.push('-');
 			me.items.push({
 				xtype : 'tbtext',
 				text : GLOBAL.APP.configData["user"]["username"] + "@"
 			});
+			
 			me.items.push(me.group_button);
 			me.items.push('-');
 			me.items.push(me.setup_button);
@@ -187,8 +188,9 @@ Ext.define('Ext.dirac.core.TaskBar', {
 				});
 			}
 		}
-
+		
 		me.callParent();
+		
 	},
 
 	afterLayout : function() {

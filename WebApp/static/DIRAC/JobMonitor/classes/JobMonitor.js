@@ -286,16 +286,20 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var me = this;
 
-		me.launcher.title = "Job Monitor";
-		me.launcher.maximized = false;
+		if (GLOBAL.VIEW_ID == "desktop") {
 
-		var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
+			me.launcher.title = "Job Monitor";
+			me.launcher.maximized = false;
 
-		me.launcher.width = oDimensions[0];
-		me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+			var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
 
-		me.launcher.x = 0;
-		me.launcher.y = 0;
+			me.launcher.width = oDimensions[0];
+			me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
 
 		Ext.apply(me, {
 			layout : 'border',
@@ -1385,10 +1389,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png';
 
 				oImage.onload = function() {
-					
-					console.log([oImage.clientWidth,oImage.clientHeight]);
-					
-					oContext.drawImage(oImage, 0,0,iWidth,iHeight);
+
+					console.log([ oImage.clientWidth, oImage.clientHeight ]);
+
+					oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
 
 					oContext.drawSvg(sSvgElement, 0, 0);
 

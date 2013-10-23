@@ -89,6 +89,7 @@ Ext.define('Ext.dirac.core.App', {
 				 * extract the list of valid application that a user can start through
 				 * the start menu
 				 */
+
 				me.__readValidApplication();
 
 				/*
@@ -230,10 +231,15 @@ Ext.define('Ext.dirac.core.App', {
 		/*
 		 * Creating the desktop object
 		 */
-		
-		var sCamelStyle = GLOBAL.VIEW_ID.charAt(0).toUpperCase()+GLOBAL.VIEW_ID.substr(1);
-	
-		me.desktop = Ext.create("Ext.dirac.core."+sCamelStyle,desktopCfg);
+
+		var sCamelStyle = GLOBAL.VIEW_ID.charAt(0).toUpperCase() + GLOBAL.VIEW_ID.substr(1);
+
+		// Ext.require("Ext.dirac.core." + sCamelStyle, function() {
+		//			
+		// });
+
+		// me.desktop = Ext.create("Ext.dirac.core." + sCamelStyle, desktopCfg);
+		me.desktop = new Ext.dirac.core.Desktop(desktopCfg);
 
 		me.viewport = new Ext.container.Viewport({
 			layout : 'fit',
@@ -244,6 +250,7 @@ Ext.define('Ext.dirac.core.App', {
 
 		me.isReady = true;// only if there is no desktop state loaded
 		me.fireEvent('ready', me);
+
 	},
 
 	/**

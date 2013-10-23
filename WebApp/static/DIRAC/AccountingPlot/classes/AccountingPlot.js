@@ -82,16 +82,20 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 	initComponent : function() {
 		var me = this;
 
-		me.launcher.title = "Accounting";
-		me.launcher.maximized = false;
+		if (GLOBAL.VIEW_ID == "desktop") {
 
-		var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
-		var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
-		me.launcher.width = iDim;
-		me.launcher.height = iDim;
+			me.launcher.title = "Accounting";
+			me.launcher.maximized = false;
 
-		me.launcher.x = 0;
-		me.launcher.y = 0;
+			var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
+			var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
+			me.launcher.width = iDim;
+			me.launcher.height = iDim;
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
 
 		Ext.apply(me, {
 			layout : 'border',

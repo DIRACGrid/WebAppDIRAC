@@ -5,7 +5,7 @@
  */
 
 Ext.define('Ext.dirac.core.DesktopStateManagement', {
-	requires : [ 'Ext.form.field.Text', 'Ext.button.Button', 'Ext.toolbar.Toolbar', 'Ext.panel.Panel' ],
+	requires : [ 'Ext.form.field.Text', 'Ext.button.Button', 'Ext.toolbar.Toolbar', 'Ext.panel.Panel', "Ext.window.Window" ],
 
 	/**
 	 * Function called when the Save As ... button from the SAVE window menu is
@@ -42,14 +42,14 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 				} else {
 
-					if (me.isStateLoaded(me.__sStateType, me.__sAppName, sValue) == 1) {
+					if (GLOBAL.APP.SM.isStateLoaded(sStateType, sAppName, sValue) == 1) {
 
 						this.markInvalid("The name you enetered already exists !");
 						return false;
 
 					} else {
 
-						if (me.__isValidStateName(sValue)) {
+						if (GLOBAL.APP.SM.isValidStateName(sValue)) {
 							this.clearInvalid();
 							return true;
 						} else {
@@ -288,14 +288,14 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 		me.manageWindow.show();
 
 		// filling the lists of the form with states and references
-		me.__oprFillSelectFieldWithStates();
+		me.oprFillSelectFieldWithStates();
 
 	},
 
 	/**
 	 * Function to fill the select element with the existing module states
 	 */
-	__oprFillSelectFieldWithStates : function() {
+	oprFillSelectFieldWithStates : function() {
 
 		var me = this;
 		var oSelectEl = document.getElementById(me.manageWindow.getId()).getElementsByTagName("select")[0];
@@ -367,6 +367,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 		var oSelectField = document.getElementById(me.manageWindow.getId()).getElementsByTagName("select")[iWhoSelect];
 
 		for ( var i = oSelectField.length - 1; i >= 0; i--) {
+
 			if (oSelectField.options[i].selected) {
 
 				/*
@@ -374,6 +375,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 				 * active
 				 */
 				var oStateName = oSelectField.options[i].value;
+
 				if (iWhoSelect == 0) {
 
 					if (!GLOBAL.APP.SM.isAnyActiveState(sAppName, oStateName)) {
@@ -381,8 +383,14 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 						var cbFunc = function(rCode, rAppName, rStateType, rStateName) {
 
 							if (rCode == 1) {
-								me.manageWindow.items.getAt(1).cbAfterRemove("application", oStateName, sAppName);
-								oSelectField.remove(i);
+								me.manageWindow.items.getAt(1).cbAfterRemove("application", rAppName, rStateName);
+								for ( var j = oSelectField.length - 1; j >= 0; j--) {
+									if (rStateName == oSelectField.options[j].value) {
+										oSelectField.remove(j);
+										break;
+									}
+								}
+
 							}
 
 						};
@@ -397,8 +405,13 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 					var cbFunc = function(rCode, rAppName, rStateType, rStateName) {
 
 						if (rCode == 1) {
-							me.manageWindow.items.getAt(1).cbAfterRemove("application", oStateName, sAppName);
-							oSelectField.remove(i);
+							me.manageWindow.items.getAt(1).cbAfterRemove("reference", rAppName, rStateName);
+							for ( var j = oSelectField.length - 1; j >= 0; j--) {
+								if (rStateName == oSelectField.options[j].value) {
+									oSelectField.remove(j);
+									break;
+								}
+							}
 						}
 
 					};
@@ -480,10 +493,11 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 			handler : function() {
 
 				if (me.txtLoadText.validate()) {
+
 					GLOBAL.APP.desktop.closeAllActiveWindows();
 					GLOBAL.APP.desktop.currentState = "";
+					GLOBAL.APP.SM.oprLoadSharedState(me.txtLoadText.getValue(), cbAfterLoad);
 
-					GLOBAL.APP.SM.loadSharedState(me.txtLoadText.getValue(), null);
 				}
 			},
 			scope : me
@@ -507,7 +521,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 				if (oValid) {
 
-					GLOBAL.APP.SM.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), null);
+					GLOBAL.APP.SM.oprSaveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), cbAfterSave);
 
 				}
 
@@ -533,8 +547,8 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 				if (oValid) {
 					GLOBAL.APP.desktop.closeAllActiveWindows();
 					GLOBAL.APP.desktop.currentState = "";
-					GLOBAL.APP.SM.loadSharedState(me.txtLoadText.getValue(), null);
-					GLOBAL.APP.SM.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), null);
+					GLOBAL.APP.SM.oprLoadSharedState(me.txtLoadText.getValue(), cbAfterLoad);
+					GLOBAL.APP.SM.oprSaveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), cbAfterSave);
 
 				}
 
