@@ -76,7 +76,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 							var sStateName = me.txtStateName.getValue();
 
-							GLOBAL.APP.SM.oprSendDataForSave(oAppObject, sStateType, sStateName, cbAfterSave);
+							GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, sStateName, cbAfterSave);
 
 						}
 
@@ -100,7 +100,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 					var sStateName = me.txtStateName.getValue();
 
-					GLOBAL.APP.SM.oprSendDataForSave(oAppObject, sStateType, sStateName, cbAfterSave);
+					GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, sStateName, cbAfterSave);
 
 				}
 
@@ -175,7 +175,7 @@ Ext.define('Ext.dirac.core.DesktopStateManagement', {
 
 		} else {
 
-			GLOBAL.APP.SM.oprSendDataForSave(oAppObject, sStateType, oAppObject.currentState, cbAfterSave);
+			GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, oAppObject.currentState, cbAfterSave);
 
 		}
 	},

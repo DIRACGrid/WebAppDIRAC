@@ -533,49 +533,59 @@ Ext.define('Ext.dirac.core.Desktop', {
 		/*
 		 * Function that is executed after a state has been saved
 		 */
-		var funcAfterSave = function(sAppName, sStateName) {
+		var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
 
-			// we create new item
-			var oNewItem = Ext.create('Ext.menu.Item', {
-				text : sStateName,
-				handler : Ext.bind(me.oprLoadDesktopState, me, [ sStateName ], false),
-				scope : me,
-				iconCls : "system_state_icon",
-				minWidth : 200,
-				menu : [ {
-					text : "Share state",
-					handler : function() {
+			if ((iCode == 1)&&(me.currentState != sStateName)) {
+				
+				// we create new item
+				var oNewItem = Ext.create('Ext.menu.Item', {
+					text : sStateName,
+					handler : Ext.bind(me.oprLoadDesktopState, me, [ sStateName ], false),
+					scope : me,
+					iconCls : "system_state_icon",
+					minWidth : 200,
+					menu : [ {
+						text : "Share state",
+						stateName : sStateName,
+						handler : function() {
 
-						GLOBAL.APP.SM.oprShareState("desktop", sStateName, function(rCode, rAppName, rStateName, rMessage) {
+							var oThisItem = this;
 
-							if (rCode == 1) {
+							GLOBAL.APP.SM.oprShareState("desktop", oThisItem.stateName, function(rCode, rAppName, rStateName, rMessage) {
 
-								var oHtml = "";
-								oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
-								oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
+								if (rCode == 1) {
 
-								Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
+									var oHtml = "";
+									oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+									oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
 
-							}
+									Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
 
-						});
+								}
 
-					},
-					iconCls : "system_share_state_icon"
-				} ]
-			});
+							});
 
-			// and we insert at the beginning of the menu
-			me.statesMenu.insert(0, oNewItem);
+						},
+						iconCls : "system_share_state_icon"
+					} ]
+				});
 
-			// if there is an active desktop state, we have to remove it
-			if (me.currentState != "")
-				GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);// OK
+				// and we insert at the beginning of the menu
+				me.statesMenu.insert(0, oNewItem);
 
-			// if there is a state, we set it as an active state
-			me.currentState = sStateName;
-			GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);// OK
-			me.refreshUrlDesktopState();
+				// if there is an active desktop state, we have to remove it
+				if (me.currentState != "")
+					GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);// OK
+
+				// if there is a state, we set it as an active state
+				me.currentState = sStateName;
+				GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);// OK
+				me.refreshUrlDesktopState();
+				
+				if(me.SM.saveWindow)
+					me.SM.saveWindow.close();
+
+			}
 
 		};
 
@@ -675,9 +685,12 @@ Ext.define('Ext.dirac.core.Desktop', {
 				minWidth : 200,
 				menu : [ {
 					text : "Share state",
+					stateName: sStateName,
 					handler : function() {
-
-						GLOBAL.APP.SM.oprShareState("desktop", sStateName, function(rCode, rAppName, rStateName, rMessage) {
+						
+						var oThisItem = this;
+						
+						GLOBAL.APP.SM.oprShareState("desktop", oThisItem.stateName, function(rCode, rAppName, rStateName, rMessage) {
 
 							if (rCode == 1) {
 
@@ -1939,7 +1952,7 @@ Ext.define('Ext.dirac.core.Desktop', {
 	 * @param {String}
 	 *          appName Name of the module (application)
 	 */
-	removeStateFromWindows : function(sStateType, sAppName, sStateName ) {
+	removeStateFromWindows : function(sStateType, sAppName, sStateName) {
 
 		var me = this;
 

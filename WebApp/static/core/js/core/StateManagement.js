@@ -218,7 +218,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 *          isNewItem Parameter that says whether the state already exists or
 	 *          not
 	 */
-	oprSendDataForSave : function(oAppObject, sStateType, sStateName, cbAfterSave) {
+	oprSendDataForSave : function(sAppName, oAppObject, sStateType, sStateName, cbAfterSave) {
 
 		var me = this;
 
@@ -232,14 +232,14 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			 */
 			return;
 		}
-
+		
 		/*
 		 * If the Ajax is not successful the state wont be saved.
 		 */
 		Ext.Ajax.request({
 			url : GLOBAL.BASE_URL + 'UP/saveAppState',
 			params : {
-				app : oAppObject.self.getName(),
+				app : sAppName,
 				name : sStateName,
 				state : Ext.JSON.encode(oSendData),
 				obj : sStateType
@@ -251,19 +251,19 @@ Ext.define('Ext.dirac.core.StateManagement', {
 					var me = this;
 					Ext.example.msg("Notification", 'State saved successfully !');
 
-					me.cache[sStateType][oAppObject.self.getName()][sStateName] = oSendData;
+					me.cache[sStateType][sAppName][sStateName] = oSendData;
 
-					cbAfterSave(1, oAppObject.self.getName(), sStateType, sStateName);
+					cbAfterSave(1, sAppName, sStateType, sStateName);
 
 				} else if (oResponse.status == 400) {
 
 					Ext.example.msg("Error Notification", 'Operation failed: ' + oResponse.responseText + '.<br/> Please try again later !');
-					cbAfterSave(-1, oAppObject.self.getName(), sStateType, sStateName);
+					cbAfterSave(-1, sAppName, sStateType, sStateName);
 
 				} else {
 
 					Ext.example.msg("Error Notification", 'Operation failed: ' + oResponse.statusText + '.<br/> Please try again later !');
-					cbAfterSave(-2, oAppObject.self.getName(), sStateType, sStateName);
+					cbAfterSave(-2, sAppName, sStateType, sStateName);
 
 				}
 
@@ -272,10 +272,10 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 				if (response.status == 400) {
 					Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-					cbAfterSave(-3, oAppObject.self.getName(), sStateType, sStateName);
+					cbAfterSave(-3, sAppName, sStateType, sStateName);
 				} else {
 					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
-					cbAfterSave(-4, oAppObject.self.getName(), sStateType, sStateName);
+					cbAfterSave(-4, sAppName, sStateType, sStateName);
 				}
 			}
 		});
