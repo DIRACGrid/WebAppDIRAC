@@ -351,6 +351,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     cfgData = self.__configData[ 'cfgData' ].getCFG()
 
     nodeDict = cfgData.getRecursive(nodePath)
+    
     if not nodeDict:
       return {"success":0, "op":"copyKey", "message":"Moving entity does not exist"}
     oldParentDict = cfgData.getRecursive(nodePath, -1)
@@ -368,9 +369,10 @@ class ConfigurationManagerHandler(WebSocketHandler):
       brothers = newParentDict[ 'value' ].listAll()
       nodeDict["key"] = newNodeName
       addArgs = {}
-      for key in ('comment', 'beforeKey', 'value', 'key'):
+      for key in ('comment', 'beforeKey', 'key'):
         if key in nodeDict:
           addArgs[ key ] = nodeDict[ key ]
+      addArgs["value"] = nodeDict["value"].clone()
       newParentDict[ 'value' ].addKey(**addArgs)
     except Exception, e:
       return {"success":0, "op":"copyKey", "message":"Can't move node: %s" % str(e)}
