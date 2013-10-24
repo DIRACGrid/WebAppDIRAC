@@ -87,7 +87,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			me.launcher.title = "Accounting";
 			me.launcher.maximized = false;
 
-			var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 			var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
 			me.launcher.width = iDim;
 			me.launcher.height = iDim;
@@ -341,28 +341,34 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			iconCls : "accp-img-new-plot",
 			handler : function() {
 
-				var oSetupData = {};
+				if (GLOBAL.VIEW_ID = "desktop") {
+					var oSetupData = {};
 
-				oSetupData.x = me.getContainer().x + 10;
-				oSetupData.y = me.getContainer().y + 10;
-				oSetupData.width = me.getContainer().getWidth();
-				oSetupData.height = me.getContainer().getHeight();
-				oSetupData.currentState = "";
+					oSetupData.x = me.getContainer().x + 10;
+					oSetupData.y = me.getContainer().y + 10;
+					oSetupData.width = me.getContainer().getWidth();
+					oSetupData.height = me.getContainer().getHeight();
+					oSetupData.currentState = "";
 
-				oSetupData.desktopStickMode = 0;
-				oSetupData.hiddenHeader = 1;
-				oSetupData.i_x = 0;
-				oSetupData.i_y = 0;
-				oSetupData.ic_x = 0;
-				oSetupData.ic_y = 0;
+					oSetupData.desktopStickMode = 0;
+					oSetupData.hiddenHeader = 1;
+					oSetupData.i_x = 0;
+					oSetupData.i_y = 0;
+					oSetupData.ic_x = 0;
+					oSetupData.ic_y = 0;
 
-				oSetupData.data = {
-					plotParams : me.__getSelectionParametars("save_state"),
-					__stretchPlotMode : (me.__stretchPlotMode ? 1 : 0),
-					__auto_refresh_time : me.btnRefreshMenu.timeSpan
-				};
+					oSetupData.data = {
+						plotParams : me.__getSelectionParametars("save_state"),
+						__stretchPlotMode : (me.__stretchPlotMode ? 1 : 0),
+						__auto_refresh_time : me.btnRefreshMenu.timeSpan
+					};
 
-				GLOBAL.APP.desktop.createWindow("app", "DIRAC.AccountingPlot.classes.AccountingPlot", oSetupData);
+					GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+						objectType : "app",
+						moduleName : "DIRAC.AccountingPlot.classes.AccountingPlot",
+						setupData : oSetupData
+					});
+				}
 
 			},
 			scope : me

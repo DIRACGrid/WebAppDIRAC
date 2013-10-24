@@ -225,10 +225,10 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			me.launcher.title = "Pilot Monitor";
 			me.launcher.maximized = false;
 
-			var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
 			me.launcher.width = oDimensions[0];
-			me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+			me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
 
 			me.launcher.x = 0;
 			me.launcher.y = 0;
@@ -651,28 +651,34 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 				if (oValues != "") {
 
-					var oSetupData = {};
-					var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
-					oSetupData.x = 0;
-					oSetupData.y = 0;
-					oSetupData.width = oDimensions[0];
-					oSetupData.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
-					oSetupData.currentState = "";
+					if (GLOBAL.VIEW_ID == "desktop") {
+						var oSetupData = {};
+						var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+						oSetupData.x = 0;
+						oSetupData.y = 0;
+						oSetupData.width = oDimensions[0];
+						oSetupData.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+						oSetupData.currentState = "";
 
-					oSetupData.desktopStickMode = 0;
-					oSetupData.hiddenHeader = 1;
-					oSetupData.i_x = 0;
-					oSetupData.i_y = 0;
-					oSetupData.ic_x = 0;
-					oSetupData.ic_y = 0;
+						oSetupData.desktopStickMode = 0;
+						oSetupData.hiddenHeader = 1;
+						oSetupData.i_x = 0;
+						oSetupData.i_y = 0;
+						oSetupData.ic_x = 0;
+						oSetupData.ic_y = 0;
 
-					oSetupData.data = {
-						leftMenu : {
-							txtJobId : oValues
-						}
-					};
+						oSetupData.data = {
+							leftMenu : {
+								txtJobId : oValues
+							}
+						};
 
-					GLOBAL.APP.desktop.createWindow("app", "DIRAC.JobMonitor.classes.JobMonitor", oSetupData);
+						GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+							objectType : "app",
+							moduleName : "DIRAC.JobMonitor.classes.JobMonitor",
+							setupData : oSetupData
+						});
+					}
 				}
 
 			},
@@ -697,30 +703,37 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 					var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
 					if (oId != '-') {
-						var oSetupData = {};
-						var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
-						oSetupData.x = 0;
-						oSetupData.y = 0;
-						oSetupData.width = oDimensions[0];
-						oSetupData.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
-						oSetupData.currentState = "";
 
-						oSetupData.desktopStickMode = 0;
-						oSetupData.hiddenHeader = 1;
-						oSetupData.i_x = 0;
-						oSetupData.i_y = 0;
-						oSetupData.ic_x = 0;
-						oSetupData.ic_y = 0;
+						if (GLOBAL.VIEW_ID == "desktop") {
+							var oSetupData = {};
+							var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+							oSetupData.x = 0;
+							oSetupData.y = 0;
+							oSetupData.width = oDimensions[0];
+							oSetupData.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+							oSetupData.currentState = "";
 
-						var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
+							oSetupData.desktopStickMode = 0;
+							oSetupData.hiddenHeader = 1;
+							oSetupData.i_x = 0;
+							oSetupData.i_y = 0;
+							oSetupData.ic_x = 0;
+							oSetupData.ic_y = 0;
 
-						oSetupData.data = {
-							leftMenu : {
-								txtJobId : oId
-							}
-						};
+							var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
 
-						GLOBAL.APP.desktop.createWindow("app", "DIRAC.JobMonitor.classes.JobMonitor", oSetupData);
+							oSetupData.data = {
+								leftMenu : {
+									txtJobId : oId
+								}
+							};
+
+							GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+								objectType : "app",
+								moduleName : "DIRAC.JobMonitor.classes.JobMonitor",
+								setupData : oSetupData
+							});
+						}
 					}
 				},
 				text : 'Show Job'
@@ -1221,7 +1234,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		var me = this;
 
-		var oWindow = me.getContainer().oprGetChildWindow(sTitle, false, 700, 500);
+		var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
 
 		var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 			value : sTextToShow,
@@ -1242,7 +1255,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			data : oData
 		});
 
-		var oWindow = me.getContainer().oprGetChildWindow(sTitle, false, 700, 500);
+		var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
 
 		var oGrid = Ext.create('Ext.grid.Panel', {
 			store : oStore,

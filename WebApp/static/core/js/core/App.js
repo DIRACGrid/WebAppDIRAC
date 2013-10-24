@@ -210,7 +210,7 @@ Ext.define('Ext.dirac.core.App', {
 		 * Creating the main desktop obbject
 		 */
 
-		me.desktop = null;
+		me.MAIN_VIEW = null;
 
 		/*
 		 * Creating the desktop object
@@ -225,28 +225,23 @@ Ext.define('Ext.dirac.core.App', {
 
 		Ext.Loader.setConfig(oConfig);
 		
-		console.log("HERE 1");
+		
 		Ext.require("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", function() {
 			
-			console.log("HERE 2");
-			
-			me.desktop = Ext.create("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", {});
-
-			console.log("HERE 3");
+			me.MAIN_VIEW = Ext.create("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", {});
 			
 			me.viewport = new Ext.container.Viewport({
 				layout : 'fit',
-				items : [ me.desktop ]
+				items : [ me.MAIN_VIEW ]
 			});
 
 			Ext.EventManager.on(window, 'beforeunload', me.onUnload, me);
 
 			me.isReady = true;// only if there is no desktop state loaded
 			me.fireEvent('ready', me);
-			console.log("HERE 4");
+			
 		});
 		
-		console.log("HERE 5");
 	},
 
 	/**
@@ -282,11 +277,11 @@ Ext.define('Ext.dirac.core.App', {
 	/**
 	 * Function that is used to get a reference to the desktop object
 	 * 
-	 * @return {Ext.dirac.core.Desktop}
+	 * @return {Ext.dirac.core.AppView}
 	 * 
 	 */
 	getDesktop : function() {
-		return this.desktop;
+		return this.MAIN_VIEW;
 	},
 
 	onReady : function(fn, scope) {

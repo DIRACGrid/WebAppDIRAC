@@ -18,9 +18,13 @@ Ext.define('Ext.dirac.core.AppView', {
 
 	},
 
-	getId : function() {
+	getViewId : function() {
 
 		return this.ID;
+
+	},
+
+	createNewModuleContainer : function(oData) {
 
 	}
 });

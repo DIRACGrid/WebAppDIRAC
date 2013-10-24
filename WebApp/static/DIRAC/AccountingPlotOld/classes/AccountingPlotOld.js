@@ -827,7 +827,7 @@ Ext.define('DIRAC.AccountingPlotOld.classes.AccountingPlotOld', {
 					var oPlotWindow = null;
 
 					if (oDestinationWindow == null) {
-						oPlotWindow = me.getContainer().oprGetChildWindow(sTitle, false, 700, 500);
+						oPlotWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
 						oPlotWindow.firstTimeSetDimensions = false;
 						me.__childWindowFocused = oPlotWindow;
 

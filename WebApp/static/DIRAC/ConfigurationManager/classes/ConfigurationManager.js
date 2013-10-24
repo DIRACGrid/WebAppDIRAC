@@ -62,7 +62,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 			me.launcher.title = "Configuration Manager";
 			me.launcher.maximized = false;
-			var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
 			me.launcher.height = oDimensions[1] / 2;
 			me.launcher.width = oDimensions[0] / 2;
@@ -192,7 +192,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		socket.onmessage = function(e) {
 
 			var oResponse = JSON.parse(e.data);
-			console.log(oResponse);
+			
 			if (parseInt(oResponse.success) == 0) {
 
 				GLOBAL.APP.CF.alert(oResponse.message, "error");
@@ -881,7 +881,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		var me = this;
 
-		var oWindow = me.getContainer().oprGetChildWindow("Configuration As Text", false, 700, 500);
+		var oWindow = me.getContainer().createChildWindow("Configuration As Text", false, 700, 500);
 
 		var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 			value : sTextToShow,
@@ -901,7 +901,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		var iWinHeight = 500;
 
-		var oWindow = me.getContainer().oprGetChildWindow("Current Configuration Difference", false, 700, iWinHeight);
+		var oWindow = me.getContainer().createChildWindow("Current Configuration Difference", false, 700, iWinHeight);
 
 		/*------------------------TEST------------------------*/
 		/*

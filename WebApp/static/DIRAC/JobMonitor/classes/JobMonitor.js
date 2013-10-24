@@ -291,10 +291,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			me.launcher.title = "Job Monitor";
 			me.launcher.maximized = false;
 
-			var oDimensions = GLOBAL.APP.desktop.getViewMainDimensions();
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
 			me.launcher.width = oDimensions[0];
-			me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+			me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
 
 			me.launcher.x = 0;
 			me.launcher.y = 0;
@@ -788,7 +788,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					// Ext.MessageBox.alert("IDs of selected jobs", oItems.join("; "));
 
-					var oWindow = me.getContainer().oprGetChildWindow("IDs of selected jobs", false, 700, 500);
+					var oWindow = me.getContainer().createChildWindow("IDs of selected jobs", false, 700, 500);
 
 					var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 						value : oItems.join(","),
@@ -2177,7 +2177,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var me = this;
 
-		var oWindow = me.getContainer().oprGetChildWindow(sTitle, false, 700, 500);
+		var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
 
 		var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 			value : sTextToShow,
@@ -2198,7 +2198,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			data : oData
 		});
 
-		var oWindow = me.getContainer().oprGetChildWindow(sTitle, false, 700, 500);
+		var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
 
 		var oGrid = Ext.create('Ext.grid.Panel', {
 			store : oStore,

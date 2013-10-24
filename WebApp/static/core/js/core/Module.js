@@ -1,5 +1,5 @@
 /**
- * @class Ext.dirac.core.Desktop This is an abstract class that has to be
+ * @class Ext.dirac.core.Module This is an abstract class that has to be
  *        inherited by every module.
  * @mixin Ext.container.Container
  * 

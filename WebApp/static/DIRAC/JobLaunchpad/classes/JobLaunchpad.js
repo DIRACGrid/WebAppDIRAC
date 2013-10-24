@@ -125,28 +125,34 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 									if (oButton == "no") {
 
-										var oSetupData = {};
-										var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
-										oSetupData.x = 0;
-										oSetupData.y = 0;
-										oSetupData.width = oDimensions[0];
-										oSetupData.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
-										oSetupData.currentState = "";
+										if (GLOBAL.VIEW_ID == "desktop") {
+											var oSetupData = {};
+											var oDimensions = GLOBAL.APP.MAIN_VIEW.getDesktopDimensions();
+											oSetupData.x = 0;
+											oSetupData.y = 0;
+											oSetupData.width = oDimensions[0];
+											oSetupData.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+											oSetupData.currentState = "";
 
-										oSetupData.desktopStickMode = 0;
-										oSetupData.hiddenHeader = 1;
-										oSetupData.i_x = 0;
-										oSetupData.i_y = 0;
-										oSetupData.ic_x = 0;
-										oSetupData.ic_y = 0;
+											oSetupData.desktopStickMode = 0;
+											oSetupData.hiddenHeader = 1;
+											oSetupData.i_x = 0;
+											oSetupData.i_y = 0;
+											oSetupData.ic_x = 0;
+											oSetupData.ic_y = 0;
 
-										oSetupData.data = {
-											leftMenu : {
-												txtJobId : action.result.result
-											}
-										};
+											oSetupData.data = {
+												leftMenu : {
+													txtJobId : action.result.result
+												}
+											};
 
-										GLOBAL.APP.desktop.createWindow("app", "DIRAC.JobMonitor.classes.JobMonitor", oSetupData);
+											GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+												objectType : "app",
+												moduleName : "DIRAC.JobMonitor.classes.JobMonitor",
+												setupData : oSetupData
+											});
+										}
 
 									}
 

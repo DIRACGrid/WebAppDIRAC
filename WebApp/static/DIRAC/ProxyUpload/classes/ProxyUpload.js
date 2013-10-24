@@ -22,7 +22,7 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 			me.launcher.width = 400;
 			me.launcher.height = 350;
 
-			var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
 			me.launcher.x = oDimensions[0] / 2 - me.launcher.width / 2;
 			me.launcher.y = oDimensions[1] / 2 - me.launcher.height / 2;

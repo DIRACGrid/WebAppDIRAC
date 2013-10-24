@@ -487,7 +487,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			iconCls : "meta-query-icon",
 			handler : function() {
 
-				var oWindow = me.getContainer().oprGetChildWindow("Show Query", false, 400, 300);
+				var oWindow = me.getContainer().createChildWindow("Show Query", false, 400, 300);
 
 				var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 					value : me.lastSubmittedQuery,
