@@ -527,7 +527,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			},
 			failure : function(response) {
 
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 
@@ -1078,7 +1078,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			},
 			failure : function(response) {
 
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 

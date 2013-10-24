@@ -71,7 +71,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
     self.__configData[ 'cfgData' ] = modCfg
     self.__configData[ 'strCfgData' ] = str(modCfg)
-    print modCfg.getOptions("/DIRAC/Configuration/Version")
+    
     version = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Version"])
     configName = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Name"])
     return {"success":1, "op":funcName, "version":version, "name":configName}
@@ -350,7 +350,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
 #     gLogger.info( "Moving %s under %s before pos %s" % ( nodePath, destinationParentPath, beforeOfIndex ) )
     cfgData = self.__configData[ 'cfgData' ].getCFG()
 
-    nodeDict = cfgData.getRecursive(nodePath)
+    nodeDict = cfgData.getRecursive(nodePath).clone()
     if not nodeDict:
       return {"success":0, "op":"copyKey", "message":"Moving entity does not exist"}
     oldParentDict = cfgData.getRecursive(nodePath, -1)

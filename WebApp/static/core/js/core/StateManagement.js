@@ -160,7 +160,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 								me.cache["reference"][sAppName] = {};
 								cbAfterRefresh(-1, sAppName);
-								Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+								Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 
 							}
 
@@ -168,7 +168,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 						failure : function(response) {
 							me.cache["reference"][sAppName] = {};
 							cbAfterRefresh(-2, sAppName);
-							Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+							Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 						}
 					});
 
@@ -177,7 +177,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 					me.cache["application"][sAppName] = {};
 					me.cache["reference"][sAppName] = {};
 					cbAfterRefresh(-3, sAppName);
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
 
 				}
 
@@ -187,7 +187,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 				me.cache["application"][sAppName] = {};
 				me.cache["reference"][sAppName] = {};
 				cbAfterRefresh(-4, sAppName);
-				Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
 			}
 		});
 
@@ -249,7 +249,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 				if (oResponse.status == 200) {
 					var me = this;
-					Ext.example.msg("Notification", 'State saved successfully !');
+					Ext.dirac.system_info.msg("Notification", 'State saved successfully !');
 
 					me.cache[sStateType][sAppName][sStateName] = oSendData;
 
@@ -257,12 +257,12 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 				} else if (oResponse.status == 400) {
 
-					Ext.example.msg("Error Notification", 'Operation failed: ' + oResponse.responseText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + oResponse.responseText + '.<br/> Please try again later !');
 					cbAfterSave(-1, sAppName, sStateType, sStateName);
 
 				} else {
 
-					Ext.example.msg("Error Notification", 'Operation failed: ' + oResponse.statusText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + oResponse.statusText + '.<br/> Please try again later !');
 					cbAfterSave(-2, sAppName, sStateType, sStateName);
 
 				}
@@ -271,10 +271,10 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			failure : function(response) {
 
 				if (response.status == 400) {
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 					cbAfterSave(-3, sAppName, sStateType, sStateName);
 				} else {
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 					cbAfterSave(-4, sAppName, sStateType, sStateName);
 				}
 			}
@@ -373,10 +373,10 @@ Ext.define('Ext.dirac.core.StateManagement', {
 				} else {
 
 					if (response.status == 400) {
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 						cbAfterDelete(-1, sAppName, sStateType, sStateName);
 					} else {
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 						cbAfterDelete(-2, sAppName, sStateType, sStateName);
 					}
 
@@ -386,10 +386,10 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			failure : function(response) {
 
 				if (response.status == 400) {
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 					cbAfterDelete(-3, sAppName, sStateType, sStateName);
 				} else {
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 					cbAfterDelete(-4, sAppName, sStateType, sStateName);
 				}
 			}
@@ -434,10 +434,10 @@ Ext.define('Ext.dirac.core.StateManagement', {
 				} else {
 
 					if (response.status == 400) {
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 						cbAfterShare(-1, sAppName, sStateName, "");
 					} else
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 					cbAfterShare(-2, sAppName, sStateName, "");
 
 				}
@@ -446,10 +446,10 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			failure : function(response) {
 
 				if (response.status == 400) {
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 					cbAfterShare(-3, sAppName, sStateName, "");
 				} else {
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 					cbAfterShare(-4, sAppName, sStateName, "");
 				}
 			}
@@ -502,11 +502,11 @@ Ext.define('Ext.dirac.core.StateManagement', {
 				} else {
 
 					if (response.status == 400) {
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 						if (cbAfterLoadSharedState != null)
 							cbAfterLoadSharedState(-1, sLinkDescription, "");
 					} else {
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 						if (cbAfterLoadSharedState != null)
 							cbAfterLoadSharedState(-2, sLinkDescription, "");
 					}
@@ -517,11 +517,11 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			failure : function(response) {
 
 				if (response.status == 400) {
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 					if (cbAfterLoadSharedState != null)
 						cbAfterLoadSharedState(-3, sLinkDescription, "");
 				} else {
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 					if (cbAfterLoadSharedState != null)
 						cbAfterLoadSharedState(-4, sLinkDescription, "");
 				}
@@ -568,7 +568,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			success : function(response) {
 
 				if (response.status == 200) {
-					Ext.example.msg("Notification", 'The shared state has been saved successfully !');
+					Ext.dirac.system_info.msg("Notification", 'The shared state has been saved successfully !');
 
 					me.cache.reference[oDataItems[0]][sRefName] = {
 						link : sRef
@@ -580,12 +580,12 @@ Ext.define('Ext.dirac.core.StateManagement', {
 				} else {
 
 					if (response.status == 400) {
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 						if (cbAfterSaveSharedState != null) {
 							cbAfterSaveSharedState(-1, sRefName, sRef);
 						}
 					} else {
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 						if (cbAfterSaveSharedState != null) {
 							cbAfterSaveSharedState(-2, sRefName, sRef);
 						}
@@ -597,12 +597,12 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			failure : function(response) {
 
 				if (response.status == 400) {
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 					if (cbAfterSaveSharedState != null) {
 						cbAfterSaveSharedState(-3, sRefName, sRef);
 					}
 				} else {
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 					if (cbAfterSaveSharedState != null) {
 						cbAfterSaveSharedState(-4, sRefName, sRef);
 					}

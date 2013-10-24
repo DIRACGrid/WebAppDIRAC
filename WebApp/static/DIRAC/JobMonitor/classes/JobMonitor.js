@@ -620,7 +620,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			failure : function(response) {
 
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 
@@ -1646,7 +1646,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					me.statisticsGridComboMain.setDisabled(false);
 					me.statisticsGridCombo.setDisabled(false);
 					me.statisticsSelectionGrid.body.unmask();
-					Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 				}
 			});
 		} else {
@@ -1681,7 +1681,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					me.statisticsSelectionGrid.body.unmask();
 					me.statisticsGridComboMain.setDisabled(false);
 					me.statisticsGridCombo.setDisabled(false);
-					Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 				}
 			});
 
@@ -1896,7 +1896,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			failure : function(response) {
 
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 
@@ -2245,7 +2245,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			},
 			failure : function(response) {
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 

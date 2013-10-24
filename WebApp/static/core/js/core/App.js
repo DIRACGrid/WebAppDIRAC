@@ -1,10 +1,3 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-
 /**
  * @class Ext.dirac.core.App This class manages the entire application platform
  * @mixins Ext.util.Observable
@@ -17,7 +10,7 @@ Ext.define('Ext.dirac.core.App', {
 		fileLoader : 'Ext.dirac.utils.DiracFileLoad'
 	},
 
-	requires : [ 'Ext.container.Viewport', 'Ext.dirac.core.Desktop', 'Ext.window.MessageBox', 'Ext.dirac.core.ShortcutModel', 'Ext.dirac.core.CommonFunctions', 'Ext.dirac.core.StateManagement' ],
+	requires : [ 'Ext.container.Viewport', 'Ext.window.MessageBox', 'Ext.dirac.core.CommonFunctions', 'Ext.dirac.core.StateManagement' ],
 
 	/**
 	 * @property {boolean} isReady
@@ -34,7 +27,7 @@ Ext.define('Ext.dirac.core.App', {
 
 		me.mixins.observable.constructor.call(this, undefined);
 
-		Ext.example = function() {
+		Ext.dirac.system_info = function() {
 			var msgCt;
 
 			function createBox(t, s) {
@@ -104,7 +97,7 @@ Ext.define('Ext.dirac.core.App', {
 			},
 			failure : function(response) {
 
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 
@@ -216,15 +209,6 @@ Ext.define('Ext.dirac.core.App', {
 		/*
 		 * Creating the main desktop obbject
 		 */
-		desktopCfg = {
-			contextMenuItems : [],
-			shortcuts : Ext.create('Ext.data.Store', {
-				model : 'Ext.dirac.core.ShortcutModel',
-				data : {}
-			}),
-			wallpaper : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_background_6.png',
-			wallpaperStretch : false
-		};
 
 		me.desktop = null;
 
@@ -232,25 +216,37 @@ Ext.define('Ext.dirac.core.App', {
 		 * Creating the desktop object
 		 */
 
-		var sCamelStyle = GLOBAL.VIEW_ID.charAt(0).toUpperCase() + GLOBAL.VIEW_ID.substr(1);
+		var oConfig = {
+			enabled : true,
+			paths : {}
+		};
 
-		// Ext.require("Ext.dirac.core." + sCamelStyle, function() {
-		//			
-		// });
+		oConfig["paths"]["Ext.dirac.views." + GLOBAL.VIEW_ID] = "static/core/js/views/" + GLOBAL.VIEW_ID;
 
-		// me.desktop = Ext.create("Ext.dirac.core." + sCamelStyle, desktopCfg);
-		me.desktop = new Ext.dirac.core.Desktop(desktopCfg);
+		Ext.Loader.setConfig(oConfig);
+		
+		console.log("HERE 1");
+		Ext.require("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", function() {
+			
+			console.log("HERE 2");
+			
+			me.desktop = Ext.create("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", {});
 
-		me.viewport = new Ext.container.Viewport({
-			layout : 'fit',
-			items : [ me.desktop ]
+			console.log("HERE 3");
+			
+			me.viewport = new Ext.container.Viewport({
+				layout : 'fit',
+				items : [ me.desktop ]
+			});
+
+			Ext.EventManager.on(window, 'beforeunload', me.onUnload, me);
+
+			me.isReady = true;// only if there is no desktop state loaded
+			me.fireEvent('ready', me);
+			console.log("HERE 4");
 		});
-
-		Ext.EventManager.on(window, 'beforeunload', me.onUnload, me);
-
-		me.isReady = true;// only if there is no desktop state loaded
-		me.fireEvent('ready', me);
-
+		
+		console.log("HERE 5");
 	},
 
 	/**

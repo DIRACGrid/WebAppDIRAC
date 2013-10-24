@@ -1,10 +1,3 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-
 /**
  * @class Ext.dirac.core.Desktop This is an abstract class that has to be
  *        inherited by every module.
