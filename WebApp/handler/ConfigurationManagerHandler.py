@@ -71,7 +71,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
     self.__configData[ 'cfgData' ] = modCfg
     self.__configData[ 'strCfgData' ] = str(modCfg)
-    print modCfg.getOptions("/DIRAC/Configuration/Version")
+    
     version = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Version"])
     configName = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Name"])
     return {"success":1, "op":funcName, "version":version, "name":configName}

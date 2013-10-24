@@ -181,7 +181,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		socket.onmessage = function(e) {
 
 			var oResponse = JSON.parse(e.data);
-			console.log(oResponse);
+			
 			if (parseInt(oResponse.success) == 0) {
 
 				GLOBAL.APP.CF.alert(oResponse.message, "error");
