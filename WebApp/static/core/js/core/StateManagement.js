@@ -223,6 +223,47 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		var me = this;
 
 		var oSendData = oAppObject.getStateData();
+
+		console.log(oSendData);
+
+		if ("dirac_view" in oSendData) {
+
+			// preserve the data for other views if the state already exists
+
+			if (sAppName in me.cache[sStateType]) {
+
+				if (sStateName in me.cache[sStateType][sAppName]) {
+
+					// preserving is done only if the version number is the same
+
+					var oCurrentObject = me.cache[sStateType][sAppName][sStateName];
+
+					if ("version" in oCurrentObject) {
+
+						if (oSendData.version === oCurrentObject.version) {
+
+							for ( var sViewType in oCurrentObject.views) {
+
+								if (sAppName != sViewType) {
+
+									oSendData.views[sViewType] = oCurrentObject.views[sViewType];
+
+								}
+
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
+		console.log(oSendData);
+
 		/*
 		 * We save those data in the database
 		 */
@@ -232,7 +273,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			 */
 			return;
 		}
-		
+
 		/*
 		 * If the Ajax is not successful the state wont be saved.
 		 */

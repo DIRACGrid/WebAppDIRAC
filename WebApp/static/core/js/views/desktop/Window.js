@@ -7,6 +7,7 @@
 Ext.define('Ext.dirac.views.desktop.Window', {
 	extend : 'Ext.window.Window',
 	requires : [ "Ext.dirac.utils.DiracToolButton", "Ext.menu.Menu", "Ext.menu.Item", "Ext.form.*", "Ext.LoadMask" ],
+	mixins : [ "Ext.dirac.views.desktop.Container" ],
 
 	/**
 	 * @property {String} currentState The name of the current active desktop
@@ -24,7 +25,8 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 	 */
 	loadMask : null,
 	/**
-	 * @property {Ext.dirac.views.desktop.Main} desktop Reference to the desktop object
+	 * @property {Ext.dirac.views.desktop.Main} desktop Reference to the desktop
+	 *           object
 	 */
 	desktop : null,
 
@@ -107,7 +109,6 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 		}
 
 		// a list of the child windows
-		me.childWindows = [];
 		me.oneTimeAfterShow = false;
 		me.callParent();
 
@@ -574,7 +575,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 			};
 
 			var funcAfterRemove = function(sStateType, sAppName, sStateName) {
-				
+
 				me.desktop.removeStateFromWindows(sStateType, sAppName, sStateName);
 
 			}

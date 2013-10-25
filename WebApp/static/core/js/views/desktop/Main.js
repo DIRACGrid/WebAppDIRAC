@@ -85,10 +85,15 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		var me = this;
 
 		var oData = {
-			"view" : me.getViewId(),
-			"data" : {
-				"data" : [],
-				"desktopGranularity" : me.desktopGranularity
+			"dirac_view" : 1,
+			"version" : 1,
+			"data" : [],
+			"views" : {
+				"desktop" : {
+					"version" : 1,
+					"desktopGranularity" : me.desktopGranularity,
+					"positions" : []
+				}
 			}
 		};
 
@@ -107,10 +112,13 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
 				if (win.loadedObjectType == "app") {
 
-					oElem = {
-						name : win.getAppClassName(),
+					oData.data.push({
+						module : win.getAppClassName(),
+						data : win.loadedObject.getStateData()
+					});
+
+					oData.views.desktop.positions.push({
 						currentState : win.currentState,
-						data : win.loadedObject.getStateData(),
 						x : win.x,
 						y : win.y,
 						width : win.getWidth(),
@@ -125,13 +133,16 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 						ic_x : win.ic_x,
 						ic_y : win.ic_y,
 						_before_pin_state : win._before_pin_state
-					};
+					});
 
 				} else if (win.loadedObjectType == "link") {
 
-					oElem = {
+					oData.data.push({
+						link : win.linkToLoad
+					});
+
+					oData.views.desktop.positions.push({
 						title : win.title,
-						linkToLoad : win.linkToLoad,
 						x : win.x,
 						y : win.y,
 						width : win.getWidth(),
@@ -146,11 +157,10 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 						ic_x : win.ic_x,
 						ic_y : win.ic_y,
 						_before_pin_state : win._before_pin_state
-					};
+					});
 
 				}
 
-				oData.data.push(oElem);
 			}
 
 		});
@@ -163,7 +173,10 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
 		var me = this;
 
-		me.desktopGranularity = oData["desktopGranularity"];
+		/*
+		 * The case when the the views.desktop does not exists has to be supported !
+		 */
+		me.desktopGranularity = oData["views"]["desktop"]["desktopGranularity"];
 
 		me.takenCells = [];
 
@@ -185,12 +198,16 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		me.boxSizeX = 1.0 * iWidth / me.desktopGranularity[1];
 		me.boxSizeY = 1.0 * iHeight / me.desktopGranularity[0];
 
-		for ( var i = 0, len = oData["data"].length; i < len; i++) {
+		for ( var i = 0, len = oData["views"]["desktop"]["positions"].length; i < len; i++) {
 
-			var oAppStateData = oData["data"][i];
+			var oAppStateData = oData["views"]["desktop"]["positions"][i];
 
-			if (oAppStateData.name)
+			if ("module" in oData["data"][i]) {
+
+				oAppStateData.name = oData["data"][i].module;
+				oAppStateData.data = oData["data"][i].data;
 				me.createWindow(oAppStateData.loadedObjectType, oAppStateData.name, oAppStateData);
+			}
 
 		}
 
@@ -1128,9 +1145,6 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 	onWindowClose : function(win) {
 		var me = this;
 
-		if (win.__dirac_destroy != null)
-			win.__dirac_destroy(win);
-
 		if (win.parentWindow)
 			win.parentWindow.removeChildWindowFromList(win);
 
@@ -1194,11 +1208,6 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 	onWindowMove : function(oWindow, iX, iY, eOpts) {
 
 		var me = this;
-
-		// if there is a user defined handler for the move event of the
-		// window
-		if (oWindow.__dirac_move != null)
-			oWindow.__dirac_move(oWindow, iX, iY, eOpts);
 
 		// if the window is in the pinned state
 		if (oWindow.desktopStickMode) {
@@ -1291,12 +1300,6 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 	onWindowResize : function(oWindow, iWidth, iHeight, eOpts) {
 
 		var me = this;
-
-		// if there is a user defined handler for the resize event of
-		// the window
-		if (oWindow.__dirac_resize != null) {
-			oWindow.__dirac_resize(oWindow, iWidth, iHeight, eOpts);
-		}
 
 		// if the window is in the pinned state
 		if (oWindow.desktopStickMode) {
@@ -1766,18 +1769,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 			hideMode : 'offsets',
 			layout : 'fit',
 			x : 0,
-			y : 0,
-			__dirac_activate : null,
-			__dirac_beforeshow : null,
-			__dirac_afterrender : null,
-			__dirac_deactivate : null,
-			__dirac_minimize : null,
-			__dirac_maximize : null,
-			__dirac_restore : null,
-			__dirac_destroy : null,
-			__dirac_boxready : null,
-			__dirac_move : null,
-			__dirac_resize : null
+			y : 0
 		});
 
 		// creating the window
@@ -1884,10 +1876,6 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		}
 
 		me.taskbar.setActiveButton(activeWindow && activeWindow.taskButton);
-
-		if (activeWindow.__dirac_activate != null) {
-			activeWindow.__dirac_activate(activeWindow);
-		}
 
 	},
 
@@ -2259,13 +2247,13 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		return [ me.boxSizeX, me.boxSizeY ];
 
 	},
-	
-	createNewModuleContainer: function(oData){
-		
+
+	createNewModuleContainer : function(oData) {
+
 		var me = this;
-		
+
 		me.createWindow(oData.objectType, oData.moduleName, oData.setupData);
-		
+
 	},
 
 	/*-----------------IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
