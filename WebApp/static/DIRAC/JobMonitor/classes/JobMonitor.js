@@ -8,7 +8,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var me = this;
 
-		var bToRealod = false;
+		var bToReload = false;
 
 		if (data.columns) {
 			for ( var i = 0; i < me.grid.columns.length; i++) {
