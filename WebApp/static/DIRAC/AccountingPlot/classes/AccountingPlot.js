@@ -90,6 +90,22 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		}
 
+		if (GLOBAL.VIEW_ID == "tabs") {
+
+			me.launcher.title = "Accounting";
+			me.launcher.maximized = false;
+
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+			var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
+			me.launcher.width = iDim;
+			me.launcher.height = iDim;
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
+
+		
 		Ext.apply(me, {
 			layout : 'border',
 			bodyBorder : false,

@@ -227,6 +227,21 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			me.launcher.y = 0;
 
 		}
+		
+		if (GLOBAL.VIEW_ID == "tabs") {
+
+			me.launcher.title = "Pilot Monitor";
+			me.launcher.maximized = false;
+
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+			me.launcher.width = oDimensions[0];
+			me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
 
 		Ext.apply(me, {
 			layout : 'border',

@@ -47,6 +47,10 @@ class RootHandler(WebHandler):
     if self.request.arguments.has_key("url_state") and len(self.request.arguments["url_state"][0]) > 0:
       url_state = self.request.arguments["url_state"][0]
 
+    view_name = "desktop"
+    if self.request.arguments.has_key("view") and len(self.request.arguments["view"][0]) > 0:  
+      view_name = self.request.arguments["view"][0]
+      
     theme_name = "ext-all-gray"
     if self.request.arguments.has_key("theme") and len(self.request.arguments["theme"][0]) > 0:
       if self.request.arguments["theme"][0]=="Neptune":
@@ -58,5 +62,5 @@ class RootHandler(WebHandler):
                  ext_version = data[ 'extVersion' ], url_state = url_state,
                  extensions = data[ 'extensions' ],
                  credentials = data[ 'user' ], title = Conf.getTitle(),
-                 theme = theme_name, root_url = Conf.rootURL() )
+                 theme = theme_name, root_url = Conf.rootURL(), view = view_name )
 

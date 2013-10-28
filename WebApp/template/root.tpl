@@ -61,7 +61,9 @@
           GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
-          GLOBAL.VIEW_ID = "desktop";
+          GLOBAL.VIEW_ID = "{{view}}";
+          GLOBAL.VALID_VIEWS = ["desktop","tabs"];
+          GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
 
           Ext.onReady(function () {
             GLOBAL.BASE_URL = "{{base_url}}/";
@@ -87,7 +89,9 @@
           GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
-          GLOBAL.VIEW_ID = "desktop";
+          GLOBAL.VIEW_ID = "{{view}}";
+          GLOBAL.VALID_VIEWS = ["desktop","tabs"];
+          GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
 
           Ext.onReady(function () {
               GLOBAL.BASE_URL = "{{base_url}}/";

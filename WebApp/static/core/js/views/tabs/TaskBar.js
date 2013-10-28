@@ -4,10 +4,10 @@
  *        bar (syn. task bar)
  * @extends Ext.toolbar.Toolbar
  */
-Ext.define('Ext.dirac.views.desktop.TaskBar', {
+Ext.define('Ext.dirac.views.tabs.TaskBar', {
 	extend : 'Ext.toolbar.Toolbar', // TODO - make this a basic hbox panel...
 
-	requires : [ 'Ext.button.Button', 'Ext.resizer.Splitter', 'Ext.menu.Menu', 'Ext.dirac.views.desktop.StartMenu', 'Ext.toolbar.TextItem' ],
+	requires : [ 'Ext.button.Button', 'Ext.resizer.Splitter', 'Ext.menu.Menu', 'Ext.dirac.views.tabs.StartMenu', 'Ext.toolbar.TextItem' ],
 
 	alias : 'widget.taskbar',
 
@@ -30,7 +30,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 
 		}
 
-		me.startMenu = new Ext.dirac.views.desktop.StartMenu();
+		me.startMenu = new Ext.dirac.views.tabs.StartMenu();
 
 		me.windowBar = new Ext.toolbar.Toolbar(me.getWindowBarConfig());
 

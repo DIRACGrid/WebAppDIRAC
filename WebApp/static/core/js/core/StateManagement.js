@@ -244,7 +244,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 							for ( var sViewType in oCurrentObject.views) {
 
-								if (sAppName != sViewType) {
+								if (GLOBAL.VIEW_ID != sViewType) {
 
 									oSendData.views[sViewType] = oCurrentObject.views[sViewType];
 

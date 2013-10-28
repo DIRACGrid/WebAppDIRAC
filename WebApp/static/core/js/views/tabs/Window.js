@@ -4,7 +4,7 @@
  * @extend Ext.window.Window
  * 
  */
-Ext.define('Ext.dirac.views.desktop.Window', {
+Ext.define('Ext.dirac.views.tabs.Window', {
 	extend : 'Ext.window.Window',
 	requires : [ "Ext.dirac.utils.DiracToolButton", "Ext.menu.Menu", "Ext.menu.Item", "Ext.form.*", "Ext.LoadMask" ],
 	mixins : [ "Ext.dirac.core.Container" ],

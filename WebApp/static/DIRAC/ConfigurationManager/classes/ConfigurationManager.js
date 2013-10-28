@@ -62,6 +62,17 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		}
 		
+		if (GLOBAL.VIEW_ID == "tabs") {
+
+			me.launcher.title = "Configuration Manager";
+			me.launcher.maximized = false;
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+			me.launcher.height = oDimensions[1] / 2;
+			me.launcher.width = oDimensions[0] / 2;
+
+		}
+		
 		Ext.apply(me, {
 			layout : 'border',
 			bodyBorder : false,

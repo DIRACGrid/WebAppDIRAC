@@ -4,7 +4,7 @@
  * 
  */
 
-Ext.define('Ext.dirac.views.desktop.Container', {
+Ext.define('Ext.dirac.core.Container', {
 
 	childWindows: [],
 	

@@ -6,11 +6,11 @@
  * broadcast part for the window states.
  * 
  */
-Ext.define('Ext.dirac.views.desktop.Main', {
+Ext.define('Ext.dirac.views.tabs.Main', {
 	extend : 'Ext.panel.Panel',
-	alias : 'widget.desktop',
-	requires : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.views.desktop.Window', 'Ext.dirac.views.desktop.TaskBar', 'Ext.dirac.views.desktop.Wallpaper',
-			'Ext.dirac.views.desktop.StateManagement', 'Ext.dirac.views.desktop.ShortcutModel' ],
+	alias : 'widget.viewtabs',
+	requires : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.views.tabs.Window', 'Ext.dirac.views.tabs.TaskBar', 'Ext.dirac.views.tabs.Wallpaper',
+			'Ext.dirac.views.tabs.StateManagement', 'Ext.dirac.views.tabs.ShortcutModel' ],
 	mixins : [ "Ext.dirac.core.Stateful", "Ext.dirac.core.AppView" ],
 
 	activeWindowCls : 'ux-desktop-active-win',
@@ -89,7 +89,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 			"version" : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
 			"data" : [],
 			"views" : {
-				"desktop" : {
+				"tabs" : {
 					"version" : 1,
 					"desktopGranularity" : me.desktopGranularity,
 					"positions" : []
@@ -118,7 +118,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 						currentState : win.currentState
 					});
 
-					oData.views.desktop.positions.push({
+					oData.views.tabs.positions.push({
 						x : win.x,
 						y : win.y,
 						width : win.getWidth(),
@@ -141,7 +141,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 						link : win.linkToLoad
 					});
 
-					oData.views.desktop.positions.push({
+					oData.views.tabs.positions.push({
 						title : win.title,
 						x : win.x,
 						y : win.y,
@@ -177,7 +177,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 			/*
 			 * The case when the the views.desktop does not exists has to be supported !
 			 */
-			me.desktopGranularity = oData["views"]["desktop"]["desktopGranularity"];
+			me.desktopGranularity = oData["views"]["tabs"]["desktopGranularity"];
 
 			me.takenCells = [];
 
@@ -199,9 +199,9 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 			me.boxSizeX = 1.0 * iWidth / me.desktopGranularity[1];
 			me.boxSizeY = 1.0 * iHeight / me.desktopGranularity[0];
 
-			for ( var i = 0, len = oData["views"]["desktop"]["positions"].length; i < len; i++) {
+			for ( var i = 0, len = oData["views"]["tabs"]["positions"].length; i < len; i++) {
 
-				var oAppStateData = oData["views"]["desktop"]["positions"][i];
+				var oAppStateData = oData["views"]["tabs"]["positions"][i];
 
 				if ("module" in oData["data"][i]) {
 
@@ -237,7 +237,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 	initComponent : function() {
 		var me = this;
 
-		me.ID = "desktop";
+		me.ID = "tabs";
 
 		// the width of a desktop cell used for pinning
 		me.boxSizeX = 0;
@@ -250,8 +250,8 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		 */
 		me.windowMenu = new Ext.menu.Menu(me.createWindowMenu());
 
-		me.SM = new Ext.dirac.views.desktop.StateManagement();
-		me.bbar = me.taskbar = new Ext.dirac.views.desktop.TaskBar(me.taskbarConfig);
+		me.SM = new Ext.dirac.views.tabs.StateManagement();
+		me.bbar = me.taskbar = new Ext.dirac.views.tabs.TaskBar(me.taskbarConfig);
 		me.taskbar.windowMenu = me.windowMenu;
 
 		/*
@@ -266,7 +266,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		me.contextMenu = new Ext.menu.Menu(me.createDesktopMenu());
 
 		me.shortcuts = Ext.create('Ext.data.Store', {
-			model : 'Ext.dirac.views.desktop.ShortcutModel',
+			model : 'Ext.dirac.views.tabs.ShortcutModel',
 			data : {}
 		});
 
@@ -1811,7 +1811,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		});
 
 		// creating the window
-		win = me.add(new Ext.dirac.views.desktop.Window(cfg));
+		win = me.add(new Ext.dirac.views.tabs.Window(cfg));
 
 		// we add the window to the windows collections
 		me.windows.add(win);

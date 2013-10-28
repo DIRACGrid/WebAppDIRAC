@@ -19,6 +19,19 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			me.launcher.y = 0;
 
 		}
+		
+		if (GLOBAL.VIEW_ID == "tabs") {
+
+			me.launcher.title = "Job Launchpad";
+			me.launcher.maximized = false;
+
+			me.launcher.width = 600;
+			me.launcher.height = 600;
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
 
 		Ext.apply(me, {
 			layout : 'border',

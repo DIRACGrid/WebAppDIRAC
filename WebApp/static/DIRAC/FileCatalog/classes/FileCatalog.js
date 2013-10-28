@@ -204,6 +204,13 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			me.launcher.maximized = true;
 		
 		}
+		
+		if (GLOBAL.VIEW_ID == "tabs") {
+			
+			me.launcher.title = "File Catalog";
+			me.launcher.maximized = true;
+		
+		}
 
 		me.__loadingStateDataStruct = null;
 		
