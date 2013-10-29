@@ -62,7 +62,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 *          sStateType The type of the state [application|reference]
 	 * @param {String}
 	 *          sAppName Application class name
-	 * @return {Array}
+	 * @return {Array} An array of state names
 	 * 
 	 */
 	getApplicationStates : function(sStateType, sAppName) {
@@ -261,8 +261,6 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			}
 
 		}
-
-		console.log(oSendData);
 
 		/*
 		 * We save those data in the database
