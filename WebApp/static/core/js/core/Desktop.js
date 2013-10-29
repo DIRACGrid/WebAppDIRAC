@@ -300,6 +300,23 @@ Ext.define('Ext.dirac.core.Desktop', {
 					win.resumeEvent("resize");
 					win.resumeEvent("move");
 
+				} else {
+
+					var ratioWidth = 1.0 * w / ow;
+					var ratioHeight = 1.0 * h / oh;
+
+					var oPos = [ 0, 0 ];
+
+					oPos[0] = Math.round(ratioWidth * win.x);
+					oPos[1] = Math.round(ratioHeight * win.y);
+
+					win.suspendEvent("resize");
+					win.suspendEvent("move");
+					win.setPosition(oPos[0], oPos[1]);
+					win.setSize(Math.round(ratioWidth * win.width), Math.round(ratioHeight * win.height));
+					win.resumeEvent("resize");
+					win.resumeEvent("move");
+
 				}
 			});
 
