@@ -88,6 +88,37 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		}
 
+		if ("centralGridPanelVisible" in data) {
+
+			if (!data.centralGridPanelVisible) {
+
+				me.centralWorkPanel.getLayout().setActiveItem(1);
+
+			}
+
+		}
+
+		if ("statisticsSelectionPanelCollapsed" in data) {
+
+			if (data.statisticsSelectionPanelCollapsed) {
+
+				me.statisticsSelectionGrid.collapse();
+
+			}
+
+		}
+		
+		if("statisticsSelectionValues" in data){
+			
+			me.statisticsGridComboMain.suspendEvents(false);
+			me.statisticsGridCombo.suspendEvents(false);
+			me.statisticsGridComboMain.setValue(data.statisticsSelectionValues[0]);
+			me.statisticsGridCombo.setValue(data.statisticsSelectionValues[1]);
+			me.statisticsGridComboMain.resumeEvents();
+			me.statisticsGridCombo.resumeEvents();
+			
+		}
+		
 		if (bToReload) {
 
 			me.oprLoadGridData();
@@ -179,6 +210,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		oReturn.pageSize = me.pagingToolbar.pageSizeCombo.getValue();
 		oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
+		oReturn.centralGridPanelVisible = !me.grid.hidden;
+		oReturn.statisticsSelectionPanelCollapsed = me.statisticsSelectionGrid.collapsed;
+		oReturn.statisticsSelectionValues = [ me.statisticsGridComboMain.getValue(), me.statisticsGridCombo.getValue() ];
 
 		return oReturn;
 
@@ -750,8 +784,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			text : '',
 			iconCls : "jm-pie-icon",
 			handler : function() {
-				// me.grid.hide();
-				// me.statisticsPanel.show();
 				me.centralWorkPanel.getLayout().setActiveItem(1);
 			},
 			tooltip : "Go to the statistics panel"
@@ -774,8 +806,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					GLOBAL.APP.CF.alert('No jobs were selected', "error");
 					return;
 				} else {
-
-					// Ext.MessageBox.alert("IDs of selected jobs", oItems.join("; "));
 
 					var oWindow = me.getContainer().oprGetChildWindow("IDs of selected jobs", false, 700, 500);
 
@@ -1378,10 +1408,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png';
 
 				oImage.onload = function() {
-					
-					console.log([oImage.clientWidth,oImage.clientHeight]);
-					
-					oContext.drawImage(oImage, 0,0,iWidth,iHeight);
+
+					console.log([ oImage.clientWidth, oImage.clientHeight ]);
+
+					oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
 
 					oContext.drawSvg(sSvgElement, 0, 0);
 
@@ -1509,7 +1539,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		me.centralWorkPanel = new Ext.create('Ext.panel.Panel', {
 			floatable : false,
-			// autoScroll : true,
 			layout : 'card',
 			region : "center",
 			header : false,
