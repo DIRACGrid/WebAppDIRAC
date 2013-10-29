@@ -82,7 +82,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 			var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
-			me.launcher.width = iDim;
+			me.launcher.width = 2*iDim;
 			me.launcher.height = iDim;
 
 			me.launcher.x = 0;
@@ -97,7 +97,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 			var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
-			me.launcher.width = iDim;
+			me.launcher.width = 2*iDim;
 			me.launcher.height = iDim;
 
 			me.launcher.x = 0;
