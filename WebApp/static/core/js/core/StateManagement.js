@@ -22,16 +22,19 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	activeStates : [],
 
 	/**
-	 * Function that serves to check whether a state has been loaded or not
+	 * Function that checks whether a state has been loaded or not.
 	 * 
 	 * @param {String}
-	 *          sStateType The type of the state [application|reference]
+	 *          sStateType The type of the state. Possible values: application,
+	 *          reference.
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
-	 *          sStateName The name of the state
-	 * @return {int} 1 - state exists in the cache -1 - state does not exist -2 -
-	 *         the application cache has not been loaded yet
+	 *          sStateName The name of the state or the reference.
+	 * @return {int} (1) - state exists in the cache (-1) - state does not exist
+	 *         (-2) - the application cache has not been loaded yet
 	 */
 	isStateLoaded : function(sStateType, sAppName, sStateName) {
 
@@ -56,13 +59,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function for getting a list of existing state names
+	 * Function for getting a list of existing state names of an application.
 	 * 
 	 * @param {String}
-	 *          sStateType The type of the state [application|reference]
+	 *          sStateType The type of the state. Possible values: application,
+	 *          reference.
 	 * @param {String}
-	 *          sAppName Application class name
-	 * @return {Array} An array of state names
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
+	 * @return {Array} Array of strings representing the state/reference names.
 	 * 
 	 */
 	getApplicationStates : function(sStateType, sAppName) {
@@ -81,11 +87,14 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 * Function for getting the data related to a state
 	 * 
 	 * @param {String}
-	 *          sStateType The type of the state [application|reference]
+	 *          sStateType The type of the state. Possible values: application,
+	 *          reference.
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
-	 *          sStateName The name of the state
+	 *          sStateName The name of the state or the reference.
 	 * @return {Object|boolean} False is returned in case when the state is non
 	 *         existing or has not been loaded yet
 	 */
@@ -104,13 +113,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function for reading the states and references from the server
+	 * Function for reading the states and references of an application from the
+	 * server
 	 * 
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {Function}
-	 *          cbAfterRefresh A function to be executed after the states and
-	 *          references have been successfully read
+	 *          cbAfterRefresh The callback function called on success or on
+	 *          failure of the request for states and references.
 	 */
 	oprReadApplicationStatesAndReferences : function(sAppName, cbAfterRefresh) {
 
@@ -194,10 +206,10 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function for checking whether a state name is valid or not
+	 * Function that checks whether a state name is valid or not
 	 * 
 	 * @param {String}
-	 *          sStateName The name of the state
+	 *          sStateName The name of the state or the reference.
 	 * @return {boolean}
 	 */
 	isValidStateName : function(sStateName) {
@@ -209,14 +221,23 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function that is used to prepare and send the data of the desktop state to
-	 * the server.
+	 * Function used to prepare and to send the state data of an application or a
+	 * main view to the server.
 	 * 
 	 * @param {String}
-	 *          stateName The name of the state
-	 * @param {Boolean}
-	 *          isNewItem Parameter that says whether the state already exists or
-	 *          not
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
+	 * @param {Object}
+	 *          oAppObject The application object.
+	 * @param {String}
+	 *          sStateType The type of the state. Possible values: application,
+	 *          reference.
+	 * @param {String}
+	 *          sStateName The name of the state or the reference.
+	 * @param {Function}
+	 *          cbAfterSave The callback function called on success or on failure
+	 *          of the request for saving a state or a reference.
 	 */
 	oprSendDataForSave : function(sAppName, oAppObject, sStateType, sStateName, cbAfterSave) {
 
@@ -326,7 +347,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 * application
 	 * 
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
 	 *          sStateName The name of the state
 	 * 
@@ -351,10 +374,12 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function to register new state as an active one
+	 * Function to register a state as an active one
 	 * 
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
 	 *          sStateName The name of the state
 	 * 
@@ -368,10 +393,12 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function to remove a state out of the activeStates list
+	 * Function to remove a state out of the active states list
 	 * 
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
 	 *          sStateName The name of the state
 	 * 
@@ -390,6 +417,23 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			me.activeStates.splice(iIndex, 1);
 	},
 
+	/**
+	 * Function to delete a saved state or a saved reference on the server
+	 * 
+	 * @param {String}
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
+	 * @param {String}
+	 *          sStateType The type of the state. Possible values: application,
+	 *          reference.
+	 * @param {String}
+	 *          sStateName The name of the state or the reference
+	 * @param {Function}
+	 *          cbAfterDelete The callback function called on success or on
+	 *          failure of the request for deleting a state or a reference.
+	 * 
+	 */
 	oprDeleteState : function(sAppName, sStateType, sStateName, cbAfterDelete) {
 
 		var me = this;
@@ -439,12 +483,17 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	/*-----------------------------------------------SHARE STATE-----------------------------------------------*/
 
 	/**
-	 * Function called when we want to share a state.
+	 * Function that is used to share a state with other users.
 	 * 
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
-	 *          sStateName The name of the state
+	 *          sStateName The name of the state.
+	 * @param {Function}
+	 *          cbAfterShare The callback function called on success or on failure
+	 *          of the request for sharing a state.
 	 * 
 	 */
 	oprShareState : function(sAppName, sStateName, cbAfterShare) {
@@ -497,13 +546,14 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function executed when the shared state has to be loaded
+	 * Function that is used to take the data of a shared state from the server
 	 * 
 	 * @param {Object}
-	 *          sLinkDescription String describing the shared state
+	 *          sLinkDescription Description of a shared state. This description
+	 *          can be used to load a shared state.
 	 * @param {Function}
-	 *          cbAfterLoadSharedState Function to be executed after the shared
-	 *          state has been loaded
+	 *          cbAfterLoadSharedState The callback function called on success or
+	 *          on failure of the request for retrieving the shared state data.
 	 * 
 	 */
 	oprLoadSharedState : function(sLinkDescription, cbAfterLoadSharedState) {
@@ -571,15 +621,17 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function executed when the shared state has to be saved
+	 * Function executed when the shared state has to be saved on the server as a
+	 * reference
 	 * 
 	 * @param {String}
-	 *          sRefName The name for the shared state
+	 *          sRefName The name of the reference.
 	 * @param {String}
-	 *          sRef The description link for the shared state
+	 *          sRef Description of a shared state. This description can be used
+	 *          to load a shared state.
 	 * @param {Function}
-	 *          cbAfterSaveSharedState Function to be executed after the shared
-	 *          state has been saved
+	 *          cbAfterSaveSharedState The callback function called on success or
+	 *          on failure of the request for saving shared state as a reference.
 	 */
 	oprSaveSharedState : function(sRefName, sRef, cbAfterSaveSharedState) {
 
