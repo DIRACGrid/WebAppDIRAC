@@ -1,7 +1,7 @@
 Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 	extend : 'Ext.dirac.core.Module',
 
-	requires : [ 'Ext.tab.Panel', 'Ext.ProgressBar', 'Ext.grid.feature.Grouping' ],
+	requires : [ 'Ext.tab.Panel', 'Ext.ProgressBar', 'Ext.grid.feature.Grouping', 'Ext.data.ArrayStore' ],
 
 	initComponent : function() {
 
@@ -170,14 +170,14 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 				text : 'Restart',
 				iconCls : "sa-restart-button-icon",
 				handler : function() {
-
+					me.oprHostAction("restart", 2);
 				},
 				scope : me
 			}, {
 				text : 'Revert',
 				iconCls : "sa-revert-button-icon",
 				handler : function() {
-
+					me.oprHostAction("revert", 2);
 				},
 				scope : me
 			} ]
@@ -384,17 +384,17 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 		me.overallContextMenu = new Ext.menu.Menu({
 			items : [ {
 				handler : function() {
-
+					me.oprHostAction("restart", 1);
 				},
 				text : 'Restart'
 			}, {
 				handler : function() {
-
+					me.oprHostAction("revert", 1);
 				},
 				text : 'Revert'
 			}, {
 				handler : function() {
-
+					me.oprGetHostErrors();
 				},
 				text : 'Show Errors'
 			} ]
@@ -403,22 +403,26 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 		me.hostContextMenu = new Ext.menu.Menu({
 			items : [ {
 				handler : function() {
-
+					var oRecord = this.up("menu").selected_record;
+					me.oprGetHostLog(oRecord);
 				},
 				text : 'Log'
 			}, {
 				handler : function() {
-
+					var oGrid = this.up("menu").grid;
+					me.oprComponentAction(oGrid, "restart", 1);
 				},
 				text : 'Restart'
 			}, {
 				handler : function() {
-
+					var oGrid = this.up("menu").grid;
+					me.oprComponentAction(oGrid, "stop", 1);
 				},
 				text : 'Stop'
 			}, {
 				handler : function() {
-
+					var oGrid = this.up("menu").grid;
+					me.oprComponentAction(oGrid, "start", 1);
 				},
 				text : 'Start'
 			} ]
@@ -506,7 +510,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			groupHeaderTpl : '{columnName}: {name} ({rows.length} Item{[values.rows.length > 1 ? "s" : ""]})',
 			hideGroupedHeader : true,
 			startCollapsed : true,
-			id : 'directoryGrouping'
+			id : 'directoryGrouping',
+			startCollapsed : false
 		});
 
 		var oGridButtonsToolbar = new Ext.create('Ext.toolbar.Toolbar', {
@@ -516,29 +521,31 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 				text : 'Restart',
 				iconCls : "sa-restart-button-icon",
 				handler : function() {
+					var oGrid = this.up("grid");
 
-				},
-				scope : me
+					oGrid.moduleObject.oprComponentAction(oGrid, "restart", 2);
+				}
 			}, {
 				text : 'Start',
 				iconCls : "sa-start-button-icon",
 				handler : function() {
-
-				},
-				scope : me
+					var oGrid = this.up("grid");
+					oGrid.moduleObject.oprComponentAction(oGrid, "start", 2);
+				}
 			}, {
 				text : 'Stop',
 				iconCls : "sa-stop-button-icon",
 				handler : function() {
-
-				},
-				scope : me
+					var oGrid = this.up("grid");
+					oGrid.moduleObject.oprComponentAction(oGrid, "stop", 2);
+				}
 			} ]
 		});
 
 		var oGrid = Ext.create('Ext.grid.Panel', {
 			store : oNewStore,
 			header : false,
+			moduleObject : me,
 			id : sId,
 			viewConfig : {
 				stripeRows : true,
@@ -546,13 +553,14 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			},
 			features : [ oGroupingFeature ],
 			dockedItems : [ oGridButtonsToolbar ],
+			hostName : sHostName,
 			columns : [ {
 				header : sHtml,
 				width : 26,
 				sortable : false,
 				dataIndex : 'System',
 				renderer : function(value, metaData, record, row, col, store, gridView) {
-					return this.rendererChkBox(value);
+					return this.rendererChkBox(record.get("Name") + "|||" + record.get("Host") + "|||" + record.get("System"));
 				},
 				hideable : false,
 				fixed : true,
@@ -618,7 +626,11 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			listeners : {
 
 				beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+
 					e.preventDefault();
+					me.hostContextMenu.selected_record = record;
+					me.hostContextMenu.grid = this;
+
 					me.hostContextMenu.showAt(e.xy);
 					return false;
 				}
@@ -632,6 +644,274 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			autoScroll : true,
 			layout : "fit",
 			id : sTabId
+		});
+
+	},
+
+	oprGetHostLog : function(oRecord) {
+
+		var me = this;
+		var sHostName = oRecord.get("Host");
+		var sComponent = oRecord.get("Name");
+		var sSystem = oRecord.get("System");
+		me.getContainer().body.mask("Wait ...");
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + 'SystemAdministration/getHostLog',
+			params : {
+				component : sComponent,
+				host : sHostName,
+				system : sSystem
+			},
+			scope : me,
+			success : function(response) {
+
+				var me = this;
+				var response = Ext.JSON.decode(response.responseText);
+				me.getContainer().body.unmask();
+				if (response["success"] == "true") {
+					me.__oprPrepareAndShowWindowText(response["result"], "Log file for: " + sComponent + "/" + sSystem + "@" + sHostName);
+				} else {
+
+					GLOBAL.APP.CF.alert(response["error"], "error");
+
+				}
+
+			},
+			failure : function(response) {
+				me.getContainer().body.unmask();
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+			}
+		});
+
+	},
+
+	oprGetHostErrors : function() {
+
+		var me = this;
+
+		var sHostName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.systemInfoGrid, "Host");
+		me.getContainer().body.mask("Wait ...");
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + 'SystemAdministration/getHostErrors',
+			params : {
+				host : sHostName
+			},
+			scope : me,
+			success : function(response) {
+
+				var me = this;
+				var response = Ext.JSON.decode(response.responseText);
+				me.getContainer().body.unmask();
+				
+				if (response["success"] == "true") {
+
+					me.__oprPrepareAndShowWindowGrid(response["result"], "Show errors for:" + sHostName, [ "Name", "ErrorsHour", "System", "ErrorsDay", "Host", "LastError" ], [ {
+						text : 'System',
+						sortable : false,
+						dataIndex : 'System'
+					}, {
+						text : 'Component',
+						sortable : false,
+						dataIndex : 'Name'
+					}, {
+						text : 'Errors per day',
+						sortable : false,
+						dataIndex : 'ErrorsDay'
+					}, {
+						text : 'Errors per hour',
+						sortable : false,
+						dataIndex : 'ErrorsHour'
+					}, {
+						text : 'Last Error',
+						sortable : false,
+						dataIndex : 'LastError',
+						flex : 1
+					} ]);
+
+				} else {
+
+					GLOBAL.APP.CF.alert(response["error"], "error");
+
+				}
+
+			},
+			failure : function(response) {
+				me.getContainer().body.unmask();
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+			}
+		});
+
+	},
+
+	__oprPrepareAndShowWindowText : function(sTextToShow, sTitle) {
+
+		var me = this;
+
+		var oWindow = me.getContainer().createChildWindow(sTitle, false, 800, 500);
+
+		var oTextArea = new Ext.create('Ext.form.field.TextArea', {
+			value : sTextToShow,
+			cls : "sa-textbox-help-window"
+		});
+
+		oWindow.add(oTextArea);
+		oWindow.show();
+
+	},
+
+	__oprPrepareAndShowWindowGrid : function(oData, sTitle, oFields, oColumns) {
+
+		var me = this;
+
+		var oStore = new Ext.data.JsonStore({
+			fields : oFields,
+			data : oData
+		});
+
+		var oWindow = me.getContainer().createChildWindow(sTitle, false, 800, 500);
+
+		var oGrid = Ext.create('Ext.grid.Panel', {
+			store : oStore,
+			columns : oColumns,
+			width : '100%',
+			viewConfig : {
+				stripeRows : true,
+				enableTextSelection : true
+			}
+		});
+
+		oWindow.add(oGrid);
+		oWindow.show();
+
+	},
+
+	oprHostAction : function(sAction, sEventSource) {
+
+		var me = this;
+		var sHost = "";
+
+		if (sEventSource == 1) {
+
+			sHost = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.systemInfoGrid, "Host");
+
+		} else {
+
+			// collect all selected
+			var oItems = [];
+			var oElems = Ext.query("#" + me.systemInfoGrid.id + " input.checkrow");
+
+			for ( var i = 0; i < oElems.length; i++)
+				if (oElems[i].checked)
+					oItems.push(oElems[i].value);
+
+			if (oItems.length < 1) {
+				GLOBAL.APP.CF.alert('No hosts were selected', "error");
+				return;
+			}
+
+			sHost = oItems.join(",");
+
+		}
+		
+		me.getContainer().body.mask("Wait ...");
+		
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + 'SystemAdministration/hostAction',
+			params : {
+				action : sAction,
+				host : sHost
+			},
+			scope : me,
+			success : function(response) {
+
+				var me = this;
+				var response = Ext.JSON.decode(response.responseText);
+				
+				me.getContainer().body.unmask();
+				if (response["success"] == "true") {
+
+					GLOBAL.APP.CF.alert(response["result"], "info");
+
+				} else {
+
+					GLOBAL.APP.CF.alert(response["error"], "error");
+
+				}
+				
+
+			},
+			failure : function(response) {
+				me.getContainer().body.unmask();
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+			}
+		});
+
+	},
+
+	oprComponentAction : function(oGrid, sAction, sEventSource) {
+
+		var oParams = {
+			action : sAction
+		}
+
+		if (sEventSource == 1) {
+
+			var sHost = GLOBAL.APP.CF.getFieldValueFromSelectedRow(oGrid, "Host");
+			var sName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(oGrid, "Name");
+			var sSystem = GLOBAL.APP.CF.getFieldValueFromSelectedRow(oGrid, "System");
+
+			oParams[sName + "@" + sHost] = [ sSystem ];
+
+		} else {
+
+			
+			var oElems = Ext.query("#" + oGrid.id + " input.checkrow");
+			var iNumberSelected = 0;
+			for ( var i = 0; i < oElems.length; i++)
+				if (oElems[i].checked) {
+					iNumberSelected++;
+					var oVal = oElems[i].value.split("|||");
+					var sTarget = oVal[0] + ' @ ' + oVal[1];
+					if (!oParams[sTarget]) {
+						oParams[sTarget] = [];
+					}
+
+					oParams[sTarget].push(oVal[2]);
+				}
+
+			if (iNumberSelected == 0) {
+				GLOBAL.APP.CF.alert('No components were selected', "error");
+				return;
+			}
+
+		}
+		
+		me.getContainer().body.mask("Wait ...");
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + 'SystemAdministration/componentAction',
+			params : oParams,
+			scope : me,
+			success : function(response) {
+
+				var me = this;
+				var response = Ext.JSON.decode(response.responseText);
+				
+				me.getContainer().body.unmask();
+				if (response["success"] == "true") {
+
+					GLOBAL.APP.CF.alert(response["result"], "info");
+
+				} else {
+
+					GLOBAL.APP.CF.alert(response["error"], "error");
+
+				}
+
+			},
+			failure : function(response) {
+				me.getContainer().body.unmask();
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+			}
 		});
 
 	}
