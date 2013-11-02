@@ -1,10 +1,3 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-
 /**
  * @class Ext.dirac.core.Window This is a window widget with extended
  *        functionality such as state management
@@ -92,7 +85,6 @@ Ext.define('Ext.dirac.core.Window', {
 			height : 200,
 			maximized : false,
 			minimized : false
-
 		};
 
 		me.loadMask = new Ext.LoadMask(me, {
@@ -183,8 +175,10 @@ Ext.define('Ext.dirac.core.Window', {
 				me._y = Math.round(me.i_y * me.desktop.boxSizeY);
 
 				var oPos = me.getPosition();
-
-				me._before_pin_state = setupData["_before_pin_state"];
+				
+				
+				if("_before_pin_state" in setupData)
+					me._before_pin_state = setupData["_before_pin_state"];
 
 				me.suspendEvents(false);
 				// setting the position and the size of the window
@@ -390,8 +384,7 @@ Ext.define('Ext.dirac.core.Window', {
 
 		me.suspendEvents(false);
 		me.minimized = false;
-		console.log("DATA PASSED");
-		console.log(oData);
+		
 		if (("maximized" in oData) && (oData["maximized"])) {
 
 			me.maximize();

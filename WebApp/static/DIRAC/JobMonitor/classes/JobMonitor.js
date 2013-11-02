@@ -1,10 +1,3 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-
 Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	extend : 'Ext.dirac.core.Module',
 
@@ -15,7 +8,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var me = this;
 
-		var bToRealod = false;
+		var bToReload = false;
 
 		if (data.columns) {
 			for ( var i = 0; i < me.grid.columns.length; i++) {
@@ -95,6 +88,37 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		}
 
+		if ("centralGridPanelVisible" in data) {
+
+			if (!data.centralGridPanelVisible) {
+
+				me.centralWorkPanel.getLayout().setActiveItem(1);
+
+			}
+
+		}
+
+		if ("statisticsSelectionPanelCollapsed" in data) {
+
+			if (data.statisticsSelectionPanelCollapsed) {
+
+				me.statisticsSelectionGrid.collapse();
+
+			}
+
+		}
+		
+		if("statisticsSelectionValues" in data){
+			
+			me.statisticsGridComboMain.suspendEvents(false);
+			me.statisticsGridCombo.suspendEvents(false);
+			me.statisticsGridComboMain.setValue(data.statisticsSelectionValues[0]);
+			me.statisticsGridCombo.setValue(data.statisticsSelectionValues[1]);
+			me.statisticsGridComboMain.resumeEvents();
+			me.statisticsGridCombo.resumeEvents();
+			
+		}
+		
 		if (bToReload) {
 
 			me.oprLoadGridData();
@@ -186,6 +210,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		oReturn.pageSize = me.pagingToolbar.pageSizeCombo.getValue();
 		oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
+		oReturn.centralGridPanelVisible = !me.grid.hidden;
+		oReturn.statisticsSelectionPanelCollapsed = me.statisticsSelectionGrid.collapsed;
+		oReturn.statisticsSelectionValues = [ me.statisticsGridComboMain.getValue(), me.statisticsGridCombo.getValue() ];
 
 		return oReturn;
 
@@ -757,8 +784,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			text : '',
 			iconCls : "jm-pie-icon",
 			handler : function() {
-				// me.grid.hide();
-				// me.statisticsPanel.show();
 				me.centralWorkPanel.getLayout().setActiveItem(1);
 			},
 			tooltip : "Go to the statistics panel"
@@ -781,8 +806,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					GLOBAL.APP.CF.alert('No jobs were selected', "error");
 					return;
 				} else {
-
-					// Ext.MessageBox.alert("IDs of selected jobs", oItems.join("; "));
 
 					var oWindow = me.getContainer().oprGetChildWindow("IDs of selected jobs", false, 700, 500);
 
@@ -1366,9 +1389,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
 
-				var iHeight = me.statisticsPlotPanel.getHeight()*2;
+				var iHeight = me.statisticsPlotPanel.getHeight();
 
-				var iWidth = me.statisticsPlotPanel.getWidth()*2;
+				var iWidth = me.statisticsPlotPanel.getWidth();
 
 				var canvas = document.createElement('canvas');
 				canvas.setAttribute('width', iWidth);
@@ -1385,10 +1408,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png';
 
 				oImage.onload = function() {
-					
-					console.log([oImage.clientWidth,oImage.clientHeight]);
-					
-					oContext.drawImage(oImage, 0,0,iWidth,iHeight);
+
+					console.log([ oImage.clientWidth, oImage.clientHeight ]);
+
+					oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
 
 					oContext.drawSvg(sSvgElement, 0, 0);
 
@@ -1516,7 +1539,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		me.centralWorkPanel = new Ext.create('Ext.panel.Panel', {
 			floatable : false,
-			// autoScroll : true,
 			layout : 'card',
 			region : "center",
 			header : false,
@@ -1968,6 +1990,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			// set those data as extraParams in
 			me.grid.store.proxy.extraParams = me.getSelectionData();
+			me.grid.store.currentPage = 1;
 			me.grid.store.load();
 
 			var oCheckbox = Ext.query("#" + me.id + " input.jm-main-check-box");

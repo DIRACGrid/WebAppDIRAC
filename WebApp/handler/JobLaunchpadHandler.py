@@ -75,7 +75,7 @@ class JobLaunchpadHandler(WebHandler):
     
     gLogger.always(result)
     if not result["OK"]:
-      return False
+      return []
     
     options = result["Value"]
     for i in options.keys():
@@ -130,7 +130,10 @@ class JobLaunchpadHandler(WebHandler):
     gLogger.info("end __getLaunchpadOpts")
     
 #    Updating the default values from OptionsOverride configuration branch
+    
     for key in options:
+      if key not in defaultParams:
+        defaultParams[key] = [ 0, "" ]                                                                                                 
       defaultParams[key][1] = options[key][0]
       
 #    Reading of the predefined sets of launchpad parameters values

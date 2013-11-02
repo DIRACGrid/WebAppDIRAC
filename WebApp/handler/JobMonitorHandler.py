@@ -12,9 +12,6 @@ class JobMonitorHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
 
-  def index(self):
-    pass
-
   def web_standalone(self):
     self.render("JobMonitor/standalone.tpl", config_data=json.dumps(self.getSessionData()))
 

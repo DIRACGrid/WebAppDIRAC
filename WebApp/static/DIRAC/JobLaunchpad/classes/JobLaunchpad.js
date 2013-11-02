@@ -1,10 +1,3 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-
 Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 	extend : 'Ext.dirac.core.Module',
 
@@ -106,10 +99,20 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 						if (action.result.success == 'false') {
 							GLOBAL.APP.CF.alert('Error: ' + action.result.error, 'error');
 						} else {
+							var sIds = "";
+
+							var sPlural = "are ";
+
+							if (action.result.result instanceof Array) {
+								sIds = action.result.result.join(", ");
+							} else {
+								sIds = action.result.result;
+								sPlural = "is ";
+							}
 
 							var oWarn = Ext.MessageBox.show({
 								title : 'Success',
-								msg : 'Your Job ID is ' + action.result.result.join(", "),
+								msg : 'Your Job ID ' + sPlural + sIds,
 								buttons : Ext.MessageBox.OKYES,
 								buttonText : {
 									ok : "OK",

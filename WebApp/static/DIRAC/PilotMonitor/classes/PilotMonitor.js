@@ -1,10 +1,3 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-
 Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 	extend : 'Ext.dirac.core.Module',
 
@@ -1142,6 +1135,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 			// set those data as extraParams in
 			me.grid.store.proxy.extraParams = extraParams;
+			me.grid.store.currentPage = 1;
 			me.grid.store.load();
 			
 			var oCheckbox = Ext.query("#" + me.id + " input.pm-main-check-box");
