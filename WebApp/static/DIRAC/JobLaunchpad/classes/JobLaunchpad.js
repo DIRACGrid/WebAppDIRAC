@@ -19,7 +19,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 			me.launcher.y = 0;
 
 		}
-		
+
 		if (GLOBAL.VIEW_ID == "tabs") {
 
 			me.launcher.title = "Job Launchpad";
@@ -117,9 +117,13 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 							GLOBAL.APP.CF.alert('Error: ' + action.result.error, 'error');
 						} else {
 
+							var bMultiIds = false;
+							if (action.result.result.length > 1)
+								bMultiIds = true;
+
 							var oWarn = Ext.MessageBox.show({
 								title : 'Success',
-								msg : 'Your Job ID is ' + action.result.result.join(", "),
+								msg : 'Your Job ID' + (bMultiIds ? "s are " : " is ") + action.result.result.join(", "),
 								buttons : Ext.MessageBox.OKYES,
 								buttonText : {
 									ok : "OK",

@@ -26,25 +26,29 @@ class SystemAdministrationHandler(WebHandler):
       self.finish({ "success" : "false" , "error" : result[ "Message" ] })
       return
     hosts = result[ "Value" ]
-
-    client = SystemAdministratorIntegrator(hosts=hosts , delegatedDN=DN ,
+    
+    callback = []
+    import pprint
+  
+    for host in hosts:
+      client = SystemAdministratorClient(host , None , delegatedDN=DN ,
                                           delegatedGroup=group)
+      resultHost = yield self.threadTask(client.getHostInfo)
+      print "------------------------------------------------------------\n"
+      print "                        RESULT \n"
+      print "------------------------------------------------------------\n"
+      if resultHost[ "OK" ]:
+        rec = resultHost["Value"]
+        rec["Host"] = host
+        callback.append(resultHost["Value"])
+      else:
+        callback.append({"Host":host})
+      
+    '''
+    client = SystemAdministratorIntegrator(hosts=hosts)
     result = yield self.threadTask(client.getHostInfo)
     gLogger.debug(result)
-    if not result[ "OK" ]:
-      self.finish({ "success" : "false" , "error" : result[ "Message" ] })
-      return
-    result = result[ "Value" ]
-
-    callback = list()
-    for i in result:
-      if result[ i ][ "OK" ]:
-        tmp = result[ i ][ "Value" ]
-      else:
-        tmp = dict()
-      tmp[ "Host" ] = i
-      callback.append(tmp)
-
+    '''
     total = len(callback)
     if not total > 0:
       self.finish({ "success" : "false" , "error" : "No system information found" })

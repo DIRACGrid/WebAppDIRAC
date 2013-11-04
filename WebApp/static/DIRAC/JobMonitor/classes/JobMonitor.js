@@ -1292,7 +1292,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			}
 		});
-
+		
 		me.grid.columns[1].setSortState("DESC");
 
 		for ( var i = 0; i < me.pagingToolbar.toolbar.items.length; i++) {

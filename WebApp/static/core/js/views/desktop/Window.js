@@ -110,6 +110,8 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
 		// a list of the child windows
 		me.oneTimeAfterShow = false;
+
+		me.childWindows = [];
 		me.callParent();
 
 	},

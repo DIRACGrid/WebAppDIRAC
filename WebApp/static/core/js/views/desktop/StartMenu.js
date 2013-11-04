@@ -1,7 +1,7 @@
 /**
- * @class Ext.dirac.views.desktop.StartMenu Startmenu as a part of the taskbar. An object
- *        of this class has two main parts: - Menu (on the left side) - Toolbar
- *        (on the right side)
+ * @class Ext.dirac.views.desktop.StartMenu Startmenu as a part of the taskbar.
+ *        An object of this class has two main parts: - Menu (on the left side) -
+ *        Toolbar (on the right side)
  * @extends Ext.panel.Panel
  */
 Ext.define('Ext.dirac.views.desktop.StartMenu', {
@@ -39,7 +39,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 		 */
 
 		me.title = ((GLOBAL.APP.configData.user.username) ? GLOBAL.APP.configData["user"]["username"] + "@" + GLOBAL.APP.configData["user"]["group"] : "Anonymous");
-		
+
 		me.menu = new Ext.menu.Menu({
 			cls : 'ux-start-menu-body',
 			border : false,
@@ -47,12 +47,12 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 		});
 
 		me.menu.layout.align = 'stretch';
-		
+
 		me.items = [ me.menu ];
 		me.layout = 'fit';
 
 		Ext.menu.Manager.register(me);
-		
+
 		me.callParent(arguments);
 
 		me.toolbar = new Ext.toolbar.Toolbar({
@@ -61,7 +61,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 			vertical : true,
 			width : 100
 		});
-		
+
 		if (GLOBAL.STATE_MANAGEMENT_ENABLED) {
 			me.toolbar.add([ '->', {
 				text : 'State Loader',
@@ -74,7 +74,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
 		me.toolbar.layout.align = 'stretch';
 		me.addDocked(me.toolbar);
-		
+
 		delete me.toolItems;
 
 	},
@@ -82,7 +82,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 	afterRender : function() {
 
 		var me = this;
-		
+
 		for ( var j = 0; j < GLOBAL.APP.configData["menu"].length; j++)
 			me.menu.add(me.getMenuStructureRec(GLOBAL.APP.configData["menu"][j]));
 
@@ -194,7 +194,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 							 * application states have been loaded
 							 */
 
-							var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", sStartClass, "|");//OK
+							var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", sStartClass, "|");// OK
 
 							if (iAppStatesLoaded != -2) {
 
@@ -215,7 +215,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
 									};
 
-									GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(sStartClass, oFunc);//OK
+									GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(sStartClass, oFunc);// OK
 
 									cmp.isStateMenuLoaded = 1;
 
@@ -244,11 +244,11 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 								minWidth : 200,
 								menu : [ {
 									text : "Share state",
-									stateName: stateName,
+									stateName : stateName,
 									handler : function() {
 										var oThisItem = this;
-										
-										GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, oThisItem.stateName , function(rCode, rAppName, rStateName, rMessage) {
+
+										GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, oThisItem.stateName, function(rCode, rAppName, rStateName, rMessage) {
 
 											if (rCode == 1) {
 
@@ -334,7 +334,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
 						oThisMenu.menu.removeAll();
 
-						var oStates = GLOBAL.APP.SM.getApplicationStates("application", oThisMenu.appClassName);//OK
+						var oStates = GLOBAL.APP.SM.getApplicationStates("application", oThisMenu.appClassName);// OK
 
 						for ( var i = 0, len = oStates.length; i < len; i++) {
 
@@ -351,13 +351,12 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 								stateType : "application",
 								menu : [ {
 									text : "Share state",
-									stateName: stateName,
+									stateName : stateName,
 									handler : function() {
-										
+
 										var oThisItem = this;
-										
-										
-										GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, oThisItem.stateName , function(rCode, rAppName, rStateName, rMessage) {
+
+										GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, oThisItem.stateName, function(rCode, rAppName, rStateName, rMessage) {
 
 											if (rCode == 1) {
 
@@ -382,7 +381,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
 						oThisMenu.menu.add("-");
 
-						var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", oThisMenu.appClassName);//OK
+						var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", oThisMenu.appClassName);// OK
 
 						for ( var i = 0, len = oRefs.length; i < len; i++) {
 

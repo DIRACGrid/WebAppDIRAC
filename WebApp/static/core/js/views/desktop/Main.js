@@ -1185,7 +1185,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
 		if (win.parentWindow)
 			win.parentWindow.removeChildWindowFromList(win);
-
+		
 		me.windows.remove(win);
 		/*
 		 * If the number of windows get 0, the current desktop state is cleared
@@ -1204,8 +1204,10 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		/*
 		 * Close all other child windows
 		 */
+		
 		for ( var i = win.childWindows.length - 1; i >= 0; i--) {
 			if (win.childWindows[i] != null) {
+				console.log(win.childWindows[i].title);
 				win.childWindows[i].close();
 			}
 		}
@@ -1214,7 +1216,6 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		 * if it is not child window remove the current state out of active states
 		 */
 		if (!win.isChildWindow) {
-
 			if (win.currentState != "")
 				GLOBAL.APP.SM.oprRemoveActiveState(win.loadedObject.self.getName(), win.currentState);// OK
 

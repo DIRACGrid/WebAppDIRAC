@@ -9,11 +9,10 @@ Ext.define('Ext.dirac.core.Module', {
 	mixins : [ "Ext.dirac.core.Stateful", "Ext.dirac.utils.DiracFileLoad" ],
 	extend : 'Ext.container.Container',
 
-	_container : null,
-
 	constructor : function(config) {
 		
 		this.launcher = config.launcherElements;
+		this._container = null;
 
 		this.callParent();
 		this.loadCSS();

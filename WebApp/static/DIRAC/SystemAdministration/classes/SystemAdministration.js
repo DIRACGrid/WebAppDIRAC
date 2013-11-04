@@ -1,7 +1,7 @@
 Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 	extend : 'Ext.dirac.core.Module',
 
-	requires : [ 'Ext.tab.Panel', 'Ext.ProgressBar', 'Ext.grid.feature.Grouping', 'Ext.data.ArrayStore' ],
+	requires : [ 'Ext.tab.Panel', 'Ext.ProgressBar', 'Ext.grid.feature.Grouping', 'Ext.data.ArrayStore', 'Ext.util.TaskRunner' ],
 
 	initComponent : function() {
 
@@ -121,9 +121,6 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
 					if (!bResponseOK) {
 
-						// GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"],
-						// "info");
-
 						if (parseInt(oStore.proxy.reader.rawData["total"]) == 0) {
 
 							me.systemInfoDataStore.removeAll();
@@ -131,19 +128,12 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 						}
 
 					} else {
-						/*
-						 * if (oStore.proxy.reader.rawData)
-						 * me.pagingToolbar.updateStamp.setText('Updated: ' +
-						 * oStore.proxy.reader.rawData["date"]);
-						 */
 
-						if (!oStore.createTabsOnce) {
-
-							for ( var i = 0; i < oStore.proxy.reader.rawData["result"].length; i++) {
-								me.createHostTab(oStore.proxy.reader.rawData["result"][i]["Host"]);
-							}
-
-							oStore.createTabsOnce = true;
+						if ("updateStamp" in oStore) {
+							if ("date" in oStore.proxy.reader.rawData)
+								oStore.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+							else
+								oStore.updateStamp.setText(me.getUtcDate());
 						}
 
 						me.systemInfoDataStore.remoteSort = false;
@@ -165,27 +155,29 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
 		var oGridButtonsToolbar = new Ext.create('Ext.toolbar.Toolbar', {
 			dock : 'top',
-			items : [ "->", {
+			items : [ {
 				xtype : "button",
 				text : 'Restart',
-				iconCls : "sa-restart-button-icon",
 				handler : function() {
 					me.oprHostAction("restart", 2);
 				},
+				iconCls : "dirac-icon-restart",
 				scope : me
 			}, {
 				text : 'Revert',
-				iconCls : "sa-revert-button-icon",
 				handler : function() {
 					me.oprHostAction("revert", 2);
 				},
+				iconCls : "dirac-icon-revert",
 				scope : me
 			} ]
 		});
 
 		me.systemInfoGrid = Ext.create('Ext.grid.Panel', {
-
+			region : "north",
+			title : "Overall System Information",
 			store : me.systemInfoDataStore,
+			height : 300,
 			header : false,
 			viewConfig : {
 				stripeRows : true,
@@ -361,21 +353,19 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 					e.preventDefault();
 					me.overallContextMenu.showAt(e.xy);
 					return false;
+				},
+
+				celldblclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+
+					me.hostGridStore.proxy.extraParams.hostname = record.get("Host");
+					me.hostGridStore.load();
+
 				}
 
 			}
 		});
 
-		me.mainTabPanel = Ext.create('Ext.tab.Panel', {
-			region : "center",
-			header : false,
-			items : [ {
-				title : 'Overall System Information',
-				items : [ me.systemInfoGrid ],
-				autoScroll : true,
-				layout : "fit"
-			} ]
-		});
+		me.createBottomGridToolbar(me.systemInfoGrid);
 
 		/*
 		 * Creating the context menus
@@ -386,17 +376,20 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 				handler : function() {
 					me.oprHostAction("restart", 1);
 				},
-				text : 'Restart'
+				text : 'Restart',
+				iconCls : "dirac-icon-restart"
 			}, {
 				handler : function() {
 					me.oprHostAction("revert", 1);
 				},
-				text : 'Revert'
-			}, {
+				text : 'Revert',
+				iconCls : "dirac-icon-revert"
+			}, '-', {
 				handler : function() {
 					me.oprGetHostErrors();
 				},
-				text : 'Show Errors'
+				text : 'Show Errors',
+				iconCls : "dirac-icon-error"
 			} ]
 		});
 
@@ -406,39 +399,31 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 					var oRecord = this.up("menu").selected_record;
 					me.oprGetHostLog(oRecord);
 				},
-				text : 'Log'
+				text : 'Log',
+				iconCls : "dirac-icon-log"
+			}, '-', {
+				handler : function() {
+					me.oprComponentAction("restart", 1);
+				},
+				text : 'Restart',
+				iconCls : "dirac-icon-restart"
+			}, {
+				handler : function() {
+					me.oprComponentAction("stop", 1);
+				},
+				text : 'Stop',
+				iconCls : "dirac-icon-stop"
 			}, {
 				handler : function() {
 					var oGrid = this.up("menu").grid;
-					me.oprComponentAction(oGrid, "restart", 1);
+					me.oprComponentAction("start", 1);
 				},
-				text : 'Restart'
-			}, {
-				handler : function() {
-					var oGrid = this.up("menu").grid;
-					me.oprComponentAction(oGrid, "stop", 1);
-				},
-				text : 'Stop'
-			}, {
-				handler : function() {
-					var oGrid = this.up("menu").grid;
-					me.oprComponentAction(oGrid, "start", 1);
-				},
-				text : 'Start'
+				text : 'Start',
+				iconCls : "dirac-icon-start"
 			} ]
 		});
 
-		me.add(me.mainTabPanel);
-
-	},
-
-	createHostTab : function(sHostName) {
-
-		var me = this;
-
-		var sTabId = Ext.id();
-
-		var oNewStore = new Ext.data.JsonStore({
+		me.hostGridStore = new Ext.data.JsonStore({
 
 			proxy : {
 				type : 'ajax',
@@ -448,13 +433,11 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 					root : 'result'
 				},
 				timeout : 1800000,
-				autoLoad : true,
 				extraParams : {
-					"hostname" : sHostName
+					"hostname" : ""
 				}
 			},
 			groupField : 'Type',
-			autoLoad : true,
 			fields : [ {
 				name : 'System'
 			}, {
@@ -478,7 +461,6 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			} ],
 			remoteSort : true,
 			pageSize : 10000,
-			tabPanelId : sTabId,
 			listeners : {
 
 				load : function(oStore, records, successful, eOpts) {
@@ -487,7 +469,16 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
 					if (!bResponseOK) {
 
-						me.mainTabPanel.remove(oStore.tabPanelId);
+						GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "error");
+
+					} else {
+
+						if ("updateStamp" in oStore) {
+							if ("date" in oStore.proxy.reader.rawData)
+								oStore.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+							else
+								oStore.updateStamp.setText(me.getUtcDate());
+						}
 
 					}
 
@@ -509,41 +500,36 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 		var oGroupingFeature = Ext.create('Ext.grid.feature.Grouping', {
 			groupHeaderTpl : '{columnName}: {name} ({rows.length} Item{[values.rows.length > 1 ? "s" : ""]})',
 			hideGroupedHeader : true,
-			startCollapsed : true,
-			id : 'directoryGrouping',
 			startCollapsed : false
 		});
 
 		var oGridButtonsToolbar = new Ext.create('Ext.toolbar.Toolbar', {
 			dock : 'top',
-			items : [ "->", {
+			items : [ {
 				xtype : "button",
 				text : 'Restart',
-				iconCls : "sa-restart-button-icon",
+				iconCls : "dirac-icon-restart",
 				handler : function() {
-					var oGrid = this.up("grid");
-
-					oGrid.moduleObject.oprComponentAction(oGrid, "restart", 2);
+					me.oprComponentAction("restart", 2);
 				}
 			}, {
 				text : 'Start',
-				iconCls : "sa-start-button-icon",
+				iconCls : "dirac-icon-start",
 				handler : function() {
-					var oGrid = this.up("grid");
-					oGrid.moduleObject.oprComponentAction(oGrid, "start", 2);
+					me.moduleObject.oprComponentAction("start", 2);
 				}
 			}, {
 				text : 'Stop',
-				iconCls : "sa-stop-button-icon",
+				iconCls : "dirac-icon-stop",
 				handler : function() {
-					var oGrid = this.up("grid");
-					oGrid.moduleObject.oprComponentAction(oGrid, "stop", 2);
+					me.moduleObject.oprComponentAction("stop", 2);
 				}
 			} ]
 		});
 
-		var oGrid = Ext.create('Ext.grid.Panel', {
-			store : oNewStore,
+		me.hostGrid = Ext.create('Ext.grid.Panel', {
+			region : "center",
+			store : me.hostGridStore,
 			header : false,
 			moduleObject : me,
 			id : sId,
@@ -553,7 +539,6 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			},
 			features : [ oGroupingFeature ],
 			dockedItems : [ oGridButtonsToolbar ],
-			hostName : sHostName,
 			columns : [ {
 				header : sHtml,
 				width : 26,
@@ -629,7 +614,6 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
 					e.preventDefault();
 					me.hostContextMenu.selected_record = record;
-					me.hostContextMenu.grid = this;
 
 					me.hostContextMenu.showAt(e.xy);
 					return false;
@@ -638,13 +622,9 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			}
 		});
 
-		me.mainTabPanel.add({
-			title : sHostName,
-			items : [ oGrid ],
-			autoScroll : true,
-			layout : "fit",
-			id : sTabId
-		});
+		me.createBottomGridToolbar(me.hostGrid);
+
+		me.add([ me.systemInfoGrid, me.hostGrid ]);
 
 	},
 
@@ -702,7 +682,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 				var me = this;
 				var response = Ext.JSON.decode(response.responseText);
 				me.getContainer().body.unmask();
-				
+
 				if (response["success"] == "true") {
 
 					me.__oprPrepareAndShowWindowGrid(response["result"], "Show errors for:" + sHostName, [ "Name", "ErrorsHour", "System", "ErrorsDay", "Host", "LastError" ], [ {
@@ -812,9 +792,9 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			sHost = oItems.join(",");
 
 		}
-		
+
 		me.getContainer().body.mask("Wait ...");
-		
+
 		Ext.Ajax.request({
 			url : GLOBAL.BASE_URL + 'SystemAdministration/hostAction',
 			params : {
@@ -826,7 +806,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
 				var me = this;
 				var response = Ext.JSON.decode(response.responseText);
-				
+
 				me.getContainer().body.unmask();
 				if (response["success"] == "true") {
 
@@ -837,7 +817,6 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 					GLOBAL.APP.CF.alert(response["error"], "error");
 
 				}
-				
 
 			},
 			failure : function(response) {
@@ -848,7 +827,9 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
 	},
 
-	oprComponentAction : function(oGrid, sAction, sEventSource) {
+	oprComponentAction : function(sAction, sEventSource) {
+
+		var me = this;
 
 		var oParams = {
 			action : sAction
@@ -856,16 +837,15 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
 		if (sEventSource == 1) {
 
-			var sHost = GLOBAL.APP.CF.getFieldValueFromSelectedRow(oGrid, "Host");
-			var sName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(oGrid, "Name");
-			var sSystem = GLOBAL.APP.CF.getFieldValueFromSelectedRow(oGrid, "System");
+			var sHost = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.hostGrid, "Host");
+			var sName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.hostGrid, "Name");
+			var sSystem = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.hostGrid, "System");
 
 			oParams[sName + "@" + sHost] = [ sSystem ];
 
 		} else {
 
-			
-			var oElems = Ext.query("#" + oGrid.id + " input.checkrow");
+			var oElems = Ext.query("#" + me.hostGrid.id + " input.checkrow");
 			var iNumberSelected = 0;
 			for ( var i = 0; i < oElems.length; i++)
 				if (oElems[i].checked) {
@@ -885,7 +865,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			}
 
 		}
-		
+
 		me.getContainer().body.mask("Wait ...");
 		Ext.Ajax.request({
 			url : GLOBAL.BASE_URL + 'SystemAdministration/componentAction',
@@ -895,7 +875,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
 				var me = this;
 				var response = Ext.JSON.decode(response.responseText);
-				
+
 				me.getContainer().body.unmask();
 				if (response["success"] == "true") {
 
@@ -914,6 +894,133 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			}
 		});
 
+	},
+
+	createBottomGridToolbar : function(oGrid) {
+		var oToolbarItems = [ '-' ];
+
+		var oTask = {
+			run : function() {
+				oGrid.getStore().load();
+			},
+			interval : 0
+		}
+
+		var oHeartbeat = new Ext.util.TaskRunner();
+
+		var oAutoMenu = [ {
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.start(Ext.apply(oTask, {
+					interval : 900000
+				}));
+			},
+			group : 'refresh',
+			text : '15 Minutes'
+		}, {
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.start(Ext.apply(oTask, {
+					interval : 1800000
+				}));
+			},
+			group : 'refresh',
+			text : '30 Minutes'
+		}, {
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.start(Ext.apply(oTask, {
+					interval : 3600000
+				}));
+			},
+			group : 'refresh',
+			text : 'One Hour'
+		}, {
+			checked : true,
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.stopAll();
+			},
+			group : 'refresh',
+			text : 'Disabled'
+		} ];
+
+		for ( var i = 0; i < oAutoMenu.length; i++) {
+			oAutoMenu[i] = new Ext.menu.CheckItem(oAutoMenu[i]);
+		}
+
+		var btnAutorefresh = new Ext.Button({
+			menu : oAutoMenu,
+			text : 'Disabled',
+			tooltip : 'Click to set the time for autorefresh'
+		});
+
+		btnAutorefresh.on('menuhide', function(button, menu) {
+			var length = menu.items.getCount();
+			for ( var i = 0; i < length; i++) {
+				if (menu.items.items[i].checked) {
+					button.setText(menu.items.items[i].text);
+				}
+			}
+		});
+
+		oToolbarItems.push('Auto:');
+		oToolbarItems.push(btnAutorefresh);
+
+		var btnUpdateStamp = new Ext.Button({
+			disabled : true,
+			disabledClass : 'my-disabled',
+			text : 'Updated: -'
+		});
+
+		oGrid.getStore().updateStamp = btnUpdateStamp;
+
+		oToolbarItems.push(btnUpdateStamp);
+
+		var oBbar = new Ext.PagingToolbar({
+			dock : "bottom",
+			displayInfo : true,
+			items : oToolbarItems,
+			pageSize : 10000,
+			refreshText : 'Click to refresh current page',
+			store : oGrid.getStore()
+		});
+
+		// hiding the first ten elemnts of the items
+
+		for ( var i = 0; i < 10; i++)
+			oBbar.items.removeAt(0);
+
+		oGrid.addDocked(oBbar);
+
+	},
+
+	getUtcDate : function() {
+		var d = new Date();
+
+		var hh = d.getUTCHours();
+		if (hh < 10) {
+			hh = '0' + hh;
+		}
+
+		var mm = d.getUTCMinutes();
+		if (mm < 10) {
+			mm = '0' + mm;
+		}
+
+		var mon = d.getUTCMonth() + 1;
+		if (mon < 10) {
+			mon = '0' + mon;
+		}
+
+		var day = d.getUTCDate();
+		if (day < 10) {
+			day = '0' + day;
+		}
+
+		var dateText = 'Updated: ' + d.getUTCFullYear() + '-' + mon + '-' + day;
+
+		return dateText + ' ' + hh + ':' + mm + ' [UTC]';
 	}
 
 });

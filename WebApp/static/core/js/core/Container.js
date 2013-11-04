@@ -6,9 +6,7 @@
 
 Ext.define('Ext.dirac.core.Container', {
 
-	childWindows: [],
-	
-	createChildWindow: function(sTitle, bModal, iWidth, iHeight){
+	createChildWindow : function(sTitle, bModal, iWidth, iHeight) {
 	}
-	
+
 });
