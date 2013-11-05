@@ -47,4 +47,18 @@
 	
 }
 
+.dirac-icon-mail{
+	
+	background-image: url(../img/icons/common/mail.png) !important;
+	background-color: transparent;
+	
+}
+
+.dirac-icon-refresh{
+	
+	background-image: url(../img/icons/common/refresh.gif) !important;
+	background-color: transparent;
+	
+}
+
 

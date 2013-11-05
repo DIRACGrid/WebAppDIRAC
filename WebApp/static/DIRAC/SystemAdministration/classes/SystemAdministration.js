@@ -170,6 +170,13 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 				},
 				iconCls : "dirac-icon-revert",
 				scope : me
+			}, '-', {
+				text : 'Send e-mail',
+				handler : function() {
+					me.oprShowSendMessageForm(2);
+				},
+				scope : me,
+				iconCls : "dirac-icon-mail"
 			} ]
 		});
 
@@ -1021,6 +1028,132 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 		var dateText = 'Updated: ' + d.getUTCFullYear() + '-' + mon + '-' + day;
 
 		return dateText + ' ' + hh + ':' + mm + ' [UTC]';
+	},
+
+	oprShowSendMessageForm : function(iType) {
+
+		var me = this;
+
+		me.getContainer().body.mask("Wait...");
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + 'SystemAdministration/getUsersGroups',
+			params : {},
+			scope : me,
+			success : function(response) {
+
+				var response = Ext.JSON.decode(response.responseText);
+				console.log(response);
+				me.getContainer().body.unmask();
+				if (response["success"] == "true") {
+
+					var oUsers = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
+						fieldLabel : "Send to user(s)",
+						queryMode : 'local',
+						labelAlign : 'left',
+						displayField : "value",
+						valueField : "value",
+						anchor : '100%',
+						store : new Ext.data.ArrayStore({
+							fields : [ 'value' ],
+							data : response["users"]
+						})
+					});
+
+					var oGroups = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
+						fieldLabel : "Send to group(s)",
+						queryMode : 'local',
+						labelAlign : 'left',
+						displayField : "value",
+						valueField : "value",
+						anchor : '100%',
+						store : new Ext.data.ArrayStore({
+							fields : [ 'value' ],
+							data : response["groups"]
+						})
+					});
+
+					var oSubject = Ext.create('Ext.form.field.Text', {
+						fieldLabel : "Subject",
+						labelAlign : 'left',
+						anchor : '100%'
+					});
+
+					var oMessage = Ext.create('Ext.form.field.TextArea', {
+						fieldLabel : "Message",
+						labelAlign : 'left',
+						grow : true,
+						anchor : '100%',
+						height : 150
+					});
+
+					var oSendBtn = new Ext.Button({
+
+						text : ((iType == 1) ? 'Send message' : 'Send e-mail'),
+						margin : 3,
+						handler : function() {
+
+						},
+						scope : me
+					});
+
+					var oResetBtn = new Ext.Button({
+
+						text : 'Reset',
+						margin : 3,
+						handler : function() {
+							oUsers.setValue([]);
+							oGroups.setValue([]);
+							oSubject.setValue("");
+							oMessage.setValue("");
+						},
+						scope : me
+					});
+
+					var oToolbar = new Ext.toolbar.Toolbar({
+						border : false,
+						layout : {
+							pack : 'center'
+						},
+						items : [ oSendBtn, oResetBtn ]
+					});
+
+					var oMainPanel = new Ext.create('Ext.panel.Panel', {
+						layout : "anchor",
+						border : false,
+						items : [ oUsers, oGroups, oSubject, oMessage ],
+						bbar : oToolbar,
+						bodyPadding : 10
+					});
+
+					var sTitle = "";
+
+					if (iType == 1) {
+						sTitle = "From " + GLOBAL.USER_CREDENTIALS["username"] + "@" + GLOBAL.USER_CREDENTIALS["group"];
+					} else {
+						sTitle = "From " + response["email"];
+					}
+
+					var oWindow = Ext.create('widget.window', {
+						height : 350,
+						width : 550,
+						title : sTitle,
+						layout : 'fit',
+						modal : true,
+						items : [ oMainPanel ],
+						iconCls : "dirac-icon-mail"
+					});
+
+					oWindow.show();
+
+				}
+
+			},
+			failure : function(response) {
+				me.getContainer().body.unmask();
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+			}
+		});
+
 	}
 
 });

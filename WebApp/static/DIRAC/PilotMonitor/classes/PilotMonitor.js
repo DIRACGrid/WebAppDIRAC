@@ -227,7 +227,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			me.launcher.y = 0;
 
 		}
-		
+
 		if (GLOBAL.VIEW_ID == "tabs") {
 
 			me.launcher.title = "Pilot Monitor";
@@ -490,10 +490,9 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 			text : 'Submit',
 			margin : 3,
-			iconCls : "pm-submit-icon",
+			iconCls : "dirac-icon-submit",
 			handler : function() {
 				me.oprLoadGridData();
-				// me.oprSelectorsRefreshWithSubmit(true);
 			},
 			scope : me
 
@@ -514,6 +513,20 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		});
 
 		oPanelButtons.add(me.btnReset);
+
+		me.btnRefresh = new Ext.Button({
+
+			text : 'Refresh',
+			margin : 3,
+			iconCls : "dirac-icon-refresh",
+			handler : function() {
+				me.oprSelectorsRefreshWithSubmit(false);
+			},
+			scope : me
+
+		});
+
+		oPanelButtons.add(me.btnRefresh);
 
 		me.leftPanel.addDocked(oPanelButtons);
 

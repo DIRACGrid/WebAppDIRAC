@@ -111,6 +111,9 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 				me.mainFormPanel.submit({
 					url : GLOBAL.BASE_URL + 'JobLaunchpad/jobSubmit',
 					success : function(form, action) {
+						
+						if (!(Object.prototype.toString.call(action.result.result) === '[object Array]'))
+							action.result.result = [ action.result.result ];
 
 						me.getContainer().body.unmask();
 						if (action.result.success == 'false') {
@@ -137,7 +140,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 										if (GLOBAL.VIEW_ID == "desktop") {
 											var oSetupData = {};
-											var oDimensions = GLOBAL.APP.MAIN_VIEW.getDesktopDimensions();
+											var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 											oSetupData.x = 0;
 											oSetupData.y = 0;
 											oSetupData.width = oDimensions[0];

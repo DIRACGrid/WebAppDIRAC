@@ -293,7 +293,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			me.launcher.y = 0;
 
 		}
-		
+
 		if (GLOBAL.VIEW_ID == "tabs") {
 
 			me.launcher.title = "Job Monitor";
@@ -561,7 +561,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			text : 'Submit',
 			margin : 3,
-			iconCls : "jm-submit-icon",
+			iconCls : "dirac-icon-submit",
 			handler : function() {
 				me.oprLoadGridData();
 			},
@@ -589,7 +589,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			text : 'Refresh',
 			margin : 3,
-			iconCls : "jm-refresh-icon",
+			iconCls : "dirac-icon-refresh",
 			handler : function() {
 				me.oprSelectorsRefreshWithSubmit(false);
 			},
@@ -1292,7 +1292,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			}
 		});
-		
+
 		me.grid.columns[1].setSortState("DESC");
 
 		for ( var i = 0; i < me.pagingToolbar.toolbar.items.length; i++) {
@@ -1427,6 +1427,73 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			tooltip : "Plot settings"
 		});
 
+		/*-----------AUTO REFRESH---------------*/
+		var oTask = {
+			run : function() {
+				me.oprLoadGridData();
+			},
+			interval : 0
+		}
+
+		var oHeartbeat = new Ext.util.TaskRunner();
+
+		var oAutoMenu = [ {
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.start(Ext.apply(oTask, {
+					interval : 900000
+				}));
+			},
+			group : 'refresh',
+			text : '15 Minutes'
+		}, {
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.start(Ext.apply(oTask, {
+					interval : 1800000
+				}));
+			},
+			group : 'refresh',
+			text : '30 Minutes'
+		}, {
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.start(Ext.apply(oTask, {
+					interval : 3600000
+				}));
+			},
+			group : 'refresh',
+			text : 'One Hour'
+		}, {
+			checked : true,
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.stopAll();
+			},
+			group : 'refresh',
+			text : 'Disabled'
+		} ];
+
+		for ( var i = 0; i < oAutoMenu.length; i++) {
+			oAutoMenu[i] = new Ext.menu.CheckItem(oAutoMenu[i]);
+		}
+
+		var btnAutorefresh = new Ext.Button({
+			menu : oAutoMenu,
+			text : 'Auto Refresh: Disabled',
+			tooltip : 'Click to set the time for autorefresh'
+		});
+
+		btnAutorefresh.on('menuhide', function(button, menu) {
+			var length = menu.items.getCount();
+			for ( var i = 0; i < length; i++) {
+				if (menu.items.items[i].checked) {
+					button.setText("Auto Refresh: " + menu.items.items[i].text);
+				}
+			}
+		});
+		/*---------------------------------------------------*/
+
 		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
 			region : 'west',
 			store : new Ext.data.ArrayStore({
@@ -1442,7 +1509,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
-				items : [ oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings ]
+				items : [ oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, '-', btnAutorefresh ]
 			}), new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
 				items : [ me.statisticsGridComboMain ]
@@ -1575,9 +1642,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		// button for saving the state
 		me.plotSettings.btnApplySettings = new Ext.Button({
 
-			text : 'Apply',
+			text : 'Submit',
 			margin : 3,
-			iconCls : "toolbar-other-save",
+			iconCls : "jm-submit-icon",
 			handler : function() {
 				var me = this;
 				me.createPlotFromGridData(me.plotSettings.txtPlotTitle.getValue(), me.plotSettings.cmbLegendPosition.getValue());
@@ -2007,8 +2074,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.timeSearchElementsGroup.calenTo.setValue("");
 		me.timeSearchElementsGroup.cmbTimeFrom.setValue("");
 		me.timeSearchElementsGroup.cmbTimeTo.setValue("");
-
-		// me.oprLoadGridData();
 
 	},
 	__oprJobAction : function(oAction, oId) {

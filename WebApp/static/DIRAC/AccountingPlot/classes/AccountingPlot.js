@@ -178,7 +178,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			},
 			SRMSpaceTokenDeployment : {
 				title : "SRM Space Token Deployment",
-				selectionConditions : [ [ "Site", "Site" ], [ "Hostname", "Hostname" ], [ "SpaceTokenDesc", "Space Token Description" ], ]
+				selectionConditions : [ [ "Site", "Site" ], [ "Hostname", "Hostname" ], [ "SpaceTokenDesc", "Space Token Description" ] ]
 
 			}
 

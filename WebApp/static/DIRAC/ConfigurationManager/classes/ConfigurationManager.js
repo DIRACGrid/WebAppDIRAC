@@ -458,10 +458,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 					me.btnCommitConfiguration.hide();
 					me.btnViewConfigDifference.hide();
 
-					/*
-					 * var oResponse = {}; me.__showConfigDiffInWindow(oResponse);
-					 */
-
 				},
 				scope : me,
 				hidden : true
@@ -984,6 +980,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		oWindow.add(oPanel);
 		oWindow.show();
 		oWindow.maximize();
+		oWindow.getHeader().show();
 
 		var delta_pos = 1.0 * (oBlocksPanel.getHeight() - 10) / parseFloat(oResponse.totalLines);
 

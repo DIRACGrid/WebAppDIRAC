@@ -1,11 +1,13 @@
 
 from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorIntegrator import SystemAdministratorIntegrator
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities.List import uniqueElements
 import json
 
 class SystemAdministrationHandler(WebHandler):
@@ -367,5 +369,233 @@ class SystemAdministrationHandler(WebHandler):
       return { "success" : "false" , "error" : result }
     else:
       result = "No action has performed due technical failure. Check the logs please"
+      gLogger.debug(result)
+      return { "success" : "false" , "error" : result }
+  
+  def web_getUsersGroups(self):
+    
+    result = gConfig.getSections("/Registry/Users")
+    if not result[ "OK" ]:
+      self.write({ "success" : "false" , "error" : result[ "Message" ] })
+      return
+    result = result[ "Value" ]
+   
+    users = map(lambda x : [x] , result)
+    
+    result = gConfig.getSections("/Registry/Groups")
+    if not result[ "OK" ]:
+      self.write({ "success" : "false" , "error" : result[ "Message" ] })
+      return
+    result = result[ "Value" ]
+   
+    groups = map(lambda x : [x] , result)
+    
+    self.write({ "success" : "true" , "users" : users, "groups" : groups, "email": self.getUserEmail()  })
+
+  def getUserEmail(self):
+
+    userData = self.getSessionData()
+    user = userData["user"]["username"]
+    
+    if not user:
+      gLogger.debug("user value is empty")
+      return None
+
+    if user == "anonymous":
+      gLogger.debug("user is anonymous")
+      return None
+    
+    email = gConfig.getValue("/Registry/Users/%s/Email" % user , "")
+    gLogger.debug("/Registry/Users/%s/Email - '%s'" % (user , email))
+    emil = email.strip()
+      
+    if not email:
+      return None
+    return email
+  
+  def web_sendMessage(self):
+
+    """
+    Send message(not implemented yet) or email getting parameters from request
+    """
+
+    email = self.getUserEmail()
+    
+    if not "subject" in self.request.arguments:
+      result = "subject parameter is not in request... aborting"
+      gLogger.debug(result)
+      self.write({ "success" : "false" , "error" : result })
+      return
+    
+    subject = self.checkUnicode(self.request.arguments[ "subject" ][0])
+    if not len(subject) > 0:
+      subject = "Message from %s" % email
+
+    if not "message" in self.request.arguments:
+      result = "msg parameter is not in request... aborting"
+      gLogger.debug(result)
+      self.write({ "success" : "false" , "error" : result })
+      return
+    
+    body = self.checkUnicode(self.request.arguments[ "message" ][0])
+    if not len(body) > 0:
+      result = "Message body has zero length... aborting"
+      gLogger.debug(result)
+      self.write({ "success" : "false" , "error" : result })
+      return
+
+    users = self.request.arguments[ "users" ][0].split(",")
+    
+    gLogger.info("List of users from request: %s" % userList)
+    if userList:
+      users.extend(userList)
+
+    groups = self.request.arguments[ "groups" ][0].split(",")
+    gLogger.info("List of groups from request: %s" % groupList)
+    if groups:
+      for g in groups:
+        userList = self.getUsersFromGroup(g)
+        gLogger.info("Get users: %s from group %s" % (userList , g))
+        if userList:
+          users.extend(userList)
+          
+    gLogger.info("Merged list of users from users and group %s" % users)
+
+    if not len(users) > 0:
+      error = "Length of list of recipients is zero size"
+      gLogger.info(error)
+      self.write({ "success" : "false" , "error" : error })
+      return
+      
+    users = uniqueElements(users)
+    gLogger.info("Final list of users to send message/mail: %s" % users)
+    
+    sendDict = self.getMailDict(users)
+    self.write(self.sendMail(sendDict , subject , body , email))
+    
+  
+  def checkUnicode(self , text=None):
+
+    """
+    Check if value is unicode or not and return properly converted string
+    Arguments are string and unicode/string, return value is a string
+    """
+
+    try:
+      text = text.decode('utf-8' , "replace")
+    except :
+      pass
+    text = text.encode("utf-8")
+    gLogger.debug(text)
+    
+    return text
+  
+  def getUsersFromGroup(self , groupname=None):
+
+    if not groupname:
+      gLogger.debug("Argument groupname is missing")
+      return None
+
+    users = gConfig.getValue("/Registry/Groups/%s/Users" % groupname , [])
+    gLogger.debug("%s users: %s" % (groupname , users))
+    if not len(users) > 0:
+      gLogger.debug("No users for group %s found" % groupname)
+      return None
+    return users
+  
+  def getMailDict(self , names=None):
+  
+    """
+    Convert list of usernames to dict like { e-mail : full name }
+    Argument is a list. Return value is a dict
+    """
+
+    resultDict = dict()
+    if not names:
+      return resultDict
+    
+    for user in names:
+      email = gConfig.getValue("/Registry/Users/%s/Email" % user , "")
+      gLogger.debug("/Registry/Users/%s/Email - '%s'" % (user , email))
+      emil = email.strip()
+      
+      if not email:
+        gLogger.error("Can't find value for option /Registry/Users/%s/Email" % user)
+        continue
+
+      fname = gConfig.getValue("/Registry/Users/%s/FullName" % user , "")
+      gLogger.debug("/Registry/Users/%s/FullName - '%s'" % (user , fname))
+      fname = fname.strip()
+
+      if not fname:
+        fname = user
+        gLogger.debug("FullName is absent, name to be used: %s" % fname)
+
+      resultDict[ email ] = fname
+
+    return resultDict
+  
+  def sendMail(self , sendDict=None , title=None , body=None , fromAddress=None):
+
+    """
+    Sending an email using sendDict: { e-mail : name } as addressbook
+    title and body is the e-mail's Subject and Body
+    fromAddress is an email address in behalf of whom the message is sent
+    Return success/failure JSON structure
+    """
+
+    if not sendDict:
+      result = ""
+      gLogger.debug(result)
+      return { "success" : "false" , "error" : result }
+
+    if not title:
+      result = "title argument is missing"
+      gLogger.debug(result)
+      return { "success" : "false" , "error" : result }
+      
+    if not body:
+      result = "body argument is missing"
+      gLogger.debug(result)
+      return { "success" : "false" , "error" : result }
+
+    if not fromAddress:
+      result = "fromAddress argument is missing"
+      gLogger.debug(result)
+      return { "success" : "false" , "error" : result }
+
+    sentSuccess = list()
+    sentFailed = list()
+    gLogger.debug("Initializing Notification client")
+    ntc = NotificationClient(lambda x , timeout: RPCClient(x , timeout=timeout , static=True))
+
+    for email , name in sendDict.iteritems():
+      result = ntc.sendMail(email , title , body , fromAddress , False)
+      if not result[ "OK" ]:
+        error = name + ": " + result[ "Message" ]
+        sentFailed.append(error)
+        gLogger.error("Sent failure: " , error)
+      else:
+        gLogger.info("Successfully sent to %s" % name)
+        sentSuccess.append(name)
+
+    success = ", ".join(sentSuccess)
+    failure = "\n".join(sentFailed)
+
+    if len(success) > 0 and len(failure) > 0:
+      result = "Successfully sent e-mail to: "
+      result = result + success + "\n\nFailed to send e-mail to:\n" + failure
+      gLogger.debug(result)
+      return { "success" : "true" , "result" : result }
+    elif len(success) > 0 and len(failure) < 1:
+      result = "Successfully sent e-mail to: %s" % success
+      gLogger.debug(result)
+      return { "success" : "true" , "result" : result }
+    elif len(success) < 1 and len(failure) > 0:
+      result = "Failed to sent email to:\n%s" % failure
+      gLogger.debug(result)
+      return { "success" : "false" , "error" : result }
+    else:
+      result = "No messages were sent due technical failure"
       gLogger.debug(result)
       return { "success" : "false" , "error" : result }
