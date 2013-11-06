@@ -1201,8 +1201,6 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		me.textJobReference.setValue("");
 		me.textTaskQueueId.setValue("");
 
-		me.oprLoadGridData();
-
 	},
 
 	__oprGetJobData : function(oDataKind) {
