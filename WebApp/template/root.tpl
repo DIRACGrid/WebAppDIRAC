@@ -51,7 +51,8 @@
           var GLOBAL = {};
 
           GLOBAL.APP = null;
-          GLOBAL.BASE_URL = "";
+          GLOBAL.BASE_URL = "{{base_url}}/";
+          GLOBAL.ROOT_URL = "{{root_url}}/";
           GLOBAL.EXTJS_VERSION = "{{ext_version}}";
           GLOBAL.DEV = 1;
           GLOBAL.URL_STATE = "{{url_state}}";
@@ -65,10 +66,11 @@
           GLOBAL.VIEW_ID = "{{view}}";
           GLOBAL.VALID_VIEWS = ["desktop","tabs"];
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
+          GLOBAL.OPEN_APP = "{{open_app}}";
+          
 
           Ext.onReady(function () {
-            GLOBAL.BASE_URL = "{{base_url}}/";
-            GLOBAL.ROOT_URL = "{{root_url}}/";
+            
             GLOBAL.APP = new Ext.dirac.core.App();
             setTimeout(function(){
               Ext.get("app-dirac-loading").hide();
@@ -79,7 +81,8 @@
           var GLOBAL = {};
 
           GLOBAL.APP = null;
-          GLOBAL.BASE_URL = "";
+          GLOBAL.BASE_URL = "{{base_url}}/";
+          GLOBAL.ROOT_URL = "{{root_url}}/";
           GLOBAL.EXTJS_VERSION = "{{ext_version}}";
           GLOBAL.DEV = 0;
           GLOBAL.URL_STATE = "{{url_state}}";
@@ -93,10 +96,9 @@
           GLOBAL.VIEW_ID = "{{view}}";
           GLOBAL.VALID_VIEWS = ["desktop","tabs"];
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
+          GLOBAL.OPEN_APP = "{{open_app}}";
 
           Ext.onReady(function () {
-              GLOBAL.BASE_URL = "{{base_url}}/";
-              GLOBAL.ROOT_URL = "{{root_url}}/";
               GLOBAL.APP = new Ext.dirac.core.App();
               setTimeout(function(){
                 Ext.get("app-dirac-loading").hide();

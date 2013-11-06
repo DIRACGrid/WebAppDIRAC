@@ -57,10 +57,14 @@ class RootHandler(WebHandler):
         theme_name = "ext-all-neptune"
       if self.request.arguments["theme"][0]=="Classic":
         theme_name = "ext-all"
-
+        
+    open_app = ""
+    if self.request.arguments.has_key("open_app") and len(self.request.arguments["open_app"][0]) > 0:
+      open_app = self.request.arguments["open_app"][0].strip()
+      
     self.render( "root.tpl", base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
                  ext_version = data[ 'extVersion' ], url_state = url_state,
                  extensions = data[ 'extensions' ],
                  credentials = data[ 'user' ], title = Conf.getTitle(),
-                 theme = theme_name, root_url = Conf.rootURL(), view = view_name )
+                 theme = theme_name, root_url = Conf.rootURL(), view = view_name, open_app = open_app )
 

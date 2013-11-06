@@ -15,7 +15,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
 	defaultAlign : 'bl-tl',
 
-	iconCls : 'user',
+	iconCls : 'ux-start-button-icon',
 
 	height : 300,
 
@@ -29,7 +29,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 	 * layout from the typical 'stretchmax' to 'stretch' which allows the the
 	 * items to fill the menu area.
 	 */
-	width : 300,
+	width : 230,
 
 	initComponent : function() {
 		var me = this;
@@ -43,7 +43,8 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 		me.menu = new Ext.menu.Menu({
 			cls : 'ux-start-menu-body',
 			border : false,
-			floating : false
+			floating : false,
+			ignoreParentClicks : true
 		});
 
 		me.menu.layout.align = 'stretch';
@@ -53,27 +54,15 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
 		Ext.menu.Manager.register(me);
 
+		/*
+		 * me.toolbar = new Ext.toolbar.Toolbar({ dock : 'right', cls :
+		 * 'ux-start-menu-toolbar', vertical : true, width : 100 });
+		 */
+
 		me.callParent(arguments);
 
-		me.toolbar = new Ext.toolbar.Toolbar({
-			dock : 'right',
-			cls : 'ux-start-menu-toolbar',
-			vertical : true,
-			width : 100
-		});
-
-		if (GLOBAL.STATE_MANAGEMENT_ENABLED) {
-			me.toolbar.add([ '->', {
-				text : 'State Loader',
-				iconCls : 'system_state_icon',
-				handler : function() {
-					GLOBAL.APP.MAIN_VIEW.SM.formStateLoader(GLOBAL.APP.MAIN_VIEW.cbAfterLoadSharedState, GLOBAL.APP.MAIN_VIEW.cbAfterSaveSharedState);
-				}
-			} ]);
-		}
-
-		me.toolbar.layout.align = 'stretch';
-		me.addDocked(me.toolbar);
+		// me.toolbar.layout.align = 'stretch';
+		// me.addDocked(me.toolbar);
 
 		delete me.toolItems;
 
@@ -85,6 +74,18 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
 		for ( var j = 0; j < GLOBAL.APP.configData["menu"].length; j++)
 			me.menu.add(me.getMenuStructureRec(GLOBAL.APP.configData["menu"][j]));
+
+		if (GLOBAL.STATE_MANAGEMENT_ENABLED) {
+
+			me.menu.add([ '-', {
+				text : 'State Loader',
+				iconCls : 'system_state_icon',
+				handler : function() {
+					GLOBAL.APP.MAIN_VIEW.SM.formStateLoader(GLOBAL.APP.MAIN_VIEW.cbAfterLoadSharedState, GLOBAL.APP.MAIN_VIEW.cbAfterSaveSharedState);
+				}
+			} ]);
+
+		}
 
 		this.callParent();
 	},
@@ -143,7 +144,12 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 			var result = {
 				text : item[0],
 				menu : [],
-				iconCls : "system_folder"
+				iconCls : "system_folder",
+				listeners : {
+					render : function(oMenu, eOpts) {
+						oMenu.menu.ignoreParentClicks = true;
+					}
+				}
 			};
 
 			for ( var i = 0; i < item[1].length; i++)

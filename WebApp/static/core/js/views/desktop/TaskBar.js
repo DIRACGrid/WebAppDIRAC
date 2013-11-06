@@ -41,10 +41,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 			menu : me.startMenu,
 			menuAlign : 'bl-tl',
 			text : me.startBtnText
-		}, me.windowBar, {
-			xtype : 'tbtext',
-			text : "Theme"
-		} ];
+		}, me.windowBar ];
 
 		var sButtonThemeText = "Grey";
 
@@ -82,7 +79,10 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 			});
 		}
 
-		me.items.push(button_theme);
+		/*
+		 * me.items.push({ xtype : 'tbtext', text : "Theme" });
+		 * me.items.push(button_theme);
+		 */
 
 		var button_views = {
 			"text" : GLOBAL.VIEW_ID,
@@ -111,6 +111,11 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 				}
 			});
 		}
+
+		me.items.push({
+			xtype : 'tbtext',
+			text : "View"
+		});
 
 		me.items.push(button_views);
 
