@@ -1,10 +1,3 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-
 Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	extend : 'Ext.dirac.core.Module',
 	requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.TextArea",
@@ -204,12 +197,23 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	initComponent : function() {
 
 		var me = this;
-
-		me.launcher.title = "File Catalog";
-		me.launcher.maximized = true;
+		
+		if (GLOBAL.VIEW_ID == "desktop") {
+			
+			me.launcher.title = "File Catalog";
+			me.launcher.maximized = true;
+		
+		}
+		
+		if (GLOBAL.VIEW_ID == "tabs") {
+			
+			me.launcher.title = "File Catalog";
+			me.launcher.maximized = true;
+		
+		}
 
 		me.__loadingStateDataStruct = null;
-
+		
 		Ext.apply(me, {
 			layout : 'border',
 			bodyBorder : false,
@@ -483,7 +487,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			iconCls : "meta-query-icon",
 			handler : function() {
 
-				var oWindow = me.getContainer().oprGetChildWindow("Show Query", false, 400, 300);
+				var oWindow = me.getContainer().createChildWindow("Show Query", false, 400, 300);
 
 				var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 					value : me.lastSubmittedQuery,

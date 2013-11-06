@@ -1,5 +1,5 @@
 /**
- * @class Ext.dirac.core.Desktop This is an abstract class that has to be
+ * @class Ext.dirac.core.Module This is an abstract class that has to be
  *        inherited by every module.
  * @mixin Ext.container.Container
  * 
@@ -9,20 +9,10 @@ Ext.define('Ext.dirac.core.Module', {
 	mixins : [ "Ext.dirac.core.Stateful", "Ext.dirac.utils.DiracFileLoad" ],
 	extend : 'Ext.container.Container',
 
-	_container : null,
-
 	constructor : function(config) {
-
-		this.launcher = {
-
-			title : 'Module',
-			iconCls : 'notepad',
-			width : 0,
-			height : 0,
-			maximized : true,
-			x : null,
-			y : null
-		};
+		
+		this.launcher = config.launcherElements;
+		this._container = null;
 
 		this.callParent();
 		this.loadCSS();

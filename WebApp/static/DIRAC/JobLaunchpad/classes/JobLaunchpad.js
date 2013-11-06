@@ -7,14 +7,31 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 		var me = this;
 
-		me.launcher.title = "Job Launchpad";
-		me.launcher.maximized = false;
+		if (GLOBAL.VIEW_ID == "desktop") {
 
-		me.launcher.width = 600;
-		me.launcher.height = 600;
+			me.launcher.title = "Job Launchpad";
+			me.launcher.maximized = false;
 
-		me.launcher.x = 0;
-		me.launcher.y = 0;
+			me.launcher.width = 600;
+			me.launcher.height = 600;
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
+
+		if (GLOBAL.VIEW_ID == "tabs") {
+
+			me.launcher.title = "Job Launchpad";
+			me.launcher.maximized = false;
+
+			me.launcher.width = 600;
+			me.launcher.height = 600;
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
 
 		Ext.apply(me, {
 			layout : 'border',
@@ -94,25 +111,29 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 				me.mainFormPanel.submit({
 					url : GLOBAL.BASE_URL + 'JobLaunchpad/jobSubmit',
 					success : function(form, action) {
-
+						
 						me.getContainer().body.unmask();
 						if (action.result.success == 'false') {
 							GLOBAL.APP.CF.alert('Error: ' + action.result.error, 'error');
 						} else {
 							var sIds = "";
 
-							var sPlural = "are ";
+							var bPlural = true;
 
 							if (action.result.result instanceof Array) {
 								sIds = action.result.result.join(", ");
 							} else {
 								sIds = action.result.result;
-								sPlural = "is ";
+								bPlural = false;
 							}
+
+							var bMultiIds = false;
+							if (action.result.result.length > 1)
+								bMultiIds = true;
 
 							var oWarn = Ext.MessageBox.show({
 								title : 'Success',
-								msg : 'Your Job ID ' + sPlural + sIds,
+								msg : 'Your Job ID' + (bPlural ? "s are " : " is ") + sIds,
 								buttons : Ext.MessageBox.OKYES,
 								buttonText : {
 									ok : "OK",
@@ -124,28 +145,34 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 									if (oButton == "no") {
 
-										var oSetupData = {};
-										var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
-										oSetupData.x = 0;
-										oSetupData.y = 0;
-										oSetupData.width = oDimensions[0];
-										oSetupData.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
-										oSetupData.currentState = "";
+										if (GLOBAL.VIEW_ID == "desktop") {
+											var oSetupData = {};
+											var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+											oSetupData.x = 0;
+											oSetupData.y = 0;
+											oSetupData.width = oDimensions[0];
+											oSetupData.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+											oSetupData.currentState = "";
 
-										oSetupData.desktopStickMode = 0;
-										oSetupData.hiddenHeader = 1;
-										oSetupData.i_x = 0;
-										oSetupData.i_y = 0;
-										oSetupData.ic_x = 0;
-										oSetupData.ic_y = 0;
+											oSetupData.desktopStickMode = 0;
+											oSetupData.hiddenHeader = 1;
+											oSetupData.i_x = 0;
+											oSetupData.i_y = 0;
+											oSetupData.ic_x = 0;
+											oSetupData.ic_y = 0;
 
-										oSetupData.data = {
-											leftMenu : {
-												txtJobId : action.result.result
-											}
-										};
+											oSetupData.data = {
+												leftMenu : {
+													txtJobId : action.result.result
+												}
+											};
 
-										GLOBAL.APP.desktop.createWindow("app", "DIRAC.JobMonitor.classes.JobMonitor", oSetupData);
+											GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+												objectType : "app",
+												moduleName : "DIRAC.JobMonitor.classes.JobMonitor",
+												setupData : oSetupData
+											});
+										}
 
 									}
 

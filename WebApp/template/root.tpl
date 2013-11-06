@@ -12,6 +12,7 @@
 	 
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
+    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/iconset.css" />
     {% autoescape None %}
     <!-- GC -->
 
@@ -40,6 +41,7 @@
           {% end %}
        {% end %}
             'Ext.dirac.core': '{{base_url}}/static/core/js/core',
+            'Ext.dirac.views': '{{base_url}}/static/core/js/views',
             'Ext.dirac.utils': '{{base_url}}/static/core/js/utils',
             'Ext.ux.form':'{{base_url}}/static/extjs/{{ext_version}}/examples/ux/form'
           });
@@ -60,6 +62,9 @@
           GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
+          GLOBAL.VIEW_ID = "{{view}}";
+          GLOBAL.VALID_VIEWS = ["desktop","tabs"];
+          GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
 
           Ext.onReady(function () {
             GLOBAL.BASE_URL = "{{base_url}}/";
@@ -85,6 +90,9 @@
           GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
+          GLOBAL.VIEW_ID = "{{view}}";
+          GLOBAL.VALID_VIEWS = ["desktop","tabs"];
+          GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
 
           Ext.onReady(function () {
               GLOBAL.BASE_URL = "{{base_url}}/";

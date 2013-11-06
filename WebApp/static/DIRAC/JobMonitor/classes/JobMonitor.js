@@ -107,18 +107,18 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			}
 
 		}
-		
-		if("statisticsSelectionValues" in data){
-			
+
+		if ("statisticsSelectionValues" in data) {
+
 			me.statisticsGridComboMain.suspendEvents(false);
 			me.statisticsGridCombo.suspendEvents(false);
 			me.statisticsGridComboMain.setValue(data.statisticsSelectionValues[0]);
 			me.statisticsGridCombo.setValue(data.statisticsSelectionValues[1]);
 			me.statisticsGridComboMain.resumeEvents();
 			me.statisticsGridCombo.resumeEvents();
-			
+
 		}
-		
+
 		if (bToReload) {
 
 			me.oprLoadGridData();
@@ -313,16 +313,35 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var me = this;
 
-		me.launcher.title = "Job Monitor";
-		me.launcher.maximized = false;
+		if (GLOBAL.VIEW_ID == "desktop") {
 
-		var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+			me.launcher.title = "Job Monitor";
+			me.launcher.maximized = false;
 
-		me.launcher.width = oDimensions[0];
-		me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-		me.launcher.x = 0;
-		me.launcher.y = 0;
+			me.launcher.width = oDimensions[0];
+			me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
+
+		if (GLOBAL.VIEW_ID == "tabs") {
+
+			me.launcher.title = "Job Monitor";
+			me.launcher.maximized = false;
+
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+			me.launcher.width = oDimensions[0];
+			me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
 
 		Ext.apply(me, {
 			layout : 'border',
@@ -576,7 +595,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			text : 'Submit',
 			margin : 3,
-			iconCls : "jm-submit-icon",
+			iconCls : "dirac-icon-submit",
 			handler : function() {
 				me.oprLoadGridData();
 			},
@@ -604,7 +623,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			text : 'Refresh',
 			margin : 3,
-			iconCls : "jm-refresh-icon",
+			iconCls : "dirac-icon-refresh",
 			handler : function() {
 				me.oprSelectorsRefreshWithSubmit(false);
 			},
@@ -643,7 +662,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			failure : function(response) {
 
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 
@@ -1438,6 +1457,73 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			tooltip : "Plot settings"
 		});
 
+		/*-----------AUTO REFRESH---------------*/
+		var oTask = {
+			run : function() {
+				me.oprLoadGridData();
+			},
+			interval : 0
+		}
+
+		var oHeartbeat = new Ext.util.TaskRunner();
+
+		var oAutoMenu = [ {
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.start(Ext.apply(oTask, {
+					interval : 900000
+				}));
+			},
+			group : 'refresh',
+			text : '15 Minutes'
+		}, {
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.start(Ext.apply(oTask, {
+					interval : 1800000
+				}));
+			},
+			group : 'refresh',
+			text : '30 Minutes'
+		}, {
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.start(Ext.apply(oTask, {
+					interval : 3600000
+				}));
+			},
+			group : 'refresh',
+			text : 'One Hour'
+		}, {
+			checked : true,
+			handler : function() {
+				this.setChecked(true);
+				oHeartbeat.stopAll();
+			},
+			group : 'refresh',
+			text : 'Disabled'
+		} ];
+
+		for ( var i = 0; i < oAutoMenu.length; i++) {
+			oAutoMenu[i] = new Ext.menu.CheckItem(oAutoMenu[i]);
+		}
+
+		var btnAutorefresh = new Ext.Button({
+			menu : oAutoMenu,
+			text : 'Auto Refresh: Disabled',
+			tooltip : 'Click to set the time for autorefresh'
+		});
+
+		btnAutorefresh.on('menuhide', function(button, menu) {
+			var length = menu.items.getCount();
+			for ( var i = 0; i < length; i++) {
+				if (menu.items.items[i].checked) {
+					button.setText("Auto Refresh: " + menu.items.items[i].text);
+				}
+			}
+		});
+		/*---------------------------------------------------*/
+
 		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
 			region : 'west',
 			store : new Ext.data.ArrayStore({
@@ -1453,7 +1539,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
-				items : [ oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings ]
+				items : [ oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, '-', btnAutorefresh ]
 			}), new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
 				items : [ me.statisticsGridComboMain ]
@@ -1585,9 +1671,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		// button for saving the state
 		me.plotSettings.btnApplySettings = new Ext.Button({
 
-			text : 'Apply',
+			text : 'Submit',
 			margin : 3,
-			iconCls : "toolbar-other-save",
+			iconCls : "jm-submit-icon",
 			handler : function() {
 				var me = this;
 				me.createPlotFromGridData(me.plotSettings.txtPlotTitle.getValue(), me.plotSettings.cmbLegendPosition.getValue());
@@ -1664,7 +1750,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					me.statisticsGridComboMain.setDisabled(false);
 					me.statisticsGridCombo.setDisabled(false);
 					me.statisticsSelectionGrid.body.unmask();
-					Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 				}
 			});
 		} else {
@@ -1699,7 +1785,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					me.statisticsSelectionGrid.body.unmask();
 					me.statisticsGridComboMain.setDisabled(false);
 					me.statisticsGridCombo.setDisabled(false);
-					Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 				}
 			});
 
@@ -1914,7 +2000,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			failure : function(response) {
 
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 
@@ -2017,8 +2103,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.timeSearchElementsGroup.calenTo.setValue("");
 		me.timeSearchElementsGroup.cmbTimeFrom.setValue("");
 		me.timeSearchElementsGroup.cmbTimeTo.setValue("");
-
-		// me.oprLoadGridData();
 
 	},
 	__oprJobAction : function(oAction, oId) {
@@ -2195,7 +2279,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		var me = this;
 
-		var oWindow = me.getContainer().oprGetChildWindow(sTitle, false, 700, 500);
+		var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
 
 		var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 			value : sTextToShow,
@@ -2216,7 +2300,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			data : oData
 		});
 
-		var oWindow = me.getContainer().oprGetChildWindow(sTitle, false, 700, 500);
+		var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
 
 		var oGrid = Ext.create('Ext.grid.Panel', {
 			store : oStore,
@@ -2263,7 +2347,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			},
 			failure : function(response) {
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 

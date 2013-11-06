@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @class Ext.dirac.core.StateManagement This class manages the entire
  *        application platform
  * @mixins Ext.util.Observable
@@ -22,16 +22,19 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	activeStates : [],
 
 	/**
-	 * Function that serves to check whether a state has been loaded or not
+	 * Function that checks whether a state has been loaded or not.
 	 * 
 	 * @param {String}
-	 *          sStateType The type of the state [application|reference]
+	 *          sStateType The type of the state. Possible values: application,
+	 *          reference.
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
-	 *          sStateName The name of the state
-	 * @return {int} 1 - state exists in the cache -1 - state does not exist -2 -
-	 *         the application cache has not been loaded yet
+	 *          sStateName The name of the state or the reference.
+	 * @return {int} (1) - state exists in the cache (-1) - state does not exist
+	 *         (-2) - the application cache has not been loaded yet
 	 */
 	isStateLoaded : function(sStateType, sAppName, sStateName) {
 
@@ -56,13 +59,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function for getting a list of existing state names
+	 * Function for getting a list of existing state names of an application.
 	 * 
 	 * @param {String}
-	 *          sStateType The type of the state [application|reference]
+	 *          sStateType The type of the state. Possible values: application,
+	 *          reference.
 	 * @param {String}
-	 *          sAppName Application class name
-	 * @return {Array}
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
+	 * @return {Array} Array of strings representing the state/reference names.
 	 * 
 	 */
 	getApplicationStates : function(sStateType, sAppName) {
@@ -81,11 +87,14 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 * Function for getting the data related to a state
 	 * 
 	 * @param {String}
-	 *          sStateType The type of the state [application|reference]
+	 *          sStateType The type of the state. Possible values: application,
+	 *          reference.
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
-	 *          sStateName The name of the state
+	 *          sStateName The name of the state or the reference.
 	 * @return {Object|boolean} False is returned in case when the state is non
 	 *         existing or has not been loaded yet
 	 */
@@ -104,13 +113,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function for reading the states and references from the server
+	 * Function for reading the states and references of an application from the
+	 * server
 	 * 
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {Function}
-	 *          cbAfterRefresh A function to be executed after the states and
-	 *          references have been successfully read
+	 *          cbAfterRefresh The callback function called on success or on
+	 *          failure of the request for states and references.
 	 */
 	oprReadApplicationStatesAndReferences : function(sAppName, cbAfterRefresh) {
 
@@ -154,19 +166,21 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 								}
 
-								cbAfterRefresh(sAppName);
+								cbAfterRefresh(1, sAppName);
 
 							} else {
 
 								me.cache["reference"][sAppName] = {};
-								Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+								cbAfterRefresh(-1, sAppName);
+								Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 
 							}
 
 						},
 						failure : function(response) {
 							me.cache["reference"][sAppName] = {};
-							Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+							cbAfterRefresh(-2, sAppName);
+							Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 						}
 					});
 
@@ -174,8 +188,8 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 					me.cache["application"][sAppName] = {};
 					me.cache["reference"][sAppName] = {};
-
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
+					cbAfterRefresh(-3, sAppName);
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
 
 				}
 
@@ -184,204 +198,21 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 				me.cache["application"][sAppName] = {};
 				me.cache["reference"][sAppName] = {};
-
-				Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
+				cbAfterRefresh(-4, sAppName);
+				Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
 			}
 		});
 
 	},
 
 	/**
-	 * Function called when the Save As ... button from the SAVE window menu is
-	 * clicked
+	 * Function that checks whether a state name is valid or not
 	 * 
 	 * @param {String}
-	 *          sStateType The type of the state [application|reference]
-	 * @param {String}
-	 *          sAppName Application class name
-	 * @param {Object}
-	 *          oAppObject The application object
-	 * @param {Function}
-	 *          cbAfterSave Function that is executed after the save has been
-	 *          saved
-	 */
-	formSaveState : function(sStateType, sAppName, oAppObject, cbAfterSave) {
-
-		var me = this;
-
-		me.__oAppObject = oAppObject;
-		me.__cbAfterSave = cbAfterSave;
-		me.__sStateType = sStateType;
-		me.__sAppName = sAppName;
-
-		me.txtStateName = Ext.create('Ext.form.field.Text', {
-
-			fieldLabel : "State Name:",
-			labelAlign : 'left',
-			margin : 10,
-			width : 400,
-			enableKeyEvents : true,
-			validateValue : function(sValue) {
-
-				sValue = Ext.util.Format.trim(sValue);
-
-				if (sValue.length < 1) {
-					this.markInvalid("You must specify a name !");
-					return false;
-
-				} else {
-
-					if (me.isStateLoaded(me.__sStateType, me.__sAppName, sValue) == 1) {
-
-						this.markInvalid("The name you enetered already exists !");
-						return false;
-
-					} else {
-
-						if (me.__isValidStateName(sValue)) {
-							this.clearInvalid();
-							return true;
-						} else {
-
-							this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
-							return false;
-
-						}
-
-					}
-
-				}
-
-			},
-			validateOnChange : true,
-			validateOnBlur : false,
-			listeners : {
-
-				keypress : function(oTextField, e, eOpts) {
-
-					if (e.getCharCode() == 13) {
-
-						if (me.txtStateName.isValid()) {
-
-							var sStateName = me.txtStateName.getValue();
-
-							me.oprSendDataForSave(sStateName, true);
-
-						}
-
-					}
-
-				}
-
-			}
-
-		});
-
-		// button for saving the state
-		me.btnSaveState = new Ext.Button({
-
-			text : 'Save',
-			margin : 3,
-			iconCls : "toolbar-other-save",
-			handler : function() {
-
-				if (me.txtStateName.isValid()) {
-
-					var sStateName = me.txtStateName.getValue();
-
-					me.oprSendDataForSave(sStateName, true);
-
-				}
-
-			},
-			scope : me
-
-		});
-
-		// button to close the save form
-		me.btnCancelSaveState = new Ext.Button({
-
-			text : 'Cancel',
-			margin : 3,
-			iconCls : "toolbar-other-close",
-			handler : function() {
-
-				me.txtStateName.setValue("");
-				me.__oAppObject = null;
-				me.__cbAfterSave = null;
-				me.__sStateType = null;
-				me.saveWindow.hide();
-
-			},
-			scope : me
-
-		});
-
-		var oToolbar = new Ext.toolbar.Toolbar();
-
-		oToolbar.add([ me.btnSaveState, me.btnCancelSaveState ]);
-
-		var oPanel = new Ext.create('Ext.panel.Panel', {
-			autoHeight : true,
-			border : false,
-			items : [ oToolbar, me.txtStateName ]
-		});
-
-		// initializing window showing the saving form
-		me.saveWindow = Ext.create('widget.window', {
-			height : 120,
-			width : 500,
-			title : 'Save state',
-			layout : 'fit',
-			modal : true,
-			items : oPanel
-		});
-
-		me.saveWindow.show();
-		me.txtStateName.focus();
-
-	},
-
-	/**
-	 * Function called when the Save button from the SAVE window menu is clicked
-	 * 
-	 * @param {String}
-	 *          sStateType The type of the state [application|reference]
-	 * @param {String}
-	 *          sAppName Application class name
-	 * @param {Object}
-	 *          oAppObject The application object
-	 * @param {Function}
-	 *          cbAfterSave Function that is executed after the save has been
-	 *          saved
-	 */
-	oprSaveAppState : function(sStateType, sAppName, oAppObject, cbAfterSave) {
-
-		var me = this;
-
-		if (oAppObject.currentState == "") {
-
-			me.formSaveState(sStateType, sAppName, oAppObject, cbAfterSave);
-
-		} else {
-
-			me.__oAppObject = oAppObject;
-			me.__cbAfterSave = cbAfterSave;
-			me.__sStateType = sStateType;
-			me.__sAppName = sAppName;
-
-			me.oprSendDataForSave(oAppObject.currentState, false);
-		}
-	},
-
-	/**
-	 * Function for checking whether a state name is valid or not
-	 * 
-	 * @param {String}
-	 *          sStateName The name of the state
+	 *          sStateName The name of the state or the reference.
 	 * @return {boolean}
 	 */
-	__isValidStateName : function(sStateName) {
+	isValidStateName : function(sStateName) {
 
 		var regExpr = /^([0-9a-zA-Z\.\_\-]+)+$/;
 
@@ -390,20 +221,68 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function that is used to prepare and send the data of the desktop state to
-	 * the server.
+	 * Function used to prepare and to send the state data of an application or a
+	 * main view to the server.
 	 * 
 	 * @param {String}
-	 *          stateName The name of the state
-	 * @param {Boolean}
-	 *          isNewItem Parameter that says whether the state already exists or
-	 *          not
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
+	 * @param {Object}
+	 *          oAppObject The application object.
+	 * @param {String}
+	 *          sStateType The type of the state. Possible values: application,
+	 *          reference.
+	 * @param {String}
+	 *          sStateName The name of the state or the reference.
+	 * @param {Function}
+	 *          cbAfterSave The callback function called on success or on failure
+	 *          of the request for saving a state or a reference.
 	 */
-	oprSendDataForSave : function(sStateName, bNewItem) {
+	oprSendDataForSave : function(sAppName, oAppObject, sStateType, sStateName, cbAfterSave) {
 
 		var me = this;
 
-		var oSendData = me.__oAppObject.getStateData();
+		var oSendData = oAppObject.getStateData();
+
+		console.log(oSendData);
+
+		if ("dirac_view" in oSendData) {
+
+			// preserve the data for other views if the state already exists
+
+			if (sAppName in me.cache[sStateType]) {
+
+				if (sStateName in me.cache[sStateType][sAppName]) {
+
+					// preserving is done only if the version number is the same
+
+					var oCurrentObject = me.cache[sStateType][sAppName][sStateName];
+
+					if ("version" in oCurrentObject) {
+
+						if (oSendData.version === oCurrentObject.version) {
+
+							for ( var sViewType in oCurrentObject.views) {
+
+								if (GLOBAL.VIEW_ID != sViewType) {
+
+									oSendData.views[sViewType] = oCurrentObject.views[sViewType];
+
+								}
+
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
 		/*
 		 * We save those data in the database
 		 */
@@ -420,207 +299,46 @@ Ext.define('Ext.dirac.core.StateManagement', {
 		Ext.Ajax.request({
 			url : GLOBAL.BASE_URL + 'UP/saveAppState',
 			params : {
-				app : me.__sAppName,
+				app : sAppName,
 				name : sStateName,
 				state : Ext.JSON.encode(oSendData),
-				obj : me.__sStateType
+				obj : sStateType
 			},
 			scope : me,
 			success : function(oResponse) {
 
 				if (oResponse.status == 200) {
 					var me = this;
-					Ext.example.msg("Notification", 'State saved successfully !');
+					Ext.dirac.system_info.msg("Notification", 'State saved successfully !');
 
-					me.cache[me.__sStateType][me.__sAppName][sStateName] = oSendData;
+					me.cache[sStateType][sAppName][sStateName] = oSendData;
 
-					if (bNewItem) {
-						me.__cbAfterSave(me.__sAppName, sStateName);
-						me.saveWindow.hide();
-					}
+					cbAfterSave(1, sAppName, sStateType, sStateName);
+
 				} else if (oResponse.status == 400) {
 
-					Ext.example.msg("Error Notification", 'Operation failed: ' + oResponse.responseText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + oResponse.responseText + '.<br/> Please try again later !');
+					cbAfterSave(-1, sAppName, sStateType, sStateName);
 
 				} else {
 
-					Ext.example.msg("Error Notification", 'Operation failed: ' + oResponse.statusText + '.<br/> Please try again later !');
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + oResponse.statusText + '.<br/> Please try again later !');
+					cbAfterSave(-2, sAppName, sStateType, sStateName);
 
 				}
 
 			},
 			failure : function(response) {
 
-				if (response.status == 400)
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-				else
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+				if (response.status == 400) {
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+					cbAfterSave(-3, sAppName, sStateType, sStateName);
+				} else {
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					cbAfterSave(-4, sAppName, sStateType, sStateName);
+				}
 			}
 		});
-
-	},
-
-	/**
-	 * Function to create and open the form for managing the desktop states
-	 * 
-	 * @param {String}
-	 *          sAppName Application class name
-	 * @param {Function}
-	 *          cbAfterRemove A function to be executed after a state has been
-	 *          removed
-	 * 
-	 */
-	formManageStates : function(sAppName, cbAfterRemove) {
-
-		var me = this;
-
-		me.btnDeleteState = new Ext.Button({
-
-			text : 'Delete',
-			margin : 3,
-			iconCls : "toolbar-other-close",
-			handler : me.oprDeleteSelectedStates,
-			scope : me
-
-		});
-
-		var oToolbar = new Ext.toolbar.Toolbar({
-			region : "north",
-			border : false
-		});
-
-		oToolbar.add([ me.btnDeleteState ]);
-
-		var oPanel = new Ext.create('Ext.panel.Panel', {
-			region : "center",
-			border : false,
-			bodyPadding : 5,
-			autoHeight : true,
-			layout : {
-				type : 'vbox',
-				align : 'stretch'
-			},
-			appName : sAppName,
-			cbAfterRemove : cbAfterRemove,
-			items : [ {
-				xtype : "panel",
-				layout : "column",
-				border : false,
-				items : [ {
-					xtype : 'radiofield',
-					boxLabel : 'States',
-					inputValue : 's',
-					name : "manage_state_type",
-					width : 150,
-					padding : "0 0 5 0",
-					checked : true,
-					listeners : {
-
-						change : function(cmp, newValue, oldValue, eOpts) {
-
-							var oSelectElStates = me.manageWindow.items.getAt(1).items.getAt(1);
-							var oSelectElLinks = me.manageWindow.items.getAt(1).items.getAt(2);
-
-							if (newValue) {
-
-								oSelectElStates.show();
-								oSelectElLinks.hide();
-
-							} else {
-
-								oSelectElStates.hide();
-								oSelectElLinks.show();
-
-							}
-
-						}
-
-					}
-				}, {
-					xtype : 'radiofield',
-					boxLabel : 'Links',
-					inputValue : 'l',
-					padding : "0 0 5 0",
-					name : "manage_state_type",
-					width : 150
-				} ]
-			}, {
-				html : "<select multiple='multiple' style='width:100%;height:175px'></select>",
-				xtype : "box"
-			}, {
-				html : "<select multiple='multiple' style='width:100%;height:175px'></select>",
-				xtype : "box",
-				hidden : true
-			} ]
-		});
-
-		// creating the window
-		me.manageWindow = Ext.create('widget.window', {
-			height : 280,
-			width : 500,
-			title : 'Manage states :: ' + GLOBAL.APP.getApplicationTitle(sAppName),
-			layout : 'border',
-			modal : true,
-			resizable : false,
-			items : [ oToolbar, oPanel ]
-		});
-
-		me.manageWindow.show();
-
-		// filling the lists of the form with states and references
-		me.__oprFillSelectFieldWithStates();
-
-	},
-
-	/**
-	 * Function to fill the select element with the existing module states
-	 */
-	__oprFillSelectFieldWithStates : function() {
-
-		var me = this;
-		var oSelectEl = document.getElementById(me.manageWindow.getId()).getElementsByTagName("select")[0];
-
-		for (i = oSelectEl.length - 1; i >= 0; i--)
-			oSelectEl.remove(i);
-
-		var sAppName = me.manageWindow.items.getAt(1).appName;
-
-		for ( var sStateName in me.cache.application[sAppName]) {
-
-			var elOptNew = document.createElement('option');
-
-			elOptNew.text = sStateName;
-			elOptNew.value = sStateName;
-
-			try {
-				oSelectEl.add(elOptNew, null); // standards compliant; doesn't
-				// work in IE
-			} catch (ex) {
-				oSelectEl.add(elOptNew); // IE only
-			}
-
-		}
-
-		oSelectEl = document.getElementById(me.manageWindow.getId()).getElementsByTagName("select")[1];
-
-		for (i = oSelectEl.length - 1; i >= 0; i--)
-			oSelectEl.remove(i);
-
-		for ( var sStateName in me.cache.reference[sAppName]) {
-
-			var elOptNew = document.createElement('option');
-
-			elOptNew.text = sStateName;
-			elOptNew.value = sStateName;
-
-			try {
-				oSelectEl.add(elOptNew, null); // standards compliant; doesn't
-				// work in IE
-			} catch (ex) {
-				oSelectEl.add(elOptNew); // IE only
-			}
-
-		}
 
 	},
 
@@ -629,7 +347,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 * application
 	 * 
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
 	 *          sStateName The name of the state
 	 * 
@@ -654,15 +374,17 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function to register new state as an active one
+	 * Function to register a state as an active one
 	 * 
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
 	 *          sStateName The name of the state
 	 * 
 	 */
-	addActiveState : function(sAppName, sStateName) {
+	oprAddActiveState : function(sAppName, sStateName) {
 
 		var me = this;
 
@@ -671,15 +393,17 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function to remove a state out of the activeStates list
+	 * Function to remove a state out of the active states list
 	 * 
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
 	 *          sStateName The name of the state
 	 * 
 	 */
-	removeActiveState : function(sAppName, sStateName) {
+	oprRemoveActiveState : function(sAppName, sStateName) {
 
 		var me = this;
 		var iIndex = -1;
@@ -694,132 +418,85 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function to delete all selected states or references from the form lists
+	 * Function to delete a saved state or a saved reference on the server
+	 * 
+	 * @param {String}
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
+	 * @param {String}
+	 *          sStateType The type of the state. Possible values: application,
+	 *          reference.
+	 * @param {String}
+	 *          sStateName The name of the state or the reference
+	 * @param {Function}
+	 *          cbAfterDelete The callback function called on success or on
+	 *          failure of the request for deleting a state or a reference.
+	 * 
 	 */
-	oprDeleteSelectedStates : function() {
+	oprDeleteState : function(sAppName, sStateType, sStateName, cbAfterDelete) {
 
 		var me = this;
 
-		var iWhoSelect = 0;
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + 'UP/delAppState',
+			params : {
+				app : sAppName,
+				name : sStateName,
+				obj : sStateType
+			},
+			success : function(response) {
 
-		var sAppName = me.manageWindow.items.getAt(1).appName;
+				if (response.status == 200) {
 
-		if (me.manageWindow.items.getAt(1).items.getAt(0).items.getAt(1).getValue())
-			iWhoSelect = 1;
+					delete me.cache[sStateType][sAppName][sStateName];
 
-		var oSelectField = document.getElementById(me.manageWindow.getId()).getElementsByTagName("select")[iWhoSelect];
-
-		for ( var i = oSelectField.length - 1; i >= 0; i--) {
-			if (oSelectField.options[i].selected) {
-
-				/*
-				 * First we check whether there are instances of that state that are
-				 * active
-				 */
-				var oStateName = oSelectField.options[i].value;
-				if (iWhoSelect == 0) {
-
-					if (!me.isAnyActiveState(sAppName, oStateName)) {
-
-						/*
-						 * If the Ajax is not successful then the item wont be deleted.
-						 */
-						Ext.Ajax.request({
-							url : GLOBAL.BASE_URL + 'UP/delAppState',
-							params : {
-								app : sAppName,
-								name : oStateName,
-								obj : "application"
-							},
-							success : Ext.bind(me.cbDeleteSelectedStates, me, [ i, oSelectField, iWhoSelect ], true),
-							failure : function(response) {
-
-								if (response.status == 400)
-									Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-								else
-									Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
-
-							}
-						});
-
-					} else
-						GLOBAL.APP.CF.alert('The state <b>' + oSelectField.options[i].value + '</b> you are willing to delete is curently in use !', 'warning');
+					cbAfterDelete(1, sAppName, sStateType, sStateName);
 
 				} else {
 
-					Ext.Ajax.request({
-						url : GLOBAL.BASE_URL + 'UP/delAppState',
-						params : {
-							app : sAppName,
-							name : oStateName,
-							obj : "reference"
-						},
-						success : Ext.bind(me.cbDeleteSelectedStates, me, [ i, oSelectField, iWhoSelect ], true),
-						failure : function(response) {
-
-							if (response.status == 400)
-								Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-							else
-								Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
-						}
-					});
+					if (response.status == 400) {
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+						cbAfterDelete(-1, sAppName, sStateType, sStateName);
+					} else {
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+						cbAfterDelete(-2, sAppName, sStateType, sStateName);
+					}
 
 				}
 
+			},
+			failure : function(response) {
+
+				if (response.status == 400) {
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+					cbAfterDelete(-3, sAppName, sStateType, sStateName);
+				} else {
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					cbAfterDelete(-4, sAppName, sStateType, sStateName);
+				}
 			}
-		}
-
-	},
-
-	/**
-	 * Callback of the oprDeleteSelectedStates function
-	 * 
-	 * @param {Integer}
-	 *          index index of the selected element
-	 * @param {DOMObject}
-	 *          oSelectEl the select element of the management form
-	 */
-	cbDeleteSelectedStates : function(response, options, index, oSelectEl, iWhoSelect) {
-
-		if (response.status == 200) {
-
-			var me = this;
-
-			var sStateName = oSelectEl.options[index].value;
-			var sAppName = me.manageWindow.items.getAt(1).appName;
-
-			if (iWhoSelect == 0)
-				delete me.cache["application"][sAppName][sStateName];
-			else
-				delete me.cache["reference"][sAppName][sStateName];
-
-			me.manageWindow.items.getAt(1).cbAfterRemove(((iWhoSelect == 0) ? "application" : "reference"), sStateName, sAppName);
-
-			oSelectEl.remove(index);
-
-		} else {
-
-			if (response.status == 400)
-				Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-			else
-				Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
-
-		}
+		});
 
 	},
 
 	/*-----------------------------------------------SHARE STATE-----------------------------------------------*/
 
 	/**
-	 * Function called when we want to share a state.
+	 * Function that is used to share a state with other users.
 	 * 
 	 * @param {String}
-	 *          sAppName Application class name
+	 *          sAppName The class name of the application. The only exception is
+	 *          the case of the main view: in this case the value of this
+	 *          parameter is “desktop”.
 	 * @param {String}
-	 *          sStateName The name of the state
+	 *          sStateName The name of the state.
+	 * @param {Function}
+	 *          cbAfterShare The callback function called on success or on failure
+	 *          of the request for sharing a state.
 	 * 
 	 */
-	oprShareState : function(sStateName, sAppName) {
+	oprShareState : function(sAppName, sStateName, cbAfterShare) {
 
 		var me = this;
 
@@ -838,223 +515,50 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 					var me = this;
 
-					var oStringToShow = sAppName + "|" + GLOBAL.APP.configData["user"]["username"] + "|" + GLOBAL.APP.configData["user"]["group"] + "|" + sStateName;
+					var sStringToShow = sAppName + "|" + GLOBAL.APP.configData["user"]["username"] + "|" + GLOBAL.APP.configData["user"]["group"] + "|" + sStateName;
 
-					var oHtml = "";
-					oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
-					oHtml += "<div style='padding:5px;font-weight:bold'>" + oStringToShow + "</div>";
-
-					Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + sStateName + "</span> state:", oHtml);
+					cbAfterShare(1, sAppName, sStateName, sStringToShow);
 
 				} else {
 
-					if (response.status == 400)
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-					else
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					if (response.status == 400) {
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+						cbAfterShare(-1, sAppName, sStateName, "");
+					} else
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					cbAfterShare(-2, sAppName, sStateName, "");
 
 				}
 
 			},
 			failure : function(response) {
 
-				if (response.status == 400)
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-				else
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+				if (response.status == 400) {
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+					cbAfterShare(-3, sAppName, sStateName, "");
+				} else {
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					cbAfterShare(-4, sAppName, sStateName, "");
+				}
 			}
 		});
 
 	},
 
 	/**
-	 * Function to create and show the form for saving or loading a shared state
-	 * 
-	 * @param {Function}
-	 *          cbAfterLoad Function to be executed after the shared state has
-	 *          been loaded
-	 * @param {Function}
-	 *          cbAfterSave Function to be executed after the shared state has
-	 *          been saved
-	 * 
-	 */
-	formStateLoader : function(cbAfterLoad, cbAfterSave) {
-
-		var me = this;
-
-		me.txtLoadText = Ext.create('Ext.form.field.Text', {
-
-			fieldLabel : "Shared State:",
-			labelAlign : 'left',
-			margin : 10,
-			width : 400,
-			validate : function() {
-				var me = this;
-				var sValue = me.getValue();
-				if ((Ext.util.Format.trim(sValue) != "") && (sValue.split("|").length == 4)) {
-					return true;
-				} else {
-					GLOBAL.APP.CF.alert("The value in the 'Shared State' field is not valid !", "warning");
-					return false;
-				}
-
-			},
-			validateOnChange : false,
-			validateOnBlur : false
-
-		});
-
-		me.txtRefName = Ext.create('Ext.form.field.Text', {
-
-			fieldLabel : "Name:",
-			labelAlign : 'left',
-			margin : 10,
-			width : 400,
-			validate : function() {
-				var me = this;
-
-				if (Ext.util.Format.trim(me.getValue()) != "") {
-
-					return true;
-
-				} else {
-					GLOBAL.APP.CF.alert("The 'Name' field cannot be empty !", "warning");
-					return false;
-				}
-
-			},
-			validateOnChange : false,
-			validateOnBlur : false
-		});
-
-		me.btnLoadSharedState = new Ext.Button({
-
-			text : 'Load',
-			margin : 3,
-			iconCls : "toolbar-other-load",
-			handler : function() {
-
-				if (me.txtLoadText.validate()) {
-					GLOBAL.APP.desktop.closeAllActiveWindows();
-					GLOBAL.APP.desktop.currentState = "";
-
-					me.loadSharedState(me.txtLoadText.getValue(), null);
-				}
-			},
-			scope : me
-
-		});
-
-		me.btnSaveSharedState = new Ext.Button({
-
-			text : 'Create Link',
-			margin : 3,
-			iconCls : "toolbar-other-save",
-			handler : function() {
-
-				var oValid = true;
-
-				if (!me.txtLoadText.validate())
-					oValid = false;
-
-				if (!me.txtRefName.validate())
-					oValid = false;
-
-				if (oValid) {
-
-					me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), null);
-
-				}
-
-			},
-			scope : me
-
-		});
-
-		me.btnLoadAndSaveSharedState = new Ext.Button({
-
-			text : 'Load &amp; Create Link',
-			margin : 3,
-			iconCls : "toolbar-other-load",
-			handler : function() {
-				var oValid = true;
-
-				if (!me.txtLoadText.validate())
-					oValid = false;
-
-				if (!me.txtRefName.validate())
-					oValid = false;
-
-				if (oValid) {
-					GLOBAL.APP.desktop.closeAllActiveWindows();
-					GLOBAL.APP.desktop.currentState = "";
-					me.loadSharedState(me.txtLoadText.getValue(), null);
-					me.saveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), null);
-
-				}
-
-			},
-			scope : me
-
-		});
-
-		var oToolbar = new Ext.toolbar.Toolbar({
-
-			border : false
-
-		});
-
-		oToolbar.add([ me.btnLoadSharedState, me.btnSaveSharedState, me.btnLoadAndSaveSharedState ]);
-
-		var oPanel = new Ext.create('Ext.panel.Panel', {
-			autoHeight : true,
-			border : false,
-			items : [ oToolbar, me.txtLoadText, me.txtRefName ]
-		});
-
-		me.__cbAfterLoadSharedState = cbAfterLoad;
-		me.__cbAfterSaveSharedState = cbAfterSave;
-
-		me.manageWindow = Ext.create('widget.window', {
-			height : 200,
-			width : 500,
-			title : 'State Loader',
-			layout : 'fit',
-			modal : true,
-			items : [ oPanel ],
-			iconCls : "system_state_icon",
-			listeners : {
-
-				close : function(oPanel, eOpts) {
-
-					me.__cbAfterLoadSharedState = null;
-					me.__cbAfterSaveSharedState = null;
-
-				}
-
-			}
-		});
-
-		me.manageWindow.show();
-
-	},
-
-	/**
-	 * Function executed when the shared state has to be loaded
+	 * Function that is used to take the data of a shared state from the server
 	 * 
 	 * @param {Object}
-	 *          sLinkDescription String describing the shared state
+	 *          sLinkDescription Description of a shared state. This description
+	 *          can be used to load a shared state.
 	 * @param {Function}
-	 *          cbAfterLoadSharedState Function to be executed after the shared
-	 *          state has been loaded
+	 *          cbAfterLoadSharedState The callback function called on success or
+	 *          on failure of the request for retrieving the shared state data.
 	 * 
 	 */
-	loadSharedState : function(sLinkDescription, cbAfterLoadSharedState) {
+	oprLoadSharedState : function(sLinkDescription, cbAfterLoadSharedState) {
 
 		var me = this;
-
-		if ((cbAfterLoadSharedState != null) && (cbAfterLoadSharedState != undefined))
-			me.__cbAfterLoadSharedState = cbAfterLoadSharedState;
 
 		var oDataItems = sLinkDescription.split("|");
 
@@ -1081,27 +585,35 @@ Ext.define('Ext.dirac.core.StateManagement', {
 					var me = this;
 					var oDataReceived = Ext.JSON.decode(response.responseText);
 
-					if (me.__cbAfterLoadSharedState != null)
-						me.__cbAfterLoadSharedState(sLinkDescription, oDataReceived);
+					if (cbAfterLoadSharedState != null)
+						cbAfterLoadSharedState(1, sLinkDescription, oDataReceived);
 
-					if (me.manageWindow)
-						me.manageWindow.close();
 				} else {
 
-					if (response.status == 400)
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-					else
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					if (response.status == 400) {
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+						if (cbAfterLoadSharedState != null)
+							cbAfterLoadSharedState(-1, sLinkDescription, "");
+					} else {
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+						if (cbAfterLoadSharedState != null)
+							cbAfterLoadSharedState(-2, sLinkDescription, "");
+					}
 
 				}
 
 			},
 			failure : function(response) {
 
-				if (response.status == 400)
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-				else
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+				if (response.status == 400) {
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+					if (cbAfterLoadSharedState != null)
+						cbAfterLoadSharedState(-3, sLinkDescription, "");
+				} else {
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					if (cbAfterLoadSharedState != null)
+						cbAfterLoadSharedState(-4, sLinkDescription, "");
+				}
 
 			}
 		});
@@ -1109,22 +621,21 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	},
 
 	/**
-	 * Function executed when the shared state has to be saved
+	 * Function executed when the shared state has to be saved on the server as a
+	 * reference
 	 * 
 	 * @param {String}
-	 *          sRefName The name for the shared state
+	 *          sRefName The name of the reference.
 	 * @param {String}
-	 *          sRef The description link for the shared state
+	 *          sRef Description of a shared state. This description can be used
+	 *          to load a shared state.
 	 * @param {Function}
-	 *          cbAfterSaveSharedState Function to be executed after the shared
-	 *          state has been saved
+	 *          cbAfterSaveSharedState The callback function called on success or
+	 *          on failure of the request for saving shared state as a reference.
 	 */
-	saveSharedState : function(sRefName, sRef, cbAfterSaveSharedState) {
+	oprSaveSharedState : function(sRefName, sRef, cbAfterSaveSharedState) {
 
 		var me = this;
-
-		if ((cbAfterSaveSharedState != null) && (cbAfterSaveSharedState != undefined))
-			me.__cbAfterSaveSharedState = cbAfterSaveSharedState;
 
 		var oDataItems = sRef.split("|");
 
@@ -1148,34 +659,45 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			success : function(response) {
 
 				if (response.status == 200) {
-					Ext.example.msg("Notification", 'The shared state has been saved successfully !');
-
-					me.txtLoadText.setRawValue("");
-					me.txtRefName.setRawValue("");
+					Ext.dirac.system_info.msg("Notification", 'The shared state has been saved successfully !');
 
 					me.cache.reference[oDataItems[0]][sRefName] = {
 						link : sRef
 					};
 
-					if (me.__cbAfterSaveSharedState != null) {
-						me.__cbAfterSaveSharedState(sRefName, sRef);
+					if (cbAfterSaveSharedState != null) {
+						cbAfterSaveSharedState(1, sRefName, sRef);
 					}
 				} else {
 
-					if (response.status == 400)
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-					else
-						Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					if (response.status == 400) {
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+						if (cbAfterSaveSharedState != null) {
+							cbAfterSaveSharedState(-1, sRefName, sRef);
+						}
+					} else {
+						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+						if (cbAfterSaveSharedState != null) {
+							cbAfterSaveSharedState(-2, sRefName, sRef);
+						}
+					}
 
 				}
 
 			},
 			failure : function(response) {
 
-				if (response.status == 400)
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
-				else
-					Ext.example.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+				if (response.status == 400) {
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+					if (cbAfterSaveSharedState != null) {
+						cbAfterSaveSharedState(-3, sRefName, sRef);
+					}
+				} else {
+					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+					if (cbAfterSaveSharedState != null) {
+						cbAfterSaveSharedState(-4, sRefName, sRef);
+					}
+				}
 			}
 		});
 

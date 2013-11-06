@@ -10,7 +10,7 @@ Ext.define('Ext.dirac.core.App', {
 		fileLoader : 'Ext.dirac.utils.DiracFileLoad'
 	},
 
-	requires : [ 'Ext.container.Viewport', 'Ext.dirac.core.Desktop', 'Ext.window.MessageBox', 'Ext.dirac.core.ShortcutModel', 'Ext.dirac.core.CommonFunctions', 'Ext.dirac.core.StateManagement' ],
+	requires : [ 'Ext.container.Viewport', 'Ext.window.MessageBox', 'Ext.dirac.core.CommonFunctions', 'Ext.dirac.core.StateManagement' ],
 
 	/**
 	 * @property {boolean} isReady
@@ -27,7 +27,7 @@ Ext.define('Ext.dirac.core.App', {
 
 		me.mixins.observable.constructor.call(this, undefined);
 
-		Ext.example = function() {
+		Ext.dirac.system_info = function() {
 			var msgCt;
 
 			function createBox(t, s) {
@@ -82,6 +82,7 @@ Ext.define('Ext.dirac.core.App', {
 				 * extract the list of valid application that a user can start through
 				 * the start menu
 				 */
+
 				me.__readValidApplication();
 
 				/*
@@ -96,7 +97,7 @@ Ext.define('Ext.dirac.core.App', {
 			},
 			failure : function(response) {
 
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 
@@ -208,32 +209,39 @@ Ext.define('Ext.dirac.core.App', {
 		/*
 		 * Creating the main desktop obbject
 		 */
-		desktopCfg = {
-			contextMenuItems : [],
-			shortcuts : Ext.create('Ext.data.Store', {
-				model : 'Ext.dirac.core.ShortcutModel',
-				data : {}
-			}),
-			wallpaper : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_background_6.png',
-			wallpaperStretch : false
-		};
 
-		me.desktop = null;
+		me.MAIN_VIEW = null;
 
 		/*
 		 * Creating the desktop object
 		 */
-		me.desktop = new Ext.dirac.core.Desktop(desktopCfg);
 
-		me.viewport = new Ext.container.Viewport({
-			layout : 'fit',
-			items : [ me.desktop ]
+		var oConfig = {
+			enabled : true,
+			paths : {}
+		};
+
+		oConfig["paths"]["Ext.dirac.views." + GLOBAL.VIEW_ID] = "static/core/js/views/" + GLOBAL.VIEW_ID;
+
+		Ext.Loader.setConfig(oConfig);
+		
+		
+		Ext.require("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", function() {
+			
+			me.MAIN_VIEW = Ext.create("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", {});
+			
+			me.viewport = new Ext.container.Viewport({
+				layout : 'fit',
+				items : [ me.MAIN_VIEW ]
+			});
+
+			Ext.EventManager.on(window, 'beforeunload', me.onUnload, me);
+
+			me.isReady = true;// only if there is no desktop state loaded
+			me.fireEvent('ready', me);
+			
 		});
-
-		Ext.EventManager.on(window, 'beforeunload', me.onUnload, me);
-
-		me.isReady = true;// only if there is no desktop state loaded
-		me.fireEvent('ready', me);
+		
 	},
 
 	/**
@@ -269,11 +277,11 @@ Ext.define('Ext.dirac.core.App', {
 	/**
 	 * Function that is used to get a reference to the desktop object
 	 * 
-	 * @return {Ext.dirac.core.Desktop}
+	 * @return {Ext.dirac.core.AppView}
 	 * 
 	 */
 	getDesktop : function() {
-		return this.desktop;
+		return this.MAIN_VIEW;
 	},
 
 	onReady : function(fn, scope) {

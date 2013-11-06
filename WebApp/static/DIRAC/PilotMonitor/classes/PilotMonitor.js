@@ -213,16 +213,35 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		var me = this;
 
-		me.launcher.title = "Pilot Monitor";
-		me.launcher.maximized = false;
+		if (GLOBAL.VIEW_ID == "desktop") {
 
-		var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
+			me.launcher.title = "Pilot Monitor";
+			me.launcher.maximized = false;
 
-		me.launcher.width = oDimensions[0];
-		me.launcher.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-		me.launcher.x = 0;
-		me.launcher.y = 0;
+			me.launcher.width = oDimensions[0];
+			me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
+
+		if (GLOBAL.VIEW_ID == "tabs") {
+
+			me.launcher.title = "Pilot Monitor";
+			me.launcher.maximized = false;
+
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+			me.launcher.width = oDimensions[0];
+			me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+
+			me.launcher.x = 0;
+			me.launcher.y = 0;
+
+		}
 
 		Ext.apply(me, {
 			layout : 'border',
@@ -471,10 +490,9 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 			text : 'Submit',
 			margin : 3,
-			iconCls : "pm-submit-icon",
+			iconCls : "dirac-icon-submit",
 			handler : function() {
 				me.oprLoadGridData();
-				// me.oprSelectorsRefreshWithSubmit(true);
 			},
 			scope : me
 
@@ -496,6 +514,20 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		oPanelButtons.add(me.btnReset);
 
+		me.btnRefresh = new Ext.Button({
+
+			text : 'Refresh',
+			margin : 3,
+			iconCls : "dirac-icon-refresh",
+			handler : function() {
+				me.oprSelectorsRefreshWithSubmit(false);
+			},
+			scope : me
+
+		});
+
+		oPanelButtons.add(me.btnRefresh);
+
 		me.leftPanel.addDocked(oPanelButtons);
 
 		Ext.Ajax.request({
@@ -516,7 +548,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			},
 			failure : function(response) {
 
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 
@@ -568,7 +600,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 					}
 
 				},
-				
+
 				beforeload : function(oStore, oOperation, eOpts) {
 
 					me.dataStore.lastDataRequest = oOperation;
@@ -640,28 +672,34 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 				if (oValues != "") {
 
-					var oSetupData = {};
-					var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
-					oSetupData.x = 0;
-					oSetupData.y = 0;
-					oSetupData.width = oDimensions[0];
-					oSetupData.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
-					oSetupData.currentState = "";
+					if (GLOBAL.VIEW_ID == "desktop") {
+						var oSetupData = {};
+						var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+						oSetupData.x = 0;
+						oSetupData.y = 0;
+						oSetupData.width = oDimensions[0];
+						oSetupData.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+						oSetupData.currentState = "";
 
-					oSetupData.desktopStickMode = 0;
-					oSetupData.hiddenHeader = 1;
-					oSetupData.i_x = 0;
-					oSetupData.i_y = 0;
-					oSetupData.ic_x = 0;
-					oSetupData.ic_y = 0;
+						oSetupData.desktopStickMode = 0;
+						oSetupData.hiddenHeader = 1;
+						oSetupData.i_x = 0;
+						oSetupData.i_y = 0;
+						oSetupData.ic_x = 0;
+						oSetupData.ic_y = 0;
 
-					oSetupData.data = {
-						leftMenu : {
-							txtJobId : oValues
-						}
-					};
+						oSetupData.data = {
+							leftMenu : {
+								txtJobId : oValues
+							}
+						};
 
-					GLOBAL.APP.desktop.createWindow("app", "DIRAC.JobMonitor.classes.JobMonitor", oSetupData);
+						GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+							objectType : "app",
+							moduleName : "DIRAC.JobMonitor.classes.JobMonitor",
+							setupData : oSetupData
+						});
+					}
 				}
 
 			},
@@ -686,30 +724,37 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 					var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
 					if (oId != '-') {
-						var oSetupData = {};
-						var oDimensions = GLOBAL.APP.desktop.getDesktopDimensions();
-						oSetupData.x = 0;
-						oSetupData.y = 0;
-						oSetupData.width = oDimensions[0];
-						oSetupData.height = oDimensions[1] - GLOBAL.APP.desktop.taskbar.getHeight();
-						oSetupData.currentState = "";
 
-						oSetupData.desktopStickMode = 0;
-						oSetupData.hiddenHeader = 1;
-						oSetupData.i_x = 0;
-						oSetupData.i_y = 0;
-						oSetupData.ic_x = 0;
-						oSetupData.ic_y = 0;
+						if (GLOBAL.VIEW_ID == "desktop") {
+							var oSetupData = {};
+							var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+							oSetupData.x = 0;
+							oSetupData.y = 0;
+							oSetupData.width = oDimensions[0];
+							oSetupData.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+							oSetupData.currentState = "";
 
-						var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
+							oSetupData.desktopStickMode = 0;
+							oSetupData.hiddenHeader = 1;
+							oSetupData.i_x = 0;
+							oSetupData.i_y = 0;
+							oSetupData.ic_x = 0;
+							oSetupData.ic_y = 0;
 
-						oSetupData.data = {
-							leftMenu : {
-								txtJobId : oId
-							}
-						};
+							var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
 
-						GLOBAL.APP.desktop.createWindow("app", "DIRAC.JobMonitor.classes.JobMonitor", oSetupData);
+							oSetupData.data = {
+								leftMenu : {
+									txtJobId : oId
+								}
+							};
+
+							GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+								objectType : "app",
+								moduleName : "DIRAC.JobMonitor.classes.JobMonitor",
+								setupData : oSetupData
+							});
+						}
 					}
 				},
 				text : 'Show Job'
@@ -1067,7 +1112,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			},
 			failure : function(response) {
 
-				Ext.example.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
 
@@ -1137,7 +1182,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			me.grid.store.proxy.extraParams = extraParams;
 			me.grid.store.currentPage = 1;
 			me.grid.store.load();
-			
+
 			var oCheckbox = Ext.query("#" + me.id + " input.pm-main-check-box");
 			oCheckbox[0].checked = false;
 		}
@@ -1155,8 +1200,6 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		me.textJobReference.setValue("");
 		me.textTaskQueueId.setValue("");
-
-		me.oprLoadGridData();
 
 	},
 
@@ -1210,7 +1253,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		var me = this;
 
-		var oWindow = me.getContainer().oprGetChildWindow(sTitle, false, 700, 500);
+		var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
 
 		var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 			value : sTextToShow,
@@ -1231,7 +1274,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			data : oData
 		});
 
-		var oWindow = me.getContainer().oprGetChildWindow(sTitle, false, 700, 500);
+		var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
 
 		var oGrid = Ext.create('Ext.grid.Panel', {
 			store : oStore,

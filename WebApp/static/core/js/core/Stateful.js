@@ -1,5 +1,5 @@
 /**
- * @class Ext.ux.desktop.Desktop This is an abstract class that has to be
+ * @class Ext.ux.core.Stateful This is an abstract class that has to be
  *        inherited by every module.
  * @mixin Ext.container.Container
  * 

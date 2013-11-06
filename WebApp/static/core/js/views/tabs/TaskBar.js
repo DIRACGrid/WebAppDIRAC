@@ -1,13 +1,13 @@
 /**
- * @class Ext.dirac.core.TaskBar The taskbar class. An object of this class has
- *        three main parts: - Start menu - Quick start menu - Window bar (syn.
- *        task bar)
+ * @class Ext.dirac.views.desktop.TaskBar The taskbar class. An object of this
+ *        class has three main parts: - Start menu - Quick start menu - Window
+ *        bar (syn. task bar)
  * @extends Ext.toolbar.Toolbar
  */
-Ext.define('Ext.dirac.core.TaskBar', {
+Ext.define('Ext.dirac.views.tabs.TaskBar', {
 	extend : 'Ext.toolbar.Toolbar', // TODO - make this a basic hbox panel...
 
-	requires : [ 'Ext.button.Button', 'Ext.resizer.Splitter', 'Ext.menu.Menu', 'Ext.dirac.core.StartMenu', 'Ext.toolbar.TextItem' ],
+	requires : [ 'Ext.button.Button', 'Ext.resizer.Splitter', 'Ext.menu.Menu', 'Ext.dirac.views.tabs.StartMenu', 'Ext.toolbar.TextItem' ],
 
 	alias : 'widget.taskbar',
 
@@ -30,7 +30,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 
 		}
 
-		me.startMenu = new Ext.dirac.core.StartMenu();
+		me.startMenu = new Ext.dirac.views.tabs.StartMenu();
 
 		me.windowBar = new Ext.toolbar.Toolbar(me.getWindowBarConfig());
 
@@ -73,9 +73,9 @@ Ext.define('Ext.dirac.core.TaskBar', {
 					var oQPosition = oHref.indexOf("?");
 
 					if (oQPosition != -1) {
-						location.href = oHref.substr(0, oQPosition) + '?theme=' + me.text + "&" + GLOBAL.APP.desktop._state_related_url;
+						location.href = oHref.substr(0, oQPosition) + '?theme=' + me.text + "&" + GLOBAL.APP.MAIN_VIEW._state_related_url;
 					} else {
-						location.href = oHref + '?theme=' + me.text + "&" + GLOBAL.APP.desktop._state_related_url;
+						location.href = oHref + '?theme=' + me.text + "&" + GLOBAL.APP.MAIN_VIEW._state_related_url;
 					}
 
 				}
@@ -83,6 +83,36 @@ Ext.define('Ext.dirac.core.TaskBar', {
 		}
 
 		me.items.push(button_theme);
+
+		var button_views = {
+			"text" : GLOBAL.VIEW_ID,
+			"menu" : []
+		};
+
+		var oListViews = [ "desktop", "tabs" ];
+
+		for ( var i = 0; i < oListViews.length; i++) {
+			button_views.menu.push({
+				text : oListViews[i],
+				handler : function() {
+
+					var me = this;
+
+					var oHref = location.href;
+
+					var oQPosition = oHref.indexOf("?");
+
+					if (oQPosition != -1) {
+						location.href = oHref.substr(0, oQPosition) + '?view=' + me.text + "&theme=" + sButtonThemeText;
+					} else {
+						location.href = oHref + '?view=' + me.text + "&theme=" + sButtonThemeText;
+					}
+
+				}
+			});
+		}
+
+		me.items.push(button_views);
 
 		if (GLOBAL.APP.configData.user.username) {
 			/*
@@ -141,6 +171,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 				xtype : 'tbtext',
 				text : GLOBAL.APP.configData["user"]["username"] + "@"
 			});
+
 			me.items.push(me.group_button);
 			me.items.push('-');
 			me.items.push(me.setup_button);
@@ -169,7 +200,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 				me.items.push('-');
 				me.items.push({
 					xtype : 'tbtext',
-					text : "Visitor (<a href='https://" + location.host.replace( "8080", "8443" ) + location.pathname + "'>Secure connection</a>)"
+					text : "Visitor (<a href='https://" + location.host.replace("8080", "8443") + location.pathname + "'>Secure connection</a>)"
 				});
 
 			} else {
@@ -182,6 +213,7 @@ Ext.define('Ext.dirac.core.TaskBar', {
 		}
 
 		me.callParent();
+
 	},
 
 	afterLayout : function() {
@@ -271,15 +303,15 @@ Ext.define('Ext.dirac.core.TaskBar', {
 			win.show();
 
 		} else if (win.active) {
-			
+
 			if (!win.desktopStickMode) {
 				win.minimize();
 			}
-			
+
 		} else {
-			
+
 			win.toFront();
-			
+
 		}
 
 		if (!("isChildWindow" in win))
