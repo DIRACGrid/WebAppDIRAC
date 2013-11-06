@@ -112,13 +112,20 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 					url : GLOBAL.BASE_URL + 'JobLaunchpad/jobSubmit',
 					success : function(form, action) {
 						
-						if (!(Object.prototype.toString.call(action.result.result) === '[object Array]'))
-							action.result.result = [ action.result.result ];
-
 						me.getContainer().body.unmask();
 						if (action.result.success == 'false') {
 							GLOBAL.APP.CF.alert('Error: ' + action.result.error, 'error');
 						} else {
+							var sIds = "";
+
+							var bPlural = true;
+
+							if (action.result.result instanceof Array) {
+								sIds = action.result.result.join(", ");
+							} else {
+								sIds = action.result.result;
+								bPlural = false;
+							}
 
 							var bMultiIds = false;
 							if (action.result.result.length > 1)
@@ -126,7 +133,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 							var oWarn = Ext.MessageBox.show({
 								title : 'Success',
-								msg : 'Your Job ID' + (bMultiIds ? "s are " : " is ") + action.result.result.join(", "),
+								msg : 'Your Job ID' + (bPlural ? "s are " : " is ") + sIds,
 								buttons : Ext.MessageBox.OKYES,
 								buttonText : {
 									ok : "OK",

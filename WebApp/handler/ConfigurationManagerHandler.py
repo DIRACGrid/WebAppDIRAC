@@ -351,6 +351,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     cfgData = self.__configData[ 'cfgData' ].getCFG()
 
     nodeDict = cfgData.getRecursive(nodePath)
+    
     if not nodeDict:
       return {"success":0, "op":"copyKey", "message":"Moving entity does not exist"}
     oldParentDict = cfgData.getRecursive(nodePath, -1)
