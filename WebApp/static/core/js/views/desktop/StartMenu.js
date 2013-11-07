@@ -169,16 +169,45 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 					appClassName : sStartClass,
 					iconCls : "notepad",
 					listeners : {
-						render : function(oMenu, eOpts) {
-							GLOBAL.APP.MAIN_VIEW.registerStartAppMenu(oMenu, oMenu.appClassName);
+						render : function(oMenuItem, eOpts) {
 
-							oMenu.menu.on("beforeshow", function(oMenu, eOpts) {
-								if (oMenu.items.length <= 1)
+							GLOBAL.APP.MAIN_VIEW.registerStartAppMenu(oMenuItem, oMenuItem.appClassName);
+
+							oMenuItem.menu.on("beforeshow", function(oMenu, eOpts) {
+
+								if (oMenu.items.length <= 1) {
+									var oElem = Ext.get(oMenuItem.id + '-arrowEl');
+
+									if (oElem) {
+
+										oElem.hide();
+
+									}
 									return false;
-								else
+								} else {
+									var oElem = Ext.get(oMenuItem.id + '-arrowEl');
+
+									if (oElem) {
+
+										oElem.show();
+
+									}
 									return true;
+								}
 
 							});
+
+							var oElem = Ext.get(oMenuItem.id + '-arrowEl');
+
+							if (oElem) {
+
+								oElem.hide();
+
+							}
+
+						},
+						activate : function(oMenuItem, eOpts) {
+
 						},
 						click : Ext.bind(GLOBAL.APP.MAIN_VIEW.createWindow, GLOBAL.APP.MAIN_VIEW, [ item[0], item[2], null ]),
 						focus : function(cmp, e, eOpts) {
@@ -213,6 +242,32 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 										cmp.oprRefreshAppStates();
 										cmp.isStateMenuLoaded = 2;
 										cmp.setIconCls("notepad");
+
+										if (cmp.menu.items.length <= 1) {
+											var oElem = Ext.get(cmp.id + '-arrowEl');
+
+											if (oElem) {
+
+												oElem.hide();
+
+											}
+
+										} else {
+											var oElem = Ext.get(cmp.id + '-arrowEl');
+
+											if (oElem) {
+
+												oElem.show();
+
+											}
+
+										}
+
+										/*
+										 * var oPos = cmp.getPosition(); var oSize = cmp.getSize();
+										 * 
+										 * cmp.menu.showAt(oPos[0] + oSize.width, oPos[1]);
+										 */
 
 									};
 
@@ -380,9 +435,10 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
 						}
 
-						oThisMenu.menu.add("-");
-
 						var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", oThisMenu.appClassName);// OK
+
+						// if((oStates.length>0)||(oRefs.length>0))
+						oThisMenu.menu.add("-");
 
 						for ( var i = 0, len = oRefs.length; i < len; i++) {
 

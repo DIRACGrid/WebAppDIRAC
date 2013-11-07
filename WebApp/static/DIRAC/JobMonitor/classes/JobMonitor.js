@@ -826,7 +826,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 					return;
 				} else {
 
-					var oWindow = me.getContainer().oprGetChildWindow("IDs of selected jobs", false, 700, 500);
+					var oWindow = me.getContainer().createChildWindow("IDs of selected jobs", false, 700, 500);
 
 					var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 						value : oItems.join(","),
@@ -1319,12 +1319,18 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			tbar : me.pagingToolbar.toolbar,
 			listeners : {
 
-				cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+//				cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+//
+//					if (cellIndex != 0) {
+//						me.contextGridMenu.showAt(e.xy);
+//					}
+//
+//				},
 
-					if (cellIndex != 0) {
-						me.contextGridMenu.showAt(e.xy);
-					}
-
+				beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+					e.preventDefault();
+					me.contextGridMenu.showAt(e.xy);
+					return false;
 				}
 
 			}

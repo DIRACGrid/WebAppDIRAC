@@ -1580,9 +1580,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		// button for saving the state
 		me.btnCreateElement = new Ext.Button({
 
-			text : 'Save',
+			text : 'Submit',
 			margin : 3,
-			iconCls : "toolbar-other-save",
+			iconCls : "dirac-icon-submit",
 			handler : function() {
 
 				var bValid = me.txtElementName.validate();

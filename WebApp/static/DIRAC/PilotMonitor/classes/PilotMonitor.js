@@ -316,7 +316,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		me.textTaskQueueId = Ext.create('Ext.form.field.Text', {
 
-			fieldLabel : "TaskQueueID",
+			fieldLabel : "Task Queue ID",
 			labelAlign : 'top',
 			anchor : "100%",
 			validator : function(value) {
@@ -342,28 +342,10 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		me.textJobReference = Ext.create('Ext.form.field.Text', {
 
-			fieldLabel : "PilotJobReference",
+			fieldLabel : "Pilot Job Reference",
 			labelAlign : 'top',
-			anchor : "100%",
-			validator : function(value) {
+			anchor : "100%"
 
-				if (Ext.util.Format.trim(value) != "") {
-					var newValue = "";
-					for ( var i = 0; i < value.length; i++) {
-						if (value.charAt(i) != ' ')
-							newValue += value.charAt(i);
-					}
-					var regExpr = /^(\d+|\d+-\d+)(,(\d+|\d+-\d+))*$/;
-
-					if (String(newValue).search(regExpr) != -1)
-						return true;
-					else
-						return "The IDs expression is not valid";
-
-				} else
-					return true;
-
-			}
 		});
 
 		me.leftPanel.add([ me.textTaskQueueId, me.textJobReference ]);
@@ -931,22 +913,40 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			tbar : me.pagingToolbar.toolbar,
 			listeners : {
 
-				cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+				// cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e,
+				// eOpts) {
+				//
+				// if (cellIndex != 0) {
+				//
+				// var oJobId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid,
+				// "CurrentJobID");
+				// var oStatus = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid,
+				// "Status");
+				//
+				// var items = me.contextGridMenu.items.items;
+				//
+				// items[0].setDisabled(oJobId == '-');
+				// items[2].setDisabled(oStatus != 'Done');
+				// items[3].setDisabled(oStatus != 'Done');
+				//
+				// me.contextGridMenu.showAt(e.xy);
+				//					}
+				//
+				//				},
+				
+				beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+					e.preventDefault();
+					var oJobId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
+					var oStatus = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Status");
 
-					if (cellIndex != 0) {
+					var items = me.contextGridMenu.items.items;
 
-						var oJobId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
-						var oStatus = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Status");
+					items[0].setDisabled(oJobId == '-');
+					items[2].setDisabled(oStatus != 'Done');
+					items[3].setDisabled(oStatus != 'Done');
 
-						var items = me.contextGridMenu.items.items;
-
-						items[0].setDisabled(oJobId == '-');
-						items[2].setDisabled(oStatus != 'Done');
-						items[3].setDisabled(oStatus != 'Done');
-
-						me.contextGridMenu.showAt(e.xy);
-					}
-
+					me.contextGridMenu.showAt(e.xy);
+					return false;
 				}
 
 			}
@@ -1073,9 +1073,6 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		var bValid = true;
 
 		if (!me.textTaskQueueId.validate())
-			bValid = false;
-
-		if (!me.textJobReference.validate())
 			bValid = false;
 
 		return bValid;

@@ -112,12 +112,11 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 			});
 		}
 
-		me.items.push({
-			xtype : 'tbtext',
-			text : "View"
-		});
-
-		me.items.push(button_views);
+		/*
+		 * me.items.push({ xtype : 'tbtext', text : "View" });
+		 * 
+		 * me.items.push(button_views);
+		 */
 
 		if (GLOBAL.APP.configData.user.username) {
 			/*
