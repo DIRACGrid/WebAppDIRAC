@@ -124,7 +124,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 						width : win.getWidth(),
 						height : win.getHeight(),
 						maximized : win.maximized,
-						minimized: win.minimized,
+						minimized : win.minimized,
 						zIndex : win.zIndex,
 						loadedObjectType : win.loadedObjectType,
 						desktopStickMode : ((win.desktopStickMode) ? 1 : 0),
@@ -149,7 +149,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 						width : win.getWidth(),
 						height : win.getHeight(),
 						maximized : win.maximized,
-						minimized: win.minimized,
+						minimized : win.minimized,
 						zIndex : win.zIndex,
 						loadedObjectType : win.loadedObjectType,
 						desktopStickMode : ((win.desktopStickMode) ? 1 : 0),
@@ -393,6 +393,15 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
 		var oValid = true;
 
+		if (GLOBAL.OPEN_APP != "") {
+
+			me.createWindow("app", GLOBAL.OPEN_APP, {
+				maximized : true
+			});
+
+			return;
+		}
+
 		GLOBAL.URL_STATE = Ext.util.Format.trim(GLOBAL.URL_STATE);
 
 		// if the URL state is not empty
@@ -607,7 +616,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 					text : sStateName,
 					handler : Ext.bind(me.oprLoadDesktopState, me, [ sStateName ], false),
 					scope : me,
-					iconCls : "system_state_icon",
+					iconCls : "dirac-icon-state",
 					minWidth : 200,
 					menu : [ {
 						text : "Share state",
@@ -631,7 +640,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 							});
 
 						},
-						iconCls : "system_share_state_icon"
+						iconCls : "dirac-icon-share"
 					} ]
 				});
 
@@ -699,13 +708,13 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 				menu : me.statesMenu
 			}, {
 				text : "Save",
-				iconCls : "toolbar-other-save",
+				iconCls : "dirac-icon-save",
 				handler : Ext.bind(me.SM.oprSaveAppState, me.SM, [ "application", "desktop", me, funcAfterSave ], false),
 				minWindows : 1,
 				scope : me
 			}, {
 				text : "Save As ...",
-				iconCls : "toolbar-other-save",
+				iconCls : "dirac-icon-save",
 				handler : Ext.bind(me.SM.formSaveState, me.SM, [ "application", "desktop", me, funcAfterSave ], false),
 				minWindows : 1,
 				scope : me
@@ -745,7 +754,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 				text : sStateName,
 				handler : Ext.bind(me.oprLoadDesktopState, me, [ sStateName ], false),
 				scope : me,
-				iconCls : "system_state_icon",
+				iconCls : "dirac-icon-state",
 				stateType : "application",
 				minWidth : 200,
 				menu : [ {
@@ -770,7 +779,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 						});
 
 					},
-					iconCls : "system_share_state_icon"
+					iconCls : "dirac-icon-share"
 				} ]
 			});
 
@@ -791,7 +800,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 				text : sStateName,
 				handler : Ext.bind(me.loadSharedStateByName, me, [ "desktop", sStateName ], false),
 				scope : me,
-				iconCls : "system_link_icon",
+				iconCls : "dirac-icon-link",
 				stateType : "reference",
 				minWidth : 200
 			});
@@ -1187,7 +1196,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
 		if (win.parentWindow)
 			win.parentWindow.removeChildWindowFromList(win);
-		
+
 		me.windows.remove(win);
 		/*
 		 * If the number of windows get 0, the current desktop state is cleared
@@ -1206,7 +1215,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		/*
 		 * Close all other child windows
 		 */
-		
+
 		for ( var i = win.childWindows.length - 1; i >= 0; i--) {
 			if (win.childWindows[i] != null) {
 				console.log(win.childWindows[i].title);
@@ -2159,7 +2168,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 			text : stateName,
 			handler : Ext.bind(me.loadSharedStateByName, me, [ "desktop", stateName ], false),
 			scope : me,
-			iconCls : "system_link_icon"
+			iconCls : "dirac-icon-link"
 		});
 
 		me.statesMenu.add(newItem);
@@ -2214,7 +2223,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
 			// if there is an active desktop state
 			me._state_related_url = "url_state=1|" + me.currentState;
-			sNewUrlState = "?theme=" + sThemeText + "&url_state=1|" + me.currentState;
+			sNewUrlState = "?view=" + GLOBAL.VIEW_ID + "&theme=" + sThemeText + "&url_state=1|" + me.currentState;
 
 		} else {
 
@@ -2227,7 +2236,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 			}
 
 			me._state_related_url = "url_state=0|" + sNewUrlState;
-			sNewUrlState = "?theme=" + sThemeText + "&url_state=0|" + sNewUrlState;
+			sNewUrlState = "?view=" + GLOBAL.VIEW_ID + "&theme=" + sThemeText + "&url_state=0|" + sNewUrlState;
 
 		}
 

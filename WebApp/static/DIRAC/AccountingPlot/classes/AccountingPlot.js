@@ -388,7 +388,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			text : 'Reset',
 			margin : 3,
-			iconCls : "accp-reset-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 				me.__resetSelectionWindow();
 			},
@@ -400,7 +400,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			text : 'Refresh',
 			margin : 3,
-			iconCls : "accp-refresh-icon",
+			iconCls : "dirac-icon-refresh",
 			handler : function() {
 
 				me.leftPanel.body.mask("Wait ...");
@@ -436,7 +436,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			text : 'Plot',
 			margin : 3,
-			iconCls : "accp-submit-icon",
+			iconCls : "dirac-icon-submit",
 			handler : function() {
 				me.__generatePlot();
 			},
@@ -471,7 +471,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 		me.btnStretchPlot = new Ext.Button({
 
 			text : 'Proportional',
-			iconCls : "accp-img-proportional",
+			iconCls : "dirac-icon-proportional",
 			handler : function() {
 
 				me.__stretchPlotMode = !me.__stretchPlotMode;
@@ -479,12 +479,12 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 				if (me.__stretchPlotMode) {
 
 					me.btnStretchPlot.setText("Proportional");
-					me.btnStretchPlot.setIconCls("accp-img-proportional");
+					me.btnStretchPlot.setIconCls("dirac-icon-proportional");
 
 				} else {
 
 					me.btnStretchPlot.setText("Stretch");
-					me.btnStretchPlot.setIconCls("accp-img-stretch");
+					me.btnStretchPlot.setIconCls("dirac-icon-stretch");
 
 				}
 			},
@@ -545,7 +545,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			menu : me.refreshMenu,
 			text : "Auto refresh :  Disabled",
 			timeSpan : 0,
-			iconCls : "accp-refresh-icon"
+			iconCls : "dirac-icon-refresh"
 
 		});
 
@@ -930,11 +930,11 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			me.plotImage.setWidth(me.rightPanel.getWidth() - 10);
 			me.plotImage.setHeight(me.rightPanel.getHeight() - me.plotToolbar.getHeight() - 10);
 			me.btnStretchPlot.setText("Proportional");
-			me.btnStretchPlot.setIconCls("accp-img-proportional");
+			me.btnStretchPlot.setIconCls("dirac-icon-proportional");
 			return;
 		} else {
 			me.btnStretchPlot.setText("Stretch");
-			me.btnStretchPlot.setIconCls("accp-img-stretch");
+			me.btnStretchPlot.setIconCls("dirac-icon-stretch");
 		}
 
 		var a = me.plotImage.originalWidth;
@@ -1074,7 +1074,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 								me.__loadSelectionData(me.plotParamsForSaveState);
 
 							},
-							iconCls : "accp-refresh-icon"
+							iconCls : "dirac-icon-refresh"
 						}, me.btnStretchPlot, me.btnRefreshMenu, '->', "<a target='_blank' href='" + GLOBAL.BASE_URL + "AccountingPlot/getCsvPlotData?" + oHrefParams + "'>CSV data</a>" ]
 					});
 

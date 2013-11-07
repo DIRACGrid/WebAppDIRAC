@@ -1,55 +1,5 @@
-.jm-reschedule-icon {
-	background-image: url(../images/reschedule.gif) !important;
-	background-color: transparent;
-}
-
-.jm-kill-icon {
-	background-image: url(../images/close.gif) !important;
-	background-color: transparent;
-}
-
-.jm-delete-icon {
-	background-image: url(../images/delete.gif) !important;
-	background-color: transparent;
-}
-
-.jm-refresh-icon {
-	background-image: url(../images/refresh.gif) !important;
-	background-color: transparent;
-}
-
-.jm-submit-icon {
-	background-image: url(../images/submit.gif) !important;
-	background-color: transparent;
-}
-
-.jm-reset-icon {
-	background-image: url(../images/reset.gif) !important;
-	background-color: transparent;
-}
-
-.jm-reset-button-icon {
-	background-image: url(../images/resetButton.gif) !important;
-	background-color: transparent;
-}
-
-.jm-action-gif-icon {
-	background-image: url(../images/action.gif) !important;
-	background-color: transparent;
-}
-
-.jm-addfile-gif-icon {
-	background-image: url(../images/addfile.gif) !important;
-	background-color: transparent;
-}
-
-.jm-id-list-icon {
-	background-image: url(../images/id_list.png) !important;
-	background-color: transparent;
-}
-
-.jm-pie-icon {
-	background-image: url(../images/pie.png) !important;
+.jm-icon-sandbox {
+	background-image: url(../images/sandbox.png) !important;
 	background-color: transparent;
 }
 
@@ -64,11 +14,6 @@
 
 .jm-main-check-box {
 	margin: 3px 0px 3px 0px !important;
-}
-
-.jm-save-icon {
-	background-image: url(../images/save.png) !important;
-	background-color: transparent;
 }
 
 .jm-red-reset-icon {

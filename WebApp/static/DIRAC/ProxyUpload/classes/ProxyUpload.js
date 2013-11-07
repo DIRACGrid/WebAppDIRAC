@@ -58,7 +58,7 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 
 			text : 'Upload',
 			margin : 1,
-			iconCls : "pu-upload-icon",
+			iconCls : "dirac-icon-upload",
 			handler : function() {
 
 				me.__oprUploadFile();
@@ -72,7 +72,7 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 
 			text : 'Reset',
 			margin : 1,
-			iconCls : "pu-reset-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 				me.uploadField.reset();// fileInputEl.dom.value = "";
 				me.passwordField.setValue("");

@@ -170,15 +170,23 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 				},
 				iconCls : "dirac-icon-revert",
 				scope : me
-			}, '-', {
+			}, '-' ]
+		});
+
+		if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "AlarmsManagement") != -1)) {
+
+			oGridButtonsToolbar.add({
 				text : 'Send e-mail',
 				handler : function() {
+
 					me.oprShowSendMessageForm(2);
+
 				},
 				scope : me,
 				iconCls : "dirac-icon-mail"
-			} ]
-		});
+			});
+
+		}
 
 		me.systemInfoGrid = Ext.create('Ext.grid.Panel', {
 			region : "north",
@@ -361,11 +369,13 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 					me.overallContextMenu.showAt(e.xy);
 					return false;
 				},
+				
+				cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 
-				celldblclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
-
-					me.hostGridStore.proxy.extraParams.hostname = record.get("Host");
-					me.hostGridStore.load();
+					if (cellIndex != 0) {
+						me.hostGridStore.proxy.extraParams.hostname = record.get("Host");
+						me.hostGridStore.load();
+					}
 
 				}
 
@@ -1042,108 +1052,11 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			success : function(response) {
 
 				var response = Ext.JSON.decode(response.responseText);
-				console.log(response);
+
 				me.getContainer().body.unmask();
 				if (response["success"] == "true") {
 
-					var oUsers = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
-						fieldLabel : "Send to user(s)",
-						queryMode : 'local',
-						labelAlign : 'left',
-						displayField : "value",
-						valueField : "value",
-						anchor : '100%',
-						store : new Ext.data.ArrayStore({
-							fields : [ 'value' ],
-							data : response["users"]
-						})
-					});
-
-					var oGroups = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
-						fieldLabel : "Send to group(s)",
-						queryMode : 'local',
-						labelAlign : 'left',
-						displayField : "value",
-						valueField : "value",
-						anchor : '100%',
-						store : new Ext.data.ArrayStore({
-							fields : [ 'value' ],
-							data : response["groups"]
-						})
-					});
-
-					var oSubject = Ext.create('Ext.form.field.Text', {
-						fieldLabel : "Subject",
-						labelAlign : 'left',
-						anchor : '100%'
-					});
-
-					var oMessage = Ext.create('Ext.form.field.TextArea', {
-						fieldLabel : "Message",
-						labelAlign : 'left',
-						grow : true,
-						anchor : '100%',
-						height : 150
-					});
-
-					var oSendBtn = new Ext.Button({
-
-						text : ((iType == 1) ? 'Send message' : 'Send e-mail'),
-						margin : 3,
-						handler : function() {
-
-						},
-						scope : me
-					});
-
-					var oResetBtn = new Ext.Button({
-
-						text : 'Reset',
-						margin : 3,
-						handler : function() {
-							oUsers.setValue([]);
-							oGroups.setValue([]);
-							oSubject.setValue("");
-							oMessage.setValue("");
-						},
-						scope : me
-					});
-
-					var oToolbar = new Ext.toolbar.Toolbar({
-						border : false,
-						layout : {
-							pack : 'center'
-						},
-						items : [ oSendBtn, oResetBtn ]
-					});
-
-					var oMainPanel = new Ext.create('Ext.panel.Panel', {
-						layout : "anchor",
-						border : false,
-						items : [ oUsers, oGroups, oSubject, oMessage ],
-						bbar : oToolbar,
-						bodyPadding : 10
-					});
-
-					var sTitle = "";
-
-					if (iType == 1) {
-						sTitle = "From " + GLOBAL.USER_CREDENTIALS["username"] + "@" + GLOBAL.USER_CREDENTIALS["group"];
-					} else {
-						sTitle = "From " + response["email"];
-					}
-
-					var oWindow = Ext.create('widget.window', {
-						height : 350,
-						width : 550,
-						title : sTitle,
-						layout : 'fit',
-						modal : true,
-						items : [ oMainPanel ],
-						iconCls : "dirac-icon-mail"
-					});
-
-					oWindow.show();
+					me.formSendMail(response["users"], response["groups"], response["email"], iType);
 
 				}
 
@@ -1153,6 +1066,176 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
+
+	},
+
+	formSendMail : function(oUsers, oGroups, sMail, iType) {
+
+		var me = this;
+
+		var oUsers = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
+			fieldLabel : "Send to user(s)",
+			queryMode : 'local',
+			labelAlign : 'left',
+			displayField : "value",
+			valueField : "value",
+			anchor : '100%',
+			store : new Ext.data.ArrayStore({
+				fields : [ 'value' ],
+				data : oUsers
+			})
+		});
+
+		var oGroups = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
+			fieldLabel : "Send to group(s)",
+			queryMode : 'local',
+			labelAlign : 'left',
+			displayField : "value",
+			valueField : "value",
+			anchor : '100%',
+			store : new Ext.data.ArrayStore({
+				fields : [ 'value' ],
+				data : oGroups
+			})
+		});
+
+		var oSubject = Ext.create('Ext.form.field.Text', {
+			fieldLabel : "Subject",
+			labelAlign : 'left',
+			anchor : '100%'
+		});
+
+		var oMessage = Ext.create('Ext.form.field.TextArea', {
+			fieldLabel : "Message",
+			labelAlign : 'left',
+			grow : true,
+			anchor : '100%',
+			height : 150
+		});
+		
+		var oResetBtn = new Ext.Button({
+
+			text : 'Reset',
+			margin : 3,
+			handler : function() {
+				oUsers.setValue([]);
+				oGroups.setValue([]);
+				oSubject.setValue("");
+				oMessage.setValue("");
+			},
+			scope : me
+		});
+
+		var oSendBtn = new Ext.Button({
+
+			text : ((iType == 1) ? 'Send message' : 'Send e-mail'),
+			margin : 3,
+			handler : function() {
+
+				var bValid = true;
+
+				if (Ext.util.Format.trim(oSubject.getValue()) == "") {
+
+					GLOBAL.APP.CF.alert("Subject field is empty !", "warning");
+					bValid = false;
+
+				}
+
+				if (Ext.util.Format.trim(oMessage.getValue()) == "") {
+
+					GLOBAL.APP.CF.alert("Subject field is empty !", "warning");
+					bValid = false;
+
+				}
+
+				var sUsers = ((oUsers.isInverseSelection()) ? oUsers.getInverseSelection() : oUsers.getValue().join(","));
+				var sGroups = ((oGroups.isInverseSelection()) ? oGroups.getInverseSelection() : oGroups.getValue().join(","));
+
+				if ((Ext.util.Format.trim(sUsers) == "") && (Ext.util.Format.trim(sGroups) == "")) {
+
+					GLOBAL.APP.CF.alert("No users nor groups selected !", "warning");
+					bValid = false;
+
+				}
+
+				if (bValid) {
+
+					me.getContainer().body.mask("Sending mail ...");
+					Ext.Ajax.request({
+						url : GLOBAL.BASE_URL + 'SystemAdministration/sendMessage',
+						params : {
+
+							subject : oSubject.getValue(),
+							message : oMessage.getValue(),
+							users : sUsers,
+							groups : sGroups
+
+						},
+						scope : me,
+						success : function(response) {
+							var response = Ext.JSON.decode(response.responseText);
+
+							me.getContainer().body.unmask();
+							if (response["success"] == "true") {
+
+								GLOBAL.APP.CF.alert(response["result"], "info");
+
+							} else {
+
+								GLOBAL.APP.CF.alert(response["error"], "error");
+
+							}
+							
+							oSendBtn.show();
+							oResetBtn.show();
+						}
+					});
+					
+					oSendBtn.hide();
+					oResetBtn.hide();
+				}
+
+			},
+			scope : me
+		});
+
+		
+
+		var oToolbar = new Ext.toolbar.Toolbar({
+			border : false,
+			layout : {
+				pack : 'center'
+			},
+			items : [ oSendBtn, oResetBtn ]
+		});
+
+		var oMainPanel = new Ext.create('Ext.panel.Panel', {
+			layout : "anchor",
+			border : false,
+			items : [ oUsers, oGroups, oSubject, oMessage ],
+			bbar : oToolbar,
+			bodyPadding : 10
+		});
+
+		var sTitle = "";
+
+		if (iType == 1) {
+			sTitle = "From " + GLOBAL.USER_CREDENTIALS["username"] + "@" + GLOBAL.USER_CREDENTIALS["group"];
+		} else {
+			sTitle = "From " + sMail;
+		}
+
+		var oWindow = Ext.create('widget.window', {
+			height : 350,
+			width : 550,
+			title : sTitle,
+			layout : 'fit',
+			modal : true,
+			items : [ oMainPanel ],
+			iconCls : "dirac-icon-mail"
+		});
+
+		oWindow.show();
 
 	}
 

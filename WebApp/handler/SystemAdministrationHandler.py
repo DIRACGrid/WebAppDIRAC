@@ -36,21 +36,13 @@ class SystemAdministrationHandler(WebHandler):
       client = SystemAdministratorClient(host , None , delegatedDN=DN ,
                                           delegatedGroup=group)
       resultHost = yield self.threadTask(client.getHostInfo)
-      print "------------------------------------------------------------\n"
-      print "                        RESULT \n"
-      print "------------------------------------------------------------\n"
       if resultHost[ "OK" ]:
         rec = resultHost["Value"]
         rec["Host"] = host
         callback.append(resultHost["Value"])
       else:
         callback.append({"Host":host})
-      
-    '''
-    client = SystemAdministratorIntegrator(hosts=hosts)
-    result = yield self.threadTask(client.getHostInfo)
-    gLogger.debug(result)
-    '''
+   
     total = len(callback)
     if not total > 0:
       self.finish({ "success" : "false" , "error" : "No system information found" })
@@ -445,13 +437,10 @@ class SystemAdministrationHandler(WebHandler):
       return
 
     users = self.request.arguments[ "users" ][0].split(",")
-    
-    gLogger.info("List of users from request: %s" % userList)
-    if userList:
-      users.extend(userList)
 
     groups = self.request.arguments[ "groups" ][0].split(",")
-    gLogger.info("List of groups from request: %s" % groupList)
+    
+    gLogger.info("List of groups from request: %s" % groups)
     if groups:
       for g in groups:
         userList = self.getUsersFromGroup(g)
@@ -480,7 +469,6 @@ class SystemAdministrationHandler(WebHandler):
     Check if value is unicode or not and return properly converted string
     Arguments are string and unicode/string, return value is a string
     """
-
     try:
       text = text.decode('utf-8' , "replace")
     except :

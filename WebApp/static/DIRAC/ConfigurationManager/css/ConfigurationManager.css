@@ -1,27 +1,3 @@
-.cm-textbox-help-window textarea.x-form-field {
-	font-family: Courier, monospace !important;
-}
-
-.cm-view-text-icon {
-	background-image: url(../images/viewAsText.png) !important;
-	background-color: transparent;
-}
-
-.cm-reset-icon {
-	background-image: url(../images/refresh.gif) !important;
-	background-color: transparent;
-}
-
-.cm-submit-icon {
-	background-image: url(../images/submit.gif) !important;
-	background-color: transparent;
-}
-
-.cm-kill-icon {
-	background-image: url(../images/close.gif) !important;
-	background-color: transparent;
-}
-
 .cm-to-manage-icon {
 	background-image: url(../images/cog_edit.png) !important;
 	background-color: transparent;
@@ -30,6 +6,10 @@
 .cm-to-browse-icon {
 	background-image: url(../images/cog.png) !important;
 	background-color: transparent;
+}
+
+.cm-textbox-help-window textarea.x-form-field {
+	font-family: Courier, monospace !important;
 }
 
 table.cm-config-diff {

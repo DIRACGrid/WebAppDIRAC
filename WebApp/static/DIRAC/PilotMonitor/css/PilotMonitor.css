@@ -1,66 +1,3 @@
-.pm-reschedule-icon{
-	
-	 background-image: url(../images/reschedule.gif) !important;
-     background-color: transparent;
-	
-}
-
-.pm-kill-icon{
-	
-	 background-image: url(../images/close.gif) !important;
-     background-color: transparent;
-	
-}
-
-.pm-delete-icon{
-	
-	 background-image: url(../images/delete.gif) !important;
-     background-color: transparent;
-	
-}
-
-.pm-refresh-icon{
-	
-	 background-image: url(../images/refresh.gif) !important;
-     background-color: transparent;
-	
-}
-
-.pm-submit-icon{
-	
-	 background-image: url(../images/submit.gif) !important;
-     background-color: transparent;
-	
-}
-
-.pm-reset-icon{
-	
-	 background-image: url(../images/reset.gif) !important;
-     background-color: transparent;
-	
-}
-
-.pm-reset-button-icon{
-	
-	 background-image: url(../images/resetButton.gif) !important;
-     background-color: transparent;
-	
-}
-
-.pm-action-gif-icon{
-	
-	 background-image: url(../images/action.gif) !important;
-     background-color: transparent;
-	
-}
-
-.pm-addfile-gif-icon{
-	
-	 background-image: url(../images/addfile.gif) !important;
-     background-color: transparent;
-	
-}
-
 .pm-textbox-help-window textarea.x-form-field{
 	
 	font-family: Courier,monospace !important;	
@@ -71,12 +8,5 @@
 .pm-main-check-box{
 	
 	margin:3px 0px 3px 0px !important;
-	
-}
-
-.pm-id-list-icon{
-	
-	 background-image: url(../images/id_list.png) !important;
-     background-color: transparent;
 	
 }
