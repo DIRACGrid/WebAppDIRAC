@@ -246,7 +246,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 			text : 'Submit',
 
-			iconCls : "meta-submit-icon",
+			iconCls : "dirac-icon-submit",
 			handler : function() {
 
 				if (me.__isEveryBlockBlured()) {
@@ -272,7 +272,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 			text : 'Refresh',
 
-			iconCls : "meta-refresh-icon",
+			iconCls : "dirac-icon-refresh",
 			handler : function() {
 				me.__getQueryData(true);
 			},
@@ -284,7 +284,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 			text : 'Clear',
 
-			iconCls : "meta-reset-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 
 				for ( var i = me.queryPanel.items.length - 1; i >= 0; i--) {
@@ -338,7 +338,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 			text : '',
 
-			iconCls : "meta-reset-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 				me.txtPathField.setValue("/");
 				me.__getQueryData(true);
@@ -475,7 +475,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 		me.pagingToolbar.btnSaveFile = new Ext.Button({
 			tooltip : 'Save',
-			iconCls : "meta-save-icon",
+			iconCls : "dirac-icon-save",
 			handler : function() {
 				me.__getMetadataFile();
 			},
@@ -518,7 +518,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 			if (me.pagingToolbar.toolbar.items.getAt(i).itemId == "refresh") {
 
-				me.pagingToolbar.toolbar.items.getAt(i).setIconCls("meta-submit-icon");
+				me.pagingToolbar.toolbar.items.getAt(i).setIconCls("dirac-icon-submit");
 				me.pagingToolbar.toolbar.items.getAt(i).setTooltip("Submit");
 				me.pagingToolbar.toolbar.items.getAt(i).handler = function() {
 					if (me.__isEveryBlockBlured()) {
@@ -1070,7 +1070,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 				margin : 3
 			}, oDropDown, {
 				xtype : "button",
-				iconCls : "meta-reset-icon",
+				iconCls : "dirac-icon-reset",
 				margin : 3,
 				handler : function() {
 
@@ -1185,7 +1185,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 				} ]
 			}, oDropDown, {
 				xtype : "button",
-				iconCls : "meta-reset-icon",
+				iconCls : "dirac-icon-reset",
 				margin : 3,
 				handler : function() {
 

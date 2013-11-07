@@ -78,7 +78,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 		me.btnAddParameters = new Ext.Button({
 
 			text : 'Add Parameters',
-			iconCls : "jl-plus-icon",
+			iconCls : "dirac-icon-plus",
 			scope : me,
 			menu : [],
 			tooltip : 'Click to add more parameters to the JDL'
@@ -105,7 +105,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 			text : 'Submit',
 			margin : 1,
-			iconCls : "jl-submit-icon",
+			iconCls : "dirac-icon-submit",
 			handler : function() {
 				me.getContainer().body.mask("Wait ...");
 				me.mainFormPanel.submit({
@@ -197,7 +197,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
 			text : 'Reset',
 			margin : 1,
-			iconCls : "jl-reset-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 
 				// first go through all optional fields and see if they are checked,

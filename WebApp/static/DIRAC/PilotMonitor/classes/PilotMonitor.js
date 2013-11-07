@@ -424,7 +424,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 			text : 'Reset Time Panel',
 			margin : 3,
-			iconCls : "pm-reset-button-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 
 				me.timeSearchElementsGroup.cmbTimeTo.setValue(null);
@@ -504,7 +504,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 			text : 'Reset',
 			margin : 3,
-			iconCls : "pm-reset-button-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 				me.oprResetSelectionOptions();
 			},
@@ -656,7 +656,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		me.btnPilotInJobMonitor = new Ext.Button({
 			text : '',
-			iconCls : "pm-id-list-icon",
+			iconCls : "dirac-icon-list",
 			handler : function() {
 
 				var me = this;

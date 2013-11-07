@@ -93,7 +93,7 @@ Ext.define('Ext.dirac.views.desktop.StateManagement', {
 
 			text : 'Save',
 			margin : 3,
-			iconCls : "toolbar-other-save",
+			iconCls : "dirac-icon-save",
 			handler : function() {
 
 				if (me.txtStateName.isValid()) {
@@ -508,7 +508,7 @@ Ext.define('Ext.dirac.views.desktop.StateManagement', {
 
 			text : 'Create Link',
 			margin : 3,
-			iconCls : "toolbar-other-save",
+			iconCls : "dirac-icon-save",
 			handler : function() {
 
 				var oValid = true;
@@ -578,7 +578,7 @@ Ext.define('Ext.dirac.views.desktop.StateManagement', {
 			layout : 'fit',
 			modal : true,
 			items : [ oPanel ],
-			iconCls : "system_state_icon",
+			iconCls : "dirac-icon-state",
 		});
 
 		me.manageWindow.show();

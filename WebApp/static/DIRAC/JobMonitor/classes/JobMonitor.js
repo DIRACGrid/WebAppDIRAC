@@ -529,7 +529,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			text : 'Reset Time Panel',
 			margin : 3,
-			iconCls : "jm-reset-button-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 
 				me.timeSearchElementsGroup.cmbTimeTo.setValue(null);
@@ -609,7 +609,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			text : 'Reset',
 			margin : 3,
-			iconCls : "jm-reset-button-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 				me.oprResetSelectionOptions();
 			},
@@ -762,7 +762,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		me.pagingToolbar.btnReschedule = new Ext.Button({
 			text : '',
-			iconCls : "jm-reschedule-icon",
+			iconCls : "dirac-icon-reschedule",
 			handler : function() {
 
 				var me = this;
@@ -775,7 +775,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		me.pagingToolbar.btnKill = new Ext.Button({
 			text : '',
-			iconCls : "jm-kill-icon",
+			iconCls : "dirac-icon-kill",
 			handler : function() {
 
 				var me = this;
@@ -788,7 +788,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		me.pagingToolbar.btnDelete = new Ext.Button({
 			text : '',
-			iconCls : "jm-delete-icon",
+			iconCls : "dirac-icon-delete",
 			handler : function() {
 
 				var me = this;
@@ -801,7 +801,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		me.pagingToolbar.btnGoToStatistics = new Ext.Button({
 			text : '',
-			iconCls : "jm-pie-icon",
+			iconCls : "dirac-icon-pie",
 			handler : function() {
 				me.centralWorkPanel.getLayout().setActiveItem(1);
 			},
@@ -810,7 +810,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		me.pagingToolbar.btnGetIdList = new Ext.Button({
 			text : '',
-			iconCls : "jm-id-list-icon",
+			iconCls : "dirac-icon-list",
 			handler : function() {
 
 				var oItems = [];
@@ -1048,23 +1048,26 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				},
 				text : 'Peek StandardOutput'
 			}, {
+				iconCls : "dirac-icon-download",
 				handler : function() {
 					me.__oprGetJobData("getLogURL");
 				},
 				text : 'Get LogFile'
 			}, {
+				iconCls : "dirac-icon-download",
 				handler : function() {
 					me.__oprGetJobData("getPending");
 				},
 				text : 'Get PendingRequest'
 			}, {
+				iconCls : "dirac-icon-download",
 				handler : function() {
 					me.__oprGetJobData("getStagerReport");
 				},
 				text : 'Get StagerReport'
 			}, '-', {
 				text : 'Actions',
-				iconCls : "jm-action-gif-icon",
+				iconCls : "dirac-icon-action",
 				menu : {
 					items : [ {
 						handler : function() {
@@ -1073,7 +1076,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 							me.__oprJobAction("kill", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"));
 
 						},
-						iconCls : "jm-kill-icon",
+						iconCls : "dirac-icon-kill",
 						text : 'Kill',
 						scope : me
 					}, {
@@ -1083,7 +1086,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 							me.__oprJobAction("delete", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"));
 
 						},
-						iconCls : "jm-delete-icon",
+						iconCls : "dirac-icon-delete",
 						text : 'Delete',
 						scope : me
 					} ]
@@ -1092,11 +1095,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				text : 'Pilot',
 				menu : {
 					items : [ {
+						iconCls : "dirac-icon-download",
 						handler : function() {
 							me.__oprGetJobData("getPilotStdOut");
 						},
 						text : 'Get StdOut'
 					}, {
+						iconCls : "dirac-icon-download",
 						handler : function() {
 							me.__oprGetJobData("getPilotStdErr");
 						},
@@ -1105,9 +1110,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				}
 			}, {
 				text : 'Sandbox',
-				iconCls : "jm-addfile-gif-icon",
+				iconCls : "jm-icon-sandbox",
 				menu : {
 					items : [ {
+						iconCls : "dirac-icon-download",
 						handler : function() {
 
 							me.__getSandbox(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Input");
@@ -1115,6 +1121,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						},
 						text : 'Get input file(s)'
 					}, {
+						iconCls : "dirac-icon-download",
 						handler : function() {
 
 							me.__getSandbox(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Output");
@@ -1329,7 +1336,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			if (me.pagingToolbar.toolbar.items.getAt(i).itemId == "refresh") {
 
-				me.pagingToolbar.toolbar.items.getAt(i).setIconCls("jm-submit-icon");
+				me.pagingToolbar.toolbar.items.getAt(i).setIconCls("dirac-icon-submit");
 				me.pagingToolbar.toolbar.items.getAt(i).setTooltip("Submit");
 				break;
 
@@ -1403,7 +1410,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.btnShowPlotAsPng = new Ext.Button({
 
 			margin : 0,
-			iconCls : "jm-save-icon",
+			iconCls : "dirac-icon-save",
 			handler : function() {
 
 				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
@@ -1447,7 +1454,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.btnPlotSettings = new Ext.Button({
 
 			margin : 0,
-			iconCls : "jm-pie-icon",
+			iconCls : "dirac-icon-pie",
 			handler : function() {
 
 				me.formPlotSettings();
@@ -1673,7 +1680,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 			text : 'Submit',
 			margin : 3,
-			iconCls : "jm-submit-icon",
+			iconCls : "dirac-icon-submit",
 			handler : function() {
 				var me = this;
 				me.createPlotFromGridData(me.plotSettings.txtPlotTitle.getValue(), me.plotSettings.cmbLegendPosition.getValue());

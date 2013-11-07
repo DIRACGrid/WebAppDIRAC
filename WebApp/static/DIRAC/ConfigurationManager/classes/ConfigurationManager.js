@@ -318,8 +318,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		me.btnViewConfigAsText = new Ext.Button({
 
 			text : 'View as Text',
-			// margin : 1,
-			iconCls : "cm-view-text-icon",
+			
+			iconCls : "dirac-icon-text",
 			handler : function() {
 
 				me.__sendSocketMessage({
@@ -337,7 +337,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 			text : 'Reload',
 
-			iconCls : "cm-reset-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 				if (me.changeMade) {
 					if (confirm("If you reload you might loose the changes you've might made.\nDo you want to reload?")) {
@@ -429,7 +429,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 				text : 'Commit',
 
-				iconCls : "cm-submit-icon",
+				iconCls : "dirac-icon-submit",
 				handler : function() {
 					if (confirm("Do you want to apply the configuration changes you've done till now?")) {
 						me.treePanel.body.mask("Wait ...");
@@ -549,7 +549,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 			text : 'Submit',
 			margin : 1,
-			iconCls : "cm-submit-icon",
+			iconCls : "dirac-icon-submit",
 			handler : me.__oprActionValuePanel,
 			scope : me
 
@@ -559,7 +559,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 			text : 'Reset',
 			margin : 1,
-			iconCls : "cm-reset-icon",
+			iconCls : "dirac-icon-reset",
 			handler : function() {
 				if (me.valuePanel.csNode == null)
 					return;

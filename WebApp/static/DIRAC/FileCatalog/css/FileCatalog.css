@@ -3,27 +3,6 @@
 	font-family: Courier, monospace !important;
 }
 
-.meta-reset-icon{
-	
-	 background-image: url(../images/reset.gif) !important;
-     background-color: transparent;
-	
-}
-
-.meta-submit-icon{
-	
-	 background-image: url(../images/submit.gif) !important;
-     background-color: transparent;
-	
-}
-
-.meta-refresh-icon{
-	
-	 background-image: url(../images/refresh.gif) !important;
-     background-color: transparent;
-	
-}
-
 .meta-equal-icon{
 	
 	 background-image: url(../images/equal.gif) !important;
@@ -90,13 +69,6 @@
 .meta-query-icon{
 	
 	 background-image: url(../images/query.png) !important;
-     background-color: transparent;
-	
-}
-
-.meta-save-icon{
-	
-	 background-image: url(../images/save.png) !important;
      background-color: transparent;
 	
 }

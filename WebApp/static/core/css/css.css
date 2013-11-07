@@ -222,11 +222,6 @@
     background-image:url(../img/icons/fam/user_suit.gif) !important;
 }
 
-.toolbar-other-save {
-    background-image:url(../img/icons/system/_tool_save.png) !important;
-    background-size:16px 16px;
-}
-
 .toolbar-other-load {
     background-image:url(../img/icons/system/_tool_load.png) !important;
     background-size:16px 16px;
@@ -260,18 +255,6 @@
 .x-hidden-loading-message{
 	
 	visibility:hidden;
-	
-}
-
-.system_state_icon {
-    background-image:url(../img/icons/system/_state_icon.png) !important;
-    background-size:16px 16px;
-}
-
-.system_share_state_icon{
-	
-	background-image:url(../img/icons/system/_share_icon.png) !important;
-    background-size:16px 16px;
 	
 }
 

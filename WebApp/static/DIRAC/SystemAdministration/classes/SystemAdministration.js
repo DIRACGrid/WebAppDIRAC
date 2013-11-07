@@ -369,11 +369,13 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 					me.overallContextMenu.showAt(e.xy);
 					return false;
 				},
+				
+				cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 
-				celldblclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
-
-					me.hostGridStore.proxy.extraParams.hostname = record.get("Host");
-					me.hostGridStore.load();
+					if (cellIndex != 0) {
+						me.hostGridStore.proxy.extraParams.hostname = record.get("Host");
+						me.hostGridStore.load();
+					}
 
 				}
 

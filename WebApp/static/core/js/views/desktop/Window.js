@@ -596,12 +596,12 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 					menu : me.statesMenu
 				}, {
 					text : "Save",
-					iconCls : "toolbar-other-save",
+					iconCls : "dirac-icon-save",
 					handler : Ext.bind(me.desktop.SM.oprSaveAppState, me.desktop.SM, [ "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave ], false),
 					scope : me
 				}, {
 					text : "Save As ...",
-					iconCls : "toolbar-other-save",
+					iconCls : "dirac-icon-save",
 					handler : Ext.bind(me.desktop.SM.formSaveState, me.desktop.SM, [ "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave ], false),
 					scope : me
 				}, {
@@ -677,7 +677,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 				text : stateName,
 				handler : Ext.bind(me.oprLoadAppStateFromCache, me, [ stateName ], false),
 				scope : me,
-				iconCls : "system_state_icon",
+				iconCls : "dirac-icon-state",
 				stateType : stateType,
 				menu : [ {
 					text : "Share state",
@@ -698,7 +698,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 						});
 
 					},
-					iconCls : "system_share_state_icon"
+					iconCls : "dirac-icon-share"
 				} ]
 			});
 
@@ -721,7 +721,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 				text : stateName,
 				handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [ me.appClassName, stateName ], false),
 				scope : me,
-				iconCls : "system_link_icon",
+				iconCls : "dirac-icon-link",
 				stateType : stateType
 			});
 
@@ -809,7 +809,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 				text : stateName,
 				handler : Ext.bind(me.oprLoadAppStateFromCache, me, [ stateName ], false),
 				scope : me,
-				iconCls : "system_state_icon",
+				iconCls : "dirac-icon-state",
 				stateType : "application",
 				menu : [ {
 					text : "Share state",
@@ -830,7 +830,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 						});
 
 					},
-					iconCls : "system_share_state_icon"
+					iconCls : "dirac-icon-share"
 				} ]
 			});
 
@@ -851,7 +851,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 				text : stateName,
 				handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [ me.appClassName, stateName ], false),
 				scope : me,
-				iconCls : "system_link_icon",
+				iconCls : "dirac-icon-link",
 				stateType : "reference"
 			});
 

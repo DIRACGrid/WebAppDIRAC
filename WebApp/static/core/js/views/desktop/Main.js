@@ -616,7 +616,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 					text : sStateName,
 					handler : Ext.bind(me.oprLoadDesktopState, me, [ sStateName ], false),
 					scope : me,
-					iconCls : "system_state_icon",
+					iconCls : "dirac-icon-state",
 					minWidth : 200,
 					menu : [ {
 						text : "Share state",
@@ -640,7 +640,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 							});
 
 						},
-						iconCls : "system_share_state_icon"
+						iconCls : "dirac-icon-share"
 					} ]
 				});
 
@@ -708,13 +708,13 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 				menu : me.statesMenu
 			}, {
 				text : "Save",
-				iconCls : "toolbar-other-save",
+				iconCls : "dirac-icon-save",
 				handler : Ext.bind(me.SM.oprSaveAppState, me.SM, [ "application", "desktop", me, funcAfterSave ], false),
 				minWindows : 1,
 				scope : me
 			}, {
 				text : "Save As ...",
-				iconCls : "toolbar-other-save",
+				iconCls : "dirac-icon-save",
 				handler : Ext.bind(me.SM.formSaveState, me.SM, [ "application", "desktop", me, funcAfterSave ], false),
 				minWindows : 1,
 				scope : me
@@ -754,7 +754,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 				text : sStateName,
 				handler : Ext.bind(me.oprLoadDesktopState, me, [ sStateName ], false),
 				scope : me,
-				iconCls : "system_state_icon",
+				iconCls : "dirac-icon-state",
 				stateType : "application",
 				minWidth : 200,
 				menu : [ {
@@ -779,7 +779,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 						});
 
 					},
-					iconCls : "system_share_state_icon"
+					iconCls : "dirac-icon-share"
 				} ]
 			});
 
@@ -800,7 +800,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 				text : sStateName,
 				handler : Ext.bind(me.loadSharedStateByName, me, [ "desktop", sStateName ], false),
 				scope : me,
-				iconCls : "system_link_icon",
+				iconCls : "dirac-icon-link",
 				stateType : "reference",
 				minWidth : 200
 			});
@@ -2168,7 +2168,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 			text : stateName,
 			handler : Ext.bind(me.loadSharedStateByName, me, [ "desktop", stateName ], false),
 			scope : me,
-			iconCls : "system_link_icon"
+			iconCls : "dirac-icon-link"
 		});
 
 		me.statesMenu.add(newItem);

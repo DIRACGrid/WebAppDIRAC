@@ -79,7 +79,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
 			me.menu.add([ '-', {
 				text : 'State Loader',
-				iconCls : 'system_state_icon',
+				iconCls : 'dirac-icon-state',
 				handler : function() {
 					GLOBAL.APP.MAIN_VIEW.SM.formStateLoader(GLOBAL.APP.MAIN_VIEW.cbAfterLoadSharedState, GLOBAL.APP.MAIN_VIEW.cbAfterSaveSharedState);
 				}
@@ -144,12 +144,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 			var result = {
 				text : item[0],
 				menu : [],
-				iconCls : "system_folder",
-				listeners : {
-					render : function(oMenu, eOpts) {
-						oMenu.menu.ignoreParentClicks = true;
-					}
-				}
+				iconCls : "system_folder"
 			};
 
 			for ( var i = 0; i < item[1].length; i++)
@@ -245,7 +240,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 									stateToLoad : stateName
 								} ], false),
 								scope : me,
-								iconCls : "system_state_icon",
+								iconCls : "dirac-icon-state",
 								stateType : stateType,
 								minWidth : 200,
 								menu : [ {
@@ -269,7 +264,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 										});
 
 									},
-									iconCls : "system_share_state_icon"
+									iconCls : "dirac-icon-share"
 								} ]
 							});
 
@@ -282,7 +277,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 								minWidth : 200,
 								handler : Ext.bind(GLOBAL.APP.MAIN_VIEW.loadSharedStateByName, GLOBAL.APP.MAIN_VIEW, [ oThisMenu.appClassName, stateName ], false),
 								scope : me,
-								iconCls : "system_link_icon",
+								iconCls : "dirac-icon-link",
 								stateType : stateType
 							});
 
@@ -353,7 +348,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 									stateToLoad : stateName
 								} ], false),
 								scope : me,
-								iconCls : "system_state_icon",
+								iconCls : "dirac-icon-state",
 								stateType : "application",
 								menu : [ {
 									text : "Share state",
@@ -377,7 +372,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 										});
 
 									},
-									iconCls : "system_share_state_icon"
+									iconCls : "dirac-icon-share"
 								} ]
 							});
 
@@ -397,7 +392,8 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 								text : stateName,
 								handler : Ext.bind(GLOBAL.APP.MAIN_VIEW.loadSharedStateByName, GLOBAL.APP.MAIN_VIEW, [ oThisMenu.appClassName, stateName ], false),
 								scope : me,
-								iconCls : "system_link_icon",
+								iconCls : "dirac-icon-link",
+								minWidth : 200,
 								stateType : "reference"
 							});
 
