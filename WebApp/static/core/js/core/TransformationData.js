@@ -8,13 +8,60 @@
 Ext.define('Ext.dirac.core.TranformationData', {
 	requires : [],
 
+	oprVerifyDataStructure : function(oData) {
+		if ("version" in oData) {
+
+			if (oData.version == GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION) {
+
+				return true;
+
+			} else {
+
+				return false;
+			}
+
+		} else {
+
+			return false;
+
+		}
+	},
+
+	oprTransformMainViewDataToCurrentVersion : function(oData) {
+
+		var me = this;
+
+		var startVersion = 0;
+
+		if ("version" in oData) {
+			startVersion = oData.version;
+		}
+
+		if (startVersion < GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION) {
+
+			for ( var i = startVersion; i < GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION; i++) {
+
+				var oResponse = me.oprTransformMainViewDataToNextVersion(i, oData);
+
+				if (!oResponse) {
+					return false;
+				} else {
+					oData = oResponse;
+				}
+
+			}
+
+		}
+
+	},
+
 	oprTransformMainViewDataToNextVersion : function(iVersion, oData) {
 
 		var me = this;
 
 		if (iVersion >= GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION) {
 			GLOBAL.APP.CF.alert("You can use this method for version value below " + GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION, "info");
-			return;
+			return false;
 		}
 
 		var iNextVersion = iVersion + 1;
@@ -26,8 +73,10 @@ Ext.define('Ext.dirac.core.TranformationData', {
 
 		case "0-1":
 			var oRes = me.oprMainViewGoFrom0To1(oData);
-			if(oRes.success){
+			if (oRes.success) {
 				oResultData = oRes.data;
+			} else {
+				return false;
 			}
 			break;
 

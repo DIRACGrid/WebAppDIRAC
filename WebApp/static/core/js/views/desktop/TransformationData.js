@@ -63,8 +63,53 @@ Ext.define('Ext.dirac.views.desktop.TranformationData', {
 	 */
 	oprMainViewGoFrom0To1 : function(oData) {
 
+		var oResponse = {
+			dirac_view : 1,
+			version : 1,
+			data : [],
+			views : {
+				desktop : {
+					version : GLOBAL.APP.MAIN_VIEW.stateDataStructureVersion,
+					desktopGranularity : oData.desktopGranularity,
+					positions : []
+				}
+			}
+		};
+
+		for ( var i = 0; i < oData.data.length; i++) {
+
+			var oItem = oData.data[i];
+
+			oResponse.data.push({
+				module : oItem.name,
+				data : oItem.data,
+				currentState : oItem.currentState
+			});
+
+			oResponse.data.views.desktop.positions.push({
+				x : oItem.x,
+				y : oItem.y,
+				width : oItem.width,
+				height : oItem.height,
+				maximized : oItem.maximized,
+				minimized : false,
+				zIndex : oItem.zIndex,
+				loadedObjectType : oItem.loadedObjectType,
+				desktopStickMode : oItem.desktopStickMode,
+				headerHidden : oItem.headerHidden,
+				i_x : oItem.i_x,
+				i_y : oItem.i_y,
+				ic_x : oItem.ic_x,
+				ic_y : oItem.ic_y,
+				_before_pin_state : oItem._before_pin_state
+			});
+
+		}
 		
-		
+		return oResponse;
+
 	}
+
+
 
 });

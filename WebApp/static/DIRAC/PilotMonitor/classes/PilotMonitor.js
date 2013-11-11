@@ -150,7 +150,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				hidden : me.cmbSelectors[cmb].isHidden(),
 				data_selected : me.cmbSelectors[cmb].getValue(),
 				not_selected : me.cmbSelectors[cmb].isInverseSelection()
-			}
+			};
 
 		}
 
@@ -566,7 +566,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 						GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "error");
 
-						if (parseInt(oStore.proxy.reader.rawData["total"]) == 0) {
+						if (parseInt(oStore.proxy.reader.rawData["total"], 10) == 0) {
 
 							me.dataStore.removeAll();
 
@@ -930,10 +930,10 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 				// items[3].setDisabled(oStatus != 'Done');
 				//
 				// me.contextGridMenu.showAt(e.xy);
-				//					}
+				// }
 				//
-				//				},
-				
+				// },
+
 				beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 					e.preventDefault();
 					var oJobId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");

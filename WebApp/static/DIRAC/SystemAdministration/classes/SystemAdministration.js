@@ -612,7 +612,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 			},
 			rendererUptime : function(value, record) {
 				if (record.get('RunitStatus') != 'Run') {
-					return '<b>&mdash;</b>'
+					return '<b>&mdash;</b>';
 				}
 				if (value < 30) {
 					return '<b style="color:#FF3300">' + value + '</b>';
@@ -666,6 +666,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 				var response = Ext.JSON.decode(response.responseText);
 				me.getContainer().body.unmask();
 				if (response["success"] == "true") {
+					response["result"] = response["result"].replace(new RegExp("<br>", 'g'), "\n");
 					me.__oprPrepareAndShowWindowText(response["result"], "Log file for: " + sComponent + "/" + sSystem + "@" + sHostName);
 				} else {
 

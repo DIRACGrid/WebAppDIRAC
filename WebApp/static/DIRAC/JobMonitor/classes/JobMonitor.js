@@ -195,7 +195,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				hidden : me.cmbSelectors[cmb].isHidden(),
 				data_selected : me.cmbSelectors[cmb].getValue(),
 				not_selected : me.cmbSelectors[cmb].isInverseSelection()
-			}
+			};
 
 		}
 
@@ -697,7 +697,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 						GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "info");
 
-						if (parseInt(oStore.proxy.reader.rawData["total"]) == 0) {
+						if (parseInt(oStore.proxy.reader.rawData["total"], 10) == 0) {
 
 							me.dataStore.removeAll();
 
@@ -1319,13 +1319,14 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			tbar : me.pagingToolbar.toolbar,
 			listeners : {
 
-//				cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
-//
-//					if (cellIndex != 0) {
-//						me.contextGridMenu.showAt(e.xy);
-//					}
-//
-//				},
+				// cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e,
+				// eOpts) {
+				//
+				// if (cellIndex != 0) {
+				// me.contextGridMenu.showAt(e.xy);
+				// }
+				//
+				// },
 
 				beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 					e.preventDefault();
@@ -1409,7 +1410,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			handler : function() {
 				me.centralWorkPanel.getLayout().setActiveItem(0);
 			},
-			scope : me,
+			scope : me
 
 		});
 
@@ -1419,38 +1420,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			iconCls : "dirac-icon-save",
 			handler : function() {
 
-				var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
-
-				var iHeight = me.statisticsPlotPanel.getHeight();
-
-				var iWidth = me.statisticsPlotPanel.getWidth();
-
-				var canvas = document.createElement('canvas');
-				canvas.setAttribute('width', iWidth);
-				canvas.setAttribute('height', iHeight);
-
-				var oContext = canvas.getContext("2d");
-
-				oContext.beginPath();
-				oContext.rect(0, 0, iWidth, iHeight);
-				oContext.fillStyle = "#FFFFFF";
-				oContext.fill();
-
-				var oImage = new Image();
-				oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png';
-
-				oImage.onload = function() {
-
-					console.log([ oImage.clientWidth, oImage.clientHeight ]);
-
-					oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
-
-					oContext.drawSvg(sSvgElement, 0, 0);
-
-					var imgData = canvas.toDataURL("image/png");
-					window.location = imgData.replace("image/png", "image/octet-stream");
-
-				}
+				me.oprSavePieAsPng();
 
 			},
 			scope : me,
@@ -1527,6 +1497,14 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			tooltip : 'Click to set the time for autorefresh'
 		});
 
+		var btnRefreshStats = new Ext.Button({
+			iconCls : "dirac-icon-refresh",
+			tooltip : 'Click to refresh the statistics',
+			handler : function() {
+				me.oprLoadGridData();
+			}
+		});
+
 		btnAutorefresh.on('menuhide', function(button, menu) {
 			var length = menu.items.getCount();
 			for ( var i = 0; i < length; i++) {
@@ -1552,7 +1530,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			},
 			dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
-				items : [ oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, '-', btnAutorefresh ]
+				items : [ oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, '-', btnRefreshStats, '-', btnAutorefresh ]
 			}), new Ext.create('Ext.toolbar.Toolbar', {
 				dock : "top",
 				items : [ me.statisticsGridComboMain ]
@@ -1605,7 +1583,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				} else {
 					return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
 				}
-			},
+			}
 		});
 
 		me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
@@ -1646,6 +1624,43 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		});
 
 		me.add([ me.leftPanel, me.centralWorkPanel ]);
+
+	},
+
+	oprSavePieAsPng : function() {
+
+		var me = this;
+
+		var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
+
+		var iHeight = me.statisticsPlotPanel.getHeight();
+
+		var iWidth = me.statisticsPlotPanel.getWidth();
+
+		var canvas = document.createElement('canvas');
+		canvas.setAttribute('width', iWidth);
+		canvas.setAttribute('height', iHeight);
+
+		var oContext = canvas.getContext("2d");
+
+		oContext.beginPath();
+		oContext.rect(0, 0, iWidth, iHeight);
+		oContext.fillStyle = "#FFFFFF";
+		oContext.fill();
+
+		var oImage = new Image();
+		oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png';
+
+		oImage.onload = function() {
+
+			oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
+
+			oContext.drawSvg(sSvgElement, 0, 0);
+
+			var imgData = canvas.toDataURL("image/png");
+			window.location = imgData.replace("image/png", "image/octet-stream");
+
+		}
 
 	},
 
@@ -1937,6 +1952,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 		this.callParent();
 
+		me.statisticsPlotPanel.body.on("dblclick", function(e, t, eOpts) {
+			me.oprSavePieAsPng();
+			e.stopPropagation();
+			e.stopEvent();
+		});
+
 	},
 
 	__oprRefreshStoresForSelectors : function(oData, bRefreshStores) {
@@ -2093,7 +2114,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			me.grid.store.load();
 
 			var oCheckbox = Ext.query("#" + me.id + " input.jm-main-check-box");
-			oCheckbox[0].checked = false;
+
+			if (oCheckbox[0])
+				oCheckbox[0].checked = false;
 
 			me.funcOnChangeEitherCombo();
 		}
