@@ -156,6 +156,8 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
 		me.minimized = false;
 
+		var oDesktopDim = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
 		if (setupData != null) {
 
 			if (("desktopStickMode" in setupData) && (parseInt(setupData["desktopStickMode"], 10) == 1)) {
@@ -178,9 +180,8 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 				me._y = Math.round(me.i_y * me.desktop.boxSizeY);
 
 				var oPos = me.getPosition();
-				
-				
-				if("_before_pin_state" in setupData)
+
+				if ("_before_pin_state" in setupData)
 					me._before_pin_state = setupData["_before_pin_state"];
 
 				me.suspendEvents(false);
@@ -212,11 +213,24 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 				 * If it is not pinned but minimized
 				 */
 
-				if ("width" in setupData)
-					me.setWidth(parseInt(setupData.width, 10));
+				if ("width" in setupData) {
 
-				if ("height" in setupData)
-					me.setHeight(parseInt(setupData.height, 10));
+					if (parseInt(setupData.width, 10) <= 100) {
+						me.setWidth(parseInt(parseInt(setupData.width, 10) * oDesktopDim[0] / 100, 10));
+					} else {
+						me.setWidth(parseInt(setupData.width, 10));
+					}
+
+				}
+
+				if ("height" in setupData) {
+
+					if (parseInt(setupData.height, 10) <= 100) {
+						me.setHeight(parseInt(parseInt(setupData.height, 10) * oDesktopDim[1] / 100, 10));
+					} else {
+						me.setHeight(parseInt(setupData.height, 10));
+					}
+				}
 
 				me.desktop.minimizeWindow(me);
 
@@ -230,11 +244,19 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 				}
 
 				if ("width" in setupData) {
-					me.setWidth(parseInt(setupData.width, 10));
+					if (parseInt(setupData.width, 10) <= 100) {
+						me.setWidth(parseInt(parseInt(setupData.width, 10) * oDesktopDim[0] / 100, 10));
+					} else {
+						me.setWidth(parseInt(setupData.width, 10));
+					}
 				}
 
 				if ("height" in setupData) {
-					me.setHeight(parseInt(setupData.height, 10));
+					if (parseInt(setupData.height, 10) <= 100) {
+						me.setHeight(parseInt(parseInt(setupData.height, 10) * oDesktopDim[1] / 100, 10));
+					} else {
+						me.setHeight(parseInt(setupData.height, 10));
+					}
 				}
 
 				// if no width nor height are set up
@@ -392,6 +414,8 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
 		me.suspendEvents(false);
 		me.minimized = false;
+		
+		var oDesktopDim = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
 		if (("maximized" in oData) && (oData["maximized"])) {
 
@@ -399,26 +423,50 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
 		} else if (("minimized" in oData) && (oData["minimized"])) {
 
-			if ("width" in setupData)
-				me.setWidth(parseInt(oData.width, 10));
+			if ("width" in setupData) {
 
-			if ("height" in setupData)
-				me.setHeight(parseInt(oData.height, 10));
+				if (parseInt(oData.width, 10) <= 100) {
+					me.setWidth(parseInt(parseInt(oData.width, 10) * oDesktopDim[0] / 100, 10));
+				} else {
+					me.setWidth(parseInt(oData.width, 10));
+				}
+
+			}
+
+			if ("height" in setupData) {
+
+				if (parseInt(oData.height, 10) <= 100) {
+					me.setHeight(parseInt(parseInt(oData.height, 10) * oDesktopDim[1] / 100, 10));
+				} else {
+					me.setHeight(parseInt(oData.height, 10));
+				}
+
+			}
 
 			me.desktop.minimizeWindow(me);
 
 		} else {
-
+			
 			if ("x" in oData) {
 				me.setPosition(parseInt(oData.x, 10), parseInt(oData.y, 10));
 			}
 
 			if ("width" in oData) {
-				me.setWidth(parseInt(oData.width, 10));
+				
+				if (parseInt(oData.width, 10) <= 100) {
+					me.setWidth(parseInt(parseInt(oData.width, 10) * oDesktopDim[0] / 100, 10));
+				} else {
+					me.setWidth(parseInt(oData.width, 10));
+				}
 			}
 
 			if ("height" in oData) {
-				me.setHeight(parseInt(oData.height, 10));
+				
+				if (parseInt(oData.height, 10) <= 100) {
+					me.setHeight(parseInt(parseInt(oData.height, 10) * oDesktopDim[1] / 100, 10));
+				} else {
+					me.setHeight(parseInt(oData.height, 10));
+				}
 			}
 
 			if ((!("height" in oData)) && (!("width" in oData))) {
