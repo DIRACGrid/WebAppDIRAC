@@ -20,6 +20,7 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
   defaults: {
     layout : 'fit'
   },
+  isOpen : false,
   //renderTo : Ext.getBody(),
   //autoRender : true,
   /**
@@ -74,10 +75,14 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
       }
       if (me.activeTab && me.activeTab.view == 'presenter'){
         me.mon(oElem.el, 'mouseover', function (event, html, eOpts) {
-          me.header.show();
+          if (!me.isOpen){
+            me.header.show();
+          }
         }, me);
         me.mon(oElem.el, 'mouseout', function (event, html, eOpts) {
-          me.header.hide();
+          if (!me.isOpen){
+            me.header.hide();
+          }
         }, me);
       }
     },

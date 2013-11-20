@@ -86,8 +86,8 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
       panel.columnMenu.showBy(tool.el);
     }
   }
-  ],
-  listeners : {
+  ],//it hides the header of the Presenter page!!!
+  /*listeners : {
     render: function (oElem, eOpts) {
       var me = this;
       me.header.hide();
@@ -98,7 +98,7 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
          me.header.hide();
        }, me);
     }
-  },
+  },*/
   loadState : function(oData) {
     var me = this;
     me.columnWidth = oData.columnWidth;

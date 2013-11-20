@@ -22,7 +22,7 @@ Ext.define('Ext.dirac.views.tabs.MenuTabs', {
         GLOBAL.APP.MAIN_VIEW.changeRightPanel(component.value);
       }
     }
-  },
+  },//if we want to hide the menu we have to look the RightContainer.js
   listeners : {
     beforecollapse : function( p, direction, animate, eOpts ){
       var me = this;

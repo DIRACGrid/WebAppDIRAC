@@ -174,9 +174,6 @@ Ext.define('Ext.dirac.views.tabs.SelPanel',{
             GLOBAL.APP.MAIN_VIEW.closeTab(desktopName, tabName);
 
           }
-        },
-        deactivate : function(panel, eOpts){
-          alert("na most mi van?");
         }
       }
     });

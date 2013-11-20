@@ -33,8 +33,8 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
   },
   cache : {
     presenter : {}
-  },
-  listeners : {
+  }, //this is used to hide the MenuTabs.js
+  /*listeners : {
     render: function (cmp, eOpts) {
       var me = this;
       me.mon(cmp.el, 'mouseover', function (event, html, eOpts) {
@@ -50,7 +50,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         }
       }, me);
     }
-  },
+  },*/
   /***
    * @param {String} it stores the current open component identifier.
    */
@@ -259,6 +259,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               me.origiginalSize = origSize;
               me.setWidth(activeTab.getWidth());
               me.setHeight(activeTab.getHeight());
+              me.isOpen = true;
               activeTab.add(me);
 
             }
@@ -278,6 +279,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                   me.tools[i].hide();
                 }
               }
+              me.isOpen = false;
               me.setWidth(tab.origiginalSize.width);
               me.setHeight(tab.origiginalSize.height);
               activeTab.addImage(me);
@@ -388,6 +390,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
           return false;
         }}});
       var tab = new Ext.dirac.views.tabs.Panel(config);
+      tab.isOpen = true;
       tab.setWidth(activeTab.getWidth());
       tab.setHeight(activeTab.getHeight());
       //tab.doLayout();
