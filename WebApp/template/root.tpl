@@ -4,15 +4,17 @@
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title>{{title}}</title>
     <link rel="SHORTCUT ICON" href='{{base_url}}/static/core/img/icons/system/favicon.ico'>
-    
+
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/rgbcolor.js"></script> 
+    <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/rgbcolor.js"></script>
 	<script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/StackBlur.js"></script>
 	<script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/canvg.js"></script>
-	 
+
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/iconset.css" />
+    //<link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/TabScrollerMenu.css" />
+    //<link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/tabtheme.css" />
     {% autoescape None %}
     <!-- GC -->
 
@@ -34,6 +36,9 @@
         };
       }
      {% if _dev %}
+       Ext.Loader.setConfig({
+                   disableCaching: false
+       });
        Ext.Loader.setPath({
        {% for extName in extensions %}
           {% if extName != 'WebAppDIRAC' %}
@@ -67,10 +72,10 @@
           GLOBAL.VALID_VIEWS = ["desktop","tabs"];
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
-          
+
 
           Ext.onReady(function () {
-            
+
             GLOBAL.APP = new Ext.dirac.core.App();
             setTimeout(function(){
               Ext.get("app-dirac-loading").hide();
