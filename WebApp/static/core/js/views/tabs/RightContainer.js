@@ -323,7 +323,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
           }]
         });
         activeTab.addImage(tab);
-        //tab.header.hide(); //we do not show the name of the application! (save space)
+        tab.header.hide(); //we do not show the name of the application! (save space)
       }
     }else{
       tab.activeTab = activeTab; //this needs to stop the loading message. The event handled in the Panel class.
