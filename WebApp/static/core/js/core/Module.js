@@ -2,7 +2,7 @@
  * @class Ext.dirac.core.Module This is an abstract class that has to be
  *        inherited by every module.
  * @mixin Ext.container.Container
- * 
+ *
  */
 Ext.define('Ext.dirac.core.Module', {
 
@@ -10,7 +10,7 @@ Ext.define('Ext.dirac.core.Module', {
 	extend : 'Ext.container.Container',
 
 	constructor : function(config) {
-		
+
 		this.launcher = config.launcherElements;
 		this._container = null;
 
@@ -54,6 +54,18 @@ Ext.define('Ext.dirac.core.Module', {
 
 		}, me);
 
-	}
+	},
+	overview : function (selector, imageTitle){
+    var me = this;
+    return null;
+    var oImg = Ext.create('Ext.dirac.views.tab.Image', {
+      src : GLOBAL.BASE_URL + 'getDefaultImage?appName='+ me.launcher.title,
+      //title : me.launcher.title,
+      //layout : 'fit',
+      text : me.launcher.title,
+      alt : me.launcher.title,
+    });
+    return oImg;
+  }
 
 });

@@ -218,7 +218,11 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         }
       }
 
-      var overview = tab.items.getAt(0).overview(reducedView, statedata);
+      var overview = null;
+      var oClass = tab.items.getAt(0);
+      if (oClass.overview != null){
+        overview = oClass.overview(reducedView, statedata);
+      }
       if (overview){//if the application has a reduced overview.
         tab.removeAll();
         delete tab;

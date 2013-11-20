@@ -170,3 +170,25 @@ class UPHandler( WebHandler ):
     self.set_status( 200 )
     self.finish()
 
+  @asyncGen
+  def web_changeView(self):
+    up = self.__getUP()
+    try:
+      desktopName = self.request.arguments[ 'desktop' ][-1]
+      view = self.request.arguments[ 'view' ][-1]
+    except KeyError as excp:
+      raise WErr( 400, "Missing %s" % excp )
+    result = yield self.threadTask( up.retrieveVar, desktopName)
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result )
+    data  = result['Value']
+    oDesktop = json.loads(DEncode.decode( zlib.decompress( base64.b64decode( data ) ) )[0])
+    oDesktop[unicode('view')] = unicode(view)
+    oDesktop = json.dumps(oDesktop)
+    data = base64.b64encode( zlib.compress( DEncode.encode( oDesktop ), 9 ) )
+    result = yield self.threadTask( up.storeVar, desktopName, data )
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result )
+    self.set_status( 200 )
+    self.finish()
+

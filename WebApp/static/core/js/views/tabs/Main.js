@@ -240,20 +240,37 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           oAppStateData.currentState = oData["data"][i].currentState;
 
           me.createWindow("app", oAppStateData.name, oAppStateData, tab);
-        }
-      }
-    }else{
-      for ( var i = 0, len = oData["data"].length; i < len; i++) {
-
-        if ("module" in oData["data"][i]) {
-
+        }else if ("link" in oData["data"][i]){
           var oAppStateData = {};
 
-          oAppStateData.name = oData["data"][i].module;
+          oAppStateData.name = oData["data"][i].link;
           oAppStateData.data = oData["data"][i].data;
           oAppStateData.currentState = oData["data"][i].currentState;
+          me.createWindow("link", oAppStateData.name, oAppStateData, tab);
+        }
 
-          me.createWindow("app", oAppStateData.name, oAppStateData, tab);
+      }
+    }else{
+      if ("link" in oData["data"][i]){
+        var oAppStateData = {};
+
+        oAppStateData.name = oData["data"][i].link;
+        oAppStateData.data = oData["data"][i].data;
+        oAppStateData.currentState = oData["data"][i].currentState;
+        me.createWindow("link", oAppStateData.name, oAppStateData, tab);
+      }else{
+        for ( var i = 0, len = oData["data"].length; i < len; i++) {
+
+          if ("module" in oData["data"][i]) {
+
+            var oAppStateData = {};
+
+            oAppStateData.name = oData["data"][i].module;
+            oAppStateData.data = oData["data"][i].data;
+            oAppStateData.currentState = oData["data"][i].currentState;
+
+            me.createWindow("app", oAppStateData.name, oAppStateData, tab);
+          }
         }
       }
 
@@ -380,6 +397,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           expandable : false,
           application : item[2],
           type : 'link',
+          iconCls : "system_web_window",
           leaf : true
         });
       }
