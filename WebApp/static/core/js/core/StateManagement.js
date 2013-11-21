@@ -6,7 +6,7 @@
  */
 
 Ext.define('Ext.dirac.core.StateManagement', {
-	requires : [],
+	requires : ["Ext.dirac.core.TransformationData"],
 
 	/*
 	 * Cache serves to save the application states and references
@@ -20,6 +20,13 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 * A list of active states on the desktop
 	 */
 	activeStates : [],
+
+	constructor : function() {
+
+		var me = this;
+		me.TD = new Ext.dirac.core.TransformationData();
+		this.callParent();
+	},
 
 	/**
 	 * Function that checks whether a state has been loaded or not.
@@ -141,10 +148,47 @@ Ext.define('Ext.dirac.core.StateManagement', {
 					var oStates = Ext.JSON.decode(response.responseText);
 					me.cache["application"][sAppName] = {};
 
-					for ( var sStateName in oStates) {
+					if (sAppName == "desktop") {
+						for ( var sStateName in oStates) {
 
-						me.cache["application"][sAppName][sStateName] = oStates[sStateName];
+							if (me.TD.oprVerifyDataStructure(oStates[sStateName])) {
+								me.cache["application"][sAppName][sStateName] = oStates[sStateName];
+							} else {
 
+								var oNewData = me.TD.oprTransformMainViewDataToCurrentVersion(oStates[sStateName]);
+
+								me.cache["application"][sAppName][sStateName] = oNewData;
+
+								// sending the transformed data to the server
+
+								Ext.Ajax.request({
+									url : GLOBAL.BASE_URL + 'UP/saveAppState',
+									params : {
+										app : sAppName,
+										name : sStateName,
+										state : Ext.JSON.encode(oNewData),
+										obj : "application"
+									},
+									scope : me,
+									success : function(oResponse) {
+										if (oResponse.status != 200) {
+											me.cache["application"][sAppName][sStateName] = oStates[sStateName];
+										}
+									},
+									failure : function(response) {
+										me.cache["application"][sAppName][sStateName] = oStates[sStateName];
+									}
+								});
+
+							}
+
+						}
+					} else {
+						for ( var sStateName in oStates) {
+
+							me.cache["application"][sAppName][sStateName] = oStates[sStateName];
+
+						}
 					}
 
 					Ext.Ajax.request({

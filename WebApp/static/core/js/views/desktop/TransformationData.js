@@ -5,7 +5,7 @@
  * 
  */
 
-Ext.define('Ext.dirac.views.desktop.TranformationData', {
+Ext.define('Ext.dirac.views.desktop.TransformationData', {
 	requires : [],
 
 	/**
@@ -86,7 +86,7 @@ Ext.define('Ext.dirac.views.desktop.TranformationData', {
 				currentState : oItem.currentState
 			});
 
-			oResponse.data.views.desktop.positions.push({
+			oResponse.views.desktop.positions.push({
 				x : oItem.x,
 				y : oItem.y,
 				width : oItem.width,

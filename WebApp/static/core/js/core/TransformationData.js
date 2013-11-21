@@ -5,9 +5,12 @@
  * 
  */
 
-Ext.define('Ext.dirac.core.TranformationData', {
+Ext.define('Ext.dirac.core.TransformationData', {
 	requires : [],
 
+	/**
+	 * Function to verify the structure of the saved data and its version
+	 */
 	oprVerifyDataStructure : function(oData) {
 		if ("version" in oData) {
 
@@ -26,7 +29,10 @@ Ext.define('Ext.dirac.core.TranformationData', {
 
 		}
 	},
-
+	
+	/**
+	 * 
+	 */
 	oprTransformMainViewDataToCurrentVersion : function(oData) {
 
 		var me = this;
@@ -52,6 +58,8 @@ Ext.define('Ext.dirac.core.TranformationData', {
 			}
 
 		}
+		
+		return oData;
 
 	},
 

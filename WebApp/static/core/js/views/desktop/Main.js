@@ -11,7 +11,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 	alias : 'widget.desktop',
 	requires : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.views.desktop.Window', 'Ext.dirac.views.desktop.TaskBar', 'Ext.dirac.views.desktop.Wallpaper',
 			'Ext.dirac.views.desktop.StateManagement', 'Ext.dirac.views.desktop.ShortcutModel' ],
-	mixins : [ "Ext.dirac.core.Stateful", "Ext.dirac.core.AppView" ],
+	mixins : [ "Ext.dirac.core.Stateful", "Ext.dirac.core.AppView", "Ext.dirac.views.desktop.TransformationData" ],
 
 	activeWindowCls : 'ux-desktop-active-win',
 	inactiveWindowCls : 'ux-desktop-inactive-win',
@@ -310,6 +310,8 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		}
 
 		me._state_related_url = "";
+
+		me.TD = new Ext.dirac.views.desktop.TransformationData();
 
 	},
 
