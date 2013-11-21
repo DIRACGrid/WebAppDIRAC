@@ -239,7 +239,20 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           oAppStateData.data = oData["data"][i].data;
           oAppStateData.currentState = oData["data"][i].currentState;
 
-          me.createWindow("app", oAppStateData.name, oAppStateData, tab);
+          if (i == oData["data"].length - 1){
+            console.log("Loading"+oAppStateData.currentState);
+            var cbSetActiveTab = function(oTab){
+              if (tab.view == 'layout'){
+                tab.setActiveTab(oTab);
+              }
+            };
+            me.createWindow("app", oAppStateData.name, oAppStateData, tab, cbSetActiveTab);
+
+          }else{
+            me.createWindow("app", oAppStateData.name, oAppStateData, tab);
+            console.log("Not Loading"+oAppStateData.currentState);
+          }
+
         }else if ("link" in oData["data"][i]){
           var oAppStateData = {};
 
@@ -270,6 +283,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             oAppStateData.currentState = oData["data"][i].currentState;
 
             me.createWindow("app", oAppStateData.name, oAppStateData, tab);
+
           }
         }
       }
@@ -544,7 +558,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
    *@param{Object} setupData is the saved states of the application
    *@param{String} tabName is the tab name which will contain the application which being loaded.
    */
-  createWindow : function(loadedObjectType, moduleName, setupData, oTab) {
+  createWindow : function(loadedObjectType, moduleName, setupData, oTab, cbFunction) {
     var me = this;
     Ext.get("app-dirac-loading").show();
 
@@ -593,10 +607,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var config = {
             setupData: setupData,
             loadedObject:instance,
-            loadedObjectType:"app"
+            loadedObjectType:"app",
+            toLoad : (cbFunction?true:false),
+            isLoaded : false
         };
 
-        me.getRightContainer().createWindow(config, oTab);
+        me.getRightContainer().createWindow(config, oTab, cbFunction);
         // initializing window
 
       }, this);
@@ -628,77 +644,6 @@ Ext.define('Ext.dirac.views.tabs.Main', {
     var me = this;
     me.getRightContainer().createDesktopTab(name, view, cbFunction);
 
-  },
-  /***
-   * It sets the URL in the browser.
-   *@param{String}
-   */
-  setLayoutUrl : function(state) {
-    var me = this;
-
-    var sNewUrlState = "";
-    var oHref = location.href;
-
-    var oQPosition = oHref.indexOf("url_state");
-    if (oQPosition < 0) {
-      if (oHref.indexOf("?") < 0 ){
-        sNewUrlState = oHref + '?url_state=';
-      }else{
-        sNewUrlState = oHref + '&url_state=';
-      }
-    }
-
-    var oEPosition = oHref.lastIndexOf("="); //the URL_STATE always after the theme
-    if (oEPosition != -1){
-      var hash = oHref.substr(oEPosition + 1, oHref.length);
-      if (hash){
-        var lhash = hash.split(',');
-        if ( !me.isFound(state, lhash)){
-          sNewUrlState += oHref + ',' + state;
-        }else{
-          sNewUrlState = oHref;
-        }
-      }else{
-        sNewUrlState += oHref + state;
-      }
-    }else{
-      sNewUrlState += state;
-    }
-    //GLOBAL.URL_STATE <-- we have to add the state
-
-    window.history.pushState("X", GLOBAL.APP_TITLE, sNewUrlState);
-
-  },
-  /***
-   *It returns a list of desktops which has to be oppened
-   */
-  getLayoutUrl : function() {
-    layouts = null;
-    if (GLOBAL.URL_STATE) {
-      hash = GLOBAL.URL_STATE.split(",");
-      if (hash.length > 0) {
-        layouts = hash;
-      }
-    }
-    return layouts;
-  },
-  /***
-   *it checks the existance of str in the sList
-   *@param{String} is a state name
-   *@param{Object} sList contains a list of states.
-   */
-  isFound : function(str, sList){
-    if (sList == undefined){
-      return false;
-    }
-    var found = false;
-    for (var i = 0; i<sList.length; i++){
-      if(sList[i] == str){
-        found = true;
-        break;
-      }
-    }
-    return found;
   },
   /***
    *it returns the desktop dimension.

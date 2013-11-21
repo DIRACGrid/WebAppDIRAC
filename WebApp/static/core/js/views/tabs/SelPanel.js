@@ -158,9 +158,19 @@ Ext.define('Ext.dirac.views.tabs.SelPanel',{
             GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view, afterTabCreated);
 
           } else {
-
+            var activeDesktop = null;
+            var rCont = GLOBAL.APP.MAIN_VIEW.getRightContainer();
+            var mainPanel = rCont.getApplicationContainer();
+            var activeDesktop = mainPanel.getActiveTab();
+            var cbSetActiveTab = null;
+            if (activeDesktop) {
+              cbSetActiveTab = function(oTab){
+                activeDesktop.setActiveTab(oTab);
+                //oTab.loadData();
+              }
+            }
             GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type,
-                item.data.application, item.data);
+                item.data.application, item.data, activeDesktop, cbSetActiveTab);
           }
         },
         beforeitemmove : function( node, oldParent, newParent, index, eOpts ){

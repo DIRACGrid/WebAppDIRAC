@@ -190,7 +190,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
    * @param {Object} config the configuration of the window used by the application.
    * @param {String} tab the name of the tab where the applications will be created.
    */
-  createWindow : function(config, oTab) {
+  createWindow : function(config, oTab, cbFunction) {
     var me = this;
     var tab = new Ext.dirac.views.tabs.Panel(config);
     var activeTab =  me.getApplicationContainer().getActiveTab();
@@ -329,8 +329,14 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
     }else{
       tab.activeTab = activeTab; //this needs to stop the loading message. The event handled in the Panel class.
       activeTab.add(tab);
-      activeTab.setActiveTab(tab);
-      tab.loadData(); //this will fill the application with the selected data.
+      //activeTab.setActiveTab(tab);
+      //tab.loadData(); //this will fill the application with the selected data.
+    }
+    if (cbFunction){
+      cbFunction(tab);
+    }else{
+     // activeTab.setActiveTab(tab);
+      tab.toLoad = true;
     }
     //activeTab.loadMask.hide();
     me.getApplicationContainer().loadMask.hide();

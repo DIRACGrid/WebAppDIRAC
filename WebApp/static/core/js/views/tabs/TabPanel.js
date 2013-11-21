@@ -81,6 +81,12 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           newCard.isLoaded = true;
         }
       }
+      else{//it is an application
+        if (newCard.toLoad && !newCard.isLoaded){
+            newCard.loadData();
+            newCard.isLoaded = true;
+        }
+      }
     }
   },
   /**

@@ -20,6 +20,7 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
   defaults: {
     layout : 'fit'
   },
+  childWindows : [],
   isOpen : false,
   //renderTo : Ext.getBody(),
   //autoRender : true,
@@ -103,6 +104,8 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
       me.title = me.loadedObject.launcher.title;
       me.items = [ me.loadedObject ];
       me.appClassName = me.loadedObject.self.getName();
+      me.setLoadedObject(me.setupData, false);
+
     } else if (me.loadedObjectType == "link") {
       me.items = [ {
         xtype : "component",
@@ -130,10 +133,9 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
   },
   loadData : function(){
     var me = this;
-    console.log('cool');
     if (!me.oneTimeAfterShow) {
       if (me.loadedObjectType == "app")
-        me.setLoadedObject(me.setupData);
+        me.setLoadedObject(me.setupData, true);
       else if (me.loadedObjectType == "link")
         me.setPropertiesWhenLink(me.setupData);
 
@@ -164,14 +166,14 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
   setPropertiesWhenLink : function(data){
     return;
   },
-  setLoadedObject : function(setupData) {
+  setLoadedObject : function(setupData, loadState) {
 
     var me = this;
 
     // if there is a state to load, we load that state
     if ( (setupData.stateToLoad) && setupData.stateToLoad != 'Default' ) {
 
-      me.oprLoadAppStateFromCache(setupData.stateToLoad);
+      me.oprLoadAppStateFromCache(setupData.stateToLoad, loadState);
 
     } else {
 
@@ -183,12 +185,16 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
           if (setupData.currentState != "") {
             me.currentState = setupData.currentState;
             me.loadedObject.currentState = setupData.currentState;
-            GLOBAL.APP.SM.oprAddActiveState(me.loadedObject.self.getName(), me.currentState);
+            if (loadState){
+              GLOBAL.APP.SM.oprAddActiveState(me.loadedObject.self.getName(), me.currentState);
+            }
           }
 
         }
 
-        me.loadedObject.loadState(setupData.data);
+        if(loadState){
+          me.loadedObject.loadState(setupData.data);
+        }
       }
 
     }
@@ -206,7 +212,7 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
     me.loadedObject.setContainer(me);
 
   },
-  oprLoadAppStateFromCache : function(stateName) {
+  oprLoadAppStateFromCache : function(stateName, loadState) {
 
     var me = this;
 
@@ -233,23 +239,29 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
     /*
      * loading the state data and setting other properties related to the window
      */
-    me.loadMask.show();
 
-    me.closeAllChildWindows();
+    if (loadState){
 
-    me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName));// OK
+      me.loadMask.show();
 
-    if (me.currentState != "")
-      GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);// OK
+      me.closeAllChildWindows();
 
-    me.currentState = stateName;
-    me.loadedObject.currentState = stateName;
+      me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName));// OK
 
-    GLOBAL.APP.SM.oprAddActiveState(me.appClassName, stateName);// OK
-    //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+      if (me.currentState != "")
+        GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);// OK
 
-    me.setTitle(me.loadedObject.launcher.title + " [" + stateName + "]");
-    me.loadMask.hide();
+      me.currentState = stateName;
+      me.loadedObject.currentState = stateName;
+
+      GLOBAL.APP.SM.oprAddActiveState(me.appClassName, stateName);// OK
+      //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+
+      me.setTitle(me.loadedObject.launcher.title + " [" + stateName + "]");
+      me.loadMask.hide();
+    }else{
+      me.setTitle(me.loadedObject.launcher.title + " [" + stateName + "]");
+    }
 
   },
   /**
