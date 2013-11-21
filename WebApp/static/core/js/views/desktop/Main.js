@@ -76,6 +76,8 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 	 */
 	desktopGranularity : [ 12, 12 ],
 
+	stateDataStructureVersion : 1,
+
 	wallpaper : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_background_6.png',
 
 	wallpaperStretch : false,
@@ -90,7 +92,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 			"data" : [],
 			"views" : {
 				"desktop" : {
-					"version" : 1,
+					"version" : me.stateDataStructureVersion,
 					"desktopGranularity" : me.desktopGranularity,
 					"positions" : []
 				}
@@ -2283,7 +2285,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
 		var me = this;
 
-		return [ me.getWidth(), me.getHeight() ];
+		return [ me.getWidth(), me.getHeight() - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() ];
 
 	},
 

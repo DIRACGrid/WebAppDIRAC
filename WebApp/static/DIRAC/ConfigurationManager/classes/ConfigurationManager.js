@@ -61,7 +61,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			me.launcher.width = oDimensions[0] / 2;
 
 		}
-		
+
 		if (GLOBAL.VIEW_ID == "tabs") {
 
 			me.launcher.title = "Configuration Manager";
@@ -72,7 +72,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 			me.launcher.width = oDimensions[0] / 2;
 
 		}
-		
+
 		Ext.apply(me, {
 			layout : 'border',
 			bodyBorder : false,
@@ -196,8 +196,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		socket.onmessage = function(e) {
 
 			var oResponse = JSON.parse(e.data);
-			
-			if (parseInt(oResponse.success) == 0) {
+
+			if (parseInt(oResponse.success, 10) == 0) {
 
 				GLOBAL.APP.CF.alert(oResponse.message, "error");
 
@@ -318,7 +318,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		me.btnViewConfigAsText = new Ext.Button({
 
 			text : 'View as Text',
-			
+
 			iconCls : "dirac-icon-text",
 			handler : function() {
 
@@ -715,15 +715,15 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		var me = this;
 
-		me.on("destroy",function(oComp, eOpts){
-			
+		me.on("destroy", function(oComp, eOpts) {
+
 			var oThisContainer = this;
-			
+
 			oThisContainer.dontShowMessageBeforeClose = false;
-			oThisContainer.socket.close();	
-			
+			oThisContainer.socket.close();
+
 		}, me);
-		
+
 	},
 
 	__clearValuePanel : function() {
@@ -1023,7 +1023,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 				x : 0,
 				y : Math.ceil(delta_pos * parseFloat(oResponse.lines[i][1])),
 				layout : "fit",
-				html : '<a href="#' + me.id + '-diff-line-' + oResponse.lines[i][1] + '" style="display:block;width:100%">&nbsp;</a>',
+				html : '<a href="#' + me.id + '-diff-line-' + oResponse.lines[i][1] + '" style="display:block;width:100%">&nbsp;</a>'
 			});
 
 		}
@@ -1330,7 +1330,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		var newCfg = {
 			text : oNode.data.text,
 			csName : newName,
-			csComment : oNode.raw.csComment,
+			csComment : oNode.raw.csComment
 		};
 
 		if (oNode.isLeaf()) {
@@ -1538,7 +1538,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		var oNode = me.treeStore.getNodeById(oResponse.nodeId);
 		var oNewParent = me.treeStore.getNodeById(oResponse.parentNewId);
 
-		oNewParent.insertChild(parseInt(oResponse.beforeOfIndex), oNode);
+		oNewParent.insertChild(parseInt(oResponse.beforeOfIndex, 10), oNode);
 		me.waitForMoveResponse = false;
 
 	},
@@ -1580,9 +1580,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		// button for saving the state
 		me.btnCreateElement = new Ext.Button({
 
-			text : 'Save',
+			text : 'Submit',
 			margin : 3,
-			iconCls : "toolbar-other-save",
+			iconCls : "dirac-icon-submit",
 			handler : function() {
 
 				var bValid = me.txtElementName.validate();

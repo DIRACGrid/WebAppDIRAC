@@ -64,7 +64,7 @@
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
           GLOBAL.VIEW_ID = "{{view}}";
-          GLOBAL.VALID_VIEWS = ["desktop","tabs"];
+          GLOBAL.VALID_VIEWS = ["desktop"];
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
           
@@ -94,7 +94,7 @@
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
           GLOBAL.VIEW_ID = "{{view}}";
-          GLOBAL.VALID_VIEWS = ["desktop","tabs"];
+          GLOBAL.VALID_VIEWS = ["desktop"];
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
 

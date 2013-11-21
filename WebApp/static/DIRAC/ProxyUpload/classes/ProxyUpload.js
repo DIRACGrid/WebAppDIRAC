@@ -21,7 +21,7 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 			me.launcher.y = oDimensions[1] / 2 - me.launcher.height / 2;
 
 		}
-		
+
 		if (GLOBAL.VIEW_ID == "tabs") {
 
 			me.launcher.title = "Proxy Upload";
@@ -135,7 +135,7 @@ Ext.define('DIRAC.ProxyUpload.classes.ProxyUpload', {
 								+ "<br/><b>dirac-proxy-init -U -g GROUP_NAME</b></div>",
 						xtype : "box",
 						anchor : '100%'
-					}, me.uploadField, me.passwordField, ]
+					}, me.uploadField, me.passwordField ]
 		});
 
 		me.add([ me.mainFormPanel ]);
