@@ -18,11 +18,14 @@ Ext.define('Ext.dirac.views.tabs.SelPanel',{
   },
   split : true,
   initComponent : function() {
-    Ext.apply(this, {
-      items : [ this.createView(), this.createSettingsView() ],
+    var me = this;
+    me.loadMask =  new Ext.LoadMask(me, {
+      msg : "Loading menu..."
     });
-
-    this.callParent(arguments);
+    Ext.apply(me, {
+      items : [ me.createView(), me.createSettingsView() ],
+    });
+    me.callParent(arguments);
   },
   /**
    * It returns the tree panel.
@@ -30,7 +33,8 @@ Ext.define('Ext.dirac.views.tabs.SelPanel',{
    * @return{Ext.tree.panel}
    */
   getTreePanel : function() {
-    return this.tree;
+    var me = this;
+    return me.tree;
   },
   /**
    * Create the DataView to be used for the menu.
@@ -46,9 +50,9 @@ Ext.define('Ext.dirac.views.tabs.SelPanel',{
       scope: me,
       listeners : {
         beforeexpand : function(node, op) {
-          this.loadMask = new Ext.LoadMask(node, {
+          /*this.loadMask = new Ext.LoadMask(node, {
             msg : "Loading ..."
-          });
+          });*/
           if (node.data.type == "desktop"){
             if (node.data.application != 'Default'){ //trick: When the Default node expanded we should not modify it.
               //Because the Default is the menu and it is created previously.

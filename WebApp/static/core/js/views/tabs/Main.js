@@ -26,7 +26,13 @@ Ext.define('Ext.dirac.views.tabs.Main', {
   myDesktop : null,
 
   _state_related_url : [],
-
+  listeners : {
+    afterrender : function(){
+      var me = this;
+      me.loadRightContainer.show();
+      me.loadlefttContainer.show();
+    }
+  },
   constructor : function(config){
     var me = this;
     ////////////////////////////HACK TO BE REMOVED///////////////////////////
@@ -36,9 +42,15 @@ Ext.define('Ext.dirac.views.tabs.Main', {
     }//hack
     /////////////////////////////END///////////////////////////
     me.rightContainer = Ext.create('Ext.dirac.views.tabs.RightContainer');
+    me.loadRightContainer = new Ext.LoadMask(me.rightContainer, {
+      msg : "Loading ..."
+    });
     var menu = me.createTreeMenu();
     me.leftConatiner = Ext.create('Ext.dirac.views.tabs.LeftContainer',{
       menu : menu,
+    });
+    me.loadlefttContainer = new Ext.LoadMask(me.leftConatiner, {
+      msg : "Loading ..."
     });
     me.callParent(arguments);
   },
@@ -54,7 +66,6 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       },
       items : [me.leftConatiner, me.rightContainer ]
     });
-
     me.SM = new Ext.dirac.views.tabs.StateManagement();
     me.callParent(arguments);
   },
@@ -63,9 +74,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
    */
   afterRender : function() {
     var me = this;
+    Ext.get("app-dirac-loading").show();
     me.callParent();
     var cbAfterLoaded = function (iCode, stateName){
       me.__oprLoadUrlState();
+      Ext.get("app-dirac-loading").hide();
+      me.loadlefttContainer.hide();
     };
     // load the state of the desktop described in the URL after the shared desktops loaded to the cache.
     GLOBAL.APP.SM.oprReadSharedDesktops("desktop", cbAfterLoaded);
@@ -227,7 +241,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
   loadState : function(oData, tab) {
 
     var me = this;
-
+    me.loadRightContainer.show();
     if (me.ID in oData["views"]) {
       for ( var i = 0, len = oData["data"].length; i < len; i++) {
 
@@ -240,8 +254,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           oAppStateData.currentState = oData["data"][i].currentState;
 
           if (i == oData["data"].length - 1){
-            console.log("Loading"+oAppStateData.currentState);
             var cbSetActiveTab = function(oTab){
+              me.loadRightContainer.hide();
               if (tab.view == 'tabView'){//when the presenter view used then does not have tabs
                 tab.setActiveTab(oTab);
               }
@@ -250,10 +264,10 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
           }else{
             me.createWindow("app", oAppStateData.name, oAppStateData, tab);
-            console.log("Not Loading"+oAppStateData.currentState);
           }
 
         }else if ("link" in oData["data"][i]){
+          me.loadRightContainer.hide();
           var oAppStateData = {};
 
           oAppStateData.name = oData["data"][i].link;
@@ -263,7 +277,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
 
       }
-    }else{
+    }else{//deskto theme
       if ("link" in oData["data"][i]){
         var oAppStateData = {};
 
@@ -273,7 +287,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.createWindow("link", oAppStateData.name, oAppStateData, tab);
       }else{
         for ( var i = 0, len = oData["data"].length; i < len; i++) {
-
+          me.loadRightContainer.hide();
           if ("module" in oData["data"][i]) {
 
             var oAppStateData = {};
@@ -282,7 +296,18 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             oAppStateData.data = oData["data"][i].data;
             oAppStateData.currentState = oData["data"][i].currentState;
 
-            me.createWindow("app", oAppStateData.name, oAppStateData, tab);
+            if (i == oData["data"].length - 1){
+              var cbSetActiveTab = function(oTab){
+                me.loadRightContainer.hide();
+                if (tab.view == 'tabView'){//when the presenter view used then does not have tabs
+                  tab.setActiveTab(oTab);
+                }
+              };
+              me.createWindow("app", oAppStateData.name, oAppStateData, tab, cbSetActiveTab);
+
+            }else{
+              me.createWindow("app", oAppStateData.name, oAppStateData, tab);
+            }
 
           }
         }
@@ -625,12 +650,6 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         linkToLoad:moduleName
       });
 
-    }else{
-      var leftCont = me.getLeftContainer();
-      if (leftCont){
-        var selPanel = leftCont.getSelectionPanel(); //this contains the tree(menu)
-        selPanel.tree.body.unmask();
-      }
     }
     Ext.get("app-dirac-loading").hide();
   },
@@ -664,48 +683,36 @@ Ext.define('Ext.dirac.views.tabs.Main', {
     var mainPanel = rCont.getApplicationContainer();
     var activeDesktop = mainPanel.getActiveTab();
     if (activeDesktop) {
-      if (activeDesktop.view == 'presenterView'){
-        var openedApp = rCont.currentOpenedApp; //this contains the actual opened application identifier.
-        //we have to found the application which needs to be saved
-        activeDesktop.items.each(function(comp){
-          if (comp.id == openedApp){
-            console.log(comp);
-            //GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave);
-            comp.oprSaveAppState(false);
+      var appl = activeDesktop.getActiveTab();
+      if (appl) {
+        var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+
+          if ((iCode == 1) && (appl.currentState != sStateName)) {
+
+            GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
+
+            if (appl.currentState != "")
+              GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appl.currentState);
+
+            appl.loadedObject.currentState = sStateName;
+            appl.currentState = sStateName;
+            GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
+            appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
+
+            //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+
+            if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+              GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
           }
-        });//we have more than one application in the container!!!
-      }else{
-        var appl = activeDesktop.getActiveTab();
-        if (appl) {
-          var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
 
-            if ((iCode == 1) && (appl.currentState != sStateName)) {
-
-              GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
-
-              if (appl.currentState != "")
-                GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appl.currentState);
-
-              appl.loadedObject.currentState = sStateName;
-              appl.currentState = sStateName;
-              GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-              appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
-
-              //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
-
-              if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
-                GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-            }
-
-          };
-          GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", appl.loadedObject.self.getName(), appl.loadedObject, funcAfterSave);
-          //appl.oprSaveAppState(false);
-          //var appClassName = appl.getClassName();
-          //var desktopName = activeDesktop.title;
-          //me.refreashTree(desktopName, appClassName);
-        } else {
-          Ext.dirac.system_info.msg("Error", 'Please open an application!!! ');
-        }
+        };
+        GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", appl.loadedObject.self.getName(), appl.loadedObject, funcAfterSave);
+        //appl.oprSaveAppState(false);
+        //var appClassName = appl.getClassName();
+        //var desktopName = activeDesktop.title;
+        //me.refreashTree(desktopName, appClassName);
+      } else {
+        Ext.dirac.system_info.msg("Error", 'Please open an application!!! ');
       }
     } else {
       Ext.dirac.system_info.msg("Error", 'Please open a dektop!!! ');
@@ -1224,8 +1231,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
   },
   __addSharedDesktopStatesToDesktop : function(rootNode){
     var me = this;
+    me.loadlefttContainer.show();
     var sStateName = rootNode.getData().text;
-
     var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", "desktop", sStateName);
     switch (iStateLoaded) {
     case -1:
@@ -1277,6 +1284,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         Ext.dirac.system_info.msg("Error",'"Failed to create desktop!!!');
       }
     }
+    me.loadlefttContainer.hide();
   },
   /**
    * Function to refresh the state of the desktop working area in the URL

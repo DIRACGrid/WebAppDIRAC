@@ -40,9 +40,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
   initComponent : function(){
     var me = this;
     me.callParent(arguments);
-    me.loadMask = new Ext.LoadMask(me, {
+    /*me.loadMask = new Ext.LoadMask(me, {
       msg : "Loading ..."
-    });
+    });*/
   },
   listeners : {
     'beforeclose' : function(){

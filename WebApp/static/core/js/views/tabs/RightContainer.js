@@ -198,11 +198,6 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
     }else if (oTab != null){
       activeTab = oTab;
     }
-    /* activeTab.loadMask =  new Ext.LoadMask(activeTab, {
-      msg : "Loading ..."
-    });
-    activeTab.loadMask.show();*/
-    me.getApplicationContainer().loadMask.show();
     if (activeTab.view == 'presenterView'){
       tab.activeTab = activeTab; //this needs to stop the loading message. The event handled in the Panel class.
       Ext.apply(tab, {
@@ -295,83 +290,11 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
     }else{
       tab.activeTab = activeTab; //this needs to stop the loading message. The event handled in the Panel class.
       activeTab.add(tab);
-      //activeTab.setActiveTab(tab);
-      //tab.loadData(); //this will fill the application with the selected data.
     }
     if (cbFunction){
       cbFunction(tab);
     }else{
-      // activeTab.setActiveTab(tab);
       tab.toLoad = true;
-    }
-    //activeTab.loadMask.hide();
-    me.getApplicationContainer().loadMask.hide();
-  },
-  openApplication : function(id){
-    var me = this;
-    var activeTab = me.getApplicationContainer().getActiveTab();
-    if (activeTab){
-      activeTab.hideComponents();
-      var config = me.cache.presenter[id];
-      var app = (me.cache.presenter[id].setupData.application == null)?me.cache.presenter[id].setupData.name:me.cache.presenter[id].setupData.application;
-      var instance = Ext.create(app, {
-        launcherElements : {
-          title : 'Module',
-          iconCls : 'notepad',
-          width : 0,
-          height : 0,
-          maximized : true,
-          x : null,
-          y : null
-        }});
-      config.loadedObject = instance;
-      config.autoScroll = true;
-      Ext.apply(config, {listeners : {
-        beforeclose : function(){
-          var me = this;
-          activeTab.showComponents();
-          Ext.MessageBox.confirm('Confirm', 'There is an active desktop state. Do you want to save the current state?', function(button) {
-            var me = this;
-            if (button == 'yes') {
-              var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
-
-                if ((iCode == 1) && (GLOBAL.APP.MAIN_VIEW.currentState != sStateName)) {
-
-                  GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
-
-                  if (GLOBAL.APP.MAIN_VIEW.currentState != "")
-                    GLOBAL.APP.SM.oprRemoveActiveState(sAppName, GLOBAL.APP.MAIN_VIEW.currentState);
-
-                  me.loadedObject.currentState = sStateName;
-                  GLOBAL.APP.MAIN_VIEW.currentState = sStateName;
-                  GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-                  me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
-
-                  //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
-
-                  if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
-                    GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-                }
-
-              };
-              GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave);
-              me.doClose();
-            }else{
-              me.doClose(); //generate a close event again.
-            }
-          },me);
-          return false;
-        }}});
-      var tab = new Ext.dirac.views.tabs.Panel(config);
-      tab.isOpen = true;
-      tab.setWidth(activeTab.getWidth());
-      tab.setHeight(activeTab.getHeight());
-      //tab.doLayout();
-      activeTab.add(tab);
-      //activeTab.doLayout();
-      me.setOpenedApp(id);
-    }else{
-      Ext.dirac.system_info.msg("Error",'No active desktop!!!!');
     }
   },
   createPresenterWindow : function(config) {
@@ -463,21 +386,6 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
       }
       me.getApplicationContainer().add(tab);
       me.getApplicationContainer().setActiveTab(tab);
-      me.getApplicationContainer().items.each(function(i){
-        if (i.tab.text==tab.title){
-          i.tab.on('click', function(panel, ee){
-            if (!panel.card.isLoaded){
-              me.getApplicationContainer().loadMask =  new Ext.LoadMask(me, {
-                msg : "Loading ..."
-              });
-              me.getApplicationContainer().loadMask.show();
-              setTimeout(function (target) {
-                me.getApplicationContainer().loadMask.hide();
-              }, 4000, me);
-            }
-          });
-        }
-      }, me);
     }
     if (cbLoadDesktop){
       cbLoadDesktop(name, tab);
