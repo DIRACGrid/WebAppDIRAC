@@ -169,9 +169,14 @@ Ext.define('Ext.dirac.views.tabs.SelPanel',{
             var cbSetActiveTab = null;
             if (activeDesktop) {
               cbSetActiveTab = function(oTab){
-                activeDesktop.setActiveTab(oTab);
-                //oTab.loadData();
-              }
+                if (activeDesktop.view == 'tabView'){
+                  activeDesktop.setActiveTab(oTab);
+                }
+              };
+            }else{
+              cbSetActiveTab = function(oTab){
+                oTab.loadData();
+              };
             }
             GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type,
                 item.data.application, item.data, activeDesktop, cbSetActiveTab);

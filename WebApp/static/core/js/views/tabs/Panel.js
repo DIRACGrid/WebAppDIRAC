@@ -63,12 +63,6 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
       },me);
       return false;
     },
-    afterrender : function ( panel, eOpts ){
-      var leftCont = GLOBAL.APP.MAIN_VIEW.getLeftContainer();
-      if (leftCont){
-        var selPanel = leftCont.getSelectionPanel() //this contains the tree(menu)
-      }
-    },
     render : function(oElem, eOpts) {
       var me = this;
       if (me.activeTab){
@@ -95,7 +89,7 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
   removeAndclose : function(panel){
     var activeTab = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer().getActiveTab();
     if (activeTab){
-      if (activeTab.view = 'presenterView'){ //the activeTab is Ext.dirac.views.tabs.PresenterView which contains the container.
+      if (activeTab.view == 'presenterView'){ //the activeTab is Ext.dirac.views.tabs.PresenterView which contains the container.
         activeTab.closeRemoveApplication(panel);
       }else{
         activeTab.remove(panel);
@@ -152,32 +146,12 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
       me.oneTimeAfterShow = true;
     }
   },
-  //afterRender
-  /*afterRender : function() {
-
-    var me = this;
-
-    me.callParent();
-
-    if (!me.oneTimeAfterShow) {
-      if (me.loadedObjectType == "app")
-        me.setLoadedObject(me.setupData);
-      else if (me.loadedObjectType == "link")
-        me.setPropertiesWhenLink(me.setupData);
-
-      //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
-
-      me.oneTimeAfterShow = true;
-    }
-
-  },*/
   setPropertiesWhenLink : function(data){
     return;
   },
   setLoadedObject : function(setupData, loadState) {
 
     var me = this;
-
     // if there is a state to load, we load that state
     if ( (setupData.stateToLoad) && setupData.stateToLoad != 'Default' ) {
 

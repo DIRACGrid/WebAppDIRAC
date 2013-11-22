@@ -102,32 +102,59 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
     var me = this;
     var oData = [];
     var activetab = me.getApplicationContainer().getActiveTab();
+    if (activetab.view=='presenterView'){
+      var views = activetab.getPresenter();
+      if (views && (len = views.items.length)){
+        for(var i = 0; i < len;i++){
+          win = views.items.getAt(i);
+          /*
+           * Depends on the loadedObjectType
+           */
+          var oElem = null;
 
-    var tabs = activetab.items;
-    if (tabs){
-      tabs.each(function(win, value, length) {
+          if (win.loadedObjectType == "app") {
 
-        /*
-         * Depends on the loadedObjectType
-         */
-        var oElem = null;
+            oData.push({
+              module : win.getAppClassName(),
+              data : win.loadedObject.getStateData(),
+              currentState : win.currentState
+            });
 
-        if (win.loadedObjectType == "app") {
+          } else if (win.loadedObjectType == "link") {
 
-          oData.push({
-            module : win.getAppClassName(),
-            data : win.loadedObject.getStateData(),
-            currentState : win.currentState
-          });
-
-        } else if (win.loadedObjectType == "link") {
-
-          oData.push({
-            link : win.linkToLoad
-          });
-
+            oData.push({
+              link : win.linkToLoad
+            });
+          }
         }
-      });
+      }
+    }else{
+      var tabs = activetab.items;
+      if (tabs){
+        tabs.each(function(win, value, length) {
+
+          /*
+           * Depends on the loadedObjectType
+           */
+          var oElem = null;
+
+          if (win.loadedObjectType == "app") {
+
+            oData.push({
+              module : win.getAppClassName(),
+              data : win.loadedObject.getStateData(),
+              currentState : win.currentState
+            });
+
+          } else if (win.loadedObjectType == "link") {
+
+            oData.push({
+              link : win.linkToLoad
+            });
+
+          }
+        });
+      }
     }
     return oData;
   },
@@ -278,7 +305,6 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
 
                 };
                 GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave);
-                me.doClose();
               }
             },me);
           }
@@ -445,7 +471,9 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         }else{
           GLOBAL.APP.MAIN_VIEW.renameCurrentDesktop(sStateName);
         }
-        GLOBAL.APP.MAIN_VIEW._state_related_url.push(sStateName);
+        if (!Ext.Array.contains(GLOBAL.APP.MAIN_VIEW._state_related_url, sStateName)){
+          GLOBAL.APP.MAIN_VIEW._state_related_url.push(sStateName);
+        }
         GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
       };
       GLOBAL.APP.MAIN_VIEW.currentState = ((GLOBAL.APP.MAIN_VIEW.currentState == 'Default')?"":GLOBAL.APP.MAIN_VIEW.currentState); //we do not want to save the default desktop as Default

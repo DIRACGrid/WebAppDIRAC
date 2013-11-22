@@ -159,15 +159,18 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         };
 
         var oDesktop = oParts[1].split(',');
-
-        me.readLayoutFromStates(oDesktop, afterTabCreated);
-
+        if (oDesktop.length>0){
+          me.readLayoutFromStates(oDesktop, afterTabCreated);
+        }else{
+          me.loadRightContainer.hide();
+        }
       }
     }else {
 
       // if the data are not valid, we refresh the URL in the
       // browser
       me.refreshUrlDesktopState();
+      me.loadRightContainer.hide();
 
     }
 
@@ -188,6 +191,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         GLOBAL.APP.CF.alert("The "+oDesktop[i]+" state does not exist !", "warning");
         Ext.Array.remove(oDesktop, oDesktop[i]);
         me.readLayoutFromStates(oDesktop,cbFunction);
+        me.loadRightContainer.hide();
         break;
         return;
       case -2:
