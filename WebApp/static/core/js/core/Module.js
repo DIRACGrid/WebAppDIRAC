@@ -54,18 +54,5 @@ Ext.define('Ext.dirac.core.Module', {
 
 		}, me);
 
-	},
-	overview : function (selector, imageTitle){
-    var me = this;
-    return null;
-    var oImg = Ext.create('Ext.dirac.views.tab.Image', {
-      src : GLOBAL.BASE_URL + 'getDefaultImage?appName='+ me.launcher.title,
-      //title : me.launcher.title,
-      //layout : 'fit',
-      text : me.launcher.title,
-      alt : me.launcher.title,
-    });
-    return oImg;
-  }
-
+	}
 });

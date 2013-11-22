@@ -31,9 +31,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
       background: '#AAAAAA'
     },
   },
-  cache : {
-    presenter : {}
-  }, //this is used to hide the MenuTabs.js
+  //this is used to hide the MenuTabs.js
   /*listeners : {
     render: function (cmp, eOpts) {
       var me = this;
@@ -206,126 +204,94 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
     activeTab.loadMask.show();*/
     me.getApplicationContainer().loadMask.show();
     if (activeTab.view == 'presenterView'){
-      if (config.setupData.data){
-        reducedView = config.setupData.data.reducedView;
-        statedata = config.setupData.currentState;
-      }else{
-        var statedata = config.setupData.stateToLoad;
-        var state = GLOBAL.APP.SM.getStateData("application",config.setupData.application, statedata);
-        var reducedView = null;
-        if (state){
-          reducedView = state.reducedView;
-        }
-      }
-
-      var overview = null;
-      var oClass = tab.items.getAt(0);
-      if (oClass.overview != null){
-        overview = oClass.overview(reducedView, statedata);
-      }
-      if (overview){//if the application has a reduced overview.
-        tab.removeAll();
-        delete tab;
-        tab = null;
-        overview.setPanel(activeTab); //this needs to stop the loading message
-        me.cache.presenter[overview.id] = config;
-        activeTab.addImage(overview);
-        delete tab;
-        var leftCont = GLOBAL.APP.MAIN_VIEW.getLeftContainer();
-        if (leftCont){
-          var selPanel = leftCont.getSelectionPanel(); //this contains the tree(menu)
-          selPanel.tree.body.unmask();
-        }
-      }else{
-        tab.activeTab = activeTab; //this needs to stop the loading message. The event handled in the Panel class.
-        Ext.apply(tab, {
-          tools :[{
-            type:'maximize',
-            tooltip : 'Maximize the application.',
-            scope : tab,
-            handler : function(event, toolEl, panelHeader) {
-              var me = this;
-              activeTab.hideComponents(); //hides all components!
-              me.show(); //only show the current component
-              //we need to hide the maximize and also the close buttons!!
-              for( var i =0; i < me.tools.length; i++){
-                if (me.tools[i].type == 'maximize' || me.tools[i].type == 'close'){
-                  me.tools[i].hide();
-                }else if (me.tools[i].type == 'minimize'){
-                  me.tools[i].show();
-                }
+      tab.activeTab = activeTab; //this needs to stop the loading message. The event handled in the Panel class.
+      Ext.apply(tab, {
+        tools :[{
+          type:'maximize',
+          tooltip : 'Maximize the application.',
+          scope : tab,
+          handler : function(event, toolEl, panelHeader) {
+            var me = this;
+            activeTab.hideComponents(); //hides all components!
+            me.show(); //only show the current component
+            //we need to hide the maximize and also the close buttons!!
+            for( var i =0; i < me.tools.length; i++){
+              if (me.tools[i].type == 'maximize' || me.tools[i].type == 'close'){
+                me.tools[i].hide();
+              }else if (me.tools[i].type == 'minimize'){
+                me.tools[i].show();
               }
-              var origSize = { 'width': tab.getWidth(), 'height':tab.getHeight()}
-              me.origiginalSize = origSize;
-              me.setWidth(activeTab.getWidth());
-              me.setHeight(activeTab.getHeight());
-              me.isOpen = true;
-              activeTab.add(me);
-
             }
-          },{
-            type :'minimize',
-            tooltip : 'Minimize the application.',
-            scope : tab,
-            hidden : true,
-            handler : function(event, toolEl, panelHeader) {
-              var me = this;
-              activeTab.showComponents();
-              //we need to show the maximize and close buttons and hide the minimize buttons.
-              for( var i =0; i < me.tools.length; i++){
-                if (me.tools[i].type == 'maximize' || me.tools[i].type == 'close'){
-                  me.tools[i].show();
-                }else if (me.tools[i].type == 'minimize'){
-                  me.tools[i].hide();
-                }
+            var origSize = { 'width': tab.getWidth(), 'height':tab.getHeight()}
+            me.origiginalSize = origSize;
+            me.setWidth(activeTab.getWidth());
+            me.setHeight(activeTab.getHeight());
+            me.isOpen = true;
+            activeTab.add(me);
+
+          }
+        },{
+          type :'minimize',
+          tooltip : 'Minimize the application.',
+          scope : tab,
+          hidden : true,
+          handler : function(event, toolEl, panelHeader) {
+            var me = this;
+            activeTab.showComponents();
+            //we need to show the maximize and close buttons and hide the minimize buttons.
+            for( var i =0; i < me.tools.length; i++){
+              if (me.tools[i].type == 'maximize' || me.tools[i].type == 'close'){
+                me.tools[i].show();
+              }else if (me.tools[i].type == 'minimize'){
+                me.tools[i].hide();
               }
-              me.isOpen = false;
-              me.setWidth(tab.origiginalSize.width);
-              me.setHeight(tab.origiginalSize.height);
-              activeTab.addImage(me);
             }
-          },{
-            scope : tab,
-            type:'save',
-            tooltip: 'Save application state.',
-            // hidden:true,
-            handler: function(event, toolEl, panelHeader) {
+            me.isOpen = false;
+            me.setWidth(tab.origiginalSize.width);
+            me.setHeight(tab.origiginalSize.height);
+            activeTab.addWidget(me);
+          }
+        },{
+          scope : tab,
+          type:'save',
+          tooltip: 'Save application state.',
+          // hidden:true,
+          handler: function(event, toolEl, panelHeader) {
+            var me = this;
+            Ext.MessageBox.confirm('Confirm', 'Do you want to save the current application state?', function(button) {
               var me = this;
-              Ext.MessageBox.confirm('Confirm', 'Do you want to save the current application state?', function(button) {
-                var me = this;
-                if (button == 'yes') {
-                  var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+              if (button == 'yes') {
+                var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
 
-                    if ((iCode == 1) && (GLOBAL.APP.MAIN_VIEW.currentState != sStateName)) {
+                  if ((iCode == 1) && (GLOBAL.APP.MAIN_VIEW.currentState != sStateName)) {
 
-                      GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
+                    GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
 
-                      if (GLOBAL.APP.MAIN_VIEW.currentState != "")
-                        GLOBAL.APP.SM.oprRemoveActiveState(sAppName,GLOBAL.APP.MAIN_VIEW.currentState);
+                    if (GLOBAL.APP.MAIN_VIEW.currentState != "")
+                      GLOBAL.APP.SM.oprRemoveActiveState(sAppName,GLOBAL.APP.MAIN_VIEW.currentState);
 
-                      me.loadedObject.currentState = sStateName;
-                      GLOBAL.APP.MAIN_VIEW.currentState = sStateName;
-                      GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-                      me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
+                    me.loadedObject.currentState = sStateName;
+                    GLOBAL.APP.MAIN_VIEW.currentState = sStateName;
+                    GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
+                    me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
 
-                      //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+                    //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
-                      if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
-                        GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-                    }
+                    if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+                      GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+                  }
 
-                  };
-                  GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave);
-                  me.doClose();
-                }
-              },me);
-            }
-          }]
-        });
-        activeTab.addImage(tab);
-        tab.header.hide(); //we do not show the name of the application! (save space)
-        tab.loadData();
-      }
+                };
+                GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave);
+                me.doClose();
+              }
+            },me);
+          }
+        }]
+      });
+      activeTab.addWidget(tab);
+      tab.header.hide(); //we do not show the name of the application! (save space)
+      tab.loadData();
     }else{
       tab.activeTab = activeTab; //this needs to stop the loading message. The event handled in the Panel class.
       activeTab.add(tab);
@@ -335,7 +301,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
     if (cbFunction){
       cbFunction(tab);
     }else{
-     // activeTab.setActiveTab(tab);
+      // activeTab.setActiveTab(tab);
       tab.toLoad = true;
     }
     //activeTab.loadMask.hide();
@@ -407,16 +373,6 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
     }else{
       Ext.dirac.system_info.msg("Error",'No active desktop!!!!');
     }
-  },
-  replaceImage : function(id, data, stateName){
-    var me = this;
-    config = me.cache.presenter[id];
-    var tab = new Ext.dirac.views.tabs.Panel(config);
-    var overview = tab.items.getAt(0).overview(data, stateName);
-    var activeTab = null;
-    activeTab = me.getApplicationContainer().getActiveTab();
-    activeTab.replaceImage(id, overview);
-
   },
   createPresenterWindow : function(config) {
     var me = this, win, cfg = Ext.applyIf(config || {}, {
@@ -540,30 +496,10 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
   addStateToExistingWindows : function(stateName, appName) {
 
     var me = this;
-
-    if (GLOBAL.VIEW == 'presenterView'){
-      var appid = me.getOpenedApp();
-      me.cache.presenter[appid].setupData.stateToLoad = stateName;
-      me.cache.presenter[appid].setupData.text = stateName;
-      me.cache.presenter[appid].setupData.data = stateData;
-      me.replaceImage(appid, stateData, stateName);
-    }
     var activeTab = me.getApplicationContainer().getActiveTab();
     var desktopName = activeTab.title;
     GLOBAL.APP.MAIN_VIEW.addNodeToMenu(stateName, appName);
 
-  },
-  updateState : function(className, stateName, data){
-    var me = this;
-    me.cache.tabs[className][stateName] = data;
-    if (GLOBAL.VIEW == 'presenterView'){
-      var appId = me.getOpenedApp();
-      if (appId){//we can have applications which does not have a reduced overview. Consequently, we do not open these applications!
-        //we only maximize them!
-        me.cache.presenter[appId].setupData.data = data;
-        me.replaceImage(appId, data, stateName);
-      }
-    }
   },
 
   /**

@@ -14,6 +14,10 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
     padding : 2
   },
   view : 'presenterView',
+  /**
+   * @property{@link Ext.dirac.views.tabs.Presenter} presenter is contains all applications.
+   */
+  presenter : null,
   isLoaded : false,
   listeners : {
     'resize' : function(view, width, height, oldWidth, oldHeight, eOpts ){
@@ -51,7 +55,7 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
   },
   constructor : function(config){
     var me = this;
-    var presenter = Ext.create('Ext.dirac.views.tabs.Presenter',{
+    me.presenter = Ext.create('Ext.dirac.views.tabs.Presenter',{
       region : 'center',
       //minWidth : 300,
       //title : name,
@@ -59,20 +63,41 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
       app: config.app,
       desktop : config.desktop});
     Ext.apply(me, {
-      items : [presenter]
+      items : [me.presenter]
     });
 
     me.callParent(arguments);
   },
-  addImage : function(img){
+  /**
+   * It return the widget which contains the applications.
+   * @return{@link Ext.dirac.views.tabs.Presenter}
+   */
+  getPresenter : function(){
     var me = this;
-    //me.setLoading("Loading Image...");
-    me.items.getAt(0).addImage(img);
+    return me.presenter;
   },
-  replaceImage : function(oimgid, img){
+  /***
+   *It removes the {@link Ext.dirac.views.tabs.Panel} widget from the {@link Ext.dirac.views.tabs.Presenter}
+   *@param{Object} panel is an {@link Ext.dirac.views.tabs.Panel}
+   *
+   */
+  closeRemoveApplication : function(panel){
     var me = this;
-    //me.setLoading("Loading Image...");
-    me.items.getAt(0).replaceImage(oimgid, img);
+    var presenter = me.getPresenter();
+    if (presenter){
+      presenter.remove(panel);
+    }
+  },
+  /***
+   * it adds an application {@link Ext.dirac.views.tabs.Panel} to the presenter view.
+   * @param{Object} widget is a object which inherited from {@link Ext.dirac.views.tabs.Panel}
+   */
+  addWidget : function(widget){
+    var me = this;
+    var presenter = me.getPresenter();
+    if (presenter){
+      presenter.addImage(widget);
+    }
   },
   getOpenedApplication : function(){
     var me = this;
@@ -89,10 +114,6 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
   isExist : function(name){
     var me = this;
     return me.items.getAt(0).isExist(name);
-  },
-  getImages : function(){
-    var me = this;
-    return me.items.getAt(0).items;
   },
   hideComponents : function(){
    var me = this;

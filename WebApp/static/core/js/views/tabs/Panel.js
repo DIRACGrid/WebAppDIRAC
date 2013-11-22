@@ -88,10 +88,18 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
       }
     },
   },
-  removeAndclose : function(panel, eOpts){
+  /***
+   * It removes the application from the container (view) when it is not saved!
+   * @param{Object} panel the object which needs to be removed.
+   */
+  removeAndclose : function(panel){
     var activeTab = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer().getActiveTab();
     if (activeTab){
-      activeTab.remove(panel);
+      if (activeTab.view = 'presenterView'){ //the activeTab is Ext.dirac.views.tabs.PresenterView which contains the container.
+        activeTab.closeRemoveApplication(panel);
+      }else{
+        activeTab.remove(panel);
+      }
     }
   },
   initComponent : function() {
