@@ -149,7 +149,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel',{
       listeners : {
         itemclick : function(record, item, index, e, eOpts) {
 
-          if (item.data.type == "layout") {
+          if (item.data.type == "tabView") {
 
             var afterTabCreated = function(name, tab){
               GLOBAL.APP.MAIN_VIEW.loadDesktopStateData(name, tab);

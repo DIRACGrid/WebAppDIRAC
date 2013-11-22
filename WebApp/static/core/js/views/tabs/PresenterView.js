@@ -13,7 +13,7 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
     type : 'border',
     padding : 2
   },
-  view : 'presenter',
+  view : 'presenterView',
   isLoaded : false,
   listeners : {
     'resize' : function(view, width, height, oldWidth, oldHeight, eOpts ){

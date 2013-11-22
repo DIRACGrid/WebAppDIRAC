@@ -188,7 +188,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         break;
       }
       oStateData = GLOBAL.APP.SM.getStateData("application", "desktop", oDesktop[i]);
-      var view = (oStateData.view ? oStateData.view:'layout');
+      var view = (oStateData.view ? oStateData.view:'tabView');
       if (i==oDesktop.length-1){
         GLOBAL.APP.MAIN_VIEW.createDesktopTab(oDesktop[i], view, cbFunction);
       }else{
@@ -242,7 +242,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           if (i == oData["data"].length - 1){
             console.log("Loading"+oAppStateData.currentState);
             var cbSetActiveTab = function(oTab){
-              if (tab.view == 'layout'){
+              if (tab.view == 'tabView'){//when the presenter view used then does not have tabs
                 tab.setActiveTab(oTab);
               }
             };
@@ -455,7 +455,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         application : sStateName,
         allowDrag : false,
         allowDrop : false,
-        type : 'layout',
+        type : 'tabView',
         leaf : true,
         iconCls :'icon-applications-states-all-default',
         view : oStateData.view,
@@ -491,7 +491,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             application : stateName,
             allowDrag : false,
             allowDrop : false,
-            type : 'layout',
+            type : 'tabView',
             leaf : true,
             view : mydesktop[stateName].view,
             iconCls :'icon-applications-states-all-default'
@@ -531,7 +531,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               application : stateName,
               allowDrag : false,
               allowDrop : false,
-              type : 'layout',
+              type : 'tabView',
               leaf : true,
               iconCls :'icon-applications-states-all-default'
             });
@@ -653,44 +653,6 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
     return [ me.getWidth(), me.getHeight() ];
   },
-  /***
-   * It is used to delete a state(layout) from the URL when a desktop tab is closed.
-   * @param {String} state the name of the state (which is the desktop tab name in that case)
-   */
-  removeLayoutUrl : function(state){
-    var me = this;
-
-    var oHref = location.href;
-    var sNewUrlState = "";
-    var sGlobalUrlState = "";
-    var oQPosition = oHref.indexOf("?");
-    if (oQPosition != -1) {
-      var oEPosition = oHref.lastIndexOf("=");
-      if (oEPosition != -1){
-        sNewUrlState = oHref.substr(0, oEPosition + 1); //keep the string url_state=
-        var hash = oHref.substr(oEPosition + 1, oHref.length);
-        if (hash){
-          var lhash = hash.split(',');
-          var found = false;
-          for (var i = 0; i < lhash.length; i ++ ){
-            if (state != lhash[i]){
-              sNewUrlState += lhash[i] + ','
-              found = true;
-              sGlobalUrlState += lhash[i] + ',';
-            }
-          }
-          if (found){ //only remove the last character if it exists otherwise we remove the =
-            sNewUrlState = sNewUrlState.substr(0, sNewUrlState.length -1 );
-            GLOBAL.URL_STATE = sGlobalUrlState.substr(0, sGlobalUrlState.length -1 );
-          }
-        }
-      }else{
-        sNewUrlState = oHref;
-      }
-    }
-    window.history.pushState("X", GLOBAL.APP_TITLE, sNewUrlState);
-
-  },
   /**
    * It saves the state of an application. Note: It only take into
    * account the active a application.
@@ -702,7 +664,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
     var mainPanel = rCont.getApplicationContainer();
     var activeDesktop = mainPanel.getActiveTab();
     if (activeDesktop) {
-      if (activeDesktop.view == 'presenter'){
+      if (activeDesktop.view == 'presenterView'){
         var openedApp = rCont.currentOpenedApp; //this contains the actual opened application identifier.
         //we have to found the application which needs to be saved
         activeDesktop.items.each(function(comp){
@@ -936,7 +898,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
     var mainPanel = me.getRightContainer().getApplicationContainer();
     var activeDesktop = mainPanel.getActiveTab();
     if (activeDesktop) {
-      if (activeDesktop.view == 'presenter'){
+      if (activeDesktop.view == 'presenterView'){
         appl = activeDesktop.getOpenedApplication();
       }else{
         var appl = activeDesktop.getActiveTab();
@@ -1049,7 +1011,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               'text' : 'All',
               expandable : false,
               application : stateName,
-              type : 'layout',
+              type : 'tabView',
               leaf : true,
               iconCls:'icon-applications-states-all-default',
               allowDrag : false,
@@ -1138,7 +1100,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           application : stateName,
           allowDrag : false,
           allowDrop : false,
-          type : 'layout',
+          type : 'tabView',
           leaf : true,
           iconCls :'icon-applications-states-all-default'
         });

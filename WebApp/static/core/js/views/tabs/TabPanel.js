@@ -13,7 +13,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
   hasClose : false,
   activeTab: 0,
   layout : 'fit',
-  view : 'layout',
+  view : 'tabView',
   //renderTo:Ext.getBody(),
   /*defaults : {
     autoScroll : true,

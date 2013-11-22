@@ -91,18 +91,18 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
         text : "Switch to presenter view",
         scope : me,
         value : 2,
-        view : 'presenter',
+        view : 'presenterView',
         disabled : true,
         handler : function(){
           var me = this;
-          me.oSelectedMenuItem.data.view = 'presenter';
-          me.oSelectedMenuItem.getChildAt(0).data.view = 'presenter';
+          me.oSelectedMenuItem.data.view = 'presenterView';
+          me.oSelectedMenuItem.getChildAt(0).data.view = 'presenterView';
           Ext.Ajax.request({
             url : GLOBAL.BASE_URL + 'UP/changeView',
             params : {
               app : "desktop",
               desktop : me.oSelectedMenuItem.data.text,
-              view : 'presenter',
+              view : 'presenterView',
               obj : "application"
             },
             scope : me,
@@ -122,7 +122,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                 return;
                 break;
               }
-              GLOBAL.APP.SM.cache["application"]["desktop"][me.oSelectedMenuItem.data.text].view = 'presenter'; //it is a hack
+              GLOBAL.APP.SM.cache["application"]["desktop"][me.oSelectedMenuItem.data.text].view = 'presenterView'; //it is a hack
               Ext.dirac.system_info.msg("Notification", 'Desktop view has changed successfully !');
             },
             failure : function(response) {
@@ -135,17 +135,17 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
         scope : me,
         disabled : true,
         value : 3,
-        view:'layout',
+        view:'tabView',
         handler : function(){
           var me = this;
-          me.oSelectedMenuItem.data.view = 'layout';
-          me.oSelectedMenuItem.getChildAt(0).data.view = 'layout';
+          me.oSelectedMenuItem.data.view = 'tabView';
+          me.oSelectedMenuItem.getChildAt(0).data.view = 'tabView';
           Ext.Ajax.request({
             url : GLOBAL.BASE_URL + 'UP/changeView',
             params : {
               app : "desktop",
               desktop : me.oSelectedMenuItem.data.text,
-              view : 'layout',
+              view : 'tabView',
               obj : "application"
             },
             scope : me,
@@ -165,7 +165,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                 return;
                 break;
               }
-              GLOBAL.APP.SM.cache["application"]["desktop"][me.oSelectedMenuItem.data.text].view = 'layout';
+              GLOBAL.APP.SM.cache["application"]["desktop"][me.oSelectedMenuItem.data.text].view = 'tabView';
               Ext.dirac.system_info.msg("Notification", 'Desktop view has changed successfully !');
             },
             failure : function(response) {

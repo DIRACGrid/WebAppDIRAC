@@ -205,7 +205,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
     });
     activeTab.loadMask.show();*/
     me.getApplicationContainer().loadMask.show();
-    if (activeTab.view == 'presenter'){
+    if (activeTab.view == 'presenterView'){
       if (config.setupData.data){
         reducedView = config.setupData.data.reducedView;
         statedata = config.setupData.currentState;
@@ -478,7 +478,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
   /**
    * It creates an empty desktop. If the load is true, the applications will be not loaded by the {@link Ext.dirac.views.tabs.TabPanel TabPanel class}.
    * @param{String} name is the name of the desktop.
-   * @param{String} view is used to decide which type of desktop will be used. We have two different views: presenter and tab layout.
+   * @param{String} view is used to decide which type of desktop will be used. We have two different views: presenter and tab view.
    * @param{Boolean} load is used to decide what we want to do with the desktop. If it is true, we do not load the applications to the desktop.
    */
   createDesktopTab : function(name, view, cbLoadDesktop) {
@@ -488,7 +488,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
     if (tab != null) {
       me.getApplicationContainer().setActiveTab(tab);
     } else {
-      if (view == 'presenter'){ //we have to add the presenter page
+      if (view == 'presenterView'){ //we have to add the presenter page
         tab = Ext.create('Ext.dirac.views.tabs.PresenterView',{
           title : name,
           desktop : me,
@@ -541,7 +541,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
 
     var me = this;
 
-    if (GLOBAL.VIEW == 'presenter'){
+    if (GLOBAL.VIEW == 'presenterView'){
       var appid = me.getOpenedApp();
       me.cache.presenter[appid].setupData.stateToLoad = stateName;
       me.cache.presenter[appid].setupData.text = stateName;
@@ -556,7 +556,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
   updateState : function(className, stateName, data){
     var me = this;
     me.cache.tabs[className][stateName] = data;
-    if (GLOBAL.VIEW == 'presenter'){
+    if (GLOBAL.VIEW == 'presenterView'){
       var appId = me.getOpenedApp();
       if (appId){//we can have applications which does not have a reduced overview. Consequently, we do not open these applications!
         //we only maximize them!
