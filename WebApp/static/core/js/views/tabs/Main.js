@@ -164,6 +164,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }else{
           me.loadRightContainer.hide();
         }
+        me.refreshUrlDesktopState();
       }
     }else {
 
