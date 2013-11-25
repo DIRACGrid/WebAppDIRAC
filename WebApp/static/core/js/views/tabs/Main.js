@@ -123,7 +123,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        * desktop state has been loaded, but only particular apps
        */
       if (parseInt(oParts[0], 10) == 0) {
-        GLOBAL.APP.CF.alert('Tab theme is only can load desktops', "error");
+        GLOBAL.APP.CF.alert('Tab theme can not load applications from URL', "error");
         return;
       }
 
@@ -145,8 +145,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
       var oParts = GLOBAL.URL_STATE.split("|");
 
-      if ((oParts.length != 2) || (Ext.util.Format.trim(oParts[1]).length == 0))
+      if ((oParts.length != 2) || (Ext.util.Format.trim(oParts[1]).length == 0)){
+        me.loadRightContainer.hide();
         return;
+      }
+
 
       if (parseInt(oParts[0], 10) == 1) {
         // desktop state
