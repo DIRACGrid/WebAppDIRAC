@@ -111,38 +111,15 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 				case "getData":
 					me.grid.body.unmask();
 					break;
-				case "addUser":
-
+				case "addItem":
 					break;
-				case "editUser":
-
+				case "editItem":
 					break;
-				case "removeUser":
-
-					break;
-				case "addGroup":
-
-					break;
-				case "editGroup":
-
-					break;
-				case "deleteGroup":
-
-					break;
-				case "addHost":
-
-					break;
-				case "editHost":
-
-					break;
-				case "deleteHost":
-
+				case "deleteItem":
 					break;
 				case "editRegistryProperties":
-
 					break;
 				case "commitChanges":
-
 					break;
 
 				}
@@ -154,6 +131,14 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 				case "init":
 
 					break;
+				case "resetConfiguration":
+					me.grid.body.mask("Loading ...");
+
+					me.__sendSocketMessage({
+						op : "getData",
+						type : me.cbDataTypes.getValue()
+					});
+					break;
 				case "getData":
 
 					me.grid.store.removeAll();
@@ -164,6 +149,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 					});
 
 					me.grid.reconfigure(me.dataStore, me.gridColumns[oResponse.type]);
+
 					me.grid.body.unmask();
 
 					if (!me.firstTimeReadUsers) {
@@ -176,32 +162,33 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 					}
 
 					break;
-				case "addUser":
-
+				case "addItem":
+					me.grid.body.mask("Loading ...");
+					me.rightPanel.removeAll();
+					me.rightPanel.setTitle("");
+					me.rightPanel.currentRecord = null;
+					me.__sendSocketMessage({
+						op : "getData",
+						type : me.cbDataTypes.getValue()
+					});
 					break;
-				case "editUser":
+				case "editItem":
+					me.grid.body.mask("Loading ...");
 
+					me.__sendSocketMessage({
+						op : "getData",
+						type : me.cbDataTypes.getValue()
+					});
 					break;
-				case "removeUser":
-
-					break;
-				case "addGroup":
-
-					break;
-				case "editGroup":
-
-					break;
-				case "deleteGroup":
-
-					break;
-				case "addHost":
-
-					break;
-				case "editHost":
-
-					break;
-				case "deleteHost":
-
+				case "deleteItem":
+					me.grid.body.mask("Loading ...");
+					me.rightPanel.removeAll();
+					me.rightPanel.setTitle("");
+					me.rightPanel.currentRecord = null;
+					me.__sendSocketMessage({
+						op : "getData",
+						type : me.cbDataTypes.getValue()
+					});
 					break;
 				case "editRegistryProperties":
 
@@ -340,7 +327,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 				dataIndex : 'name',
 				align : 'left',
 				hideable : false,
-				width : 200
+				width : 200,
+				sortState : "DESC"
 			}, {
 				header : 'DN',
 				sortable : true,
@@ -369,7 +357,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 				dataIndex : 'name',
 				align : 'left',
 				hideable : false,
-				width : 200
+				width : 200,
+				sortState : "DESC"
 			}, {
 				header : 'Users',
 				sortable : true,
@@ -421,7 +410,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 				dataIndex : 'name',
 				align : 'left',
 				hideable : false,
-				width : 200
+				width : 200,
+				sortState : "DESC"
 			}, {
 				header : 'DN',
 				sortable : true,
@@ -490,16 +480,47 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 			items : [ {
 				handler : function() {
 
+					switch (me.cbDataTypes.getValue()) {
+
+					case "users":
+						me.__createUserForm(null);
+						break;
+					case "groups":
+						me.__createGroupForm(null);
+						break;
+					case "hosts":
+						me.__createHostForm(null);
+						break;
+
+					}
+
 				},
 				text : 'New user'
 			}, {
 				handler : function() {
 
+					var record = GLOBAL.APP.CF.getSelectedRecords(me.grid)[0];
+
+					switch (me.cbDataTypes.getValue()) {
+
+					case "users":
+						me.__createUserForm(record);
+						break;
+					case "groups":
+						me.__createGroupForm(record);
+						break;
+					case "hosts":
+						me.__createHostForm(record);
+						break;
+
+					}
+
 				},
 				text : 'Edit user'
 			}, {
 				handler : function() {
-
+					var sName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "name");
+					me.__deleteItem(sName, me.cbDataTypes.getValue());
 				},
 				text : 'Delete user'
 			} ]
@@ -519,7 +540,64 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 			margin : 3,
 			iconCls : "dirac-icon-submit",
 			handler : function() {
-				me.oprLoadGridData();
+
+				if (me.rightPanel.items.length > 0) {
+
+					var oDataToSend = {};
+					var bValid = true;
+
+					switch (me.rightPanel.currentType) {
+
+					case "users":
+						if (me.userForm.txtName.validate()) {
+							oDataToSend.name = me.userForm.txtName.getValue();
+							oDataToSend.dn = me.userForm.txtDn.getValue();
+							oDataToSend.ca = me.userForm.txtCa.getValue();
+							oDataToSend.email = me.userForm.txtEmail.getValue();
+						} else {
+							bValid = false;
+						}
+						break;
+					case "groups":
+						if (me.groupForm.txtName.validate()) {
+							oDataToSend.name = me.groupForm.txtName.getValue();
+							oDataToSend.jobshare = me.groupForm.txtJobShare.getValue();
+							oDataToSend.properties = me.groupForm.msProperties.getValues();
+							oDataToSend.users = me.groupForm.msUsers.getValues();
+							oDataToSend.autouploadproxy = me.groupForm.cbAutoUploadProxy.getValue();
+							oDataToSend.autouploadpilotproxy = me.groupForm.cbAutoUploadPilotProxy.getValue();
+							oDataToSend.autoaddvoms = me.groupForm.cbAutoAddVoms.getValue();
+						} else {
+							bValid = false;
+						}
+						break;
+					case "hosts":
+						if (me.groupForm.txtName.validate()) {
+							oDataToSend.name = me.hostForm.txtName.getValue();
+							oDataToSend.dn = me.hostForm.txtDn.getValue();
+							oDataToSend.properties = me.hostForm.msProperties.getValues();
+						} else {
+							bValid = false;
+						}
+						break;
+
+					}
+					if (bValid) {
+						if (me.rightPanel.currentRecord == null) {
+							// in this case it means that we are creating new item
+							oDataToSend.op = "addItem";
+						} else {
+							// in this case it means that we are updating an existing item
+							oDataToSend.op = "editItem";
+						}
+
+						oDataToSend.type = me.rightPanel.currentType;
+						console.log("DATA TO SEND");
+						console.log(oDataToSend);
+						me.__sendSocketMessage(oDataToSend);
+					}
+				}
+
 			},
 			scope : me
 
@@ -533,7 +611,23 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 			margin : 3,
 			iconCls : "dirac-icon-reset",
 			handler : function() {
-				me.oprResetSelectionOptions();
+
+				var oRecord = me.rightPanel.currentRecord;
+
+				switch (me.cbDataTypes.getValue()) {
+
+				case "users":
+					me.__createUserForm(oRecord);
+					break;
+				case "groups":
+					me.__createGroupForm(oRecord);
+					break;
+				case "hosts":
+					me.__createHostForm(oRecord);
+					break;
+
+				}
+
 			},
 			scope : me
 
@@ -594,7 +688,30 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 				labelAlign : 'left',
 				margin : 5,
 				labelWidth : 80,
-				anchor : "100%"
+				anchor : "100%",
+				validateValue : function(sValue) {
+
+					sValue = Ext.util.Format.trim(sValue);
+
+					if (sValue.length < 1) {
+						this.markInvalid("You must specify a name !");
+						return false;
+
+					} else {
+
+						if (GLOBAL.APP.SM.isValidStateName(sValue)) {
+							this.clearInvalid();
+							return true;
+						} else {
+
+							this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
+							return false;
+
+						}
+
+					}
+
+				}
 			});
 
 			me.groupForm.cbAutoUploadProxy = Ext.create('Ext.form.field.ComboBox', {
@@ -694,16 +811,20 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 
 			me.rightPanel.setTitle("Group: " + oRecord.get("name"));
 			me.rightPanel.currentRecord = oRecord;
+			me.groupForm.txtName.setReadOnly(true);
 
 		} else {
 
 			me.rightPanel.setTitle("New Group");
 			me.rightPanel.currentRecord = null;
+			me.groupForm.txtName.setReadOnly(false);
 
 		}
 
+		me.rightPanel.currentType = "groups";
+
 		me.rightPanel.removeAll();
-		me.rightPanel.add([ me.groupForm.msUsers, me.groupForm.msProperties, me.groupForm.txtName, me.groupForm.cbAutoUploadProxy, me.groupForm.cbAutoUploadPilotProxy, me.groupForm.cbAutoAddVoms,
+		me.rightPanel.add([ me.groupForm.txtName, me.groupForm.msUsers, me.groupForm.msProperties, me.groupForm.cbAutoUploadProxy, me.groupForm.cbAutoUploadPilotProxy, me.groupForm.cbAutoAddVoms,
 				me.groupForm.txtJobShare ]);
 		me.activeRecordInForm = oRecord;
 
@@ -719,7 +840,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 
 			me.userForm.txtName.setValue("");
 			me.userForm.txtDn.setValue("");
-			me.userForm.txtCn.setValue("");
+			me.userForm.txtCa.setValue("");
 			me.userForm.txtEmail.setValue("");
 
 		} else {
@@ -730,7 +851,30 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 				labelAlign : 'left',
 				margin : 5,
 				anchor : "100%",
-				labelWidth : 50
+				labelWidth : 50,
+				validateValue : function(sValue) {
+
+					sValue = Ext.util.Format.trim(sValue);
+
+					if (sValue.length < 1) {
+						this.markInvalid("You must specify a name !");
+						return false;
+
+					} else {
+
+						if (GLOBAL.APP.SM.isValidStateName(sValue)) {
+							this.clearInvalid();
+							return true;
+						} else {
+
+							this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
+							return false;
+
+						}
+
+					}
+
+				}
 			});
 
 			me.userForm.txtDn = Ext.create('Ext.form.field.Text', {
@@ -741,8 +885,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 				labelWidth : 50
 			});
 
-			me.userForm.txtCn = Ext.create('Ext.form.field.Text', {
-				fieldLabel : "CN:",
+			me.userForm.txtCa = Ext.create('Ext.form.field.Text', {
+				fieldLabel : "CA:",
 				labelAlign : 'left',
 				margin : 5,
 				anchor : "100%",
@@ -763,21 +907,25 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 
 			me.userForm.txtName.setValue(oRecord.get("name"));
 			me.userForm.txtDn.setValue(oRecord.get("dn"));
-			me.userForm.txtCn.setValue(oRecord.get("ca"));
+			me.userForm.txtCa.setValue(oRecord.get("ca"));
 			me.userForm.txtEmail.setValue(oRecord.get("email"));
 
 			me.rightPanel.setTitle("User: " + oRecord.get("name"));
 			me.rightPanel.currentRecord = oRecord;
+			me.userForm.txtName.setReadOnly(true);
 
 		} else {
 
 			me.rightPanel.setTitle("New User");
 			me.rightPanel.currentRecord = null;
+			me.userForm.txtName.setReadOnly(false);
 
 		}
 
+		me.rightPanel.currentType = "users";
+
 		me.rightPanel.removeAll();
-		me.rightPanel.add([ me.userForm.txtName, me.userForm.txtDn, me.userForm.txtCn, me.userForm.txtEmail ]);
+		me.rightPanel.add([ me.userForm.txtName, me.userForm.txtDn, me.userForm.txtCa, me.userForm.txtEmail ]);
 		me.activeRecordInForm = oRecord;
 
 	},
@@ -800,7 +948,30 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 				labelAlign : 'left',
 				margin : 5,
 				anchor : "100%",
-				labelWidth : 80
+				labelWidth : 80,
+				validateValue : function(sValue) {
+
+					sValue = Ext.util.Format.trim(sValue);
+
+					if (sValue.length < 1) {
+						this.markInvalid("You must specify a name !");
+						return false;
+
+					} else {
+
+						if (GLOBAL.APP.SM.isValidStateName(sValue)) {
+							this.clearInvalid();
+							return true;
+						} else {
+
+							this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
+							return false;
+
+						}
+
+					}
+
+				}
 			});
 
 			me.hostForm.txtDn = Ext.create('Ext.form.field.Text', {
@@ -829,13 +1000,17 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 
 			me.rightPanel.setTitle("Host: " + oRecord.get("name"));
 			me.rightPanel.currentRecord = oRecord;
+			me.hostForm.txtName.setReadOnly(true);
 
 		} else {
 
 			me.rightPanel.setTitle("New Host");
 			me.rightPanel.currentRecord = null;
+			me.hostForm.txtName.setReadOnly(false);
 
 		}
+
+		me.rightPanel.currentType = "hosts";
 
 		me.rightPanel.removeAll();
 		me.rightPanel.add([ me.hostForm.txtName, me.hostForm.txtDn, me.hostForm.msProperties ]);
@@ -959,7 +1134,22 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 			margins : '0',
 			multiList : oMultiSelect,
 			items : [ oToolbar, oMultiSelect ],
-			border : 0
+			border : 0,
+			getValues : function() {
+
+				var oStore = oMultiSelect.store;
+				var sRet = "";
+
+				for ( var i = 0; i < oStore.getCount(); i++) {
+
+					sRet += ((sRet == "") ? "" : ",") + oStore.getAt(i).get("value");
+
+				}
+
+				return sRet;
+
+			}
+
 		});
 
 		return oMultiSelectBox;
@@ -983,6 +1173,18 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager', {
 			me.socket.send(JSON.stringify(oData));
 
 		}
+
+	},
+
+	__deleteItem : function(sName, sType) {
+
+		var me = this;
+
+		me.__sendSocketMessage({
+			op : "deleteItem",
+			type : sType,
+			name : sName
+		});
 
 	}
 

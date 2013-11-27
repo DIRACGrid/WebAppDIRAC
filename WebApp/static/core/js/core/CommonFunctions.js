@@ -18,6 +18,12 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
 		return oVal;
 	},
+	
+	getSelectedRecords: function(oGrid){
+		
+		return oGrid.getSelectionModel().getSelection();
+		
+	},
 
 	doubleItemValue : function(oList) {
 

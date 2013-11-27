@@ -31,6 +31,14 @@ class RegistryManagerHandler(WebSocketHandler):
       res = self.__getRemoteConfiguration("init")
     elif params["op"] == "getData":
       res = self.__getData(params)
+    elif params["op"] == "deleteItem":
+      res = self.__deleteItem(params)
+    elif params["op"] == "addItem":
+      res = self.__addItem(params)
+    elif params["op"] == "editItem":
+      res = self.__editItem(params)
+    elif params["op"] == "resetConfiguration":
+      res = self.__getRemoteConfiguration("resetConfiguration")
       
     if res:
       self.write_message(res)
@@ -120,8 +128,146 @@ class RegistryManagerHandler(WebSocketHandler):
       return propsList[elem]
     else:
       return ""
+    
+  def __addItem(self, params):
+   
+    sectionPath = "/Registry/"
+    configText = ""
+    if params["type"] == "users":
+      
+      sectionPath = sectionPath + "Users"
+      if params["dn"].strip() != "":
+        configText = "DN = " + params["dn"].strip() + "\n"
+        
+      if params["ca"].strip() != "":
+        configText = configText + "CA = " + params["ca"].strip() + "\n"
+        
+      if params["email"].strip() != "":
+        configText = configText + "Email = " + params["email"].strip()
+        
+    elif params["type"] == "groups":
+        
+      sectionPath = sectionPath + "Groups"
+      if params["users"].strip() != "":
+        configText = "Users = " + params["users"].strip() + "\n"
+        
+      if params["properties"].strip() != "":
+        configText = configText + "Properties = " + params["properties"].strip() + "\n"
+      
+      if str(params["jobshare"]).strip() != "":
+        configText = configText + "JobShare = " + str(params["jobshare"]) + "\n"
+      
+      if params["autouploadproxy"].strip() != "":
+        configText = configText + "AutoUploadProxy = " + params["autouploadproxy"].strip() + "\n"
+      
+      if params["autouploadpilotproxy"].strip() != "":
+        configText = configText + "AutoUploadPilotProxy = " + params["autouploadpilotproxy"].strip() + "\n"
+      
+      if params["autoaddvoms"].strip() != "":
+        configText = configText + "AutoAddVOMS = " + params["autoaddvoms"].strip()
+      
+    elif params["type"] == "hosts":
+      
+      sectionPath = sectionPath + "Hosts"
+      if params["dn"].strip() != "":
+        configText = "DN = " + params["dn"].strip() + "\n"
+        
+      if params["properties"].strip() != "":
+        configText = configText + "Properties = " + params["properties"].strip()
+    
+    sectionPath = sectionPath + "/" + params["name"]
+    
+    if self.__configData[ 'cfgData' ].createSection(sectionPath):
+      cfgData = self.__configData[ 'cfgData' ].getCFG()
+      newCFG = CFG()
+      newCFG.loadFromBuffer(configText)
+      self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
+      return {"success":1, "op": "addItem"}
+    else:
+      return {"success":0, "op":"addItem", "message":"Section can't be created. It already exists?"}
+      
+  def __editItem(self, params):
+    
+    ret = self.__deleteItem(params)
+    if ret["success"] == 1:
+      ret = self.__addItem(params)
+      return ret
+    return ret
+    
+    sectionPath = "/Registry/"
+    configText = ""
+    if params["type"] == "users":
+      
+      sectionPath = sectionPath + "Users"
+      if params["dn"].strip() != "":
+        configText = "DN = " + params["dn"].strip() + "\n"
+        
+      if params["ca"].strip() != "":
+        configText = configText + "CA = " + params["ca"].strip() + "\n"
+        
+      if params["email"].strip() != "":
+        configText = configText + "Email = " + params["email"].strip()
+        
+    elif params["type"] == "groups":
+        
+      sectionPath = sectionPath + "Groups"
+      if params["users"].strip() != "":
+        configText = "Users = " + params["users"].strip() + "\n"
+        
+      if params["properties"].strip() != "":
+        configText = configText + "Properties = " + params["properties"].strip() + "\n"
+      
+      if str(params["jobshare"]).strip() != "":
+        configText = configText + "JobShare = " + str(params["jobshare"]) + "\n"
+      
+      if params["autouploadproxy"].strip() != "":
+        configText = configText + "AutoUploadProxy = " + params["autouploadproxy"].strip() + "\n"
+      
+      if params["autouploadpilotproxy"].strip() != "":
+        configText = configText + "AutoUploadPilotProxy = " + params["autouploadpilotproxy"].strip() + "\n"
+      
+      if params["autoaddvoms"].strip() != "":
+        configText = configText + "AutoAddVOMS = " + params["autoaddvoms"].strip()
+      
+    elif params["type"] == "hosts":
+      
+      sectionPath = sectionPath + "Hosts"
+      if params["dn"].strip() != "":
+        configText = "DN = " + params["dn"].strip() + "\n"
+        
+      if params["properties"].strip() != "":
+        configText = configText + "Properties = " + params["properties"].strip()
+    
+    sectionPath = sectionPath + "/" + params["name"]
+    
+#   deleting the options underneath 
+    sectionCfg = self.getSectionCfg(sectionPath)
+      
+    for opt in sectionCfg.listAll():
+      print "deleting "+opt+"\n"
+      self.__configData[ 'cfgData' ].removeOption(sectionPath+"/"+opt)
+    
+    cfgData = self.__configData[ 'cfgData' ].getCFG()
+    newCFG = CFG()
+    newCFG.loadFromBuffer(configText)
+    self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
+    return {"success":1, "op": "editItem"}  
+        
+    
   
+  def __deleteItem(self, params):
+    sectionPath = "/Registry/"
+    
+    if params["type"] == "users":
+      sectionPath = sectionPath + "Users"
+    elif params["type"] == "groups":
+      sectionPath = sectionPath + "Groups"
+    elif params["type"] == "hosts":
+      sectionPath = sectionPath + "Hosts"
+    
+    sectionPath = sectionPath + "/" + params["name"]
+    if self.__configData[ 'cfgData' ].removeOption(sectionPath) or self.__configData[ 'cfgData' ].removeSection(sectionPath):
+      return {"success":1, "op":"deleteItem"}
+    else:
+      return {"success":0, "op":"deleteItem", "message":"Entity doesn't exist"}
   
-
-
-
