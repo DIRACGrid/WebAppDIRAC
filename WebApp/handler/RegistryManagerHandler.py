@@ -39,7 +39,15 @@ class RegistryManagerHandler(WebSocketHandler):
       res = self.__editItem(params)
     elif params["op"] == "resetConfiguration":
       res = self.__getRemoteConfiguration("resetConfiguration")
-      
+    elif params["op"] == "commitChanges":
+      res = self.__commitChanges()
+    elif params["op"] == "getGroupList":
+      res = self.__getGroupList()
+    elif params["op"] == "getRegistryProperties":
+      res = self.__getRegistryProperties()
+    elif params["op"] == "saveRegistryProperties":
+      res = self.__saveRegistryProperties(params)
+    
     if res:
       self.write_message(res)
 
@@ -112,6 +120,28 @@ class RegistryManagerHandler(WebSocketHandler):
         data.append(item)
     
     return {"op":"getData", "success":1, "type": params["type"], "data": data}
+  
+  def __getGroupList(self):
+    data = []
+    
+    sectionPath = "/Registry/Groups"
+    sectionCfg = self.getSectionCfg(sectionPath)
+    
+    for group in sectionCfg.listAll():
+      data.append([group])
+      
+    return {"op":"getGroupList", "success":1, "data": data}
+  
+  def __getRegistryProperties(self):
+    sectionPath = "/Registry"
+    sectionCfg = self.getSectionCfg(sectionPath)
+   
+    data = {}
+    for entryName in sectionCfg.listAll():
+      if not sectionCfg.isSection(entryName):
+         data[entryName] = sectionCfg[ entryName ]
+     
+    return {"op":"getRegistryProperties", "success":1, "data": data}
   
   def getSectionCfg(self, sectionPath):
     sectionCfg = None
@@ -191,7 +221,9 @@ class RegistryManagerHandler(WebSocketHandler):
     ret = self.__deleteItem(params)
     if ret["success"] == 1:
       ret = self.__addItem(params)
+      ret["op"] = "editItem"
       return ret
+    ret["op"] = "editItem"
     return ret
     
     sectionPath = "/Registry/"
@@ -244,17 +276,14 @@ class RegistryManagerHandler(WebSocketHandler):
     sectionCfg = self.getSectionCfg(sectionPath)
       
     for opt in sectionCfg.listAll():
-      print "deleting "+opt+"\n"
-      self.__configData[ 'cfgData' ].removeOption(sectionPath+"/"+opt)
+      print "deleting " + opt + "\n"
+      self.__configData[ 'cfgData' ].removeOption(sectionPath + "/" + opt)
     
-    cfgData = self.__configData[ 'cfgData' ].getCFG()
     newCFG = CFG()
     newCFG.loadFromBuffer(configText)
     self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
     return {"success":1, "op": "editItem"}  
         
-    
-  
   def __deleteItem(self, params):
     sectionPath = "/Registry/"
     
@@ -271,3 +300,41 @@ class RegistryManagerHandler(WebSocketHandler):
     else:
       return {"success":0, "op":"deleteItem", "message":"Entity doesn't exist"}
   
+  def __commitChanges(self):
+    data = self.getSessionData()
+    isAuth = False
+    if "properties" in data["user"]:
+      if "CSAdministrator" in data["user"]["properties"]:
+        isAuth = True
+    if not isAuth:
+      return {"success":0, "op":"commitChanges", "message":"You are not authorized to commit changes!!"}
+    gLogger.always("User %s is commiting a new configuration version" % data["user"]["DN"])
+    retDict = self.__configData[ 'cfgData' ].commit()
+    if not retDict[ 'OK' ]:
+      return {"success":0, "op":"commitChanges", "message":retDict[ 'Message' ]}
+    return {"success":1, "op":"commitChanges"}
+  
+  def __saveRegistryProperties(self, params):
+    sectionPath = "/Registry"
+    sectionCfg = self.getSectionCfg(sectionPath)
+      
+    for opt in sectionCfg.listAll():
+      if not sectionCfg.isSection(opt):
+        self.__configData[ 'cfgData' ].removeOption(sectionPath + "/" + opt)
+    
+    configText = ""
+    
+    for newOpt in params:
+      if newOpt != "op":
+        if configText == "":
+          configText = newOpt + "=" + params[newOpt] + "\n"
+        else:
+          configText = configText + newOpt + "=" + params[newOpt] + "\n"
+    
+    newCFG = CFG()
+    newCFG.loadFromBuffer(configText)
+    self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
+    
+    return {"op":"saveRegistryProperties", "success": 1}
+    
+    
