@@ -720,7 +720,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         //var desktopName = activeDesktop.title;
         //me.refreashTree(desktopName, appClassName);
       } else {
-        Ext.dirac.system_info.msg("Error", 'Please open an application!!! ');
+        Ext.dirac.system_info.msg("Error", 'You do not have any active tab on the desktop. Please select a tab (application) in the current desktop!!!');
       }
     } else {
       Ext.dirac.system_info.msg("Error", 'Please open a dektop!!! ');
