@@ -2,7 +2,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	extend : 'Ext.dirac.core.Module',
 
 	requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging",
-			"Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea" ],
+			"Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.dirac.utils.DiracToolButton" ],
 
 	loadState : function(data) {
 
@@ -1145,7 +1145,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			columns : [ {
 				header : me.checkboxFunctionDefinition,
 				name : 'checkBox',
-				id : 'checkBox',
+				//id : 'checkBox',
 				width : 26,
 				sortable : false,
 				dataIndex : 'JobIDcheckBox',
