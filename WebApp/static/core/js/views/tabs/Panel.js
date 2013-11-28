@@ -31,7 +31,7 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
   listeners : {
     beforeclose : function(panel, eOpts ){
       var me = this;
-      Ext.MessageBox.confirm('Confirm', 'There is an active desktop state. Do you want to save the current state?', function(button) {
+      Ext.MessageBox.confirm('Confirm', 'There is an active application state. Do you want to save the current state?', function(button) {
         var me = this;
         if (button == 'yes') {
           var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
@@ -53,7 +53,7 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
               if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                 GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
             }
-
+            panel.removeAndclose(panel);
           };
           GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave);
 
