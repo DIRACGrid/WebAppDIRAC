@@ -47,6 +47,10 @@ class RegistryManagerHandler(WebSocketHandler):
       res = self.__getRegistryProperties()
     elif params["op"] == "saveRegistryProperties":
       res = self.__saveRegistryProperties(params)
+    elif params["op"] == "getVomsMapping":
+      res = self.__getVomsMapping()
+    elif params["op"] == "saveVomsMapping":
+      res = self.__saveVomsMapping(params)
     
     if res:
       self.write_message(res)
@@ -131,6 +135,17 @@ class RegistryManagerHandler(WebSocketHandler):
       data.append([group])
       
     return {"op":"getGroupList", "success":1, "data": data}
+  
+  def __getVomsMapping(self):
+    data = []
+    
+    sectionPath = "/Registry/VOMS/Mapping"
+    sectionCfg = self.getSectionCfg(sectionPath)
+    
+    for mapping in sectionCfg.listAll():
+      data.append({"name": mapping, "value": sectionCfg[mapping]})
+      
+    return {"op":"getVomsMapping", "success":1, "data": data}
   
   def __getRegistryProperties(self):
     sectionPath = "/Registry"
@@ -336,5 +351,28 @@ class RegistryManagerHandler(WebSocketHandler):
     self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
     
     return {"op":"saveRegistryProperties", "success": 1}
+  
+  def __saveVomsMapping(self, params):
+    sectionPath = "/Registry/VOMS/Mapping"
+    sectionCfg = self.getSectionCfg(sectionPath)
+      
+    for opt in sectionCfg.listAll():
+      if not sectionCfg.isSection(opt):
+        self.__configData[ 'cfgData' ].removeOption(sectionPath + "/" + opt)
+    
+    configText = ""
+    
+    for newOpt in params:
+      if newOpt != "op":
+        if configText == "":
+          configText = newOpt + "=" + params[newOpt] + "\n"
+        else:
+          configText = configText + newOpt + "=" + params[newOpt] + "\n"
+    
+    newCFG = CFG()
+    newCFG.loadFromBuffer(configText)
+    self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
+    
+    return {"op":"saveVomsMapping", "success": 1}
     
     

@@ -221,7 +221,10 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 							me.getContainer().body.unmask();
 							me.__createRegistryPropertiesForm(oResponse.data);
 							break;
-
+						case "getVomsMapping":
+							me.getContainer().body.unmask();
+							me.__createVomsMappingForm(oResponse.data);
+							break;
 						}
 					}
 
@@ -303,16 +306,27 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 					value : "users"
 				});
 
-				me.btnActivateRegistryPropertiesForm = new Ext.Button({
-					text : 'Registry Properties',
-					iconCls : "dirac-icon-list",
-					handler : function() {
-						me.getContainer().body.mask("Loading ...");
-						me.__sendSocketMessage({
-							op : "getRegistryProperties"
-						});
-					},
-					scope : me
+				me.otherDataMenu = new Ext.Button({
+					text : "Other Data",
+					menu : [ {
+						iconCls : "dirac-icon-list",
+						handler : function() {
+							me.getContainer().body.mask("Loading ...");
+							me.__sendSocketMessage({
+								op : "getRegistryProperties"
+							});
+						},
+						text : 'Registry Properties'
+					}, {
+						iconCls : "dirac-icon-list",
+						handler : function() {
+							me.getContainer().body.mask("Loading ...");
+							me.__sendSocketMessage({
+								op : "getVomsMapping"
+							});
+						},
+						text : 'VOMS Mapping'
+					} ]
 				});
 
 				me.btnCommitChanges = new Ext.Button({
@@ -332,7 +346,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 
 				var oLeftPanelTopToolbar = new Ext.toolbar.Toolbar({
 					dock : 'top',
-					items : [ me.cbDataTypes, '->', me.btnActivateRegistryPropertiesForm, me.btnCommitChanges ]
+					items : [ me.cbDataTypes, '->', me.otherDataMenu, me.btnCommitChanges ]
 				});
 
 				me.gridFields = {
@@ -609,6 +623,11 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 									oDataToSend.op = "saveRegistryProperties";
 									me.__sendSocketMessage(oDataToSend);
 									me.__setChangeMade(true);
+								} else if (me.rightPanel.currentType == "voms_mapping") {
+									var oDataToSend = me.__collectRegistryProperties();
+									oDataToSend.op = "saveVomsMapping";
+									me.__sendSocketMessage(oDataToSend);
+									me.__setChangeMade(true);
 								} else {
 
 									var oDataToSend = {};
@@ -688,6 +707,11 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 								me.getContainer().body.mask("Loading ...");
 								me.__sendSocketMessage({
 									op : "getRegistryProperties"
+								});
+							} else if (me.rightPanel.currentType == "voms_mapping") {
+								me.getContainer().body.mask("Loading ...");
+								me.__sendSocketMessage({
+									op : "getVomsMapping"
 								});
 							} else {
 
@@ -1341,7 +1365,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 						margin : 3,
 						handler : function() {
 							me.rightPanel.remove(this.up("container"));
-						}
+						},
+						tooltip : "Remove this item"
 					} ]
 
 				});
@@ -1437,6 +1462,39 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 				}
 
 				return oData;
+
+			},
+			__createVomsMappingForm : function(oData) {
+
+				var me = this;
+
+				me.rightPanel.currentType = "voms_mapping";
+
+				me.rightPanel.removeAll();
+				me.rightPanel.setTitle("VOMS Mapping");
+
+				var oRegistryToolbar = new Ext.toolbar.Toolbar({
+					border : 0,
+					items : [ '->', {
+						xtype : "button",
+						iconCls : "dirac-icon-plus",
+						margin : 3,
+						tooltip : "Create option",
+						handler : function() {
+							me.__showFormForRegistryOption();
+						}
+					} ]
+				});
+
+				me.rightPanel.add(oRegistryToolbar);
+
+				for ( var i = 0; i < oData.length; i++) {
+
+					me.rightPanel.add(me.__createRegistryProperty(oData[i]["name"], oData[i]["value"]));
+
+				}
+
+				me.activeRecordInForm = oData;
 
 			}
 
