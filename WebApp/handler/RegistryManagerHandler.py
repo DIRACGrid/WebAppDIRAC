@@ -122,6 +122,32 @@ class RegistryManagerHandler(WebSocketHandler):
         item["properties"] = self.getIfExists("Properties", props)
         
         data.append(item)
+        
+    elif params["type"] == "voms":
+      sectionPath = "/Registry/VOMS/Servers"
+      sectionCfg = self.getSectionCfg(sectionPath)
+      
+      for host in sectionCfg.listAll():
+        item = {}
+        item["name"] = host
+        
+        data.append(item)
+        
+    elif params["type"] == "servers":
+      sectionPath = "/Registry/VOMS/Servers/" + params["vom"]
+      sectionCfg = self.getSectionCfg(sectionPath)
+      
+      for serv in sectionCfg.listAll():
+        item = {}
+        item["name"] = serv
+        props = sectionCfg[serv]
+        
+        item["dn"] = self.getIfExists("DN", props)
+        item["ca"] = self.getIfExists("CA", props)
+        item["port"] = self.getIfExists("Port", props)
+        
+        data.append(item)    
+    
     
     return {"op":"getData", "success":1, "type": params["type"], "data": data}
   
@@ -220,6 +246,22 @@ class RegistryManagerHandler(WebSocketHandler):
       if params["properties"].strip() != "":
         configText = configText + "Properties = " + params["properties"].strip()
     
+    elif params["type"] == "voms":
+      
+      sectionPath = sectionPath + "VOMS/Servers"
+        
+    elif params["type"] == "servers":
+      
+      sectionPath = sectionPath + "VOMS/Servers/" + params["vom"]
+      if params["dn"].strip() != "":
+        configText = "DN = " + params["dn"].strip() + "\n"
+        
+      if params["port"].strip() != "":
+        configText = configText + "Port = " + params["port"].strip() + "\n"
+      
+      if params["ca"].strip() != "":
+        configText = configText + "CA = " + params["ca"].strip()
+    
     sectionPath = sectionPath + "/" + params["name"]
     
     if self.__configData[ 'cfgData' ].createSection(sectionPath):
@@ -308,6 +350,10 @@ class RegistryManagerHandler(WebSocketHandler):
       sectionPath = sectionPath + "Groups"
     elif params["type"] == "hosts":
       sectionPath = sectionPath + "Hosts"
+    elif params["type"] == "voms":
+      sectionPath = sectionPath + "VOMS/Servers"
+    elif params["type"] == "servers":
+      sectionPath = sectionPath + "VOMS/Servers/" + params["vom"]
     
     sectionPath = sectionPath + "/" + params["name"]
     if self.__configData[ 'cfgData' ].removeOption(sectionPath) or self.__configData[ 'cfgData' ].removeSection(sectionPath):
