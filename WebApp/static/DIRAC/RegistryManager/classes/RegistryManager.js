@@ -104,8 +104,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 				socket.onmessage = function(e) {
 
 					var oResponse = JSON.parse(e.data);
-					//console.log("RESPONSE");
-					//console.log(oResponse);
+					// console.log("RESPONSE");
+					// console.log(oResponse);
 
 					if (parseInt(oResponse.success, 10) == 0) {
 
@@ -149,7 +149,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 
 							me.__sendSocketMessage({
 								op : "getData",
-								type : me.cbDataTypes.getValue()
+								type : me.getSelectedType()
 							});
 							break;
 						case "getData":
@@ -199,8 +199,6 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 									direction : 'ASC'
 								} ]);
 
-								
-
 								if (!me.firstTimeReadUsers) {
 
 									for ( var i = 0; i < oResponse.data.length; i++) {
@@ -210,8 +208,9 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 									me.firstTimeReadUsers = true;
 								}
 							}
-							
+
 							me.grid.body.unmask();
+							me.serversGrid.body.unmask();
 
 							break;
 						case "addItem":
@@ -336,54 +335,58 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 					currentRecord : null
 				});
 
-				// drop-down menu with values
-
-				me.cbDataTypes = Ext.create('Ext.form.field.ComboBox', {
-					margin : "0 0 0 5",
-					fieldLabel : "Data",
-					queryMode : 'local',
-					labelAlign : 'left',
-					displayField : "text",
-					valueField : "value",
-					labelWidth : 30,
-					anchor : '100%',
-					editable : false,
-					store : new Ext.data.SimpleStore({
-						fields : [ 'value', 'text' ],
-						data : [ [ "users", "Users" ], [ "groups", "Groups" ], [ "hosts", "Hosts" ] ]
-					}),
-					listeners : {
-						change : function(field, newValue, oldValue, eOpts) {
+				me.otherDataMenu = new Ext.Button({
+					text : "Users",
+					menu : [ {
+						handler : function() {
+							me.otherDataMenu.setText("Users");
 
 							me.grid.body.mask("Loading ...");
 							me.__sendSocketMessage({
 								op : "getData",
-								type : newValue
+								type : "users"
 							});
 
-						}
-					},
-					value : "users"
-				});
-
-				me.otherDataMenu = new Ext.Button({
-					text : "Users / Groups / Hosts",
-					menu : [ {
-						iconCls : "dirac-icon-list",
-						handler : function() {
-							me.otherDataMenu.setText("Users / Groups / Hosts");
 							me.centralWorkPanel.getLayout().setActiveItem(0);
+
 						},
-						text : 'Users / Groups / Hosts'
+						text : 'Users'
 					}, {
-						iconCls : "dirac-icon-list",
+						handler : function() {
+							me.otherDataMenu.setText("Groups");
+
+							me.grid.body.mask("Loading ...");
+							me.__sendSocketMessage({
+								op : "getData",
+								type : "groups"
+							});
+
+							me.centralWorkPanel.getLayout().setActiveItem(0);
+
+						},
+						text : 'Groups'
+					}, {
+						handler : function() {
+							me.otherDataMenu.setText("Hosts");
+
+							me.grid.body.mask("Loading ...");
+							me.__sendSocketMessage({
+								op : "getData",
+								type : "hosts"
+							});
+
+							me.centralWorkPanel.getLayout().setActiveItem(0);
+
+						},
+						text : 'Hosts'
+					}, {
 						handler : function() {
 							me.otherDataMenu.setText("VOMS Servers");
 							me.centralWorkPanel.getLayout().setActiveItem(1);
+
 						},
 						text : 'VOMS Servers'
 					}, '-', {
-						iconCls : "dirac-icon-list",
 						handler : function() {
 							me.getContainer().body.mask("Loading ...");
 							me.__sendSocketMessage({
@@ -392,7 +395,6 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 						},
 						text : 'Registry Properties'
 					}, {
-						iconCls : "dirac-icon-list",
 						handler : function() {
 							me.getContainer().body.mask("Loading ...");
 							me.__sendSocketMessage({
@@ -420,7 +422,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 
 				var oLeftPanelTopToolbar = new Ext.toolbar.Toolbar({
 					dock : 'top',
-					items : [ me.otherDataMenu, me.cbDataTypes, '->', me.btnCommitChanges ]
+					items : [ me.otherDataMenu, '->', me.btnCommitChanges ]
 				});
 
 				me.gridFields = {
@@ -637,22 +639,9 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 					columns : me.gridColumns["users"],
 					listeners : {
 
-						beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
-							e.preventDefault();
-							var sNewNoun = me.cbDataTypes.getValue().substr(0, me.cbDataTypes.getValue().length - 1);
-
-							me.gridContextMenu.items.getAt(0).setText("New " + sNewNoun);
-							me.gridContextMenu.items.getAt(1).setText("Edit " + sNewNoun);
-							me.gridContextMenu.items.getAt(2).setText("Delete " + sNewNoun);
-							me.gridContextMenu.selectedType = me.cbDataTypes.getValue();
-
-							me.gridContextMenu.showAt(e.xy);
-							return false;
-						},
-
 						cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 
-							switch (me.cbDataTypes.getValue()) {
+							switch (me.getSelectedType()) {
 
 							case "users":
 								me.__createUserForm(record);
@@ -691,8 +680,9 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 				me.vomsGrid = Ext.create('Ext.grid.Panel', {
 					region : 'north',
 					store : me.dataVomsStore,
-					height : '300',
+					height : 200,
 					header : false,
+					border : false,
 					viewConfig : {
 						stripeRows : true,
 						enableTextSelection : true
@@ -700,20 +690,10 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 					columns : me.gridColumns["voms"],
 					listeners : {
 
-						beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
-							e.preventDefault();
-							me.gridContextMenu.items.getAt(0).setText("New VO");
-							me.gridContextMenu.items.getAt(1).setText("Edit VO");
-							me.gridContextMenu.items.getAt(2).setText("Delete VO");
-							me.gridContextMenu.selectedType = "voms";
-							me.gridContextMenu.showAt(e.xy);
-							return false;
-						},
-
 						cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 
 							me.serversGrid.vom = record.get("name");
-							
+
 							me.serversGrid.body.mask("Loading ...");
 							me.__sendSocketMessage({
 								op : "getData",
@@ -743,16 +723,6 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 					},
 					columns : me.gridColumns["servers"],
 					listeners : {
-
-						beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
-							e.preventDefault();
-							me.gridContextMenu.items.getAt(0).setText("New server");
-							me.gridContextMenu.items.getAt(1).setText("Edit server");
-							me.gridContextMenu.items.getAt(2).setText("Delete server");
-							me.gridContextMenu.selectedType = "servers";
-							me.gridContextMenu.showAt(e.xy);
-							return false;
-						},
 
 						cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
 
@@ -791,7 +761,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 								}
 							} else {
 
-								switch (me.cbDataTypes.getValue()) {
+								switch (me.getSelectedType()) {
 
 								case "users":
 									me.__createUserForm(null);
@@ -829,7 +799,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 
 								var record = GLOBAL.APP.CF.getSelectedRecords(me.grid)[0];
 
-								switch (me.cbDataTypes.getValue()) {
+								switch (me.getSelectedType()) {
 
 								case "users":
 									me.__createUserForm(record);
@@ -864,7 +834,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 
 							} else {
 								var sName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "name");
-								me.__deleteItem(sName, me.cbDataTypes.getValue());
+								me.__deleteItem(sName, me.getSelectedType());
 							}
 
 						},
@@ -998,8 +968,13 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 						margin : 3,
 						iconCls : "dirac-icon-reset",
 						handler : function() {
+							var oRecord = me.rightPanel.currentRecord;
 
-							if (me.rightPanel.currentType == "registry") {
+							if (me.rightPanel.currentType == "voms") {
+								me.__createVomsForm(oRecord);
+							} else if (me.rightPanel.currentType == "servers") {
+								me.__createServerForm(oRecord);
+							} else if (me.rightPanel.currentType == "registry") {
 								me.getContainer().body.mask("Loading ...");
 								me.__sendSocketMessage({
 									op : "getRegistryProperties"
@@ -1011,9 +986,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 								});
 							} else {
 
-								var oRecord = me.rightPanel.currentRecord;
-
-								switch (me.cbDataTypes.getValue()) {
+								switch (me.getSelectedType()) {
 
 								case "users":
 									me.__createUserForm(oRecord);
@@ -1023,12 +996,6 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 									break;
 								case "hosts":
 									me.__createHostForm(oRecord);
-									break;
-								case "voms":
-									me.__createVomsForm(oRecord);
-									break;
-								case "servers":
-									me.__createServerForm(oRecord);
 									break;
 								}
 
@@ -1054,12 +1021,77 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 
 			},
 
+			getSelectedType : function() {
+
+				var me = this;
+				var sResponse = "";
+
+				switch (me.otherDataMenu.text) {
+
+				case "Users":
+					sResponse = "users";
+					break;
+				case "Groups":
+					sResponse = "groups";
+					break;
+				case "Hosts":
+					sResponse = "hosts";
+					break;
+				default:
+					sResponse = "";
+				}
+
+				return sResponse;
+			},
+
 			afterRender : function() {
 				var me = this;
 
 				me.__setDiracDestroyHandler();
 
 				this.callParent();
+
+				me.serversGrid.body.on("contextmenu", function(e, t, eOpts) {
+					e.preventDefault();
+
+					me.gridContextMenu.items.getAt(0).setText("New server");
+					me.gridContextMenu.items.getAt(1).setText("Edit server");
+					me.gridContextMenu.items.getAt(2).setText("Delete server");
+					me.gridContextMenu.selectedType = "servers";
+					me.gridContextMenu.showAt(GLOBAL.MOUSE_X, GLOBAL.MOUSE_Y);
+
+					e.stopPropagation();
+					e.stopEvent();
+				});
+
+				me.vomsGrid.body.on("contextmenu", function(e, t, eOpts) {
+					e.preventDefault();
+
+					me.gridContextMenu.items.getAt(0).setText("New VOMS");
+					me.gridContextMenu.items.getAt(1).setText("Edit VOMS");
+					me.gridContextMenu.items.getAt(2).setText("Delete VOMS");
+					me.gridContextMenu.selectedType = "voms";
+					me.gridContextMenu.showAt(GLOBAL.MOUSE_X, GLOBAL.MOUSE_Y);
+
+					e.stopPropagation();
+					e.stopEvent();
+				});
+
+				me.grid.body.on("contextmenu", function(e, t, eOpts) {
+					e.preventDefault();
+					var sNewNoun = me.getSelectedType().substr(0, me.getSelectedType().length - 1);
+
+					me.gridContextMenu.items.getAt(0).setText("New " + sNewNoun);
+					me.gridContextMenu.items.getAt(1).setText("Edit " + sNewNoun);
+					me.gridContextMenu.items.getAt(2).setText("Delete " + sNewNoun);
+					me.gridContextMenu.selectedType = me.getSelectedType();
+
+					me.gridContextMenu.showAt(GLOBAL.MOUSE_X, GLOBAL.MOUSE_Y);
+
+					e.stopPropagation();
+					e.stopEvent();
+				});
+
 			},
 
 			__getGroupList : function() {
@@ -1736,8 +1768,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 			__sendSocketMessage : function(oData) {
 
 				var me = this;
-				//console.log("SEND");
-				//console.log(oData);
+				// console.log("SEND");
+				// console.log(oData);
 				if (!me.isConnectionEstablished) {
 
 					var sMessage = "There is no connection established with the server.\nDo you want to reconnect now?";

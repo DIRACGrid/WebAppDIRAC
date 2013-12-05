@@ -2328,7 +2328,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 			me.createWindow("app", oDataItems[0], oSetupData);
 
 		} else {
-
+			
 			for ( var i = 0, len = oDataReceived["data"].length; i < len; i++) {
 
 				var appStateData = oDataReceived["data"][i];
