@@ -247,7 +247,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			collapsible : true,
 			layout : 'anchor'
 		});
-
+		
 		me.cmbTimeSpan = Ext.create('Ext.form.field.ComboBox', {
 			queryMode : 'local',
 			displayField : "text",

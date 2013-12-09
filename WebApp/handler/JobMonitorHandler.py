@@ -210,7 +210,7 @@ class JobMonitorHandler(WebHandler):
     req = {}
     group = sData["user"]["group"]
     user = sData["user"]["username"]
-
+    
     if self.request.arguments.has_key("limit") and len(self.request.arguments["limit"][0]) > 0:
       self.numberOfJobs = int(self.request.arguments["limit"][0])
       if self.request.arguments.has_key("start") and len(self.request.arguments["start"][0]) > 0:
@@ -319,7 +319,7 @@ class JobMonitorHandler(WebHandler):
   def web_jobData(self):
     id = int(self.request.arguments["id"][0])
     callback = {}
-
+    
     if self.request.arguments["data_kind"][0] == "getJDL":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
       result = yield self.threadTask(RPC.getJobJDL, id)

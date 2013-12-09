@@ -1136,7 +1136,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.grid = Ext.create('Ext.grid.Panel', {
 			region : 'center',
 			store : me.dataStore,
-			height : '600',
+
 			header : false,
 			viewConfig : {
 				stripeRows : true,
@@ -2095,7 +2095,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			startTime : sStartTime,
 			endDate : sEndDate,
 			endTime : sEndTime
-
 		};
 
 		return extraParams;
