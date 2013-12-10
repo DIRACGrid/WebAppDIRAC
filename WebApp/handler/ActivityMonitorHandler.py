@@ -1,7 +1,9 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
+import tempfile
 import json
 import ast
 
@@ -63,11 +65,9 @@ class ActivityMonitorHandler(WebHandler):
       if 'size' not in self.request.arguments:
         self.finish({ 'success' : "false", 'error' : "Missing plotsize in plot request" })
         return
-      plotRequest[ 'size' ] = self.request.arguments[ 'size' ][0]
-      if 'time' not in self.request.arguments:
-        self.finish({ 'success' : "false", 'error' : "Missing time span in plot request" })
-        return
-      timespan = self.request.arguments[ 'timespan' ][0]
+      plotRequest[ 'size' ] = int(self.request.arguments[ 'size' ][0])
+      
+      timespan = int(self.request.arguments[ 'timespan' ][0])
       if timespan < 0:
         toSecs = self.__dateToSecs(str(self.request.arguments[ 'toDate' ][0]))
         fromSecs = self.__dateToSecs(str(self.request.arguments[ 'fromDate' ][0]))
@@ -81,6 +81,8 @@ class ActivityMonitorHandler(WebHandler):
     except Exception, e:
       self.finish({ 'success' : "false", 'error' : "Error while processing plot parameters: %s" % str(e) })
       return
+    
+    print plotRequest
     
     rpcClient = RPCClient("Framework/Monitoring")
     retVal = yield self.threadTask(rpcClient.plotView, plotRequest)
@@ -98,4 +100,32 @@ class ActivityMonitorHandler(WebHandler):
       self.finish({"success":"false", "error":retVal["Message"]})
     else:
       self.finish({"success":"true", "result":retVal["Value"]})
-    
+      
+  @asyncGen
+  def web_getPlotImg( self ):
+    """
+    Get plot image
+    """
+    callback = {}
+    if 'file' not in self.request.arguments:
+      callback = {"success":"false","error":"Maybe you forgot the file?"}
+      self.finish(callback)
+      return
+    plotImageFile = str( self.request.arguments[ 'file' ][0] )
+    if plotImageFile.find( ".png" ) < -1:
+      callback = {"success":"false","error":"Not a valid image!"}
+      self.finish(callback)
+      return
+    transferClient = TransferClient( "Framework/Monitoring" )
+    tempFile = tempfile.TemporaryFile()
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    if not retVal[ 'OK' ]:
+      callback = {"success":"false","error":retVal[ 'Message' ]}
+      self.finish(callback)
+      return
+    tempFile.seek( 0 )
+    data = tempFile.read()
+    self.set_header('Content-type','image/png')
+    self.set_header('Content-Length',len( data ))
+    self.set_header('Content-Transfer-Encoding','Binary')
+    self.finish(data)
