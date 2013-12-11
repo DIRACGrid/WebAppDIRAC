@@ -4,6 +4,7 @@ from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
 import tempfile
+import simplejson
 import json
 import ast
 
@@ -102,30 +103,43 @@ class ActivityMonitorHandler(WebHandler):
       self.finish({"success":"true", "result":retVal["Value"]})
       
   @asyncGen
-  def web_getPlotImg( self ):
+  def web_getPlotImg(self):
     """
     Get plot image
     """
     callback = {}
     if 'file' not in self.request.arguments:
-      callback = {"success":"false","error":"Maybe you forgot the file?"}
+      callback = {"success":"false", "error":"Maybe you forgot the file?"}
       self.finish(callback)
       return
-    plotImageFile = str( self.request.arguments[ 'file' ][0] )
-    if plotImageFile.find( ".png" ) < -1:
-      callback = {"success":"false","error":"Not a valid image!"}
+    plotImageFile = str(self.request.arguments[ 'file' ][0])
+    if plotImageFile.find(".png") < -1:
+      callback = {"success":"false", "error":"Not a valid image!"}
       self.finish(callback)
       return
-    transferClient = TransferClient( "Framework/Monitoring" )
+    transferClient = TransferClient("Framework/Monitoring")
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal[ 'OK' ]:
-      callback = {"success":"false","error":retVal[ 'Message' ]}
+      callback = {"success":"false", "error":retVal[ 'Message' ]}
       self.finish(callback)
       return
-    tempFile.seek( 0 )
+    tempFile.seek(0)
     data = tempFile.read()
-    self.set_header('Content-type','image/png')
-    self.set_header('Content-Length',len( data ))
-    self.set_header('Content-Transfer-Encoding','Binary')
+    self.set_header('Content-type', 'image/png')
+    self.set_header('Content-Length', len(data))
+    self.set_header('Content-Transfer-Encoding', 'Binary')
     self.finish(data)
+   
+  @asyncGen  
+  def web_queryFieldValue(self):
+    """
+    Query a value for a field
+    """
+    fieldQuery = str(self.request.arguments[ 'queryField' ][0])
+    definedFields = simplejson.loads(self.request.arguments[ 'selectedFields' ][0])
+    rpcClient = RPCClient("Framework/Monitoring")
+    result = yield self.threadTask(rpcClient.queryField, fieldQuery, definedFields)
+    if 'rpcStub' in result:
+      del(result[ 'rpcStub' ])
+    self.finish({"success":"true", "result":result["Value"]})

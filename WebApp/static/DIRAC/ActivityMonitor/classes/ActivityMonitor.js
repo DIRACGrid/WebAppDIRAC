@@ -47,13 +47,13 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			items : []
 		});
 
+		me.__buildPlotManagement();
 		me.__buildPlotViewer();
 
 		/*
 		 * Only the delete handle of proxies is missing
 		 */
 		me.__buildActivityMonitor();
-		me.__buildPlotManagement();
 
 		me.add([ me.mainPanel ]);
 
@@ -134,10 +134,12 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			}
 		});
 
+		var sGridId = Ext.id();
+
 		var sCheckboxDefinition = "";
 		sCheckboxDefinition += '<input type="checkbox" value="" onchange="';
 		sCheckboxDefinition += 'var oChecked=this.checked;';
-		sCheckboxDefinition += 'var oElems=Ext.query(\'#' + me.id + ' input.checkrow\');';
+		sCheckboxDefinition += 'var oElems=Ext.query(\'#' + sGridId + ' input.checkrow\');';
 		sCheckboxDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
 		sCheckboxDefinition += '" class="am-main-check-box"/>';
 
@@ -243,65 +245,91 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			layout : 'border',
 			header : false,
 			border : false,
-			items : []
-		});
-
-		// the grid with the views
-
-		me.plotManagementListStorePanel = new Ext.data.JsonStore({
-
-			proxy : {
-				type : 'ajax',
-				url : GLOBAL.BASE_URL + 'ActivityMonitor/getViewsData',
-				reader : {
-					type : 'json',
-					root : 'result'
-				},
-				timeout : 1800000
-			},
-			fields : [ "name" ],
-			remoteSort : true,
-			pageSize : 100,
-			listeners : {
-
-				load : function(oStore, records, successful, eOpts) {
-
-					var bResponseOK = (oStore.proxy.reader.rawData["success"] == "true");
-
-					if (!bResponseOK) {
-
-						GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "info");
-
-					}
-				}
-
+			items : [],
+			defaults : {
+				collapsible : true,
+				split : true
 			}
 		});
+
+		var sGridId = Ext.id();
+
+		var sCheckboxDefinition = "";
+		sCheckboxDefinition += '<input type="checkbox" value="" onchange="';
+		sCheckboxDefinition += 'var oChecked=this.checked;';
+		sCheckboxDefinition += 'var oElems=Ext.query(\'#' + sGridId + ' input.checkrow\');';
+		sCheckboxDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
+		sCheckboxDefinition += '" class="am-main-check-box"/>';
 
 		me.plotManagementListPanel = Ext.create('Ext.grid.Panel', {
 			region : "south",
 			height : 300,
-			store : me.plotManagementListStorePanel,
+			store : null,
 			header : false,
 			viewConfig : {
 				stripeRows : true,
 				enableTextSelection : true
 			},
 			columns : [ {
+				header : sCheckboxDefinition,
+				name : 'checkBox',
+				width : 26,
+				sortable : false,
+				dataIndex : 'id',
+				renderer : function(value, metaData, record, row, col, store, gridView) {
+					return this.rendererChkBox(value);
+				},
+				hideable : false,
+				fixed : true,
+				menuDisabled : true,
+				align : "center"
+			}, {
 				header : "Name",
 				sortable : true,
+				width : 300,
 				dataIndex : 'name'
-			} ]
+			}, {
+				header : "Variable Fields",
+				sortable : true,
+				dataIndex : 'variable_fields',
+				flex : 1
+			} ],
+			refreshData : function() {
+
+				Ext.Ajax.request({
+					url : GLOBAL.BASE_URL + 'ActivityMonitor/getStaticPlotViews',
+					scope : me,
+					success : function(response) {
+
+						var me = this;
+						var response = Ext.JSON.decode(response.responseText);
+
+						me.plotManagementListPanel.reconfigure(new Ext.data.SimpleStore({
+							fields : [ 'id', 'name', 'variable_fields' ],
+							data : response.result
+						}), undefined);
+					}
+				});
+
+			},
+			rendererChkBox : function(val) {
+				return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
+			},
 		});
+
+		me.plotManagementListPanel.refreshData();
 
 		// -------------------------------------------------------------------------------------
 
 		var oTopPanel = new Ext.create('Ext.panel.Panel', {
-			region : "top",
+			region : "center",
 			floatable : false,
 			layout : 'border',
 			header : false,
-			items : []
+			defaults : {
+				collapsible : true,
+				split : true
+			}
 		});
 
 		me.plotManagementFieldCreator = new Ext.create('Ext.panel.Panel', {
@@ -309,18 +337,72 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			floatable : false,
 			layout : 'anchor',
 			header : false,
-			width : 250,
-			items : []
+			width : 350,
+			bodyPadding : 5,
+			dockedItems : [ {
+				dock : "top",
+				xtype : "toolbar",
+				border : false,
+				layout : {
+					pack : 'center'
+				},
+				items : [ "->", {
+					xtype : "button",
+					iconCls : "dirac-icon-plus",
+					text : "Add to view definition",
+					handler : function() {
+
+						var sTypeValue = me.restrictByFieldCreator.getValue();
+						var sTypeText = me.restrictByFieldCreator.findRecordByValue(sTypeValue).get("text");
+
+					}
+				} ]
+			} ]
 		});
+
+		me.viewDefinitionData = {};
 
 		me.restrictByFieldCreator = Ext.create('Ext.form.field.ComboBox', {
 			fieldLabel : "Restrict by",
 			queryMode : 'local',
 			labelAlign : 'left',
-			displayField : "value",
+			displayField : "text",
 			valueField : "value",
 			anchor : '100%',
-			editable : false
+			editable : false,
+			store : new Ext.data.SimpleStore({
+				fields : [ 'value', 'text' ],
+				data : [ [ "sources.site", "Site" ], [ "sources.componentType", "Component type" ], [ "sources.componentLocation", "Component location" ], [ "sources.componentName", "Component name" ],
+						[ "activities.description", "Activity" ], [ "activities.category", "Activity category" ] ]
+			}),
+			value : null,
+			listeners : {
+				change : function(oComp, sNewValue, sOldValue, eOpts) {
+
+					Ext.Ajax.request({
+						url : GLOBAL.BASE_URL + 'ActivityMonitor/queryFieldValue',
+						params : {
+							queryField : sNewValue,
+							selectedFields : Ext.JSON.encode(me.viewDefinitionData)
+						},
+						scope : me,
+						success : function(response) {
+
+							var response = Ext.JSON.decode(response.responseText);
+
+							me.valuesFieldCreator.store.removeAll();
+
+							oData = response.result;
+
+							for ( var i = 0; i < oData.length; i++)
+								me.valuesFieldCreator.store.add({
+									"value" : Ext.util.Format.trim(oData[i][0])
+								});
+						}
+					});
+
+				}
+			}
 		});
 
 		me.valuesFieldCreator = new Ext.ux.form.MultiSelect({
@@ -353,8 +435,20 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			floatable : false,
 			layout : 'anchor',
 			header : false,
-			width : 250,
-			items : []
+			width : 350,
+			bodyPadding : 5,
+			dockedItems : [ {
+				dock : "top",
+				xtype : "toolbar",
+				border : false,
+				layout : {
+					pack : 'center'
+				},
+				items : [ "->", {
+					xtype : "button",
+					text : "Test View"
+				} ]
+			} ]
 		});
 
 		me.checkGroupByViewOptions = new Ext.create("Ext.form.CheckboxGroup", {
