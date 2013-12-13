@@ -142,6 +142,36 @@ class ActivityMonitorHandler(WebHandler):
     result = yield self.threadTask(rpcClient.queryField, fieldQuery, definedFields)
     if 'rpcStub' in result:
       del(result[ 'rpcStub' ])
-    print result["OK"]
-    self.finish({"success":"true", "result":result["Value"]})
+    
+    if result["OK"]:
+      self.finish({"success":"true", "result":result["Value"]})
+    else:
+      self.finish({"success":"false", "error":result["Message"]})
   
+  @asyncGen    
+  def web_deleteActivities(self):
+    try:
+      webIds = str(self.request.arguments[ 'ids' ][0]).split(",")
+    except Exception, e:
+      self.finish({"success":"false", "error":"No valid id's specified"})
+      return
+    
+    idList = []
+    for webId in webIds:
+      try:
+        idList.append([ int(field) for field in webId.split(".") ])
+      except Exception, e:
+        self.finish({"success":"false", "error":"Error while processing arguments: %s" % str(e)})
+        return
+      
+    rpcClient = RPCClient("Framework/Monitoring")
+    
+    retVal = yield self.threadTask(rpcClient.deleteActivities, idList)
+    
+    if 'rpcStub' in retVal:
+      del(retVal[ 'rpcStub' ])
+      
+    if retVal["OK"]:
+      self.finish({"success":"true"})
+    else:
+      self.finish({"success":"false", "error":retVal["Message"]})

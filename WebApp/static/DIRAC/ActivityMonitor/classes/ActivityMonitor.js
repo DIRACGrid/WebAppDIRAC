@@ -37,8 +37,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 	buildUI : function() {
 
 		var me = this;
-		
-		
+
 		var oToolb = Ext.create('Ext.toolbar.Toolbar', {
 			dock : 'top',
 			border : false,
@@ -71,9 +70,9 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 				allowDepress : false
 			} ]
 		});
-		
+
 		oToolb.items.getAt(0).toggle();
-		
+
 		me.mainPanel = new Ext.create('Ext.panel.Panel', {
 			floatable : false,
 			layout : 'card',
@@ -150,6 +149,33 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			iconCls : "dirac-icon-delete",
 			handler : function() {
 
+				var oElems = Ext.query("#" + me.activityMonitorPanel.id + " input.checkrow");
+
+				var oItems = [];
+
+				for ( var i = 0; i < oElems.length; i++)
+					if (oElems[i].checked)
+						oItems.push(oElems[i].value);
+
+				if (oItems.length < 1) {
+					GLOBAL.APP.CF.alert('No jobs were selected', "error");
+					return;
+				}
+				alert(oItems);
+				return;
+
+				Ext.Ajax.request({
+					url : GLOBAL.BASE_URL + 'ActivityMonitor/deleteActivities',
+					params : {
+						"ids" : oItems.join(",")
+					},
+					scope : me,
+					success : function(response) {
+
+						me.activityMonitorDataStore.store.load();
+
+					}
+				});
 			},
 			tooltip : "Click to delete all selected proxies"
 		});
@@ -177,6 +203,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
 		me.activityMonitorPanel = Ext.create('Ext.grid.Panel', {
 			store : me.activityMonitorDataStore,
+			id : sGridId,
 			header : false,
 			viewConfig : {
 				stripeRows : true,
@@ -347,6 +374,19 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			rendererChkBox : function(val) {
 				return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
 			},
+			dockedItems : [ {
+				dock : "top",
+				xtype : "toolbar",
+				border : false,
+				items : [ "->", {
+					xtype : "button",
+					iconCls : "dirac-icon-delete",
+					text : "Delete",
+					handler : function() {
+					}
+				} ],
+				tooltip : "Delete selected views"
+			} ]
 		});
 
 		me.plotManagementListPanel.refreshData();
@@ -608,15 +648,21 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 					click : function() {
 						var oNode = me.contextTreeMenu.node;
 
-						if (oNode.leaf) {
+						if (oNode.isLeaf()) {
 							oNode = oNode.parentNode;
 						}
 
 						var sType = oNode.raw.text;
 
-						me.restrictByFieldCreator.store.add([ me.viewDefinitionData[sType].value, sType ]);
+						me.restrictByFieldCreator.store.add({
+							"value" : me.viewDefinitionData[sType].value,
+							"text" : sType
+						});
 						delete me.viewDefinitionDataForServer[me.viewDefinitionData[sType].value]
 						delete me.viewDefinitionData[sType]
+
+						var oParentNode = oNode.parentNode;
+						oParentNode.removeChild(oNode);
 
 					}
 				}
