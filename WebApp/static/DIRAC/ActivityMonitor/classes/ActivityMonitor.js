@@ -37,23 +37,55 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 	buildUI : function() {
 
 		var me = this;
-
+		
+		
+		var oToolb = Ext.create('Ext.toolbar.Toolbar', {
+			dock : 'top',
+			border : false,
+			layout : {
+				pack : 'center'
+			},
+			items : [ {
+				xtype : "button",
+				text : "Activity Monitor",
+				handler : function() {
+					me.mainPanel.getLayout().setActiveItem(0);
+				},
+				toggleGroup : me.id + "-ids-submodule",
+				allowDepress : false
+			}, {
+				xtype : "button",
+				text : "Plot Creator",
+				handler : function() {
+					me.mainPanel.getLayout().setActiveItem(1);
+				},
+				toggleGroup : me.id + "-ids-submodule",
+				allowDepress : false
+			}, {
+				xtype : "button",
+				text : "Plot Viewer",
+				handler : function() {
+					me.mainPanel.getLayout().setActiveItem(2);
+				},
+				toggleGroup : me.id + "-ids-submodule",
+				allowDepress : false
+			} ]
+		});
+		
+		oToolb.items.getAt(0).toggle();
+		
 		me.mainPanel = new Ext.create('Ext.panel.Panel', {
 			floatable : false,
 			layout : 'card',
 			region : "center",
 			header : false,
 			border : false,
-			items : []
+			dockedItems : [ oToolb ]
 		});
 
+		me.__buildActivityMonitor();
 		me.__buildPlotManagement();
 		me.__buildPlotViewer();
-
-		/*
-		 * Only the delete handle of proxies is missing
-		 */
-		me.__buildActivityMonitor();
 
 		me.add([ me.mainPanel ]);
 
@@ -332,6 +364,9 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			}
 		});
 
+		me.viewDefinitionData = {};
+		me.viewDefinitionDataForServer = {};
+
 		me.plotManagementFieldCreator = new Ext.create('Ext.panel.Panel', {
 			region : "west",
 			floatable : false,
@@ -353,14 +388,56 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 					handler : function() {
 
 						var sTypeValue = me.restrictByFieldCreator.getValue();
-						var sTypeText = me.restrictByFieldCreator.findRecordByValue(sTypeValue).get("text");
+						var oSelectedValues = me.valuesFieldCreator.getValue();
+
+						if ((sTypeValue != null) && (oSelectedValues.length > 0)) {
+
+							var sTypeText = me.restrictByFieldCreator.findRecordByValue(sTypeValue).get("text");
+
+							me.viewDefinitionData[sTypeText] = {
+								"value" : sTypeValue,
+								"checked" : me.variableFieldCreator.getValue()
+							};
+
+							me.viewDefinitionDataForServer[sTypeValue] = oSelectedValues;
+
+							oNodeData = {
+								"text" : sTypeText,
+								"leaf" : false
+							};
+							var oRoot = me.plotManagementViewTreeStore.getRootNode();
+
+							var oTypeNode = oRoot.createNode(oNodeData);
+							oRoot.appendChild(oTypeNode);
+
+							for ( var i = 0; i < oSelectedValues.length; i++) {
+								var oNewNode = oTypeNode.createNode({
+									"text" : oSelectedValues[i],
+									"leaf" : true
+								});
+								oTypeNode.appendChild(oNewNode);
+							}
+
+							oRoot.expand();
+							oTypeNode.expand();
+
+							// we have to remove the selected option
+
+							me.restrictByFieldCreator.store.remove(me.restrictByFieldCreator.findRecordByValue(sTypeValue));
+
+							// we have to set the value to null
+							me.restrictByFieldCreator.setValue(null);
+							me.valuesFieldCreator.store.removeAll();
+							me.valuesFieldCreator.reset();
+
+						} else {
+							GLOBAL.APP.CF.alert("No values have been selected !", "warning");
+						}
 
 					}
 				} ]
 			} ]
 		});
-
-		me.viewDefinitionData = {};
 
 		me.restrictByFieldCreator = Ext.create('Ext.form.field.ComboBox', {
 			fieldLabel : "Restrict by",
@@ -383,7 +460,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 						url : GLOBAL.BASE_URL + 'ActivityMonitor/queryFieldValue',
 						params : {
 							queryField : sNewValue,
-							selectedFields : Ext.JSON.encode(me.viewDefinitionData)
+							selectedFields : Ext.JSON.encode(me.viewDefinitionDataForServer)
 						},
 						scope : me,
 						success : function(response) {
@@ -394,10 +471,14 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
 							oData = response.result;
 
-							for ( var i = 0; i < oData.length; i++)
+							for ( var i = 0; i < oData.length; i++) {
 								me.valuesFieldCreator.store.add({
 									"value" : Ext.util.Format.trim(oData[i][0])
 								});
+							}
+
+							me.valuesFieldCreator.reset();
+
 						}
 					});
 
@@ -488,14 +569,16 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
 			fieldLabel : "Activities label",
 			labelAlign : "left",
-			value : "$DESCRIPTION"
+			value : "$DESCRIPTION",
+			anchor : "100%"
 
 		});
 
 		me.txtViewNameViewOptions = Ext.create('Ext.form.field.Text', {
 
 			fieldLabel : "View name",
-			labelAlign : "left"
+			labelAlign : "left",
+			anchor : "100%"
 
 		});
 
@@ -516,24 +599,57 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
 		// -------------------------------------------------------------------------------------
 
+		me.contextTreeMenu = new Ext.menu.Menu({
+			width : 150,
+			items : [ {
+				text : 'Delete',
+				iconCls : "dirac-icon-delete",
+				listeners : {
+					click : function() {
+						var oNode = me.contextTreeMenu.node;
+
+						if (oNode.leaf) {
+							oNode = oNode.parentNode;
+						}
+
+						var sType = oNode.raw.text;
+
+						me.restrictByFieldCreator.store.add([ me.viewDefinitionData[sType].value, sType ]);
+						delete me.viewDefinitionDataForServer[me.viewDefinitionData[sType].value]
+						delete me.viewDefinitionData[sType]
+
+					}
+				}
+			} ],
+			moduleObject : me
+		});
+
 		me.plotManagementViewTreeStore = Ext.create('Ext.data.TreeStore', {
 			proxy : {
 				type : 'localstorage'
 			},
 			root : {
 				text : 'View Definition'
-			},
-			listeners : {
-				beforeexpand : function(oNode, eOpts) {
-
-				}
 			}
 		});
 
 		me.plotManagementViewTree = new Ext.create('Ext.tree.Panel', {
 			region : 'center',
 			store : me.plotManagementViewTreeStore,
-			header : false
+			header : false,
+			listeners : {
+
+				beforeitemcontextmenu : function(oView, oNode, item, index, e, eOpts) {
+
+					e.preventDefault();
+					if (oNode.raw.id != "root") {
+						me.contextTreeMenu.node = oNode;
+						me.contextTreeMenu.showAt(e.xy);
+					}
+
+				}
+
+			}
 		});
 
 		// -------------------------------------------------------------------------------------

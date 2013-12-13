@@ -130,7 +130,7 @@ class ActivityMonitorHandler(WebHandler):
     self.set_header('Content-Length', len(data))
     self.set_header('Content-Transfer-Encoding', 'Binary')
     self.finish(data)
-   
+  
   @asyncGen  
   def web_queryFieldValue(self):
     """
@@ -142,4 +142,6 @@ class ActivityMonitorHandler(WebHandler):
     result = yield self.threadTask(rpcClient.queryField, fieldQuery, definedFields)
     if 'rpcStub' in result:
       del(result[ 'rpcStub' ])
+    print result["OK"]
     self.finish({"success":"true", "result":result["Value"]})
+  
