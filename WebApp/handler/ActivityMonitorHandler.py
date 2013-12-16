@@ -1,6 +1,7 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
+from DIRAC.Core.Utilities import List, Time, DEncode
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
 import tempfile
@@ -175,3 +176,42 @@ class ActivityMonitorHandler(WebHandler):
       self.finish({"success":"true"})
     else:
       self.finish({"success":"false", "error":retVal["Message"]})
+  
+  @asyncGen    
+  def web_tryView(self):
+    """
+    Try plotting graphs for a view
+    """
+    try:
+      plotRequest = simplejson.loads(self.request.arguments[ 'plotRequest' ][0])
+      if 'timeLength' in self.request.arguments:
+        timeLength = str(self.request.arguments[ 'timeLength' ][0])
+        toSecs = int(Time.toEpoch())
+        if timeLength == "hour":
+          fromSecs = toSecs - 3600
+        elif timeLength == "day":
+          fromSecs = toSecs - 86400
+        elif timeLength == "month":
+          fromSecs = toSecs - 2592000
+        elif fromSecs == "year":
+          fromDate = toSecs - 31104000
+        else:
+          self.finish({"success":"false", "error":"Time length value not valid"})
+          return
+      else:
+        fromDate = str(self.request.arguments[ 'fromDate' ][0])
+        toDate = str(self.request.arguments[ 'toDate' ][0])
+        fromSecs = self.__dateToSecs(fromDate)
+        toSecs = self.__dateToSecs(toDate)
+    except Exception, e:
+      self.finish({"success":"false", "error":"Error while processing plot parameters: %s" % str(e)})
+      return
+      
+    rpcClient = RPCClient("Framework/Monitoring")
+    requestStub = DEncode.encode(plotRequest)
+    retVal = yield self.threadTask(rpcClient.tryView, fromSecs, toSecs, requestStub)
+    if not retVal[ 'OK' ]:
+      self.finish({"success":"false", "error":retVal["Message"]})
+      return
+    
+    self.finish({"success":"true", 'images' : retVal[ 'Value' ], 'stub' : requestStub})

@@ -567,7 +567,11 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 				},
 				items : [ "->", {
 					xtype : "button",
-					text : "Test View"
+					text : "Test View",
+					handler : function() {
+						me.getContainer().body.mask("Wait ...");
+						me.oprTestView();
+					}
 				} ]
 			} ]
 		});
@@ -579,28 +583,28 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			items : [ {
 				boxLabel : 'Site',
 				name : 'rb',
-				inputValue : '1'
+				inputValue : 'sources.site'
 			}, {
 				boxLabel : 'Component type',
 				name : 'rb',
-				inputValue : '2',
+				inputValue : 'sources.componentType',
 				checked : true
 			}, {
 				boxLabel : 'Component location',
 				name : 'rb',
-				inputValue : '3'
+				inputValue : 'sources.componentLocation'
 			}, {
 				boxLabel : 'Component name',
 				name : 'rb',
-				inputValue : '4'
+				inputValue : 'sources.componentName'
 			}, {
 				boxLabel : 'Activity',
 				name : 'rb',
-				inputValue : '5'
+				inputValue : 'activities.description'
 			}, {
 				boxLabel : 'Activity category',
 				name : 'rb',
-				inputValue : '6'
+				inputValue : 'activities.category'
 			} ]
 
 		});
@@ -981,6 +985,99 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 		oMainPanel.add([ oLeftPanel, oRightPanel ]);
 
 		return oMainPanel;
+
+	},
+
+	generateViewRequest : function() {
+
+		var me = this;
+
+		if (fixedRestictions.length == 0) {
+			GLOBAL.APP.CF.alert("Select at least one non variable restriction", "warning");
+			return;
+		}
+
+		var oGrouping = [];
+		for ( var i = 0; i < me.checkGroupByViewOptions.getCount(); i++) {
+			if (me.checkGroupByViewOptions.get(i).getValue())
+				oGrouping.push(me.checkGroupByViewOptions.get(i).getValue());
+		}
+
+		var sActDesc = me.txtActivityLabelViewOptions.getValue();
+		if (!sActDesc) {
+			GLOBAL.APP.CF.alert("Write the activities description", "warning");
+			return;
+		}
+
+		var bStack = false;
+		if (me.txtStackActivityViewOptions.getValue())
+			var bStack = true;
+
+		return Ext.util.JSON.encode({
+			'groupBy' : oGrouping,
+			'definition' : me.viewDefinitionDataForServer,
+			// 'variable' : variableRestrictions,
+			'stacked' : bStack,
+			'label' : sActDesc
+		});
+
+	},
+
+	oprTestView : function() {
+
+		var me = this;
+
+		var sViewRequest = me.generateViewRequest();
+
+		if (!sViewRequest)
+			return;
+
+		var sViewName = Ext.util.Format.trim(me.txtViewNameViewOptions.getValue());
+
+		if (sViewName.length == 0) {
+			GLOBAL.APP.CF.alert("The name of the view is missing.", "warning");
+			return;
+		}
+
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + 'ActivityMonitor/tryView',
+			success : function(oResponse) {
+				if (response.success == "true") {
+
+					var plotsList = response.images;
+					if (plotsList.length) {
+
+						var oWindow = me.getContainer().createChildWindow(sViewName, false, 700, 500);
+
+						for ( var i = 0; i < plotsList.length; i++) {
+
+							var oNewImage = Ext.create('Ext.Img', {
+								src : GLOBAL.BASE_URL + "ActivityMonitor/getPlotImg?file=" + plotsList[i]
+							});
+
+							oWindow.add(oNewImage);
+
+						}
+
+						oWindow.show();
+
+					}
+
+				} else {
+
+					GLOBAL.APP.CF.alert(response.error, "warning");
+
+				}
+			},
+			failure : function(oRequest) {
+				GLOBAL.APP.CF.alert("Error: " + oRequest.statusText, "warning");
+			},
+			params : {
+				'plotRequest' : sViewRequest,
+				'timeLength' : 'day',
+				'viewName' : sViewName
+			}
+		});
 
 	}
 
