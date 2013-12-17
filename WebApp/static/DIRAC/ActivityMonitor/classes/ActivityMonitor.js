@@ -406,6 +406,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
 		me.viewDefinitionData = {};
 		me.viewDefinitionDataForServer = {};
+		me.viewDefinitionDataForServerVariable = [];
 
 		me.plotManagementFieldCreator = new Ext.create('Ext.panel.Panel', {
 			region : "west",
@@ -439,7 +440,10 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 								"checked" : me.variableFieldCreator.getValue()
 							};
 
-							me.viewDefinitionDataForServer[sTypeValue] = oSelectedValues;
+							if (me.variableFieldCreator.getValue())
+								me.viewDefinitionDataForServerVariable.push(sTypeValue);
+							else
+								me.viewDefinitionDataForServer[sTypeValue] = oSelectedValues;
 
 							oNodeData = {
 								"text" : sTypeText,
@@ -569,7 +573,6 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 					xtype : "button",
 					text : "Test View",
 					handler : function() {
-						me.getContainer().body.mask("Wait ...");
 						me.oprTestView();
 					}
 				} ]
@@ -662,7 +665,13 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 							"value" : me.viewDefinitionData[sType].value,
 							"text" : sType
 						});
-						delete me.viewDefinitionDataForServer[me.viewDefinitionData[sType].value]
+
+						if (me.viewDefinitionData[sType].value in me.viewDefinitionDataForServer) {
+							delete me.viewDefinitionDataForServer[me.viewDefinitionData[sType].value]
+						} else {
+							Ext.Array.remove(me.viewDefinitionDataForServerVariable, me.viewDefinitionData[sType].value);
+						}
+
 						delete me.viewDefinitionData[sType]
 
 						var oParentNode = oNode.parentNode;
@@ -992,16 +1001,12 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
 		var me = this;
 
-		if (fixedRestictions.length == 0) {
+		if (me.viewDefinitionDataForServer.length == 0) {
 			GLOBAL.APP.CF.alert("Select at least one non variable restriction", "warning");
 			return;
 		}
 
-		var oGrouping = [];
-		for ( var i = 0; i < me.checkGroupByViewOptions.getCount(); i++) {
-			if (me.checkGroupByViewOptions.get(i).getValue())
-				oGrouping.push(me.checkGroupByViewOptions.get(i).getValue());
-		}
+		var oGrouping = me.checkGroupByViewOptions.getValue().rb;
 
 		var sActDesc = me.txtActivityLabelViewOptions.getValue();
 		if (!sActDesc) {
@@ -1013,10 +1018,10 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 		if (me.txtStackActivityViewOptions.getValue())
 			var bStack = true;
 
-		return Ext.util.JSON.encode({
+		return Ext.JSON.encode({
 			'groupBy' : oGrouping,
 			'definition' : me.viewDefinitionDataForServer,
-			// 'variable' : variableRestrictions,
+			'variable' : me.viewDefinitionDataForServerVariable,
 			'stacked' : bStack,
 			'label' : sActDesc
 		});
@@ -1039,6 +1044,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			return;
 		}
 
+		me.getContainer().body.mask("Wait ...");
 		Ext.Ajax.request({
 			url : GLOBAL.BASE_URL + 'ActivityMonitor/tryView',
 			success : function(oResponse) {
@@ -1068,9 +1074,11 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 					GLOBAL.APP.CF.alert(response.error, "warning");
 
 				}
+				me.getContainer().body.unmask();
 			},
 			failure : function(oRequest) {
 				GLOBAL.APP.CF.alert("Error: " + oRequest.statusText, "warning");
+				me.getContainer().body.unmask();
 			},
 			params : {
 				'plotRequest' : sViewRequest,
