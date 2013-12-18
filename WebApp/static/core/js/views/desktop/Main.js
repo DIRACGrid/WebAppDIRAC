@@ -1048,6 +1048,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		var me = this, oWin = me.windowMenu.theWin;
 		oWin.restore();
 		oWin.minimized = false;
+		oWin.getHeader().show();
 		me.refreshUrlDesktopState();
 	},
 

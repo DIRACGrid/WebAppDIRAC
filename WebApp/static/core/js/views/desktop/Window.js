@@ -202,6 +202,33 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
 			} else if (("maximized" in setupData) && (setupData["maximized"])) {
 
+				if ("width" in setupData) {
+
+					if (parseInt(setupData.width, 10) <= 100) {
+						me.setWidth(parseInt(parseInt(setupData.width, 10) * oDesktopDim[0] / 100, 10));
+					} else {
+						me.setWidth(parseInt(setupData.width, 10));
+					}
+
+				} else {
+
+					me.setWidth(me.loadedObject.launcher.width);
+
+				}
+
+				if ("height" in setupData) {
+
+					if (parseInt(setupData.height, 10) <= 100) {
+						me.setHeight(parseInt(parseInt(setupData.height, 10) * oDesktopDim[1] / 100, 10));
+					} else {
+						me.setHeight(parseInt(setupData.height, 10));
+					}
+				} else {
+
+					me.setHeight(me.loadedObject.launcher.height);
+
+				}
+
 				/*
 				 * If it is not pinned but maximized
 				 */
@@ -346,30 +373,27 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
 			}
 
-			if (!me.loadedObject.launcher.maximized) {
+			if (("width" in me.loadedObject.launcher)&&(me.loadedObject.launcher.width > 0)) {
+				
+				me.setWidth(me.loadedObject.launcher.width);
 
-				if ("width" in me.loadedObject.launcher) {
+			} else {
+				
+				me.setWidth(600);
 
-					me.setWidth(me.loadedObject.launcher.width);
+			}
 
-				} else {
-
-					me.setWidth(600);
-
-				}
-
-				if ("height" in me.loadedObject.launcher) {
-
-					me.setHeight(me.loadedObject.launcher.height);
-
-				} else {
-
-					me.setHeight(400);
-
-				}
+			if (("height" in me.loadedObject.launcher)&&(me.loadedObject.launcher.height > 0)) {
+				
+				me.setHeight(me.loadedObject.launcher.height);
 
 			} else {
 
+				me.setHeight(400);
+
+			}
+
+			if (me.loadedObject.launcher.maximized) {
 				me.maximize();
 			}
 
@@ -414,7 +438,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
 		me.suspendEvents(false);
 		me.minimized = false;
-		
+
 		var oDesktopDim = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
 		if (("maximized" in oData) && (oData["maximized"])) {
@@ -446,13 +470,13 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 			me.desktop.minimizeWindow(me);
 
 		} else {
-			
+
 			if ("x" in oData) {
 				me.setPosition(parseInt(oData.x, 10), parseInt(oData.y, 10));
 			}
 
 			if ("width" in oData) {
-				
+
 				if (parseInt(oData.width, 10) <= 100) {
 					me.setWidth(parseInt(parseInt(oData.width, 10) * oDesktopDim[0] / 100, 10));
 				} else {
@@ -461,7 +485,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 			}
 
 			if ("height" in oData) {
-				
+
 				if (parseInt(oData.height, 10) <= 100) {
 					me.setHeight(parseInt(parseInt(oData.height, 10) * oDesktopDim[1] / 100, 10));
 				} else {
