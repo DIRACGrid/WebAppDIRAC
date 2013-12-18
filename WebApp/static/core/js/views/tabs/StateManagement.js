@@ -1,7 +1,7 @@
 ﻿/**
  * @class Ext.dirac.core.StateManagement This class manages the state management
  *        within the Desktop view
- * 
+ *
  */
 
 Ext.define('Ext.dirac.views.tabs.StateManagement', {
@@ -10,7 +10,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 	/**
 	 * Function called when the Save As ... button from the SAVE window menu is
 	 * clicked
-	 * 
+	 *
 	 * @param {String}
 	 *          sStateType The type of the state [application|reference]
 	 * @param {String}
@@ -154,7 +154,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
 	/**
 	 * Function called when the Save button from the SAVE window menu is clicked
-	 * 
+	 *
 	 * @param {String}
 	 *          sStateType The type of the state [application|reference]
 	 * @param {String}
@@ -182,13 +182,13 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
 	/**
 	 * Function to create and open the form for managing the desktop states
-	 * 
+	 *
 	 * @param {String}
 	 *          sAppName Application class name
 	 * @param {Function}
 	 *          cbAfterRemove A function to be executed after a state has been
 	 *          removed
-	 * 
+	 *
 	 */
 	formManageStates : function(sAppName, cbAfterRemove) {
 
@@ -427,14 +427,14 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
 	/**
 	 * Function to create and show the form for saving or loading a shared state
-	 * 
+	 *
 	 * @param {Function}
 	 *          cbAfterLoad Function to be executed after the shared state has
 	 *          been loaded
 	 * @param {Function}
 	 *          cbAfterSave Function to be executed after the shared state has
 	 *          been saved
-	 * 
+	 *
 	 */
 	formStateLoader : function(cbAfterLoad, cbAfterSave) {
 

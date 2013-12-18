@@ -2,7 +2,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 	extend : 'Ext.dirac.core.Module',
 
 	requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging",
-			"Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea" ],
+			"Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea","Ext.dirac.utils.DiracToolButton" ],
 
 	loadState : function(data) {
 
