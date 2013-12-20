@@ -500,31 +500,43 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			listeners : {
 				change : function(oComp, sNewValue, sOldValue, eOpts) {
 
-					Ext.Ajax.request({
-						url : GLOBAL.BASE_URL + 'ActivityMonitor/queryFieldValue',
-						params : {
-							queryField : sNewValue,
-							selectedFields : Ext.JSON.encode(me.viewDefinitionDataForServer)
-						},
-						scope : me,
-						success : function(response) {
+					if ((sNewValue != null) && (Ext.util.Format.trim(sNewValue) != "")) {
 
-							var response = Ext.JSON.decode(response.responseText);
+						Ext.Ajax.request({
+							url : GLOBAL.BASE_URL + 'ActivityMonitor/queryFieldValue',
+							params : {
+								queryField : sNewValue,
+								selectedFields : Ext.JSON.encode(me.viewDefinitionDataForServer)
+							},
+							scope : me,
+							success : function(response) {
 
-							me.valuesFieldCreator.store.removeAll();
+								var response = Ext.JSON.decode(response.responseText);
 
-							oData = response.result;
+								if (response["success"] == 'true') {
 
-							for ( var i = 0; i < oData.length; i++) {
-								me.valuesFieldCreator.store.add({
-									"value" : Ext.util.Format.trim(oData[i][0])
-								});
+									me.valuesFieldCreator.store.removeAll();
+
+									oData = response.result;
+
+									for ( var i = 0; i < oData.length; i++) {
+										me.valuesFieldCreator.store.add({
+											"value" : Ext.util.Format.trim(oData[i][0])
+										});
+									}
+
+									me.valuesFieldCreator.reset();
+
+								} else {
+
+									GLOBAL.APP.CF.alert(response["error"], "warning");
+
+								}
+
 							}
+						});
 
-							me.valuesFieldCreator.reset();
-
-						}
-					});
+					}
 
 				}
 			}
