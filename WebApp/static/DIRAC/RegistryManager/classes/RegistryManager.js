@@ -68,11 +68,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 							op : "getData",
 							type : "users"
 						});
-
-						me.__sendSocketMessage({
-							op : "getData",
-							type : "voms"
-						});
+						
 						me.__getGroupList();
 					}
 				};
@@ -168,6 +164,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 									property : 'name',
 									direction : 'ASC'
 								} ]);
+								
+								me.otherDataMenu.setText("VOMS Servers");
 
 							} else if (oResponse.type == "servers") {
 
@@ -183,6 +181,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 									property : 'name',
 									direction : 'ASC'
 								} ]);
+								
+								me.otherDataMenu.setText("VOMS Servers");
 
 							} else {
 
@@ -198,6 +198,20 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 									property : 'name',
 									direction : 'ASC'
 								} ]);
+								
+								switch (oResponse.type) {
+
+								case "hosts":
+									me.otherDataMenu.setText("Hosts");
+									break;
+								case "users":
+									me.otherDataMenu.setText("Users");
+									break;
+								case "groups":
+									me.otherDataMenu.setText("Groups");
+									break;
+
+								}
 
 								if (!me.firstTimeReadUsers) {
 
@@ -219,7 +233,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 							var oDataToSend = {
 								op : "getData",
 								type : me.rightPanel.currentType
-							};
+							};						
 
 							if (me.rightPanel.currentType == "servers") {
 
@@ -233,6 +247,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 							me.rightPanel.setTitle("");
 							me.rightPanel.currentRecord = null;
 							me.rightPanel.currentType = "";
+
+							me.rightPanel.dockedItems.getAt(1).show();
 
 							break;
 						case "editItem":
@@ -250,6 +266,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 							}
 
 							me.__sendSocketMessage(oDataToSend);
+							me.rightPanel.dockedItems.getAt(1).show();
 
 							break;
 						case "deleteItem":
@@ -266,6 +283,11 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 							}
 
 							me.__sendSocketMessage(oDataToSend);
+
+							me.rightPanel.removeAll();
+							me.rightPanel.setTitle("");
+							me.rightPanel.currentRecord = null;
+							me.rightPanel.currentType = "";
 
 							break;
 						case "editRegistryProperties":
@@ -382,8 +404,11 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 					}, {
 						handler : function() {
 							me.otherDataMenu.setText("VOMS Servers");
+							me.__sendSocketMessage({
+								op : "getData",
+								type : "voms"
+							});
 							me.centralWorkPanel.getLayout().setActiveItem(1);
-
 						},
 						text : 'VOMS Servers'
 					}, '-', {
@@ -950,6 +975,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 										// console.log(oDataToSend);
 										me.__sendSocketMessage(oDataToSend);
 										me.__setChangeMade(true);
+
+										me.rightPanel.dockedItems.getAt(1).hide();
 
 									}
 								}
@@ -1802,7 +1829,9 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 					oDataToSend.vom = me.serversGrid.vom;
 
 				}
-
+				
+				me.rightPanel.currentType = me.gridContextMenu.selectedType;
+				
 				me.__sendSocketMessage(oDataToSend);
 
 			},

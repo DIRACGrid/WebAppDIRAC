@@ -74,7 +74,8 @@
 
 
           Ext.onReady(function () {
-
+			Ext.override(Ext.data.Connection, { timeout:600000 });
+			Ext.override(Ext.data.proxy.Ajax, { timeout:600000 });
             GLOBAL.APP = new Ext.dirac.core.App();
             setTimeout(function(){
               Ext.get("app-dirac-loading").hide();
@@ -103,6 +104,8 @@
           GLOBAL.OPEN_APP = "{{open_app}}";
 
           Ext.onReady(function () {
+          	  Ext.override(Ext.data.Connection, { timeout:600000 });
+			  Ext.override(Ext.data.proxy.Ajax, { timeout:600000 });	
               GLOBAL.APP = new Ext.dirac.core.App();
               setTimeout(function(){
                 Ext.get("app-dirac-loading").hide();
