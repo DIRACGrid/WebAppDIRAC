@@ -215,3 +215,22 @@ class ActivityMonitorHandler(WebHandler):
       return
     
     self.finish({"success":"true", 'images' : retVal[ 'Value' ], 'stub' : requestStub})
+
+  @asyncGen
+  def web_saveView(self):
+    """
+    Save a view
+    """
+    try:
+      plotRequest = simplejson.loads(self.request.arguments[ 'plotRequest' ][0])
+      viewName = str(self.request.arguments[ 'viewName' ][0])
+    except Exception, e:
+      self.finish({"success":"false", "error": "Error while processing plot parameters: %s" % str(e)})
+    rpcClient = RPCClient("Framework/Monitoring")
+    requestStub = DEncode.encode(plotRequest)
+    result = yield self.threadTask(rpcClient.saveView, viewName, requestStub)
+    if 'rpcStub' in result:
+      del(result[ 'rpcStub' ])
+      
+    self.finish({"success":"true"})
+

@@ -46,7 +46,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			},
 			items : [ {
 				xtype : "button",
-				text : "Activity Monitor",
+				text : "Proxy Monitor",
 				handler : function() {
 					me.mainPanel.getLayout().setActiveItem(0);
 				},
@@ -161,8 +161,6 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 					GLOBAL.APP.CF.alert('No jobs were selected', "error");
 					return;
 				}
-				alert(oItems);
-				return;
 
 				Ext.Ajax.request({
 					url : GLOBAL.BASE_URL + 'ActivityMonitor/deleteActivities',
@@ -214,9 +212,9 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 				name : 'checkBox',
 				width : 26,
 				sortable : false,
-				dataIndex : 'source_id',
+				dataIndex : 'activities_id',
 				renderer : function(value, metaData, record, row, col, store, gridView) {
-					return this.rendererChkBox(value);
+					return this.rendererChkBox(record);
 				},
 				hideable : false,
 				fixed : true,
@@ -276,8 +274,8 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 					return this.renderLastUpdate(value, metaData, record, row, col, store, gridView);
 				}
 			} ],
-			rendererChkBox : function(val) {
-				return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
+			rendererChkBox : function(record) {
+				return '<input value="' + record.get("sources_id") + "." + record.get("activities_id") + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
 			},
 			renderLastUpdate : function(value, metadata, record, rowIndex, colIndex, store) {
 				var lastUpdated = record.data.activities_lastUpdate;
@@ -290,6 +288,34 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 			},
 			bbar : me.activityMonitorToolbar
 		});
+
+		me.htmlDescriptionVariables = "";
+		me.htmlDescriptionVariables += "<table style='width:100%'>";
+		me.htmlDescriptionVariables += "<tr>";
+		me.htmlDescriptionVariables += "<td style='width:50%;background-color:#eeeeee;font-weight:bold;padding:5px'>";
+		me.htmlDescriptionVariables += "Variable Name";
+		me.htmlDescriptionVariables += "</td>";
+		me.htmlDescriptionVariables += "<td style='width:50%;background-color:#eeeeee;font-weight:bold;padding:5px'>";
+		me.htmlDescriptionVariables += "Description";
+		me.htmlDescriptionVariables += "</td>";
+		me.htmlDescriptionVariables += "</tr>";
+
+		var oVariables = [ [ "$DESCRIPTION", "Description of the activity" ], [ "$SITE", "Site for the originating component" ],
+				[ "$COMPONENTTYPE", "Type of component to generate the activity (for example: service, agent, web)" ], [ "$COMPONENTNAME", "Full name of component" ],
+				[ "$COMPONENTLOCATION", "	Location of component" ], [ "$UNIT", "Activity unit" ], [ "$CATEGORY", "Activity category" ] ];
+
+		for ( var i = 0; i < oVariables.length; i++) {
+			me.htmlDescriptionVariables += "<tr>";
+			me.htmlDescriptionVariables += "<td style='width:50%;font-weight:bold;padding:5px'>";
+			me.htmlDescriptionVariables += oVariables[i][0];
+			me.htmlDescriptionVariables += "</td>";
+			me.htmlDescriptionVariables += "<td style='width:50%;padding:5px'>";
+			me.htmlDescriptionVariables += oVariables[i][1];
+			me.htmlDescriptionVariables += "</td>";
+			me.htmlDescriptionVariables += "</tr>";
+		}
+
+		me.htmlDescriptionVariables += "</table>";
 
 		me.mainPanel.add([ me.activityMonitorPanel ]);
 
@@ -431,7 +457,14 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 						var sTypeValue = me.restrictByFieldCreator.getValue();
 						var oSelectedValues = me.valuesFieldCreator.getValue();
 
-						if ((sTypeValue != null) && (oSelectedValues.length > 0)) {
+						if (sTypeValue == null) {
+
+							GLOBAL.APP.CF.alert("No data type selected !", "warning");
+							return;
+
+						}
+
+						if ((me.variableFieldCreator.getValue()) || ((!me.variableFieldCreator.getValue()) && (oSelectedValues.length > 0))) {
 
 							var sTypeText = me.restrictByFieldCreator.findRecordByValue(sTypeValue).get("text");
 
@@ -454,12 +487,24 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 							var oTypeNode = oRoot.createNode(oNodeData);
 							oRoot.appendChild(oTypeNode);
 
-							for ( var i = 0; i < oSelectedValues.length; i++) {
+							if (me.variableFieldCreator.getValue()) {
+
 								var oNewNode = oTypeNode.createNode({
-									"text" : oSelectedValues[i],
+									"text" : "variable value",
 									"leaf" : true
 								});
 								oTypeNode.appendChild(oNewNode);
+
+							} else {
+
+								for ( var i = 0; i < oSelectedValues.length; i++) {
+									var oNewNode = oTypeNode.createNode({
+										"text" : oSelectedValues[i],
+										"leaf" : true
+									});
+									oTypeNode.appendChild(oNewNode);
+								}
+
 							}
 
 							oRoot.expand();
@@ -1059,7 +1104,10 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 		me.getContainer().body.mask("Wait ...");
 		Ext.Ajax.request({
 			url : GLOBAL.BASE_URL + 'ActivityMonitor/tryView',
-			success : function(oResponse) {
+			success : function(response) {
+
+				var response = Ext.JSON.decode(response.responseText);
+
 				if (response.success == "true") {
 
 					var plotsList = response.images;
@@ -1067,15 +1115,77 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
 						var oWindow = me.getContainer().createChildWindow(sViewName, false, 700, 500);
 
+						var oPlotContainer = Ext.create('Ext.panel.Panel', {
+							floatable : false,
+							region : "center",
+							header : false,
+							autoScroll : true,
+							layout : {
+								type : 'table',
+								columns : 1
+							},
+							dockedItems : [ {
+								xtype : "toolbar",
+								dock : 'top',
+								items : [ {
+									xtype : "button",
+									text : "Save view",
+									handler : function() {
+
+										var sViewRequest = me.generateViewRequest();
+
+										if (!sViewRequest)
+											return;
+
+										var sViewName = Ext.util.Format.trim(me.txtViewNameViewOptions.getValue());
+
+										if (sViewName.length == 0) {
+											GLOBAL.APP.CF.alert("The name of the view is missing.", "warning");
+											return;
+										}
+
+										me.getContainer().body.mask("Wait ...");
+										Ext.Ajax.request({
+											url : GLOBAL.BASE_URL + 'ActivityMonitor/saveView',
+											success : function(response) {
+												var response = Ext.JSON.decode(response.responseText);
+
+												if (response.success == "true") {
+
+													me.plotManagementListPanel.store.load();
+
+												} else {
+
+													GLOBAL.APP.CF.alert("Error: " + response.error, "warning");
+												}
+
+												me.getContainer().body.unmask();
+											},
+											failure : function(oRequest) {
+												GLOBAL.APP.CF.alert("Error: " + oRequest.statusText, "warning");
+												me.getContainer().body.unmask();
+											},
+											params : {
+												'plotRequest' : sViewRequest,
+												'viewName' : sViewName
+											}
+										});
+									}
+								} ]
+							} ]
+						});
+
 						for ( var i = 0; i < plotsList.length; i++) {
 
 							var oNewImage = Ext.create('Ext.Img', {
 								src : GLOBAL.BASE_URL + "ActivityMonitor/getPlotImg?file=" + plotsList[i]
 							});
 
-							oWindow.add(oNewImage);
+							oPlotContainer.add(oNewImage);
 
 						}
+
+						oWindow.add(oPlotContainer);
 
 						oWindow.show();
 
