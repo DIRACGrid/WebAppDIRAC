@@ -2,7 +2,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	extend : 'Ext.dirac.core.Module',
 
 	requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging",
-			"Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea" ],
+			"Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.dirac.utils.DiracToolButton" ],
 
 	loadState : function(data) {
 
@@ -834,43 +834,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 						flex : 1
 					});
 
-					var oCombo = new Ext.form.field.ComboBox({
-						allowBlank : false,
-						displayField : 'character',
-						editable : false,
-						mode : 'local',
-						store : new Ext.data.SimpleStore({
-							fields : [ 'character' ],
-							data : [ [ "SEMI-COLON" ], [ "COMMA" ], [ "EMPTY SPACE" ] ]
-						}),
-						triggerAction : 'all',
-						value : "COMMA",
-						width : 200,
-						idsItems : oItems,
-						textArea : oTextArea,
-						listeners : {
-
-							"change" : function(combo, newValue, oldValue, eOpts) {
-
-								switch (newValue) {
-
-								case "SEMI-COLON":
-									combo.textArea.setValue(combo.idsItems.join(";"));
-									break;
-								case "COMMA":
-									combo.textArea.setValue(combo.idsItems.join(","));
-									break;
-								case "EMPTY SPACE":
-									combo.textArea.setValue(combo.idsItems.join(" "));
-									break;
-
-								}
-
-							}
-
-						}
-					});
-
 					var oToolb = new Ext.create('Ext.toolbar.Toolbar', {
 						dock : "top",
 						idsItems : oItems,
@@ -1136,7 +1099,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.grid = Ext.create('Ext.grid.Panel', {
 			region : 'center',
 			store : me.dataStore,
-			height : '600',
+
 			header : false,
 			viewConfig : {
 				stripeRows : true,
@@ -1145,7 +1108,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			columns : [ {
 				header : me.checkboxFunctionDefinition,
 				name : 'checkBox',
-				id : 'checkBox',
+				//id : 'checkBox',
 				width : 26,
 				sortable : false,
 				dataIndex : 'JobIDcheckBox',
@@ -2095,7 +2058,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			startTime : sStartTime,
 			endDate : sEndDate,
 			endTime : sEndTime
-
 		};
 
 		return extraParams;

@@ -11,7 +11,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 	alias : 'widget.desktop',
 	requires : [ 'Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.views.desktop.Window', 'Ext.dirac.views.desktop.TaskBar', 'Ext.dirac.views.desktop.Wallpaper',
 			'Ext.dirac.views.desktop.StateManagement', 'Ext.dirac.views.desktop.ShortcutModel' ],
-	mixins : [ "Ext.dirac.core.Stateful", "Ext.dirac.core.AppView" ],
+	mixins : [ "Ext.dirac.core.Stateful", "Ext.dirac.core.AppView", "Ext.dirac.views.desktop.TransformationData" ],
 
 	activeWindowCls : 'ux-desktop-active-win',
 	inactiveWindowCls : 'ux-desktop-inactive-win',
@@ -310,6 +310,8 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		}
 
 		me._state_related_url = "";
+
+		me.TD = new Ext.dirac.views.desktop.TransformationData();
 
 	},
 
@@ -1046,6 +1048,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 		var me = this, oWin = me.windowMenu.theWin;
 		oWin.restore();
 		oWin.minimized = false;
+		oWin.getHeader().show();
 		me.refreshUrlDesktopState();
 	},
 
@@ -1289,22 +1292,28 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 				 */
 				var bOK = true;
 
-				for ( var i = oCell[0]; i <= oCell[0] + oWindow.ic_x - 1; i++) {
-					for ( var j = oCell[1]; j <= oCell[1] + oWindow.ic_y - 1; j++) {
+				if ((oCell[0] + oWindow.ic_x - 1 >= me.desktopGranularity[0]) || (oCell[1] + oWindow.ic_y - 1 >= me.desktopGranularity[1])) {
+					bOK = false;
+				} else {
 
-						if (!((i >= oWindow.i_x) && (i <= oWindow.i_x + oWindow.ic_x - 1) && (j >= oWindow.i_y) && (j <= oWindow.i_y + oWindow.ic_y - 1))) {
+					for ( var i = oCell[0]; i <= oCell[0] + oWindow.ic_x - 1; i++) {
+						for ( var j = oCell[1]; j <= oCell[1] + oWindow.ic_y - 1; j++) {
 
-							if (me.takenCells[j][i]) {
+							if (!((i >= oWindow.i_x) && (i <= oWindow.i_x + oWindow.ic_x - 1) && (j >= oWindow.i_y) && (j <= oWindow.i_y + oWindow.ic_y - 1))) {
 
-								bOK = false;
-								break;
+								if (me.takenCells[j][i]) {
 
+									bOK = false;
+									break;
+
+								}
 							}
 						}
-					}
 
-					if (!bOK)
-						break;
+						if (!bOK)
+							break;
+
+					}
 
 				}
 

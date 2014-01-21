@@ -2,18 +2,19 @@
  * @class Ext.dirac.core.StateManagement This class manages the entire
  *        application platform
  * @mixins Ext.util.Observable
- * 
+ *
  */
 
 Ext.define('Ext.dirac.core.StateManagement', {
-	requires : [],
+	requires : ["Ext.dirac.core.TransformationData"],
 
 	/*
 	 * Cache serves to save the application states and references
 	 */
 	cache : {
 		application : {},
-		reference : {}
+		reference : {},
+		sharedDesktop : {}
 	},
 
 	/*
@@ -21,9 +22,16 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 */
 	activeStates : [],
 
+	constructor : function() {
+
+		var me = this;
+		me.TD = new Ext.dirac.core.TransformationData();
+		this.callParent();
+	},
+
 	/**
 	 * Function that checks whether a state has been loaded or not.
-	 * 
+	 *
 	 * @param {String}
 	 *          sStateType The type of the state. Possible values: application,
 	 *          reference.
@@ -60,7 +68,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	/**
 	 * Function for getting a list of existing state names of an application.
-	 * 
+	 *
 	 * @param {String}
 	 *          sStateType The type of the state. Possible values: application,
 	 *          reference.
@@ -69,7 +77,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 *          the case of the main view: in this case the value of this
 	 *          parameter is “desktop”.
 	 * @return {Array} Array of strings representing the state/reference names.
-	 * 
+	 *
 	 */
 	getApplicationStates : function(sStateType, sAppName) {
 
@@ -85,7 +93,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	/**
 	 * Function for getting the data related to a state
-	 * 
+	 *
 	 * @param {String}
 	 *          sStateType The type of the state. Possible values: application,
 	 *          reference.
@@ -115,7 +123,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	/**
 	 * Function for reading the states and references of an application from the
 	 * server
-	 * 
+	 *
 	 * @param {String}
 	 *          sAppName The class name of the application. The only exception is
 	 *          the case of the main view: in this case the value of this
@@ -141,10 +149,47 @@ Ext.define('Ext.dirac.core.StateManagement', {
 					var oStates = Ext.JSON.decode(response.responseText);
 					me.cache["application"][sAppName] = {};
 
-					for ( var sStateName in oStates) {
+					if (sAppName == "desktop") {
+						for ( var sStateName in oStates) {
 
-						me.cache["application"][sAppName][sStateName] = oStates[sStateName];
+							if (me.TD.oprVerifyDataStructure(oStates[sStateName])) {
+								me.cache["application"][sAppName][sStateName] = oStates[sStateName];
+							} else {
 
+								var oNewData = me.TD.oprTransformMainViewDataToCurrentVersion(oStates[sStateName]);
+
+								me.cache["application"][sAppName][sStateName] = oNewData;
+
+								// sending the transformed data to the server
+
+								Ext.Ajax.request({
+									url : GLOBAL.BASE_URL + 'UP/saveAppState',
+									params : {
+										app : sAppName,
+										name : sStateName,
+										state : Ext.JSON.encode(oNewData),
+										obj : "application"
+									},
+									scope : me,
+									success : function(oResponse) {
+										if (oResponse.status != 200) {
+											me.cache["application"][sAppName][sStateName] = oStates[sStateName];
+										}
+									},
+									failure : function(response) {
+										me.cache["application"][sAppName][sStateName] = oStates[sStateName];
+									}
+								});
+
+							}
+
+						}
+					} else {
+						for ( var sStateName in oStates) {
+
+							me.cache["application"][sAppName][sStateName] = oStates[sStateName];
+
+						}
 					}
 
 					Ext.Ajax.request({
@@ -207,7 +252,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	/**
 	 * Function that checks whether a state name is valid or not
-	 * 
+	 *
 	 * @param {String}
 	 *          sStateName The name of the state or the reference.
 	 * @return {boolean}
@@ -223,7 +268,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	/**
 	 * Function used to prepare and to send the state data of an application or a
 	 * main view to the server.
-	 * 
+	 *
 	 * @param {String}
 	 *          sAppName The class name of the application. The only exception is
 	 *          the case of the main view: in this case the value of this
@@ -345,14 +390,14 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	/**
 	 * Function to check whether a state is active i.e. loaded into the
 	 * application
-	 * 
+	 *
 	 * @param {String}
 	 *          sAppName The class name of the application. The only exception is
 	 *          the case of the main view: in this case the value of this
 	 *          parameter is “desktop”.
 	 * @param {String}
 	 *          sStateName The name of the state
-	 * 
+	 *
 	 */
 	isAnyActiveState : function(sAppName, sStateName) {
 
@@ -375,14 +420,14 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	/**
 	 * Function to register a state as an active one
-	 * 
+	 *
 	 * @param {String}
 	 *          sAppName The class name of the application. The only exception is
 	 *          the case of the main view: in this case the value of this
 	 *          parameter is “desktop”.
 	 * @param {String}
 	 *          sStateName The name of the state
-	 * 
+	 *
 	 */
 	oprAddActiveState : function(sAppName, sStateName) {
 
@@ -394,14 +439,14 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	/**
 	 * Function to remove a state out of the active states list
-	 * 
+	 *
 	 * @param {String}
 	 *          sAppName The class name of the application. The only exception is
 	 *          the case of the main view: in this case the value of this
 	 *          parameter is “desktop”.
 	 * @param {String}
 	 *          sStateName The name of the state
-	 * 
+	 *
 	 */
 	oprRemoveActiveState : function(sAppName, sStateName) {
 
@@ -419,7 +464,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	/**
 	 * Function to delete a saved state or a saved reference on the server
-	 * 
+	 *
 	 * @param {String}
 	 *          sAppName The class name of the application. The only exception is
 	 *          the case of the main view: in this case the value of this
@@ -432,7 +477,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 * @param {Function}
 	 *          cbAfterDelete The callback function called on success or on
 	 *          failure of the request for deleting a state or a reference.
-	 * 
+	 *
 	 */
 	oprDeleteState : function(sAppName, sStateType, sStateName, cbAfterDelete) {
 
@@ -484,7 +529,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	/**
 	 * Function that is used to share a state with other users.
-	 * 
+	 *
 	 * @param {String}
 	 *          sAppName The class name of the application. The only exception is
 	 *          the case of the main view: in this case the value of this
@@ -494,7 +539,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 * @param {Function}
 	 *          cbAfterShare The callback function called on success or on failure
 	 *          of the request for sharing a state.
-	 * 
+	 *
 	 */
 	oprShareState : function(sAppName, sStateName, cbAfterShare) {
 
@@ -547,14 +592,14 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
 	/**
 	 * Function that is used to take the data of a shared state from the server
-	 * 
+	 *
 	 * @param {Object}
 	 *          sLinkDescription Description of a shared state. This description
 	 *          can be used to load a shared state.
 	 * @param {Function}
 	 *          cbAfterLoadSharedState The callback function called on success or
 	 *          on failure of the request for retrieving the shared state data.
-	 * 
+	 *
 	 */
 	oprLoadSharedState : function(sLinkDescription, cbAfterLoadSharedState) {
 
@@ -623,7 +668,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	/**
 	 * Function executed when the shared state has to be saved on the server as a
 	 * reference
-	 * 
+	 *
 	 * @param {String}
 	 *          sRefName The name of the reference.
 	 * @param {String}
@@ -701,7 +746,66 @@ Ext.define('Ext.dirac.core.StateManagement', {
 			}
 		});
 
-	}
+	},
+	/**
+   * Function for reading the states and references of an application from the
+   * server
+   *
+   * @param {String}
+   *          sAppName The class name of the application. The only exception is
+   *          the case of the main view: in this case the value of this
+   *          parameter is “desktop”.
+   * @param {Function}
+   *          cbAfterRefresh The callback function called on success or on
+   *          failure of the request for states and references.
+   */
+  oprReadSharedDesktops : function(sAppName, cbAfterRefresh) {
+
+    var me = this;
+
+    Ext.Ajax.request({
+      url : GLOBAL.BASE_URL + 'UP/listPublicDesktopStates',
+      params : {
+        app : sAppName,
+        obj : "application"
+      },
+      success : function(response) {
+
+        if (response.status == 200) {
+
+          var oStates = Ext.JSON.decode(response.responseText);
+
+          if (me.cache["sharedDesktop"][sAppName] == null){
+             me.cache["sharedDesktop"][sAppName] = {};
+          }
+
+          for ( var sStateName in oStates) {
+
+            me.cache["sharedDesktop"][sAppName][sStateName] = oStates[sStateName];
+            for (var oState in oStates[sStateName]){
+              if (oState!='Metadata'){
+                me.cache["application"][sAppName][oState] = oStates[sStateName][oState];
+              }
+            }
+          }
+
+          cbAfterRefresh(1, sAppName);
+        } else {
+          me.cache["sharedDesktop"][sAppName] = {};
+          cbAfterRefresh(-3, sAppName);
+          Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
+
+        }
+
+      },
+      failure : function(response) {
+        me.cache["sharedDesktop"][sAppName] = {};
+        Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
+      }
+    });
+
+  }
+
 
 /*-----------------------------------------------END - SHARE STATE-----------------------------------------------*/
 

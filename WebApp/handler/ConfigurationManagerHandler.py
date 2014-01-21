@@ -261,8 +261,6 @@ class ConfigurationManagerHandler(WebSocketHandler):
           newCFG = CFG()
           newCFG.loadFromBuffer(configText)
           self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
-#           newCreatedSection = cfgData.getRecursive(sectionPath)["value"]
-#           newCreatedSection.loadFromBuffer(configText)
           return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD, "sectionFromConfig": 1}
         else:
           return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD, "sectionFromConfig": 0}

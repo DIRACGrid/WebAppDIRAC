@@ -103,6 +103,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		var me = this;
 
+		console.log(oData);
+		
 		if (!me.isConnectionEstablished) {
 
 			var sMessage = "There is no connection established with the server.\nDo you want to reconnect now?";

@@ -119,3 +119,76 @@ class UPHandler( WebHandler ):
       raise WErr.fromSERROR( result)
     self.finish()
 
+  @asyncGen
+  def web_listPublicDesktopStates( self ):
+    up = self.__getUP()
+    result = yield self.threadTask( up.listAvailableVars )
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result )
+    data  = result['Value']
+    paramNames = ['UserName','Group','VO','desktop']
+
+    records = []
+    for i in data:
+      records += [dict(zip(paramNames, i))]
+    sharedDesktops = {}
+    for i in records:
+      result = yield self.threadTask( up.getVarPermissions, i['desktop'] )
+      if not result[ 'OK' ]:
+        raise WErr.fromSERROR( result )
+      if result['Value']['ReadAccess'] == 'ALL':
+        print i['UserName'], i['Group'],i
+        result = yield self.threadTask( up.retrieveVarFromUser , i['UserName'], i['Group'], i['desktop'])
+        if not result[ 'OK' ]:
+          raise WErr.fromSERROR( result )
+        if i['UserName'] not in sharedDesktops:
+          sharedDesktops[i['UserName']] = {}
+          sharedDesktops[i['UserName']][i['desktop']] = json.loads( DEncode.decode( zlib.decompress( base64.b64decode( result['Value'] ) ) )[0] )
+          sharedDesktops[i['UserName']]['Metadata'] = i
+        else:
+          sharedDesktops[i['UserName']][i['desktop']] = json.loads( DEncode.decode( zlib.decompress( base64.b64decode( result['Value'] ) ) )[0] )
+          sharedDesktops[i['UserName']]['Metadata'] = i
+    self.finish(sharedDesktops)
+
+  @asyncGen
+  def web_makePublicDesktopState( self ):
+    up = UserProfileClient( "Web/application/desktop" )
+    try:
+      name = self.request.arguments[ 'name' ][-1]
+    except KeyError as excp:
+      raise WErr( 400, "Missing %s" % excp )
+    try:
+      access = self.request.arguments[ 'access' ][-1].upper()
+    except KeyError as excp:
+      access = 'ALL'
+    if access not in ( 'ALL', 'VO', 'GROUP','USER' ):
+      raise WErr( 400, "Invalid access" )
+    #TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
+    result = yield self.threadTask( up.setVarPermissions, name, { 'ReadAccess': access } )
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result )
+    self.set_status( 200 )
+    self.finish()
+
+  @asyncGen
+  def web_changeView(self):
+    up = self.__getUP()
+    try:
+      desktopName = self.request.arguments[ 'desktop' ][-1]
+      view = self.request.arguments[ 'view' ][-1]
+    except KeyError as excp:
+      raise WErr( 400, "Missing %s" % excp )
+    result = yield self.threadTask( up.retrieveVar, desktopName)
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result )
+    data  = result['Value']
+    oDesktop = json.loads(DEncode.decode( zlib.decompress( base64.b64decode( data ) ) )[0])
+    oDesktop[unicode('view')] = unicode(view)
+    oDesktop = json.dumps(oDesktop)
+    data = base64.b64encode( zlib.compress( DEncode.encode( oDesktop ), 9 ) )
+    result = yield self.threadTask( up.storeVar, desktopName, data )
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result )
+    self.set_status( 200 )
+    self.finish()
+

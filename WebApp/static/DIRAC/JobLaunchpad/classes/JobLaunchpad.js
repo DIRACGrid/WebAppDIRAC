@@ -10,7 +10,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 		if (GLOBAL.VIEW_ID == "desktop") {
 
 			me.launcher.title = "Job Launchpad";
-			me.launcher.maximized = false;
+			me.launcher.maximized = true;
 
 			me.launcher.width = 600;
 			me.launcher.height = 600;

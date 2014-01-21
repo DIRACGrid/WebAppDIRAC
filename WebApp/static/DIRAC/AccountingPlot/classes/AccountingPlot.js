@@ -247,7 +247,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			collapsible : true,
 			layout : 'anchor'
 		});
-
+		
 		me.cmbTimeSpan = Ext.create('Ext.form.field.ComboBox', {
 			queryMode : 'local',
 			displayField : "text",
@@ -1087,8 +1087,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 				}
 
 			},
-			failure : function(response) {
-
+			failure : function(response,options) {
 				Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
 			}
 		});
