@@ -28,13 +28,13 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
     res = False
     if params["op"] == "init":
-      res = self.__getRemoteConfiguration("init")
+      res = yield self.threadTask( self.__getRemoteConfiguration, "init" )
     elif params["op"] == "getSubnodes":
       res = self.__getSubnodes(params["node"], params["nodePath"])
     elif params["op"] == "showConfigurationAsText":
       res = self.__showConfigurationAsText()
     elif params["op"] == "resetConfiguration":
-      res = self.__getRemoteConfiguration("resetConfiguration")
+      res = yield self.threadTask( self.__getRemoteConfiguration, "resetConfiguration" )
     elif params["op"] == "getBulkExpandedNodeData":
       res = self.__getBulkExpandedNodeData(params["nodes"])
     elif params["op"] == "setOptionValue":
@@ -54,10 +54,11 @@ class ConfigurationManagerHandler(WebSocketHandler):
     elif params["op"] == "moveNode":
       res = self.__moveNode(params)
     elif params["op"] == "commitConfiguration":
-      res = self.__commitConfiguration()
+      res = yield self.theadTask( self.__commitConfiguration )
     elif params["op"] == "showCurrentDiff":
       res = self.__showCurrentDiff()
 
+    gLogger.info( "Sending back message %s" % res )
     if res:
       self.write_message(res)
 
@@ -71,7 +72,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
     self.__configData[ 'cfgData' ] = modCfg
     self.__configData[ 'strCfgData' ] = str(modCfg)
-    
+
     version = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Version"])
     configName = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Name"])
     return {"success":1, "op":funcName, "version":version, "name":configName}
@@ -248,14 +249,14 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return {"success":0, "op":"createSection", "message":"Put any name for the section!"}
       sectionPath = "%s/%s" % (parentPath, sectionName)
       gLogger.info("Creating section", "%s" % sectionPath)
-      
+
       if self.__configData[ 'cfgData' ].createSection(sectionPath):
         nD = { 'text' : sectionName, 'csName' : sectionName, 'csComment' : self.__configData[ 'cfgData' ].getComment(sectionPath) }
         htmlC = self.__htmlComment(nD[ 'csComment' ])
         if htmlC:
           qtipDict = { 'text' : htmlC }
           nD[ 'qtipCfg' ] = qtipDict
-#       If config Text is provided then a section is created out of that text    
+#       If config Text is provided then a section is created out of that text
         if configText != "":
           cfgData = self.__configData[ 'cfgData' ].getCFG()
           newCFG = CFG()
@@ -324,9 +325,6 @@ class ConfigurationManagerHandler(WebSocketHandler):
       brothers = newParentDict[ 'value' ].listAll()
       if beforeOfIndex < len(brothers):
         nodeDict[ 'beforeKey' ] = brothers[ beforeOfIndex ]
-        print "beforekey", nodeDict[ 'beforeKey' ]
-      else:
-        print "last pos"
       oldParentDict[ 'value' ].deleteKey(nodeDict[ 'key' ])
       addArgs = {}
       for key in ('comment', 'beforeKey', 'value', 'key'):
@@ -349,7 +347,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     cfgData = self.__configData[ 'cfgData' ].getCFG()
 
     nodeDict = cfgData.getRecursive(nodePath)
-    
+
     if not nodeDict:
       return {"success":0, "op":"copyKey", "message":"Moving entity does not exist"}
     oldParentDict = cfgData.getRecursive(nodePath, -1)
@@ -370,7 +368,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       for key in ('comment', 'beforeKey', 'key'):
         if key in nodeDict:
           addArgs[ key ] = nodeDict[ key ]
-      addArgs["value"] = nodeDict["value"].clone()    
+      addArgs["value"] = nodeDict["value"].clone()
       newParentDict[ 'value' ].addKey(**addArgs)
     except Exception, e:
       return {"success":0, "op":"copyKey", "message":"Can't move node: %s" % str(e)}
@@ -431,7 +429,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       else:
         diffList.append(("", diffLine[1:], diffLine[1:], lineNumber))
         lineNumber = lineNumber + 1
-      
+
     return {"diff":diffList, "lines": linesDiffList, "totalLines": lineNumber}
 
   def __showCurrentDiff(self):
