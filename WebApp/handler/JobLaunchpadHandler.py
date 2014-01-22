@@ -1,7 +1,5 @@
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
@@ -14,32 +12,32 @@ import ast
 class JobLaunchpadHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
-  
-  
+
+
   def web_getProxyStatus(self):
     self.write(self.__getProxyStatus())
-  
+
   def __getProxyStatus(self, secondsOverride=None):
     from DIRAC.FrameworkSystem.Client.ProxyManagerClient import ProxyManagerClient
-    
+
     proxyManager = ProxyManagerClient()
-    
+
     userData = self.getSessionData()
-  
+
     group = str(userData["user"]["group"])
-    
+
     if group == "visitor":
       return {"success":"false", "error":"User is anonymous or is not registered in the system"}
-    
+
     userDN = str(userData["user"]["DN"])
-    
+
     defaultSeconds = 24 * 3600 + 60  # 24H + 1min
     validSeconds = gConfig.getValue("/Registry/DefaultProxyLifeTime", defaultSeconds)
-      
+
     gLogger.info("\033[0;31m userHasProxy(%s, %s, %s) \033[0m" % (userDN, group, validSeconds))
-    
+
     result = proxyManager.userHasProxy(userDN, group, validSeconds)
-    
+
     if result["OK"]:
       if result["Value"]:
         return {"success":"true", "result":"true"}
@@ -47,54 +45,54 @@ class JobLaunchpadHandler(WebHandler):
         return {"success":"true", "result":"false"}
     else:
       return {"success":"false", "error":"false"}
-      
+
     gLogger.info("\033[0;31m PROXY: \033[0m", result)
-  
+
   def __getPlatform(self):
     gLogger.info("start __getPlatform")
-    
+
     path = "/Resources/Computing/OSCompatibility"
     result = gConfig.getOptionsDict(path)
-    
+
     gLogger.debug(result)
-    
+
     if not result[ "OK" ]:
       return False
-    
+
     platformDict = result[ "Value" ]
     platform = platformDict.keys()
-    
+
     gLogger.debug("platform: %s" % platform)
     gLogger.info("end __getPlatform")
     return platform
 
   def __getOptionsFromCS(self , path="/Website/Launchpad/Options" , delimiter=","):
     gLogger.info("start __getOptionsFromCS")
-    
+
     result = gConfig.getOptionsDict(path)
-    
+
     gLogger.always(result)
     if not result["OK"]:
       return []
-    
+
     options = result["Value"]
     for i in options.keys():
       options[ i ] = options[ i ].split(delimiter)
-      
+
     result = gConfig.getSections(path)
     if result["OK"]:
       sections = result["Value"]
-      
+
     if len(sections) > 0:
       for i in sections:
         options[ i ] = self.__getOptionsFromCS(path + '/' + i , delimiter)
-        
+
     gLogger.always("options: %s" % options)
     gLogger.info("end __getOptionsFromCS")
     return options
-    
+
   def web_getLaunchpadOpts(self):
-    
+
     defaultParams = {"JobName" :        [1, 'DIRAC'],
                      "Executable" :     [1, "/bin/ls"],
                      "Arguments" :      [1, "-ltrA"],
@@ -113,7 +111,7 @@ class JobLaunchpadHandler(WebHandler):
                      "Parameters" :     [0, "0"],
                      "ParameterStart" : [0, "0"],
                      "ParameterStep" :  [0, "1"]}
-    
+
     delimiter = gConfig.getValue("/Website/Launchpad/ListSeparator" , ',')
     options = self.__getOptionsFromCS(delimiter=delimiter)
 #     platform = self.__getPlatform()
@@ -128,19 +126,19 @@ class JobLaunchpadHandler(WebHandler):
     gLogger.debug("Combined options from CS: %s" % options)
     override = gConfig.getValue("/Website/Launchpad/OptionsOverride" , False)
     gLogger.info("end __getLaunchpadOpts")
-    
+
 #    Updating the default values from OptionsOverride configuration branch
-    
+
     for key in options:
       if key not in defaultParams:
-        defaultParams[key] = [ 0, "" ]                                                                                                 
+        defaultParams[key] = [ 0, "" ]
       defaultParams[key][1] = options[key][0]
-      
+
 #    Reading of the predefined sets of launchpad parameters values
-    
+
     obj = Operations()
     predefinedSets = {}
-    
+
     launchpadSections = obj.getSections("Launchpad")
     import pprint
     if launchpadSections['OK']:
@@ -150,9 +148,9 @@ class JobLaunchpadHandler(WebHandler):
         pprint.pprint(sectionOptions)
         if sectionOptions['OK']:
           predefinedSets[section] = sectionOptions["Value"]
-    
+
     self.write({"success":"true", "result":defaultParams, "predefinedSets":predefinedSets})
-  
+
   def __canRunJobs(self):
     data = self.getSessionData()
     isAuth = False
@@ -160,23 +158,23 @@ class JobLaunchpadHandler(WebHandler):
       if "NormalUser" in data["user"]["properties"]:
         isAuth = True
     return isAuth
-  
+
   @asyncGen
   def web_jobSubmit(self):
-   
+
     # self.set_header('Content-type', "text/html")  # Otherwise the browser would offer you to download a JobSubmit file
     if not self.__canRunJobs():
       self.finish({"success":"false", "error":"You are not allowed to run the jobs"})
       return
-    proxy = self.__getProxyStatus(86460)
+    proxy = yield self.threadTask( self.__getProxyStatus, 86460 )
     if proxy["success"] == "false" or proxy["result"] == "false":
       self.finish({"success":"false", "error":"You can not run a job: your proxy is valid less then 24 hours"})
       return
-      
+
     jdl = ""
     params = {}
     lfns = []
-    
+
     for tmp in self.request.arguments:
       try:
         if len(self.request.arguments[tmp][0]) > 0:
@@ -209,7 +207,7 @@ class JobLaunchpadHandler(WebHandler):
             return
       else:
         jdl = jdl + str(item) + " = \"" + str(params[item]) + "\";"
-        
+
     store = []
     for key in self.request.files:
       try:
@@ -218,14 +216,14 @@ class JobLaunchpadHandler(WebHandler):
           store.append(self.request.files[key][0])
       except:
         pass
-      
+
     gLogger.info("\033[0;31m *** %s \033[0m " % params)
-    
+
     clearFS = False  # Clear directory flag
     fileNameList = []
     exception_counter = 0
     callback = {}
-    
+
     if len(store) > 0:  # If there is a file(s) in sandbox
       clearFS = True
       import shutil
@@ -234,25 +232,25 @@ class JobLaunchpadHandler(WebHandler):
       try:
         for fileObj in store:
           name = os.path.join(storePath , fileObj.filename.lstrip(os.sep))
-          
+
           tFile = open(name , 'w')
           tFile.write(fileObj.body)
           tFile.close()
-          
+
           fileNameList.append(name)
       except Exception, x:
         exception_counter = 1
         callback = {"success":"false", "error":"An EXCEPTION happens during saving your sandbox file(s): %s" % str(x)}
-        
+
     if ((len(fileNameList) > 0) or (len(lfns) > 0)) and exception_counter == 0:
       sndBox = "InputSandbox = {\"" + "\",\"".join(fileNameList + lfns) + "\"};"
     else:
       sndBox = ""
-      
+
     if exception_counter == 0:
       jdl = jdl + sndBox
       from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
-      
+
       jobManager = WMSClient(useCertificates=True, timeout = 1800 )
       jdl = str(jdl)
       gLogger.info("J D L : ", jdl)
@@ -267,6 +265,6 @@ class JobLaunchpadHandler(WebHandler):
     if clearFS:
       shutil.rmtree(storePath)
     self.finish(callback)
-    
-  
-  
+
+
+
