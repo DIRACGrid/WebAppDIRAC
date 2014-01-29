@@ -5,7 +5,6 @@ from DIRAC.Core.Utilities import List, Time, DEncode
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
 import tempfile
-import simplejson
 import json
 import ast
 
@@ -30,14 +29,14 @@ class ActivityMonitorHandler(WebHandler):
       sort = [ (sortField, sortDir) ]
     except:
       sort = []
-      
+
     rpcClient = RPCClient("Framework/Monitoring")
     retVal = yield self.threadTask(rpcClient.getActivitiesContents, {}, sort, start, limit)
-    
+
     if not retVal[ 'OK' ]:
       self.finish({"success":"false", "result":[], "total":-1, "error":retVal["Message"]})
       return
-    
+
     svcData = retVal[ 'Value' ]
     callback = {'success':'true', 'total' : svcData[ 'TotalRecords' ], 'result' : [] }
     now = Time.toEpoch()
@@ -48,13 +47,13 @@ class ActivityMonitorHandler(WebHandler):
       if 'activities_lastUpdate' in formatted:
         formatted[ 'activities_lastUpdate' ] = now - int(formatted[ 'activities_lastUpdate' ])
       callback[ 'result' ].append(formatted)
-      
+
     self.finish(callback)
-  
+
   def __dateToSecs(self, timeVar):
     dt = Time.fromString(timeVar)
     return int(Time.toEpoch(dt))
-  
+
   @asyncGen
   def web_plotView(self):
 
@@ -68,7 +67,7 @@ class ActivityMonitorHandler(WebHandler):
         self.finish({ 'success' : "false", 'error' : "Missing plotsize in plot request" })
         return
       plotRequest[ 'size' ] = int(self.request.arguments[ 'size' ][0])
-      
+
       timespan = int(self.request.arguments[ 'timespan' ][0])
       if timespan < 0:
         toSecs = self.__dateToSecs(str(self.request.arguments[ 'toDate' ][0]))
@@ -83,18 +82,18 @@ class ActivityMonitorHandler(WebHandler):
     except Exception, e:
       self.finish({ 'success' : "false", 'error' : "Error while processing plot parameters: %s" % str(e) })
       return
-    
+
     print plotRequest
-    
+
     rpcClient = RPCClient("Framework/Monitoring")
     retVal = yield self.threadTask(rpcClient.plotView, plotRequest)
-    
+
     if retVal[ 'OK' ]:
       self.finish({ 'success' : "true", 'data' : retVal[ 'Value' ] })
     else:
       self.finish({ 'success' : "false", 'error' : retVal[ 'Message' ] })
-  
-  @asyncGen    
+
+  @asyncGen
   def web_getStaticPlotViews(self):
     rpcClient = RPCClient("Framework/Monitoring")
     retVal = yield self.threadTask(rpcClient.getViews, True)
@@ -102,7 +101,7 @@ class ActivityMonitorHandler(WebHandler):
       self.finish({"success":"false", "error":retVal["Message"]})
     else:
       self.finish({"success":"true", "result":retVal["Value"]})
-      
+
   @asyncGen
   def web_getPlotImg(self):
     """
@@ -131,32 +130,32 @@ class ActivityMonitorHandler(WebHandler):
     self.set_header('Content-Length', len(data))
     self.set_header('Content-Transfer-Encoding', 'Binary')
     self.finish(data)
-  
-  @asyncGen  
+
+  @asyncGen
   def web_queryFieldValue(self):
     """
     Query a value for a field
     """
     fieldQuery = str(self.request.arguments[ 'queryField' ][0])
-    definedFields = simplejson.loads(self.request.arguments[ 'selectedFields' ][0])
+    definedFields = json.loads(self.request.arguments[ 'selectedFields' ][0])
     rpcClient = RPCClient("Framework/Monitoring")
     result = yield self.threadTask(rpcClient.queryField, fieldQuery, definedFields)
     if 'rpcStub' in result:
       del(result[ 'rpcStub' ])
-    
+
     if result["OK"]:
       self.finish({"success":"true", "result":result["Value"]})
     else:
       self.finish({"success":"false", "error":result["Message"]})
-  
-  @asyncGen    
+
+  @asyncGen
   def web_deleteActivities(self):
     try:
       webIds = str(self.request.arguments[ 'ids' ][0]).split(",")
     except Exception, e:
       self.finish({"success":"false", "error":"No valid id's specified"})
       return
-    
+
     idList = []
     for webId in webIds:
       try:
@@ -164,26 +163,26 @@ class ActivityMonitorHandler(WebHandler):
       except Exception, e:
         self.finish({"success":"false", "error":"Error while processing arguments: %s" % str(e)})
         return
-      
+
     rpcClient = RPCClient("Framework/Monitoring")
-    
+
     retVal = yield self.threadTask(rpcClient.deleteActivities, idList)
-    
+
     if 'rpcStub' in retVal:
       del(retVal[ 'rpcStub' ])
-      
+
     if retVal["OK"]:
       self.finish({"success":"true"})
     else:
       self.finish({"success":"false", "error":retVal["Message"]})
-  
-  @asyncGen    
+
+  @asyncGen
   def web_tryView(self):
     """
     Try plotting graphs for a view
     """
     try:
-      plotRequest = simplejson.loads(self.request.arguments[ 'plotRequest' ][0])
+      plotRequest = json.loads(self.request.arguments[ 'plotRequest' ][0])
       if 'timeLength' in self.request.arguments:
         timeLength = str(self.request.arguments[ 'timeLength' ][0])
         toSecs = int(Time.toEpoch())
@@ -206,14 +205,14 @@ class ActivityMonitorHandler(WebHandler):
     except Exception, e:
       self.finish({"success":"false", "error":"Error while processing plot parameters: %s" % str(e)})
       return
-      
+
     rpcClient = RPCClient("Framework/Monitoring")
     requestStub = DEncode.encode(plotRequest)
     retVal = yield self.threadTask(rpcClient.tryView, fromSecs, toSecs, requestStub)
     if not retVal[ 'OK' ]:
       self.finish({"success":"false", "error":retVal["Message"]})
       return
-    
+
     self.finish({"success":"true", 'images' : retVal[ 'Value' ], 'stub' : requestStub})
 
   @asyncGen
@@ -222,7 +221,7 @@ class ActivityMonitorHandler(WebHandler):
     Save a view
     """
     try:
-      plotRequest = simplejson.loads(self.request.arguments[ 'plotRequest' ][0])
+      plotRequest = json.loads(self.request.arguments[ 'plotRequest' ][0])
       viewName = str(self.request.arguments[ 'viewName' ][0])
     except Exception, e:
       self.finish({"success":"false", "error": "Error while processing plot parameters: %s" % str(e)})
@@ -231,6 +230,6 @@ class ActivityMonitorHandler(WebHandler):
     result = yield self.threadTask(rpcClient.saveView, viewName, requestStub)
     if 'rpcStub' in result:
       del(result[ 'rpcStub' ])
-      
+
     self.finish({"success":"true"})
 
