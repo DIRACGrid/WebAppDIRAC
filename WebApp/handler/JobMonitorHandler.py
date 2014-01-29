@@ -14,7 +14,7 @@ class JobMonitorHandler(WebHandler):
 
   @asyncGen
   def web_getJobData(self):
-    RPC = RPCClient("WorkloadManagement/JobMonitoring")
+    RPC = RPCClient("WorkloadManagement/JobMonitoring", timeout = 600 )
     req = self.__request()
     result = yield self.threadTask(RPC.getJobPageSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
 
@@ -427,26 +427,26 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success":"false", "error":result["Message"]}
     self.finish(callback)
-  
-  @asyncGen  
+
+  @asyncGen
   def web_getStatisticsData(self):
     req = self.__request()
-    
+
     paletteColor = Palette()
-    
+
     RPC = RPCClient("WorkloadManagement/JobMonitoring")
-    
+
     selector = self.request.arguments["statsField"][0]
-    
+
     if selector == "Minor Status":
       selector = "MinorStatus"
     elif selector == "Application Status":
       selector = "ApplicationStatus"
     elif selector == "Job Group":
       selector = "JobGroup"
-    
+
     result = yield self.threadTask(RPC.getJobStats, selector, req)
-    
+
     if result["OK"]:
       callback = []
       result = dict(result["Value"])
@@ -480,8 +480,8 @@ class JobMonitorHandler(WebHandler):
     else:
       callback = {"success":"false", "error":result["Message"]}
     self.finish(callback)
-   
-  @asyncGen  
+
+  @asyncGen
   def web_getSandbox(self):
     if 'jobID' not in self.request.arguments:
       self.finish({"success":"false", "error":"Maybe you forgot the jobID ?"});
@@ -490,24 +490,24 @@ class JobMonitorHandler(WebHandler):
     sbType = 'Output'
     if 'sandbox' in self.request.arguments:
       sbType = str(self.request.arguments['sandbox'][0])
-    
+
     userData = self.getSessionData()
-        
+
     client = SandboxStoreClient(useCertificates=True,
                                 delegatedDN=str(userData["user"]["DN"]),
                                 delegatedGroup=str(userData["user"]["group"]),
                                 setup=userData["setup"])
-    
+
     result = yield self.threadTask(client.downloadSandboxForJob, jobID, sbType, inMemory=True)
-    
+
     if not result['OK']:
       self.finish({"success":"false", "error":"Error: %s" % result['Message']})
       return
-    
+
     if "check" in self.request.arguments:
       self.finish({"success":"true"})
       return
-    
+
     data = result['Value']
     fname = "%s_%sSandbox.tar" % (str(jobID), sbType)
     self.set_header('Content-type', 'application/x-tar')
@@ -516,4 +516,4 @@ class JobMonitorHandler(WebHandler):
     self.set_header('Cache-Control', "no-cache, no-store, must-revalidate, max-age=0")
     self.set_header('Pragma', "no-cache")
     self.finish(data)
-    
+
