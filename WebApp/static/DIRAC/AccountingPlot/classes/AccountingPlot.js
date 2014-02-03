@@ -105,7 +105,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		}
 
-		
+
 		Ext.apply(me, {
 			layout : 'border',
 			bodyBorder : false,
@@ -689,7 +689,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			me.__additionalDataLoad();
 			me.__additionalDataLoad = null;
 		}
-		
+
 		me.advancedPlotTitle.setValue("");
 
 	},
@@ -1192,7 +1192,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 						if (oNewUnderlinedName == oParam) {
 
 							me.fsetSpecialConditions.items.getAt(i).setInverseSelection((oParams[oParam][0] == 1));
-							me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam][1].split(","));
+							me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam].split(","));
 
 							break;
 

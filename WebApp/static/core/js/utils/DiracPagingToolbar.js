@@ -129,6 +129,21 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar',{
       }
     });
   },
+  loadState : function(data) {
+    var me = this;
+    if (data.pageSize) {
+
+      me.pageSizeCombo.suspendEvents(false);
+      me.pageSizeCombo.setValue(data.pageSize);
+      me.pageSizeCombo.resumeEvents();
+
+    }
+  },
+  getStateData : function() {
+    var me = this;
+    var pageSize = me.pageSizeCombo.getValue();
+    return pageSize;
+  },
   __setRefreshCycle : function(time){
     var me = this;
     me.refreshCycle = time; //it is used if we want to save the state!!!

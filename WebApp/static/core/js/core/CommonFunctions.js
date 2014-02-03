@@ -33,6 +33,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
   alert : function(sMessage, sType) {
 
+    if (sMessage == null) return;
     sMessage = sMessage.replace(new RegExp("\n", 'g'), "<br/>");
 
     switch (sType) {

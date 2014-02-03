@@ -1,7 +1,41 @@
+/***
+ * It can be used to create a context menu.
+ *NOTE: You have to provide the menu items and the scope.
+ *The menuitems is a dictionary which has Visible and Protected keys:
+ *-Visible: the menu items accessible by all users.
+ *-Protected: the menu items are restricted. Only the appropriate users can be accessed to this functionalities. For example: only the users can access to the menu items which are a certain group.
+ *These to items are lists which contain dictionaries used to configure the menu items.: {'Visible':[{}],'Protected','Protected':[{}]}
+ * The dictionaries have the following format: {"text":"a","handler":func,"arguments":[a,b,c], properties:{}}
+ *      -text: the menu item name (this text will appears in the menu)
+ *      -handler: this function handle the event.
+ *      -arguments: we can pass parameters to the func method.
+ *      -properties: We can provide properties which are properties of the {@link Ext.menu.Menu}
+ *
+ *
+ *  var sandboxSubmenu = {
+ *       'Visible':[
+ *                  {"text":"Get input file(s)",  "handler":me.__getSandbox,"arguments":[GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Input"],"properties":{tooltip:'Click to kill the selected job.',iconCls : "dirac-icon-download"}},
+ *                  {"text":"Get output file(s)", "handler":me.__getSandbox,"arguments":[GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Output"],"properties":{tooltip:'Click to kill the selected job.',iconCls : "dirac-icon-download"}}
+ *                  ]};
+ *
+ *  var menuitems = {
+ *       'Visible':[
+ *                  {"text":"JDL",           "handler":me.__oprGetJobData, "arguments":["getJDL"], "properties":{tooltip:'Click to show the JDL of the selected job.'}},
+ *                  {"text":"-"},//separator
+ *                  {"text":"Attributes",    "handler":me.__oprGetJobData, "arguments":["getBasicInfo"], "properties":{tooltip:'Click to show the attributtes of the selected job.'}},
+ *                  {"text":"SandBox",  "subMenu":  sandboxSubmenu, "properties":{iconCls : "jm-icon-sandbox",}}
+ *                  ]}
+ *   me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({menu:menuitems,scope:me});
+ *
+ */
 Ext.define('Ext.dirac.utils.DiracApplicationContextMenu',{
   extend:'Ext.menu.Menu',
+  /**
+   * @cfg{menuitems}
+   * is a dictionary which contains the menu items. More details in above.
+   */
   menuitems : null,
-  items : [],
+
   constructor : function(oConfig){
     var me = this;
     me.callParent(arguments);
@@ -12,7 +46,9 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu',{
       if(oConfig.menu && "Visible" in oConfig.menu && oConfig.menu.Visible.length>0){
         for(var i = 0; i< oConfig.menu.Visible.length; i++){
           var oMenuItem = null;
-          if ("handler" in oConfig.menu.Visible[i]){
+          if (oConfig.menu.Visible[i].text=="-"){
+            me.add(new Ext.menu.Separator());
+          }else if ("handler" in oConfig.menu.Visible[i]){
             oMenuItem = new Ext.menu.Item({text:oConfig.menu.Visible[i].text, handler: Ext.bind(oConfig.menu.Visible[i].handler, me.scope, oConfig.menu.Visible[i].arguments, false), scope : me.scope});
           }else if ("subMenu" in oConfig.menu.Visible[i]){
             oMenuItem = new Ext.menu.Item({text:oConfig.menu.Visible[i].text});
@@ -24,9 +60,31 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu',{
           me.add(oMenuItem);
 
         }
+      }else if(oConfig.menu && "Protected" in oConfig.menu && oConfig.menu.Protected.length>0){
+        for(var i = 0; i< oConfig.menu.Protected.length; i++){
+          var oMenuItem = null;
+          if (oConfig.menu.Protected[i].text=="-"){
+            me.add(new Ext.menu.Separator());
+          }else if ("handler" in oConfig.menu.Protected[i]){
+            oMenuItem = new Ext.menu.Item({text:oConfig.menu.Protected[i].text, handler: Ext.bind(oConfig.menu.Protected[i].handler, me.scope, oConfig.menu.Protected[i].arguments, false), scope : me.scope});
+          }else if ("subMenu" in oConfig.menu.Protected[i]){
+            oMenuItem = new Ext.menu.Item({text:oConfig.menu.Protected[i].text});
+            me.__createSubmenu(oMenuItem, oConfig.menu.Protected[i].subMenu);
+          }
+          if (oConfig.menu.Protected[i].properties){
+            Ext.apply(oMenuItem, oConfig.menu.Protected[i].properties);
+          }
+          me.add(oMenuItem);
+
+        }
       }
     }
   },
+  /***
+   * It is used to create sub menu to a given menu item.
+   * @param{Ext.menu.Item} oMenu the sub menu will belong to this menu item.
+   * @param{Object} subMenu it contains the menu items the format is same as the {@link #menuitems}
+   */
   __createSubmenu : function(oMenu, subMenu){
     var me = this;
     oMenu.menu = new Ext.menu.Menu();
@@ -35,7 +93,9 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu',{
     }else{
       if ("Visible" in subMenu){
         for(var i = 0; i<subMenu.Visible.length; i++){
-          if ("handler" in subMenu.Visible[i]){
+          if (subMenu.Visible[i].text=="-"){
+            oMenu.menu.add(new Ext.menu.Separator());
+          }else if ("handler" in subMenu.Visible[i]){
             var oMenuItem = new Ext.menu.Item({text:subMenu.Visible[i].text, handler: Ext.bind(subMenu.Visible[i].handler, me.scope, subMenu.Visible[i].arguments, false), scope : me.scope});
           }else if ("subMenu" in subMenu.Visible[i]){
             var oMenuItem = new Ext.menu.Item({text:oConfig.menu.Visible[i].text})
@@ -51,7 +111,9 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu',{
         for(var i = 0; i<subMenu.Protected.length; i++){
           var lDisable = ("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, subMenu.Protected[i].property) != -1) == false? true:false;
           oMenu.disabled=lDisable;
-          if ("handler" in subMenu.Protected[i]){
+          if (subMenu.Protected[i].text=="-"){
+            oMenu.menu.add(new Ext.menu.Separator());
+          }else if ("handler" in subMenu.Protected[i]){
             var oMenuItem = new Ext.menu.Item({text:subMenu.Protected[i].text, handler: Ext.bind(subMenu.Protected[i].handler, me.scope, subMenu.Protected[i].arguments, false), scope : me.scope,disabled:lDisable});
           }else if ("subMenu" in subMenu.Protected[i]){
             var oMenuItem = new Ext.menu.Item({text:oConfig.menu.Protected[i].text, disabled:lDisable});

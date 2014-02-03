@@ -28,7 +28,7 @@
     margin:0;
     padding:10px;
     width:300px;
-    
+
 }
 #app-dirac-loading-msg {
     font-size: 12px;
@@ -253,9 +253,9 @@
 }
 
 .x-hidden-loading-message{
-	
+
 	visibility:hidden;
-	
+
 }
 
 .system_link_icon {
@@ -264,33 +264,37 @@
 }
 
 .system_web_window{
-	
+
 	background-image:url(../img/icons/system/_web.png) !important;
     background-size:16px 16px;
-	
+
 }
 
 .system_folder{
-	
+
 	background-image:url(../img/icons/system/_folder.png) !important;
     background-size:16px 16px;
-	
+
 }
 
 .system_child_window{
-	
+
 	background-image:url(../img/icons/system/_child_window.png) !important;
     background-size:16px 16px;
-	
+
 }
 
 .system_pin_window{
-	
+
 	background-image:url(../img/icons/system/_pin.png) !important;
     background-size:16px 16px;
-	
+
 }
 
 .loading_item {
     background-image: url( ../img/icons/system/loading.gif ) !important;
+}
+
+.dirac-table-main-check-box {
+  margin: 3px 0px 3px 0px !important;
 }

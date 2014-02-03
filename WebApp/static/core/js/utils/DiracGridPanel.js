@@ -41,6 +41,9 @@ Ext.define('Ext.dirac.utils.DiracGridPanel',{
       me.store.sorters.clear();
       me.store.sorters.addAll(me.store.decodeSorters(data.columns.sorters));
     }
+
+    me.pagingToolbar.loadState(data);
+
   },
   getRenderers : function(){
     var me = this;
@@ -81,6 +84,8 @@ Ext.define('Ext.dirac.utils.DiracGridPanel',{
       oReturn.columns.groupers.push({"property":key.property, "direction":key.direction});
     });
 
+    oReturn.pageSize = me.pagingToolbar.getState();
+
     return oReturn;
 
   },
@@ -95,9 +100,9 @@ Ext.define('Ext.dirac.utils.DiracGridPanel',{
     GLOBAL.APP.CF.log("debug","Create panel...");
     me.checkboxFunctionDefinition = '<input type="checkbox" value="" onchange="';
     me.checkboxFunctionDefinition += 'var oChecked=this.checked;';
-    me.checkboxFunctionDefinition += 'var oElems=Ext.query(\'#' + me.id + ' input.checkrow\');';
+    me.checkboxFunctionDefinition += 'var oElems=Ext.query(\'#' + config.scope.id + ' input.checkrow\');';
     me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
-    me.checkboxFunctionDefinition += '" class="jm-main-check-box"/>';
+    me.checkboxFunctionDefinition += '" class="dirac-table-main-check-box"/>';
 
     var oColumn = {};
     for (i in config.oColumns){
@@ -108,7 +113,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel',{
             name : "checkBox",
             width : 26,
             sortable : false,
-            dataIndex : 'TransformationIDcheckBox',
+            dataIndex : config.oColumns[i]["dataIndex"],
             renderer : function(value, metaData, record, row, col, store, gridView) {
               return me.rendererChkBox(value);
             },
