@@ -54,7 +54,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     elif params["op"] == "moveNode":
       res = self.__moveNode(params)
     elif params["op"] == "commitConfiguration":
-      res = yield self.theadTask( self.__commitConfiguration )
+      res = yield self.threadTask( self.__commitConfiguration )
     elif params["op"] == "showCurrentDiff":
       res = self.__showCurrentDiff()
 
