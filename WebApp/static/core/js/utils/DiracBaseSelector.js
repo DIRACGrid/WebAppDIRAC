@@ -1,3 +1,46 @@
+/***
+ *  This widget can be used to create a selector. It allows to easily configure the selector. It provides all the methods which are needed to save/restore the widget state.
+ *  The following example show how to create a selector:
+ *
+ *
+ *      me.leftPanel = new Ext.create('Ext.dirac.utils.DiracBaseSelector',{
+ *        scope : me,
+ *        cmbSelectors : selectors,
+ *        textFields : textFields,
+ *        datamap : map,
+ *        url : "TransformationMonitor/getSelectionData"
+ *      });
+ *
+ *
+ *  Parameters:
+ *
+ *    -scope: the parent widget. We have some functionalities which required access to the main class.
+ *    -cmbSelectors: It is a dictionary which contains the selector values. These are the selectors which will be seen as combo box. You can define a selector as the
+ *    following:
+ *
+ *     var selectors = {
+ *          status : "Status",
+ *          agentType : "Agent Type",
+ *          type : "Type",
+ *          group: "Group",
+ *          plugin : "Plugin"
+ *      };
+ *
+ *    -textFields is dictionary which contains the text field name and the text which will appears in the widget. The following example shows how to implement a text field:
+ *
+ *
+ *      var textFields = {
+ *          'transformationId' : "ProductionID(s)",
+ *          'requestId'      : "RequestID(s)"
+ *      }
+ *
+ *    -timeSearchPanel in case if we want to have the time selector.
+ *    -datamap is a list which contains the map, because we may have a situation when the name is different in the widget than the value which is returned by the controller.
+ *
+ *     var map = [ [ "agentType", "agentType" ], [ "productionType", "type" ], ["transformationGroup", "group"], ["plugin", "plugin"], ["prodStatus", "status"] ];
+ *
+ *    -url is a String which contains the url used to fill the selector widget.
+ */
 Ext.define('Ext.dirac.utils.DiracBaseSelector',{
   extend:'Ext.panel.Panel',
   requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracTimeSearchPanel'],
@@ -11,11 +54,40 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
   bodyPadding : 5,
   layout : 'anchor',
   autoScroll : true,
+  /**
+   * @cfg{Object}cmbSelectors
+   * It stores the combo box selectors.
+   */
   cmbSelectors : {},
+  /***
+   * @cfg{Object} textFields
+   * It stores the text field selectors.
+   */
   textFields : {},
+  /***
+   * @cfg{Ext.dirac.utils.DiracTimeSearchPanel} timeSearchPanel
+   * It stores the time panel.
+   */
   timeSearchPanel : null,
+  /***
+   * @property{Boolean} hasTimeSearchPanel
+   * It is used to add/remove the time search panel to the selector. The time selector is available by default.
+   */
+  hasTimeSearchPanel : true,
+  /***
+   * @cfg{List} datamap
+   * It contains the map in case when the selector name is different than the returned value.
+   */
   datamap : [],
+  /***
+   * @cfg{String} url
+   * This url used to fill the selectors.
+   */
   url : "",
+  /***
+   * @cfg{Ext.menu.Menu} selectorMenu
+   * This menu used to hide and show the selector widgets.
+   */
   selectorMenu : null,
   constructor : function(oConfig){
     var me = this;
@@ -43,7 +115,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
 
       }
     }
-    if (oConfig.timeSearchPanel){
+    if (oConfig.hasTimeSearchPanel != null){
+      me.hasTimeSearchPanel = oConfig.hasTimeSearchPanel;
+    }
+    if (me.hasTimeSearchPanel){
       me.timeSearchPanel = Ext.create("Ext.dirac.utils.DiracTimeSearchPanel");
     }
 
@@ -175,6 +250,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
     me.__loadSelectorData();
     me.callParent();
   },
+  /**
+   * It returns the data which has to be saved in the User Profile.
+   * @return{Object}
+   */
   getStateData : function(){
     var me = this;
 
@@ -208,6 +287,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
     return leftMenu;
 
   },
+  /***
+   * This function is used to load the data which is saved in the User Profile.
+   * @param{Object}data
+   * it contains the saved values.
+   */
   loadState : function(data) {
     var me = this;
 
@@ -271,6 +355,13 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
     }
 
   },
+  /***
+   *@private
+   *In case the selector is not loaded we have to postpone the setting of the value.
+   *@param{Ext.dirac.utils.DiracBoxSelect} oSelectionBox the combo box widget
+   *@param{Object}oValues the value which has to be set to the oSelectionBox
+   *@param{Boolean} it used to cancel the previous request
+   */
   __oprPostponedValueSetUntilOptionsLoaded : function(oSelectionBox, oValues, bLastOne) {
 
     var me = this;
@@ -291,7 +382,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
     }
 
   },
-
+  /***
+   * @private
+   * It cancel the AJAX request.
+   */
   __cancelPreviousDataRequest : function() {
 
     var me = this;
@@ -305,10 +399,18 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
       }
     }
   },
+  /**
+   * It return the Time search panel
+   * @retun{Ext.dirac.utils.DiracTimeSearchPanel}
+   */
   getTimeSearch : function(){
     var me = this;
     return me.timeSearchPanel;
   },
+  /***
+   * @private
+   * It loads the Selector data using AJAX request.
+   */
   __loadSelectorData : function(){
     var me = this;
 
@@ -349,6 +451,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
 
 
   },
+  /***
+   * It refresh the selectors.
+   * @param{Object}oData data used by the selectors.
+   * @param{Boolean}bRefreshStores to create new store.
+   */
   __oprRefreshStoresForSelectors : function(oData, bRefreshStores) {
 
     var me = this;
@@ -377,6 +484,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
 
     }
   },
+  /***
+   * It returns the data which is selected by the user.
+   * @return{Object}
+   */
   getSelectionData : function(){
     var me = this;
 
@@ -458,6 +569,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
 
     return extraParams;
   },
+  /***
+   * It loads data to the grid panel.
+   */
   oprLoadGridData : function() {
     var me = this;
 
@@ -469,8 +583,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
       me.scope.grid.store.currentPage = 1;
       me.scope.grid.store.load();
 
-     var oCheckbox = Ext.query("#" + me.scope.id + " input.dirac-table-main-check-box");
-     oCheckbox[0].checked = false;
+      var oCheckbox = Ext.query("#" + me.scope.id + " input.dirac-table-main-check-box");
+      if (oCheckbox.length>0){
+        oCheckbox[0].checked = false;
+      }
 
      if (me.scope.funcOnChangeEitherCombo){
        me.scope.funcOnChangeEitherCombo(); //if we have statistical window
@@ -478,6 +594,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
     }
 
   },
+  /***
+   * It validates the selected values. It is used to make sure the values which are selected are correct.
+   */
   __oprValidateBeforeSubmit : function() {
 
     var me = this;
@@ -491,6 +610,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
     }
     return bValid;
   },
+  /***
+   * It is used to reset the selectors.
+   */
   oprResetSelectionOptions : function() {
 
     var me = this;
@@ -505,6 +627,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
     me.oprLoadGridData();
 
   },
+  /***
+   * It is used to refresh the selectors.
+   * @param{Boolean} create a Ajax request and refresh the selectors.
+   */
   oprSelectorsRefreshWithSubmit : function(bSubmit) {
 
     var me = this;

@@ -1,3 +1,46 @@
+/***
+ * It is a predefined grid widget. It allows to easily create a Grid widget. You can provide the following values:
+ *
+ *
+ *  -store: which is the data store object {@link Ext.dirac.utils.DiracJsonStore}.
+ *
+ *  -features: We can allow a list of futures: such as grouping etc.
+ *
+ *  -oClolumns: dictionary with the column names: {"a":{"dataIndex":"b"},"properties":{},renderFunction:"c"}
+ *   There are different render functions provided by this widget. We can configure the grid panel to how render the data.
+ *
+ *    For example:
+ *
+ *      var oColumns = {
+ *          "checkBox":{"dataIndex":"TransformationIDcheckBox"},
+ *          "ID" : {"dataIndex":"TransformationID", "properties":{width:60, align:'left',hideable:false}},
+ *          "Request" : {"dataIndex":"TransformationFamily","properties":{hidden:true}},
+ *          "None" : {"dataIndex":"StatusIcon", "properties":{width:26,sortable:false, hideable:false,fixed:true,menuDisabled:true}, "renderFunction":"rendererStatus"},
+ *          "Status":{"dataIndex":"Status","properties":{width:60}},
+ *          "AgentType" :{"dataIndex":"AgentType","properties":{ width:60}},
+ *          "Type":{"dataIndex":"Type"}}
+ *  -tbar : it is a paging tool bar object. DIRAC provides the following widget: {@link Ext.dirac.utils.DiracPagingToolbar}.
+ *
+ *  -contextMenu: you can add a menu to the Grid. DIRAC provides the following menu: {@link Ext.dirac.utils.DiracApplicationContextMenu}.
+ *
+ *  -pagingToolbar: it keeps the paging tool bar.
+ *
+ *  -scope: it has to be provided, because the grid panel has to accessed to other widgets.
+ *
+ * For example:
+ *
+ *
+ *    me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
+ *        store : me.dataStore,
+ *        features: [{ftype:'grouping'}],
+ *        oColumns : oColumns,
+ *        tbar : pagingToolbar,
+ *        contextMenu : me.contextGridMenu,
+ *        pagingToolbar : pagingToolbar,
+ *        scope : me
+ *      });
+ *
+ */
 Ext.define('Ext.dirac.utils.DiracGridPanel',{
   extend : 'Ext.grid.Panel',
   mixins : [ "Ext.dirac.core.Stateful"],
@@ -8,9 +51,28 @@ Ext.define('Ext.dirac.utils.DiracGridPanel',{
     stripeRows : true,
     enableTextSelection : true
   },
+  /***
+   * @property{Object} defaultColumnsProperties
+   * it contains the default properties of the columns. The default value is {sortable:true,align:'left',hidden:true}
+   *
+   */
   defaultColumnsProperties : {sortable:true,align:'left',hidden:true},
+  /***
+   * @cfg{List} columns
+   * it contains the grid columns
+   */
   columns : [ ],
+  /***
+   * @cfg{List} renderers
+   * it contains a list of available renderer: ["rendererChkBox", "rendererStatus","diffValues"]
+   * NOTE: You can implement new renderer.
+   */
   renderers : ["rendererChkBox", "rendererStatus","diffValues"],
+  /***
+   * This function is used to load the data which is saved in the User Profile.
+   * @param{Object}data
+   * it contains the saved values.
+   */
   loadState : function(data) {
 
     var me = this;
@@ -45,10 +107,18 @@ Ext.define('Ext.dirac.utils.DiracGridPanel',{
     me.pagingToolbar.loadState(data);
 
   },
+  /***
+   * It returns the available renderer.
+   * @return{List}
+   */
   getRenderers : function(){
     var me = this;
-
+    return me.renderers;
   },
+  /**
+   * It returns the data which has to be saved in the User Profile.
+   * @return{Object}
+   */
   getStateData : function() {
 
     var me = this;
@@ -177,9 +247,19 @@ Ext.define('Ext.dirac.utils.DiracGridPanel',{
     }
     me.callParent(arguments);
   },
+  /***
+   * It render the Grid columns
+   * @param{Number} val
+   * it is the column value
+   */
   rendererChkBox : function(val) {
     return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
   },
+  /***
+   * It render the Status
+   * @param{String} value
+   * It render the status.
+   */
   rendererStatus : function(value) {
     if ((value == 'Done') || (value == 'Completed') || (value == 'Good') || (value == 'Active') || (value == 'Cleared') || (value == 'Completing')) {
       return '<img src="static/DIRAC/JobMonitor/images/done.gif"/>';
@@ -205,6 +285,9 @@ Ext.define('Ext.dirac.utils.DiracGridPanel',{
       return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
     }
   },
+  /***
+   * It render the columns in case we want to see the difference before load and after the load. More info {@link Ext.dirac.utils.DiracJsonStore}
+   */
   diffValues : function (value,metaData,record,rowIndex,colIndex,store){
     var me = this;
     var id = record.data.TransformationID;

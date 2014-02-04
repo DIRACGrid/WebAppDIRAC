@@ -1,3 +1,43 @@
+/**
+ * This widget contains different tool bar buttons. We have to provide the tool buttons using a dictionary. The tool buttons have to be defined same way as
+ * {@link Ext.dirac.utils.DiracApplicationContextMenu}
+ * The format of the dictionary is {'Visible':[],'Protected':[]} The Visible buttons are available to all users, while the Protected buttons are available
+ * only users which are in a certain group(They have a certain role).
+ *
+ * The Visible and Protected lists contains dictionaries which have the following format: {"text":"a","handler":func,"arguments":[a,b,c], properties:{}}
+ *      -text: the menu item name (this text will appears in the menu)
+ *      -handler: this function handle the event.
+ *      -arguments: we can pass parameters to the func method.
+ *      -properties: We can provide properties which are properties of the {@link Ext.menu.Menu}.
+ *      -property: It is used when the menu item is protected. (We allow to use the functionalities to a certain users).
+ *
+ *
+ * For example:
+ *
+ *
+ *    pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar",{
+ *        toolButtons : toolButtons,
+ *        dataStore : me.dataStore,
+ *        scope : me
+ *      });
+ *
+ *    -toolButons: It is the dictionary which describe the buttons. In the following example we can see how to defined protected tool buttons.
+ *
+ *       var toolButtons = {
+ *       'Visible':[
+ *         {"text":"", "handler":me.__oprJobAction, "arguments":["reschedule", ""],"properties":{tooltip : "Reschedule", iconCls : "dirac-icon-reschedule"}},
+ *         {"text":"", "handler":me.__oprJobAction, "arguments":["kill", ""],"properties":{tooltip : "Kill", iconCls : "dirac-icon-kill"}},
+ *         {"text":"", "handler":me.__oprJobAction, "arguments":["delete", ""],"properties":{tooltip : "Delete", iconCls : "dirac-icon-delete"}},
+ *         {"text":"", "handler":me.__setActiveItemInTheCentralWorkPanel,"arguments":[],"properties":{iconCls : "dirac-icon-pie",tooltip : "Go to the statistics panel"}}
+ *        ],
+ *       'Protected':[
+ *        {"text":"","handler":me.__oprJobAction, "arguments":["reset", ""],"properties":{tooltip : "Reset", iconCls : "jm-red-reset-icon"}, "property":"JobAdministrator"}
+ *        ]};
+ *
+ *    -dataStore: It is the {@link Ext.dirac.utils.DiracJsonStore} object.
+ *    -scope: It is used to have access to the main widget.
+ *
+ */
 Ext.define('Ext.dirac.utils.DiracPagingToolbar',{
   extend:'Ext.toolbar.Paging',
   requires : ['Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo'],
@@ -9,9 +49,25 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar',{
   layout : {
     overflowHandler : 'Scroller'
   },
+  /***
+   * @cfg{List} pagingToolbarItems
+   * It contains the tool bar items such as buttons, size combo, etc.
+   */
   pagingToolbarItems : [],
+  /***
+   * @cfg{List} pagingToolbarButtons
+   * It contains the tool bar buttons.
+   */
   pagingToolbarButtons : [],
+  /***
+   * @cfg{Ext.dirac.utils.DiracPageSizeCombo}pageSizeCombo
+   * This widget is the page size combo.
+   */
   pageSizeCombo : null,
+  /***
+   * @cfg{Ext.dirac.utils.DiracJsonStore}dataStore
+   * The associated data store object.
+   */
   dataStore : null,
   constructor : function (config){
     var me = this;
@@ -129,6 +185,11 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar',{
       }
     });
   },
+  /***
+   * This function is used to load the data which is saved in the User Profile.
+   * @param{Object}data
+   * it contains the saved values.
+   */
   loadState : function(data) {
     var me = this;
     if (data.pageSize) {
@@ -139,11 +200,20 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar',{
 
     }
   },
+  /**
+   * It returns the data which has to be saved in the User Profile.
+   * @return{Object}
+   */
   getStateData : function() {
     var me = this;
     var pageSize = me.pageSizeCombo.getValue();
     return pageSize;
   },
+  /***
+   * @private
+   * @param{Object} It is the time when the next refresh will occur.
+   * It is used to set how often refresh the widgets.
+   */
   __setRefreshCycle : function(time){
     var me = this;
     me.refreshCycle = time; //it is used if we want to save the state!!!

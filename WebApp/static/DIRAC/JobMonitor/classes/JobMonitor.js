@@ -259,7 +259,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       scope : me,
       cmbSelectors : selectors,
       textFields : textFields,
-      timeSearchPanel : true,
       datamap : map,
       url : "JobMonitor/getSelectionData",
       properties : properties
@@ -366,10 +365,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
     me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
       store : me.dataStore,
-      viewConfig : {
-        stripeRows : true,
-        enableTextSelection : true
-      },
       //features: [{ftype:'grouping'}],
       oColumns : oColumns,
       tbar : pagingToolbar,
@@ -377,9 +372,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       pagingToolbar : pagingToolbar,
       scope : me
     });
-
-		//me.grid.columns[1].setSortState("DESC");
-
 
 		/* Definition of the statistics panel */
 
@@ -980,11 +972,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					if (oDataKind == "getJDL") {
 						// text
-						me.__oprPrepareAndShowWindowText(jsonData["result"], "JDL for JobID:" + oId);
+						me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "JDL for JobID:" + oId);
 
 					} else if (oDataKind == "getBasicInfo") {
 						// grid
-						me.__oprPrepareAndShowWindowGrid(jsonData["result"], "Attributes for JobID:" + oId, [ "name", "value" ], [ {
+						me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Attributes for JobID:" + oId, [ "name", "value" ], [ {
 							text : 'Name',
 							flex : 1,
 							sortable : false,
@@ -998,7 +990,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					} else if (oDataKind == "getParams") {
 						// grid
-						me.__oprPrepareAndShowWindowGrid(jsonData["result"], "Parameters for JobID:" + oId, [ "name", "value" ], [ {
+						me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Parameters for JobID:" + oId, [ "name", "value" ], [ {
 							text : 'Name',
 							flex : 1,
 							sortable : false,
@@ -1012,7 +1004,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					} else if (oDataKind == "getLoggingInfo") {
 						// grid
-						me.__oprPrepareAndShowWindowGrid(jsonData["result"], "Attributes for JobID:" + oId, [ "status", "minor_status", "app_status", "date_time", "source" ], [ {
+						me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Attributes for JobID:" + oId, [ "status", "minor_status", "app_status", "date_time", "source" ], [ {
 							text : 'Source',
 							flex : 1,
 							sortable : false,
@@ -1041,7 +1033,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					} else if (oDataKind == "getStandardOutput") {
 						// text
-						me.__oprPrepareAndShowWindowText(jsonData["result"], "Standard output for JobID:" + oId);
+						me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Standard output for JobID:" + oId);
 					} else if (oDataKind == "getLogURL") {
 						// ?
 
@@ -1053,11 +1045,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
 					} else if (oDataKind == "getPilotStdOut") {
 						// text
-						me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot StdOut for JobID:" + oId);
+						me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot StdOut for JobID:" + oId);
 
 					} else if (oDataKind == "getPilotStdErr") {
 						// text
-						me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot StdErr for JobID:" + oId);
+						me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot StdErr for JobID:" + oId);
 
 					}
 
@@ -1070,48 +1062,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			}
 		});
 	},
-	__oprPrepareAndShowWindowText : function(sTextToShow, sTitle) {
-
-		var me = this;
-
-		var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
-
-		var oTextArea = new Ext.create('Ext.form.field.TextArea', {
-			value : sTextToShow,
-			cls : "jm-textbox-help-window"
-
-		});
-
-		oWindow.add(oTextArea);
-		oWindow.show();
-
-	},
-	__oprPrepareAndShowWindowGrid : function(oData, sTitle, oFields, oColumns) {
-
-		var me = this;
-
-		var oStore = new Ext.data.ArrayStore({
-			fields : oFields,
-			data : oData
-		});
-
-		var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
-
-		var oGrid = Ext.create('Ext.grid.Panel', {
-			store : oStore,
-			columns : oColumns,
-			width : '100%',
-			viewConfig : {
-				stripeRows : true,
-				enableTextSelection : true
-			}
-		});
-
-		oWindow.add(oGrid);
-		oWindow.show();
-
-	},
-
 	__getSandbox : function(sId, sType) {
 
 		var me = this;

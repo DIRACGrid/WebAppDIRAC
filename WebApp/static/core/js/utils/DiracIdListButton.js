@@ -1,3 +1,7 @@
+/***
+ * This widget is used to show the selected values in a window.You can use it when you click on the first button on the paging tool bar. This class used by {@link Ext.dirac.utils.DiracPagingToolbar}
+ *
+ */
 Ext.define('Ext.dirac.utils.DiracIdListButton',{
   extend : 'Ext.Button',
   mixins : [ "Ext.dirac.core.Stateful"],

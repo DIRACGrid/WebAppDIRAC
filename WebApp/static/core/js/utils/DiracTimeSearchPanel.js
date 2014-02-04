@@ -1,3 +1,6 @@
+/***
+ * This widget is used by the Ext.dirac.utils.DiracBaseSelector widget. It allows to select time in the selector.
+ */
 Ext.define('Ext.dirac.utils.DiracTimeSearchPanel',{
   extend : 'Ext.panel.Panel',
   width : 200,

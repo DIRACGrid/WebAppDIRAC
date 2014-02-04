@@ -1,3 +1,6 @@
+/***
+ * It is a text filed which is used by the selector.
+ */
 Ext.define('Ext.dirac.utils.DiracTextField',{
   extend : 'Ext.form.field.Text',
   fieldLabel : "",

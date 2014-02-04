@@ -9,7 +9,8 @@
  *      -text: the menu item name (this text will appears in the menu)
  *      -handler: this function handle the event.
  *      -arguments: we can pass parameters to the func method.
- *      -properties: We can provide properties which are properties of the {@link Ext.menu.Menu}
+ *      -properties: We can provide properties which are properties of the {@link Ext.menu.Menu}.
+ *      -property: It is used when the menu item is protected. (We allow to use the functionalities to a certain users.
  *
  *
  *  var sandboxSubmenu = {
