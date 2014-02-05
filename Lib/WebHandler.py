@@ -94,7 +94,6 @@ class WebHandler( tornado.web.RequestHandler ):
     def threadJob( tmethod, *targs, **tkwargs ):
       tkwargs[ 'callback' ] = tornado.stack_context.wrap( tkwargs[ 'callback' ] )
       targs = ( tmethod, self.__disetDump, targs )
-      print "GENERATING AND QUEUING JOB", targs, kwargs
       self.__threadPool.generateJobAndQueueIt( cbMethod, args = targs, kwargs = tkwargs )
 
     #Return a YieldPoint
