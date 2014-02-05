@@ -558,78 +558,40 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 				}
 			}
 		});
-		/*---------------------------------------------------*/
+		var oColumns = {
+        "None" : {"dataIndex":"key", "properties":{width:26,sortable:false, hideable:false,fixed:true,menuDisabled:true}, "renderFunction":"rendererStatus"},
+        "Key":{"dataIndex":"key","properties":{hideable : false, width : 150}},
+        "Value" :{"dataIndex":"value","properties":{flex : 1,}}
+		};
 
-		me.statisticsSelectionGrid = Ext.create('Ext.grid.Panel', {
-			region : 'west',
-			store : new Ext.data.ArrayStore({
-				fields : [ "key", "value", "code", "color" ],
-				data : []
-			}),
-			width : 300,
-			header : false,
-			border : 0,
-			viewConfig : {
-				stripeRows : true,
-				enableTextSelection : true
-			},
-			dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
-				dock : "top",
-				items : [ oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, '-', btnAutorefresh ]
-			}), new Ext.create('Ext.toolbar.Toolbar', {
-				dock : "top",
-				items : [ me.statisticsGridComboMain ]
-			}), new Ext.create('Ext.toolbar.Toolbar', {
-				dock : "top",
-				items : [ me.statisticsGridCombo ]
-			}) ],
-			columns : [ {
-				header : '',
-				width : 26,
-				sortable : false,
-				dataIndex : 'key',
-				renderer : function(value, metaData, record, row, col, store, gridView) {
-					return this.rendererStatus(value);
-				},
-				hideable : false,
-				fixed : true,
-				menuDisabled : true
-			}, {
-				header : 'Key',
-				sortable : true,
-				dataIndex : 'key',
-				align : 'left',
-				hideable : false,
-				width : 150
-			}, {
-				header : 'Value',
-				flex : 1,
-				sortable : true,
-				dataIndex : 'value',
-				align : 'left'
-			} ],
-			rendererStatus : function(value) {
-				if ((value == 'Done') || (value == 'Completed') || (value == 'Good') || (value == 'Active') || (value == 'Cleared') || (value == 'Completing')) {
-					return '<img src="static/DIRAC/JobMonitor/images/done.gif"/>';
-				} else if (value == 'Bad') {
-					return '<img src="static/DIRAC/JobMonitor/images/bad.gif"/>';
-				} else if ((value == 'Failed') || (value == 'Bad') || (value == 'Banned') || (value == 'Aborted')) {
-					return '<img src="static/DIRAC/JobMonitor/images/failed.gif"/>';
-				} else if ((value == 'Waiting') || (value == 'Stopped') || (value == 'Poor') || (value == 'Probing')) {
-					return '<img src="static/DIRAC/JobMonitor/images/waiting.gif"/>';
-				} else if (value == 'Deleted') {
-					return '<img src="static/DIRAC/JobMonitor/images/deleted.gif"/>';
-				} else if (value == 'Matched') {
-					return '<img src="static/DIRAC/JobMonitor/images/matched.gif"/>';
-				} else if ((value == 'Running') || (value == 'Active') || (value == 'Fair')) {
-					return '<img src="static/DIRAC/JobMonitor/images/running.gif"/>';
-				} else if (value == 'NoMask') {
-					return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
-				} else {
-					return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
-				}
-			},
-		});
+
+		/*---------------------------------------------------*/
+		me.statisticsSelectionGrid = Ext.create("Ext.dirac.utils.DiracGridPanel",{
+		  region : 'west',
+		  store : new Ext.data.ArrayStore({
+        fields : [ "key", "value", "code", "color" ],
+        data : []
+      }),
+      width : 300,
+      header : false,
+      border : 0,
+      viewConfig : {
+        stripeRows : true,
+        enableTextSelection : true
+      },
+      dockedItems : [ new Ext.create('Ext.toolbar.Toolbar', {
+        dock : "top",
+        items : [ oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, '-', btnAutorefresh ]
+      }), new Ext.create('Ext.toolbar.Toolbar', {
+        dock : "top",
+        items : [ me.statisticsGridComboMain ]
+      }), new Ext.create('Ext.toolbar.Toolbar', {
+        dock : "top",
+        items : [ me.statisticsGridCombo ]
+      }) ],
+      oColumns : oColumns,
+      scope : me
+		})
 
 		me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
 			region : 'center',

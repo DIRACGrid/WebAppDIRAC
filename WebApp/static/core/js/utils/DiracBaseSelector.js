@@ -302,21 +302,23 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
 
         var item = me.selectorMenu.items.getAt(i);
 
-        item.setChecked(!data.leftMenu.selectors[item.relatedCmbField].hidden);
+        if (item.relatedCmbField in data.leftMenu.selectors){ //in case if a selector is missing in the data
+          item.setChecked(!data.leftMenu.selectors[item.relatedCmbField].hidden);
 
-        if (!data.leftMenu.selectors[item.relatedCmbField].hidden)
-          me.cmbSelectors[item.relatedCmbField].show();
-        else
-          me.cmbSelectors[item.relatedCmbField].hide();
+          if (!data.leftMenu.selectors[item.relatedCmbField].hidden)
+            me.cmbSelectors[item.relatedCmbField].show();
+          else
+            me.cmbSelectors[item.relatedCmbField].hide();
 
-        /*
-         * this can be done only if the store is being loaded, otherwise has
-         * to be postponed
-         */
-        me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected,
-            ((i == me.selectorMenu.items.length - 2) ? true : false));
+          /*
+           * this can be done only if the store is being loaded, otherwise has
+           * to be postponed
+           */
+          me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected,
+              ((i == me.selectorMenu.items.length - 2) ? true : false));
 
-        me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
+          me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
+        }
 
       }
 
@@ -365,7 +367,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector',{
   __oprPostponedValueSetUntilOptionsLoaded : function(oSelectionBox, oValues, bLastOne) {
 
     var me = this;
-
+    GLOBAL.APP.CF.log("debug","pospone request",bLastOne);
     if (me.bDataSelectionLoaded) {
 
       if (bLastOne) {

@@ -65,7 +65,7 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel',{
 
       text : 'Reset Time Panel',
       margin : 3,
-      iconCls : "tm-reset-button-icon",
+      iconCls : "dirac-icon-reset",
       handler : function() {
 
         me.timeSearchElementsGroup.cmbTimeTo.setValue(null);

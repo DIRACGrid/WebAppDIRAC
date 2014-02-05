@@ -1357,5 +1357,19 @@ Ext.define('Ext.dirac.views.tabs.Main', {
     GLOBAL.APP.SM.oprLoadSharedState(oData["link"], me.cbAfterLoadSharedState);
 
   },
+  /***
+   * @param{Object}oData
+   * It contains the information what is needed to open an application.
+   *  -objectType
+   *  -moduleName
+   *  -setupData
+   */
+  createNewModuleContainer : function(oData) {
+
+    var me = this;
+
+    me.createWindow(oData.objectType, oData.moduleName, oData.setupData);
+
+  }
 
 });

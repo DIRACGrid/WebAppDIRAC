@@ -222,6 +222,6 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
      },
      __executeAction : function(action){
        var me = this;
-       GLOBAL.CF.alert(action+" button pressed","info");
+       GLOBAL.APP.CF.alert(action+" button pressed","info");
      },
 });

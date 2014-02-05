@@ -262,27 +262,27 @@ Ext.define('Ext.dirac.utils.DiracGridPanel',{
    */
   rendererStatus : function(value) {
     if ((value == 'Done') || (value == 'Completed') || (value == 'Good') || (value == 'Active') || (value == 'Cleared') || (value == 'Completing')) {
-      return '<img src="static/DIRAC/JobMonitor/images/done.gif"/>';
+      return '<img src="static/core/img/statusIcons/done.gif"/>';
     } else if (value == 'Bad') {
-      return '<img src="static/DIRAC/JobMonitor/images/bad.gif"/>';
+      return '<img src="static/core/img/statusIcons/bad.gif"/>';
     } else if ((value == 'Failed') || (value == 'Bad') || (value == 'Banned') || (value == 'Aborted')) {
-      return '<img src="static/DIRAC/JobMonitor/images/failed.gif"/>';
+      return '<img src="static/core/img/statusIcons/failed.gif"/>';
     } else if ((value == 'Waiting') || (value == 'Stopped') || (value == 'Poor') || (value == 'Probing')) {
-      return '<img src="static/DIRAC/JobMonitor/images/waiting.gif"/>';
+      return '<img src="static/core/img/statusIcons/waiting.gif"/>';
     } else if (value == 'Deleted') {
-      return '<img src="static/DIRAC/JobMonitor/images/deleted.gif"/>';
+      return '<img src="static/core/img/statusIcons/deleted.gif"/>';
     } else if (value == 'Matched') {
-      return '<img src="static/DIRAC/JobMonitor/images/matched.gif"/>';
+      return '<img src="static/core/img/statusIcons/matched.gif"/>';
     } else if ((value == 'Running') || (value == 'Active') || (value == 'Fair')) {
-      return '<img src="static/DIRAC/JobMonitor/images/running.gif"/>';
+      return '<img src="static/core/img/statusIcons/running.gif"/>';
     } else if (value == 'NoMask') {
-      return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
-    }else if (value = 'Completed'){
-      return '<img src="static/LHCbDIRAC/TransformationMonitor/images/completed.gif"/>';
-    }else if (value = 'Idle'){
-      return '<img src="static/LHCbDIRAC/TransformationMonitor/images/idle.gif"/>';
+      return '<img src="static/core/img/statusIcons/unknown.gif"/>';
+    }else if (value == 'Completed'){
+      return '<img src="static/core/img/statusIcons/completed.gif"/>';
+    }else if (value == 'Idle'){
+      return '<img src="static/core/img/statusIcons/idle.gif"/>';
     }else {
-      return '<img src="static/DIRAC/JobMonitor/images/unknown.gif"/>';
+      return '<img src="static/core/img/statusIcons/unknown.gif"/>';
     }
   },
   /***
