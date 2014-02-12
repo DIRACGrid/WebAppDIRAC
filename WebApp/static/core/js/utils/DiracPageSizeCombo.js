@@ -3,6 +3,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracPageSizeCombo',{
   extend: 'Ext.form.field.ComboBox',
+  requires : ['Ext.data.SimpleStore'],
   allowBlank : false,
   displayField : 'number',
   editable : false,

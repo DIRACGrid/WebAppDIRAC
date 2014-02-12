@@ -3,6 +3,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracTimeSearchPanel',{
   extend : 'Ext.panel.Panel',
+  requires : ['Ext.data.SimpleStore'],
   width : 200,
   autoHeight : true,
   border : true,

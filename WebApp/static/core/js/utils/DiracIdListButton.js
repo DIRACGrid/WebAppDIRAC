@@ -5,7 +5,7 @@
 Ext.define('Ext.dirac.utils.DiracIdListButton',{
   extend : 'Ext.Button',
   mixins : [ "Ext.dirac.core.Stateful"],
-  requires : ['Ext.toolbar.Toolbar','Ext.panel.Panel'],
+  requires : ['Ext.toolbar.Toolbar','Ext.panel.Panel','Ext.data.SimpleStore'],
   text : '',
   iconCls : "dirac-icon-list",
   handler : function() {
