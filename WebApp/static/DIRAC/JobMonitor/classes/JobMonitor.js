@@ -4,7 +4,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 	requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging",
 			"Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.dirac.utils.DiracToolButton", "Ext.dirac.utils.DiracGridPanel",
       'Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo',"Ext.dirac.utils.DiracPagingToolbar",
-      "Ext.dirac.utils.DiracApplicationContextMenu","Ext.dirac.utils.DiracBaseSelector","Ext.dirac.utils.DiracAjaxProxy"],
+      "Ext.dirac.utils.DiracApplicationContextMenu","Ext.dirac.utils.DiracBaseSelector","Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore"],
 
 	loadState : function(data) {
 
@@ -380,7 +380,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			displayField : 'set',
 			editable : false,
 			mode : 'local',
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'set' ],
 				data : [ [ "Selected Statistics" ], [ "Global Statistics" ] ]
 			}),
@@ -405,7 +405,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			displayField : 'category',
 			editable : false,
 			mode : 'local',
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'category' ],
 				data : [ [ "Status" ], [ "Site" ], [ "Minor Status" ], [ "Application Status" ], [ "Owner" ], [ "Job Group" ] ]
 			}),
@@ -660,7 +660,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		me.plotSettings.cmbLegendPosition = new Ext.create('Ext.form.field.ComboBox', {
 			labelAlign : 'left',
 			fieldLabel : 'Legend position',
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : [ [ "right", "right" ], [ "left", "left" ], [ "top", "top" ], [ "bottom", "bottom" ], [ "none", "none" ] ]
 			}),

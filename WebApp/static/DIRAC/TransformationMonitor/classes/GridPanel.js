@@ -3,6 +3,7 @@
  */
 Ext.define('DIRAC.TransformationMonitor.classes.GridPanel', {
   extend : 'Ext.grid.Panel',
+  requires : ["Ext.data.ArrayStore"],
   width : '100%',
   viewConfig : {
     stripeRows : true,
@@ -87,7 +88,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.GridPanel', {
       minLength : 1,
       minLengthText : 'The minimum value for this field is 1',
       mode : 'local',
-      store : new Ext.data.SimpleStore({
+      store : new Ext.data.ArrayStore({
         fields : [ 'number' ],
         data : [ [ 25 ], [ 50 ], [ 100 ], [ 200 ], [ 500 ], [ 1000 ] ]
       }),

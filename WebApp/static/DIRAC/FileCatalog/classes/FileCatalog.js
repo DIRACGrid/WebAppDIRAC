@@ -2,7 +2,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	extend : 'Ext.dirac.core.Module',
 	requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.TextArea",
 			"Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface",
-			'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping', 'Ext.tree.Panel', 'Ext.data.TreeStore' ],
+			'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping', 'Ext.tree.Panel', 'Ext.data.TreeStore', 'Ext.data.ArrayStore' ],
 
 	loadState : function(oData) {
 
@@ -17,7 +17,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		 * if A) the parameter exists into the list of parameters and B) the values
 		 * are within the possible values We stop loading the blocks only if some of
 		 * the condition A) and B) are not fulfilled.
-		 * 
+		 *
 		 */
 		me.__postponedLoadState(oData);
 
@@ -197,23 +197,23 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 	initComponent : function() {
 
 		var me = this;
-		
+
 		if (GLOBAL.VIEW_ID == "desktop") {
-			
+
 			me.launcher.title = "File Catalog";
 			me.launcher.maximized = true;
-		
+
 		}
-		
+
 		if (GLOBAL.VIEW_ID == "tabs") {
-			
+
 			me.launcher.title = "File Catalog";
 			me.launcher.maximized = true;
-		
+
 		}
 
 		me.__loadingStateDataStruct = null;
-		
+
 		Ext.apply(me, {
 			layout : 'border',
 			bodyBorder : false,
@@ -432,7 +432,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			minLength : 1,
 			minLengthText : 'The minimum value for this field is 1',
 			mode : 'local',
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'number' ],
 				data : [ [ 25 ], [ 50 ], [ 100 ], [ 200 ], [ 500 ], [ 1000 ] ]
 			}),
@@ -675,7 +675,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		 * The grid for the metadata choice (part of the metadataOptionPanel)
 		 */
 
-		me.metadataCatalogStore = new Ext.data.SimpleStore({
+		me.metadataCatalogStore = new Ext.data.ArrayStore({
 			fields : [ 'Type', 'Name' ],
 			data : []
 		});
@@ -1010,7 +1010,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			width : 250,
 			margin : 3,
 			focusBlurState : 0,
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : me.__getFieldOptions(sName)
 			}),
@@ -1097,7 +1097,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			width : 250,
 			margin : 3,
 			focusBlurState : 0,
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : me.__getFieldOptions(sName)
 			}),
@@ -1285,7 +1285,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 						for ( var i = 0; i < oBackData[oThisBlock.fieldName].length; i++)
 							oList.push([ oBackData[oThisBlock.fieldName][i], oBackData[oThisBlock.fieldName][i] ]);
 
-						var oNewStore = new Ext.data.SimpleStore({
+						var oNewStore = new Ext.data.ArrayStore({
 							fields : [ 'value', 'text' ],
 							data : oList
 						});
@@ -1326,7 +1326,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 			oDropDown.suspendEvents(false);
 
-			var oNewStore = new Ext.data.SimpleStore({
+			var oNewStore = new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : me.__getFieldOptions(oThisBlock.fieldName)
 			});
@@ -1455,7 +1455,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 			oDropDown.suspendEvents(false);
 
-			var oNewStore = new Ext.data.SimpleStore({
+			var oNewStore = new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : me.__getFieldOptions(oBlock.fieldName)
 			});
