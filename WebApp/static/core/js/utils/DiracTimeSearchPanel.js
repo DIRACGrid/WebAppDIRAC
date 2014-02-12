@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracTimeSearchPanel',{
   extend : 'Ext.panel.Panel',
-  requires : ['Ext.data.SimpleStore'],
+  requires : ['Ext.data.ArrayStore'],
   width : 200,
   autoHeight : true,
   border : true,
@@ -17,7 +17,7 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel',{
     me.timeSearchElementsGroup.cmbTimeSpan = new Ext.create('Ext.form.field.ComboBox', {
       labelAlign : 'top',
       fieldLabel : 'Time Span',
-      store : new Ext.data.SimpleStore({
+      store : new Ext.data.ArrayStore({
         fields : [ 'value', 'text' ],
         data : [ [ 1, "Last Hour" ], [ 2, "Last Day" ], [ 3, "Last Week" ], [ 4, "Last Month" ], [ 5, "Manual Selection" ] ]
       }),
@@ -39,7 +39,7 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel',{
 
     me.timeSearchElementsGroup.cmbTimeFrom = new Ext.create('Ext.form.field.ComboBox', {
       width : 70,
-      store : new Ext.data.SimpleStore({
+      store : new Ext.data.ArrayStore({
         fields : [ 'value' ],
         data : oTimeData
       }),
@@ -54,7 +54,7 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel',{
 
     me.timeSearchElementsGroup.cmbTimeTo = new Ext.create('Ext.form.field.ComboBox', {
       width : 70,
-      store : new Ext.data.SimpleStore({
+      store : new Ext.data.ArrayStore({
         fields : [ 'value' ],
         data : oTimeData
       }),

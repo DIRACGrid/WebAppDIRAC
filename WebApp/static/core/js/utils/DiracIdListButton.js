@@ -5,7 +5,7 @@
 Ext.define('Ext.dirac.utils.DiracIdListButton',{
   extend : 'Ext.Button',
   mixins : [ "Ext.dirac.core.Stateful"],
-  requires : ['Ext.toolbar.Toolbar','Ext.panel.Panel','Ext.data.SimpleStore'],
+  requires : ['Ext.toolbar.Toolbar','Ext.panel.Panel','Ext.data.ArrayStore'],
   text : '',
   iconCls : "dirac-icon-list",
   handler : function() {
@@ -36,7 +36,7 @@ Ext.define('Ext.dirac.utils.DiracIdListButton',{
         displayField : 'character',
         editable : false,
         mode : 'local',
-        store : new Ext.data.SimpleStore({
+        store : new Ext.data.ArrayStore({
           fields : [ 'character' ],
           data : [ [ "SEMI-COLON" ], [ "COMMA" ], [ "EMPTY SPACE" ] ]
         }),

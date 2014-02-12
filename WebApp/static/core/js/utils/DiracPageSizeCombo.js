@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracPageSizeCombo',{
   extend: 'Ext.form.field.ComboBox',
-  requires : ['Ext.data.SimpleStore'],
+  requires : ['Ext.data.ArrayStore'],
   allowBlank : false,
   displayField : 'number',
   editable : false,
@@ -12,7 +12,7 @@ Ext.define('Ext.dirac.utils.DiracPageSizeCombo',{
   minLength : 1,
   minLengthText : 'The minimum value for this field is 1',
   mode : 'local',
-  store : new Ext.data.SimpleStore({
+  store : new Ext.data.ArrayStore({
     fields : [ 'number' ],
     data : [ [ 25 ], [ 50 ], [ 100 ], [ 200 ], [ 500 ], [ 1000 ] ]
   }),
