@@ -1,4 +1,5 @@
 
+import urlparse
 import tornado.web
 from WebAppDIRAC.Lib import Conf
 
@@ -9,7 +10,14 @@ class CoreHandler( tornado.web.RequestHandler ):
 
   def get( self, setup, group, route ):
     if self.__action == "addSlash":
-      self.redirect( "%s/" % self.request.uri, permanent = True )
+      o = urlparse.urlparse( self.request.uri )
+      proto = self.request.protocol
+      if 'X-Scheme' in self.request.headers:
+        proto = self.request.headers[ 'X-Scheme' ]
+      nurl = "%s://%s%s/" % ( proto, self.request.host, o.path )
+      if o.query:
+        nurl = "%s?%s" % ( nurl, o.query )
+      self.redirect( nurl, permanent = True )
     elif self.__action == "sendToRoot":
       dest = "/"
       rootURL = Conf.rootURL()

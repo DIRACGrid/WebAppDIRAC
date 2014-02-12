@@ -33,3 +33,6 @@ WebApp/static/extjs
 
 #downloaded stuff
 bundles/
+
+#gzipped files
+*.gz

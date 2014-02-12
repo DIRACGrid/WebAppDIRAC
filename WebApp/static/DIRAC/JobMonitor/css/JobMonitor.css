@@ -1,69 +1,29 @@
-.jm-reschedule-icon{
-	
-	 background-image: url(../images/reschedule.gif) !important;
-     background-color: transparent;
-	
+.jm-icon-sandbox {
+	background-image: url(../images/sandbox.png) !important;
+	background-color: transparent;
 }
 
-.jm-kill-icon{
-	
-	 background-image: url(../images/close.gif) !important;
-     background-color: transparent;
-	
+.jm-grid-icon {
+	background-image: url(../images/grid.png) !important;
+	background-color: transparent;
 }
 
-.jm-delete-icon{
-	
-	 background-image: url(../images/delete.gif) !important;
-     background-color: transparent;
-	
+.jm-textbox-help-window textarea.x-form-field {
+	font-family: Courier, monospace !important;
 }
 
-.jm-refresh-icon{
-	
-	 background-image: url(../images/refresh.gif) !important;
-     background-color: transparent;
-	
+.jm-main-check-box {
+	margin: 3px 0px 3px 0px !important;
 }
 
-.jm-submit-icon{
-	
-	 background-image: url(../images/submit.gif) !important;
-     background-color: transparent;
-	
+.jm-red-reset-icon {
+	background-image: url(../images/resetButtonRed.png) !important;
+	background-color: transparent;
 }
 
-.jm-reset-icon{
-	
-	 background-image: url(../images/reset.gif) !important;
-     background-color: transparent;
-	
-}
-
-.jm-reset-button-icon{
-	
-	 background-image: url(../images/resetButton.gif) !important;
-     background-color: transparent;
-	
-}
-
-.jm-action-gif-icon{
-	
-	 background-image: url(../images/action.gif) !important;
-     background-color: transparent;
-	
-}
-
-.jm-addfile-gif-icon{
-	
-	 background-image: url(../images/addfile.gif) !important;
-     background-color: transparent;
-	
-}
-
-.jm-textbox-help-window textarea.x-form-field{
-	
-	font-family: Courier,monospace !important;	
-	
-
+.jm-statistics-plot-background {
+	background-image:
+		url(../../../core/img/wallpapers/dirac_symbol_background_b.png)
+		!important;
+	background-repeat: repeat;
 }

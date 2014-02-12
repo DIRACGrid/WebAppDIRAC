@@ -1,0 +1,52 @@
+.cm-to-manage-icon {
+	background-image: url(../images/cog_edit.png) !important;
+	background-color: transparent;
+}
+
+.cm-to-browse-icon {
+	background-image: url(../images/cog.png) !important;
+	background-color: transparent;
+}
+
+.cm-textbox-help-window textarea.x-form-field {
+	font-family: Courier, monospace !important;
+}
+
+table.cm-config-diff {
+	width: 100%;
+	margin: 0px;
+	font-size: small;
+	text-align: left;
+	border-collapse: collapse;
+}
+
+.cm-config-diff th {
+	font-weight: bold;
+	border: 0px;
+	padding:5px 0px;
+}
+
+.cm-config-diff td {
+	font-size: x-small;
+	padding:1px 0px;
+}
+
+.cm-config-diff tr.add {
+	background-image: none !important;
+	background-color: #AFA;
+}
+
+.cm-config-diff tr.del {
+	background-image: none !important;
+	background-color: #FAA;
+}
+
+.cm-config-diff tr.mod {
+	background-image: none !important;
+	background-color: #FFA;
+}
+
+.cm-config-diff tr.conflict {
+	background-image: none !important;
+	background-color: #EEEEEE;
+}

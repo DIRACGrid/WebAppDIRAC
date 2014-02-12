@@ -28,7 +28,7 @@
     margin:0;
     padding:10px;
     width:300px;
-    
+
 }
 #app-dirac-loading-msg {
     font-size: 12px;
@@ -44,7 +44,7 @@
     left:10px;
     top:10px;
     width:300px;
-    z-index:20000;
+    z-index:400000;
 }
 #msg-div .msg {
     border-radius: 4px;
@@ -72,7 +72,7 @@
 */
 
 .ux-start-button-icon {
-    background-image: url(../img/icons/system/sencha.gif) !important;
+    background-image: url(../img/icons/system/favicon.ico) !important;
     background-color: transparent;
 }
 
@@ -132,15 +132,16 @@
 }
 
 /*----------------------------------------------------
-    Desktop DataView
+    Desktop DataViewdisplay:none
 */
 
 .ux-wallpaper {
-    background-color: #3d71b8;
+    background-color: #AAAAAA;
+    background-position:bottom right;
 }
 
 .ux-wallpaper-tiled {
-    background-repeat: repeat;
+    background-repeat:no-repeat;
 }
 
 .ux-desktop-shortcut {
@@ -221,11 +222,6 @@
     background-image:url(../img/icons/fam/user_suit.gif) !important;
 }
 
-.toolbar-other-save {
-    background-image:url(../img/icons/system/_tool_save.png) !important;
-    background-size:16px 16px;
-}
-
 .toolbar-other-load {
     background-image:url(../img/icons/system/_tool_load.png) !important;
     background-size:16px 16px;
@@ -249,4 +245,56 @@
 .toolbar-other-cascade {
     background-image:url(../img/icons/system/_tool_cascade.png) !important;
     background-size:16px 16px;
+}
+
+.toolbar-other-close {
+    background-image:url(../img/icons/system/close.gif) !important;
+    background-size:16px 16px;
+}
+
+.x-hidden-loading-message{
+
+	visibility:hidden;
+
+}
+
+.system_link_icon {
+    background-image:url(../img/icons/system/_link.png) !important;
+    background-size:16px 16px;
+}
+
+.system_web_window{
+
+	background-image:url(../img/icons/system/_web.png) !important;
+    background-size:16px 16px;
+
+}
+
+.system_folder{
+
+	background-image:url(../img/icons/system/_folder.png) !important;
+    background-size:16px 16px;
+
+}
+
+.system_child_window{
+
+	background-image:url(../img/icons/system/_child_window.png) !important;
+    background-size:16px 16px;
+
+}
+
+.system_pin_window{
+
+	background-image:url(../img/icons/system/_pin.png) !important;
+    background-size:16px 16px;
+
+}
+
+.loading_item {
+    background-image: url( ../img/icons/system/loading.gif ) !important;
+}
+
+.dirac-table-main-check-box {
+  margin: 3px 0px 3px 0px !important;
 }

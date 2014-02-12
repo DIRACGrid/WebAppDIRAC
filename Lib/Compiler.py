@@ -1,6 +1,8 @@
 import tempfile
 import os
 import subprocess
+import gzip
+import shutil
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers.CSGlobals import getInstalledExtensions
@@ -59,45 +61,68 @@ class Compiler(object):
       return result
     inFile = result[ 'Value' ]
     buildDir = os.path.join( extPath, appName, 'build' )
+    try:
+      shutil.rmtree( buildDir )
+    except OSError:
+      pass
     if not os.path.isdir( buildDir ):
       try:
         os.makedirs( buildDir )
       except IOError, excp:
         return S_ERROR( "Can't create build dir %s" % excp )
     outFile = os.path.join( buildDir, "index.html" )
+    compressedJsFile = os.path.join( buildDir, appName+'.js' )
 
     classPath = list( self.__classPaths )
     classPath.append( os.path.join( extPath, appName, "classes" ) )
     cmd = [ 'sencha', '-sdk', self.__sdkPath, 'compile', '-classpath=%s' % ",".join( classPath ),
-            '-debug=%s' % self.__debugFlag, 'page', '-yui', '-in', inFile, '-out', outFile ]
+           '-debug=%s' % self.__debugFlag, 'page', '-name=page','-in',inFile, '-out', outFile,'and','restore','page','and','exclude','-not','-namespace','Ext.dirac.*,DIRAC.*','and','concat','-yui',compressedJsFile]
+
     if self.__cmd( cmd ):
       return S_ERROR( "Error compiling %s.%s" % ( extName, appName ) )
 
-    try:
-      with open( os.path.join( buildDir, "all-classes.js" ) ) as allFD:
-        lines = allFD.readlines()
-        with open( os.path.join( buildDir, "%s.js" % appName ), "w" ) as appFD:
-          #Skip first line
-          appFD.write( "".join( lines[1:] ) )
-    except IOError, excp:
-      return S_ERROR( "Could not read/write js: %s" % excp )
-
-    try:
-      os.unlink( os.path.join( buildDir, "all-classes.js" ) )
-      os.unlink( outFile )
-    except:
-      pass
     return S_OK()
 
 
+  def __zip( self, staticPath, stack = "" ):
+    c = 0
+    l = "|/-\\"
+    for entry in os.listdir( staticPath ):
+      n = stack + l[c%len(l)]
+      if entry[-3:] == ".gz":
+        continue
+      ePath = os.path.join( staticPath, entry )
+      if os.path.isdir( ePath ):
+        self.__zip( ePath, n )
+        continue
+      zipPath = "%s.gz" % ePath
+      if os.path.isfile( zipPath ):
+        if os.stat( zipPath ).st_mtime > os.stat( ePath ).st_mtime:
+          continue
+      print "%s%s\r" % (n, " " * ( 20 - len( n ) ) ),
+      c += 1
+      inf = gzip.open( zipPath, "wb", 9 )
+      with open( ePath, "rb" ) as outf:
+        buf = outf.read( 8192 )
+        while buf:
+          inf.write( buf )
+          buf = outf.read( 8192 )
+      inf.close()
+
 
   def run( self ):
+    staticPath = os.path.join( self.__webAppPath, "static" )
     gLogger.notice( "Compiling core" )
     result = self.__writeINFile( "core.tpl" )
     if not result[ 'OK' ]:
       return result
     inFile = result[ 'Value' ]
-    outFile = os.path.join( self.__webAppPath, "static", "core", "build", "index.html" )
+    buildDir = os.path.join( staticPath, "core", "build" )
+    try:
+      shutil.rmtree( buildDir )
+    except OSError:
+      pass
+    outFile = os.path.join( staticPath, "core", "build", "index.html" )
     gLogger.verbose( " IN file written to %s" % inFile )
 
     cmd = [ 'sencha', '-sdk', self.__sdkPath, 'compile', '-classpath=%s' % ",".join( self.__classPaths ),
@@ -128,6 +153,9 @@ class Compiler(object):
           if not result[ 'OK' ]:
             return result
 
+    gLogger.notice( "Zipping static files" )
+    self.__zip( staticPath )
+    gLogger.notice( "Done" )
     return S_OK()
 
 

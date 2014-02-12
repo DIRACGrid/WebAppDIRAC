@@ -6,6 +6,8 @@
 }
 .x-boxselect ul.x-boxselect-list {
     padding: 1px 3px;
+    margin-top: 0px; 
+    margin-bottom: 0px; 
 }
 ul.x-boxselect-list.x-boxselect-singleselect {
     white-space: nowrap;
@@ -54,9 +56,7 @@ ul.x-boxselect-list.x-boxselect-singleselect {
 }
 
 .x-form-not-trigger{
-	
 	background-image:url(../img/DiracBoxSelect/not-trigger.gif);
-	
 }
 
 .x-form-notsel-trigger{

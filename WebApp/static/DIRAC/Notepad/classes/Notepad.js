@@ -5,50 +5,60 @@
  * http://www.sencha.com/license
  */
 
-Ext
-		.define(
-				'DIRAC.Notepad.classes.Notepad',
-				{
-					extend : 'Ext.dirac.core.Module',
+Ext.define('DIRAC.Notepad.classes.Notepad', {
+	extend : 'Ext.dirac.core.Module',
 
-					requires : [ 'Ext.form.field.HtmlEditor'],
+	requires : [ 'Ext.form.field.HtmlEditor' ],
 
-					initComponent : function() {
+	initComponent : function() {
 
-						var me = this;
-						
-						me.launcher.title = "Notepad";
-						
-						me.editor = new Ext.form.field.HtmlEditor(
-								{
-									value : [
-											'Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>',
-											'Give it a try!' ].join('')
-									
-								});
+		var me = this;
 
-						Ext.apply(me, {
-							layout : 'fit',
-							items : [ me.editor ]
-						});
+		if (GLOBAL.VIEW_ID == "desktop") {
+			
+			me.launcher.title = "Notepad";
+			me.launcher.maximized = false;
+			me.launcher.width = 400;
+			me.launcher.height = 400;
+			
+		}
+		
+		if (GLOBAL.VIEW_ID == "tabs") {
+			
+			me.launcher.title = "Notepad";
+			me.launcher.maximized = false;
+			me.launcher.width = 400;
+			me.launcher.height = 400;
+			
+		}
 
-						me.callParent(arguments);
+		me.editor = new Ext.form.field.HtmlEditor({
+			value : [ 'Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>', 'Give it a try!' ].join('')
 
-					},
+		});
 
-					loadState : function(data) {
+		Ext.apply(me, {
+			layout : 'fit',
+			items : [ me.editor ]
+		});
 
-						var me = this;
-						me.editor.setValue(data["text"]);
+		me.callParent(arguments);
 
-					},
+	},
 
-					getStateData : function() {
+	loadState : function(data) {
 
-						var me = this;
-						return {
-							text : me.editor.getValue()
-						};
+		var me = this;
+		me.editor.setValue(data["text"]);
 
-					}
-				});
+	},
+
+	getStateData : function() {
+
+		var me = this;
+		return {
+			text : me.editor.getValue()
+		};
+
+	}
+});
