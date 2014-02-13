@@ -9,9 +9,9 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 
 				var me = this;
 
+        me.launcher.title = "Registry Manager";
 				if (GLOBAL.VIEW_ID == "desktop") {
 
-					me.launcher.title = "Registry Manager";
 					me.launcher.maximized = false;
 					var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
@@ -68,7 +68,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 							op : "getData",
 							type : "users"
 						});
-						
+
 						me.__getGroupList();
 					}
 				};
@@ -164,7 +164,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 									property : 'name',
 									direction : 'ASC'
 								} ]);
-								
+
 								me.otherDataMenu.setText("VOMS Servers");
 
 							} else if (oResponse.type == "servers") {
@@ -181,7 +181,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 									property : 'name',
 									direction : 'ASC'
 								} ]);
-								
+
 								me.otherDataMenu.setText("VOMS Servers");
 
 							} else {
@@ -198,7 +198,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 									property : 'name',
 									direction : 'ASC'
 								} ]);
-								
+
 								switch (oResponse.type) {
 
 								case "hosts":
@@ -233,7 +233,7 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 							var oDataToSend = {
 								op : "getData",
 								type : me.rightPanel.currentType
-							};						
+							};
 
 							if (me.rightPanel.currentType == "servers") {
 
@@ -1829,9 +1829,9 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 					oDataToSend.vom = me.serversGrid.vom;
 
 				}
-				
+
 				me.rightPanel.currentType = me.gridContextMenu.selectedType;
-				
+
 				me.__sendSocketMessage(oDataToSend);
 
 			},

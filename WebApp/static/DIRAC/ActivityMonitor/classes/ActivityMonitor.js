@@ -7,10 +7,10 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 	initComponent : function() {
 
 		var me = this;
+    me.launcher.title = "Activity Monitor";
 
 		if (GLOBAL.VIEW_ID == "desktop") {
 
-			me.launcher.title = "Activity Monitor";
 			me.launcher.maximized = true;
 
 		}
