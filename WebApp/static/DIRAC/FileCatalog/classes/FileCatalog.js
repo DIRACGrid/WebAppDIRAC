@@ -432,7 +432,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			minLength : 1,
 			minLengthText : 'The minimum value for this field is 1',
 			mode : 'local',
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'number' ],
 				data : [ [ 25 ], [ 50 ], [ 100 ], [ 200 ], [ 500 ], [ 1000 ] ]
 			}),
@@ -675,7 +675,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 		 * The grid for the metadata choice (part of the metadataOptionPanel)
 		 */
 
-		me.metadataCatalogStore = new Ext.data.SimpleStore({
+		me.metadataCatalogStore = new Ext.data.ArrayStore({
 			fields : [ 'Type', 'Name' ],
 			data : []
 		});
@@ -1010,7 +1010,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			width : 250,
 			margin : 3,
 			focusBlurState : 0,
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : me.__getFieldOptions(sName)
 			}),
@@ -1097,7 +1097,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 			width : 250,
 			margin : 3,
 			focusBlurState : 0,
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : me.__getFieldOptions(sName)
 			}),
@@ -1285,7 +1285,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 						for ( var i = 0; i < oBackData[oThisBlock.fieldName].length; i++)
 							oList.push([ oBackData[oThisBlock.fieldName][i], oBackData[oThisBlock.fieldName][i] ]);
 
-						var oNewStore = new Ext.data.SimpleStore({
+						var oNewStore = new Ext.data.ArrayStore({
 							fields : [ 'value', 'text' ],
 							data : oList
 						});
@@ -1326,7 +1326,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 			oDropDown.suspendEvents(false);
 
-			var oNewStore = new Ext.data.SimpleStore({
+			var oNewStore = new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : me.__getFieldOptions(oThisBlock.fieldName)
 			});
@@ -1455,7 +1455,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
 			oDropDown.suspendEvents(false);
 
-			var oNewStore = new Ext.data.SimpleStore({
+			var oNewStore = new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : me.__getFieldOptions(oBlock.fieldName)
 			});

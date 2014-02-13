@@ -357,7 +357,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 		me.timeSearchElementsGroup.cmbTimeSpan = new Ext.create('Ext.form.field.ComboBox', {
 			labelAlign : 'top',
 			fieldLabel : 'Time Span',
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : [ [ 1, "Last Hour" ], [ 2, "Last Day" ], [ 3, "Last Week" ], [ 4, "Last Month" ], [ 5, "Manual Selection" ] ]
 			}),
@@ -379,7 +379,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		me.timeSearchElementsGroup.cmbTimeFrom = new Ext.create('Ext.form.field.ComboBox', {
 			width : 70,
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'value' ],
 				data : oTimeData
 			}),
@@ -394,7 +394,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
 		me.timeSearchElementsGroup.cmbTimeTo = new Ext.create('Ext.form.field.ComboBox', {
 			width : 70,
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'value' ],
 				data : oTimeData
 			}),
@@ -621,7 +621,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 			minLength : 1,
 			minLengthText : 'The minimum value for this field is 1',
 			mode : 'local',
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'number' ],
 				data : [ [ 25 ], [ 50 ], [ 100 ], [ 200 ], [ 500 ], [ 1000 ] ]
 			}),
