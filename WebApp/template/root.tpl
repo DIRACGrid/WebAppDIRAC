@@ -13,6 +13,8 @@
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/iconset.css" />
+    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/TabScrollerMenu.css" />
+    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/tabtheme.css" />    
  
     {% autoescape None %}
     <!-- GC -->
