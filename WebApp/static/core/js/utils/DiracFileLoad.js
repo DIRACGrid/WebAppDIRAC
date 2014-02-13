@@ -1,3 +1,6 @@
+/***
+ * It is used to load a file from the server.
+ */
 Ext.define('Ext.dirac.utils.DiracFileLoad', {
 
 	requires : [],
