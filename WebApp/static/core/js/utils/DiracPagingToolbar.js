@@ -147,7 +147,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar',{
 
     refreshButton.handler = function() {
       var parent = me.scope;
-      parent.oprLoadGridData();
+      parent.leftPanel.oprLoadGridData();
     };
 
     ///change the refresh button
