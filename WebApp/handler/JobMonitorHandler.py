@@ -218,16 +218,11 @@ class JobMonitorHandler(WebHandler):
       else:
         self.pageNumber = 0
 
-    if self.request.arguments.has_key("ids") and len(self.request.arguments["ids"][0]) > 0:
-      req["JobID"] = []
-      reqIds = str(self.request.arguments["ids"][0]).split(',');
-      for i in reqIds:
-        testI = i.split('-')
-        if len(testI) == 2:
-          rangeID = range(int(testI[0].strip(' ')), int(testI[1].strip(' ')) + 1)
-          req["JobID"].extend(rangeID)
-        else:
-          req["JobID"].append(i)
+    if "ids" in self.request.arguments:
+      jobids = list(json.loads(self.request.arguments[ 'ids' ][-1]))
+      if len(jobids) > 0:
+        req['JobID'] = jobids
+
     # groupProperty = credentials.getProperties(group)
     result = gConfig.getOption("/Website/ListSeparator")
     if result["OK"]:
@@ -235,57 +230,65 @@ class JobMonitorHandler(WebHandler):
     else:
       separator = ","
 
-    if self.request.arguments.has_key("prod") and len(self.request.arguments["prod"][0]) > 0:
-      if str(self.request.arguments["prod"][0]) != "":
-        req["JobGroup"] = str(self.request.arguments["prod"][0]).split(separator)
+    if "prod" in self.request.arguments:
+      prodids = list(json.loads(self.request.arguments[ 'prod' ][-1]))
+      if len(prodids) > 0:
+        req['JobGroup'] = prodids
 
-    if self.request.arguments.has_key("site") and len(self.request.arguments["site"][0]) > 0:
-      if str(self.request.arguments["site"][0]) != "":
-        req["Site"] = [x.strip() for x in str(self.request.arguments["site"][0]).split(separator)]
+    if "site" in self.request.arguments:
+      sites = list(json.loads(self.request.arguments[ 'site' ][-1]))
+      if len(sites) > 0:
+        req["Site"] = sites
 
-    if self.request.arguments.has_key("status") and len(self.request.arguments["status"][0]) > 0:
-      if str(self.request.arguments["status"][0]) != "":
-        req["Status"] = str(self.request.arguments["status"][0]).split(separator)
+    if "status" in self.request.arguments:
+      status = list(json.loads(self.request.arguments[ 'status' ][-1]))
+      if len(status) > 0:
+        req["Status"] = status
 
-    if self.request.arguments.has_key("minorstat") and len(self.request.arguments["minorstat"][0]) > 0:
-      if str(self.request.arguments["minorstat"][0]) != "":
-        req["MinorStatus"] = str(self.request.arguments["minorstat"][0]).split(separator)
+    if "minorstat" in self.request.arguments:
+      minorstat = list(json.loads(self.request.arguments[ 'minorstat' ][-1]))
+      if len(minorstat) > 0:
+        req["MinorStatus"] = minorstat
 
-    if self.request.arguments.has_key("app") and len(self.request.arguments["app"][0]) > 0:
-      if str(self.request.arguments["app"][0]) != "":
-        req["ApplicationStatus"] = str(self.request.arguments["app"][0]).split(separator)
+    if "app" in self.request.arguments:
+      apps = list(json.loads(self.request.arguments[ 'app' ][-1]))
+      if len(apps) > 0:
+        req["ApplicationStatus"] = apps
 
-    if self.request.arguments.has_key("types") and len(self.request.arguments["types"][0]) > 0:
-      if str(self.request.arguments["types"][0]) != "":
-        req["JobType"] = str(self.request.arguments["types"][0]).split(separator)
+    if "types" in self.request.arguments:
+      types = list(json.loads(self.request.arguments[ 'types' ][-1]))
+      if len(types) > 0:
+        req["JobType"] = types
 
-    if self.request.arguments.has_key("owner") and len(self.request.arguments["owner"][0]) > 0:
-      if str(self.request.arguments["owner"][0]) != "":
-        req["Owner"] = str(self.request.arguments["owner"][0]).split(separator)
+    if "owner" in self.request.arguments:
+      owner = list(json.loads(self.request.arguments[ 'owner' ][-1]))
+      if len(owner) > 0:
+        req["Owner"] = types
 
-    if self.request.arguments.has_key("startDate") and len(self.request.arguments["startDate"][0]) > 0:
-      if str(self.request.arguments["startDate"][0]) != "YYYY-mm-dd":
-        if self.request.arguments.has_key("startTime") and len(self.request.arguments["startTime"][0]) > 0:
-          req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
-        else:
-          req["FromDate"] = str(self.request.arguments["startDate"][0])
+    if 'startDate' in self.request.arguments and len(self.request.arguments["startDate"][0]) > 0:
+      if 'startTime' in self.request.arguments and len(self.request.arguments["startTime"][0]) > 0:
+        req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
+      else:
+        req["FromDate"] = str(self.request.arguments["startDate"][0])
 
-    if self.request.arguments.has_key("endDate") and len(self.request.arguments["endDate"][0]) > 0:
-      if str(self.request.arguments["endDate"][0]) != "YYYY-mm-dd":
-        if self.request.arguments.has_key("endTime") and len(self.request.arguments["endTime"][0]) > 0:
-          req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
-        else:
-          req["ToDate"] = str(self.request.arguments["endDate"][0])
+    if 'endDate' in self.request.arguments and len(self.request.arguments["endDate"][0]) > 0:
+      if 'endTime' in self.request.arguments and len(self.request.arguments["endTime"][0]) > 0:
+        req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
+      else:
+        req["ToDate"] = str(self.request.arguments["endDate"][0])
 
-    if self.request.arguments.has_key("date") and len(self.request.arguments["date"][0]) > 0:
-      if str(self.request.arguments["date"][0]) != "YYYY-mm-dd":
-        req["LastUpdate"] = str(self.request.arguments["date"][0])
+    if 'date' in self.request.arguments and len(self.request.arguments["date"][0]) > 0:
+      req["LastUpdate"] = str(self.request.arguments["date"][0])
 
-    if self.request.arguments.has_key("sort") and len(self.request.arguments["sort"][0]) > 0:
-      sortValue = self.request.arguments["sort"][0]
-      # converting the string into a dictionary
-      sortValue = ast.literal_eval(sortValue.strip("[]"))
-      self.globalSort = [[sortValue["property"], sortValue["direction"]]]
+    if 'sort' in self.request.arguments:
+      sort = json.loads(self.request.arguments['sort'][-1])
+      if len(sort) > 0:
+        self.globalSort = []
+        for i in sort :
+          self.globalSort  += [[i['property'],i['direction']]]
+    else:
+      self.globalSort =  [["JobID", "DESC"]]
+
     return req
 
   @asyncGen
@@ -319,7 +322,7 @@ class JobMonitorHandler(WebHandler):
   def web_jobData(self):
     id = int(self.request.arguments["id"][0])
     callback = {}
-    
+
     if self.request.arguments["data_kind"][0] == "getJDL":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
       result = yield self.threadTask(RPC.getJobJDL, id)
@@ -426,6 +429,19 @@ class JobMonitorHandler(WebHandler):
           callback = {"success":"true", "result":result["Value"]["StdErr"]}
       else:
         callback = {"success":"false", "error":result["Message"]}
+    #--------------------------------------------------------------------------------
+    elif self.request.arguments["data_kind"][0] == "getPilotLoggingInfo":
+      PILOTRPC = RPCClient("WorkloadManagement/WMSAdministrator")
+      retVal =  yield self.threadTask(PILOTRPC.getPilots, int(id))
+      if retVal['OK']:
+        pilotReference = retVal['Value'].keys()[0]
+        retVal = yield self.threadTask(PILOTRPC.getPilotLoggingInfo, pilotReference)
+        if retVal["OK"]:
+          callback = {"success":"true","result":retVal["Value"]}
+        else:
+          callback = {"success":"false","error":retVal["Message"]}
+      else:
+        callback = {"success":"false","error":retVal["Message"]}
     self.finish(callback)
 
   @asyncGen
