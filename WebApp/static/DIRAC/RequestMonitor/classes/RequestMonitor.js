@@ -40,36 +40,36 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
     name : 'RequestIDcheckBox',
     mapping : 'RequestID'
   }, {
-    name : 'RequestID',
-    type : 'int'
-  }, {
-    name : 'RequestName'
-  }, {
-    name : 'JobID'
-  }, {
-    name : 'RequestType'
-  }, {
-    name : 'StatusIcon',
-    mapping : 'Status'
-  }, {
     name : 'Status'
-  }, {
-    name : 'OwnerDN'
   }, {
     name : 'OwnerGroup'
   }, {
-    name : 'Error'
+    name : 'LastUpdateTime',
+    type : 'date',
+    dateFormat : 'Y-m-d H:i:s'
+
+  }, {
+    name : 'RequestType'
   }, {
     name : 'CreationTime',
     type : 'date',
-    dateFormat : 'Y-n-j H:i:s'
+    dateFormat : 'Y-m-d H:i:s'
   }, {
-    name : 'LastUpdateTime',
-    type : 'date',
-    dateFormat : 'Y-n-j H:i:s'
-
+    name : 'JobID'
+  }, {
+    name : 'OwnerDN'
+  }, {
+    name : 'RequestID',
+    type : 'int'
+  }, {
+    name : 'Error'
   }, {
     name : 'Operation'
+  }, {
+    name : 'RequestName'
+  }, {
+    name : 'StatusIcon',
+    mapping : 'Status'
   }],
 
   initComponent : function() {
@@ -214,14 +214,14 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
         "dataIndex" : "CreationTime",
         "renderer" : Ext.util.Format.dateRenderer('Y-m-j H:i'),
         "properties" : {
-          hidden : false
+          hidden : true
         }
       },
       "LastUpdateTime [UTC]" : {
         "dataIndex" : "LastUpdateTime",
         "renderer" : Ext.util.Format.dateRenderer('Y-m-j H:i'),
         "properties" : {
-          hidden : false
+          hidden : true
         }
       }
     };
