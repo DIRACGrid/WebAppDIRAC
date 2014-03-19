@@ -29,106 +29,137 @@
  *   me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({menu:menuitems,scope:me});
  *
  */
-Ext.define('Ext.dirac.utils.DiracApplicationContextMenu',{
-  extend:'Ext.menu.Menu',
-  /**
-   * @cfg{menuitems}
-   * is a dictionary which contains the menu items. More details in above.
-   */
-  menuitems : null,
+Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
+      extend : 'Ext.menu.Menu',
+      /**
+       * @cfg{menuitems} is a dictionary which contains the menu items. More
+       *                 details in above.
+       */
+      menuitems : null,
 
-  constructor : function(oConfig){
-    var me = this;
-    me.callParent(arguments);
-    if (oConfig.scope){
-      Ext.apply(me, {scope:oConfig.scope});
-    }
-    if (oConfig){
-      if(oConfig.menu && "Visible" in oConfig.menu && oConfig.menu.Visible.length>0){
-        for(var i = 0; i< oConfig.menu.Visible.length; i++){
-          var oMenuItem = null;
-          if (oConfig.menu.Visible[i].text=="-"){
-            me.add(new Ext.menu.Separator());
-          }else if ("handler" in oConfig.menu.Visible[i]){
-            oMenuItem = new Ext.menu.Item({text:oConfig.menu.Visible[i].text, handler: Ext.bind(oConfig.menu.Visible[i].handler, me.scope, oConfig.menu.Visible[i].arguments, false), scope : me.scope});
-          }else if ("subMenu" in oConfig.menu.Visible[i]){
-            oMenuItem = new Ext.menu.Item({text:oConfig.menu.Visible[i].text});
-            me.__createSubmenu(oMenuItem, oConfig.menu.Visible[i].subMenu);
-          }
-          if (oConfig.menu.Visible[i].properties){
-            Ext.apply(oMenuItem, oConfig.menu.Visible[i].properties);
-          }
-          me.add(oMenuItem);
-
+      constructor : function(oConfig) {
+        var me = this;
+        me.callParent(arguments);
+        if (oConfig.scope) {
+          Ext.apply(me, {
+                scope : oConfig.scope
+              });
         }
-      }else if(oConfig.menu && "Protected" in oConfig.menu && oConfig.menu.Protected.length>0){
-        for(var i = 0; i< oConfig.menu.Protected.length; i++){
-          var oMenuItem = null;
-          if (oConfig.menu.Protected[i].text=="-"){
-            me.add(new Ext.menu.Separator());
-          }else if ("handler" in oConfig.menu.Protected[i]){
-            oMenuItem = new Ext.menu.Item({text:oConfig.menu.Protected[i].text, handler: Ext.bind(oConfig.menu.Protected[i].handler, me.scope, oConfig.menu.Protected[i].arguments, false), scope : me.scope});
-          }else if ("subMenu" in oConfig.menu.Protected[i]){
-            oMenuItem = new Ext.menu.Item({text:oConfig.menu.Protected[i].text});
-            me.__createSubmenu(oMenuItem, oConfig.menu.Protected[i].subMenu);
+        if (oConfig) {
+          if (oConfig.menu && "Visible" in oConfig.menu && oConfig.menu.Visible.length > 0) {
+            for (var i = 0; i < oConfig.menu.Visible.length; i++) {
+              var oMenuItem = null;
+              if (oConfig.menu.Visible[i].text == "-") {
+                me.add(new Ext.menu.Separator());
+              } else if ("handler" in oConfig.menu.Visible[i]) {
+                oMenuItem = new Ext.menu.Item({
+                      text : oConfig.menu.Visible[i].text,
+                      handler : Ext.bind(oConfig.menu.Visible[i].handler, me.scope, oConfig.menu.Visible[i].arguments, false),
+                      scope : me.scope
+                    });
+              } else if ("subMenu" in oConfig.menu.Visible[i]) {
+                oMenuItem = new Ext.menu.Item({
+                      text : oConfig.menu.Visible[i].text
+                    });
+                me.__createSubmenu(oMenuItem, oConfig.menu.Visible[i].subMenu);
+              }
+              if (oConfig.menu.Visible[i].properties) {
+                Ext.apply(oMenuItem, oConfig.menu.Visible[i].properties);
+              }
+              me.add(oMenuItem);
+
+            }
           }
-          if (oConfig.menu.Protected[i].properties){
-            Ext.apply(oMenuItem, oConfig.menu.Protected[i].properties);
+          if (oConfig.menu && "Protected" in oConfig.menu && oConfig.menu.Protected.length > 0) {
+            for (var i = 0; i < oConfig.menu.Protected.length; i++) {
+              var oMenuItem = null;
+              if (oConfig.menu.Protected[i].text == "-") {
+                me.add(new Ext.menu.Separator());
+              } else if ("handler" in oConfig.menu.Protected[i]) {
+                oMenuItem = new Ext.menu.Item({
+                      text : oConfig.menu.Protected[i].text,
+                      handler : Ext.bind(oConfig.menu.Protected[i].handler, me.scope, oConfig.menu.Protected[i].arguments, false),
+                      scope : me.scope
+                    });
+              } else if ("subMenu" in oConfig.menu.Protected[i]) {
+                oMenuItem = new Ext.menu.Item({
+                      text : oConfig.menu.Protected[i].text
+                    });
+                me.__createSubmenu(oMenuItem, oConfig.menu.Protected[i].subMenu);
+              }
+              if (oConfig.menu.Protected[i].properties) {
+                Ext.apply(oMenuItem, oConfig.menu.Protected[i].properties);
+              }
+              me.add(oMenuItem);
+
+            }
           }
-          me.add(oMenuItem);
+        }
+      },
+      /*************************************************************************
+       * It is used to create sub menu to a given menu item.
+       * 
+       * @param{Ext.menu.Item} oMenu the sub menu will belong to this menu item.
+       * @param{Object} subMenu it contains the menu items the format is same as
+       *                the {@link #menuitems}
+       */
+      __createSubmenu : function(oMenu, subMenu) {
+        var me = this;
+        oMenu.menu = new Ext.menu.Menu();
+        if (subMenu == null) {
+          return;
+        } else {
+          if ("Visible" in subMenu) {
+            for (var i = 0; i < subMenu.Visible.length; i++) {
+              if (subMenu.Visible[i].text == "-") {
+                oMenu.menu.add(new Ext.menu.Separator());
+              } else if ("handler" in subMenu.Visible[i]) {
+                var oMenuItem = new Ext.menu.Item({
+                      text : subMenu.Visible[i].text,
+                      handler : Ext.bind(subMenu.Visible[i].handler, me.scope, subMenu.Visible[i].arguments, false),
+                      scope : me.scope
+                    });
+              } else if ("subMenu" in subMenu.Visible[i]) {
+                var oMenuItem = new Ext.menu.Item({
+                      text : oConfig.menu.Visible[i].text
+                    })
+                me.__createSubmenu(oMenuItem, oConfig.menu.Visible[i].subMenu);
+                oMenu.menu.add(oMenuItem);
+              }
+              if (subMenu.Visible[i].properties) {
+                Ext.apply(oMenuItem, subMenu.Visible[i].properties);
+              }
+              oMenu.menu.add(oMenuItem);
+            }
+          } else if ("Protected" in subMenu) {
+            for (var i = 0; i < subMenu.Protected.length; i++) {
+              var lDisable = ("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, subMenu.Protected[i].property) != -1) == false ? true : false;
+              oMenu.disabled = lDisable;
+              if (subMenu.Protected[i].text == "-") {
+                oMenu.menu.add(new Ext.menu.Separator());
+              } else if ("handler" in subMenu.Protected[i]) {
+                var oMenuItem = new Ext.menu.Item({
+                      text : subMenu.Protected[i].text,
+                      handler : Ext.bind(subMenu.Protected[i].handler, me.scope, subMenu.Protected[i].arguments, false),
+                      scope : me.scope,
+                      disabled : lDisable
+                    });
+              } else if ("subMenu" in subMenu.Protected[i]) {
+                var oMenuItem = new Ext.menu.Item({
+                      text : oConfig.menu.Protected[i].text,
+                      disabled : lDisable
+                    });
+                me.__createSubmenu(oMenuItem, oConfig.menu.Protected[i].subMenu);
+                oMenu.menu.add(oMenuItem);
+              }
+              if (subMenu.Protected[i].properties) {
+                Ext.apply(oMenuItem, subMenu.Protected[i].properties);
+              }
+              oMenu.menu.add(oMenuItem);
+            }
+          }
 
         }
       }
-    }
-  },
-  /***
-   * It is used to create sub menu to a given menu item.
-   * @param{Ext.menu.Item} oMenu the sub menu will belong to this menu item.
-   * @param{Object} subMenu it contains the menu items the format is same as the {@link #menuitems}
-   */
-  __createSubmenu : function(oMenu, subMenu){
-    var me = this;
-    oMenu.menu = new Ext.menu.Menu();
-    if (subMenu == null){
-      return;
-    }else{
-      if ("Visible" in subMenu){
-        for(var i = 0; i<subMenu.Visible.length; i++){
-          if (subMenu.Visible[i].text=="-"){
-            oMenu.menu.add(new Ext.menu.Separator());
-          }else if ("handler" in subMenu.Visible[i]){
-            var oMenuItem = new Ext.menu.Item({text:subMenu.Visible[i].text, handler: Ext.bind(subMenu.Visible[i].handler, me.scope, subMenu.Visible[i].arguments, false), scope : me.scope});
-          }else if ("subMenu" in subMenu.Visible[i]){
-            var oMenuItem = new Ext.menu.Item({text:oConfig.menu.Visible[i].text})
-            me.__createSubmenu(oMenuItem, oConfig.menu.Visible[i].subMenu);
-            oMenu.menu.add(oMenuItem);
-          }
-          if (subMenu.Visible[i].properties){
-            Ext.apply(oMenuItem, subMenu.Visible[i].properties);
-          }
-          oMenu.menu.add(oMenuItem);
-        }
-      }else if ("Protected" in subMenu){
-        for(var i = 0; i<subMenu.Protected.length; i++){
-          var lDisable = ("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, subMenu.Protected[i].property) != -1) == false? true:false;
-          oMenu.disabled=lDisable;
-          if (subMenu.Protected[i].text=="-"){
-            oMenu.menu.add(new Ext.menu.Separator());
-          }else if ("handler" in subMenu.Protected[i]){
-            var oMenuItem = new Ext.menu.Item({text:subMenu.Protected[i].text, handler: Ext.bind(subMenu.Protected[i].handler, me.scope, subMenu.Protected[i].arguments, false), scope : me.scope,disabled:lDisable});
-          }else if ("subMenu" in subMenu.Protected[i]){
-            var oMenuItem = new Ext.menu.Item({text:oConfig.menu.Protected[i].text, disabled:lDisable});
-            me.__createSubmenu(oMenuItem, oConfig.menu.Protected[i].subMenu);
-            oMenu.menu.add(oMenuItem);
-          }
-          if (subMenu.Protected[i].properties){
-            Ext.apply(oMenuItem, subMenu.Protected[i].properties);
-          }
-          oMenu.menu.add(oMenuItem);
-        }
-      }
 
-    }
-  }
-
-});
+    });

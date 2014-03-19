@@ -7,56 +7,56 @@
  * {@link Ext.ux.form.field.BoxSelect#grow} is false.
  */
 Ext.define('Ext.dirac.utils.DiracBoxSelectField', {
-	/* Begin Definitions */
-	alias : [ 'layout.boxselectfield' ],
-	extend : 'Ext.layout.component.field.Trigger',
+      /* Begin Definitions */
+      alias : ['layout.boxselectfield'],
+      extend : 'Ext.layout.component.field.Trigger',
 
-	/* End Definitions */
+      /* End Definitions */
 
-	type : 'boxselectfield',
+      type : 'boxselectfield',
 
-	/* For proper calculations we need our field to be sized. */
-	waitForOuterWidthInDom : true,
+      /* For proper calculations we need our field to be sized. */
+      waitForOuterWidthInDom : true,
 
-	beginLayout : function(ownerContext) {
-		var me = this, owner = me.owner;
+      beginLayout : function(ownerContext) {
+        var me = this, owner = me.owner;
 
-		me.callParent(arguments);
+        me.callParent(arguments);
 
-		ownerContext.inputElCtContext = ownerContext.getEl('inputElCt');
-		owner.inputElCt.setStyle('width', '');
+        ownerContext.inputElCtContext = ownerContext.getEl('inputElCt');
+        owner.inputElCt.setStyle('width', '');
 
-		me.skipInputGrowth = !owner.grow || !owner.multiSelect;
-	},
+        me.skipInputGrowth = !owner.grow || !owner.multiSelect;
+      },
 
-	beginLayoutFixed : function(ownerContext, width, suffix) {
-		var me = this, owner = ownerContext.target;
+      beginLayoutFixed : function(ownerContext, width, suffix) {
+        var me = this, owner = ownerContext.target;
 
-		owner.triggerEl.setStyle('height', '24px');
+        owner.triggerEl.setStyle('height', '24px');
 
-		me.callParent(arguments);
+        me.callParent(arguments);
 
-		if (ownerContext.heightModel.fixed && ownerContext.lastBox) {
-			owner.listWrapper.setStyle('height', ownerContext.lastBox.height + 'px');
-			owner.itemList.setStyle('height', '100%');
-		}
-		/* No inputElCt calculations here! */
-	},
+        if (ownerContext.heightModel.fixed && ownerContext.lastBox) {
+          owner.listWrapper.setStyle('height', ownerContext.lastBox.height + 'px');
+          owner.itemList.setStyle('height', '100%');
+        }
+        /* No inputElCt calculations here! */
+      },
 
-	/* Calculate and cache value of input container. */
-	publishInnerWidth : function(ownerContext) {
-		var me = this, owner = me.owner, width = owner.itemList.getWidth(true) - 10, lastEntry = owner.inputElCt.prev(null, true);
+      /* Calculate and cache value of input container. */
+      publishInnerWidth : function(ownerContext) {
+        var me = this, owner = me.owner, width = owner.itemList.getWidth(true) - 10, lastEntry = owner.inputElCt.prev(null, true);
 
-		if (lastEntry && !owner.stacked) {
-			lastEntry = Ext.fly(lastEntry);
-			width = width - lastEntry.getOffsetsTo(lastEntry.up(''))[0] - lastEntry.getWidth();
-		}
+        if (lastEntry && !owner.stacked) {
+          lastEntry = Ext.fly(lastEntry);
+          width = width - lastEntry.getOffsetsTo(lastEntry.up(''))[0] - lastEntry.getWidth();
+        }
 
-		if (!me.skipInputGrowth && (width < 35)) {
-			width = width - 10;
-		} else if (width < 1) {
-			width = 1;
-		}
-		ownerContext.inputElCtContext.setWidth(width);
-	}
-});
+        if (!me.skipInputGrowth && (width < 35)) {
+          width = width - 10;
+        } else if (width < 1) {
+          width = 1;
+        }
+        ownerContext.inputElCtContext.setWidth(width);
+      }
+    });
