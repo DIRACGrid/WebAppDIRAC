@@ -294,3 +294,7 @@
 .loading_item {
     background-image: url( ../img/icons/system/loading.gif ) !important;
 }
+
+.dirac-table-main-check-box {
+  margin: 3px 0px 3px 0px !important;
+}

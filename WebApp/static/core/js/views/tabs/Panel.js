@@ -5,6 +5,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.Panel',{
   extend : 'Ext.panel.Panel',
+  mixins : [ "Ext.dirac.core.Container" ],
   alias : 'widget.diraccomonpanel',
   requires : [ "Ext.LoadMask" ],
   width : 600,
@@ -155,7 +156,7 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
     // if there is a state to load, we load that state
     if ( (setupData.stateToLoad) && setupData.stateToLoad != 'Default' ) {
 
-      me.oprLoadAppStateFromCache(setupData.stateToLoad, loadState);
+      me.oprLoadAppStateFromCache(setupData.stateToLoad, loadState, setupData.desktop);
 
     } else {
 
@@ -194,10 +195,11 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
     me.loadedObject.setContainer(me);
 
   },
-  oprLoadAppStateFromCache : function(stateName, loadState) {
+  oprLoadAppStateFromCache : function(stateName, loadState, desktopName) {
 
     var me = this;
 
+    var oState = null;
     // checking whether the state exists or not
     var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, stateName);// OK
 
@@ -207,15 +209,19 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
       return;
       break;
     case -2:
-      me.funcPostponedLoading = function() {
-
-      me.oprLoadAppStateFromCache(stateName);
-
-    }
-
-      setTimeout(me.funcPostponedLoading, 1000);
-      return;
+      //we have to retrieve the stored application from the desktop cache.
+      var oStates = GLOBAL.APP.SM.getStateData( "application", "desktop", desktopName);
+      if (oStates!= null && oStates.data){
+        for(var i = 0; i<oStates.data.length;i++){
+          if (oStates.data[i].currentState==stateName){
+            oState = oStates.data[i].data;
+            break;
+          }
+        }
+      }
       break;
+    case 1:
+      var oState = GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName)
     }
 
     /*
@@ -228,7 +234,7 @@ Ext.define('Ext.dirac.views.tabs.Panel',{
 
       me.closeAllChildWindows();
 
-      me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName));// OK
+      me.loadedObject.loadState(oState);// OK
 
       if (me.currentState != "")
         GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);// OK

@@ -21,7 +21,7 @@
     <!-- <x-bootstrap> -->
 
     {% if _dev %}
-      <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all.js"></script>
+      <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all-dev.js"></script>
     {% else %}
       <script type="text/javascript" src="{{base_url}}/static/core/build/all-classes.js"></script>
     {% end %}
@@ -68,7 +68,7 @@
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
           GLOBAL.VIEW_ID = "{{view}}";
-          GLOBAL.VALID_VIEWS = ["desktop"];
+          GLOBAL.VALID_VIEWS = ["desktop","tabs"];
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
 
@@ -99,7 +99,7 @@
           GLOBAL.WEB_THEME = "{{theme}}";
           GLOBAL.STATE_MANAGEMENT_ENABLED = true;
           GLOBAL.VIEW_ID = "{{view}}";
-          GLOBAL.VALID_VIEWS = ["desktop"];
+          GLOBAL.VALID_VIEWS = ["desktop","tabs"];
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
 
