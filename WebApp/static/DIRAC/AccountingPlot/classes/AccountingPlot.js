@@ -190,7 +190,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			displayField : "text",
 			valueField : "value",
 			anchor : '100%',
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : [ [ "DataOperation", "Data Operation" ], [ "Job", "Job" ], [ "WMSHistory", "WMS History" ], [ "Pilot", "Pilot" ], [ "SRMSpaceTokenDeployment", "SRM Space Token Deployment" ] ]
 			}),
@@ -254,7 +254,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 			valueField : "value",
 			anchor : '100%',
 			value : 86400,
-			store : new Ext.data.SimpleStore({
+			store : new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : [ [ 86400, "Last Day" ], [ 604800, "Last Week" ], [ 2592000, "Last Month" ], [ -1, "Manual Selection" ], [ -2, "By Quarter" ] ]
 			}),
@@ -585,7 +585,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		} while (oRecords.length < 8);
 
-		var oNewStore = new Ext.data.SimpleStore({
+		var oNewStore = new Ext.data.ArrayStore({
 			fields : [ 'value', 'text' ],
 			data : oRecords
 		});
@@ -623,7 +623,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		me.__oprDoubleElementItemList(oList);
 
-		var oStore = new Ext.data.SimpleStore({
+		var oStore = new Ext.data.ArrayStore({
 			fields : [ 'value', 'text' ],
 			data : oList
 		});
@@ -659,7 +659,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 					displayField : "text",
 					valueField : "value",
 					anchor : '100%',
-					store : new Ext.data.SimpleStore({
+					store : new Ext.data.ArrayStore({
 						fields : [ 'value', 'text' ],
 						data : oList
 					}),
@@ -674,7 +674,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 		}
 
-		var oStore = new Ext.data.SimpleStore({
+		var oStore = new Ext.data.ArrayStore({
 			fields : [ 'value', 'text' ],
 			data : oListForGroup
 		});
@@ -708,7 +708,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
 			var oList = oSelectionData[oBox.getName()];
 			me.__oprDoubleElementItemList(oList);
-			var oNewStore = new Ext.data.SimpleStore({
+			var oNewStore = new Ext.data.ArrayStore({
 				fields : [ 'value', 'text' ],
 				data : oList
 			});
