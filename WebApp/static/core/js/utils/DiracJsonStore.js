@@ -1,23 +1,31 @@
-/***
- *  It makes easier to create the data store data from JSON. It provides DIRAC specific functionalities.
- *  USAGE:
- *
- *     var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy',{
- *        url : GLOBAL.BASE_URL + 'JobMonitor/getJobData'
+/*******************************************************************************
+ * It makes easier to create the data store data from JSON. It provides DIRAC
+ * specific functionalities. USAGE:
+ * 
+ * <pre>
+ * var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy', {
+ *       url : GLOBAL.BASE_URL + 'JobMonitor/getJobData'
  *     });
- *
- *      me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore",{
- *        proxy : oProxy,
- *        fields : me.dataFields,
- *        scope: me});
- *  Parameters:
- *  -oProxy can be any kind of data proxy. But we propose to use {@link Ext.dirac.utils.DiracAjaxProxy}
- *  -fields is a list of data fields. For example:
- *    dataFields : [
- *         {name : 'SystemPriority', type : 'float'},
- *         {name : 'ApplicationNumStatus'},
- *         {name : 'JobID',type : 'int'}]
- *  -scope: it is a pointer to the application.
+ * </pre>
+ * 
+ * me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore",{ proxy : oProxy,
+ * fields : me.dataFields, scope: me}); Parameters: -oProxy can be any kind of
+ * data proxy. But we propose to use {@link Ext.dirac.utils.DiracAjaxProxy}
+ * -fields is a list of data fields. For example:
+ * 
+ * <pre>
+ * dataFields : [{
+ *       name : 'SystemPriority',
+ *       type : 'float'
+ *     }, {
+ *       name : 'ApplicationNumStatus'
+ *     }, {
+ *       name : 'JobID',
+ *       type : 'int'
+ *     }]
+ * </pre>
+ * 
+ * -scope: it is a pointer to the application.
  */
 Ext.define('Ext.dirac.utils.DiracJsonStore', {
       extend : 'Ext.data.JsonStore',
@@ -28,14 +36,14 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
        *                   25.
        */
       pageSize : 25,
-      /*************************************************************************
+      /**
        * @cfg{Ext.dirac.utils.DiracAjaxProxy} proxy It is an Ajax proxy used to
        *                                      load and save data. It can be
        *                                      other types of proxy as well. More
        *                                      info: {@link Ext.data.proxy.Proxy}
        */
       proxy : null,
-      /*************************************************************************
+      /**
        * @cfg{Object} oDiffFields It contains a list of columns used to see
        *              difference of a given value after the refresh. The Fields
        *              list are the dataIndex. For example: oDiffFields
@@ -48,18 +56,18 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
        *              'Files_MaxReset']}, scope: me});
        */
       oDiffFields : null,
-      /*************************************************************************
+      /**
        * @cfg{Object} diffValues it stores the values which are given by
        *              oDiffFields before refresh.
        */
       diffValues : {},
-      /*************************************************************************
+      /**
        * @property{Ext.data.Operation} lastDataRequest it stores the latest
        *                               {@link Ext.data.Operation}, which is
        *                               used to cancel the AJAX request.
        */
       lastDataRequest : null,
-      /*************************************************************************
+      /**
        * it returns the values for a given fields.
        * 
        * @return{Object} returns the saved values.
@@ -68,7 +76,7 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
         var me = this;
         return me.diffValues;
       },
-      /*************************************************************************
+      /**
        * @property{String} groupField The values will be grouped by this field.
        */
       groupField : null,
@@ -105,7 +113,7 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
           var me = this;
 
           if (me.oDiffFields) {// this is for marking the values in the
-                                // table...
+            // table...
             if (oStore.proxy.reader.rawData && oStore.proxy.reader.rawData["total"] > 0) {
               for (var i = 0; i < oStore.proxy.reader.rawData["total"]; i++) {
                 var record = oStore.getAt(i);

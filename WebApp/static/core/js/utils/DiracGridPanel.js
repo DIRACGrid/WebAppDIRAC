@@ -10,7 +10,7 @@
  *   There are different render functions provided by this widget. We can configure the grid panel to how render the data.
  *
  *    For example:
- *
+ *<pre>
  *      var oColumns = {
  *          "checkBox":{"dataIndex":"TransformationIDcheckBox"},
  *          "ID" : {"dataIndex":"TransformationID", "properties":{width:60, align:'left',hideable:false}},
@@ -19,6 +19,7 @@
  *          "Status":{"dataIndex":"Status","properties":{width:60}},
  *          "AgentType" :{"dataIndex":"AgentType","properties":{ width:60}},
  *          "Type":{"dataIndex":"Type"}}
+ *  </pre>
  *  -tbar : it is a paging tool bar object. DIRAC provides the following widget: {@link Ext.dirac.utils.DiracPagingToolbar}.
  *
  *  -contextMenu: you can add a menu to the Grid. DIRAC provides the following menu: {@link Ext.dirac.utils.DiracApplicationContextMenu}.
@@ -29,17 +30,16 @@
  *
  * For example:
  *
- *
+ *<pre>
  *    me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
  *        store : me.dataStore,
  *        features: [{ftype:'grouping'}],
  *        oColumns : oColumns,
- *        tbar : pagingToolbar,
  *        contextMenu : me.contextGridMenu,
  *        pagingToolbar : pagingToolbar,
  *        scope : me
  *      });
- *
+ *</pre>
  */
 Ext.define('Ext.dirac.utils.DiracGridPanel', {
       extend : 'Ext.grid.Panel',
@@ -49,9 +49,18 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       header : false,
       viewConfig : {
         stripeRows : true,
-        enableTextSelection : true
+        enableTextSelection : true,
+        listeners : {
+          refresh : function(dataview) {
+            var nodes = dataview.getNodes();
+            for (var i = 0; i < nodes.length; i++) {
+              row = Ext.fly(nodes[i], '_rowExpander');
+              row.setHeight(26);
+            }
+          }
+        }
       },
-      /*************************************************************************
+      /**
        * @property{Object} defaultColumnsProperties it contains the default
        *                   properties of the columns. The default value is
        *                   {sortable:true,align:'left',hidden:true}
@@ -62,17 +71,17 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
         align : 'left',
         hidden : true
       },
-      /*************************************************************************
+      /**
        * @cfg{List} columns it contains the grid columns
        */
       columns : [],
-      /*************************************************************************
+      /**
        * @cfg{List} renderers it contains a list of available renderer:
        *            ["rendererChkBox", "rendererStatus","diffValues"] NOTE: You
        *            can implement new renderer.
        */
       renderers : ["rendererChkBox", "rendererStatus", "diffValues"],
-      /*************************************************************************
+      /**
        * This function is used to load the data which is saved in the User
        * Profile.
        * 
@@ -167,7 +176,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                   });
             });
 
-        oReturn.pageSize = me.pagingToolbar.getState();
+        oReturn.pagingToolbar = me.pagingToolbar.getStateData();
 
         return oReturn;
 
@@ -251,8 +260,8 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
             }
           }
           if (config.columns) {// Only when the oColumns are provided: we may
-                                // have a case when we need to provide all
-                                // columns.
+            // have a case when we need to provide all
+            // columns.
             Ext.Array.push(config.columns, oColumn);
           } else {
             config.columns = [];
@@ -275,7 +284,14 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                 }
               });
         }
+        
         me.callParent(arguments);
+        
+        if(config.pagingToolbar){
+          me.pagingToolbar = config.pagingToolbar;
+          me.addDocked(me.pagingToolbar, "top");
+        }
+        
       },
       /*************************************************************************
        * It render the Grid columns

@@ -59,7 +59,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       extend : 'Ext.panel.Panel',
-      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracTimeSearchPanel'],
+      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.dirac.utils.DiracToolButton'],
       title : 'Selectors',
       region : 'west',
       floatable : false,
@@ -309,16 +309,19 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           leftMenu[field] = me.textFields[field].getValue();
         }
 
-        leftMenu.cmbTimeSpan = me.getTimeSearch().timeSearchElementsGroup.cmbTimeSpan.getValue();
-        leftMenu.calenFrom = me.getTimeSearch().timeSearchElementsGroup.calenFrom.getValue();
-        leftMenu.cmbTimeFrom = me.getTimeSearch().timeSearchElementsGroup.cmbTimeFrom.getValue();
-        leftMenu.calenTo = me.getTimeSearch().timeSearchElementsGroup.calenTo.getValue();
-        leftMenu.cmbTimeTo = me.getTimeSearch().timeSearchElementsGroup.cmbTimeTo.getValue();
-        leftMenu.timeSearchPanelHidden = me.getTimeSearch().hidden;
+        var timeSearchPanel = me.getTimeSearch();
+        if (timeSearchPanel) {
+          leftMenu.cmbTimeSpan = me.getTimeSearch().timeSearchElementsGroup.cmbTimeSpan.getValue();
+          leftMenu.calenFrom = me.getTimeSearch().timeSearchElementsGroup.calenFrom.getValue();
+          leftMenu.cmbTimeFrom = me.getTimeSearch().timeSearchElementsGroup.cmbTimeFrom.getValue();
+          leftMenu.calenTo = me.getTimeSearch().timeSearchElementsGroup.calenTo.getValue();
+          leftMenu.cmbTimeTo = me.getTimeSearch().timeSearchElementsGroup.cmbTimeTo.getValue();
+          leftMenu.timeSearchPanelHidden = me.getTimeSearch().hidden;
+        }
         return leftMenu;
 
       },
-      /*************************************************************************
+      /**
        * This function is used to load the data which is saved in the User
        * Profile.
        * 
@@ -368,22 +371,27 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
         item.setChecked(!data.leftMenu.timeSearchPanelHidden);
 
-        if (!data.leftMenu.timeSearchPanelHidden)
-          me.timeSearchPanel.show();
-        else
-          me.timeSearchPanel.hide();
+        if (data.leftMenu.timeSearchPanelHidden) {
+          if (!data.leftMenu.timeSearchPanelHidden)
+            me.timeSearchPanel.show();
+          else
+            me.timeSearchPanel.hide();
+        }
         // END - For the time span searching sub-panel
 
         for (var field in me.textFields) {
           me.textFields[field].setValue(data.leftMenu[field]);
         }
 
-        me.getTimeSearch().timeSearchElementsGroup.cmbTimeSpan.setValue(data.leftMenu.cmbTimeSpan);
-        me.getTimeSearch().timeSearchElementsGroup.calenFrom.setValue(data.leftMenu.calenFrom);
+        var timeSearchPanel = me.getTimeSearch();
+        if (timeSearchPanel) {
+          timeSearchPanel.timeSearchElementsGroup.cmbTimeSpan.setValue(data.leftMenu.cmbTimeSpan);
+          timeSearchPanel.timeSearchElementsGroup.calenFrom.setValue(data.leftMenu.calenFrom);
 
-        me.getTimeSearch().timeSearchElementsGroup.cmbTimeFrom.setValue(data.leftMenu.cmbTimeFrom);
-        me.getTimeSearch().timeSearchElementsGroup.calenTo.setValue(data.leftMenu.calenTo);
-        me.getTimeSearch().timeSearchElementsGroup.cmbTimeTo.setValue(data.leftMenu.cmbTimeTo);
+          timeSearchPanel.timeSearchElementsGroup.cmbTimeFrom.setValue(data.leftMenu.cmbTimeFrom);
+          timeSearchPanel.timeSearchElementsGroup.calenTo.setValue(data.leftMenu.calenTo);
+          timeSearchPanel.timeSearchElementsGroup.cmbTimeTo.setValue(data.leftMenu.cmbTimeTo);
+        }
 
         if (bToReload) {
 
@@ -392,7 +400,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
 
       },
-      /*************************************************************************
+      /**
        * @private In case the selector is not loaded we have to postpone the
        *          setting of the value.
        * @param{Ext.dirac.utils.DiracBoxSelect} oSelectionBox the combo box
@@ -526,7 +534,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
         }
       },
-      /*************************************************************************
+      /**
        * It returns the data which is selected by the user.
        * 
        * @return{Object}
@@ -618,7 +626,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
         return extraParams;
       },
-      /*************************************************************************
+      /**
        * It loads data to the grid panel.
        */
       oprLoadGridData : function() {
@@ -642,7 +650,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
 
       },
-      /*************************************************************************
+      /**
        * It validates the selected values. It is used to make sure the values
        * which are selected are correct.
        */
@@ -659,7 +667,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
         return bValid;
       },
-      /*************************************************************************
+      /**
        * It is used to reset the selectors.
        */
       oprResetSelectionOptions : function() {
@@ -676,7 +684,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         me.oprLoadGridData();
 
       },
-      /*************************************************************************
+      /**
        * It is used to refresh the selectors.
        * 
        * @param{Boolean} create a Ajax request and refresh the selectors.

@@ -1,42 +1,84 @@
 /**
- * This widget contains different tool bar buttons. We have to provide the tool buttons using a dictionary. The tool buttons have to be defined same way as
- * {@link Ext.dirac.utils.DiracApplicationContextMenu}
- * The format of the dictionary is {'Visible':[],'Protected':[]} The Visible buttons are available to all users, while the Protected buttons are available
- * only users which are in a certain group(They have a certain role).
- *
- * The Visible and Protected lists contains dictionaries which have the following format: {"text":"a","handler":func,"arguments":[a,b,c], properties:{}}
- *      -text: the menu item name (this text will appears in the menu)
- *      -handler: this function handle the event.
- *      -arguments: we can pass parameters to the func method.
- *      -properties: We can provide properties which are properties of the {@link Ext.menu.Menu}.
- *      -property: It is used when the menu item is protected. (We allow to use the functionalities to a certain users).
- *
- *
+ * This widget contains different tool bar buttons. We have to provide the tool
+ * buttons using a dictionary. The tool buttons have to be defined same way as
+ * {@link Ext.dirac.utils.DiracApplicationContextMenu} The format of the
+ * dictionary is {'Visible':[],'Protected':[]} The Visible buttons are available
+ * to all users, while the Protected buttons are available only users which are
+ * in a certain group(They have a certain role).
+ * 
+ * The Visible and Protected lists contains dictionaries which have the
+ * following format: {"text":"a","handler":func,"arguments":[a,b,c],
+ * properties:{}} -text: the menu item name (this text will appears in the menu)
+ * -handler: this function handle the event. -arguments: we can pass parameters
+ * to the func method. -properties: We can provide properties which are
+ * properties of the {@link Ext.menu.Menu}. -property: It is used when the menu
+ * item is protected. (We allow to use the functionalities to a certain users).
+ * 
+ * 
  * For example:
- *
- *
- *    pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar",{
- *        toolButtons : toolButtons,
- *        dataStore : me.dataStore,
- *        scope : me
- *      });
- *
- *    -toolButons: It is the dictionary which describe the buttons. In the following example we can see how to defined protected tool buttons.
- *
- *       var toolButtons = {
- *       'Visible':[
- *         {"text":"", "handler":me.__oprJobAction, "arguments":["reschedule", ""],"properties":{tooltip : "Reschedule", iconCls : "dirac-icon-reschedule"}},
- *         {"text":"", "handler":me.__oprJobAction, "arguments":["kill", ""],"properties":{tooltip : "Kill", iconCls : "dirac-icon-kill"}},
- *         {"text":"", "handler":me.__oprJobAction, "arguments":["delete", ""],"properties":{tooltip : "Delete", iconCls : "dirac-icon-delete"}},
- *         {"text":"", "handler":me.__setActiveItemInTheCentralWorkPanel,"arguments":[],"properties":{iconCls : "dirac-icon-pie",tooltip : "Go to the statistics panel"}}
- *        ],
- *       'Protected':[
- *        {"text":"","handler":me.__oprJobAction, "arguments":["reset", ""],"properties":{tooltip : "Reset", iconCls : "jm-red-reset-icon"}, "property":"JobAdministrator"}
- *        ]};
- *
- *    -dataStore: It is the {@link Ext.dirac.utils.DiracJsonStore} object.
- *    -scope: It is used to have access to the main widget.
- *
+ * 
+ * <pre>
+ * pagingToolbar = Ext.create(&quot;Ext.dirac.utils.DiracPagingToolbar&quot;, {
+ *       toolButtons : toolButtons,
+ *       store : me.dataStore,
+ *       scope : me
+ *     });
+ * </pre>
+ * 
+ * -toolButons: It is the dictionary which describe the buttons. In the
+ * following example we can see how to defined protected tool buttons.
+ * 
+ * <pre>
+ * var toolButtons = {
+ *   'Visible' : [{
+ *         &quot;text&quot; : &quot;&quot;,
+ *         &quot;handler&quot; : me.__oprJobAction,
+ *         &quot;arguments&quot; : [&quot;reschedule&quot;, &quot;&quot;],
+ *         &quot;properties&quot; : {
+ *           tooltip : &quot;Reschedule&quot;,
+ *           iconCls : &quot;dirac-icon-reschedule&quot;
+ *         }
+ *       }, {
+ *         &quot;text&quot; : &quot;&quot;,
+ *         &quot;handler&quot; : me.__oprJobAction,
+ *         &quot;arguments&quot; : [&quot;kill&quot;, &quot;&quot;],
+ *         &quot;properties&quot; : {
+ *           tooltip : &quot;Kill&quot;,
+ *           iconCls : &quot;dirac-icon-kill&quot;
+ *         }
+ *       }, {
+ *         &quot;text&quot; : &quot;&quot;,
+ *         &quot;handler&quot; : me.__oprJobAction,
+ *         &quot;arguments&quot; : [&quot;delete&quot;, &quot;&quot;],
+ *         &quot;properties&quot; : {
+ *           tooltip : &quot;Delete&quot;,
+ *           iconCls : &quot;dirac-icon-delete&quot;
+ *         }
+ *       }, {
+ *         &quot;text&quot; : &quot;&quot;,
+ *         &quot;handler&quot; : me.__setActiveItemInTheCentralWorkPanel,
+ *         &quot;arguments&quot; : [],
+ *         &quot;properties&quot; : {
+ *           iconCls : &quot;dirac-icon-pie&quot;,
+ *           tooltip : &quot;Go to the statistics panel&quot;
+ *         }
+ *       }],
+ *   'Protected' : [{
+ *         &quot;text&quot; : &quot;&quot;,
+ *         &quot;handler&quot; : me.__oprJobAction,
+ *         &quot;arguments&quot; : [&quot;reset&quot;, &quot;&quot;],
+ *         &quot;properties&quot; : {
+ *           tooltip : &quot;Reset&quot;,
+ *           iconCls : &quot;jm-red-reset-icon&quot;
+ *         },
+ *         &quot;property&quot; : &quot;JobAdministrator&quot;
+ *       }]
+ * };
+ * </pre>
+ * 
+ * -store: It is the {@link Ext.dirac.utils.DiracJsonStore} object. -scope: It
+ * is used to have access to the main widget.
+ * 
  */
 Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
       extend : 'Ext.toolbar.Paging',
@@ -49,26 +91,26 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
       /*
        * layout : { overflowHandler : 'Scroller' },
        */
-      /*************************************************************************
+      /**
        * @cfg{List} pagingToolbarItems It contains the tool bar items such as
        *            buttons, size combo, etc.
        */
       pagingToolbarItems : [],
-      /*************************************************************************
+      /**
        * @cfg{List} pagingToolbarButtons It contains the tool bar buttons.
        */
       pagingToolbarButtons : [],
-      /*************************************************************************
+      /**
        * @cfg{Ext.dirac.utils.DiracPageSizeCombo}pageSizeCombo This widget is
        *                                                       the page size
        *                                                       combo.
        */
       pageSizeCombo : null,
-      /*************************************************************************
-       * @cfg{Ext.dirac.utils.DiracJsonStore}dataStore The associated data store
-       *                                               object.
+      /**
+       * @cfg{Ext.dirac.utils.DiracJsonStore}store The associated data store
+       *                                           object.
        */
-      dataStore : null,
+      store : null,
       constructor : function(config) {
         var me = this;
         me.pagingToolbarItems = []; // make sure there is no element in the list
@@ -121,8 +163,8 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
 
         me.pageSizeCombo.on("change", function(combo, newValue, oldValue, eOpts) {
               var me = this;
-              me.dataStore.pageSize = newValue;
-              me.oprLoadGridData();
+              me.grid.store.pageSize = newValue;
+              me.leftPanel.oprLoadGridData();
             }, config.scope);
 
         me.pagingToolbarItems.push(me.pageSizeCombo);
@@ -134,9 +176,6 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
 
         me.pagingToolbarItems.push(me.updateStamp);
 
-        if (config.dataStore) {
-          me.dataStore = config.dataStore;
-        }
         me.callParent(arguments);
       },
       initComponent : function(config) {
@@ -161,6 +200,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
               items : [{
                     text : 'Disabled',
                     group : 'column',
+                    name : "0",
                     checked : true,
                     handler : function() {
                       me.__setRefreshCycle(0);
@@ -170,6 +210,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
                     text : 'Each 15m',
                     group : 'column',
                     checked : false,
+                    name : "60000",
                     handler : function() {
                       me.__setRefreshCycle(60000);
                     }
@@ -177,6 +218,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
                     text : 'Each 30m',
                     group : 'column',
                     checked : false,
+                    name : "1800000",
                     handler : function() {
                       me.__setRefreshCycle(1800000);
                     }
@@ -184,6 +226,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
                     text : 'Every hour',
                     group : 'column',
                     checked : false,
+                    name : "3600000",
                     handler : function() {
                       me.__setRefreshCycle(3600000);
                     }
@@ -215,45 +258,57 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
               }
             });
       },
-      /***
-       * This function is used to load the data which is saved in the User Profile.
-       * @param{Object}data
-       * it contains the saved values.
+      /**
+       * This function is used to load the data which is saved in the User
+       * Profile.
+       * 
+       * @param{Object}data it contains the saved values.
        */
       loadState : function(data) {
         var me = this;
-        if (data.pageSize) {
+        if (data.columns.pagingToolbar.pagingToolbarpageSize) {
 
           me.pageSizeCombo.suspendEvents(false);
-          me.pageSizeCombo.setValue(data.pageSize);
+          me.pageSizeCombo.setValue(data.columns.pageSize);
           me.pageSizeCombo.resumeEvents();
 
+        }
+        if (data.columns.pagingToolbar.refreshCycle) {
+          var index = me.autoRefresh.items.findIndex("name",data.columns.pagingToolbar.refreshCycle);
+          me.autoRefresh.items.getAt(index).setChecked(true);
+          me.__setRefreshCycle(data.columns.pagingToolbar.refreshCycle);
         }
       },
       /**
        * It returns the data which has to be saved in the User Profile.
+       * 
        * @return{Object}
        */
       getStateData : function() {
         var me = this;
-        var pageSize = me.pageSizeCombo.getValue();
-        return pageSize;
+        var returnValues = {
+          pageSize : me.pageSizeCombo.getValue(),
+          refreshCycle : me.refreshCycle
+        }
+
+        return returnValues;
       },
-      /***
+      /**
        * @private
-       * @param{Object} It is the time when the next refresh will occur.
-       * It is used to set how often refresh the widgets.
+       * @param{Object} It is the time when the next refresh will occur. It is
+       *                used to set how often refresh the widgets.
        */
       __setRefreshCycle : function(time) {
         var me = this;
-        me.refreshCycle = time; //it is used if we want to save the state!!!
+        if (!time) return;
+        me.refreshCycle = time; // it is used if we want to save the state!!!
         if (time != 0) {
-          clearInterval(me.dataStore.refreshTimeout);
-          me.dataStore.refreshTimeout = setInterval(function() {
-                me.dataStore.load();
+          clearInterval(me.store.refreshTimeout);
+          me.store.refreshTimeout = setInterval(function() {
+                me.store.load();
               }, time);
         } else {
-          clearInterval(me.dataStore.refreshTimeout);
+          clearInterval(me.store.refreshTimeout);
         }
       }
     });

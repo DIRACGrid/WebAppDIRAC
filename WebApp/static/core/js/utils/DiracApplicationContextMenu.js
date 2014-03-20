@@ -1,33 +1,37 @@
-/***
- * It can be used to create a context menu.
- *NOTE: You have to provide the menu items and the scope.
- *The menuitems is a dictionary which has Visible and Protected keys:
- *-Visible: the menu items accessible by all users.
- *-Protected: the menu items are restricted. Only the appropriate users can be accessed to this functionalities. For example: only the users can access to the menu items which are a certain group.
- *These to items are lists which contain dictionaries used to configure the menu items.: {'Visible':[{}],'Protected','Protected':[{}]}
- * The dictionaries have the following format: {"text":"a","handler":func,"arguments":[a,b,c], properties:{}}
- *      -text: the menu item name (this text will appears in the menu)
- *      -handler: this function handle the event.
- *      -arguments: we can pass parameters to the func method.
- *      -properties: We can provide properties which are properties of the {@link Ext.menu.Menu}.
- *      -property: It is used when the menu item is protected. (We allow to use the functionalities to a certain users.
- *
- *
- *  var sandboxSubmenu = {
- *       'Visible':[
- *                  {"text":"Get input file(s)",  "handler":me.__getSandbox,"arguments":[GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Input"],"properties":{tooltip:'Click to kill the selected job.',iconCls : "dirac-icon-download"}},
- *                  {"text":"Get output file(s)", "handler":me.__getSandbox,"arguments":[GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Output"],"properties":{tooltip:'Click to kill the selected job.',iconCls : "dirac-icon-download"}}
- *                  ]};
- *
- *  var menuitems = {
- *       'Visible':[
- *                  {"text":"JDL",           "handler":me.__oprGetJobData, "arguments":["getJDL"], "properties":{tooltip:'Click to show the JDL of the selected job.'}},
- *                  {"text":"-"},//separator
- *                  {"text":"Attributes",    "handler":me.__oprGetJobData, "arguments":["getBasicInfo"], "properties":{tooltip:'Click to show the attributtes of the selected job.'}},
- *                  {"text":"SandBox",  "subMenu":  sandboxSubmenu, "properties":{iconCls : "jm-icon-sandbox",}}
- *                  ]}
- *   me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({menu:menuitems,scope:me});
- *
+/*******************************************************************************
+ * It can be used to create a context menu. NOTE: You have to provide the menu
+ * items and the scope. The menuitems is a dictionary which has Visible and
+ * Protected keys: -Visible: the menu items accessible by all users. -Protected:
+ * the menu items are restricted. Only the appropriate users can be accessed to
+ * this functionalities. For example: only the users can access to the menu
+ * items which are a certain group. These to items are lists which contain
+ * dictionaries used to configure the menu items.:
+ * {'Visible':[{}],'Protected','Protected':[{}]} The dictionaries have the
+ * following format: {"text":"a","handler":func,"arguments":[a,b,c],
+ * properties:{}} -text: the menu item name (this text will appears in the menu)
+ * -handler: this function handle the event. -arguments: we can pass parameters
+ * to the func method. -properties: We can provide properties which are
+ * properties of the {@link Ext.menu.Menu}. -property: It is used when the menu
+ * item is protected. (We allow to use the functionalities to a certain users.
+ * 
+ * 
+ * var sandboxSubmenu = { 'Visible':[ {"text":"Get input file(s)",
+ * "handler":me.__getSandbox,"arguments":[GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid,
+ * "JobID"), "Input"],"properties":{tooltip:'Click to kill the selected
+ * job.',iconCls : "dirac-icon-download"}}, {"text":"Get output file(s)",
+ * "handler":me.__getSandbox,"arguments":[GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid,
+ * "JobID"), "Output"],"properties":{tooltip:'Click to kill the selected
+ * job.',iconCls : "dirac-icon-download"}} ]};
+ * 
+ * var menuitems = { 'Visible':[ {"text":"JDL", "handler":me.__oprGetJobData,
+ * "arguments":["getJDL"], "properties":{tooltip:'Click to show the JDL of the
+ * selected job.'}}, {"text":"-"},//separator {"text":"Attributes",
+ * "handler":me.__oprGetJobData, "arguments":["getBasicInfo"],
+ * "properties":{tooltip:'Click to show the attributtes of the selected job.'}},
+ * {"text":"SandBox", "subMenu": sandboxSubmenu, "properties":{iconCls :
+ * "jm-icon-sandbox",}} ]} me.contextGridMenu = new
+ * Ext.dirac.utils.DiracApplicationContextMenu({menu:menuitems,scope:me});
+ * 
  */
 Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
       extend : 'Ext.menu.Menu',
@@ -96,7 +100,7 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
           }
         }
       },
-      /*************************************************************************
+      /**
        * It is used to create sub menu to a given menu item.
        * 
        * @param{Ext.menu.Item} oMenu the sub menu will belong to this menu item.

@@ -1,5 +1,6 @@
-/***
- * It implements the size of the Grid Panel. This class is used by {@link Ext.dirac.utils.DiracPagingToolbar}.
+/*******************************************************************************
+ * It implements the size of the Grid Panel. This class is used by
+ * {@link Ext.dirac.utils.DiracPagingToolbar}.
  */
 Ext.define('Ext.dirac.utils.DiracPageSizeCombo', {
       extend : 'Ext.form.field.ComboBox',
@@ -17,6 +18,6 @@ Ext.define('Ext.dirac.utils.DiracPageSizeCombo', {
             data : [[25], [50], [100], [200], [500], [1000]]
           }),
       triggerAction : 'all',
-      value : 100,
+      value : 25,
       width : 50
     });
