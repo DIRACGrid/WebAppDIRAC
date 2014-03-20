@@ -1,45 +1,61 @@
-/***
- *  This widget can be used to create a selector. It allows to easily configure the selector. It provides all the methods which are needed to save/restore the widget state.
- *  The following example show how to create a selector:
- *
- *
- *      me.leftPanel = new Ext.create('Ext.dirac.utils.DiracBaseSelector',{
- *        scope : me,
- *        cmbSelectors : selectors,
- *        textFields : textFields,
- *        datamap : map,
- *        url : "TransformationMonitor/getSelectionData"
- *      });
- *
- *
- *  Parameters:
- *
- *    -scope: the parent widget. We have some functionalities which required access to the main class.
- *    -cmbSelectors: It is a dictionary which contains the selector values. These are the selectors which will be seen as combo box. You can define a selector as the
- *    following:
- *
- *     var selectors = {
- *          status : "Status",
- *          agentType : "Agent Type",
- *          type : "Type",
- *          group: "Group",
- *          plugin : "Plugin"
- *      };
- *
- *    -textFields is dictionary which contains the text field name and the text which will appears in the widget. The following example shows how to implement a text field:
- *
- *
- *      var textFields = {
- *          'transformationId' : "ProductionID(s)",
- *          'requestId'      : "RequestID(s)"
- *      }
- *
- *    -timeSearchPanel in case if we want to have the time selector.
- *    -datamap is a list which contains the map, because we may have a situation when the name is different in the widget than the value which is returned by the controller.
- *
- *     var map = [ [ "agentType", "agentType" ], [ "productionType", "type" ], ["transformationGroup", "group"], ["plugin", "plugin"], ["prodStatus", "status"] ];
- *
- *    -url is a String which contains the url used to fill the selector widget.
+/*******************************************************************************
+ * This widget can be used to create a selector. It allows to easily configure
+ * the selector. It provides all the methods which are needed to save/restore
+ * the widget state. The following example show how to create a selector:
+ * 
+ * <pre>
+ * me.leftPanel = new Ext.create('Ext.dirac.utils.DiracBaseSelector', {
+ *       scope : me,
+ *       cmbSelectors : selectors,
+ *       textFields : textFields,
+ *       datamap : map,
+ *       url : &quot;TransformationMonitor/getSelectionData&quot;
+ *     });
+ * </pre>
+ * 
+ * Parameters:
+ * 
+ * -scope: the parent widget. We have some functionalities which required access
+ * to the main class. -cmbSelectors: It is a dictionary which contains the
+ * selector values. These are the selectors which will be seen as combo box. You
+ * can define a selector as the following:
+ * 
+ * <pre>
+ * var selectors = {
+ *   status : &quot;Status&quot;,
+ *   agentType : &quot;Agent Type&quot;,
+ *   type : &quot;Type&quot;,
+ *   group : &quot;Group&quot;,
+ *   plugin : &quot;Plugin&quot;
+ * };
+ * </pre>
+ * 
+ * -textFields is dictionary which contains the text field name and the text
+ * which will appears in the widget. The following example shows how to
+ * implement a text field:
+ * 
+ * <pre>
+ * var textFields = {
+ *   'transformationId' : {
+ *      name :&quot;ProductionID(s)&quot;,
+ *      type :&quot;number&quot;
+ *   }
+ *   'requestId' :{
+ *      name: &quot;RequestID(s)&amp;quot,
+ *      type : &quot;number&quot;
+ *   }
+ * };
+ * </pre>
+ * 
+ * -timeSearchPanel in case if we want to have the time selector. -datamap is a
+ * list which contains the map, because we may have a situation when the name is
+ * different in the widget than the value which is returned by the controller.
+ * 
+ * <pre>
+ * var map = [[&quot;agentType&quot;, &quot;agentType&quot;], [&quot;productionType&quot;, &quot;type&quot;], [&quot;transformationGroup&quot;, &quot;group&quot;], [&quot;plugin&quot;, &quot;plugin&quot;], [&quot;prodStatus&quot;, &quot;status&quot;]];
+ * </pre>
+ * 
+ * -url is a String which contains the url used to fill the selector widget.
  */
 Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       extend : 'Ext.panel.Panel',
@@ -58,31 +74,31 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
        * @cfg{Object}cmbSelectors It stores the combo box selectors.
        */
       cmbSelectors : {},
-      /*************************************************************************
+      /**
        * @cfg{Object} textFields It stores the text field selectors.
        */
       textFields : {},
-      /*************************************************************************
+      /**
        * @cfg{Ext.dirac.utils.DiracTimeSearchPanel} timeSearchPanel It stores
        *                                            the time panel.
        */
       timeSearchPanel : null,
-      /*************************************************************************
+      /**
        * @property{Boolean} hasTimeSearchPanel It is used to add/remove the time
        *                    search panel to the selector. The time selector is
        *                    available by default.
        */
       hasTimeSearchPanel : true,
-      /*************************************************************************
+      /**
        * @cfg{List} datamap It contains the map in case when the selector name
        *            is different than the returned value.
        */
       datamap : [],
-      /*************************************************************************
+      /**
        * @cfg{String} url This url used to fill the selectors.
        */
       url : "",
-      /*************************************************************************
+      /**
        * @cfg{Ext.menu.Menu} selectorMenu This menu used to hide and show the
        *                     selector widgets.
        */
@@ -111,41 +127,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
           }
         }
-        if (oConfig.hasTimeSearchPanel != null) {
-          me.hasTimeSearchPanel = oConfig.hasTimeSearchPanel;
-        }
-        if (me.hasTimeSearchPanel) {
-          me.timeSearchPanel = Ext.create("Ext.dirac.utils.DiracTimeSearchPanel");
-          me.add(me.timeSearchPanel);
-        }
-
-        if (oConfig.textFields) {
-          for (field in oConfig.textFields) {
-            var textFieldWidget = null;
-            if (oConfig.textFields[field]["type"] == "Number") {
-              textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
-                    fieldLabel : oConfig.textFields[field]["name"],
-                    oprLoadGridData : me.oprLoadGridData
-                  });
-            } else {
-              textFieldWidget = Ext.create("Ext.form.field.Text", {
-                    fieldLabel : oConfig.textFields[field]["name"],
-                    oprLoadGridData : me.oprLoadGridData,
-                    labelAlign : 'top',
-                    anchor : "100%"
-                  });
-            }
-            me.textFields[field] = textFieldWidget;
-          }
-        }
-
         for (var selector in me.cmbSelectors) {
           me.add(me.cmbSelectors[selector]);
         }
 
-        for (var field in me.textFields) {
-          me.add(me.textFields[field]);
-        }
         // setting the selector menu
         if (Object.keys(me.cmbSelectors).length > 0) {
           var menuItems = [];
@@ -191,9 +176,41 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           me.selectorMenu = new Ext.menu.Menu({
                 items : menuItems
               });
-
-          // Buttons at the top of the panel
         }
+
+        if (oConfig.hasTimeSearchPanel != null) {
+          me.hasTimeSearchPanel = oConfig.hasTimeSearchPanel;
+        }
+        if (me.hasTimeSearchPanel) {
+          me.timeSearchPanel = Ext.create("Ext.dirac.utils.DiracTimeSearchPanel");
+          me.add(me.timeSearchPanel);
+        }
+
+        if (oConfig.textFields) {
+          for (field in oConfig.textFields) {
+            var textFieldWidget = null;
+            if (oConfig.textFields[field]["type"] == "Number") {
+              textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
+                    fieldLabel : oConfig.textFields[field]["name"],
+                    oprLoadGridData : me.oprLoadGridData
+                  });
+            } else {
+              textFieldWidget = Ext.create("Ext.form.field.Text", {
+                    fieldLabel : oConfig.textFields[field]["name"],
+                    oprLoadGridData : me.oprLoadGridData,
+                    labelAlign : 'top',
+                    anchor : "100%"
+                  });
+            }
+            me.textFields[field] = textFieldWidget;
+          }
+        }
+
+        for (var field in me.textFields) {
+          me.add(me.textFields[field]);
+        }
+
+        // Buttons at the top of the panel
         var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
               dock : 'bottom',
               layout : {
@@ -318,7 +335,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             var item = me.selectorMenu.items.getAt(i);
 
             if (item.relatedCmbField in data.leftMenu.selectors) { // in case
-                                                                    // if a
+              // if a
               // selector is
               // missing in the
               // data
@@ -436,7 +453,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var me = this;
 
         if (Object.keys(me.cmbSelectors).length > 0) { // only load the
-                                                        // selector
+          // selector
           // data if exist!
           Ext.Ajax.request({
                 url : GLOBAL.BASE_URL + me.url,
@@ -625,9 +642,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
 
       },
-      /****************************************************************************
-       * It validates the selected values. It is used to make sure the values which
-       * are selected are correct.
+      /*************************************************************************
+       * It validates the selected values. It is used to make sure the values
+       * which are selected are correct.
        */
       __oprValidateBeforeSubmit : function() {
 
@@ -642,7 +659,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
         return bValid;
       },
-      /*****************************************************************************
+      /*************************************************************************
        * It is used to reset the selectors.
        */
       oprResetSelectionOptions : function() {
@@ -659,7 +676,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         me.oprLoadGridData();
 
       },
-      /*****************************************************************************
+      /*************************************************************************
        * It is used to refresh the selectors.
        * 
        * @param{Boolean} create a Ajax request and refresh the selectors.
@@ -699,5 +716,107 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
               }
             });
 
+      },
+      /**
+       * This is used to add a new textfield (selector) to the panel.
+       * 
+       * @param {Object}
+       *          data it is an object which contains the name of the textfield
+       *          and the type. For example:
+       * 
+       * <pre>
+       *  var textFields = {
+       *  'ids' :{
+       *   name : &quot;JobID(s)&quot;,
+       *   type : &quot;number&quot;
+       *  }
+       * 
+       * </pre>
+       */
+      addTextFieldSelector : function(data) {
+        var me = this;
+        var textFieldWidget = null;
+        for (var field in data) {
+          if (data[field]["type"] == "Number") {
+            textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
+                  fieldLabel : data[field]["name"],
+                  oprLoadGridData : me.oprLoadGridData
+                });
+          } else {
+            textFieldWidget = Ext.create("Ext.form.field.Text", {
+                  fieldLabel : data[field]["name"],
+                  oprLoadGridData : me.oprLoadGridData,
+                  labelAlign : 'top',
+                  anchor : "100%"
+                });
+          }
+          me.textFields[field] = textFieldWidget;
+
+          me.add(me.textFields[field]);
+
+        }
+
+      },
+      /**
+       * You can add a new combo box selector the the panel.
+       * 
+       * @param {Object}
+       *          data it is dictionary which contains the configuration of the
+       *          selector(s). For example:
+       * 
+       * <pre>
+       * var selector = {
+       *   example : &quot;Exampleee&quot;
+       * };
+       * </pre>
+       * 
+       * @param{Object} map is used to define data maping for example:
+       * 
+       * <pre>
+       * varmap = [&quot;Example&quot;,[&quot;example&quot;]
+       * </pre>
+       */
+      addComboSelector : function(data, map) {
+        var me = this;
+        for (var cmb in data) {
+
+          me.cmbSelectors[cmb] = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
+                fieldLabel : data[cmb],
+                queryMode : 'local',
+                labelAlign : 'top',
+                displayField : "text",
+                valueField : "value",
+                anchor : '100%'
+              });
+
+          me.add(me.cmbSelectors[cmb]);
+
+          // setting the selector menu
+          me.selectorMenu.add({
+                xtype : 'menucheckitem',
+                text : me.cmbSelectors[cmb].getFieldLabel(),
+                relatedCmbField : cmb,
+                checked : true,
+                handler : function(item, e) {
+
+                  var me = this;
+
+                  if (item.checked)
+                    me.cmbSelectors[item.relatedCmbField].show();
+                  else
+                    me.cmbSelectors[item.relatedCmbField].hide();
+
+                },
+                scope : me
+              });
+
+        }
+        if (map) {
+          me.datamap.push(map);
+        } else {
+          for (var i in data) {
+            me.datamap.push([i, i]);
+          }
+        }
       }
     });
