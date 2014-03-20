@@ -5,6 +5,9 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
       extend : 'Ext.dirac.core.Module',
       requires : ['Ext.panel.Panel', 'Ext.panel.Panel', 'Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracToolButton', 'DIRAC.TransformationMonitor.classes.GridPanel', "Ext.form.field.TextArea", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton',
           'Ext.dirac.utils.DiracPageSizeCombo', 'Ext.dirac.utils.DiracPagingToolbar', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy', 'Ext.dirac.utils.DiracApplicationContextMenu', 'Ext.dirac.utils.DiracBaseSelector'],
+      applicationsToOpen : {
+        'JobMonitor' : 'DIRAC.JobMonitor.classes.JobMonitor'
+      },
 
       loadState : function(data) {
         var me = this;
@@ -476,7 +479,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
 
           GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
                 objectType : "app",
-                moduleName : "DIRAC.JobMonitor.classes.JobMonitor",
+                moduleName : me.applicationsToOpen["JobMonitor"],
                 setupData : setupdata
               });
         }
@@ -968,7 +971,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
       },
       __setRefreshCycle : function(time) {
         var me = this;
-        me.refreshCycle = time; //it is used if we want to save the state!!!
+        me.refreshCycle = time; // it is used if we want to save the state!!!
         if (time != 0) {
           clearInterval(me.grid.refreshTimeout);
           me.grid.refreshTimeout = setInterval(function() {
