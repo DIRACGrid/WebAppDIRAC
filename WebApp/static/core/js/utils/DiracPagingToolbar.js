@@ -266,14 +266,14 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
        */
       loadState : function(data) {
         var me = this;
-        if (data.columns.pagingToolbar.pageSize) {
+        if (data.columns.pagingToolbar && data.columns.pagingToolbar.pageSize) {
 
           me.pageSizeCombo.suspendEvents(false);
           me.pageSizeCombo.setValue(data.columns.pagingToolbar.pageSize);
           me.pageSizeCombo.resumeEvents();
 
         }
-        if (data.columns.pagingToolbar.refreshCycle) {
+        if (data.columns.pagingToolbar && data.columns.pagingToolbar.refreshCycle) {
           var index = me.autoRefresh.items.findIndex("name",data.columns.pagingToolbar.refreshCycle);
           me.autoRefresh.items.getAt(index).setChecked(true);
           me.__setRefreshCycle(data.columns.pagingToolbar.refreshCycle);
