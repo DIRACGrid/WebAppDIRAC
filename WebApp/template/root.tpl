@@ -23,7 +23,7 @@
     <!-- <x-bootstrap> -->
 
     {% if _dev %}
-      <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all-dev.js"></script>
+      <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all.js"></script>
     {% else %}
       <script type="text/javascript" src="{{base_url}}/static/core/build/all-classes.js"></script>
     {% end %}
