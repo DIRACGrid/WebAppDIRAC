@@ -414,13 +414,13 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var me = this;
         GLOBAL.APP.CF.log("debug", "pospone request", bLastOne);
         if (me.bDataSelectionLoaded) {
-
+          
+          oSelectionBox.setValue(oValues);
+          
           if (bLastOne) {
             me.__cancelPreviousDataRequest();
             me.oprLoadGridData();
-          }
-
-          oSelectionBox.setValue(oValues);
+          }         
 
         } else {
 

@@ -258,7 +258,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
 
         pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
               toolButtons : toolButtons,
-              dataStore : me.dataStore,
+              store : me.dataStore,
               scope : me
             });
         var oColumns = {
@@ -637,7 +637,6 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                     ftype : 'grouping'
                   }],
               oColumns : oColumns,
-              tbar : pagingToolbar,
               contextMenu : me.contextGridMenu,
               pagingToolbar : pagingToolbar,
               scope : me

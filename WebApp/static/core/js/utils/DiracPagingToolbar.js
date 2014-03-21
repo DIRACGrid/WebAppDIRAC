@@ -266,10 +266,10 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
        */
       loadState : function(data) {
         var me = this;
-        if (data.columns.pagingToolbar.pagingToolbarpageSize) {
+        if (data.columns.pagingToolbar.pageSize) {
 
           me.pageSizeCombo.suspendEvents(false);
-          me.pageSizeCombo.setValue(data.columns.pageSize);
+          me.pageSizeCombo.setValue(data.columns.pagingToolbar.pageSize);
           me.pageSizeCombo.resumeEvents();
 
         }
