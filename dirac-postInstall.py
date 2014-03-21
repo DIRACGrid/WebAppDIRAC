@@ -24,7 +24,9 @@ if not os.path.isfile( extFilePath ):
     try:
       extURL = "%s/ext-%s-gpl.zip" % ( srcUrl, extVersion )
       print "Trying %s" % extURL
-      remFile = urllib2.urlopen( extURL , "rb" )
+      req = urllib2.Request(extURL)
+      opener = urllib2.build_opener(urllib2.HTTPSHandler(debuglevel=111))
+      remFile = opener.open(req)
       break
     except Exception, excp:
       print excp

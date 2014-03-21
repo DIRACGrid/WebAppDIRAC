@@ -192,7 +192,7 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
 
        pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar",{
          toolButtons : toolButtons,
-         dataStore : me.dataStore,
+         store : me.dataStore,
          scope : me
        });
 
@@ -212,7 +212,6 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
        me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
          store : me.dataStore,
          oColumns : oColumns,
-         tbar : pagingToolbar,
          contextMenu : me.contextGridMenu,
          pagingToolbar : pagingToolbar,
          scope : me
@@ -223,5 +222,5 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
      __executeAction : function(action){
        var me = this;
        GLOBAL.APP.CF.alert(action+" button pressed","info");
-     },
+     }
 });

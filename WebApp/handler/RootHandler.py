@@ -1,6 +1,6 @@
 import json
 import urlparse
-from DIRAC import gConfig
+from DIRAC import gConfig, gLogger
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
@@ -61,10 +61,11 @@ class RootHandler(WebHandler):
     open_app = ""
     if self.request.arguments.has_key("open_app") and len(self.request.arguments["open_app"][0]) > 0:
       open_app = self.request.arguments["open_app"][0].strip()
-      
+    
+    level = str(gLogger.getLevel()).lower()
     self.render( "root.tpl", base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
                  ext_version = data[ 'extVersion' ], url_state = url_state,
                  extensions = data[ 'extensions' ],
                  credentials = data[ 'user' ], title = Conf.getTitle(),
-                 theme = theme_name, root_url = Conf.rootURL(), view = view_name, open_app = open_app )
+                 theme = theme_name, root_url = Conf.rootURL(), view = view_name, open_app = open_app, debug_level= level)
 

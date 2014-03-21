@@ -249,7 +249,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		};
 
 		 var textFields = {
-         'ids' : "JobID(s)",
+         'ids' :{
+          name : "JobID(s)",
+          type : "number"
+         }
      }
 
 		 var properties = [["NormalUser", "JobSharing", "owner"]];

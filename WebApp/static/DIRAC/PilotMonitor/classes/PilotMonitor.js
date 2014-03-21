@@ -2,7 +2,9 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
   extend : 'Ext.dirac.core.Module',
 
   requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging", "Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.dirac.utils.DiracToolButton"],
-
+  
+  applicationsToOpen : {'JobMonitor':'DIRAC.JobMonitor.classes.JobMonitor'},
+  
   loadState : function(data) {
 
     var me = this;
@@ -681,7 +683,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
                 GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
                       objectType : "app",
-                      moduleName : "DIRAC.JobMonitor.classes.JobMonitor",
+                      moduleName : me.applicationsToOpen["JobMonitor"],
                       setupData : oSetupData
                     });
               }
@@ -736,7 +738,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
                   GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
                         objectType : "app",
-                        moduleName : "DIRAC.JobMonitor.classes.JobMonitor",
+                        moduleName : me.applicationsToOpen["JobMonitor"],
                         setupData : oSetupData
                       });
                 }
