@@ -718,9 +718,9 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                       if (oId != '-') {
                         var oSetupData = {};
                         if (GLOBAL.VIEW_ID == "desktop") { // we needs these
-                                                            // information only
-                                                            // for the desktop
-                                                            // layout.
+                          // information only
+                          // for the desktop
+                          // layout.
 
                           var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
                           oSetupData.x = 0;
@@ -739,11 +739,12 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                         }
 
                         oSetupData.data = {
+
                           leftMenu : {
-                              JobID : oId
+                            JobID : oId
                           }
                         };
-
+                        
                         GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
                               objectType : "app",
                               moduleName : me.applicationsToOpen["JobMonitor"],
