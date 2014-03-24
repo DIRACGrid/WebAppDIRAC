@@ -249,7 +249,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 		};
 
 		 var textFields = {
-         'ids' :{
+         'JobID' :{
           name : "JobID(s)",
           type : "number"
          }
@@ -894,7 +894,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 			method : 'POST',
 			params : {
 				action : oAction,
-				ids : oItems.join(",")
+				JobID : oItems.join(",")
 			},
 			success : function(response) {
 				var jsonData = Ext.JSON.decode(response.responseText);
