@@ -266,17 +266,19 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
        */
       loadState : function(data) {
         var me = this;
-        if (data.columns.pagingToolbar && data.columns.pagingToolbar.pageSize) {
+        if (data && data.coulms && data.columns.pagingToolbar) {
+          var toolbar = data.columns.pagingToolbar;
+          if (toolbar.pageSize) {
 
-          me.pageSizeCombo.suspendEvents(false);
-          me.pageSizeCombo.setValue(data.columns.pagingToolbar.pageSize);
-          me.pageSizeCombo.resumeEvents();
-
-        }
-        if (data.columns.pagingToolbar && data.columns.pagingToolbar.refreshCycle) {
-          var index = me.autoRefresh.items.findIndex("name",data.columns.pagingToolbar.refreshCycle);
-          me.autoRefresh.items.getAt(index).setChecked(true);
-          me.__setRefreshCycle(data.columns.pagingToolbar.refreshCycle);
+            me.pageSizeCombo.suspendEvents(false);
+            me.pageSizeCombo.setValue(toolbar.pageSize);
+            me.pageSizeCombo.resumeEvents();
+          }
+          if (toolbar.refreshCycle) {
+            var index = me.autoRefresh.items.findIndex("name", toolbar.refreshCycle);
+            me.autoRefresh.items.getAt(index).setChecked(true);
+            me.__setRefreshCycle(toolbar.refreshCycle);
+          }
         }
       },
       /**
@@ -300,7 +302,8 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
        */
       __setRefreshCycle : function(time) {
         var me = this;
-        if (!time) return;
+        if (!time)
+          return;
         me.refreshCycle = time; // it is used if we want to save the state!!!
         if (time != 0) {
           clearInterval(me.store.refreshTimeout);
