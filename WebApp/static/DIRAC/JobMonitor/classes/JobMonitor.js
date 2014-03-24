@@ -167,7 +167,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       initComponent : function() {
 
         var me = this;
-
+        
+        me.launcher.title = "Job Monitor";
+        
         if (GLOBAL.VIEW_ID == "desktop") {
 
           me.launcher.maximized = false;
@@ -184,7 +186,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
         if (GLOBAL.VIEW_ID == "tabs") {
 
-          me.launcher.title = "Job Monitor";
           me.launcher.maximized = false;
 
           var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
@@ -599,21 +600,18 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                 "subMenu" : actionSubmenu,
                 "properties" : {
                   iconCls : "dirac-icon-action"
-                  ,
                 }
               }, {
                 "text" : "Pilot",
                 "subMenu" : pilotSubmenu,
                 "properties" : {
                   iconCls : "dirac-icon-action"
-                  ,
                 }
               }, {
                 "text" : "SandBox",
                 "subMenu" : sandboxSubmenu,
                 "properties" : {
                   iconCls : "jm-icon-sandbox"
-                  ,
                 }
               }]
         };
