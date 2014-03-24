@@ -466,15 +466,19 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         var showJobshandler = function() {
           var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID");
           var sId = GLOBAL.APP.CF.zfill(oId, 8);
-          var setupdata = {};
-          setupdata.data = {};
-          setupdata.currentState = sId;
-          setupdata.data.leftMenu = {};
-          setupdata.data.leftMenu.selectors = {};
-          setupdata.data.leftMenu.selectors.jobGroup = {
-            data_selected : [sId],
-            hidden : false,
-            not_selected : false
+
+          var setupdata = {
+            data : {
+              leftMenu : {
+                selectors : {
+                  jobGroup : {
+                    data_selected : [sId],
+                    hidden : false,
+                    not_selected : false
+                  }
+                }
+              }
+            }
           };
 
           GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
