@@ -6,7 +6,7 @@ from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
 from WebAppDIRAC.WebApp.handler.Palette import Palette
 import json
-import ast
+
 
 class JobMonitorHandler(WebHandler):
 
@@ -81,7 +81,7 @@ class JobMonitorHandler(WebHandler):
   def web_getSelectionData(self):
     sData = self.getSessionData()
     callback = {}
-    group = sData["user"]["group"]
+    
     user = sData["user"]["username"]
     if user == "Anonymous":
       callback["prod"] = [["Insufficient rights"]]
@@ -96,10 +96,10 @@ class JobMonitorHandler(WebHandler):
           tmp = []
           for keys in prods:
             try:
-              id = str(int(keys)).zfill(8)
+              productionId = str(int(keys)).zfill(8)
             except:
-              id = str(keys)
-            tmp.append(str(id))
+              productionId = str(keys)
+            tmp.append(str(productionId))
           tmp.sort(reverse=True)
           for i in tmp:
             prod.append([str(i)])
@@ -206,10 +206,8 @@ class JobMonitorHandler(WebHandler):
     self.pageNumber = 0
     self.numberOfJobs = 25
     self.globalSort = [["JobID", "DESC"]]
-    sData = self.getSessionData()
+    
     req = {}
-    group = sData["user"]["group"]
-    user = sData["user"]["username"]
     
     if self.request.arguments.has_key("limit") and len(self.request.arguments["limit"][0]) > 0:
       self.numberOfJobs = int(self.request.arguments["limit"][0])
@@ -223,15 +221,9 @@ class JobMonitorHandler(WebHandler):
       if len(jobids) > 0:
         req['JobID'] = jobids
 
-    # groupProperty = credentials.getProperties(group)
-    result = gConfig.getOption("/Website/ListSeparator")
-    if result["OK"]:
-      separator = result["Value"]
-    else:
-      separator = ","
-
-    if "prod" in self.request.arguments:
-      prodids = list(json.loads(self.request.arguments[ 'prod' ][-1]))
+  
+    if "jobGroup" in self.request.arguments:
+      prodids = list(json.loads(self.request.arguments[ 'jobGroup' ][-1]))
       if len(prodids) > 0:
         req['JobGroup'] = prodids
 
@@ -245,18 +237,18 @@ class JobMonitorHandler(WebHandler):
       if len(status) > 0:
         req["Status"] = status
 
-    if "minorstat" in self.request.arguments:
-      minorstat = list(json.loads(self.request.arguments[ 'minorstat' ][-1]))
+    if "minorStatus" in self.request.arguments:
+      minorstat = list(json.loads(self.request.arguments[ 'minorStatus' ][-1]))
       if len(minorstat) > 0:
         req["MinorStatus"] = minorstat
 
-    if "app" in self.request.arguments:
-      apps = list(json.loads(self.request.arguments[ 'app' ][-1]))
+    if "appStatus" in self.request.arguments:
+      apps = list(json.loads(self.request.arguments[ 'appStatus' ][-1]))
       if len(apps) > 0:
         req["ApplicationStatus"] = apps
 
-    if "types" in self.request.arguments:
-      types = list(json.loads(self.request.arguments[ 'types' ][-1]))
+    if "jobType" in self.request.arguments:
+      types = list(json.loads(self.request.arguments[ 'jobType' ][-1]))
       if len(types) > 0:
         req["JobType"] = types
 
@@ -288,7 +280,8 @@ class JobMonitorHandler(WebHandler):
           self.globalSort  += [[i['property'],i['direction']]]
     else:
       self.globalSort =  [["JobID", "DESC"]]
-
+    
+    gLogger.debug("Request", str(req))
     return req
 
   @asyncGen
@@ -320,12 +313,12 @@ class JobMonitorHandler(WebHandler):
 
   @asyncGen
   def web_jobData(self):
-    id = int(self.request.arguments["id"][0])
+    jobId = int(self.request.arguments["id"][0])
     callback = {}
 
     if self.request.arguments["data_kind"][0] == "getJDL":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobJDL, id)
+      result = yield self.threadTask(RPC.getJobJDL, jobId)
       if result["OK"]:
         callback = {"success":"true", "result":result["Value"]}
       else:
@@ -333,7 +326,7 @@ class JobMonitorHandler(WebHandler):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getBasicInfo":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobSummary, id)
+      result = yield self.threadTask(RPC.getJobSummary, jobId)
       if result["OK"]:
         items = []
         for key, value in result["Value"].items():
@@ -344,7 +337,7 @@ class JobMonitorHandler(WebHandler):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getParams":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters, id)
+      result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
         attr = result["Value"]
         items = []
@@ -357,7 +350,7 @@ class JobMonitorHandler(WebHandler):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getLoggingInfo":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobLoggingInfo, id)
+      result = yield self.threadTask(RPC.getJobLoggingInfo, jobId)
       if result["OK"]:
         callback = {"success":"true", "result":result["Value"]}
       else:
@@ -365,7 +358,7 @@ class JobMonitorHandler(WebHandler):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getStandardOutput":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters, id)
+      result = yield self.threadTask(RPC.getJobParameters, jobId)
       attr = result["Value"]
       if result["OK"]:
         if attr.has_key("StandardOutput"):
@@ -377,7 +370,7 @@ class JobMonitorHandler(WebHandler):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getPending":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters, id)
+      result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
         items = []
         for i in result["Value"].items():
@@ -389,7 +382,7 @@ class JobMonitorHandler(WebHandler):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getLogURL":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters, id)
+      result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
         attr = result["Value"]
         if attr.has_key("Log URL"):
@@ -402,7 +395,7 @@ class JobMonitorHandler(WebHandler):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getStagerReport":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters, id)
+      result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
         attr = result["Value"]
         if attr.has_key("StagerReport"):
@@ -414,7 +407,7 @@ class JobMonitorHandler(WebHandler):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getPilotStdOut":
       RPC = RPCClient("WorkloadManagement/WMSAdministrator")
-      result = yield self.threadTask(RPC.getJobPilotOutput, id)
+      result = yield self.threadTask(RPC.getJobPilotOutput, jobId)
       if result["OK"]:
         if result["Value"].has_key("StdOut"):
           callback = {"success":"true", "result":result["Value"]["StdOut"]}
@@ -423,7 +416,7 @@ class JobMonitorHandler(WebHandler):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getPilotStdErr":
       RPC = RPCClient("WorkloadManagement/WMSAdministrator")
-      result = yield self.threadTask(RPC.getJobPilotOutput, id)
+      result = yield self.threadTask(RPC.getJobPilotOutput, jobId)
       if result["OK"]:
         if result["Value"].has_key("StdErr"):
           callback = {"success":"true", "result":result["Value"]["StdErr"]}
@@ -432,7 +425,7 @@ class JobMonitorHandler(WebHandler):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getPilotLoggingInfo":
       PILOTRPC = RPCClient("WorkloadManagement/WMSAdministrator")
-      retVal =  yield self.threadTask(PILOTRPC.getPilots, int(id))
+      retVal =  yield self.threadTask(PILOTRPC.getPilots, int(jobId))
       if retVal['OK']:
         pilotReference = retVal['Value'].keys()[0]
         retVal = yield self.threadTask(PILOTRPC.getPilotLoggingInfo, pilotReference)
