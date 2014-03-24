@@ -263,7 +263,7 @@ class JobMonitorHandler(WebHandler):
     if "owner" in self.request.arguments:
       owner = list(json.loads(self.request.arguments[ 'owner' ][-1]))
       if len(owner) > 0:
-        req["Owner"] = types
+        req["Owner"] = owner
 
     if 'startDate' in self.request.arguments and len(self.request.arguments["startDate"][0]) > 0:
       if 'startTime' in self.request.arguments and len(self.request.arguments["startTime"][0]) > 0:
