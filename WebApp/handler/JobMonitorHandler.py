@@ -218,8 +218,8 @@ class JobMonitorHandler(WebHandler):
       else:
         self.pageNumber = 0
 
-    if "ids" in self.request.arguments:
-      jobids = list(json.loads(self.request.arguments[ 'ids' ][-1]))
+    if "JobID" in self.request.arguments:
+      jobids = list(json.loads(self.request.arguments[ 'JobID' ][-1]))
       if len(jobids) > 0:
         req['JobID'] = jobids
 
@@ -293,7 +293,7 @@ class JobMonitorHandler(WebHandler):
 
   @asyncGen
   def web_jobAction(self):
-    ids = self.request.arguments["ids"][0].split(",")
+    ids = self.request.arguments["JobID"][0].split(",")
     ids = [int(i) for i in ids ]
 
     RPC = RPCClient("WorkloadManagement/JobManager")
