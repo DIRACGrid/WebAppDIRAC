@@ -11,9 +11,12 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
           me.launcher.title = "Job Launchpad";
           me.launcher.maximized = false;
-
-          me.launcher.width = 600;
-          me.launcher.height = 600;
+          
+          var viewDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+          var width = Math.floor(viewDimensions[0]/2.5);
+          var height = Math.floor(viewDimensions[1]/1.5);
+          me.launcher.width = width;
+          me.launcher.height = height;
 
           me.launcher.x = 0;
           me.launcher.y = 0;
