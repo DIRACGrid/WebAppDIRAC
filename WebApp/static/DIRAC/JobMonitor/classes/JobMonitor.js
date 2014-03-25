@@ -292,7 +292,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                   tooltip : "Reschedule",
                   iconCls : "dirac-icon-reschedule"
                 }
-              }, {
+              },{
                 "text" : "",
                 "handler" : me.__oprJobAction,
                 "arguments" : ["kill", ""],

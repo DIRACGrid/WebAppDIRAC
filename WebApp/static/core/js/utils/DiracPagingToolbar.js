@@ -122,28 +122,31 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
         me.pagingToolbarItems.push("-");
 
         if (config.toolButtons) {
+          var nbOfButtons = 0;
           if ("Visible" in config.toolButtons && config.toolButtons.Visible.length > 0) {
             for (var i = 0; i < config.toolButtons.Visible.length; i++) {
-              me.pagingToolbarButtons[i] = Ext.create('Ext.Button', {
+              me.pagingToolbarButtons[nbOfButtons] = Ext.create('Ext.Button', {
                     text : config.toolButtons.Visible[i].text,
                     handler : Ext.bind(config.toolButtons.Visible[i].handler, config.scope, config.toolButtons.Visible[i].arguments, false)
                   });
               if ("properties" in config.toolButtons.Visible[i]) {
-                Ext.apply(me.pagingToolbarButtons[i], config.toolButtons.Visible[i].properties);
+                Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Visible[i].properties);
               }
+              nbOfButtons++;
             }
           }
           if ("Protected" in config.toolButtons && config.toolButtons.Protected.length > 0) {
             for (var i = 0; i < config.toolButtons.Protected.length; i++) {
               if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, config.toolButtons.Protected[i].property) != -1)) {
-                me.pagingToolbarButtons[i] = Ext.create('Ext.Button', {
+                me.pagingToolbarButtons[nbOfButtons] = Ext.create('Ext.Button', {
                       text : config.toolButtons.Protected[i].text,
                       handler : Ext.bind(config.toolButtons.Protected[i].handler, config.scope, config.toolButtons.Protected[i].arguments, false)
                     });
                 if ("properties" in config.toolButtons.Protected[i]) {
-                  Ext.apply(me.pagingToolbarButtons[i], config.toolButtons.Protected[i].properties);
+                  Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Protected[i].properties);
                 }
               }
+              nbOfButtons++;
             }
           }
         }
