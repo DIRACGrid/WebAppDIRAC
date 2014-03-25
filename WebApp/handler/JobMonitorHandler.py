@@ -16,6 +16,7 @@ class JobMonitorHandler(WebHandler):
   def web_getJobData(self):
     RPC = RPCClient("WorkloadManagement/JobMonitoring", timeout = 600 )
     req = self.__request()
+    
     result = yield self.threadTask(RPC.getJobPageSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:
@@ -277,7 +278,7 @@ class JobMonitorHandler(WebHandler):
       if len(sort) > 0:
         self.globalSort = []
         for i in sort :
-          self.globalSort  += [[i['property'],i['direction']]]
+          self.globalSort  += [[str(i['property']), str(i['direction'])]]
     else:
       self.globalSort =  [["JobID", "DESC"]]
     

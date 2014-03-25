@@ -3,7 +3,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
       requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging", "Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea",
           "Ext.dirac.utils.DiracToolButton", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo', "Ext.dirac.utils.DiracPagingToolbar", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracBaseSelector",
-          "Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore"],
+          "Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore","Ext.dirac.utils.DiracJsonStore"],
 
       loadState : function(data) {
 
@@ -275,6 +275,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
             });
 
         me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
+              autoLoad : false,
               proxy : oProxy,
               fields : me.dataFields,
               scope : me
@@ -331,7 +332,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
         pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
               toolButtons : toolButtons,
               property : "JobAdministrator",
-              dataStore : me.dataStore,
+              store : me.dataStore,
               scope : me
             });
 
@@ -625,12 +626,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               store : me.dataStore,
               // features: [{ftype:'grouping'}],
               oColumns : oColumns,
-              tbar : pagingToolbar,
               contextMenu : me.contextGridMenu,
               pagingToolbar : pagingToolbar,
               scope : me
             });
-
+       
+       me.grid.columns[1].setSortState("DESC");
+              
         /* Definition of the statistics panel */
 
         me.statisticsGridComboMain = new Ext.form.field.ComboBox({
