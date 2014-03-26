@@ -59,11 +59,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
         // data for grid columns
         var oReturn = {
-          grid : me.grid.getStateData(),
-          leftMenu : me.leftPanel.getStateData()
+          leftMenu : me.leftPanel.getStateData(),
+          grid : me.grid.getStateData()
           // show/hide for selectors and their selected data (including NOT button)
         };
-
+        
         oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
         oReturn.centralGridPanelVisible = !me.grid.hidden;
         oReturn.statisticsSelectionPanelCollapsed = me.statisticsSelectionGrid.collapsed;

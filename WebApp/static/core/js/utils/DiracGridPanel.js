@@ -147,11 +147,12 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       getStateData : function() {
 
         var me = this;
-        var oReturn = {};
-
+      
         // data for grid columns
-        oReturn.columns = {};
-
+        var oReturn = {
+            columns : {}    
+        };
+        
         for (var i = 0; i < me.columns.length; i++) {
 
           var col = me.columns[i];
