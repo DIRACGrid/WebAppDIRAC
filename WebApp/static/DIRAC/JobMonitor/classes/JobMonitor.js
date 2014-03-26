@@ -514,7 +514,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                 }
               }]
         };
-
+//TODO have a look again why we can not give a method as an argument to the gandler
         var sandboxSubmenu = {
           'Visible' : [{
                 "text" : "Get input file(s)",
