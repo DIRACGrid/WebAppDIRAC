@@ -76,7 +76,7 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
        var oReturn = {};
 
        // data for grid columns
-       oReturn.columns = me.grid.getStateData();
+       oReturn.grid = me.grid.getStateData();
        // show/hide for selectors and their selected data (including NOT
        // button)
        oReturn.leftMenu = me.leftPanel.getStateData();

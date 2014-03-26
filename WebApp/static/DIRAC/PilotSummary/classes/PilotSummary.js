@@ -17,11 +17,11 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
       },
       getStateData : function() {
         var me = this;
-        var oStates = {};
-        oStates.columns = {};
-
-        oStates.columns = me.grid.getStateData();
-        oStates.leftMenu = me.leftPanel.getStateData();
+        
+        var oStates = {
+          grid : me.grid.getStateData(),
+          leftMenu : me.leftPanel.getStateData()
+        };
 
         return oStates;
       },
@@ -74,19 +74,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
           var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
           me.launcher.width = oDimensions[0];
-          me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
-
-          me.launcher.x = 0;
-          me.launcher.y = 0;
-
-        }
-
-        if (GLOBAL.VIEW_ID == "tabs") {
-
-          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-          me.launcher.width = oDimensions[0];
-          me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+          me.launcher.height = oDimensions[1];
 
           me.launcher.x = 0;
           me.launcher.y = 0;
@@ -287,7 +275,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                       scope : me,
                       autoLoad : true
                     });
-               
+
                 var expandedGridPanel = Ext.create('Ext.grid.Panel', {
                       forceFit : true,
                       renderTo : targetId,
@@ -379,7 +367,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                             hidden : true
                           }]
                     });
-                 
+
                 expandedGridPanel.setLoading(true);
                 rowNode.grid = expandedGridPanel;
                 expandStore.load();
