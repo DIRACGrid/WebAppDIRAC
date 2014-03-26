@@ -1309,7 +1309,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               }
             });
       },
-      __getSandbox : function(sType, caa) {
+      __getSandbox : function(sType) {
 
         var me = this;
         var sId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
