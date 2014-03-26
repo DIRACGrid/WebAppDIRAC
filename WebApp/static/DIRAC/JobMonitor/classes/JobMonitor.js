@@ -1137,7 +1137,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
         var me = this;
         var oItems = [];
-
+        var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
         if ((oId == null) || (oId == '') || (oId == undefined)) {
 
           var oElems = Ext.query("#" + me.id + " input.checkrow");
@@ -1306,7 +1306,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       __getSandbox : function(sId, sType) {
 
         var me = this;
-
+        var sId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + 'JobMonitor/getSandbox',
               params : {
