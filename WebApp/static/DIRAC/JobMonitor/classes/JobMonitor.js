@@ -56,13 +56,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       getStateData : function() {
 
         var me = this;
-        var oReturn = {};
 
         // data for grid columns
-        oReturn.columns = me.grid.getStateData();
-        // show/hide for selectors and their selected data (including NOT
-        // button)
-        oReturn.leftMenu = me.leftPanel.getStateData();
+        var oReturn = {
+          grid : me.grid.getStateData(),
+          leftMenu : me.leftPanel.getStateData()
+          // show/hide for selectors and their selected data (including NOT button)
+        };
 
         oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
         oReturn.centralGridPanelVisible = !me.grid.hidden;
@@ -1138,10 +1138,10 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
         var me = this;
         var oItems = [];
         var oId = null;
-        if (useSelectedJobId){
-          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");  
+        if (useSelectedJobId) {
+          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
         }
-        
+
         if ((oId == null) || (oId == '') || (oId == undefined)) {
 
           var oElems = Ext.query("#" + me.id + " input.checkrow");
@@ -1198,9 +1198,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       __oprGetJobData : function(oDataKind) {
 
         var me = this;
-        
+
         var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
-        
+
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + 'JobMonitor/jobData',
