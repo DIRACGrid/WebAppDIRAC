@@ -353,7 +353,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
                * this can be done only if the store is being loaded, otherwise
                * has to be postponed
                */
-              me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected, ((i == me.selectorMenu.items.length - 2) ? true : false));
+              me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected, ((i == me.selectorMenu.items.length - 2 || Object.keys(data.leftMenu.selectors).length == 1) ? true : false));
 
               me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
             }
@@ -414,13 +414,13 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var me = this;
         GLOBAL.APP.CF.log("debug", "pospone request", bLastOne);
         if (me.bDataSelectionLoaded) {
-          
+
           oSelectionBox.setValue(oValues);
-          
+
           if (bLastOne) {
             me.__cancelPreviousDataRequest();
             me.oprLoadGridData();
-          }         
+          }
 
         } else {
 
@@ -436,10 +436,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
         var me = this;
 
-        if (me.scope.grid.store.loading && me.score.grid.store.lastDataRequest) {
+        if (me.scope.grid.store.loading && me.scope.grid.store.lastDataRequest) {
           var oRequests = Ext.Ajax.requests;
           for (id in oRequests) {
-            if (oRequests.hasOwnProperty(id) && (oRequests[id].options == me.dataStore.lastDataRequest.request)) {
+            if (oRequests.hasOwnProperty(id) && (oRequests[id].options == me.scope.grid.store.lastDataRequest.request)) {
               Ext.Ajax.abort(oRequests[id]);
             }
           }
