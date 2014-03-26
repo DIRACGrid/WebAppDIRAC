@@ -278,9 +278,10 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
             me.pageSizeCombo.resumeEvents();
           }
           if (toolbar.refreshCycle) {
-            var index = me.autoRefresh.items.findIndex("name", toolbar.refreshCycle);
+            var refreshCycle = (toolbar.refreshCycle == 60000?900000:toolbar.refreshCycle);
+            var index = me.autoRefresh.items.findIndex("name", refreshCycle);
             me.autoRefresh.items.getAt(index).setChecked(true);
-            me.__setRefreshCycle(toolbar.refreshCycle);
+            me.__setRefreshCycle(refreshCycle);
           }
         }
       },
