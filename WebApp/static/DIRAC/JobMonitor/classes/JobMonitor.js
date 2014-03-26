@@ -3,7 +3,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
       requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging", "Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea",
           "Ext.dirac.utils.DiracToolButton", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo', "Ext.dirac.utils.DiracPagingToolbar", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracBaseSelector",
-          "Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore","Ext.dirac.utils.DiracJsonStore"],
+          "Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore", "Ext.dirac.utils.DiracJsonStore"],
 
       loadState : function(data) {
 
@@ -167,9 +167,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       initComponent : function() {
 
         var me = this;
-        
+
         me.launcher.title = "Job Monitor";
-        
+
         if (GLOBAL.VIEW_ID == "desktop") {
 
           me.launcher.maximized = false;
@@ -292,7 +292,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                   tooltip : "Reschedule",
                   iconCls : "dirac-icon-reschedule"
                 }
-              },{
+              }, {
                 "text" : "",
                 "handler" : me.__oprJobAction,
                 "arguments" : ["kill", ""],
@@ -472,7 +472,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
           'Visible' : [{
                 "text" : "Kill",
                 "handler" : me.__oprJobAction,
-                "arguments" : ["kill", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID")],
+                "arguments" : ["kill", true],
                 "properties" : {
                   tooltip : 'Click to kill the selected job.',
                   iconCls : "dirac-icon-kill"
@@ -480,7 +480,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               }, {
                 "text" : "Delete",
                 "handler" : me.__oprJobAction,
-                "arguments" : ["delete", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID")],
+                "arguments" : ["delete", true],
                 "properties" : {
                   tooltip : 'Click to kill the selected job.',
                   iconCls : "dirac-icon-delete"
@@ -491,7 +491,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
           'Visible' : [{
                 "text" : "Get StdOut",
                 "handler" : me.__oprGetJobData,
-                "arguments" : ["getPilotStdOut", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID")],
+                "arguments" : ["getPilotStdOut"],
                 "properties" : {
                   tooltip : 'Click to kill the selected job.',
                   iconCls : "dirac-icon-download"
@@ -499,7 +499,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               }, {
                 "text" : "Get StdErr",
                 "handler" : me.__oprGetJobData,
-                "arguments" : ["getPilotStdErr", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID")],
+                "arguments" : ["getPilotStdErr"],
                 "properties" : {
                   tooltip : 'Click to kill the selected job.',
                   iconCls : "dirac-icon-download"
@@ -507,19 +507,19 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               }, {
                 "text" : "LoggingInfo",
                 "handler" : me.__oprGetJobData,
-                "arguments" : ["getPilotLoggingInfo", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID")],
+                "arguments" : ["getPilotLoggingInfo"],
                 "properties" : {
                   tooltip : 'Click to kill the selected job.',
                   iconCls : "dirac-icon-download"
                 }
               }]
         };
-//TODO have a look again why we can not give a method as an argument to the gandler
+
         var sandboxSubmenu = {
           'Visible' : [{
                 "text" : "Get input file(s)",
                 "handler" : me.__getSandbox,
-                "arguments" : [GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Input"],
+                "arguments" : ["Input"],
                 "properties" : {
                   tooltip : 'Click to kill the selected job.',
                   iconCls : "dirac-icon-download"
@@ -527,7 +527,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               }, {
                 "text" : "Get output file(s)",
                 "handler" : me.__getSandbox,
-                "arguments" : [GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"), "Output"],
+                "arguments" : ["Output"],
                 "properties" : {
                   tooltip : 'Click to kill the selected job.',
                   iconCls : "dirac-icon-download"
@@ -630,9 +630,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               pagingToolbar : pagingToolbar,
               scope : me
             });
-       
-       me.grid.columns[1].setSortState("DESC");
-              
+
+        me.grid.columns[1].setSortState("DESC");
+
         /* Definition of the statistics panel */
 
         me.statisticsGridComboMain = new Ext.form.field.ComboBox({
@@ -1133,11 +1133,15 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
         chart.draw(data, options);
 
       },
-      __oprJobAction : function(oAction, oId) {
+      __oprJobAction : function(oAction, useSelectedJobId) {
 
         var me = this;
         var oItems = [];
-        var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
+        var oId = null;
+        if (useSelectedJobId){
+          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");  
+        }
+        
         if ((oId == null) || (oId == '') || (oId == undefined)) {
 
           var oElems = Ext.query("#" + me.id + " input.checkrow");
@@ -1194,7 +1198,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       __oprGetJobData : function(oDataKind) {
 
         var me = this;
+        
         var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
+        
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + 'JobMonitor/jobData',
@@ -1303,7 +1309,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               }
             });
       },
-      __getSandbox : function(sId, sType) {
+      __getSandbox : function(sType, caa) {
 
         var me = this;
         var sId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
