@@ -269,7 +269,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
        */
       loadState : function(data) {
         var me = this;
-        if (data && data.coulms && data.columns.pagingToolbar) {
+        if (data && data.columns && data.columns.pagingToolbar) {
           var toolbar = data.columns.pagingToolbar;
           if (toolbar.pageSize) {
 
