@@ -213,7 +213,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
                     text : 'Each 15m',
                     group : 'column',
                     checked : false,
-                    name : "60000",
+                    name : "900000",
                     handler : function() {
                       me.__setRefreshCycle(60000);
                     }
