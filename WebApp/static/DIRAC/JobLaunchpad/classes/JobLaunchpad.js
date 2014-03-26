@@ -11,10 +11,10 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
           me.launcher.title = "Job Launchpad";
           me.launcher.maximized = false;
-          
+
           var viewDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-          var width = Math.floor(viewDimensions[0]/2.5);
-          var height = Math.floor(viewDimensions[1]/1.5);
+          var width = Math.floor(viewDimensions[0] / 2.5);
+          var height = Math.floor(viewDimensions[1] / 1.5);
           me.launcher.width = width;
           me.launcher.height = height;
 
@@ -150,11 +150,12 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
                                     if (GLOBAL.VIEW_ID == "desktop") {
                                       var oSetupData = {};
+
                                       var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
                                       oSetupData.x = 0;
                                       oSetupData.y = 0;
                                       oSetupData.width = oDimensions[0];
-                                      oSetupData.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+                                      oSetupData.height = oDimensions[1];
                                       oSetupData.currentState = "";
 
                                       oSetupData.desktopStickMode = 0;
@@ -166,7 +167,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
                                       oSetupData.data = {
                                         leftMenu : {
-                                          txtJobId : action.result.result
+                                          JobID : action.result.result
                                         }
                                       };
 
