@@ -130,6 +130,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       if (parseInt(oParts[0], 10) == 0) {
         GLOBAL.APP.CF.alert('Tab theme can not load applications from URL', "error");
+         me.loadlefttContainer.hide();
+         me.loadRightContainer.hide();
         return;
       }
 

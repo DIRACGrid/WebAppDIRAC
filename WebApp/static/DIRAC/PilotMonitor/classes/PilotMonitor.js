@@ -670,7 +670,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                     oSetupData.x = 0;
                     oSetupData.y = 0;
                     oSetupData.width = oDimensions[0];
-                    oSetupData.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+                    oSetupData.height = oDimensions[1];
                     oSetupData.currentState = "";
 
                     oSetupData.desktopStickMode = 0;
@@ -682,10 +682,8 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                   }
                   oSetupData.data = {
                     leftMenu : {
-                      selectors : {
                         JobID : oValues
                       }
-                    }
                   };
 
                   GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
@@ -726,7 +724,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                           oSetupData.x = 0;
                           oSetupData.y = 0;
                           oSetupData.width = oDimensions[0];
-                          oSetupData.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+                          oSetupData.height = oDimensions[1];
                           oSetupData.currentState = "";
 
                           oSetupData.desktopStickMode = 0;

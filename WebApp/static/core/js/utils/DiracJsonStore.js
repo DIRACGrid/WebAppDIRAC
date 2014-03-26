@@ -84,9 +84,12 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
         load : function(oStore, records, successful, eOpts) {
           var me = this;
-
+          
+          if (!oStore.proxy.reader.rawData){
+            return;
+            
+          }
           var bResponseOK = (oStore.proxy.reader.rawData["success"] == "true");
-
           if (!bResponseOK) {
 
             GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "info");

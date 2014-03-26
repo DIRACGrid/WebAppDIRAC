@@ -213,7 +213,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
                     text : 'Each 15m',
                     group : 'column',
                     checked : false,
-                    name : "60000",
+                    name : "900000",
                     handler : function() {
                       me.__setRefreshCycle(60000);
                     }
@@ -269,8 +269,9 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
        */
       loadState : function(data) {
         var me = this;
-        if (data && data.coulms && data.columns.pagingToolbar) {
-          var toolbar = data.columns.pagingToolbar;
+  
+        if (data && data.grid && data.grid.pagingToolbar) {
+          var toolbar = data.grid.pagingToolbar;
           if (toolbar.pageSize) {
 
             me.pageSizeCombo.suspendEvents(false);
@@ -278,9 +279,10 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
             me.pageSizeCombo.resumeEvents();
           }
           if (toolbar.refreshCycle) {
-            var index = me.autoRefresh.items.findIndex("name", toolbar.refreshCycle);
+            var refreshCycle = (toolbar.refreshCycle == 60000?900000:toolbar.refreshCycle);
+            var index = me.autoRefresh.items.findIndex("name", refreshCycle);
             me.autoRefresh.items.getAt(index).setChecked(true);
-            me.__setRefreshCycle(toolbar.refreshCycle);
+            me.__setRefreshCycle(refreshCycle);
           }
         }
       },

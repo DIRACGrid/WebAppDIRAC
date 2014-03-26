@@ -20,10 +20,11 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
       getStateData : function() {
         var me = this;
         var oStates = {};
-        oStates.columns = {};
 
-        oStates.columns = me.grid.getStateData();
-        oStates.leftMenu = me.leftPanel.getStateData();
+        oStates = {
+          grid : me.grid.getStateData(),
+          leftMenu : me.leftPanel.getStateData()
+        }
 
         return oStates;
       },
@@ -122,19 +123,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
           var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
           me.launcher.width = oDimensions[0];
-          me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
-
-          me.launcher.x = 0;
-          me.launcher.y = 0;
-
-        }
-
-        if (GLOBAL.VIEW_ID == "tabs") {
-
-          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-          me.launcher.width = oDimensions[0];
-          me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+          me.launcher.height = oDimensions[1];
 
           me.launcher.x = 0;
           me.launcher.y = 0;
@@ -515,7 +504,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
           'Protected' : [{
                 "text" : "Start",
                 handler : me.__oprTransformationAction,
-                "arguments" : ["start", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID")],
+                "arguments" : ["start", true],
                 "properties" : {
                   tooltip : "Click to start the selected transformations(s)"
                 },
@@ -523,7 +512,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               }, {
                 "text" : "Stop",
                 handler : me.__oprTransformationAction,
-                "arguments" : ["stop", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID")],
+                "arguments" : ["stop", true],
                 "properties" : {
                   tooltip : "Click to stop the selected transformations(s)"
                 },
@@ -531,7 +520,6 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               }, {
                 "text" : "Extend",
                 handler : me.__extendTransformation,
-                "arguments" : [GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID")],
                 "properties" : {
                   tooltip : "Click to extend the selected transformations(s)"
                 },
@@ -539,7 +527,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               }, {
                 "text" : "Flush",
                 handler : me.__oprTransformationAction,
-                "arguments" : ["flush", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID")],
+                "arguments" : ["flush", true],
                 "properties" : {
                   tooltip : "Click to flush the selected transformations(s)"
                 },
@@ -547,7 +535,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               }, {
                 "text" : "Complete",
                 handler : me.__oprTransformationAction,
-                "arguments" : ["complete", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID")],
+                "arguments" : ["complete", true],
                 "properties" : {
                   tooltip : "Click to complete the selected transformations(s)"
                 },
@@ -555,7 +543,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               }, {
                 "text" : "Clean",
                 handler : me.__oprTransformationAction,
-                "arguments" : ["clean", GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID")],
+                "arguments" : ["clean", true],
                 "properties" : {
                   tooltip : "Click to clean the selected transformations(s)"
                 },
@@ -935,8 +923,9 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               }
             });
       },
-      __extendTransformation : function(id) {
+      __extendTransformation : function() {
         var me = this;
+        var id = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID");
         Ext.Msg.prompt('Extend transformation', 'Please enter the number of tasks', function(btn, tasks) {
               if (btn == 'ok') {
                 if (tasks) {
@@ -1010,10 +999,15 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         return oGrid;
 
       },
-      __oprTransformationAction : function(oAction, oId) {
+      __oprTransformationAction : function(oAction, useGridTransformationId) {
 
         var me = this;
         var oItems = [];
+        var oId = null;
+
+        if (useGridTransformationId) {
+          oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID");
+        };
 
         if ((oId == null) || (oId == '') || (oId == undefined)) {
 
