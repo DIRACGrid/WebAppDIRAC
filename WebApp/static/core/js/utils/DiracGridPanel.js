@@ -90,32 +90,41 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       loadState : function(data) {
 
         var me = this;
-
-        if (data.columns) {
+        var grid = null;
+        if (data.columns){//I have changed the data structure
+          if ("columns" in data.columns){
+            grid = data.columns; 
+          }else{
+            grid = data;  
+          }
+        }else{
+          grid = data.grid;
+        }
+        if (grid) {
           for (var i = 0; i < me.columns.length; i++) {
 
             var col = me.columns[i];
-            if (Ext.Array.contains(data.columns, col.getSortParam())) {
-              col.setWidth(data.columns[col.getSortParam()].width);
-              if (data.columns[col.getSortParam()].hidden)
+            if (Ext.Array.contains(grid.columns, col.getSortParam()) || (col.getSortParam() in grid.columns)) {
+              col.setWidth(grid.columns[col.getSortParam()].width);
+              if (grid.columns[col.getSortParam()].hidden)
                 col.hide();
               else
                 col.show();
 
-              var sortState = data.columns[col.getSortParam()].sortState;
+              var sortState = grid.columns[col.getSortParam()].sortState;
 
               if (sortState != null)
                 col.setSortState(sortState);
             }
           }
         }
-        if (data.columns && data.columns.groupers) {
+        if (grid && grid.groupers) {
           me.store.groupers.clear();
-          me.store.groupers.addAll(me.store.decodeGroupers(data.columns.groupers));
+          me.store.groupers.addAll(me.store.decodeGroupers(grid.groupers));
         }
-        if (data.columns && data.columns.sorters) {
+        if (grid && grid.sorters) {
           me.store.sorters.clear();
-          me.store.sorters.addAll(me.store.decodeSorters(data.columns.sorters));
+          me.store.sorters.addAll(me.store.decodeSorters(grid.sorters));
         }
 
         me.pagingToolbar.loadState(data);
@@ -155,13 +164,13 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
         }
 
-        oReturn.columns.sorters = [];
-        oReturn.columns.groupers = [];
-
+        oReturn.sorters = [];
+        oReturn.groupers = [];
+        
         me.store.sorters.each(function(key, value) {
               GLOBAL.APP.CF.log('debug', ":", key);
               GLOBAL.APP.CF.log('debug', ":", value);
-              oReturn.columns.sorters.push({
+              oReturn.sorters.push({
                     "property" : key.property,
                     "direction" : key.direction
                   });
@@ -170,7 +179,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
         me.store.groupers.each(function(key, value) {
               GLOBAL.APP.CF.log('debug', ":", key);
               GLOBAL.APP.CF.log('debug', ":", value);
-              oReturn.columns.groupers.push({
+              oReturn.groupers.push({
                     "property" : key.property,
                     "direction" : key.direction
                   });
