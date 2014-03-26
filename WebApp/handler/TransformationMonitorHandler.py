@@ -101,7 +101,7 @@ class TransformationMonitorHandler(WebHandler):
     else:
       RPC = RPCClient("Transformation/TransformationManager")
       result = self.__request()
-      callstart = Time.time()
+      
       result = yield self.threadTask(RPC.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs)
       if not result["OK"]:
         self.finish(json.dumps({"success":"false", "error":result["Message"]}))
@@ -192,30 +192,32 @@ class TransformationMonitorHandler(WebHandler):
       ids = [int(i) for i in ids ]
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
-    callback = {}
+   
     RPC = RPCClient("Transformation/TransformationManager")
-    agentType = 'Manual'
+    
     if cmd == 'clean':
       status = 'Cleaning'
     elif cmd == 'start':
       status = 'Active'
-      agentType = 'Automatic'
+    
     elif cmd == 'flush':
       status = 'Flush'
-      agentType = 'Automatic'
+    
     elif cmd == 'stop':
       status = 'Stopped'
     elif cmd == 'complete':
       status = 'Completed'
     else:
-      return {"success":"false","error": "Unknown action"}
+      self.finish( {"success":"false","error": "Unknown action"})
+      return
     callback = []
+    
     for i in ids:
       try:
         id = int(i)
 #        gLogger.info("RPC.setTransformationParameter(%s,'Status',%s)" % (id,status))
-        #result = yield self.threadTask(RPC.setTransformationParameter, id,'Status',status)
-        result = S_ERROR('It is commented!!')
+        result = yield self.threadTask(RPC.setTransformationParameter, id,'Status',status)
+        
         if result["OK"]:
           resString = "ProdID: %s set to %s successfully" % (i,cmd)
           #result = yield self.threadTask(RPC.setTransformationParameter, id,'AgentType',agentType)
@@ -363,22 +365,21 @@ class TransformationMonitorHandler(WebHandler):
     return callback
 
   ################################################################################
-  def __extendTransformation(self,id):
-    callback = {}
+  def __extendTransformation(self,transid):
+  
     try:
       tasks = int(self.request.arguments["tasks"][-1])
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
 
-    gLogger.info("extend %s" % id)
+    gLogger.info("extend %s" % transid)
     RPC = RPCClient('Transformation/TransformationManager')
-    gLogger.info("extendTransformation(%s,%s)" % (id,tasks))
-    #res = RPC.extendTransformation(id,tasks)
-    res = S_ERROR('Commented!!!!')
+    gLogger.info("extendTransformation(%s,%s)" % (transid,tasks))
+    res = RPC.extendTransformation(transid,tasks)
     if res["OK"]:
-      resString = "%s extended by %s successfully" % (id,tasks)
+      resString = "%s extended by %s successfully" % (transid,tasks)
     else:
-      resString = "%s failed to extend: %s" % (id,res["Message"])
+      resString = "%s failed to extend: %s" % (transid,res["Message"])
     callback = {"success":"true","showResult":[resString],"result":resString}
     gLogger.info("#######",res)
     return callback
@@ -457,8 +458,8 @@ class TransformationMonitorHandler(WebHandler):
 
     RPC = RPCClient("Transformation/TransformationManager")
     gLogger.info("\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % (transID,runID,site))
-    #result = RPC.setTransformationRunsSite(transID,runID,site)
-    result = S_ERROR('NNOOOOO')
+    result = RPC.setTransformationRunsSite(transID,runID,site)
+    
     if result["OK"]:
       callback = {"success":"true","result":"true"}
     else:
