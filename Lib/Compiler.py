@@ -8,6 +8,7 @@ from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers.CSGlobals import getInstalledExtensions
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
+from WebAppDIRAC.Lib.CompilerHelper import CompilerHelper
 
 class Compiler(object):
 
@@ -18,6 +19,7 @@ class Compiler(object):
     self.__webAppPath = os.path.dirname( self.__staticPaths[-1] )
     self.__extPath = os.path.join( self.__webAppPath, "static", "extjs", self.__extVersion )
     self.__sdkPath = os.path.join( self.__webAppPath, "static", "extjs", self.__extVersion, "src" )
+    self.__appDependency = CompilerHelper().getAppDependencies()
 
     self.__classPaths = [ os.path.join( self.__webAppPath, *p ) for p in ( ("static", "core", "js", "utils" ),
                                                                            ("static", "core", "js", "core" ))]
@@ -55,7 +57,7 @@ class Compiler(object):
       os.environ[ k ] = env[ k ]
     return result
 
-  def __compileApp( self, extPath, extName, appName ):
+  def __compileApp( self, extPath, extName, appName, extClassPath = "" ):
     result = self.__writeINFile( "app.tpl", { 'APP_LOCATION' : '%s.%s.classes.%s' % ( extName, appName, appName ) } )
     if not result[ 'OK' ]:
       return result
@@ -72,11 +74,17 @@ class Compiler(object):
         return S_ERROR( "Can't create build dir %s" % excp )
     outFile = os.path.join( buildDir, "index.html" )
     compressedJsFile = os.path.join( buildDir, appName+'.js' )
-
+    
     classPath = list( self.__classPaths )
+    excludePackage = ",%s.*" % extName
+    if extClassPath != "":
+      classPath.append(extClassPath)
+      excludePackage = ",DIRAC.*,%s.*" % extName
+    
     classPath.append( os.path.join( extPath, appName, "classes" ) )
+    
     cmd = [ 'sencha', '-sdk', self.__sdkPath, 'compile', '-classpath=%s' % ",".join( classPath ),
-           '-debug=%s' % self.__debugFlag, 'page', '-name=page','-in',inFile, '-out', outFile,'and','restore','page','and','exclude','-not','-namespace','Ext.dirac.*,DIRAC.*','and','concat','-yui',compressedJsFile]
+           '-debug=%s' % self.__debugFlag, 'page', '-name=page','-in',inFile, '-out', outFile,'and','restore','page','and','exclude','-not','-namespace','Ext.dirac.*%s' % excludePackage,'and','concat','-yui',compressedJsFile]
 
     if self.__cmd( cmd ):
       return S_ERROR( "Error compiling %s.%s" % ( extName, appName ) )
@@ -113,6 +121,7 @@ class Compiler(object):
   def run( self ):
     staticPath = os.path.join( self.__webAppPath, "static" )
     gLogger.notice( "Compiling core" )
+    
     result = self.__writeINFile( "core.tpl" )
     if not result[ 'OK' ]:
       return result
@@ -136,10 +145,21 @@ class Compiler(object):
       os.unlink( inFile )
     except IOError:
       pass
-
+    
     for staticPath in self.__staticPaths:
       gLogger.notice( "Looing into %s" % staticPath )
       for extName in self.__extensions:
+        if extName != 'DIRAC': #if we have a VO specific installation we have to discover the extension name.
+          #For example: self.__extensions=['DIRAC','LHCbWebDIRAC'] and staticPath = '../LHCbWebDIRAC/WebApp/static'
+          #extPath='../LHCbWebDIRAC/WebApp/static/LHCbWebDIRAC' this directory does not exits because we call it LHCbDIRAC.
+          #In that case the extPath='../LHCbWebDIRAC/WebApp/static/LHCbDIRAC'  
+          extDirectoryContent = os.listdir( staticPath )
+          if len(extDirectoryContent) == 0:
+            return S_ERROR("The exstension directory is empty:"+str(staticPath))
+          else:
+            extName = extDirectoryContent[-1]
+            gLogger.notice("Detected extension:%s" % extName)
+        
         extPath = os.path.join( staticPath, extName )
         if not os.path.isdir( extPath ):
           continue
@@ -148,8 +168,9 @@ class Compiler(object):
           expectedJS = os.path.join( extPath, appName, "classes", "%s.js" % appName )
           if not os.path.isfile( expectedJS ):
             continue
-          gLogger.notice( "Trying to compile %s.%s.classes.%s" % ( extName, appName, appName ) )
-          result = self.__compileApp( extPath, extName, appName )
+          classPath = self.__getClasspath(extName,appName)
+          gLogger.notice( "Trying to compile %s.%s.classes.%s CLASSPATH=%s" % ( extName, appName, appName, classPath ) )
+          result = self.__compileApp( extPath, extName, appName, classPath )
           if not result[ 'OK' ]:
             return result
 
@@ -157,5 +178,21 @@ class Compiler(object):
     self.__zip( staticPath )
     gLogger.notice( "Done" )
     return S_OK()
+  
+  def __getClasspath(self, extName,appName):
+    
+    classPath = ''
+    dependency = self.__appDependency.get("%s.%s" % (extName,appName),"")
+    
+    if dependency != "":
+      depPath = dependency.split(".")
+      for staticPath in self.__staticPaths:
+        expectedJS = os.path.join(staticPath, depPath[0], depPath[1], "classes" )
+        print expectedJS
+        if not os.path.isdir( expectedJS ):
+            continue
+        classPath = expectedJS
+    return classPath
+      
 
 
