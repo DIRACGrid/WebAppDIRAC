@@ -165,7 +165,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
           // retrieved
           // from the SM.
           var desktopName = activetab.title;
-          if (desktopName && GLOBAL.APP.SM.isStateLoaded("application", "desktop", desktopName)) {
+          if (desktopName && GLOBAL.APP.SM.isStateLoaded("application", "desktop", desktopName)>-1) {
             var oStateData = GLOBAL.APP.SM.getStateData("application", "desktop", desktopName);
             for (var i = 0; i < oStateData.data.length; i++) {
               if (!me.__isStateFound(oData, oStateData.data[i].currentState)) {
