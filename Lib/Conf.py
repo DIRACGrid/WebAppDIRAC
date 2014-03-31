@@ -96,4 +96,7 @@ def generateCAFile():
 def getAuthSectionForHandler( route ):
   return "%s/Access/%s" % ( BASECS, route )
 
+def getTheme():
+  return getCSValue( "Theme", "desktop" )
+
 

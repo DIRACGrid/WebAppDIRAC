@@ -47,7 +47,7 @@ class RootHandler(WebHandler):
     if self.request.arguments.has_key("url_state") and len(self.request.arguments["url_state"][0]) > 0:
       url_state = self.request.arguments["url_state"][0]
 
-    view_name = "desktop"
+    view_name = Conf.getTheme()
     if self.request.arguments.has_key("view") and len(self.request.arguments["view"][0]) > 0:  
       view_name = self.request.arguments["view"][0]
       
