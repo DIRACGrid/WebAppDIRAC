@@ -93,7 +93,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
 			text : 'Save',
 			margin : 3,
-			iconCls : "toolbar-other-save",
+			iconCls : "dirac-icon-save",
 			handler : function() {
 
 				if (me.txtStateName.isValid()) {
