@@ -601,7 +601,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 *          on failure of the request for retrieving the shared state data.
 	 *
 	 */
-	oprLoadSharedState : function(sLinkDescription, cbAfterLoadSharedState) {
+	oprLoadSharedState : function(sLinkDescription, cbAfterLoadSharedState, stateName = "") {
 
 		var me = this;
 
@@ -631,18 +631,18 @@ Ext.define('Ext.dirac.core.StateManagement', {
 					var oDataReceived = Ext.JSON.decode(response.responseText);
 
 					if (cbAfterLoadSharedState != null)
-						cbAfterLoadSharedState(1, sLinkDescription, oDataReceived);
+						cbAfterLoadSharedState(1, sLinkDescription, oDataReceived, stateName);
 
 				} else {
 
 					if (response.status == 400) {
 						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 						if (cbAfterLoadSharedState != null)
-							cbAfterLoadSharedState(-1, sLinkDescription, "");
+							cbAfterLoadSharedState(-1, sLinkDescription, "", stateName);
 					} else {
 						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 						if (cbAfterLoadSharedState != null)
-							cbAfterLoadSharedState(-2, sLinkDescription, "");
+							cbAfterLoadSharedState(-2, sLinkDescription, "", stateName);
 					}
 
 				}
@@ -653,11 +653,11 @@ Ext.define('Ext.dirac.core.StateManagement', {
 				if (response.status == 400) {
 					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 					if (cbAfterLoadSharedState != null)
-						cbAfterLoadSharedState(-3, sLinkDescription, "");
+						cbAfterLoadSharedState(-3, sLinkDescription, "", stateName);
 				} else {
 					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 					if (cbAfterLoadSharedState != null)
-						cbAfterLoadSharedState(-4, sLinkDescription, "");
+						cbAfterLoadSharedState(-4, sLinkDescription, "", stateName);
 				}
 
 			}

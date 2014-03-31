@@ -22,7 +22,7 @@ Ext.define('Ext.dirac.views.tabs.LeftContainer', {
     var me = this;
     Ext.setGlyphFontFamily('Pictos');
     var menu = Ext.create('Ext.dirac.views.tabs.MenuTabs',{
-      menu : me.menu,
+      menu : me.menu
     });
     Ext.apply(me, {items:menu});
     me.callParent(arguments);
@@ -66,5 +66,5 @@ Ext.define('Ext.dirac.views.tabs.LeftContainer', {
     var me = this;
     var mPanel = me.__getMenuObject('menuPanel');
     return mPanel;
-  },
+  }
 });
