@@ -36,7 +36,7 @@ class App( object ):
   def __reloadAppCB( self ):
     gLogger.notice( "\n !!!!!! Reloading web app...\n" )
 
-  def __loadWebAppCFGFiles( self ):
+  def _loadWebAppCFGFiles( self ):
     """
     Load WebApp/web.cfg definitions
     """
@@ -92,7 +92,7 @@ class App( object ):
     """
     self.log.always( "\n ====== Starting DIRAC web app ====== \n" )
     #Load required CFG files
-    self.__loadWebAppCFGFiles()
+    self._loadWebAppCFGFiles()
     #Calculating routes
     result = self.__handlerMgr.getRoutes()
     if not result[ 'OK' ]:

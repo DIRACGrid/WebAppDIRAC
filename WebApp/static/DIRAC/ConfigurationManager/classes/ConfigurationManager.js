@@ -2,7 +2,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 	extend : 'Ext.dirac.core.Module',
 	requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date",
 			"Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record",
-			"Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array' ],
+			"Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array','Ext.data.proxy.LocalStorage' ],
 
 	loadState : function(oData) {
 
@@ -365,7 +365,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
 		me.treeStore = Ext.create('Ext.data.TreeStore', {
 			proxy : {
-				type : 'localstorage'
+				type : 'localstorage',
+        id : 'localstorage'+me.id
 			},
 			root : {
 				text : 'Configuration'
