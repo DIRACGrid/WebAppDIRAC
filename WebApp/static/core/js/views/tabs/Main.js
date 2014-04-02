@@ -23,7 +23,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       loading : false,
 
       myDesktop : null,
-      
+
       /**
        * It contains a list of module name
        * 
@@ -410,9 +410,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               sStartClass = item[2] + ".classes." + oParts[1];
             else
               sStartClass = item[2];
-              me.applications.push(sStartClass); // we have to save a list of
-                                                  // applications which can
-                                                  // used.
+            me.applications.push(sStartClass); // we have to save a list of
+            // applications which can
+            // used.
             var newnode = rootNode.appendChild({
                   'text' : item[1],
                   expandable : true,
@@ -480,7 +480,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               leaf : true,
               iconCls : 'icon-applications-states-all-default'
             });
-        
+
         var oStates = GLOBAL.APP.SM.getApplicationStates("application", "desktop");// OK
         for (var i = 0, len = oStates.length; i < len; i++) {
           var sStateName = oStates[i];
@@ -1452,6 +1452,16 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         me.refreshUrlDesktopState();
 
+      },
+      /***
+       * It creates a desktop for a given name
+       */
+      createNewDesktop : function() {
+        var me = this;
+        var afterSave = function(name) {
+          me.createDesktopTab(name, me.ID);
+        }
+        GLOBAL.APP.MAIN_VIEW.SM.formSaveDialog("application", "desktop", null, afterSave, "Create desktop:");
       }
 
     });

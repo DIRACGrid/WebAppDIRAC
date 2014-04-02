@@ -881,5 +881,21 @@ Ext.define('Ext.dirac.core.StateManagement', {
         }
       }
     });
+  },
+  addApplicationStates : function(appName, stateName, data){
+    var me = this;
+    var loaded = me.isStateLoaded("application", appName,stateName);
+    if (loaded!=1){
+      me.cache["application"][appName][stateName] = {
+        data : []
+      };
+    }
+    
+    me.cache["application"][appName][stateName].data.push(data);
+    
+  },
+  createDesktop : function(appName, stateName, data){
+    var me = this;
+    me.cache["application"][appName][stateName] = data;
   }
 });

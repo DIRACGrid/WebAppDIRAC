@@ -14,6 +14,13 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
         var me = this;
         Ext.apply(me, {
               items : [{
+                    text : "New Desktop",
+                    iconCls : "dirac-icon-new-folder",
+                    handler : function(){
+                      GLOBAL.APP.MAIN_VIEW.createNewDesktop();
+                    }
+                    
+                  }, {
                     text : 'Share desktop',
                     iconCls : "dirac-icon-state",
                     disabled : true,

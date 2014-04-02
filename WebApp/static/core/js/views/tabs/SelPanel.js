@@ -69,6 +69,17 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     // desktop
                     if (!GLOBAL.STATE_MANAGEMENT_ENABLED)
                       return;
+
+                    // we have to create a default desktop.
+                    var desktop = {
+                      views : {},
+                      data : []
+                    };
+
+                    var view = GLOBAL.APP.MAIN_VIEW.ID;
+                    desktop.views[GLOBAL.APP.MAIN_VIEW.ID] = {};
+                    GLOBAL.APP.SM.createDesktop("desktop", 'Default', desktop);
+                    
                     var node = GLOBAL.APP.MAIN_VIEW.defaultDesktop;
                     me.removeChildNodes(node);
                     me.tree.setLoading(true);
@@ -128,6 +139,33 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
               },
               listeners : {
                 itemclick : function(record, item, index, e, eOpts) {
+
+                  if (item.data.type == "Default") {
+                    var activeDesktop = null;
+                    var rCont = GLOBAL.APP.MAIN_VIEW.getRightContainer();
+                    var mainPanel = rCont.getApplicationContainer();
+                    var activeDesktop = mainPanel.getActiveTab();
+                    var cbSetActiveTab = null;
+                    if (activeDesktop) {
+                      cbSetActiveTab = function(oTab) {
+                        if (activeDesktop.view == 'tabView') {
+                          activeDesktop.setActiveTab(oTab);
+                        }
+                      };
+                    } else {
+                      cbSetActiveTab = function(oTab) {
+                        oTab.loadData();
+                      };
+                    }
+                    var applications = GLOBAL.APP.MAIN_VIEW.applications;
+                    for (var i = 0; i < applications.length; i++) {
+                      var data = {
+
+                      };
+
+                      GLOBAL.APP.MAIN_VIEW.createWindow("app", applications[i], item.data, activeDesktop, cbSetActiveTab);
+                    }
+                  }
 
                   if (item.data.type == "tabView") {
                     if (item.data.isShared == true) {
@@ -225,6 +263,13 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
 
           var stateName = oStates[i];
 
+          var data = {
+            data : GLOBAL.APP.SM.getStateData("application", appClassName, stateName),
+            currentState : stateName,
+            module : appClassName
+          };
+
+          GLOBAL.APP.SM.addApplicationStates("desktop", 'Default', data);
           try {
             Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
                   extend : 'Ext.data.Model',

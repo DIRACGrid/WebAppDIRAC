@@ -194,3 +194,18 @@
 	
 }
 
+.dirac-icon-new-folder{
+	
+	background-image: url(../img/icons/common/new-folder.png) !important;
+	background-color: transparent;
+	
+}
+
+.dirac-icon-private-folder{
+	
+	background-image: url(../img/icons/common/private-folder.png) !important;
+	background-color: transparent;
+	
+}
+
+
