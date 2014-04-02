@@ -23,6 +23,18 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       loading : false,
 
       myDesktop : null,
+      
+      /**
+       * It contains a list of module name
+       * 
+       * @type{List}
+       */
+      applications : [],
+      /***
+       * it store the Default node
+       * @type{Ext.dirac.views.tabs.TreeMenuMode} 
+       */
+      defaultDesktop : null,
 
       _state_related_url : [],
       listeners : {
@@ -272,7 +284,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               if (i == oData["data"].length - 1) {
                 var cbSetActiveTab = function(oTab) {
                   me.loadRightContainer.hide();
-                  if (tab.view == 'tabView') {// when the presenter
+                  if (tab && tab.view == 'tabView') {// when the presenter
                     // view used then does
                     // not have tabs
                     tab.setActiveTab(oTab);
@@ -317,7 +329,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               if (i == oData["data"].length - 1) {
                 var cbSetActiveTab = function(oTab) {
                   me.loadRightContainer.hide();
-                  if (tab.view && tab.view == 'tabView') {// when the
+                  if (tab && tab.view && tab.view == 'tabView') {// when the
                     // presenter view
                     // used then does
                     // not have tabs
@@ -398,6 +410,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               sStartClass = item[2] + ".classes." + oParts[1];
             else
               sStartClass = item[2];
+              me.applications.push(sStartClass); // we have to save a list of
+                                                  // applications which can
+                                                  // used.
             var newnode = rootNode.appendChild({
                   'text' : item[1],
                   expandable : true,
@@ -446,6 +461,26 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             });
         me.myDesktop = rootNode;
 
+        me.defaultDesktop = me.myDesktop.appendChild({
+              text : 'Default',
+              type : 'Default',
+              expandable : true,
+              allowDrag : false,
+              allowDrop : false,
+              iconCls : "core-desktop-icon"
+            });
+
+        me.defaultDesktop.appendChild({
+              'text' : 'All',
+              expandable : false,
+              application : 'Default',
+              allowDrag : false,
+              allowDrop : false,
+              type : 'tabView',
+              leaf : true,
+              iconCls : 'icon-applications-states-all-default'
+            });
+        
         var oStates = GLOBAL.APP.SM.getApplicationStates("application", "desktop");// OK
         for (var i = 0, len = oStates.length; i < len; i++) {
           var sStateName = oStates[i];

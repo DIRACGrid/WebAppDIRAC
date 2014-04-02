@@ -55,87 +55,38 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                    */
                   if (node.data.type == "desktop") {
                     if (node.data.application != 'Default') { // trick: When the
-                                                              // Default node
-                                                              // expanded we
-                                                              // should not
-                                                              // modify it.
-                      // Because the Default is the menu and it is created
-                      // previously.
-                      // <debug>
-                      Ext.log({
-                            level : 'log',
-                            stack : true
-                          }, "Begin method(desktop)!");
-                      // </debug>
+                      // Default node expanded we should not modify it.
 
                       GLOBAL.APP.MAIN_VIEW.createDesktopTab(node.data.application, node.data.view); // an
-                                                                                                    // empty
-                                                                                                    // tab
-                                                                                                    // is
-                                                                                                    // created
-                      // the application states must be listed.
+                      // empty tab is created the application states must be
+                      // listed.
                       me.removeChildNodes(node); // it is used to refresh the
-                                                  // tree. may new applications
-                                                  // opened and saved.
+                      // tree. may new applications opened and saved.
                       GLOBAL.APP.MAIN_VIEW.addDesktopStatesToDesktop(node);
-                      // <debug>
-                      Ext.log({
-                            level : 'log',
-                            stack : true
-                          }, "End method(desktop)!");
-                      // </debug>
-                    }
-                  } else if (node.data.application != "") {
 
+                    }
+                  } else if (node.data.type == 'Default') { // it is the default
+                    // desktop
                     if (!GLOBAL.STATE_MANAGEMENT_ENABLED)
                       return;
-
-                    var oParts = node.data.application.split(".");
-                    var sStartClass = "";
-                    if (oParts.length == 2) {
-                      sStartClass = node.data.application + ".classes." + oParts[1];
-                    } else {
-                      sStartClass = node.data.application;
-                    }
-                    // <debug>
-                    Ext.log({
-                          level : 'log',
-                          stack : true
-                        }, "Begin method(application)!");
-                    Ext.log({
-                          level : 'log'
-                        }, this.self.getName());
-                    Ext.log({
-                          level : 'log'
-                        }, me.self.getName());
-                    // </debug>
-
+                    var node = GLOBAL.APP.MAIN_VIEW.defaultDesktop;
                     me.removeChildNodes(node);
+                    me.tree.setLoading(true);
+                    var applications = GLOBAL.APP.MAIN_VIEW.applications;
+                    for (var i = 0; i < applications.length; i++) {
 
-                    var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", sStartClass, "|");// OK
-
-                    if (iAppStatesLoaded != -2) {
-                      me.oprRefreshAppStates(sStartClass, node);
-                    } else {
                       var oFunc = function(iCode, sAppName) {
 
-                        me.oprRefreshAppStates(sStartClass, node);
+                        me.oprRefreshAppStates(sAppName, node);
+                        me.tree.setLoading(false);
 
                       };
 
-                      GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(sStartClass, oFunc);// OK
+                      GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(applications[i], oFunc);// OK
 
                     }
 
-                    // <debug>
-                    Ext.log({
-                          level : 'log',
-                          stack : true
-                        }, "End method(application)!");
-                    // </debug>
-
                   }
-
                 },
                 beforemove : function(node, oldParent, newParent, index, eOpts) {
                   if (index == 0) {
@@ -154,7 +105,6 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
               rootVisible : false,
               useArrows : true,
               frame : false,
-              // renderTo : Ext.getBody(),
               draggable : true,
               width : 200,
               height : 250,
@@ -180,11 +130,11 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                 itemclick : function(record, item, index, e, eOpts) {
 
                   if (item.data.type == "tabView") {
-                    if (item.data.isShared == true){
-                      GLOBAL.APP.MAIN_VIEW.loadSharedStateByName("desktop", item.data.application);  
-                    }else{
-                      GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application);  
-                    }                   
+                    if (item.data.isShared == true) {
+                      GLOBAL.APP.MAIN_VIEW.loadSharedStateByName("desktop", item.data.application);
+                    } else {
+                      GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application);
+                    }
 
                   } else {
                     var activeDesktop = null;
@@ -259,10 +209,13 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
         me.settings = Ext.create('Ext.dirac.views.tabs.SettingsPanel');
         return me.settings;
       },
-      /***
-       * It lists the application state. Each state is a node of the application tree.
+      /*************************************************************************
+       * It lists the application state. Each state is a node of the application
+       * tree.
+       * 
        * @param{String}appClassName is the class name of the application.
-       * @param{Object} node is the current tree node. The states of an application will be loaded under that node...
+       * @param{Object} node is the current tree node. The states of an
+       *                application will be loaded under that node...
        */
       oprRefreshAppStates : function(appClassName, node) {
         var me = this;
@@ -278,6 +231,9 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                   fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
                   alias : 'widget.treenodemodel'
                 });
+            var application = appClassName.split(".");
+            var qTip = "State Name: " + stateName + "<br>Application: " + application[application.length - 1] + "<br>";
+            console.log(qTip);
             nodeObj = {
               'text' : stateName,
               expandable : false,
@@ -288,13 +244,15 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
               iconCls : 'icon-state-applications-class',
               scope : me,
               allowDrag : true,
-              allowDrop : true
+              allowDrop : true,
+              qtip : qTip
             };
             Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
-            //var model = Ext.ModelManager.getModel('Ext.dirac.views.tabs.TreeMenuModel');
-            //Ext.data.NodeInterface.decorate(model);
+            // var model =
+            // Ext.ModelManager.getModel('Ext.dirac.views.tabs.TreeMenuModel');
+            // Ext.data.NodeInterface.decorate(model);
             var newnode = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.TreeNodeModel');
-            //n = node.createNode(nodeObj);
+            // n = node.createNode(nodeObj);
             node.appendChild(newnode);
 
           } catch (err) {
