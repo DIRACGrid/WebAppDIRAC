@@ -115,13 +115,15 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                 oData.push({
                       module : win.getAppClassName(),
                       data : win.loadedObject.getStateData(),
-                      currentState : win.currentState
+                      currentState : win.currentState,
+                      loadedObjectType : win.loadedObjectType
                     });
 
               } else if (win.loadedObjectType == "link") {
 
                 oData.push({
-                      link : win.linkToLoad
+                      link : win.linkToLoad,
+                      loadedObjectType : win.loadedObjectType
                     });
               }
             }
@@ -145,13 +147,15 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                       oData.push({
                             module : win.getAppClassName(),
                             data : win.loadedObject.getStateData(),
-                            currentState : win.currentState
+                            currentState : win.currentState,
+                            loadedObjectType : win.loadedObjectType
                           });
 
                     } else if (win.loadedObjectType == "link") {
 
                       oData.push({
-                            link : win.linkToLoad
+                            link : win.linkToLoad,
+                            loadedObjectType : win.loadedObjectType
                           });
 
                     }
