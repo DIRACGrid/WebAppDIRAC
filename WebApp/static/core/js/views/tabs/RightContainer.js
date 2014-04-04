@@ -161,13 +161,10 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                 });
             if (bFoundNotLoadedapps) {
               // We may have applications which are not opened. We have to save
-              // the
-              // status of this applications as well. These application states
-              // is
-              // retrieved
-              // from the SM.
+              // the status of this applications as well. These application
+              // states is retrieved from the SM.
               var desktopName = activetab.title;
-              if (desktopName && desktopName != 'Default') {
+              if (desktopName) { //&& desktopName != 'Default'
                 if (GLOBAL.APP.SM.isStateLoaded("application", "desktop", desktopName) > -1) {
                   var oStateData = GLOBAL.APP.SM.getStateData("application", "desktop", desktopName);
                   for (var i = 0; i < oStateData.data.length; i++) {
@@ -177,7 +174,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                   }
 
                 } else {
-                  GLOBAL.APP.CF.alert(desktopName+" can not be saved!", "error");
+                  GLOBAL.APP.CF.alert(desktopName + " can not be saved!", "error");
                 }
 
               }
@@ -514,7 +511,12 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         var me = this;
         var activeTab = me.getApplicationContainer().getActiveTab();
         var desktopName = activeTab.title;
-        GLOBAL.APP.MAIN_VIEW.addNodeToMenu(stateName, appName);
+        if (desktopName != 'Default') {
+          GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktopName,stateName, appName);
+          GLOBAL.APP.MAIN_VIEW.addToDelete(appName, "application", stateName);
+        } else {
+          GLOBAL.APP.MAIN_VIEW.addToDeafultDesktop(stateName, appName);
+        }
 
       },
 
@@ -533,39 +535,39 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
            */
           var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
 
-            if ((iCode == 1) && (GLOBAL.APP.MAIN_VIEW.currentState != sStateName)) {
-
-              // if there is an active desktop state, we have to remove it
-              if (GLOBAL.APP.MAIN_VIEW.currentState != "")
-                GLOBAL.APP.SM.oprRemoveActiveState("desktop", GLOBAL.APP.MAIN_VIEW.currentState);// OK
-
-              // if there is a state, we set it as an active state
-              GLOBAL.APP.MAIN_VIEW.currentState = sStateName;
-              GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);// OK
-
-              GLOBAL.APP.MAIN_VIEW.renameCurrentDesktop(sStateName);
+            if (iCode == 1) {
 
               if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                 GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
 
-              // GLOBAL.APP.MAIN_VIEW.refreshMyDesktop(sStateName);
+              if (GLOBAL.APP.MAIN_VIEW.currentState != sStateName) {
 
-            } else {
-              GLOBAL.APP.MAIN_VIEW.renameCurrentDesktop(sStateName);
+                // if there is an active desktop state, we have to remove it
+                if (GLOBAL.APP.MAIN_VIEW.currentState != "")
+                  GLOBAL.APP.SM.oprRemoveActiveState("desktop", GLOBAL.APP.MAIN_VIEW.currentState);// OK
+
+                // if there is a state, we set it as an active state
+                GLOBAL.APP.MAIN_VIEW.currentState = sStateName;
+                GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);// OK
+
+                GLOBAL.APP.MAIN_VIEW.renameCurrentDesktop(sStateName);
+
+                // GLOBAL.APP.MAIN_VIEW.refreshMyDesktop(sStateName);
+
+              }
+
             }
             if (!Ext.Array.contains(GLOBAL.APP.MAIN_VIEW._state_related_url, sStateName)) {
               GLOBAL.APP.MAIN_VIEW._state_related_url.push(sStateName);
             }
             GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
           };
-          GLOBAL.APP.MAIN_VIEW.currentState = ((GLOBAL.APP.MAIN_VIEW.currentState == 'Default') ? "" : GLOBAL.APP.MAIN_VIEW.currentState); // we
-                                                                                                                                            // do
-                                                                                                                                            // not
-                                                                                                                                            // want
-                                                                                                                                            // to
-                                                                                                                                            // save
-                                                                                                                                            // the
-          // default desktop as Default
+
+          GLOBAL.APP.MAIN_VIEW.currentState = ((GLOBAL.APP.MAIN_VIEW.currentState == 'Default') ? "" : GLOBAL.APP.MAIN_VIEW.currentState);
+
+          GLOBAL.APP.MAIN_VIEW.destroyDeleteApplications();
+
+          // we do not want to save the default desktop as Default
           GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", "desktop", GLOBAL.APP.MAIN_VIEW, funcAfterSave)
 
         } else {
@@ -604,7 +606,8 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
             }
 
           };
-          GLOBAL.APP.MAIN_VIEW.SM.formSaveState("application", "desktop", GLOBAL.APP.MAIN_VIEW, funcAfterSave)
+          GLOBAL.APP.MAIN_VIEW.SM.formSaveState("application", "desktop", GLOBAL.APP.MAIN_VIEW, funcAfterSave);
+          GLOBAL.APP.MAIN_VIEW.destroyDeleteApplications();
 
         } else {
           Ext.dirac.system_info.msg("Notification", 'No desktop found!');

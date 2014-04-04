@@ -53,6 +53,15 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                    * this.loadMask = new Ext.LoadMask(node, { msg : "Loading
                    * ..." });
                    */
+                  var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop(); // do
+                  // not refresh the tree node if we
+                  // have an active tab open
+                  if (activeDesktop && activeDesktop.title == node.data.text && node.data.text != 'Default')
+                    return;
+
+                  if (node.loaded && node.data.text == 'Default')
+                    return;
+
                   if (node.data.type == "desktop") {
                     if (node.data.application != 'Default') { // trick: When the
                       // Default node expanded we should not modify it.
@@ -79,7 +88,10 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     var view = GLOBAL.APP.MAIN_VIEW.ID;
                     desktop.views[GLOBAL.APP.MAIN_VIEW.ID] = {};
                     GLOBAL.APP.SM.createDesktop("desktop", 'Default', desktop);
-                    
+
+                    if (!node.doNotCreateDesktop) {//when wo have another desktop opened
+                      GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", node.data.view);
+                    }
                     var node = GLOBAL.APP.MAIN_VIEW.defaultDesktop;
                     me.removeChildNodes(node);
                     me.tree.setLoading(true);
@@ -97,7 +109,28 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
 
                     }
 
+                  } else {// we have to check there is a state of the app
+                    if (!GLOBAL.STATE_MANAGEMENT_ENABLED)
+                      return;
+
+                    var oParts = node.data.application.split(".");
+                    var sStartClass = "";
+                    if (oParts.length == 2) {
+                      sStartClass = node.data.application + ".classes." + oParts[1];
+                    } else {
+                      sStartClass = node.data.application;
+                    }
+
+                    var oFunc = function() {
+                      return;
+                    };
+
+                    if (sStartClass != "") {
+                      GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(sStartClass, oFunc);// OK  
+                    }
+
                   }
+                  node.loaded = true;
                 },
                 beforemove : function(node, oldParent, newParent, index, eOpts) {
                   if (index == 0) {
@@ -184,14 +217,19 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                       cbSetActiveTab = function(oTab) {
                         if (activeDesktop.view == 'tabView') {
                           activeDesktop.setActiveTab(oTab);
+                          GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
+                          GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
                         }
                       };
                     } else {
                       cbSetActiveTab = function(oTab) {
                         oTab.loadData();
+                        GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
+                        GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
                       };
                     }
                     GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
+
                   }
                 },
                 beforeitemmove : function(node, oldParent, newParent, index, eOpts) {
@@ -278,7 +316,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                 });
             var application = appClassName.split(".");
             var qTip = "State Name: " + stateName + "<br>Application: " + application[application.length - 1] + "<br>";
-            console.log(qTip);
+
             nodeObj = {
               'text' : stateName,
               expandable : false,

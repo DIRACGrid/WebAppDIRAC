@@ -30,13 +30,22 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        * @type{List}
        */
       applications : [],
-      /***
+      /*************************************************************************
        * it store the Default node
-       * @type{Ext.dirac.views.tabs.TreeMenuMode} 
+       * 
+       * @type{Ext.dirac.views.tabs.TreeMenuMode}
        */
       defaultDesktop : null,
 
       _state_related_url : [],
+
+      /**
+       * It contains the applications which can be deleted after save
+       * 
+       * @type{Object}
+       */
+      deleteApplications : [],
+
       listeners : {
         afterrender : function() {
           var me = this;
@@ -665,9 +674,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       saveActiveApplicationState : function() {
         var me = this;
 
-        var rCont = me.getRightContainer();
-        var mainPanel = rCont.getApplicationContainer();
-        var activeDesktop = mainPanel.getActiveTab();
+        var activeDesktop = me.getActiveDesktop();
         if (activeDesktop) {
           var appl = activeDesktop.getActiveTab();
           if (appl) {
@@ -710,8 +717,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       saveAsActiveApplicationState : function() {
         var me = this;
-        var mainPanel = me.getRightContainer().getApplicationContainer();
-        var activeDesktop = mainPanel.getActiveTab();
+
+        var activeDesktop = me.getActiveDesktop();
         if (activeDesktop) {
           var appl = activeDesktop.getActiveTab();
           if (appl) {
@@ -876,6 +883,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
         }
       },
+
       /*************************************************************************
        * It removes a given node from the menu tree.
        * 
@@ -897,8 +905,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       },
       deleteApplicationStates : function() {
         var me = this;
-        var mainPanel = me.getRightContainer().getApplicationContainer();
-        var activeDesktop = mainPanel.getActiveTab();
+
+        var activeDesktop = me.getActiveDesktop();
         if (activeDesktop) {
           if (activeDesktop.view == 'presenterView') {
             appl = activeDesktop.getOpenedApplication();
@@ -954,11 +962,34 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       renameCurrentDesktop : function(name) {
         var me = this;
-        var mainPanel = me.getRightContainer().getApplicationContainer();
-        var activeDesktop = mainPanel.getActiveTab();
+
+        var activeDesktop = me.getActiveDesktop();
         if (activeDesktop) {
+          var desktopName = activeDesktop.title;
           activeDesktop.setTitle(name);
-          me.__addDesktopToMenu(name);
+          if (desktopName == 'Default') { // if the current desktop is the
+            // default, we have to remove the
+            // items from the Default desktop.
+            // and we have to create a new item(desktop).
+            me.__addDesktopToMenu(name);
+            // remove the applications from the state.
+            var data = me.getRightContainer().getStateData(); // get the active
+            // desktop states.
+            var cbAfterRefresh = function(code, sAppName, sStateType, sStateName) {
+              if (code == 1) {
+                var node = me.defaultDesktop.findChild('text', sStateName);
+                me.moveDesktopmMnuItem(name, node);
+              }
+              return;
+            };
+            for (i = 0; i < data.length; i++) {
+              GLOBAL.APP.SM.oprDeleteState(data[i].module, "application", data[i].currentState, cbAfterRefresh);
+            }
+
+          } else {
+            me.__addDesktopToMenu(name);
+          }
+          
         } else {
           Ext.dirac.system_info.msg("Error", 'Please open a dektop!!! ');
         }
@@ -972,6 +1003,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       __addDesktopToMenu : function(stateName) {
         var me = this;
+        me.myDesktop.expand();
         var selPanel = me.getLeftContainer().getSelectionPanel();
         if (selPanel) {
           var treePanel = selPanel.getTreePanel();
@@ -1032,6 +1064,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
               var node = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.DesktopNodeModel');
               childNode.appendChild(node);
+              childNode.expand();
             } catch (err) {
               Ext.log({
                     level : 'error'
@@ -1138,7 +1171,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       closeTab : function(desktopName, tabName) {
         var me = this;
         var desktops = null;
-        var appContainer = me.getLeftContainer().getApplicationContainer();
+        var appContainer = me.getRightContainer().getApplicationContainer();
         if (appContainer) {
           if (!desktopName) {
             desktops = appContainer.getActiveTab();
@@ -1453,15 +1486,179 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.refreshUrlDesktopState();
 
       },
-      /***
+      /*************************************************************************
        * It creates a desktop for a given name
        */
       createNewDesktop : function() {
         var me = this;
         var afterSave = function(name) {
           me.createDesktopTab(name, me.ID);
+          // add to the menu...
+          me.__addDesktopToMenu(name);
+          if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+            GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+
         }
         GLOBAL.APP.MAIN_VIEW.SM.formSaveDialog("application", "desktop", null, afterSave, "Create desktop:");
+      },
+      /*************************************************************************
+       * it is used to move the tree node to the current (active) desktop
+       * 
+       * @param {String}
+       *          desktop it is the name of the dedktop
+       * @param {}
+       *          item it is the node.
+       */
+      moveDesktopmMnuItem : function(desktop, item) {
+        var me = this;
+        if (item.data.text != "Default") { // do not move the default node
+          var selPanel = me.getLeftContainer().getSelectionPanel();
+          if (selPanel) {
+            var treePanel = selPanel.getTreePanel();
+            if (treePanel) {
+              var node = me.myDesktop.findChild('text', desktop);
+              node.expand();
+              node.appendChild(item);
+            }
+
+          }
+        }
+      },
+      /*************************************************************************
+       * it returns the active tab
+       * 
+       * @return {Object}
+       */
+      getActiveDesktop : function() {
+        var me = this;
+        var activeDesktop = null;
+
+        var rCont = me.getRightContainer();
+        if (rCont) {
+          var mainPanel = rCont.getApplicationContainer();
+          if (mainPanel) {
+            activeDesktop = mainPanel.getActiveTab();
+          }
+        }
+
+        return activeDesktop;
+      },
+
+      addToDelete : function(appName, stateType, stateName) {
+        var me = this;
+        me.deleteApplications.push({
+              module : appName,
+              stateType : stateType,
+              currentState : stateName
+            });
+      },
+      destroyDeleteApplications : function() {
+        var me = this;
+        var cbAfterRefresh = function() {
+          return;
+        };
+        for (var i = 0; i < me.deleteApplications.length; i++) {
+          GLOBAL.APP.SM.oprDeleteState(me.deleteApplications[i].module, me.deleteApplications[i].stateType, me.deleteApplications[i].currentState, cbAfterRefresh);
+        }
+      },
+      /**
+       * It adds a node to the Shared Desktops node. The name of the node is the
+       * stateName.
+       * 
+       * @param{String} stateName
+       */
+      addToDeafultDesktop : function(stateName, appClassName) {
+        var me = this;
+        me.myDesktop.expand();
+        if (!me.defaultDesktop.loaded) {
+          me.defaultDesktop.expand();
+        } else {
+
+          Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
+                extend : 'Ext.data.Model',
+                fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
+                alias : 'widget.treenodemodel'
+              });
+          var appName = appClassName.split(".");
+          var qTip = "State Name: " + stateName + "<br>Application: " + appName[appName.length - 1] + "<br>";
+
+          nodeObj = {
+            'text' : stateName,
+            expandable : false,
+            application : appClassName,
+            stateToLoad : stateName,
+            type : 'app',
+            leaf : true,
+            iconCls : 'icon-state-applications-class',
+            scope : me,
+            allowDrag : true,
+            allowDrop : true,
+            qtip : qTip
+          };
+          Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
+          // var model =
+          // Ext.ModelManager.getModel('Ext.dirac.views.tabs.TreeMenuModel');
+          // Ext.data.NodeInterface.decorate(model);
+          var newnode = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.TreeNodeModel');
+          // n = node.createNode(nodeObj);
+          me.defaultDesktop.appendChild(newnode);
+        }
+
+      },
+      addApplicationToDesktopMenu : function(desktopName, stateName, appClassName) {
+        var me = this;
+        me.myDesktop.expand();
+        if (!me.defaultDesktop.loaded) {
+          me.defaultDesktop.doNotCreateDesktop = true;
+          var cbFunc = function() {
+            var node = me.defaultDesktop.findChild('text', stateName);
+            if (node) {
+              me.moveDesktopmMnuItem(desktopName, node);
+            } else {
+              me.funcPostponedLoading = function() {
+
+                cbFunc();
+
+              };
+
+              setTimeout(me.funcPostponedLoading, 1000);
+            }
+          }
+          me.defaultDesktop.expand(false, cbFunc);
+        } else {
+
+          Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
+                extend : 'Ext.data.Model',
+                fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
+                alias : 'widget.treenodemodel'
+              });
+          var appName = appClassName.split(".");
+          var qTip = "State Name: " + stateName + "<br>Application: " + appName[appName.length - 1] + "<br>";
+
+          nodeObj = {
+            'text' : stateName,
+            expandable : false,
+            application : appClassName,
+            stateToLoad : stateName,
+            type : 'app',
+            leaf : true,
+            iconCls : 'icon-state-applications-class',
+            scope : me,
+            allowDrag : true,
+            allowDrop : true,
+            qtip : qTip
+          };
+          Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
+          // var model =
+          // Ext.ModelManager.getModel('Ext.dirac.views.tabs.TreeMenuModel');
+          // Ext.data.NodeInterface.decorate(model);
+          var newnode = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.TreeNodeModel');
+          // n = node.createNode(nodeObj);
+          var desktopNode = me.myDesktop.findChild('text', desktopName);
+          desktopNode.expand();
+          desktopNode.appendChild(newnode);
+
+        }
       }
 
     });

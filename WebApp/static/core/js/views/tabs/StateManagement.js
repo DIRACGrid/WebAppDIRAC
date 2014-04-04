@@ -5,7 +5,7 @@
  */
 
 Ext.define('Ext.dirac.views.tabs.StateManagement', {
-	requires : [ 'Ext.form.field.Text', 'Ext.button.Button', 'Ext.toolbar.Toolbar', 'Ext.panel.Panel', "Ext.window.Window" ],
+  requires : [ 'Ext.form.field.Text', 'Ext.button.Button', 'Ext.toolbar.Toolbar', 'Ext.panel.Panel', "Ext.window.Window" ],
 
 	/**
    * Function called when the Save As ... button from the SAVE window menu is
@@ -309,19 +309,20 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 		var oAppStates = GLOBAL.APP.SM.getApplicationStates("application", sAppName);
 
 		for ( var i = 0; i < oAppStates.length; i++) {
+      
+      if (oAppStates[i]!='Default'){
+			  var elOptNew = document.createElement('option');
 
-			var elOptNew = document.createElement('option');
+			  elOptNew.text = oAppStates[i];
+			  elOptNew.value = oAppStates[i];
 
-			elOptNew.text = oAppStates[i];
-			elOptNew.value = oAppStates[i];
-
-			try {
-				oSelectEl.add(elOptNew, null); // standards compliant; doesn't
-				// work in IE
-			} catch (ex) {
-				oSelectEl.add(elOptNew); // IE only
-			}
-
+			  try {
+				  oSelectEl.add(elOptNew, null); // standards compliant; doesn't
+				  // work in IE
+			  } catch (ex) {
+				  oSelectEl.add(elOptNew); // IE only
+			  }
+      }
 		}
 
 		oSelectEl = document.getElementById(me.manageWindow.getId()).getElementsByTagName("select")[1];
