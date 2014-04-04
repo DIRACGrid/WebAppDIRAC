@@ -16,10 +16,10 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
               items : [{
                     text : "New Desktop",
                     iconCls : "dirac-icon-new-folder",
-                    handler : function(){
+                    handler : function() {
                       GLOBAL.APP.MAIN_VIEW.createNewDesktop();
                     }
-                    
+
                   }, {
                     text : 'Share desktop',
                     iconCls : "dirac-icon-state",
@@ -163,7 +163,32 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     value : 5
                   }, {
                     text : 'Delete',
-                    value : 6
+                    value : 6,
+                    handler : function() {
+                      if (me.oSelectedMenuItem.data.type == "app") {
+
+                        if (me.oSelectedMenuItem.data.desktop == "") {
+                          GLOBAL.APP.MAIN_VIEW.SM.deleteState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
+                                GLOBAL.APP.MAIN_VIEW.removeNodeFormDefaultDesktop(me.oSelectedMenuItem.data.text);
+
+                              });
+                        } else {
+                          GLOBAL.APP.MAIN_VIEW.SM.deleteStateFromDesktop(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
+                                GLOBAL.APP.MAIN_VIEW.removeApplicationFromDesktop(me.oSelectedMenuItem.data.desktop,  me.oSelectedMenuItem.data.text);
+                              });
+
+                        }
+
+                      } else {
+                        if (me.oSelectedMenuItem.data.text == "Deafult")
+                          return; //do not delete the default desktop.
+                          
+                        GLOBAL.APP.MAIN_VIEW.SM.deleteState("desktop", me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
+                              GLOBAL.APP.MAIN_VIEW.deleteStateFromMenu(stateName);
+                            });
+                      }
+
+                    }
                   }]
             });
         me.callParent(arguments);

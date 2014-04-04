@@ -989,7 +989,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           } else {
             me.__addDesktopToMenu(name);
           }
-          
+
         } else {
           Ext.dirac.system_info.msg("Error", 'Please open a dektop!!! ');
         }
@@ -1512,17 +1512,14 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       moveDesktopmMnuItem : function(desktop, item) {
         var me = this;
         if (item.data.text != "Default") { // do not move the default node
-          var selPanel = me.getLeftContainer().getSelectionPanel();
-          if (selPanel) {
-            var treePanel = selPanel.getTreePanel();
-            if (treePanel) {
-              var node = me.myDesktop.findChild('text', desktop);
-              node.expand();
-              node.appendChild(item);
-            }
 
+          var node = me.myDesktop.findChild('text', desktop);
+          if (node) {
+            node.expand();
+            node.appendChild(item);
           }
         }
+
       },
       /*************************************************************************
        * it returns the active tab
@@ -1658,6 +1655,22 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           desktopNode.expand();
           desktopNode.appendChild(newnode);
 
+        }
+      },
+      removeNodeFormDefaultDesktop : function(appState) {
+        var me = this;
+        var node = me.defaultDesktop.findChild('text', appState);
+        if (node) {
+          me.defaultDesktop.removeChild(node);
+        }
+
+      },
+      removeApplicationFromDesktop : function(desktopName, appName){
+        var me = this;
+        var node = me.myDesktop.findChild("text", desktopName);
+        if(node){
+          var deleteNode = node.findChild("text", appName);
+          node.removeChild(deleteNode);
         }
       }
 

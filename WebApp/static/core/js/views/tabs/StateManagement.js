@@ -732,6 +732,78 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
     me.saveWindow.show();
     me.txtStateName.focus();
 
-  }
+  },
+  deleteState : function(sAppName, stateName, cbFunc){
+    
+    if (!GLOBAL.APP.SM.isAnyActiveState(sAppName, stateName, cbFunc)) {
 
+      GLOBAL.APP.SM.oprDeleteState(sAppName, "application", stateName, cbFunc);
+      
+      } else{
+        GLOBAL.APP.CF.alert('The state <b>' + stateName + '</b> you are willing to delete is curently in use !', 'warning');
+      }
+        
+  },
+  deleteStateFromDesktop : function(desktop, appName,stateName,cbAfterSave){
+    var me = this;
+    if (!GLOBAL.APP.SM.isAnyActiveState(appName, stateName, cbAfterSave)) {
+      var desktops = GLOBAL.APP.SM.getStateData("application","desktop",desktop);
+      for (var i =0; i<desktops.data.length; i++){
+        if (desktops.data[i].currentState==stateName){
+          Ext.Array.erase(desktops.data, i, 1);
+          break;
+        }
+      }
+       me.oprSendDataForSave("desktop", desktops, "application", desktop, cbAfterSave);
+    } else{
+        GLOBAL.APP.CF.alert('The state <b>' + stateName + '</b> you are willing to delete is curently in use !', 'warning');
+      }
+  },
+  
+  oprSendDataForSave : function(sAppName, oSendData, sStateType, sStateName, cbAfterSave) {
+     var me = this;
+     Ext.Ajax.request({
+      url : GLOBAL.BASE_URL + 'UP/saveAppState',
+      params : {
+        app : sAppName,
+        name : sStateName,
+        state : Ext.JSON.encode(oSendData),
+        obj : sStateType
+      },
+      scope : me,
+      success : function(oResponse) {
+
+        if (oResponse.status == 200) {
+          var me = this;
+          Ext.dirac.system_info.msg("Notification", 'State saved successfully !');
+
+          GLOBAL.APP.SM.cache[sStateType][sAppName][sStateName] = oSendData;
+
+          cbAfterSave(1, sAppName, sStateType, sStateName);
+
+        } else if (oResponse.status == 400) {
+
+          Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + oResponse.responseText + '.<br/> Please try again later !');
+          cbAfterSave(-1, sAppName, sStateType, sStateName);
+
+        } else {
+
+          Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + oResponse.statusText + '.<br/> Please try again later !');
+          cbAfterSave(-2, sAppName, sStateType, sStateName);
+
+        }
+
+      },
+      failure : function(response) {
+
+        if (response.status == 400) {
+          Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+          cbAfterSave(-3, sAppName, sStateType, sStateName);
+        } else {
+          Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+          cbAfterSave(-4, sAppName, sStateType, sStateName);
+        }
+      }
+    });
+  }
 });
