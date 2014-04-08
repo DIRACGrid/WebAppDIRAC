@@ -16,7 +16,7 @@ class JobMonitorHandler(WebHandler):
   def web_getJobData(self):
     RPC = RPCClient("WorkloadManagement/JobMonitoring", timeout = 600 )
     req = self.__request()
-    
+
     result = yield self.threadTask(RPC.getJobPageSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:
@@ -82,7 +82,7 @@ class JobMonitorHandler(WebHandler):
   def web_getSelectionData(self):
     sData = self.getSessionData()
     callback = {}
-    
+
     user = sData["user"]["username"]
     if user == "Anonymous":
       callback["prod"] = [["Insufficient rights"]]
@@ -148,7 +148,6 @@ class JobMonitorHandler(WebHandler):
       stat = []
       if len(result["Value"]) > 0:
         for i in result["Value"]:
-          i = i.replace(",", ";")
           stat.append([i])
       else:
         stat = [["Nothing to display"]]
@@ -162,7 +161,6 @@ class JobMonitorHandler(WebHandler):
       app = []
       if len(result["Value"]) > 0:
         for i in result["Value"]:
-          i = i.replace(",", ";")
           app.append([i])
       else:
         app = [["Nothing to display"]]
@@ -176,7 +174,6 @@ class JobMonitorHandler(WebHandler):
       types = []
       if len(result["Value"]) > 0:
         for i in result["Value"]:
-          i = i.replace(",", ";")
           types.append([i])
       else:
         types = [["Nothing to display"]]
@@ -207,9 +204,9 @@ class JobMonitorHandler(WebHandler):
     self.pageNumber = 0
     self.numberOfJobs = 25
     self.globalSort = [["JobID", "DESC"]]
-    
+
     req = {}
-    
+
     if self.request.arguments.has_key("limit") and len(self.request.arguments["limit"][0]) > 0:
       self.numberOfJobs = int(self.request.arguments["limit"][0])
       if self.request.arguments.has_key("start") and len(self.request.arguments["start"][0]) > 0:
@@ -222,7 +219,7 @@ class JobMonitorHandler(WebHandler):
       if len(jobids) > 0:
         req['JobID'] = jobids
 
-  
+
     if "jobGroup" in self.request.arguments:
       prodids = list(json.loads(self.request.arguments[ 'jobGroup' ][-1]))
       if len(prodids) > 0:
@@ -281,7 +278,7 @@ class JobMonitorHandler(WebHandler):
           self.globalSort  += [[str(i['property']), str(i['direction'])]]
     else:
       self.globalSort =  [["JobID", "DESC"]]
-    
+
     gLogger.debug("Request", str(req))
     return req
 
