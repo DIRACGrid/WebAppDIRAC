@@ -546,7 +546,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 allowDrop : false,
                 type : 'tabView',
                 leaf : true,
-                iconCls : 'icon-applications-states-all-default'
+                iconCls : 'icon-applications-states-all-default',
+                qtip : sStateName
               });
         }
 
@@ -1065,6 +1066,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               var node = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.DesktopNodeModel');
               childNode.appendChild(node);
               childNode.expand();
+
             } catch (err) {
               Ext.log({
                     level : 'error'
@@ -1249,6 +1251,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
         for (var i = 0; i < oDesktop.data.length; i++) {
           try {
+            var appName = oDesktop.data[i].module.split(".");
+            var qtip = appName[appName.length-1] + "<br>State Name: " + oDesktop.data[i].currentState;
             nodeObj = {
               'text' : oDesktop.data[i].currentState,
               expandable : false,
@@ -1259,7 +1263,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               leaf : true,
               iconCls : 'icon-state-applications-class',
               allowDrag : true,
-              allowDrop : true
+              allowDrop : true,
+              qtip : qtip
             };
             Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
                   extend : 'Ext.data.Model',
@@ -1411,7 +1416,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.createWindow(oData.objectType, oData.moduleName, oData.setupData);
 
       },
-      cbAfterLoadSharedState : function(iCode, sLink, oDataReceived, stateName) {
+      cbAfterLoadSharedState : function(iCode, sLink, oDataReceived) {
 
         var me = GLOBAL.APP.MAIN_VIEW;
 
@@ -1428,22 +1433,40 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         } else {
 
-          var afterTabCreated = function(name, tab) {
-            me.loadState(oDataReceived, tab);
-          };
+          for (var i = 0, len = oDataReceived["data"].length; i < len; i++) {
 
-          me.createDesktopTab(stateName, 'tabView', afterTabCreated);
+            var appStateData = oDataReceived["data"][i];
+            var loadedObjectType = ((!appStateData.loadedObjectType) ? "app" : appStateData.loadedObjectType); // TODO
+            // We
+            // can
+            // remove
+            // it
+            // later.
+            var name = appStateData.module
+
+            if (name)
+              me.createWindow(loadedObjectType, name, appStateData);
+
+          }
 
           if (me.currentState != "")
             GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);
 
           me.currentState = "";
 
-          me.currentState = stateName;
-          GLOBAL.APP.SM.oprAddActiveState("desktop", stateName);// OK
+        }
 
-          me.refreshUrlDesktopState();
+      },
+      cbAfterSaveSharedState : function(iCode, sLinkName, sLink) {
 
+        var me = GLOBAL.APP.MAIN_VIEW;
+
+        var oDataItems = sLink.split("|");
+
+        if (oDataItems[0] != "desktop") {
+          GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows("reference", sLinkName, oDataItems[0]);
+        } else {
+          me.addDesktopReference(sLinkName);
         }
 
       },
@@ -1486,6 +1509,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.refreshUrlDesktopState();
 
       },
+
       /*************************************************************************
        * It creates a desktop for a given name
        */
@@ -1605,7 +1629,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       addApplicationToDesktopMenu : function(desktopName, stateName, appClassName) {
         var me = this;
         me.myDesktop.expand();
-        if (!me.defaultDesktop.loaded) {
+        if (desktopName == 'Default' && !me.defaultDesktop.loaded) {
           me.defaultDesktop.doNotCreateDesktop = true;
           var cbFunc = function() {
             var node = me.defaultDesktop.findChild('text', stateName);
@@ -1637,6 +1661,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             expandable : false,
             application : appClassName,
             stateToLoad : stateName,
+            desktop : desktopName,
             type : 'app',
             leaf : true,
             iconCls : 'icon-state-applications-class',
@@ -1665,10 +1690,10 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
 
       },
-      removeApplicationFromDesktop : function(desktopName, appName){
+      removeApplicationFromDesktop : function(desktopName, appName) {
         var me = this;
         var node = me.myDesktop.findChild("text", desktopName);
-        if(node){
+        if (node) {
           var deleteNode = node.findChild("text", appName);
           node.removeChild(deleteNode);
         }

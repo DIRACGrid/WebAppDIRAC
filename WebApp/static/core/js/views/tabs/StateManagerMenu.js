@@ -13,7 +13,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagerMenu', {
               items : [{
                     text : "New Desktop",
                     iconCls : "dirac-icon-new-folder",
-                    handler : function(){
+                    handler : function() {
                       GLOBAL.APP.MAIN_VIEW.createNewDesktop();
                     }
                   }, {
@@ -52,6 +52,12 @@ Ext.define('Ext.dirac.views.tabs.StateManagerMenu', {
                       GLOBAL.APP.MAIN_VIEW.deleteApplicationStates();
                     }
                   }]
+            }
+          }, '-', {
+            text : 'State Loader',
+            iconCls : 'dirac-icon-state',
+            handler : function() {
+              GLOBAL.APP.MAIN_VIEW.SM.formStateLoader(GLOBAL.APP.MAIN_VIEW.cbAfterLoadSharedState, GLOBAL.APP.MAIN_VIEW.cbAfterSaveSharedState);
             }
           }]
     });

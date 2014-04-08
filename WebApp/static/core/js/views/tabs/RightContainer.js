@@ -524,11 +524,17 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
        * Function called when the Save button from the desktop context menu is
        * clicked
        */
-      oprSaveDesktopState : function() {
+      oprSaveDesktopState : function(desktopName) {
 
         var me = this;
         me.hasClose = close;
-        var desktop = me.getApplicationContainer().getActiveTab();
+        var desktop = null;
+        if (desktopName){
+          desktop = me.getApplicationContainer().getPanel(desktopName);
+        }else{
+          desktop = me.getApplicationContainer().getActiveTab();  
+        }
+        
         if (desktop) {
           /*
            * Function that is executed after a state has been saved
@@ -574,11 +580,17 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
           Ext.dirac.system_info.msg("Notification", 'No desktop found!');
         }
       },
-      oprSaveAsDesktopState : function() {
+      oprSaveAsDesktopState : function(desktopName) {
 
         var me = this;
         me.hasClose = close;
-        var desktop = me.getApplicationContainer().getActiveTab();
+        var desktop = null;
+        if (desktopName){
+          desktop = me.getApplicationContainer().getPanel(desktopName);
+        }else{
+          desktop = me.getApplicationContainer().getActiveTab();  
+        }
+        
         if (desktop) {
           /*
            * Function that is executed after a state has been saved

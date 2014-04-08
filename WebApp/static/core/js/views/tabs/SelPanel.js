@@ -56,7 +56,11 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                   var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop(); // do
                   // not refresh the tree node if we
                   // have an active tab open
-                  if (activeDesktop && activeDesktop.title == node.data.text && node.data.text != 'Default')
+
+                  var forceLoad = (activeDesktop && node.childNodes.length - 1 != activeDesktop.items.length); //we load the states when the number of applications in the desktop is not equal 
+                  //to the applications which are in the menu...
+
+                  if (!forceLoad && activeDesktop && activeDesktop.title == node.data.text && node.data.text != 'Default')
                     return;
 
                   if (node.loaded && node.data.text == 'Default')
@@ -224,7 +228,9 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     } else {
                       cbSetActiveTab = function(oTab) {
                         oTab.loadData();
-                        GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
+                        if (activeDesktop) {
+                          GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
+                        }
                         GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
                       };
                     }
