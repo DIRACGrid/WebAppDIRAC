@@ -49,10 +49,10 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       listeners : {
         afterrender : function() {
           var me = this;
-          if (me.loadRightContainer.iCode != -4) {
+          /*if (me.loadRightContainer.iCode != -4) {
             me.loadRightContainer.show();
             me.loadlefttContainer.show();
-          }
+          }*/
         }
       },
       constructor : function(config) {
@@ -99,16 +99,13 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       afterRender : function() {
         var me = this;
-        Ext.get("app-dirac-loading").show();
         me.callParent();
-        var cbAfterLoaded = function(iCode, stateName) {
-          me.__oprLoadUrlState();
-          Ext.get("app-dirac-loading").hide();
-          me.loadlefttContainer.hide();
-        };
-        // load the state of the desktop described in the URL after the shared
-        // desktops loaded to the cache.
-        GLOBAL.APP.SM.oprReadSharedDesktops("desktop", cbAfterLoaded);
+
+        me.__oprLoadUrlState();
+        Ext.get("app-dirac-loading").hide();
+        me.loadlefttContainer.show();
+        me.loadRightContainer.show();
+
       },
       /**
        * @private Method called to load the state of the desktop described in
@@ -389,11 +386,15 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
 
         var oFunc = function(iCode, sAppName) {
+          me.loadRightContainer.hide();
+          me.loadlefttContainer.hide();
           me.createDesktopTree(rootNode);
         };
 
-        if (GLOBAL.STATE_MANAGEMENT_ENABLED)
+        if (GLOBAL.STATE_MANAGEMENT_ENABLED) {
           GLOBAL.APP.SM.oprReadApplicationStatesAndReferences("desktop", oFunc);// OK
+        }
+
         return rootNode;
       },
       __getAppRecursivelyFromConfig : function(item, rootNode) {
@@ -1144,11 +1145,13 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   'text' : stateName,
                   expandable : false,
                   application : stateName,
+                  isShared : true,
                   allowDrag : false,
                   allowDrop : false,
                   type : 'tabView',
                   leaf : true,
-                  iconCls : 'icon-applications-states-all-default'
+                  iconCls : 'icon-applications-states-all-default',
+                  qtip:stateName
                 });
           } catch (err) {
             Ext.log({
@@ -1252,7 +1255,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         for (var i = 0; i < oDesktop.data.length; i++) {
           try {
             var appName = oDesktop.data[i].module.split(".");
-            var qtip = appName[appName.length-1] + "<br>State Name: " + oDesktop.data[i].currentState;
+            var qtip = appName[appName.length - 1] + "<br>State Name: " + oDesktop.data[i].currentState;
             nodeObj = {
               'text' : oDesktop.data[i].currentState,
               expandable : false,
@@ -1437,11 +1440,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
             var appStateData = oDataReceived["data"][i];
             var loadedObjectType = ((!appStateData.loadedObjectType) ? "app" : appStateData.loadedObjectType); // TODO
-            // We
-            // can
-            // remove
-            // it
-            // later.
+            // We can remove it later.
             var name = appStateData.module
 
             if (name)
@@ -1463,11 +1462,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         var oDataItems = sLink.split("|");
 
-        if (oDataItems[0] != "desktop") {
-          GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows("reference", sLinkName, oDataItems[0]);
-        } else {
-          me.addDesktopReference(sLinkName);
-        }
+        me.addToSharedDesktop(sLinkName);
 
       },
       oprLoadDesktopState : function(sStateName) {
