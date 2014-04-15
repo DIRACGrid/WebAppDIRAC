@@ -39,6 +39,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
       _state_related_url : [],
 
+      _default_desktop_state : [],
+
       /**
        * It contains the applications which can be deleted after save
        * 
@@ -49,10 +51,10 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       listeners : {
         afterrender : function() {
           var me = this;
-          /*if (me.loadRightContainer.iCode != -4) {
-            me.loadRightContainer.show();
-            me.loadlefttContainer.show();
-          }*/
+          /*
+           * if (me.loadRightContainer.iCode != -4) {
+           * me.loadRightContainer.show(); me.loadlefttContainer.show(); }
+           */
         }
       },
       constructor : function(config) {
@@ -103,7 +105,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         me.__oprLoadUrlState();
         Ext.get("app-dirac-loading").hide();
-        me.loadlefttContainer.show();
+        me.loadlefttContainer.show(); // TODO Remove this comment!!!
         me.loadRightContainer.show();
 
       },
@@ -214,7 +216,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       readLayoutFromStates : function(oDesktop, cbFunction) {
         var me = this;
         var oStateData = null;
-        for (var i = 0; i < oDesktop.length; i++) {
+        var defaultdesktop = oDesktop[0].split("*");
+        if (defaultdesktop.length > 1) {
+//TODO LOAD applications to the default desktop....
+        }
+        for (var i = 1; i < oDesktop.length; i++) {
           var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", "desktop", oDesktop[i]);
 
           switch (iStateLoaded) {
@@ -694,7 +700,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                 appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
 
-                // GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+                GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                 if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                   GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
@@ -738,7 +744,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                 appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
 
-                // GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+                GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                 if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                   GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
@@ -1151,7 +1157,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   type : 'tabView',
                   leaf : true,
                   iconCls : 'icon-applications-states-all-default',
-                  qtip:stateName
+                  qtip : stateName
                 });
           } catch (err) {
             Ext.log({
@@ -1362,7 +1368,17 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         if (GLOBAL.WEB_THEME == "ext-all")
           sThemeText = "Classic";
 
-        var sState_related_url = "&url_state=1|";
+        var url_prefix = "&url_state=1|";
+        var sState_related_url = "";
+        var default_State_url = "";
+
+        if (me._default_desktop_state.length > 0) {
+          default_State_url += "*" + me._default_desktop_state[0];
+          for (var i = 1; i < me._default_desktop_state.length; i++) {
+            default_State_url += '*' + me._default_desktop_state[i];
+          }
+        }
+
         if (me._state_related_url.length > 0) {
           sState_related_url += me._state_related_url[0];
           for (var i = 1; i < me._state_related_url.length; i++) {
@@ -1371,18 +1387,43 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
 
         if (me.currentState != "") {
-          // if there is an active desktop state
-          if (!Ext.Array.contains(me._state_related_url, me.currentState)) {
-            if (me._state_related_url.length > 0) {
-              sState_related_url += "," + me.currentState;
+          var stateName = "";
+          if (me.currentState != "Default") {
+            stateName = me.currentState;
+          } else {
+            var applications = me.getActiveDesktop(); // TODO ITT VAGYOK!!!
+            var activeDesktop = applications.getActiveTab();
+            if (activeDesktop) {
+              var defaultDesktopStateName = activeDesktop.getUrlDescription();
+
+              // if there is an active desktop state
+              if (!Ext.Array.contains(me._default_desktop_state, defaultDesktopStateName)) {
+                if (me._default_desktop_state.length > 0) {
+                  default_State_url += "*" + defaultDesktopStateName;
+                } else {
+                  default_State_url += defaultDesktopStateName;
+                }
+                me._default_desktop_state.push(defaultDesktopStateName);
+              }
             } else {
-              sState_related_url += me.currentState;
+              default_State_url += "*";
             }
-            me._state_related_url.push(me.currentState);
+
+          }
+
+          // if there is an active desktop state
+          if (!Ext.Array.contains(me._state_related_url, stateName)) {
+            if (me._state_related_url.length > 0) {
+              sState_related_url += "," + stateName;
+            } else {
+              sState_related_url += stateName;
+            }
+            me._state_related_url.push(stateName);
           }
         }
 
-        sNewUrlState = "?view=" + GLOBAL.VIEW_ID + "&theme=" + sThemeText + sState_related_url;
+        sNewUrlState = "?view=" + GLOBAL.VIEW_ID + "&theme=" + sThemeText + url_prefix + default_State_url + sState_related_url;
+
         var oHref = location.href;
         var oQPosition = oHref.indexOf("?");
 

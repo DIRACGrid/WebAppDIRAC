@@ -363,7 +363,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                                     GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                                     me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
 
-                                    // GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+                                    GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                                     if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                                       GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
@@ -494,6 +494,9 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         }
         if (cbLoadDesktop) {
           cbLoadDesktop(name, tab);
+        }
+        if(name == 'Default'){
+          GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
         }
       },
       /**

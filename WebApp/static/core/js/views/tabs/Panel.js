@@ -50,7 +50,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                       GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                       me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
 
-                      // GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+                      GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                       if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                         GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
@@ -149,7 +149,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           else if (me.loadedObjectType == "link")
             me.setPropertiesWhenLink(me.setupData);
 
-          // GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+          GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
           me.oneTimeAfterShow = true;
         }
@@ -250,7 +250,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           me.loadedObject.currentState = stateName;
 
           GLOBAL.APP.SM.oprAddActiveState(me.appClassName, stateName);// OK
-          // GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+          GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
           me.setTitle(me.loadedObject.launcher.title + " [" + stateName + "]");
           me.loadMask.hide();
@@ -261,7 +261,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
       },
       /**
        * Function to close all child windows
-       *
+       * 
        */
       closeAllChildWindows : function() {
 
@@ -274,7 +274,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
       /**
        * Function to load module state with data from the cache
-       *
+       * 
        * @param {String}
        *          stateName The name of the state
        */
@@ -295,6 +295,23 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
         me.childWindows.push(oWindow);
 
         return oWindow;
+
+      },
+      /**
+       * Function to get the data describing the state of the window at the
+       * desktop area
+       */
+      getUrlDescription : function() {
+
+        var me = this;
+
+        if (me.loadedObjectType == "link")
+          return "";
+
+        var urlState = me.loadedObject.self.getName() + ":";
+        urlState += me.currentState;
+        
+        return urlState;
 
       }
     });
