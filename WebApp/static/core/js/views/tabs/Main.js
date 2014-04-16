@@ -235,39 +235,41 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       readLayoutFromStates : function(oDesktop, cbFunction) {
         var me = this;
         var oStateData = null;
-        for (var i = 0; i < oDesktop.length; i++) {
-          var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", "desktop", oDesktop[i]);
+        for (var i = 0; i < oDesktop.length; i++) { //do not create an empty desktop...
+          if (oDesktop[i] != "") {
+            var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", "desktop", oDesktop[i]);
 
-          switch (iStateLoaded) {
-            case -1 :
-              GLOBAL.APP.CF.alert("The " + oDesktop[i] + " state does not exist !", "warning");
-              Ext.Array.remove(oDesktop, oDesktop[i]);
-              me.readLayoutFromStates(oDesktop, cbFunction);
-              me.loadRightContainer.hide();
+            switch (iStateLoaded) {
+              case -1 :
+                GLOBAL.APP.CF.alert("The " + oDesktop[i] + " state does not exist !", "warning");
+                Ext.Array.remove(oDesktop, oDesktop[i]);
+                me.readLayoutFromStates(oDesktop, cbFunction);
+                me.loadRightContainer.hide();
+                break;
+              return;
+            case -2 :
+              me.funcPostponedLoading = function() {
+
+                me.readLayoutFromStates(oDesktop, cbFunction);
+
+              }
+
+              setTimeout(me.funcPostponedLoading, 1000);
+              return;
               break;
-            return;
-          case -2 :
-            me.funcPostponedLoading = function() {
+          }
+          oStateData = GLOBAL.APP.SM.getStateData("application", "desktop", oDesktop[i]);
+          var view = (oStateData.view ? oStateData.view : 'tabView');
+          if (i == oDesktop.length - 1) {
+            GLOBAL.APP.MAIN_VIEW.createDesktopTab(oDesktop[i], view, cbFunction);
+          } else {
+            GLOBAL.APP.MAIN_VIEW.createDesktopTab(oDesktop[i], view);
+          }
+          if (!Ext.Array.contains(me._state_related_url, oDesktop[i])) {
+            me._state_related_url.push(oDesktop[i]);
+          }
 
-              me.readLayoutFromStates(oDesktop, cbFunction);
-
-            }
-
-            setTimeout(me.funcPostponedLoading, 1000);
-            return;
-            break;
         }
-        oStateData = GLOBAL.APP.SM.getStateData("application", "desktop", oDesktop[i]);
-        var view = (oStateData.view ? oStateData.view : 'tabView');
-        if (i == oDesktop.length - 1) {
-          GLOBAL.APP.MAIN_VIEW.createDesktopTab(oDesktop[i], view, cbFunction);
-        } else {
-          GLOBAL.APP.MAIN_VIEW.createDesktopTab(oDesktop[i], view);
-        }
-        if (!Ext.Array.contains(me._state_related_url, oDesktop[i])) {
-          me._state_related_url.push(oDesktop[i]);
-        }
-
       }
 
       },
@@ -1452,21 +1454,25 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           } else {
             var applications = me.getActiveDesktop();
             var activeDesktop = applications.getActiveTab();
+            if (!activeDesktop) {
+              activeDesktop = applications.items.getAt(0); // we have only one
+                                                            // application in
+                                                            // the desktop
+            }
             if (activeDesktop) {
               var defaultDesktopStateName = activeDesktop.getUrlDescription();
 
               // if there is an active desktop state
               if (!Ext.Array.contains(me._default_desktop_state, defaultDesktopStateName)) {
-                if (me._default_desktop_state.length > 0) {
-                  default_State_url += "*" + defaultDesktopStateName;
-                } else {
-                  default_State_url += defaultDesktopStateName;
-                }
+
+                default_State_url += "*" + defaultDesktopStateName;
+
                 me._default_desktop_state.push(defaultDesktopStateName);
               }
             } else {
-              //If we have already opened application on the default desktop, we must not add the default desktop to the url
-              default_State_url += me._default_desktop_state.length<1?"**,":"";
+              // If we have already opened application on the default desktop,
+              // we must not add the default desktop to the url
+              default_State_url += me._default_desktop_state.length < 1 ? "**," : "";
             }
 
           }
