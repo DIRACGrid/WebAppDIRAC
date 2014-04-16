@@ -83,7 +83,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                 }, me);
           }
         }
-        ,
+        
       },
       /*************************************************************************
        * It removes the application from the container (view) when it is not

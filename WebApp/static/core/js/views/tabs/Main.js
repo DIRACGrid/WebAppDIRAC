@@ -184,17 +184,36 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             // order to not load the applications.
             var afterTabCreated = function(name, tab) {
               me.getLeftContainer().setActiveMenu('menuPanel');
-              GLOBAL.APP.MAIN_VIEW.loadDesktopStateData(name, tab);
+              GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(name, tab);// , tab);
+              // //TODO make
+              // sure the
+              // applications
+              // are loaded
+              // to the
+              // correct
+              // tab!
               tab.isLoaded = true;
               me.loading = false;
             };
 
             var oDesktop = oParts[1].split(',');
+            var dsktops = [];
             if (oDesktop.length > 0) {
-              me.readLayoutFromStates(oDesktop, afterTabCreated);
-            } else {
-              me.loadRightContainer.hide();
+
+              var defaultdesktop = oDesktop[0].split("*");
+              if (defaultdesktop.length > 1) {
+                // TODO LOAD applications to the default desktop....
+                me.loadDefaultdesktop(defaultdesktop);
+                Ext.Array.erase(oDesktop, 0, 1);
+              }
+
+              if (oDesktop.length > 0) {
+                me.readLayoutFromStates(oDesktop, afterTabCreated);
+              } else {
+                me.loadRightContainer.hide();
+              }
             }
+
             me.refreshUrlDesktopState();
           }
         } else {
@@ -216,11 +235,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       readLayoutFromStates : function(oDesktop, cbFunction) {
         var me = this;
         var oStateData = null;
-        var defaultdesktop = oDesktop[0].split("*");
-        if (defaultdesktop.length > 1) {
-//TODO LOAD applications to the default desktop....
-        }
-        for (var i = 1; i < oDesktop.length; i++) {
+        for (var i = 0; i < oDesktop.length; i++) {
           var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", "desktop", oDesktop[i]);
 
           switch (iStateLoaded) {
@@ -254,6 +269,50 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
 
       }
+
+      },
+      loadDefaultdesktop : function(applications) {
+        var me = this;
+        var afterDefaultTabCreated = function(name, tab) {
+          var setupData = {};
+          for (var i = 0; i < applications.length; i++) {
+            if (applications[i] != "") {
+              var application = applications[i].split(":");
+
+              if (Ext.util.Format.trim(application[1]) != "")
+                setupData[application[0]] = application[1];
+
+              var isStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", application[1], "|");// OK
+
+              if (isStateLoaded == -2) {
+
+                /*
+                 * if the application cache does not exist
+                 */
+
+                var oFunc = function(success, appName) {
+
+                  if (success == 1) {
+                    var loadState = {
+                      stateToLoad : setupData[appName]
+                    };
+                    me.createWindow("app", appName, loadState, tab);
+                  }
+
+                }
+
+                if (GLOBAL.STATE_MANAGEMENT_ENABLED)
+                  GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(application[0], oFunc);
+
+              }
+
+              if (!Ext.Array.contains(me._default_desktop_state, application[0])) {
+                me._default_desktop_state.push(applications[i]);
+              }
+            }
+          }
+        };
+        GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", me.view, afterDefaultTabCreated);
 
       },
       getStateData : function() {
@@ -1406,13 +1465,13 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 me._default_desktop_state.push(defaultDesktopStateName);
               }
             } else {
-              default_State_url += "*";
+              default_State_url += "**,";
             }
 
           }
 
           // if there is an active desktop state
-          if (!Ext.Array.contains(me._state_related_url, stateName)) {
+          if (stateName != "" && !Ext.Array.contains(me._state_related_url, stateName)) {
             if (me._state_related_url.length > 0) {
               sState_related_url += "," + stateName;
             } else {
@@ -1422,7 +1481,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
         }
 
-        sNewUrlState = "?view=" + GLOBAL.VIEW_ID + "&theme=" + sThemeText + url_prefix + default_State_url + sState_related_url;
+        if (me._default_desktop_state.length > 0) {
+          sNewUrlState = "?view=" + GLOBAL.VIEW_ID + "&theme=" + sThemeText + url_prefix + default_State_url + "," + sState_related_url;
+        } else {
+          sNewUrlState = "?view=" + GLOBAL.VIEW_ID + "&theme=" + sThemeText + url_prefix + default_State_url + sState_related_url;
+        }
 
         var oHref = location.href;
         var oQPosition = oHref.indexOf("?");
@@ -1506,12 +1569,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.addToSharedDesktop(sLinkName);
 
       },
-      oprLoadDesktopState : function(sStateName) {
+      oprLoadDesktopState : function(sStateName, tab) {
         var me = this;
-        me.__loadDesktopStateData(sStateName);
+        me.__loadDesktopStateData(sStateName, tab);
 
       },
-      __loadDesktopStateData : function(sStateName) {
+      __loadDesktopStateData : function(sStateName, tab) {
 
         var me = this;
 
@@ -1525,7 +1588,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           case -2 :
             me.funcPostponedLoading = function() {
 
-              me.__loadDesktopStateData(sStateName);
+              me.__loadDesktopStateData(sStateName, tab);
 
             }
 
@@ -1534,7 +1597,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             break;
         }
 
-        me.loadState(GLOBAL.APP.SM.getStateData("application", "desktop", sStateName));
+        me.loadState(GLOBAL.APP.SM.getStateData("application", "desktop", sStateName), tab);
 
         if (me.currentState != "")
           GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);// OK

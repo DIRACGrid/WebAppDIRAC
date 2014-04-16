@@ -76,7 +76,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         GLOBAL.APP.MAIN_VIEW.currentState = newCard.title; // as we work more than one desktop, we need to set the current state each time when a tab has changed.
         // newCard.loadMask.show();
         if (!GLOBAL.APP.MAIN_VIEW.loading && !newCard.isLoaded && newCard.title != 'Default') {
-          GLOBAL.APP.MAIN_VIEW.loadDesktopStateData(newCard.title, newCard);
+          GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(newCard.title, newCard);
           newCard.isLoaded = true;
         }
       } else {// it is an application
