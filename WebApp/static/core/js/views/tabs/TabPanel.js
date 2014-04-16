@@ -63,6 +63,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
     'close' : function() {
       var me = this;
       Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, me.title); // we have to remove the desktop from the list.
+      if (me.title == 'Default'){
+        GLOBAL.APP.MAIN_VIEW._default_desktop_state = []; //we closed the default desktop!
+      }
       GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.title); // We have to remove the desktop state from the  list.
       GLOBAL.APP.MAIN_VIEW.currentState = ""; // the current state has to be
       // null;

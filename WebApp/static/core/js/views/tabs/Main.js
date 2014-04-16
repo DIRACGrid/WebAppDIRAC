@@ -1450,7 +1450,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           if (me.currentState != "Default") {
             stateName = me.currentState;
           } else {
-            var applications = me.getActiveDesktop(); // TODO ITT VAGYOK!!!
+            var applications = me.getActiveDesktop();
             var activeDesktop = applications.getActiveTab();
             if (activeDesktop) {
               var defaultDesktopStateName = activeDesktop.getUrlDescription();
@@ -1465,7 +1465,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 me._default_desktop_state.push(defaultDesktopStateName);
               }
             } else {
-              default_State_url += "**,";
+              //If we have already opened application on the default desktop, we must not add the default desktop to the url
+              default_State_url += me._default_desktop_state.length<1?"**,":"";
             }
 
           }

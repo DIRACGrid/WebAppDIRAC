@@ -50,7 +50,9 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                       GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                       me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
 
-                      GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+                      Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, me.getUrlDescription());
+
+                      //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                       if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                         GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
@@ -60,6 +62,8 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                   GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave);
 
                 } else {
+                  Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, me.getUrlDescription());
+
                   panel.removeAndclose(panel); // generate a close event again.
                 }
               }, me);
@@ -83,7 +87,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                 }, me);
           }
         }
-        
+
       },
       /*************************************************************************
        * It removes the application from the container (view) when it is not
@@ -103,6 +107,9 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
             activeTab.remove(panel);
           }
         }
+
+        GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+
       },
       initComponent : function() {
         var me = this;
@@ -310,7 +317,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
         var urlState = me.loadedObject.self.getName() + ":";
         urlState += me.currentState;
-        
+
         return urlState;
 
       }
