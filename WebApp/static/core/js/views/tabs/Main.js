@@ -281,8 +281,14 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             if (applications[i] != "") {
               var application = applications[i].split(":");
 
-              if (Ext.util.Format.trim(application[1]) != "")
-                setupData[application[0]] = application[1];
+              if (Ext.util.Format.trim(application[1]) != "") { //store the state of the applications
+                if (application[0] in setupData) {
+                  setupData[application[0]].push(application[1]);
+                } else {
+                  setupData[application[0]] = [];
+                  setupData[application[0]].push(application[1]);
+                }
+              }
 
               var isStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", application[1], "|");// OK
 
@@ -296,8 +302,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
                   if (success == 1) {
                     var loadState = {
-                      stateToLoad : setupData[appName]
+                      stateToLoad : ""
                     };
+                    if (appName in setupData) {
+                      loadState.stateToLoad = setupData[appName].pop();
+                    }
                     me.createWindow("app", appName, loadState, tab);
                   }
 
@@ -764,8 +773,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
                 if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                   GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-                
-                Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl); 
+
+                Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl);
                 me.refreshUrlDesktopState();
               }
 
@@ -796,7 +805,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
 
               if ((iCode == 1) && (appl.currentState != sStateName)) {
-                
+
                 var oldApplicationUrl = appl.getUrlDescription();
                 GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
 
@@ -808,10 +817,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                 appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
 
-
                 if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                   GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-                Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl); 
+                Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl);
 
                 me.refreshUrlDesktopState();
               }
@@ -1461,8 +1469,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             var activeDesktop = applications.getActiveTab();
             if (!activeDesktop) {
               activeDesktop = applications.items.getAt(0); // we have only one
-                                                            // application in
-                                                            // the desktop
+              // application in
+              // the desktop
             }
             if (activeDesktop) {
               var defaultDesktopStateName = activeDesktop.getUrlDescription();
