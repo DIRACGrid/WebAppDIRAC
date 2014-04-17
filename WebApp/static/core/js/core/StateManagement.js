@@ -601,7 +601,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 *          on failure of the request for retrieving the shared state data.
 	 *
 	 */
-	oprLoadSharedState : function(sLinkDescription, cbAfterLoadSharedState, stateName = "") {
+	oprLoadSharedState : function(sLinkDescription, cbAfterLoadSharedState, stateName) {
 
 		var me = this;
 
@@ -836,7 +836,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
    * @param {Function} cbAfterShare
    * @param {String} access
    */
-  __changeAccess : function(sAppName, sStateName, cbAfterShare, access = "USER"){
+  __changeAccess : function(sAppName, sStateName, cbAfterShare, access){
     var me = this;
 
     Ext.Ajax.request({
