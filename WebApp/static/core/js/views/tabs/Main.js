@@ -281,7 +281,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             if (applications[i] != "") {
               var application = applications[i].split(":");
 
-              if (Ext.util.Format.trim(application[1]) != "") { //store the state of the applications
+              if (application.length > 1 && Ext.util.Format.trim(application[1]) != "") { //store the state of the applications
                 if (application[0] in setupData) {
                   setupData[application[0]].push(application[1]);
                 } else {
@@ -1050,6 +1050,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           var desktopName = activeDesktop.title;
           activeDesktop.setTitle(name);
           if (desktopName == 'Default') { // if the current desktop is the
+            //remove the applications from the default desktop
+            me._default_desktop_state = [];
             // default, we have to remove the
             // items from the Default desktop.
             // and we have to create a new item(desktop).
@@ -1654,7 +1656,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       moveDesktopmMnuItem : function(desktop, item) {
         var me = this;
-        if (item.data.text != "Default") { // do not move the default node
+        if (item && item.data.text != "Default") { // do not move the default node
 
           var node = me.myDesktop.findChild('text', desktop);
           if (node) {
