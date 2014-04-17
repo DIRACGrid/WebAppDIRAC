@@ -18,16 +18,19 @@ Ext.define('Ext.dirac.views.tabs.StateManagerMenu', {
                     }
                   }, {
                     text : 'Save',
+                    iconCls : "dirac-icon-save",
                     handler : function() {
                       GLOBAL.APP.MAIN_VIEW.saveActiveDesktopState();
                     }
                   }, {
                     text : 'Save As',
+                    iconCls : "dirac-icon-save",
                     handler : function() {
                       GLOBAL.APP.MAIN_VIEW.saveAsActiveDesktopState();
                     }
                   }, {
                     text : 'Delete',
+                    iconCls : "dirac-icon-delete",
                     handler : function() {
                       GLOBAL.APP.MAIN_VIEW.deleteDesktopStates();
                     }
@@ -38,16 +41,19 @@ Ext.define('Ext.dirac.views.tabs.StateManagerMenu', {
             menu : {
               items : [{
                     text : 'Save',
+                    iconCls : "dirac-icon-save",
                     handler : function() {
                       GLOBAL.APP.MAIN_VIEW.saveActiveApplicationState();
                     }
                   }, {
                     text : 'Save As',
+                    iconCls : "dirac-icon-save",
                     handler : function() {
                       GLOBAL.APP.MAIN_VIEW.saveAsActiveApplicationState();
                     }
                   }, {
                     text : 'Delete',
+                    iconCls : "dirac-icon-delete",
                     handler : function() {
                       GLOBAL.APP.MAIN_VIEW.deleteApplicationStates();
                     }

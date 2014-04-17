@@ -751,6 +751,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
               if ((iCode == 1) && (appl.currentState != sStateName)) {
 
+                var oldApplicationUrl = appl.getUrlDescription();
                 GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
 
                 if (appl.currentState != "")
@@ -761,10 +762,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                 appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
 
-                GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
-
                 if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                   GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+                
+                Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl); 
+                me.refreshUrlDesktopState();
               }
 
             };
@@ -794,7 +796,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
 
               if ((iCode == 1) && (appl.currentState != sStateName)) {
-
+                
+                var oldApplicationUrl = appl.getUrlDescription();
                 GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
 
                 if (appl.currentState != "")
@@ -805,10 +808,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                 appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
 
-                GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                 if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                   GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+                Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl); 
+
+                me.refreshUrlDesktopState();
               }
 
             };

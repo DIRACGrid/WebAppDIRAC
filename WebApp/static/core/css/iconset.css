@@ -208,4 +208,19 @@
 	
 }
 
+.dirac-icon-tab-theme{
+	
+	background-image: url(../img/icons/common/tabTheme.png) !important;
+	background-color: transparent;
+	
+}
+
+.dirac-icon-presenter-theme{
+	
+	background-image: url(../img/icons/common/presenterTheme.png) !important;
+	background-color: transparent;
+	
+}
+
+
 

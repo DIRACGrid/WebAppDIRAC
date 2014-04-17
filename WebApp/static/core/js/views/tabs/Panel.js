@@ -36,6 +36,8 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           Ext.MessageBox.confirm('Confirm', 'There is an active application state. Do you want to save the current state?', function(button) {
                 var me = this;
                 if (button == 'yes') {
+                  
+                  Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, me.getUrlDescription()); 
                   var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
 
                     if ((iCode == 1) && (me.currentState != sStateName)) {
@@ -49,9 +51,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                       me.currentState = sStateName;
                       GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                       me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
-
-                      Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, me.getUrlDescription());
-
+                    
                       //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                       if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)

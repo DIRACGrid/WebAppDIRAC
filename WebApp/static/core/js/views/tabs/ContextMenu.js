@@ -72,6 +72,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     scope : me,
                     value : 2,
                     view : 'presenterView',
+                    iconCls :"dirac-icon-presenter-theme",
                     disabled : true,
                     handler : function() {
                       var me = this;
@@ -118,6 +119,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     disabled : true,
                     value : 3,
                     view : 'tabView',
+                    iconCls :"dirac-icon-tab-theme",
                     handler : function() {
                       var me = this;
                       me.oSelectedMenuItem.data.view = 'tabView';
@@ -158,6 +160,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                   }, {
                     text : 'Save',
                     value : 4,
+                    iconCls : "dirac-icon-save",
                     handler : function() {
                       if (me.oSelectedMenuItem.data.type == "app") {//the selected menu item is an application
 
@@ -175,10 +178,11 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     }
                   }, {
                     text : 'Save As',
+                    iconCls : "dirac-icon-save",
                     value : 5,
                     handler : function() {
                       if (me.oSelectedMenuItem.data.type == "app") {//the selected menu item is an application
-                      
+
                         GLOBAL.APP.MAIN_VIEW.SM.saveAsState(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(desktop, stateType, stateName) {
                               Ext.dirac.system_info.msg("Notification", stateName + ' is saved!');
                               GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
@@ -191,6 +195,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     }
                   }, {
                     text : 'Delete',
+                    iconCls : "dirac-icon-delete",
                     value : 6,
                     handler : function() {
                       if (me.oSelectedMenuItem.data.type == "app") {//the selected menu item is an application
