@@ -179,12 +179,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
 
           if (parseInt(oParts[0], 10) == 1) {
+            me.getLeftContainer().setActiveMenu('menuPanel');
             // desktop state
             me.loading = true; // it is only used by the tabchange event in
             // order to not load the applications.
             var afterTabCreated = function(name, tab) {
-              me.getLeftContainer().setActiveMenu('menuPanel');
-              GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(name, tab);// , tab);
+              GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(name, tab);
               // //TODO make
               // sure the
               // applications
