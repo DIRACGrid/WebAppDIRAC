@@ -107,9 +107,10 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         me.__oprLoadUrlState();
         Ext.get("app-dirac-loading").hide();
-        //if (me.loadleftContainer)
-        me.loadRightContainer.show();
-        me.loadleftContainer.show(); // TODO Remove this comment!!!
+        if (me.loadleftContainern && me.loadRightContainer){
+          me.loadRightContainer.show();
+          me.loadleftContainer.show(); // TODO Remove this comment!!!  
+        }
 
       },
       /**
