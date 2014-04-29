@@ -53,7 +53,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           var me = this;
           /*
            * if (me.loadRightContainer.iCode != -4) {
-           * me.loadRightContainer.show(); me.loadlefttContainer.show(); }
+           * me.loadRightContainer.show(); me.loadleftContainer.show(); }
            */
         }
       },
@@ -71,11 +71,13 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               msg : "Loading ...",
               iCode : 1
             });
+
         var menu = me.createTreeMenu();
+
         me.leftConatiner = Ext.create('Ext.dirac.views.tabs.LeftContainer', {
               menu : menu
             });
-        me.loadlefttContainer = new Ext.LoadMask(me.leftConatiner, {
+        me.loadleftContainer = new Ext.LoadMask(me.leftConatiner, {
               msg : "Loading ...",
               iCode : 1
             });
@@ -105,8 +107,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         me.__oprLoadUrlState();
         Ext.get("app-dirac-loading").hide();
-        me.loadlefttContainer.show(); // TODO Remove this comment!!!
+        //if (me.loadleftContainer)
         me.loadRightContainer.show();
+        me.loadleftContainer.show(); // TODO Remove this comment!!!
 
       },
       /**
@@ -150,7 +153,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
            */
           if (parseInt(oParts[0], 10) == 0) {
             GLOBAL.APP.CF.alert('Tab theme can not load applications from URL', "error");
-            me.loadlefttContainer.hide();
+            me.loadleftContainer.hide();
             me.loadRightContainer.hide();
             return;
           }
@@ -463,7 +466,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         var oFunc = function(iCode, sAppName) {
           me.loadRightContainer.hide();
-          me.loadlefttContainer.hide();
+          me.loadleftContainer.hide();
           me.createDesktopTree(rootNode);
         };
 
@@ -1369,7 +1372,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       },
       __addSharedDesktopStatesToDesktop : function(rootNode) {
         var me = this;
-        me.loadlefttContainer.show();
+        me.loadleftContainer.show();
         var sStateName = rootNode.getData().text;
         var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", "desktop", sStateName);
         switch (iStateLoaded) {
@@ -1425,7 +1428,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             Ext.dirac.system_info.msg("Error", '"Failed to create desktop!!!');
           }
         }
-        me.loadlefttContainer.hide();
+        me.loadleftContainer.hide();
       },
       /**
        * Function to refresh the state of the desktop working area in the URL
