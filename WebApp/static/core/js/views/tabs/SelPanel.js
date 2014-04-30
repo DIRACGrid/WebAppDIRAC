@@ -58,20 +58,20 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                   // have an active tab open
 
                   var forceLoad = (activeDesktop && node.childNodes.length - 1 != activeDesktop.items.length); // we
-                                                                                                                // load
-                                                                                                                // the
-                                                                                                                // states
-                                                                                                                // when
-                                                                                                                // the
-                                                                                                                // number
-                                                                                                                // of
-                                                                                                                // applications
-                                                                                                                // in
-                                                                                                                // the
-                                                                                                                // desktop
-                                                                                                                // is
-                                                                                                                // not
-                                                                                                                // equal
+                  // load
+                  // the
+                  // states
+                  // when
+                  // the
+                  // number
+                  // of
+                  // applications
+                  // in
+                  // the
+                  // desktop
+                  // is
+                  // not
+                  // equal
                   // to the applications which are in the menu...
 
                   if (!forceLoad && activeDesktop && activeDesktop.title == node.data.text && node.data.text != 'Default')
@@ -108,7 +108,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     GLOBAL.APP.SM.createDesktop("desktop", 'Default', desktop);
 
                     if (!node.doNotCreateDesktop) {// when wo have another
-                                                    // desktop opened
+                      // desktop opened
                       GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", node.data.view);
                     }
                     var node = GLOBAL.APP.MAIN_VIEW.defaultDesktop;
@@ -192,8 +192,8 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
               listeners : {
                 itemclick : function(record, item, index, e, eOpts) {
 
-                  if ((item.data.type == "Default") || (item.data.text=="All" && item.data.application=="Default" && item.parentNode.childNodes.length < 2)) {
-                     return;
+                  if ((item.data.type == "Default") || (item.data.text == "All" && item.data.application == "Default" && item.parentNode.childNodes.length < 2)) {
+                    return;
                   }
 
                   if (item.data.type == "tabView") {

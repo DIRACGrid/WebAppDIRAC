@@ -128,6 +128,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
           }
         } else {
           var tabs = activetab.items;
+          var notLoadedApps = {};
           if (tabs) {
             var bFoundNotLoadedapps = false;
             tabs.each(function(win, value, length) {
@@ -156,6 +157,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
 
                     }
                   } else {
+                    notLoadedApps[win.setupData.name] = win.setupData.currentState;
                     bFoundNotLoadedapps = true;
                   }
                 });
@@ -164,11 +166,15 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               // the status of this applications as well. These application
               // states is retrieved from the SM.
               var desktopName = activetab.title;
-              if (desktopName) { //&& desktopName != 'Default'
+              if (desktopName) { // && desktopName != 'Default'
                 if (GLOBAL.APP.SM.isStateLoaded("application", "desktop", desktopName) > -1) {
                   var oStateData = GLOBAL.APP.SM.getStateData("application", "desktop", desktopName);
                   for (var i = 0; i < oStateData.data.length; i++) {
-                    if (!me.__isStateFound(oData, oStateData.data[i].currentState)) {
+                    if (!(oStateData.data[i].module in notLoadedApps))
+                      // a bit overcomplicated, but it works. This avoid to save
+                      // the application which is closed.
+                      continue;
+                    if (!me.__isStateFound(oData, oStateData.data[i].currentState, oStateData.data[i].module)) {
                       oData.push(oStateData.data[i]);
                     }
                   }
@@ -194,10 +200,10 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
        *          item is the state name.
        * @return {Boolean}
        */
-      __isStateFound : function(Array, item) {
+      __isStateFound : function(Array, item, module) {
         var found = false;
         for (var i = 0; i < Array.length; i++) {
-          if (Array[i].currentState == item) {
+          if (Array[i].currentState == item && Array[i].module == module) {
             found = true;
             break;
           }
@@ -495,7 +501,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         if (cbLoadDesktop) {
           cbLoadDesktop(name, tab);
         }
-        if(name == 'Default'){
+        if (name == 'Default') {
           GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
         }
       },
@@ -515,7 +521,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         var activeTab = me.getApplicationContainer().getActiveTab();
         var desktopName = activeTab.title;
         if (desktopName != 'Default') {
-          GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktopName,stateName, appName);
+          GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktopName, stateName, appName);
           GLOBAL.APP.MAIN_VIEW.addToDelete(appName, "application", stateName);
         } else {
           GLOBAL.APP.MAIN_VIEW.addToDeafultDesktop(stateName, appName);
@@ -532,12 +538,12 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         var me = this;
         me.hasClose = close;
         var desktop = null;
-        if (desktopName){
+        if (desktopName) {
           desktop = me.getApplicationContainer().getPanel(desktopName);
-        }else{
-          desktop = me.getApplicationContainer().getActiveTab();  
+        } else {
+          desktop = me.getApplicationContainer().getActiveTab();
         }
-        
+
         if (desktop) {
           /*
            * Function that is executed after a state has been saved
@@ -561,8 +567,6 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
 
                 GLOBAL.APP.MAIN_VIEW.renameCurrentDesktop(sStateName);
 
-                // GLOBAL.APP.MAIN_VIEW.refreshMyDesktop(sStateName);
-
               }
 
             }
@@ -570,6 +574,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               GLOBAL.APP.MAIN_VIEW._state_related_url.push(sStateName);
             }
             GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+            GLOBAL.APP.MAIN_VIEW.refreshMyDesktop(sStateName);
           };
 
           GLOBAL.APP.MAIN_VIEW.currentState = ((GLOBAL.APP.MAIN_VIEW.currentState == 'Default') ? "" : GLOBAL.APP.MAIN_VIEW.currentState);
@@ -588,12 +593,12 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         var me = this;
         me.hasClose = close;
         var desktop = null;
-        if (desktopName){
+        if (desktopName) {
           desktop = me.getApplicationContainer().getPanel(desktopName);
-        }else{
-          desktop = me.getApplicationContainer().getActiveTab();  
+        } else {
+          desktop = me.getApplicationContainer().getActiveTab();
         }
-        
+
         if (desktop) {
           /*
            * Function that is executed after a state has been saved
