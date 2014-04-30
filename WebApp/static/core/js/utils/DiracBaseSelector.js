@@ -331,7 +331,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var me = this;
 
         var bToReload = false;
-
+        
+        for (var field in me.textFields) {
+          me.textFields[field].setValue(data.leftMenu[field]);
+        }
+        
         if (data.leftMenu.selectors) {
           for (var i = 0; i < me.selectorMenu.items.length - 1; i++) {
 
@@ -378,10 +382,6 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             me.timeSearchPanel.hide();
         }
         // END - For the time span searching sub-panel
-
-        for (var field in me.textFields) {
-          me.textFields[field].setValue(data.leftMenu[field]);
-        }
 
         var timeSearchPanel = me.getTimeSearch();
         if (timeSearchPanel) {
