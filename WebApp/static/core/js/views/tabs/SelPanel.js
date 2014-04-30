@@ -192,31 +192,8 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
               listeners : {
                 itemclick : function(record, item, index, e, eOpts) {
 
-                  if (item.data.type == "Default") {
-                    var activeDesktop = null;
-                    var rCont = GLOBAL.APP.MAIN_VIEW.getRightContainer();
-                    var mainPanel = rCont.getApplicationContainer();
-                    var activeDesktop = mainPanel.getActiveTab();
-                    var cbSetActiveTab = null;
-                    if (activeDesktop) {
-                      cbSetActiveTab = function(oTab) {
-                        if (activeDesktop.view == 'tabView') {
-                          activeDesktop.setActiveTab(oTab);
-                        }
-                      };
-                    } else {
-                      cbSetActiveTab = function(oTab) {
-                        oTab.loadData();
-                      };
-                    }
-                    var applications = GLOBAL.APP.MAIN_VIEW.applications;
-                    for (var i = 0; i < applications.length; i++) {
-                      var data = {
-
-                      };
-
-                      GLOBAL.APP.MAIN_VIEW.createWindow("app", applications[i], item.data, activeDesktop, cbSetActiveTab);
-                    }
+                  if ((item.data.type == "Default") || (item.data.text=="All" && item.data.application=="Default" && item.parentNode.childNodes.length < 2)) {
+                     return;
                   }
 
                   if (item.data.type == "tabView") {
