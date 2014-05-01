@@ -157,7 +157,11 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
 
                     }
                   } else {
-                    notLoadedApps[win.setupData.name] = win.setupData.currentState;
+                    notLoadedApps[win.getAppClassName()] = {
+                      currentState : win.currentState,
+                      module : win.getAppClassName(),
+                      data : win.loadedObject.getStateData()
+                    };
                     bFoundNotLoadedapps = true;
                   }
                 });
@@ -169,16 +173,73 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               if (desktopName) { // && desktopName != 'Default'
                 if (GLOBAL.APP.SM.isStateLoaded("application", "desktop", desktopName) > -1) {
                   var oStateData = GLOBAL.APP.SM.getStateData("application", "desktop", desktopName);
-                  for (var i = 0; i < oStateData.data.length; i++) {
-                    if (!(oStateData.data[i].module in notLoadedApps))
-                      // a bit overcomplicated, but it works. This avoid to save
-                      // the application which is closed.
-                      continue;
-                    if (!me.__isStateFound(oData, oStateData.data[i].currentState, oStateData.data[i].module)) {
-                      oData.push(oStateData.data[i]);
+                  if (oStateData.data.length == 0 && Object.keys(notLoadedApps).length > 0) {
+                    for (var i in notLoadedApps) {
+                      oData.push(notLoadedApps[i]);
+                    }
+
+                  } else {
+                    for (var i = 0; i < oStateData.data.length; i++) {
+                      if (!(oStateData.data[i].module in notLoadedApps))
+                        // a bit overcomplicated, but it works. This avoid to
+                        // save
+                        // the application which is closed.
+                        continue;
+                      if (!me.__isStateFound(oData, oStateData.data[i].currentState, oStateData.data[i].module)) {
+                        oData.push(oStateData.data[i]);
+                      }
                     }
                   }
+                } else if (desktopName == 'Default') {
+                  var tabs = activetab.items;
+                  var notLoadedApps = {};
+                  if (tabs) {
+                    tabs.each(function(win, value, length) {
 
+                          /*
+                           * Depends on the loadedObjectType
+                           */
+                          var oElem = null;
+                          // We only save the applications which are loaded
+
+                          if (win.isLoaded) {
+
+                            if (win.loadedObjectType == "app") {
+
+                              oData.push({
+                                    module : win.getAppClassName(),
+                                    data : win.loadedObject.getStateData(),
+                                    currentState : win.currentState
+                                  });
+
+                            } else if (win.loadedObjectType == "link") {
+
+                              oData.push({
+                                    link : win.linkToLoad
+                                  });
+
+                            }
+                          } else {
+                            notLoadedApps[win.getAppClassName()] = {
+                              currentState : win.currentState,
+                              module : win.getAppClassName(),
+                              data : win.loadedObject.getStateData()
+                            };
+                            bFoundNotLoadedapps = true;
+                          }
+                        });
+                  }
+                  if (Object.keys(notLoadedApps).length > 0) {
+                    for (var i in notLoadedApps) {
+                      var data = GLOBAL.APP.SM.getStateData("application", notLoadedApps[i].module, notLoadedApps[i].currentState);
+                      //check if the application states is saved and not loaded, get the application state from the profile
+                      if (data != -1) {
+                        oData.push(data);
+                      } else {
+                        oData.push(notLoadedApps[i]);
+                      }
+                    }
+                  }
                 } else {
                   GLOBAL.APP.CF.alert(desktopName + " can not be saved!", "error");
                 }
@@ -567,6 +628,8 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
 
                 GLOBAL.APP.MAIN_VIEW.renameCurrentDesktop(sStateName);
 
+              } else {
+                GLOBAL.APP.MAIN_VIEW.refreshMyDesktop(sStateName);
               }
 
             }
@@ -574,7 +637,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               GLOBAL.APP.MAIN_VIEW._state_related_url.push(sStateName);
             }
             GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
-            GLOBAL.APP.MAIN_VIEW.refreshMyDesktop(sStateName);
+
           };
 
           GLOBAL.APP.MAIN_VIEW.currentState = ((GLOBAL.APP.MAIN_VIEW.currentState == 'Default') ? "" : GLOBAL.APP.MAIN_VIEW.currentState);

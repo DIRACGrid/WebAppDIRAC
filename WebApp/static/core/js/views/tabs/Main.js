@@ -104,7 +104,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       afterRender : function() {
         var me = this;
         me.callParent();
-
+        me.getLeftContainer().setActiveMenu('menuPanel'); //the statrting page is the menu panel
         me.__oprLoadUrlState();
         Ext.get("app-dirac-loading").hide();
         if (me.loadleftContainern && me.loadRightContainer){
