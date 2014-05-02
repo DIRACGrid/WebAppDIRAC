@@ -45,13 +45,42 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     },
                     scope : me
                   }, {
-                    text : 'Make private',
+                    text : 'Share application',
+                    iconCls : "dirac-icon-state",
                     disabled : true,
-                    iconCls : "dirac-icon-private",
                     value : 1,
                     handler : function() {
                       var me = this;
-                      GLOBAL.APP.SM.oprChangeSharedStateToPrivate("desktop", me.oSelectedMenuItem.data.text, function(rCode, rAppName, rStateName, rMessage) {
+
+                      GLOBAL.APP.SM.oprShareState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(rCode, rAppName, rStateName, rMessage) {
+
+                            if (rCode == 1) {
+
+                              var oHtml = "";
+                              oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+                              oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
+
+                              Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
+
+                            }
+
+                          });
+
+                    },
+                    scope : me
+                  }, {
+                    text : 'Make private',
+                    disabled : true,
+                    iconCls : "dirac-icon-private",
+                    value : 2,
+                    handler : function() {
+                      var me = this;
+                      var app = 'desktop';
+                      console.log(me.oSelectedMenuItem.data);
+                      if (me.oSelectedMenuItem.data.type == 'app'){
+                        app = me.oSelectedMenuItem.data.application;
+                      }
+                      GLOBAL.APP.SM.oprChangeSharedStateToPrivate(app, me.oSelectedMenuItem.data.text, function(rCode, rAppName, rStateName, rMessage) {
 
                             if (rCode == 1) {
 
@@ -70,9 +99,9 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                   }, {
                     text : "Switch to presenter view",
                     scope : me,
-                    value : 2,
+                    value : 3,
                     view : 'presenterView',
-                    iconCls :"dirac-icon-presenter-theme",
+                    iconCls : "dirac-icon-presenter-theme",
                     disabled : true,
                     handler : function() {
                       var me = this;
@@ -117,9 +146,9 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     text : "Switch to tab view",
                     scope : me,
                     disabled : true,
-                    value : 3,
+                    value : 4,
                     view : 'tabView',
-                    iconCls :"dirac-icon-tab-theme",
+                    iconCls : "dirac-icon-tab-theme",
                     handler : function() {
                       var me = this;
                       me.oSelectedMenuItem.data.view = 'tabView';
@@ -159,7 +188,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     }
                   }, {
                     text : 'Save',
-                    value : 4,
+                    value : 5,
                     iconCls : "dirac-icon-save",
                     handler : function() {
                       if (me.oSelectedMenuItem.data.type == "app") {//the selected menu item is an application
@@ -179,7 +208,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                   }, {
                     text : 'Save As',
                     iconCls : "dirac-icon-save",
-                    value : 5,
+                    value : 6,
                     handler : function() {
                       if (me.oSelectedMenuItem.data.type == "app") {//the selected menu item is an application
 
@@ -196,7 +225,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                   }, {
                     text : 'Delete',
                     iconCls : "dirac-icon-delete",
-                    value : 6,
+                    value : 7,
                     handler : function() {
                       if (me.oSelectedMenuItem.data.type == "app") {//the selected menu item is an application
 

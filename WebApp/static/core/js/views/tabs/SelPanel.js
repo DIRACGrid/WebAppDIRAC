@@ -49,6 +49,11 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
               scope : me,
               listeners : {
                 beforeexpand : function(node, op) {
+                  
+                  if (node.data.text == 'Shared'){
+                    GLOBAL.APP.MAIN_VIEW.oprLoadSharedDesktopsAndApplications();
+                    return;
+                  }
                   /*
                    * this.loadMask = new Ext.LoadMask(node, { msg : "Loading
                    * ..." });
@@ -57,21 +62,9 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                   // not refresh the tree node if we
                   // have an active tab open
 
-                  var forceLoad = (activeDesktop && node.childNodes.length - 1 != activeDesktop.items.length); // we
-                  // load
-                  // the
-                  // states
-                  // when
-                  // the
-                  // number
-                  // of
-                  // applications
-                  // in
-                  // the
-                  // desktop
-                  // is
-                  // not
-                  // equal
+                  var forceLoad = (activeDesktop && node.childNodes.length - 1 != activeDesktop.items.length);
+                  // we load the states when the number of applications in the
+                  // desktop is not equal
                   // to the applications which are in the menu...
 
                   if (!forceLoad && activeDesktop && activeDesktop.title == node.data.text && node.data.text != 'Default')
@@ -198,7 +191,18 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
 
                   if (item.data.type == "tabView") {
                     if (item.data.isShared == true) {
-                      GLOBAL.APP.MAIN_VIEW.loadSharedStateByName("desktop", item.data.application);
+                      if (item.data.stateType == 'desktop') {
+
+                        GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.stateToLoad, item.data.view);
+                        GLOBAL.APP.MAIN_VIEW._state_related_url.push(item.data.stateToLoad);
+                      } else {
+                        var stateUrl = item.data.application + ":" + item.data.stateToLoad;
+                        if (!Ext.Array.contains(GLOBAL.APP.MAIN_VIEW._default_desktop_state, stateUrl)) {
+                          GLOBAL.APP.MAIN_VIEW._default_desktop_state.push(stateUrl);
+                        }
+                      }
+                      GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
+
                     } else {
                       GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application);
                     }
@@ -251,23 +255,28 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
 
               if (record.data.type == 'desktop') {
                 me.contextMenu.enableMenuItem(0);
-                me.contextMenu.enableMenuItem(1);
+                me.contextMenu.disableMenuItem(1);
                 me.contextMenu.enableMenuItem(2);
                 me.contextMenu.enableMenuItem(3);
+                me.contextMenu.enableMenuItem(4);
               } else {
+                me.contextMenu.disableMenuItem(0);
+                me.contextMenu.enableMenuItem(1);
+                me.contextMenu.enableMenuItem(2);
+                me.contextMenu.disableMenuItem(3);
+                me.contextMenu.disableMenuItem(4);
+              }
+              if (record.data.isShared) {
                 me.contextMenu.disableMenuItem(0);
                 me.contextMenu.disableMenuItem(1);
                 me.contextMenu.disableMenuItem(2);
-                me.contextMenu.disableMenuItem(3);
-              }
-              if (record.data.isShared) {
-                me.contextMenu.disableMenuItem(4);
                 me.contextMenu.disableMenuItem(5);
                 me.contextMenu.disableMenuItem(6);
+                me.contextMenu.disableMenuItem(7);
               } else {
-                me.contextMenu.enableMenuItem(4);
                 me.contextMenu.enableMenuItem(5);
                 me.contextMenu.enableMenuItem(6);
+                me.contextMenu.enableMenuItem(7);
               }
               me.contextMenu.showAt(event.getX(), event.getY());
               event.preventDefault();
