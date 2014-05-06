@@ -74,6 +74,6 @@ Ext.define('Ext.dirac.core.Container', {
     oWindow.add(oTextArea);
     oWindow.show();
 
-  },
+  }
 
 });

@@ -601,7 +601,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 	 *          on failure of the request for retrieving the shared state data.
 	 *
 	 */
-	oprLoadSharedState : function(sLinkDescription, cbAfterLoadSharedState) {
+	oprLoadSharedState : function(sLinkDescription, cbAfterLoadSharedState, stateName) {
 
 		var me = this;
 
@@ -631,18 +631,18 @@ Ext.define('Ext.dirac.core.StateManagement', {
 					var oDataReceived = Ext.JSON.decode(response.responseText);
 
 					if (cbAfterLoadSharedState != null)
-						cbAfterLoadSharedState(1, sLinkDescription, oDataReceived);
+						cbAfterLoadSharedState(1, sLinkDescription, oDataReceived, stateName);
 
 				} else {
 
 					if (response.status == 400) {
 						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 						if (cbAfterLoadSharedState != null)
-							cbAfterLoadSharedState(-1, sLinkDescription, "");
+							cbAfterLoadSharedState(-1, sLinkDescription, "", stateName);
 					} else {
 						Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 						if (cbAfterLoadSharedState != null)
-							cbAfterLoadSharedState(-2, sLinkDescription, "");
+							cbAfterLoadSharedState(-2, sLinkDescription, "", stateName);
 					}
 
 				}
@@ -653,11 +653,11 @@ Ext.define('Ext.dirac.core.StateManagement', {
 				if (response.status == 400) {
 					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
 					if (cbAfterLoadSharedState != null)
-						cbAfterLoadSharedState(-3, sLinkDescription, "");
+						cbAfterLoadSharedState(-3, sLinkDescription, "", stateName);
 				} else {
 					Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
 					if (cbAfterLoadSharedState != null)
-						cbAfterLoadSharedState(-4, sLinkDescription, "");
+						cbAfterLoadSharedState(-4, sLinkDescription, "", stateName);
 				}
 
 			}
@@ -804,9 +804,98 @@ Ext.define('Ext.dirac.core.StateManagement', {
       }
     });
 
-  }
+  },
 
 
 /*-----------------------------------------------END - SHARE STATE-----------------------------------------------*/
+//make private a shared state
+  
+  /**
+   * Function that is used to share a state with other users.
+   *
+   * @param {String}
+   *          sAppName The class name of the application. The only exception is
+   *          the case of the main view: in this case the value of this
+   *          parameter is “desktop”.
+   * @param {String}
+   *          sStateName The name of the state.
+   * @param {Function}
+   *          cbAfterShare The callback function called on success or on failure
+   *          of the request for sharing a state.
+   *
+   */
+  oprChangeSharedStateToPrivate : function(sAppName, sStateName, cbAfterShare) {
+    var me = this;
+    me.__changeAccess(sAppName, sStateName, cbAfterShare, "USER");
+    
+  },
+  /***
+   * It used to change the access of an desktop/application
+   * @param {String} sAppName 
+   * @param {String} sStateName
+   * @param {Function} cbAfterShare
+   * @param {String} access
+   */
+  __changeAccess : function(sAppName, sStateName, cbAfterShare, access){
+    var me = this;
 
+    Ext.Ajax.request({
+      url : GLOBAL.BASE_URL + 'UP/makePublicAppState',
+      params : {
+        obj : "application",
+        app : sAppName,
+        name : sStateName,
+        access : access
+      },
+      scope : me,
+      success : function(response) {
+
+        if (response.status == 200) {
+
+          var me = this;
+
+          var sStringToShow = sAppName + "|" + GLOBAL.APP.configData["user"]["username"] + "|" + GLOBAL.APP.configData["user"]["group"] + "|" + sStateName;
+
+          cbAfterShare(1, sAppName, sStateName, sStringToShow);
+
+        } else {
+
+          if (response.status == 400) {
+            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+            cbAfterShare(-1, sAppName, sStateName, "");
+          } else
+            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+          cbAfterShare(-2, sAppName, sStateName, "");
+
+        }
+
+      },
+      failure : function(response) {
+
+        if (response.status == 400) {
+          Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
+          cbAfterShare(-3, sAppName, sStateName, "");
+        } else {
+          Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
+          cbAfterShare(-4, sAppName, sStateName, "");
+        }
+      }
+    });
+  },
+  addApplicationStates : function(appName, stateName, data){
+    var me = this;
+    var loaded = me.isStateLoaded("application", appName,stateName);
+    if (loaded!=1){
+      me.cache["application"][appName][stateName] = {
+        data : []
+      };
+    }
+    
+    me.cache["application"][appName][stateName].data.push(data);
+    
+  },
+  createDesktop : function(appName, stateName, data){
+    var me = this;
+    me.cache["application"][appName][stateName] = data;
+  }
 });

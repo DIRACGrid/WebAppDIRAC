@@ -12,7 +12,7 @@ def getCSValue( opt, defValue = None ):
 
 def getTitle():
   defVal = gConfig.getValue( "/DIRAC/Configuration/Name", gConfig.getValue( "/DIRAC/Setup" ) )
-  return "%s - DIRAC" % gConfig.getValue( "%s/Title" % BASECS, defVal  )
+  return "%s - DIRAC" % gConfig.getValue( "%s/Title" % BASECS, defVal )
 
 def devMode():
   return getCSValue( "DevelopMode", True )
@@ -62,7 +62,7 @@ def setup():
   return gConfig.getValue( "/DIRAC/Setup" )
 
 def cookieSecret():
-  #TODO: Store the secret somewhere
+  # TODO: Store the secret somewhere
   return gConfig.getValue( "CookieSecret", uuid.getnode() )
 
 def generateCAFile():
@@ -96,4 +96,50 @@ def generateCAFile():
 def getAuthSectionForHandler( route ):
   return "%s/Access/%s" % ( BASECS, route )
 
+def getTheme():
+  return getCSValue( "Theme", "desktop" )
 
+def getMonitoringSectionFromCS( path ):
+  sectionsList = []
+  base = "%s/Schema/System Monitoring" % ( BASECS )
+  nodes = path.split( '/' ) if path != '/' else []
+  if len( nodes ) == 0:
+     fullName = "%s/%s" % ( base, path )
+     result = gConfig.getSections( fullName )
+     if not result['OK']:
+       return result
+     else: 
+       services = []
+       for i in result['Value']:
+         services.append( [( 'service', i )] )
+       return services
+  else:
+    leaf = '%s/%s' % ( base, path )
+    val = __recursiveTreeTraversal( base, "", nodes, leaf )
+    return val
+  
+def __recursiveTreeTraversal( base, path, visit, leaf ):
+  fullName = "%s/%s" % ( base, path )
+  result = gConfig.getSections( fullName )
+  schema = []
+  if not result[ 'OK' ]:
+    return schema   
+  sectionsList = result[ 'Value' ]
+  for sName in sectionsList:
+    if sName in visit:
+      visit.remove( sName )
+      visited = "%s/%s" % ( base, sName )
+      path = "%s/%s" % ( path, sName ) if path != '' else sName
+      schema = __recursiveTreeTraversal( base, path, visit, leaf )
+    elif leaf == fullName:
+      schema.append( [( 'service', sName )] )
+        
+  result = gConfig.getOptions( fullName )
+  if not result[ 'OK' ]:
+    return schema
+  optionsList = result[ 'Value' ]
+  for opName in optionsList:
+    opVal = gConfig.getValue( "%s/%s" % ( fullName, opName ) )
+    schema.append( [( "comp", opName, opVal )] )
+  return schema
+  

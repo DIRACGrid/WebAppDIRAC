@@ -171,5 +171,5 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
       sVal = oSelectedRecords[0].get(sColumnName);
     }
     return sVal;
-  },
+  }
 });

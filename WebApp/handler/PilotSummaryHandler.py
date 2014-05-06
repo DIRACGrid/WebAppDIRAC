@@ -95,7 +95,7 @@ class PilotSummaryHandler(WebHandler):
       self.finish({"success":"false", "result":[], "total":0, "error":"Insufficient rights"})
     else:
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = RPC.getSites()
+      result = yield self.threadTask(RPC.getSites)
       if result["OK"]:
         tier1 = gConfig.getValue("/Website/PreferredSites")
         if tier1:

@@ -154,7 +154,7 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
        };
 
        var textFields = {
-           'ids' : "PersonalId",
+           'ids' : "PersonalId"
        }
 
        var map = [ [ "firstName", "firstName" ], [ "lastName", "lastName" ]];
@@ -164,7 +164,7 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
          cmbSelectors : selectors,
          textFields : textFields,
          datamap : map,
-         url : "ExampleApp/getSelectionData",
+         url : "ExampleApp/getSelectionData"
        });
 
        /*

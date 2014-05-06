@@ -56,7 +56,7 @@ class UPHandler( WebHandler ):
       access = self.request.arguments[ 'access' ][-1].upper()
     except KeyError as excp:
       access = 'ALL'
-    if access not in ( 'ALL', 'VO', 'GROUP' ):
+    if access not in ( 'ALL', 'VO', 'GROUP', 'USER' ):
       raise WErr( 400, "Invalid access" )
     #TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
     result = yield self.threadTask( up.setVarPermissions, name, { 'ReadAccess': access } )
@@ -191,4 +191,4 @@ class UPHandler( WebHandler ):
       raise WErr.fromSERROR( result )
     self.set_status( 200 )
     self.finish()
-
+  

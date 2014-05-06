@@ -578,7 +578,7 @@ Ext.define('Ext.dirac.views.desktop.StateManagement', {
 			layout : 'fit',
 			modal : true,
 			items : [ oPanel ],
-			iconCls : "dirac-icon-state",
+			iconCls : "dirac-icon-state"
 		});
 
 		me.manageWindow.show();
