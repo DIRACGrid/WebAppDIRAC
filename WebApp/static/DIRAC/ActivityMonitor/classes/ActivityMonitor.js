@@ -3,6 +3,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
       requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet",
           "Ext.dirac.utils.DiracMultiSelect", "Ext.toolbar.Toolbar", "Ext.data.Record", 'Ext.Array', 'Ext.data.TreeStore', "Ext.ux.form.MultiSelect"],
 
+      expansionState : {},
       initComponent : function() {
 
         var me = this;
@@ -67,6 +68,14 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                     },
                     toggleGroup : me.id + "-ids-submodule",
                     allowDepress : false
+                  }, {
+                    xtype : "button",
+                    text : "System overview plots",
+                    handler : function() {
+                      me.mainPanel.getLayout().setActiveItem(3);
+                    },
+                    toggleGroup : me.id + "-ids-submodule",
+                    allowDepress : false
                   }]
             });
 
@@ -84,6 +93,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
         me.__buildActivityMonitor();
         me.__buildPlotManagement();
         me.__buildPlotViewer();
+        me.__buildSystemViewer();
 
         me.add([me.mainPanel]);
 
@@ -387,7 +397,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                         var me = this;
                         var response = Ext.JSON.decode(response.responseText);
 
-                        me.plotManagementListPanel.reconfigure(new Ext.data.SimpleStore({
+                        me.plotManagementListPanel.reconfigure(new Ext.data.ArrayStore({
                                   fields : ['id', 'name', 'variable_fields'],
                                   data : response.result
                                 }), undefined);
@@ -534,7 +544,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
               valueField : "value",
               anchor : '100%',
               editable : false,
-              store : new Ext.data.SimpleStore({
+              store : new Ext.data.ArrayStore({
                     fields : ['value', 'text'],
                     data : [["sources.site", "Site"], ["sources.componentType", "Component type"], ["sources.componentLocation", "Component location"], ["sources.componentName", "Component name"], ["activities.description", "Activity"],
                         ["activities.category", "Activity category"]]
@@ -593,7 +603,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
               valueField : "value",
               anchor : '100%',
               height : 150,
-              store : new Ext.data.SimpleStore({
+              store : new Ext.data.ArrayStore({
                     fields : ['value'],
                     data : []
                   })
@@ -740,7 +750,8 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
         me.plotManagementViewTreeStore = Ext.create('Ext.data.TreeStore', {
               proxy : {
-                type : 'localstorage'
+                type : 'localstorage',
+                id : me.id + 'treeStoreLocalStorage'
               },
               root : {
                 text : 'View Definition'
@@ -797,7 +808,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                 var me = this;
                 var response = Ext.JSON.decode(response.responseText);
 
-                me.plotViewerListPanel.reconfigure(new Ext.data.SimpleStore({
+                me.plotViewerListPanel.reconfigure(new Ext.data.ArrayStore({
                           fields : ['id', 'name', 'variable_fields'],
                           data : response.result
                         }), undefined);
@@ -905,7 +916,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
               labelAlign : 'left',
               fieldLabel : 'Time Span',
               editable : false,
-              store : new Ext.data.SimpleStore({
+              store : new Ext.data.ArrayStore({
                     fields : ['value', 'text'],
                     data : [[3600, "Last Hour"], [86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"]]
                   }),
@@ -935,7 +946,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
               labelAlign : 'left',
               fieldLabel : 'Plot Size',
               editable : false,
-              store : new Ext.data.SimpleStore({
+              store : new Ext.data.ArrayStore({
                     fields : ['value', 'text'],
                     data : [[0, "Small"], [1, "Medium"], [2, "Big"], [3, "Very Big"]]
                   }),
@@ -962,7 +973,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
               margin : 3,
               iconCls : "dirac-icon-submit",
               handler : function() {
-
+                oRightPanel.setLoading(true);
                 var oParams = {};
                 var bValid = true;
 
@@ -990,6 +1001,10 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
                 }
 
+                if (sVariableData) {
+                  oParams['varData'] = Ext.encode(sVariableData);
+                }
+
                 oParams["size"] = oPlotSize.getValue();
 
                 if (bValid) {
@@ -998,7 +1013,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                         params : oParams,
                         scope : me,
                         success : function(response) {
-
+                          oRightPanel.setLoading(false);
                           var me = this;
                           var response = Ext.JSON.decode(response.responseText);
 
@@ -1207,6 +1222,164 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
               }
             });
 
+      },
+      __buildSystemViewer : function() {
+        var me = this;
+
+        me.systemPlotViewerMainPanel = new Ext.create('Ext.panel.Panel', {
+              floatable : false,
+              layout : 'border',
+              header : false,
+              border : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
+            });
+
+        me.systemPlotsTreeStore = Ext.create('Ext.data.TreeStore', {
+              model : 'DIRAC.ActivityMonitor.classes.ActivityTreeModel',
+              fields : ['text', 'component'],
+              scope : me,
+              proxy : {
+                type : 'ajax',
+                url : GLOBAL.BASE_URL + 'ActivityMonitor/getDynamicPlotViews'
+              },
+              root : {
+                text : '/',
+                id : '/',
+                expanded : true
+              },
+              folderSort : true,
+              sorters : [{
+                    property : 'text',
+                    direction : 'ASC'
+                  }],
+              listeners : {
+                collapse : function(oNode, eOpts) {
+                  me.__oprUnsetPathAsExpanded(me.__getNodePath(oNode), true);
+                },
+                expand : function(oNode, eOpts) {
+                  me.__oprPathAsExpanded(me.__getNodePath(oNode), true)
+                },
+                scope : me
+              }
+            });
+
+        me.systemPlotViewerTreePanel = Ext.create('Ext.tree.TreePanel', {
+              region : "west",
+              width : 250,
+              store : me.systemPlotsTreeStore,
+              listeners : {
+                itemclick : function(record, item, index, e, eOpts) {
+                  console.log(record);
+                  if (item.get('component') != "") {
+                    me.systemPlotViewerResultPanel.removeAll();
+                    var varData = {
+                      "sources.componentName" : item.get("component")
+                    };
+                    var oNewPlots = me.__buildPlotView("Dynamic component view", varData);
+
+                    me.systemPlotViewerResultPanel.add(oNewPlots);
+
+                  }
+                }
+              }
+            });
+
+        me.systemPlotViewerResultPanel = new Ext.create('Ext.panel.Panel', {
+              floatable : false,
+              region : "center",
+              layout : "border",
+              header : false,
+              border : false,
+              items : []
+            });
+
+        me.systemPlotViewerMainPanel.add([me.systemPlotViewerTreePanel, me.systemPlotViewerResultPanel]);
+        me.mainPanel.add([me.systemPlotViewerMainPanel]);
+      },
+      __oprUnsetPathAsExpanded : function(sPath) {
+
+        var me = this;
+        var oParts = sPath.split("/");
+
+        // The first element is always empty
+        var oTemp = me.expansionState;
+        var oStartIndex = 0;
+
+        if (sPath == "/")
+          oStartIndex = 1;
+
+        for (var i = oStartIndex; i < oParts.length; i++) {
+
+          if (oParts[i] in oTemp) {
+
+            if (i == oParts.length - 1) {
+
+              delete oTemp[oParts[i]];
+
+            } else {
+
+              oTemp = oTemp[oParts[i]];
+
+            }
+
+          }
+        }
+
+      },
+
+      __oprPathAsExpanded : function(sPath, bInsertIntoStructure) {
+
+        var me = this;
+        var oParts = sPath.split("/");
+
+        // The first element is always empty
+        var oTemp = me.expansionState;
+        var oFound = true;
+
+        var oStartIndex = 0;
+
+        if (sPath == "/")
+          oStartIndex = 1;
+
+        for (var i = oStartIndex; i < oParts.length; i++) {
+
+          if (oParts[i] in oTemp) {
+
+            oTemp = oTemp[oParts[i]];
+
+          } else {
+
+            oFound = false;
+
+            if (bInsertIntoStructure) {
+              oTemp[oParts[i]] = {};
+            }
+
+            break;
+
+          }
+
+        }
+
+        return oFound;
+
+      },
+      __getNodePath : function(oNode) {
+        var sPath = ""
+        var oCopyRefNode = oNode;
+        while (oCopyRefNode) {
+          if (oCopyRefNode.raw.id)
+            sPath = "/" + oCopyRefNode.raw.id + sPath;
+          else
+            break;
+          oCopyRefNode = oCopyRefNode.parentNode;
+        }
+        if (!sPath)
+          return "/";
+        return sPath;
       }
 
     });

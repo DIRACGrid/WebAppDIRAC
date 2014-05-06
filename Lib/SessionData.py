@@ -122,3 +122,4 @@ class SessionData( object ):
                 "g:%s" % self.__credDict.get( 'group', '' )  ]
     data[ 'baseURL' ] = "/%s" % "/".join( baseURL )
     return data
+  
