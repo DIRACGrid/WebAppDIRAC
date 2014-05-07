@@ -11,15 +11,46 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
       bodyPadding : 5,
       layout : "anchor",
       anchor : "100%",
-      timeSearchElementsGroup : {},
+      /*************************************************************************
+       * @property{It is the time stamp widget which contains a list with Last
+       *              hour, Last Day...}
+       */
+      cmbTimeSpan : null,
+      /**
+       * 
+       * @property{calenFrom} it is a calendar used to select the date.
+       */
+      calenFrom : null,
+      /**
+       * 
+       * @property{cmbTimeFrom} is is a combo box which contains the hours.
+       */
+      cmbTimeFrom : null,
+      /**
+       * 
+       * @property{calenTo} is a calendar used to select the dat.
+       */
+      calenTo : null,
+      /**
+       * 
+       * @property{cmbTimeTo} is a combo box used to select the time in a given
+       *                      day.
+       */
+      cmbTimeTo : null,
+      /**
+       * 
+       * @property{timeSearchPanelHidden} is a boolean which is true when the
+       *                                  time search panel is hidden...
+       */
+      timeSearchPanelHidden : null,
       getStateData : function() {
         var me = this;
         var data = {
-          cmbTimeSpan : me.timeSearchElementsGroup.cmbTimeSpan.getValue(),
-          calenFrom : me.timeSearchElementsGroup.calenFrom.getValue(),
-          cmbTimeFrom : me.timeSearchElementsGroup.cmbTimeFrom.getValue(),
-          calenTo : me.timeSearchElementsGroup.calenTo.getValue(),
-          cmbTimeTo : me.timeSearchElementsGroup.cmbTimeTo.getValue(),
+          cmbTimeSpan : me.cmbTimeSpan.getValue(),
+          calenFrom : me.calenFrom.getValue(),
+          cmbTimeFrom : me.cmbTimeFrom.getValue(),
+          calenTo : me.calenTo.getValue(),
+          cmbTimeTo : me.cmbTimeTo.getValue(),
           timeSearchPanelHidden : me.hidden
         };
         return data;
@@ -35,27 +66,27 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
         // END - For the time span searching sub-panel
 
         if (data.cmbTimeSpan) {
-          me.timeSearchElementsGroup.cmbTimeSpan.setValue(data.cmbTimeSpan);
+          me.cmbTimeSpan.setValue(data.cmbTimeSpan);
         }
 
         if (data.calenFrom) {
-          me.timeSearchElementsGroup.calenFrom.setValue(data.calenFrom);
+          me.calenFrom.setValue(data.calenFrom);
         }
         if (data.cmbTimeFrom) {
-          me.timeSearchElementsGroup.cmbTimeFrom.setValue(data.cmbTimeFrom);
+          me.cmbTimeFrom.setValue(data.cmbTimeFrom);
         }
 
         if (data.calenTo) {
-          me.timeSearchElementsGroup.calenTo.setValue(data.calenTo);
+          me.calenTo.setValue(data.calenTo);
         }
         if (data.cmbTimeTo) {
-          me.timeSearchElementsGroup.cmbTimeTo.setValue(data.cmbTimeTo);
+          me.cmbTimeTo.setValue(data.cmbTimeTo);
         }
 
       },
       constructor : function() {
         var me = this;
-        me.timeSearchElementsGroup.cmbTimeSpan = new Ext.create('Ext.form.field.ComboBox', {
+        me.cmbTimeSpan = new Ext.create('Ext.form.field.ComboBox', {
               labelAlign : 'top',
               fieldLabel : 'Time Span',
               store : new Ext.data.ArrayStore({
@@ -78,12 +109,12 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
           oTimeData.push([((i.toString().length == 1) ? "0" + i.toString() : i.toString()) + ":30"]);
         }
 
-        me.timeSearchElementsGroup.calenFrom = new Ext.create('Ext.form.field.Date', {
+        me.calenFrom = new Ext.create('Ext.form.field.Date', {
               width : 100,
               format : 'Y-m-d'
             });
 
-        me.timeSearchElementsGroup.cmbTimeFrom = new Ext.create('Ext.form.field.ComboBox', {
+        me.cmbTimeFrom = new Ext.create('Ext.form.field.ComboBox', {
               width : 70,
               store : new Ext.data.ArrayStore({
                     fields : ['value'],
@@ -93,12 +124,12 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
               displayField : 'value'
             });
 
-        me.timeSearchElementsGroup.calenTo = new Ext.create('Ext.form.field.Date', {
+        me.calenTo = new Ext.create('Ext.form.field.Date', {
               width : 100,
               format : 'Y-m-d'
             });
 
-        me.timeSearchElementsGroup.cmbTimeTo = new Ext.create('Ext.form.field.ComboBox', {
+        me.cmbTimeTo = new Ext.create('Ext.form.field.ComboBox', {
               width : 70,
               store : new Ext.data.ArrayStore({
                     fields : ['value'],
@@ -108,18 +139,18 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
               displayField : 'value'
             });
 
-        me.timeSearchElementsGroup.btnResetTimePanel = new Ext.Button({
+        me.btnResetTimePanel = new Ext.Button({
 
               text : 'Reset Time Panel',
               margin : 3,
               iconCls : "dirac-icon-reset",
               handler : function() {
 
-                me.timeSearchElementsGroup.cmbTimeTo.setValue(null);
-                me.timeSearchElementsGroup.cmbTimeFrom.setValue(null);
-                me.timeSearchElementsGroup.calenTo.setRawValue("");
-                me.timeSearchElementsGroup.calenFrom.setRawValue("");
-                me.timeSearchElementsGroup.cmbTimeSpan.setValue(null);
+                me.cmbTimeTo.setValue(null);
+                me.cmbTimeFrom.setValue(null);
+                me.calenTo.setRawValue("");
+                me.calenFrom.setRawValue("");
+                me.cmbTimeSpan.setValue(null);
               },
               scope : me,
               defaultAlign : "c"
@@ -128,13 +159,13 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
               dockedItems : [{
                     xtype : 'toolbar',
                     dock : 'bottom',
-                    items : [me.timeSearchElementsGroup.btnResetTimePanel],
+                    items : [me.btnResetTimePanel],
                     layout : {
                       type : 'hbox',
                       pack : 'center'
                     }
                   }],
-              items : [me.timeSearchElementsGroup.cmbTimeSpan, {
+              items : [me.cmbTimeSpan, {
                     xtype : 'tbtext',
                     text : "From:",
                     padding : "3 0 3 0"
@@ -142,7 +173,7 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
                     xtype : "panel",
                     layout : "column",
                     border : false,
-                    items : [me.timeSearchElementsGroup.calenFrom, me.timeSearchElementsGroup.cmbTimeFrom]
+                    items : [me.calenFrom, me.cmbTimeFrom]
                   }, {
                     xtype : 'tbtext',
                     text : "To:",
@@ -151,7 +182,7 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
                     xtype : "panel",
                     layout : "column",
                     border : false,
-                    items : [me.timeSearchElementsGroup.calenTo, me.timeSearchElementsGroup.cmbTimeTo]
+                    items : [me.calenTo, me.cmbTimeTo]
                   }]
             });
         me.callParent(arguments);
@@ -160,12 +191,12 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
         var me = this;
         var data = {};
         // if a value in time span has been selected
-        var sStartDate = me.timeSearchElementsGroup.calenFrom.getRawValue();
-        var sStartTime = me.timeSearchElementsGroup.cmbTimeFrom.getValue();
-        var sEndDate = me.timeSearchElementsGroup.calenTo.getRawValue();
-        var sEndTime = me.timeSearchElementsGroup.cmbTimeTo.getValue();
+        var sStartDate = me.calenFrom.getRawValue();
+        var sStartTime = me.cmbTimeFrom.getValue();
+        var sEndDate = me.calenTo.getRawValue();
+        var sEndTime = me.cmbTimeTo.getValue();
 
-        var iSpanValue = me.timeSearchElementsGroup.cmbTimeSpan.getValue();
+        var iSpanValue = me.cmbTimeSpan.getValue();
 
         if ((iSpanValue != null) && (iSpanValue != 5)) {
 
