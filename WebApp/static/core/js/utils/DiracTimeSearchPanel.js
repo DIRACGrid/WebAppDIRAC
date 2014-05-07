@@ -95,12 +95,7 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
                   }),
               displayField : "text",
               valueField : "value",
-              anchor : "100%",
-              listeners : {
-                change : function(cmb, newValue, oldValue, eOpts) {
-                  alert('change');
-                }
-              }
+              anchor : "100%"
             });
 
         var oTimeData = [];
@@ -187,6 +182,10 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
             });
         me.callParent(arguments);
       },
+      /***
+       * This function returns the selected timestamp.
+       * @return {Object}
+       */
       getSelectedData : function() {
         var me = this;
         var data = {};
