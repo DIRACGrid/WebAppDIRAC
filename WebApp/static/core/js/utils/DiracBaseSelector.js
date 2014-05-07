@@ -292,6 +292,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         // show/hide for selectors and their selected data (including NOT
         // button)
         var leftMenu = {};
+
+        if (me.timeSearchPanel) {
+          leftMenu = me.timeSearchPanel.getStateData();
+        }
+
         leftMenu.selectors = {};
 
         for (var cmb in me.cmbSelectors) {
@@ -309,15 +314,6 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           leftMenu[field] = me.textFields[field].getValue();
         }
 
-        var timeSearchPanel = me.getTimeSearch();
-        if (timeSearchPanel) {
-          leftMenu.cmbTimeSpan = me.getTimeSearch().timeSearchElementsGroup.cmbTimeSpan.getValue();
-          leftMenu.calenFrom = me.getTimeSearch().timeSearchElementsGroup.calenFrom.getValue();
-          leftMenu.cmbTimeFrom = me.getTimeSearch().timeSearchElementsGroup.cmbTimeFrom.getValue();
-          leftMenu.calenTo = me.getTimeSearch().timeSearchElementsGroup.calenTo.getValue();
-          leftMenu.cmbTimeTo = me.getTimeSearch().timeSearchElementsGroup.cmbTimeTo.getValue();
-          leftMenu.timeSearchPanelHidden = me.getTimeSearch().hidden;
-        }
         return leftMenu;
 
       },
@@ -331,11 +327,19 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var me = this;
 
         var bToReload = false;
-        
+
+        // For the time span searching sub-panel
+        var item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
+
+        if (me.timeSearchPanel) {
+          item.setChecked(!data.leftMenu.timeSearchPanelHidden);
+          me.timeSearchPanel.loadState(data.leftMenu);
+        }
+
         for (var field in me.textFields) {
           me.textFields[field].setValue(data.leftMenu[field]);
         }
-        
+
         if (data.leftMenu.selectors) {
           for (var i = 0; i < me.selectorMenu.items.length - 1; i++) {
 
@@ -368,29 +372,6 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
           bToReload = true;
 
-        }
-
-        // For the time span searching sub-panel
-        var item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
-
-        item.setChecked(!data.leftMenu.timeSearchPanelHidden);
-
-        if (data.leftMenu.timeSearchPanelHidden) {
-          if (!data.leftMenu.timeSearchPanelHidden)
-            me.timeSearchPanel.show();
-          else
-            me.timeSearchPanel.hide();
-        }
-        // END - For the time span searching sub-panel
-
-        var timeSearchPanel = me.getTimeSearch();
-        if (timeSearchPanel) {
-          timeSearchPanel.timeSearchElementsGroup.cmbTimeSpan.setValue(data.leftMenu.cmbTimeSpan);
-          timeSearchPanel.timeSearchElementsGroup.calenFrom.setValue(data.leftMenu.calenFrom);
-
-          timeSearchPanel.timeSearchElementsGroup.cmbTimeFrom.setValue(data.leftMenu.cmbTimeFrom);
-          timeSearchPanel.timeSearchElementsGroup.calenTo.setValue(data.leftMenu.calenTo);
-          timeSearchPanel.timeSearchElementsGroup.cmbTimeTo.setValue(data.leftMenu.cmbTimeTo);
         }
 
         if (bToReload) {
@@ -546,47 +527,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           limit : me.scope.grid.pagingToolbar.pageSizeCombo.getValue()
         };
         if (me.hasTimeSearchPanel) {
-
-          // if a value in time span has been selected
-          var sStartDate = me.getTimeSearch().timeSearchElementsGroup.calenFrom.getRawValue();
-          var sStartTime = me.getTimeSearch().timeSearchElementsGroup.cmbTimeFrom.getValue();
-          var sEndDate = me.getTimeSearch().timeSearchElementsGroup.calenTo.getRawValue();
-          var sEndTime = me.getTimeSearch().timeSearchElementsGroup.cmbTimeTo.getValue();
-
-          var iSpanValue = me.getTimeSearch().timeSearchElementsGroup.cmbTimeSpan.getValue();
-
-          if ((iSpanValue != null) && (iSpanValue != 5)) {
-
-            var oNowJs = new Date();
-            var oBegin = null;
-
-            switch (iSpanValue) {
-              case 1 :
-                oBegin = Ext.Date.add(oNowJs, Ext.Date.HOUR, -1);
-                break;
-              case 2 :
-                oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -1);
-                break;
-              case 3 :
-                oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -7);
-                break;
-              case 4 :
-                oBegin = Ext.Date.add(oNowJs, Ext.Date.MONTH, -1);
-                break;
-            }
-
-            sStartDate = Ext.Date.format(oBegin, "Y-m-d");
-            sEndDate = Ext.Date.format(oNowJs, "Y-m-d");
-            sStartTime = Ext.Date.format(oBegin, "H:i");
-            sEndTime = Ext.Date.format(oNowJs, "H:i");
-
-          }
-
-          // Collect data for filtration
-          extraParams["startDate"] = sStartDate;
-          extraParams["startTime"] = sStartTime;
-          extraParams["endDate"] = sEndDate;
-          extraParams["endTime"] = sEndTime;
+          
+          var timeSearchData = me.timeSearchPanel.getSelectedData();
+          Ext.merge(extraParams, timeSearchData);
         }
         for (var i in me.cmbSelectors) {
           var param = (me.cmbSelectors[i].isInverseSelection()) ? me.cmbSelectors[i].getInverseSelection().split(",") : me.cmbSelectors[i].getValue();
