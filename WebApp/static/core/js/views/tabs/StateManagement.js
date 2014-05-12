@@ -764,7 +764,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
      *          cbAfterSave Function that is executed after the save has been
      *          saved
      */
-  formSaveDialog : function(sStateType, sAppName, oAppObject, cbAfterSave, dialogtext, save = false) {
+  formSaveDialog : function(sStateType, sAppName, oAppObject, cbAfterSave, dialogtext, save) {
 
     var me = this;
 
