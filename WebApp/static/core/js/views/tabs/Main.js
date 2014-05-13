@@ -1690,6 +1690,10 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       },
       cbAfterLoadSharedState : function(iCode, sLink, oDataReceived) {
 
+        if (iCode!=1){
+          Ext.dirac.system_info.msg("Error Notification", sLink + ' does not exists ');
+          return;
+        }
         var me = GLOBAL.APP.MAIN_VIEW;
 
         var oDataItems = sLink.split("|");
