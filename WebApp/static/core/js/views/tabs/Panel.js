@@ -124,6 +124,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           me.setLoadedObject(me.setupData, false);
 
         } else if (me.loadedObjectType == "link") {
+          me.setTitle(me.setupData.text); //TODO Add the link to the URL
           me.items = [{
                 xtype : "component",
                 autoEl : {
