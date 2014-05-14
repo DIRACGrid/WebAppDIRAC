@@ -1,13 +1,23 @@
-.core-desktop-icon{background:url(../img/SelPanel/icons.png) !important; no-repeat 0 0}
+.core-desktop-icon{background:url(../img/SelPanel/user-desktop.png) no-repeat;!important; }
 
+.core-application-icon{background:url(../img/SelPanel/executable.ico) no-repeat; !important;
+}
 
-.core-application-group-icon{background:url(../img/SelPanel/icons.png) no-repeat 0 -280px}
+.x-grid-tree-node-expanded .x-tree-icon-parent {
+    background: url(../img/SelPanel/draw-triangle4.ico) no-repeat center center !    important;
+}
 
-.core-application-icon{background:url(../img/SelPanel/icons.png) no-repeat 0 -120px}
+.icon-applications-states-all-default{background:url(../img/SelPanel/run.ico)no-repeat; !important;
+    background-color: transparent;
+}
 
-.icon-state-applications-class{background:url(../img/SelPanel/icons.png) no-repeat 0 -40px}
+.shared-desktop{background:url(../img/SelPanel/shared-desktop1.ico)no-repeat; !important;
+    background-color: transparent;
+}
 
-.icon-applications-states-all-default{background:url(../img/SelPanel/icons.png) no-repeat 0 -80px}
+.my-desktop{background:url(../img/SelPanel/home.ico)no-repeat; !important;
+    background-color: transparent;
+}
 
 .list {
     padding-left: 16px;

@@ -340,7 +340,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
               stateToLoad : stateName,
               type : 'app',
               leaf : true,
-              iconCls : 'icon-state-applications-class',
+              iconCls : 'core-application-icon',
               scope : me,
               allowDrag : true,
               allowDrop : true,

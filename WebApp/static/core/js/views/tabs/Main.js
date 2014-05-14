@@ -513,15 +513,21 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       },
       __getAppRecursivelyFromConfig : function(item, rootNode) {
         var me = this;
+        var expanded = null;
         if (item.length == 2) {
+          if (item[0]=='Applications'){
+            expanded = true;
+          }else{
+            expanded = false;
+          }
           var childnode = rootNode.appendChild({
                 'text' : item[0],
                 expandable : true,
+                expanded : expanded,
                 allowDrag : false,
                 allowDrop : false,
                 leaf : false,
-                application : item[2],
-                iconCls : "core-application-group-icon"
+                application : item[2]
               });
           for (var i = 0; i < item[1].length; i++) {
             me.__getAppRecursivelyFromConfig(item[1][i], childnode);
@@ -581,7 +587,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               text : 'My Desktops',
               allowDrag : false,
               allowDrop : false,
-              iconCls : "core-desktop-icon"
+              iconCls : "my-desktop"
             });
         me.myDesktop = rootNode;
 
@@ -649,7 +655,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               text : 'Shared Desktops',
               allowDrag : false,
               allowDrop : false,
-              iconCls : "core-desktop-icon"
+              iconCls : "shared-desktop"
             });
         me.sharedDesktops = desktopsNode;
 
@@ -657,7 +663,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               text : 'Shared Applications',
               allowDrag : false,
               allowDrop : false,
-              iconCls : "core-desktop-icon"
+              iconCls : "shared-desktop"
             });
 
         me.sharedApplications = applicationsNode;
@@ -1015,7 +1021,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           var node = me.__findNode(rootNode, appName);
 
           var defaultNode = node.firstChild;
-          defaultNode.data.iconCls = 'icon-state-applications-class';
+          defaultNode.data.iconCls = 'core-application-icon';
           defaultNode.text = stateName;
           defaultNode.data.text = stateName;
           defaultNode.data.stateToLoad = stateName;
@@ -1498,7 +1504,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               desktop : sStateName,
               type : 'app',
               leaf : true,
-              iconCls : 'icon-state-applications-class',
+              iconCls : 'core-application-icon',
               allowDrag : true,
               allowDrop : true,
               qtip : qtip
@@ -1558,7 +1564,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               desktop : sStateName,
               type : 'app',
               leaf : true,
-              iconCls : 'icon-state-applications-class',
+              iconCls : 'core-application-icon',
               allowDrag : true,
               allowDrop : true
             };
@@ -1899,7 +1905,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             stateToLoad : stateName,
             type : 'app',
             leaf : true,
-            iconCls : 'icon-state-applications-class',
+            iconCls : 'core-application-icon',
             scope : me,
             allowDrag : true,
             allowDrop : true,
@@ -1953,7 +1959,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             desktop : desktopName,
             type : 'app',
             leaf : true,
-            iconCls : 'icon-state-applications-class',
+            iconCls : 'core-application-icon',
             scope : me,
             allowDrag : true,
             allowDrop : true,
