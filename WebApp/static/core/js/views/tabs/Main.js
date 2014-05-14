@@ -1748,9 +1748,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         var me = GLOBAL.APP.MAIN_VIEW;
 
-        var oDataItems = sLink.split("|");
-
-        me.addToSharedDesktop(sLinkName, 'desktop');
+        var dataItems = sLink.split("|");
+        if (dataItems[0] == "desktop") {
+          me.addToSharedDesktop(sLinkName, 'desktop');
+        } else {
+          me.addToSharedApplications(dataItems[0], sLinkName, "reference");
+        }
 
       },
       oprLoadDesktopState : function(sStateName, tab) {
