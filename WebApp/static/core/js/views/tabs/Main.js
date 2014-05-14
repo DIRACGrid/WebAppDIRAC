@@ -1086,6 +1086,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           Ext.dirac.system_info.msg("Error", 'The panel which contains the menu does not exists!!!');
         }
       },
+      removeFromSharedAppMenu : function(stateName) {
+        var me = this;
+        var node = me.sharedApplications.findChild('text', stateName);
+        me.sharedApplications.removeChild(node);
+      },
       deleteApplicationStates : function() {
         var me = this;
 
@@ -1098,9 +1103,13 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
 
           if (appl) {
-            var funcAfterRemove = function(sStateType, sAppName, sStateName) {
+            var funcAfterRemove = function(stateType, sAppName, sStateName) {
 
-              me.removeNodeFromMenu(sStateName, sAppName);
+              if (stateType == "application") {
+                me.removeNodeFromMenu(sStateName, sAppName);
+              } else {// it is a shared app =>reference
+                me.removeFromSharedAppMenu(sStateName);
+              }
 
             }
             GLOBAL.APP.MAIN_VIEW.SM.formManageStates(appl.loadedObject.self.getName(), funcAfterRemove);
