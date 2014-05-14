@@ -670,7 +670,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         // creating items for the state links
         me.sharedDesktops.removeAll();
         me.sharedApplications.removeAll();
-        
+
         var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", "desktop");// OK
 
         for (var i = 0, len = oRefs.length; i < len; i++) {
@@ -1688,9 +1688,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.createWindow(oData.objectType, oData.moduleName, oData.setupData);
 
       },
-      cbAfterLoadSharedState : function(iCode, sLink, oDataReceived) {
+      cbAfterLoadSharedState : function(iCode, sLink, oDataReceived, stateName) {
 
-        if (iCode!=1){
+        if (iCode != 1) {
           Ext.dirac.system_info.msg("Error Notification", sLink + ' does not exists ');
           return;
         }
@@ -1702,29 +1702,35 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
           var oSetupData = {
             "data" : oDataReceived,
-            "currentState" : ""
+            "currentState" : stateName
           };
 
           me.createWindow("app", oDataItems[0], oSetupData);
 
         } else {
 
-          for (var i = 0, len = oDataReceived["data"].length; i < len; i++) {
+          var cbAfterCreate = function() {
 
-            var appStateData = oDataReceived["data"][i];
-            var loadedObjectType = ((!appStateData.loadedObjectType) ? "app" : appStateData.loadedObjectType); // TODO
-            // We can remove it later.
-            var name = appStateData.module
+            for (var i = 0, len = oDataReceived["data"].length; i < len; i++) {
 
-            if (name)
-              me.createWindow(loadedObjectType, name, appStateData);
+              var appStateData = oDataReceived["data"][i];
+              var loadedObjectType = ((!appStateData.loadedObjectType) ? "app" : appStateData.loadedObjectType); // TODO
+              // We can remove it later.
+              var name = appStateData.module
 
-          }
+              if (name)
+                me.createWindow(loadedObjectType, name, appStateData);
 
-          if (me.currentState != "")
-            GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);
+            }
 
-          me.currentState = "";
+            if (me.currentState != "")
+              GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);
+
+            me.currentState = stateName;
+            GLOBAL.APP.SM.oprAddActiveState("desktop", me.currentState);
+
+          };
+          me.createDesktopTab(stateName, me.ID, cbAfterCreate);
 
         }
 
