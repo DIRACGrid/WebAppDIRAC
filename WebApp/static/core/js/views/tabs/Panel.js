@@ -199,7 +199,8 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
         if (me.currentState == "") {
 
-          me.setTitle(me.loadedObject.launcher.title + " [Untitled]");
+          GLOBAL.APP.MAIN_VIEW.appCounter++;
+          me.setTitle(me.loadedObject.launcher.title + " [Untitled "+GLOBAL.APP.MAIN_VIEW.appCounter+"]");
 
         } else {
           me.setTitle(me.loadedObject.launcher.title + " [" + me.currentState + "]");

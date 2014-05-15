@@ -25,7 +25,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       sharedObjects : null,
 
       loading : false,
-
+      
+      appCounter : 0,
+      
       myDesktop : null,
 
       /**
