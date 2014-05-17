@@ -189,7 +189,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     return;
                   }
 
-                  if (item.data.type == "tabView") {
+                  if (item.data.type == "tabView" || item.data.type == "presenterView") {
                     if (item.data.isShared == true) {
                       if (item.data.stateType == 'desktop') {
 
@@ -204,14 +204,14 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                       GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
 
                     } else {
+                      var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
+                      if (activeDesktop == null){
+                        GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view);  
+                      }
                       GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application);
                     }
-
                   } else {
-                    var activeDesktop = null;
-                    var rCont = GLOBAL.APP.MAIN_VIEW.getRightContainer();
-                    var mainPanel = rCont.getApplicationContainer();
-                    var activeDesktop = mainPanel.getActiveTab();
+                    var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
                     var cbSetActiveTab = null;
                     if (activeDesktop) {
                       cbSetActiveTab = function(oTab) {

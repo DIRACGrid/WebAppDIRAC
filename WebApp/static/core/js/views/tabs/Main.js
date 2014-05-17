@@ -636,7 +636,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 application : sStateName,
                 allowDrag : false,
                 allowDrop : false,
-                type : 'tabView',
+                type : oStateData.view,
                 leaf : true,
                 iconCls : 'icon-applications-states-all-default',
                 view : oStateData.view

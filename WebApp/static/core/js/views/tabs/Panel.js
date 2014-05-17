@@ -52,7 +52,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                       GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                       me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
 
-                      //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+                      // GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                       if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                         GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
@@ -124,7 +124,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           me.setLoadedObject(me.setupData, false);
 
         } else if (me.loadedObjectType == "link") {
-          me.setTitle(me.setupData.text); //TODO Add the link to the URL
+          me.setTitle(me.setupData.text); // TODO Add the link to the URL
           me.items = [{
                 xtype : "component",
                 autoEl : {
@@ -199,7 +199,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
         if (me.currentState == "") {
 
-          if (me.getTitle() == "") {
+          if (me.title.search('Untitled') < 0) {
             GLOBAL.APP.MAIN_VIEW.appCounter++;
             me.setTitle(me.loadedObject.launcher.title + " [Untitled " + GLOBAL.APP.MAIN_VIEW.appCounter + "]");
           }
