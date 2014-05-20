@@ -12,7 +12,7 @@ class RequestMonitorHandler(WebHandler):
 
   @asyncGen
   def web_getRequestMonitorData(self):
-    RPC = RPCClient("RequestManagement/centralURL", timeout = 600 )
+    RPC = RPCClient("RequestManagement/ReqManager", timeout = 600 )
     callback = {}
     req = self.__request()
     print 'dsdsds', req
@@ -95,9 +95,9 @@ class RequestMonitorHandler(WebHandler):
     if user == "Anonymous":
       self.finish({"success":"false", "result":[], "total":0, "error":"Insufficient rights"})
     else:
-      RPC = RPCClient("RequestManagement/centralURL")
+      RPC = RPCClient("RequestManagement/ReqManager")
   ### R E Q U E S T T Y P E
-      result = yield self.threadTask(RPC.getDistinctValues,"RequestType")
+      result = yield self.threadTask(RPC.getDistinctValues,"Type")
       if result["OK"]:
         reqtype = list()
         if len(result["Value"])>0:
