@@ -705,9 +705,14 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         /*
          * Function that is executed after a state has been removed
          */
-        var funcAfterRemove = function(sStateType, sAppName, sStateName) {
+        var funcAfterRemove = function(stateType, sAppName, sStateName) {
 
-          GLOBAL.APP.MAIN_VIEW.deleteStateFromMenu(sStateName);
+          if (stateType == 'application') {
+            GLOBAL.APP.MAIN_VIEW.deleteStateFromMenu(sStateName);
+          } else {//it is a reference =>shared desktop....
+            GLOBAL.APP.MAIN_VIEW.removeFormSharedDesktop(sStateName);
+          }
+
           Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, sStateName); // it
           // is required for refreshing the url.
 

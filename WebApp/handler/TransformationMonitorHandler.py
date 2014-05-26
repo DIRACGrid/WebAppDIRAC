@@ -220,8 +220,7 @@ class TransformationMonitorHandler(WebHandler):
         
         if result["OK"]:
           resString = "ProdID: %s set to %s successfully" % (i,cmd)
-          #result = yield self.threadTask(RPC.setTransformationParameter, id,'AgentType',agentType)
-          result = S_ERROR('It is commented!!')
+          result = yield self.threadTask(RPC.setTransformationParameter, id,'AgentType',agentType)
           if not result["OK"]:
             resString = "ProdID: %s failed to set to %s: %s" % (i,cmd,result["Message"])
         else:

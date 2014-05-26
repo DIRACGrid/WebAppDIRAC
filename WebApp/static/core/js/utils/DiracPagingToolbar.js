@@ -215,7 +215,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
                     checked : false,
                     name : "900000",
                     handler : function() {
-                      me.__setRefreshCycle(60000);
+                      me.__setRefreshCycle(900000);
                     }
                   }, {
                     text : 'Each 30m',

@@ -63,7 +63,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
     'close' : function() {
       var me = this;
       Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, me.title); // we have to remove the desktop from the list.
-      if (me.title == 'Default'){
+      if (me.title == 'Default') {
         GLOBAL.APP.MAIN_VIEW._default_desktop_state = []; //we closed the default desktop!
       }
       GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.title); // We have to remove the desktop state from the  list.
@@ -73,9 +73,11 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
     },
     'tabchange' : function(tabPanel, newCard, oldCard, eOpts) {
       var me = this;
+      /*if (oldCard != null) {
+        GLOBAL.APP.SM.oprRemoveActiveState("desktop", oldCard.title);// OK
+      }*/
       if (newCard.type == 'desktop') { // Ignore the change of the applications
 
-        GLOBAL.APP.SM.oprAddActiveState("desktop", newCard.title);// OK
         GLOBAL.APP.MAIN_VIEW.currentState = newCard.title; // as we work more than one desktop, we need to set the current state each time when a tab has changed.
         // newCard.loadMask.show();
         if (!GLOBAL.APP.MAIN_VIEW.loading && !newCard.isLoaded && newCard.title != 'Default') {

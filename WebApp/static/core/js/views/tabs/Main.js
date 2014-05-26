@@ -25,7 +25,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       sharedObjects : null,
 
       loading : false,
-
+      
+      appCounter : 0,
+      
       myDesktop : null,
 
       /**
@@ -513,15 +515,21 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       },
       __getAppRecursivelyFromConfig : function(item, rootNode) {
         var me = this;
+        var expanded = null;
         if (item.length == 2) {
+          if (item[0]=='Applications'){
+            expanded = true;
+          }else{
+            expanded = false;
+          }
           var childnode = rootNode.appendChild({
                 'text' : item[0],
                 expandable : true,
+                expanded : expanded,
                 allowDrag : false,
                 allowDrop : false,
                 leaf : false,
-                application : item[2],
-                iconCls : "core-application-group-icon"
+                application : item[2]
               });
           for (var i = 0; i < item[1].length; i++) {
             me.__getAppRecursivelyFromConfig(item[1][i], childnode);
@@ -581,7 +589,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               text : 'My Desktops',
               allowDrag : false,
               allowDrop : false,
-              iconCls : "core-desktop-icon"
+              iconCls : "my-desktop"
             });
         me.myDesktop = rootNode;
 
@@ -628,7 +636,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 application : sStateName,
                 allowDrag : false,
                 allowDrop : false,
-                type : 'tabView',
+                type : (oStateData.view!=null?oStateData.view:"tabView"),
                 leaf : true,
                 iconCls : 'icon-applications-states-all-default',
                 view : oStateData.view
@@ -649,7 +657,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               text : 'Shared Desktops',
               allowDrag : false,
               allowDrop : false,
-              iconCls : "core-desktop-icon"
+              iconCls : "shared-desktop"
             });
         me.sharedDesktops = desktopsNode;
 
@@ -657,7 +665,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               text : 'Shared Applications',
               allowDrag : false,
               allowDrop : false,
-              iconCls : "core-desktop-icon"
+              iconCls : "shared-desktop"
             });
 
         me.sharedApplications = applicationsNode;
@@ -670,7 +678,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         // creating items for the state links
         me.sharedDesktops.removeAll();
         me.sharedApplications.removeAll();
-        
+
         var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", "desktop");// OK
 
         for (var i = 0, len = oRefs.length; i < len; i++) {
@@ -1015,7 +1023,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           var node = me.__findNode(rootNode, appName);
 
           var defaultNode = node.firstChild;
-          defaultNode.data.iconCls = 'icon-state-applications-class';
+          defaultNode.data.iconCls = 'core-application-icon';
           defaultNode.text = stateName;
           defaultNode.data.text = stateName;
           defaultNode.data.stateToLoad = stateName;
@@ -1086,6 +1094,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           Ext.dirac.system_info.msg("Error", 'The panel which contains the menu does not exists!!!');
         }
       },
+      removeFromSharedAppMenu : function(stateName) {
+        var me = this;
+        var node = me.sharedApplications.findChild('text', stateName);
+        me.sharedApplications.removeChild(node);
+      },
       deleteApplicationStates : function() {
         var me = this;
 
@@ -1098,9 +1111,13 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
 
           if (appl) {
-            var funcAfterRemove = function(sStateType, sAppName, sStateName) {
+            var funcAfterRemove = function(stateType, sAppName, sStateName) {
 
-              me.removeNodeFromMenu(sStateName, sAppName);
+              if (stateType == "application") {
+                me.removeNodeFromMenu(sStateName, sAppName);
+              } else {// it is a shared app =>reference
+                me.removeFromSharedAppMenu(sStateName);
+              }
 
             }
             GLOBAL.APP.MAIN_VIEW.SM.formManageStates(appl.loadedObject.self.getName(), funcAfterRemove);
@@ -1489,7 +1506,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               desktop : sStateName,
               type : 'app',
               leaf : true,
-              iconCls : 'icon-state-applications-class',
+              iconCls : 'core-application-icon',
               allowDrag : true,
               allowDrop : true,
               qtip : qtip
@@ -1549,7 +1566,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               desktop : sStateName,
               type : 'app',
               leaf : true,
-              iconCls : 'icon-state-applications-class',
+              iconCls : 'core-application-icon',
               allowDrag : true,
               allowDrop : true
             };
@@ -1688,8 +1705,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.createWindow(oData.objectType, oData.moduleName, oData.setupData);
 
       },
-      cbAfterLoadSharedState : function(iCode, sLink, oDataReceived) {
+      cbAfterLoadSharedState : function(iCode, sLink, oDataReceived, stateName) {
 
+        if (iCode != 1) {
+          Ext.dirac.system_info.msg("Error Notification", sLink + ' does not exists ');
+          return;
+        }
         var me = GLOBAL.APP.MAIN_VIEW;
 
         var oDataItems = sLink.split("|");
@@ -1698,29 +1719,35 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
           var oSetupData = {
             "data" : oDataReceived,
-            "currentState" : ""
+            "currentState" : stateName
           };
 
           me.createWindow("app", oDataItems[0], oSetupData);
 
         } else {
 
-          for (var i = 0, len = oDataReceived["data"].length; i < len; i++) {
+          var cbAfterCreate = function() {
 
-            var appStateData = oDataReceived["data"][i];
-            var loadedObjectType = ((!appStateData.loadedObjectType) ? "app" : appStateData.loadedObjectType); // TODO
-            // We can remove it later.
-            var name = appStateData.module
+            for (var i = 0, len = oDataReceived["data"].length; i < len; i++) {
 
-            if (name)
-              me.createWindow(loadedObjectType, name, appStateData);
+              var appStateData = oDataReceived["data"][i];
+              var loadedObjectType = ((!appStateData.loadedObjectType) ? "app" : appStateData.loadedObjectType); // TODO
+              // We can remove it later.
+              var name = appStateData.module
 
-          }
+              if (name)
+                me.createWindow(loadedObjectType, name, appStateData);
 
-          if (me.currentState != "")
-            GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);
+            }
 
-          me.currentState = "";
+            if (me.currentState != "")
+              GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);
+
+            me.currentState = stateName;
+            GLOBAL.APP.SM.oprAddActiveState("desktop", me.currentState);
+
+          };
+          me.createDesktopTab(stateName, me.ID, cbAfterCreate);
 
         }
 
@@ -1729,9 +1756,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         var me = GLOBAL.APP.MAIN_VIEW;
 
-        var oDataItems = sLink.split("|");
-
-        me.addToSharedDesktop(sLinkName, 'desktop');
+        var dataItems = sLink.split("|");
+        if (dataItems[0] == "desktop") {
+          me.addToSharedDesktop(sLinkName, 'desktop');
+        } else {
+          me.addToSharedApplications(dataItems[0], sLinkName, "reference");
+        }
 
       },
       oprLoadDesktopState : function(sStateName, tab) {
@@ -1877,7 +1907,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             stateToLoad : stateName,
             type : 'app',
             leaf : true,
-            iconCls : 'icon-state-applications-class',
+            iconCls : 'core-application-icon',
             scope : me,
             allowDrag : true,
             allowDrop : true,
@@ -1931,7 +1961,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             desktop : desktopName,
             type : 'app',
             leaf : true,
-            iconCls : 'icon-state-applications-class',
+            iconCls : 'core-application-icon',
             scope : me,
             allowDrag : true,
             allowDrop : true,

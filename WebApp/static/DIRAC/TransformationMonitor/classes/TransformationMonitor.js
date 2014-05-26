@@ -15,6 +15,13 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         me.grid.loadState(data);
 
         me.leftPanel.loadState(data);
+
+        if (data.leftPanelCollapsed) {
+
+          me.leftPanel.collapse();
+
+        }
+
       },
 
       getStateData : function() {
@@ -24,7 +31,9 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         oStates = {
           grid : me.grid.getStateData(),
           leftMenu : me.leftPanel.getStateData()
-        }
+        };
+
+        oStates.leftPanelCollapsed = me.leftPanel.collapsed;
 
         return oStates;
       },

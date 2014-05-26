@@ -8,7 +8,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagerMenu', {
       extend : 'Ext.menu.Menu',
       xtype : 'stateMenu',
       items : [{
-            text : 'Current desktop',
+            text : 'Desktops',
             menu : {
               items : [{
                     text : "New Desktop",
@@ -37,7 +37,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagerMenu', {
                   }]
             }
           }, {
-            text : 'Current application',
+            text : 'Applications',
             menu : {
               items : [{
                     text : 'Save',

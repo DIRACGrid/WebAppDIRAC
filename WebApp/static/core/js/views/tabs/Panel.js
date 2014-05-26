@@ -36,8 +36,8 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           Ext.MessageBox.confirm('Confirm', 'There is an active application state. Do you want to save the current state?', function(button) {
                 var me = this;
                 if (button == 'yes') {
-                  
-                  Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, me.getUrlDescription()); 
+
+                  Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, me.getUrlDescription());
                   var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
 
                     if ((iCode == 1) && (me.currentState != sStateName)) {
@@ -51,8 +51,8 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                       me.currentState = sStateName;
                       GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
                       me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
-                    
-                      //GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+
+                      // GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                       if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                         GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
@@ -124,6 +124,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           me.setLoadedObject(me.setupData, false);
 
         } else if (me.loadedObjectType == "link") {
+          me.setTitle(me.setupData.text); // TODO Add the link to the URL
           me.items = [{
                 xtype : "component",
                 autoEl : {
@@ -198,7 +199,10 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
         if (me.currentState == "") {
 
-          me.setTitle(me.loadedObject.launcher.title + " [Untitled]");
+          if (me.title.search('Untitled') < 0) {
+            GLOBAL.APP.MAIN_VIEW.appCounter++;
+            me.setTitle(me.loadedObject.launcher.title + " [Untitled " + GLOBAL.APP.MAIN_VIEW.appCounter + "]");
+          }
 
         } else {
           me.setTitle(me.loadedObject.launcher.title + " [" + me.currentState + "]");
