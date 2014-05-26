@@ -24,7 +24,7 @@ def balancer():
   return getCSValue( "Balancer", "" )
 
 def numProcesses():
-  return getCSValue( "NumProcesses", -1 )
+  return getCSValue( "NumProcesses", 1 )
 
 def HTTPS():
   if balancer():
