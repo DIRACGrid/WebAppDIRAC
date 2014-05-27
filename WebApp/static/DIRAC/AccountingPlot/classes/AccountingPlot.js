@@ -712,12 +712,8 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
           var oList = oSelectionData[oBox.getName()];
           me.__oprDoubleElementItemList(oList);
-          var oNewStore = new Ext.data.ArrayStore({
-                fields : ['value', 'text'],
-                data : oList
-              });
-
-          oBox.refreshStore(oNewStore);
+              
+          oBox.loadData(oList);
 
         }
 
