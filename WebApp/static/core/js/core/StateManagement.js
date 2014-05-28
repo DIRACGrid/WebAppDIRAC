@@ -245,7 +245,11 @@ Ext.define('Ext.dirac.core.StateManagement', {
                 me.cache["application"][sAppName] = {};
                 me.cache["reference"][sAppName] = {};
                 cbAfterRefresh(-4, sAppName);
+                var message = response.responseText.split("\n");
+                var messageLength = message.length - 2;
                 Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
+                Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + message[messageLength] + '.<br/> Please try again later !');
+
               }
             });
 

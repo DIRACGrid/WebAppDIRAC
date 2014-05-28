@@ -377,6 +377,19 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
 
       },
 
+      /**
+       * It loads the data to the store. If we have lot of data, this method
+       * must be used.
+       * 
+       * @param {Ext.Array}
+       *          data it contains the data which can be loaded to the store.
+       *          The format is the following: [[2,22],[3,5],...]
+       */
+      loadData : function(data) {
+        var me = this;
+        var store = me.getStore();
+        store.loadData(data);
+      },
       refreshStore : function(oNewStore) {
 
         var me = this;
@@ -1759,8 +1772,8 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
       },
 
       /**
-       * Overridden to use value (selection) instead of raw value and to
-       * avoid the use of placeholder
+       * Overridden to use value (selection) instead of raw value and to avoid
+       * the use of placeholder
        */
       applyEmptyText : function() {
         var me = this, emptyText = me.emptyText, inputEl, isEmpty;
@@ -1784,8 +1797,8 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
       },
 
       /**
-       * Overridden to use inputEl instead of raw value and to avoid the use
-       * of placeholder
+       * Overridden to use inputEl instead of raw value and to avoid the use of
+       * placeholder
        */
       preFocus : function() {
         var me = this, inputEl = me.inputEl, emptyText = me.emptyText, isEmpty;
@@ -1816,8 +1829,8 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
       },
 
       /**
-       * Intercept calls to onBlur to remove focusCls, because the base
-       * field classes assume this should be applied to inputEl
+       * Intercept calls to onBlur to remove focusCls, because the base field
+       * classes assume this should be applied to inputEl
        */
       onBlur : function() {
         var me = this, focusCls = me.focusCls, itemList = me.itemList;
@@ -1844,8 +1857,7 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
       },
 
       /**
-       * Initiate auto-sizing for height based on {@link #grow}, if
-       * applicable.
+       * Initiate auto-sizing for height based on {@link #grow}, if applicable.
        */
       autoSize : function() {
         var me = this, height;
