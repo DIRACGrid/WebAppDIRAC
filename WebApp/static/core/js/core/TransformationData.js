@@ -12,7 +12,7 @@ Ext.define('Ext.dirac.core.TransformationData', {
 	 * Function to verify the structure of the saved data and its version
 	 */
 	oprVerifyDataStructure : function(oData) {
-		if ("version" in oData) {
+		if (oData && "version" in oData) {
 
 			if (oData.version == GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION) {
 
@@ -39,7 +39,7 @@ Ext.define('Ext.dirac.core.TransformationData', {
 
 		var startVersion = 0;
 
-		if ("version" in oData) {
+		if (oData && "version" in oData) {
 			startVersion = oData.version;
 		}
 
