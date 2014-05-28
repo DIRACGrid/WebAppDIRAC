@@ -63,7 +63,8 @@ Ext.define('Ext.dirac.core.App', {
 				}
 			};
 		}();
-
+    
+    
 		/*
 		 * Getting the configuration data from the server
 		 */
@@ -122,6 +123,8 @@ Ext.define('Ext.dirac.core.App', {
 
 			// Set-up to use getMouseXY function onMouseMove
 		document.onmousemove = me.__getMouseXY;
+    
+    Ext.dirac.system_info = me.CF;
 
 		me.callParent();
 
