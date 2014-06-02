@@ -25,9 +25,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       sharedObjects : null,
 
       loading : false,
-      
+
       appCounter : 0,
-      
+
       myDesktop : null,
 
       /**
@@ -517,9 +517,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var me = this;
         var expanded = null;
         if (item.length == 2) {
-          if (item[0]=='Applications'){
+          if (item[0] == 'Applications') {
             expanded = true;
-          }else{
+          } else {
             expanded = false;
           }
           var childnode = rootNode.appendChild({
@@ -636,7 +636,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 application : sStateName,
                 allowDrag : false,
                 allowDrop : false,
-                type : (oStateData.view!=null?oStateData.view:"tabView"),
+                type : (oStateData.view != null ? oStateData.view : "tabView"),
                 leaf : true,
                 iconCls : 'icon-applications-states-all-default',
                 view : oStateData.view
@@ -909,32 +909,14 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         var activeDesktop = me.getActiveDesktop();
         if (activeDesktop) {
+
           var appl = activeDesktop.getActiveTab();
+
           if (appl) {
-            var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
-
-              if ((iCode == 1) && (appl.currentState != sStateName)) {
-
-                var oldApplicationUrl = appl.getUrlDescription();
-                GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
-
-                if (appl.currentState != "")
-                  GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appl.currentState);
-
-                appl.loadedObject.currentState = sStateName;
-                appl.currentState = sStateName;
-                GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-                appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
-
-                if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
-                  GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-                Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl);
-
-                me.refreshUrlDesktopState();
-              }
-
-            };
-            GLOBAL.APP.MAIN_VIEW.SM.formSaveState("application", appl.loadedObject.self.getName(), appl.loadedObject, funcAfterSave);
+            GLOBAL.APP.MAIN_VIEW.SM.saveAsState(activeDesktop.title, appl.loadedObject.self.getName(), appl.loadedObject.currentState, function(desktop, app, stateName) {
+                  Ext.dirac.system_info.msg("Notification", stateName + ' application is saved on ' + desktop + '!');
+                  GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+                });
 
           } else {
             Ext.dirac.system_info.msg("Error", 'Please open an application!!! ');
@@ -943,6 +925,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           Ext.dirac.system_info.msg("Error", 'Please open a dektop!!! ');
         }
       },
+
       /**
        * It refreshes the menu
        * 
