@@ -317,7 +317,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
        * @param{String} value It render the status.
        */
       rendererStatus : function(value) {
-        if ((value == 'Done') || (value == 'Completed') || (value == 'Good') || (value == 'Active') || (value == 'Cleared') || (value == 'Completing')) {
+        if ((value == 'Done') || (value == 'Good') || (value == 'Active') || (value == 'Cleared') || (value == 'Completing')) {
           return '<img src="static/core/img/statusIcons/done.gif"/>';
         } else if (value == 'Bad') {
           return '<img src="static/core/img/statusIcons/bad.gif"/>';
