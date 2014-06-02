@@ -915,7 +915,23 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           if (appl) {
             GLOBAL.APP.MAIN_VIEW.SM.saveAsState(activeDesktop.title, appl.loadedObject.self.getName(), appl.loadedObject.currentState, function(desktop, app, stateName) {
                   Ext.dirac.system_info.msg("Notification", stateName + ' application is saved on ' + desktop + '!');
-                  GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+
+                  if ((desktop != 'Default') && (appl.currentState != stateName)) {
+
+                    GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName, app);
+
+                    if (appl.currentState != "")
+                      GLOBAL.APP.SM.oprRemoveActiveState(app, appl.currentState);
+
+                    appl.loadedObject.currentState = stateName;
+                    appl.currentState = stateName;
+                    GLOBAL.APP.SM.oprAddActiveState(app, stateName);
+                    appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
+
+                    if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+                      GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+
+                  }
                 });
 
           } else {
