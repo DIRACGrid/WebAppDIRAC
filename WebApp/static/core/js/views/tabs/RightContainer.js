@@ -179,6 +179,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                         // check if the application states is saved and not
                         // loaded, get the application state from the
                         // profile
+                        // this can not happen....
                         if (data != -1) {
                           oData.push(data);
                         } else {
