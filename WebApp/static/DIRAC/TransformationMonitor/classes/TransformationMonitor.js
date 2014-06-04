@@ -192,7 +192,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
          * -----------------------------------------------------------------------------------------------------------
          */
         var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy', {
-              url : GLOBAL.BASE_URL + 'TransformationMonitor/getTransformationData'
+              url : GLOBAL.BASE_URL + me.applicationName + "/getTransformationData"
             });
 
         me.diffValues = {};
@@ -652,7 +652,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID");
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
-              url : GLOBAL.BASE_URL + 'TransformationMonitor/action',
+              url : GLOBAL.BASE_URL + me.applicationName + "/action",
               method : 'POST',
               params : {
                 data_kind : oDataKind,
@@ -894,7 +894,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                           alert(response["error"]);
                         }
                       },
-                      url : GLOBAL.BASE_URL + 'TransformationMonitor/setRunStatus'
+                      url : GLOBAL.BASE_URL + me.applicationName + "/setRunStatus"
                     });
               }
             });
@@ -927,7 +927,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                           alert(response["error"]);
                         }
                       },
-                      url : GLOBAL.BASE_URL + 'TransformationMonitor/setSite'
+                      url : GLOBAL.BASE_URL + me.applicationName + "/setSite"
                     });
               }
             });
@@ -961,7 +961,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                           'id' : id,
                           'tasks' : tasks
                         },
-                        url : GLOBAL.BASE_URL + 'TransformationMonitor/action',
+                        url : GLOBAL.BASE_URL + me.applicationName + "/action",
                         failure : function(response) {
                           alert(response.statusText);
                         }
@@ -1046,7 +1046,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
           return;
 
         Ext.Ajax.request({
-              url : GLOBAL.BASE_URL + 'TransformationMonitor/executeOperation',
+              url : GLOBAL.BASE_URL + me.applicationName + "/executeOperation",
               method : 'POST',
               params : {
                 action : oAction,
