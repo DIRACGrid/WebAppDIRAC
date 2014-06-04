@@ -801,6 +801,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   launcherElements : {
                     title : 'Module',
                     iconCls : 'notepad',
+                    applicationName : oParts[1],
                     width : 0,
                     height : 0,
                     maximized : true,

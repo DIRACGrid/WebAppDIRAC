@@ -1769,6 +1769,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
                   launcherElements : {
                     title : 'Module',
                     iconCls : 'notepad',
+                    applicationName : oParts[1],
                     width : 0,
                     height : 0,
                     maximized : true,
