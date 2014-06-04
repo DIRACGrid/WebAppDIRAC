@@ -1,3 +1,4 @@
+from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -11,6 +12,9 @@ class TransformationMonitorHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
 
+  tsClient = TransformationClient()
+  
+    
   def index(self):
     pass
 
@@ -27,7 +31,7 @@ class TransformationMonitorHandler(WebHandler):
 
       RPC = RPCClient("Transformation/TransformationManager")
   ####
-      result = yield self.threadTask(RPC.getDistinctAttributeValues, "Plugin",{} )
+      result = yield self.threadTask(self.tsClient.getDistinctAttributeValues, "Plugin",{} )
       if result["OK"]:
         plugin = []
         if len(result["Value"])>0:
@@ -39,7 +43,7 @@ class TransformationMonitorHandler(WebHandler):
         plugin = "Error during RPC call"
       callback["plugin"] = plugin
   ####
-      result = yield self.threadTask(RPC.getDistinctAttributeValues, "Status",{})
+      result = yield self.threadTask(self.tsClient.getDistinctAttributeValues, "Status",{})
       if result["OK"]:
         status = []
         if len(result["Value"])>0:
@@ -51,7 +55,7 @@ class TransformationMonitorHandler(WebHandler):
         status = "Error during RPC call"
       callback["prodStatus"] = status
   ####
-      result = yield self.threadTask(RPC.getDistinctAttributeValues, "TransformationGroup",{})
+      result = yield self.threadTask(self.tsClient.getDistinctAttributeValues, "TransformationGroup",{})
       if result["OK"]:
         group = []
         if len(result["Value"])>0:
@@ -63,7 +67,7 @@ class TransformationMonitorHandler(WebHandler):
         group = "Error during RPC call"
       callback["transformationGroup"] = group
   ####
-      result = yield self.threadTask(RPC.getDistinctAttributeValues, "AgentType",{})
+      result = yield self.threadTask(self.tsClient.getDistinctAttributeValues, "AgentType",{})
       if result["OK"]:
         atype = []
         if len(result["Value"])>0:
@@ -75,7 +79,7 @@ class TransformationMonitorHandler(WebHandler):
         atype = "Error during RPC call"
       callback["agentType"] = atype
   ####
-      result = yield self.threadTask(RPC.getDistinctAttributeValues, "Type",{})
+      result = yield self.threadTask(self.tsClient.getDistinctAttributeValues, "Type",{})
       if result["OK"]:
         type = []
         if len(result["Value"])>0:
@@ -102,7 +106,7 @@ class TransformationMonitorHandler(WebHandler):
       RPC = RPCClient("Transformation/TransformationManager")
       result = self.__request()
       
-      result = yield self.threadTask(RPC.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs)
+      result = yield self.threadTask(self.tsClient.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs)
       if not result["OK"]:
         self.finish(json.dumps({"success":"false", "error":result["Message"]}))
         return
@@ -172,7 +176,8 @@ class TransformationMonitorHandler(WebHandler):
     elif self.request.arguments["data_kind"][0] == "fileAllProcessed":
       callback = yield self.threadTask(self.__fileRetry, id, 'all')
     elif self.request.arguments["data_kind"][0] == "dataQuery":
-      callback = yield self.threadTask(self.__dataQuery, id)
+      print '????', dir(self)
+      callback = self.dataQuery(id)
     elif self.request.arguments["data_kind"][0] == "additionalParams":
       callback = yield self.threadTask(self.__additionalParams, id)
     elif self.request.arguments["data_kind"][0] == "transformationDetail":
@@ -216,11 +221,11 @@ class TransformationMonitorHandler(WebHandler):
       try:
         id = int(i)
 #        gLogger.info("RPC.setTransformationParameter(%s,'Status',%s)" % (id,status))
-        result = yield self.threadTask(RPC.setTransformationParameter, id,'Status',status)
+        result = yield self.threadTask(self.tsClient.setTransformationParameter, id,'Status',status)
         
         if result["OK"]:
           resString = "ProdID: %s set to %s successfully" % (i,cmd)
-          result = yield self.threadTask(RPC.setTransformationParameter, id,'AgentType',agentType)
+          result = yield self.threadTask(self.tsClient.setTransformationParameter, id,'AgentType',agentType)
           if not result["OK"]:
             resString = "ProdID: %s failed to set to %s: %s" % (i,cmd,result["Message"])
         else:
@@ -237,11 +242,11 @@ class TransformationMonitorHandler(WebHandler):
     callback = {}
     RPC = RPCClient('Transformation/TransformationManager')
     if mode == "proc":
-      res = RPC.getTransformationFilesCount(prodid,"ErrorCount",{'Status':'Processed'})
+      res = self.tsClient.getTransformationFilesCount(prodid,"ErrorCount",{'Status':'Processed'})
     elif mode == "not":
-      res = RPC.getTransformationFilesCount(prodid,"ErrorCount",{'Status':['Unused','Assigned','Failed']})
+      res = self.tsClient.getTransformationFilesCount(prodid,"ErrorCount",{'Status':['Unused','Assigned','Failed']})
     elif mode == "all":
-      res = RPC.getTransformationFilesCount(prodid,"ErrorCount")
+      res = self.tsClient.getTransformationFilesCount(prodid,"ErrorCount")
     else:
       return {"success":"false","error":res["Message"]}
     if not res['OK']:
@@ -262,10 +267,11 @@ class TransformationMonitorHandler(WebHandler):
     return callback
 
   ################################################################################
-  def __dataQuery(self,prodid):
+  def dataQuery(self,prodid):
     callback = {}
     RPC = RPCClient("Transformation/TransformationManager")
-    res = RPC.getTransformationInputDataQuery(prodid)
+    print 'IIIIITTTTTTT'
+    res = self.tsClient.getTransformationInputDataQuery(prodid)
     gLogger.info("-= #######",res)
     if not res['OK']:
       callback = {"success":"false","error":res["Message"]}
@@ -281,7 +287,7 @@ class TransformationMonitorHandler(WebHandler):
   def __additionalParams(self,prodid):
     callback = {}
     RPC = RPCClient('Transformation/TransformationManager')
-    res = RPC.getAdditionalParameters(prodid)
+    res = self.tsClient.getAdditionalParameters(prodid)
     if not res['OK']:
       callback = {"success":"false","error":res["Message"]}
     else:
@@ -296,7 +302,7 @@ class TransformationMonitorHandler(WebHandler):
   def __getLoggingInfo(self,id):
     RPC = RPCClient("Transformation/TransformationManager")
     callback = {}
-    result = RPC.getTransformationLogging(id)
+    result = self.tsClient.getTransformationLogging(id)
     if result["OK"]:
       result = result["Value"]
       if len(result) > 0:
@@ -329,7 +335,7 @@ class TransformationMonitorHandler(WebHandler):
   def __transformationFileStatus(self, id):
     callback = {}
     RPC = RPCClient('Transformation/TransformationManager')
-    res = RPC.getTransformationFilesCount(id,"Status")
+    res = self.tsClient.getTransformationFilesCount(id,"Status")
     if not res['OK']:
       callback = {"success":"false","error":res["Message"]}
     else:
@@ -351,7 +357,7 @@ class TransformationMonitorHandler(WebHandler):
   def __transformationDetail(self,prodid):
     callback = {}
     RPC = RPCClient('Transformation/TransformationManager')
-    res = RPC.getTransformationParameters(prodid,['DetailedInfo'])
+    res = self.tsClient.getTransformationParameters(prodid,['DetailedInfo'])
     if not res["OK"]:
       callback = {"success":"false","error":res["Message"]}
     else:
@@ -374,7 +380,7 @@ class TransformationMonitorHandler(WebHandler):
     gLogger.info("extend %s" % transid)
     RPC = RPCClient('Transformation/TransformationManager')
     gLogger.info("extendTransformation(%s,%s)" % (transid,tasks))
-    res = RPC.extendTransformation(transid,tasks)
+    res = self.tsClient.extendTransformation(transid,tasks)
     if res["OK"]:
       resString = "%s extended by %s successfully" % (transid,tasks)
     else:
@@ -396,7 +402,7 @@ class TransformationMonitorHandler(WebHandler):
       raise WErr( 400, "Missing %s" % excp )
 
     RPC = RPCClient("Transformation/TransformationManager")
-    result = yield self.threadTask(RPC.getTransformationFilesSummaryWeb, {'TransformationID':id,'Status':status},[["FileID","ASC"]],start,limit)
+    result = yield self.threadTask(self.tsClient.getTransformationFilesSummaryWeb, {'TransformationID':id,'Status':status},[["FileID","ASC"]],start,limit)
     if not result['OK']:
       callback = {"success":"false","error":result["Message"]}
     else:
@@ -457,7 +463,7 @@ class TransformationMonitorHandler(WebHandler):
 
     RPC = RPCClient("Transformation/TransformationManager")
     gLogger.info("\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % (transID,runID,site))
-    result = RPC.setTransformationRunsSite(transID,runID,site)
+    result = self.tsClient.setTransformationRunsSite(transID,runID,site)
     
     if result["OK"]:
       callback = {"success":"true","result":"true"}
