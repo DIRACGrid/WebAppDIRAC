@@ -1,6 +1,5 @@
 from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
@@ -29,7 +28,6 @@ class TransformationMonitorHandler(WebHandler):
     else:
       callback = {}
 
-      RPC = RPCClient("Transformation/TransformationManager")
   ####
       result = yield self.threadTask(self.tsClient.getDistinctAttributeValues, "Plugin",{} )
       if result["OK"]:
@@ -103,7 +101,6 @@ class TransformationMonitorHandler(WebHandler):
     if user == "Anonymous":
       callback = {"success":"false","error":"You are not authorised"}
     else:
-      RPC = RPCClient("Transformation/TransformationManager")
       result = self.__request()
       
       result = yield self.threadTask(self.tsClient.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs)
@@ -159,7 +156,7 @@ class TransformationMonitorHandler(WebHandler):
   @asyncGen
   def web_action(self):
     try:
-      id = self.request.arguments[ 'id' ][-1]
+      id = int(self.request.arguments[ 'id' ][-1])
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
 
@@ -176,8 +173,7 @@ class TransformationMonitorHandler(WebHandler):
     elif self.request.arguments["data_kind"][0] == "fileAllProcessed":
       callback = yield self.threadTask(self.__fileRetry, id, 'all')
     elif self.request.arguments["data_kind"][0] == "dataQuery":
-      print '????', dir(self)
-      callback = self.dataQuery(id)
+      callback =  yield self.threadTask(self.__dataQuery, id)
     elif self.request.arguments["data_kind"][0] == "additionalParams":
       callback = yield self.threadTask(self.__additionalParams, id)
     elif self.request.arguments["data_kind"][0] == "transformationDetail":
@@ -198,7 +194,6 @@ class TransformationMonitorHandler(WebHandler):
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
    
-    RPC = RPCClient("Transformation/TransformationManager")
     
     if cmd == 'clean':
       status = 'Cleaning'
@@ -220,7 +215,7 @@ class TransformationMonitorHandler(WebHandler):
     for i in ids:
       try:
         id = int(i)
-#        gLogger.info("RPC.setTransformationParameter(%s,'Status',%s)" % (id,status))
+
         result = yield self.threadTask(self.tsClient.setTransformationParameter, id,'Status',status)
         
         if result["OK"]:
@@ -240,7 +235,7 @@ class TransformationMonitorHandler(WebHandler):
   ################################################################################
   def __fileRetry(self,prodid,mode):
     callback = {}
-    RPC = RPCClient('Transformation/TransformationManager')
+    
     if mode == "proc":
       res = self.tsClient.getTransformationFilesCount(prodid,"ErrorCount",{'Status':'Processed'})
     elif mode == "not":
@@ -267,10 +262,8 @@ class TransformationMonitorHandler(WebHandler):
     return callback
 
   ################################################################################
-  def dataQuery(self,prodid):
+  def __dataQuery(self,prodid):
     callback = {}
-    RPC = RPCClient("Transformation/TransformationManager")
-    print 'IIIIITTTTTTT'
     res = self.tsClient.getTransformationInputDataQuery(prodid)
     gLogger.info("-= #######",res)
     if not res['OK']:
@@ -286,7 +279,6 @@ class TransformationMonitorHandler(WebHandler):
   ################################################################################
   def __additionalParams(self,prodid):
     callback = {}
-    RPC = RPCClient('Transformation/TransformationManager')
     res = self.tsClient.getAdditionalParameters(prodid)
     if not res['OK']:
       callback = {"success":"false","error":res["Message"]}
@@ -300,7 +292,7 @@ class TransformationMonitorHandler(WebHandler):
 
   ################################################################################
   def __getLoggingInfo(self,id):
-    RPC = RPCClient("Transformation/TransformationManager")
+  
     callback = {}
     result = self.tsClient.getTransformationLogging(id)
     if result["OK"]:
@@ -334,7 +326,7 @@ class TransformationMonitorHandler(WebHandler):
   ################################################################################
   def __transformationFileStatus(self, id):
     callback = {}
-    RPC = RPCClient('Transformation/TransformationManager')
+    
     res = self.tsClient.getTransformationFilesCount(id,"Status")
     if not res['OK']:
       callback = {"success":"false","error":res["Message"]}
@@ -356,7 +348,7 @@ class TransformationMonitorHandler(WebHandler):
   ################################################################################
   def __transformationDetail(self,prodid):
     callback = {}
-    RPC = RPCClient('Transformation/TransformationManager')
+    
     res = self.tsClient.getTransformationParameters(prodid,['DetailedInfo'])
     if not res["OK"]:
       callback = {"success":"false","error":res["Message"]}
@@ -378,7 +370,7 @@ class TransformationMonitorHandler(WebHandler):
       raise WErr( 400, "Missing %s" % excp )
 
     gLogger.info("extend %s" % transid)
-    RPC = RPCClient('Transformation/TransformationManager')
+    
     gLogger.info("extendTransformation(%s,%s)" % (transid,tasks))
     res = self.tsClient.extendTransformation(transid,tasks)
     if res["OK"]:
@@ -401,7 +393,6 @@ class TransformationMonitorHandler(WebHandler):
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
 
-    RPC = RPCClient("Transformation/TransformationManager")
     result = yield self.threadTask(self.tsClient.getTransformationFilesSummaryWeb, {'TransformationID':id,'Status':status},[["FileID","ASC"]],start,limit)
     if not result['OK']:
       callback = {"success":"false","error":result["Message"]}
@@ -461,7 +452,6 @@ class TransformationMonitorHandler(WebHandler):
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
 
-    RPC = RPCClient("Transformation/TransformationManager")
     gLogger.info("\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % (transID,runID,site))
     result = self.tsClient.setTransformationRunsSite(transID,runID,site)
     
