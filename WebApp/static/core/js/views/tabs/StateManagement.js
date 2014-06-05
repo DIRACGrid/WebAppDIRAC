@@ -340,13 +340,13 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
         var me = this;
 
-        if (oAppObject.currentState == "") {
+        if (oAppObject.title == "") {
 
           me.formSaveState(sStateType, sAppName, oAppObject, cbAfterSave);
 
         } else {
 
-          GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, oAppObject.currentState, cbAfterSave);
+          GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, oAppObject.title, cbAfterSave);
 
         }
       },

@@ -1127,6 +1127,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       saveDesktopState : function(stateName) {
         var me = this;
+        me.getRightContainer().oprSaveDesktopState(stateName);
 
       },
       /**

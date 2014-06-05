@@ -41,6 +41,82 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
      * me.loadMask = new Ext.LoadMask(me, { msg : "Loading ..." });
      */
   },
+  /**
+   * it returns the states of the applications 
+   * @return {Object}
+   */
+  getStateData : function() {
+    var me = this;
+    var oData = [];
+
+    me.items.each(function(win, value, length) {
+
+          /*
+           * Depends on the loadedObjectType
+           */
+          var oElem = null;
+          // We only save the applications which are loaded
+
+          if (win.isLoaded) {
+
+            if (win.loadedObjectType == "app") {
+
+              oData.push({
+                    module : win.getAppClassName(),
+                    data : win.loadedObject.getStateData(),
+                    currentState : win.currentState,
+                    loadedObjectType : win.loadedObjectType
+                  });
+
+            } else if (win.loadedObjectType == "link") {
+
+              oData.push({
+                    link : win.linkToLoad,
+                    loadedObjectType : win.loadedObjectType
+                  });
+
+            }
+          } else {
+            // We may have applications which are not opened. We have to
+            // save
+            // the status of this applications as well. These
+            // application
+            // states is retrieved from the SM.
+            var desktopName = me.title;
+            if (desktopName) { // && desktopName != 'Default'
+              if (GLOBAL.APP.SM.isStateLoaded("application", "desktop", desktopName) > -1) {
+                var oStateData = GLOBAL.APP.SM.getStateData("application", "desktop", desktopName);
+                for (var i = 0; i < oStateData.data.length; i++) {
+                  if ((oStateData.data[i].module == win.getAppClassName()) && (oStateData.data[i].currentState == win.currentState))
+
+                    oData.push(oStateData.data[i]);
+
+                }
+              } else if (desktopName == 'Default') {
+                var data = GLOBAL.APP.SM.getStateData("application", win.getAppClassName(), win.currentState);
+                // check if the application states is saved and not
+                // loaded, get the application state from the
+                // profile
+                // this can not happen....
+                if (data != -1) {
+                  oData.push(data);
+                } else {
+
+                  oData.push({
+                        currentState : win.currentState,
+                        module : win.getAppClassName(),
+                        data : win.loadedObject.getStateData()
+                      });
+                }
+              } else {
+                Ext.dirac.system_info.msg("Error Notification", 'The following desktop can not be saved:' + desktopName);
+              }
+            }
+          }
+
+        });
+    return oData;
+  },
   listeners : {
     'beforeclose' : function() {
       var me = this;
@@ -153,6 +229,17 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
     var me = this;
     me.items.each(function(panelObj, value, length) {
           if (panelObj.currentState == state) {
+            panel = panelObj;
+            return;
+          }
+        });
+    return panel;
+  },
+  getDesktop : function(desktop) {
+    var panel = null;
+    var me = this;
+    me.items.each(function(panelObj, value, length) {
+          if (panelObj.title == desktop) {
             panel = panelObj;
             return;
           }

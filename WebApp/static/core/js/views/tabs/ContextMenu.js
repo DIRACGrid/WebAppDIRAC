@@ -206,7 +206,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                         if (me.oSelectedMenuItem.data.text == "Deafult")
                           return; // do not delete the default desktop.
 
-                        GLOBAL.APP.MAIN_VIEW.saveActiveDesktopState(me.oSelectedMenuItem.data.text);
+                        GLOBAL.APP.MAIN_VIEW.saveDesktopState(me.oSelectedMenuItem.data.text);
                       }
 
                     }
