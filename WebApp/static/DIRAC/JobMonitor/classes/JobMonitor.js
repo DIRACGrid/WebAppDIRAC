@@ -63,7 +63,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
           grid : me.grid.getStateData()
           // show/hide for selectors and their selected data (including NOT button)
         };
-        
+
         oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
         oReturn.centralGridPanelVisible = !me.grid.hidden;
         oReturn.statisticsSelectionPanelCollapsed = me.statisticsSelectionGrid.collapsed;
@@ -271,7 +271,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
          */
 
         var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy', {
-              url : GLOBAL.BASE_URL + 'JobMonitor/getJobData'
+              url : GLOBAL.BASE_URL + me.applicationName + '/getJobData'
             });
 
         me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -1007,7 +1007,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
           me.statisticsSelectionGrid.body.mask("Wait ...");
 
           Ext.Ajax.request({
-                url : GLOBAL.BASE_URL + 'JobMonitor/getStatisticsData',
+                url : GLOBAL.BASE_URL + me.applicationName + '/getStatisticsData',
                 params : oData,
                 scope : me,
                 success : function(response) {
@@ -1040,7 +1040,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
           me.statisticsSelectionGrid.body.mask("Wait ...");
 
           Ext.Ajax.request({
-                url : GLOBAL.BASE_URL + 'JobMonitor/getStatisticsData',
+                url : GLOBAL.BASE_URL + me.applicationName + '/getStatisticsData',
                 params : {
                   statsField : sCategory,
                   globalStat : true
@@ -1170,7 +1170,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
           return;
 
         Ext.Ajax.request({
-              url : GLOBAL.BASE_URL + 'JobMonitor/jobAction',
+              url : GLOBAL.BASE_URL + me.applicationName + '/jobAction',
               method : 'POST',
               params : {
                 action : oAction,
@@ -1203,7 +1203,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
-              url : GLOBAL.BASE_URL + 'JobMonitor/jobData',
+              url : GLOBAL.BASE_URL + me.applicationName + '/jobData',
               method : 'POST',
               params : {
                 data_kind : oDataKind,
@@ -1314,7 +1314,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
         var me = this;
         var sId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
         Ext.Ajax.request({
-              url : GLOBAL.BASE_URL + 'JobMonitor/getSandbox',
+              url : GLOBAL.BASE_URL + me.applicationName + '/getSandbox',
               params : {
                 jobID : sId,
                 sandbox : sType,
@@ -1328,7 +1328,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
                 if (response["success"] == "true") {
 
-                  var sUrl = GLOBAL.BASE_URL + 'JobMonitor/getSandbox?jobID=' + sId + '&sandbox=' + sType;
+                  var sUrl = GLOBAL.BASE_URL + me.applicationName + '/getSandbox?jobID=' + sId + '&sandbox=' + sType;
                   window.open(sUrl, 'Input Sandbox file', 'width=400,height=200');
 
                 } else {
