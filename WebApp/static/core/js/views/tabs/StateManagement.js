@@ -988,72 +988,62 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
             var appTab = tab.getPanel(state);
             if (appTab && appTab.isLoaded) {
               if (desktop == 'Default') {
-                GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", appTab.loadedObject.self.getName(), appTab.loadedObject, cbFunc);
+                var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
+
+                var appl = activeDesktop.getActiveTab();
+
+                var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+
+                  if ((iCode == 1) && (appl.currentState != sStateName)) {
+
+                    var oldApplicationUrl = appl.getUrlDescription();
+                    GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
+
+                    if (appl.currentState != "")
+                      GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appl.currentState);
+
+                    appl.loadedObject.currentState = sStateName;
+                    appl.currentState = sStateName;
+                    GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
+                    appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
+
+                    if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+                      GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+
+                    Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl);
+                    me.refreshUrlDesktopState();
+                  }
+
+                };
+
+                GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", appl.loadedObject.self.getName(), appl.loadedObject, cbFunc);
               } else {
                 var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
                 for (var i = 0; i < desktops.data.length; i++) {
-                  if (desktops.data[i].currentState == state) {
-                    desktops.data[i] = appTab.getStateData();
+                  if (desktops.data[i].module == app && desktops.data[i].currentState == state) {
+                    desktops.data[i].data = appTab.loadedObject.getStateData();
                     break;
                   }
                 }
-                me.oprSendDataForSave("desktop", desktops, "application", desktop, cbAfterSave);
+                me.oprSendDataForSave("desktop", desktops, "application", desktop, cbFunc);
               }
 
-            } else {
-              var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
-              for (var i = 0; i < desktops.data.length; i++) {
-                if (desktops.data[i].currentState == state) {
-                  desktops.data[i] = appTab.getStateData();
-                  break;
-                }
-              }
-              me.oprSendDataForSave("desktop", desktops, "application", desktop, cbAfterSave);
+            } else { // The state is not loaded. We do not have to save...
+              Ext.dirac.system_info.msg("Notification", state + ' is not modified! It is already saved!');
             }
 
-          } else {
+          } else {// the application state is not loaded...
             var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
             for (var i = 0; i < desktops.data.length; i++) {
               if (desktops.data[i].currentState == state) {
-                desktops.data[i] = appTab.getStateData();
+                desktops.data[i] = appTab.loadedObject.getStateData();
                 break;
               }
             }
-            me.oprSendDataForSave("desktop", desktops, "application", desktop, cbAfterSave);
+            me.oprSendDataForSave("desktop", desktops, "application", desktop, cbFunc);
           }
         }
         cbFunc(desktop, app, state);
-      },
-      saveAsState_old : function(desktop, app, state, cbFunc) {
-        var me = this; // complicated logic :D
-        var desktop = (desktop == "" ? 'Default' : desktop);
-        var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer();
-        if (appContainer) {
-          var tab = appContainer.getTabFromApplicationContainer(desktop);
-          if (tab && tab.isLoaded) {
-            var appTab = tab.getPanel(state);
-            if (appTab && appTab.isLoaded) {
-              if (desktop == 'Default') {
-                GLOBAL.APP.MAIN_VIEW.saveAsActiveApplicationState();
-              } else {// we have to add to the menu and we have to save it...
-                me.formSaveStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
-                      cbFunc(desktop, app, sStateName);
-                      GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktop, sStateName, app);
-                    });
-              }
-            } else {
-              me.formSaveStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
-                    cbFunc(desktop, app, sStateName);
-                    GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktop, sStateName, app);
-                  });
-            }
-          } else {
-            me.formSaveStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
-                  cbFunc(desktop, app, sStateName);
-                  GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktop, sStateName, app);
-                });
-          }
-        }
       },
       saveAsState : function(desktop, app, state, cbFunc) {
         var me = this;

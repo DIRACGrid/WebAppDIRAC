@@ -209,13 +209,19 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             };
 
             var oDesktop = oParts[1].split(',');
+            oDesktop = Ext.Array.remove(oDesktop, "");
+            //we remove the empty string from the list. 
+
             var dsktops = [];
             if (oDesktop.length > 0) {
 
               var defaultdesktop = oDesktop[0].split("*");
               if (defaultdesktop.length > 1) {
-                // TODO LOAD applications to the default desktop....
-                me.loadDefaultdesktop(defaultdesktop);
+                //LOAD applications to the default desktop....
+                var isLoaded = (oDesktop.length == 1?true:false); 
+                //if the desktop is the default desktop and we do not have any desktop,
+                //the default desktop is loaded.
+                me.loadDefaultdesktop(defaultdesktop, isLoaded);
                 Ext.Array.erase(oDesktop, 0, 1);
               }
 
@@ -308,7 +314,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
     }
 
       },
-      loadDefaultdesktop : function(applications) {
+      loadDefaultdesktop : function(applications, isLoaded) {
         var me = this;
         var afterDefaultTabCreated = function(name, tab) {
           var setupData = {};
@@ -362,6 +368,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               }
             }
           }
+          me.loading = false; //the loading of applications is finished...
+          tab.isLoaded = isLoaded;
         };
         GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", me.view, afterDefaultTabCreated);
 
@@ -866,39 +874,15 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         if (activeDesktop) {
           var appl = activeDesktop.getActiveTab();
           if (appl) {
-            var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+            GLOBAL.APP.MAIN_VIEW.SM.saveState(activeDesktop.title, appl.loadedObject.self.getName(), appl.loadedObject.currentState, function(retCode, appName, stateType, stateName) {
+                GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+                });
 
-              if ((iCode == 1) && (appl.currentState != sStateName)) {
-
-                var oldApplicationUrl = appl.getUrlDescription();
-                GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
-
-                if (appl.currentState != "")
-                  GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appl.currentState);
-
-                appl.loadedObject.currentState = sStateName;
-                appl.currentState = sStateName;
-                GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-                appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
-
-                if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
-                  GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-
-                Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl);
-                me.refreshUrlDesktopState();
-              }
-
-            };
-            GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", appl.loadedObject.self.getName(), appl.loadedObject, funcAfterSave);
-            // appl.oprSaveAppState(false);
-            // var appClassName = appl.getClassName();
-            // var desktopName = activeDesktop.title;
-            // me.refreashTree(desktopName, appClassName);
           } else {
-            Ext.dirac.system_info.msg("Error", 'You do not have any active tab on the desktop. Please select a tab (application) in the current desktop!!!');
+            Ext.dirac.system_info.msg("Error", 'You do not have any active application on the desktop. Please select an application (tab) on the desktop!!!');
           }
         } else {
-          Ext.dirac.system_info.msg("Error", 'Please open a dektop!!! ');
+          Ext.dirac.system_info.msg("Error Notification", 'Please open a dektop!!! ');
         }
       },
       /**
@@ -1136,6 +1120,14 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       saveActiveDesktopState : function() {
         var me = this;
         me.getRightContainer().oprSaveDesktopState();
+      },
+      /***
+       * It is used to save the sate of a given desktop....
+       * @param {String} stateName the name of the desktop
+       */
+      saveDesktopState : function(stateName) {
+        var me = this;
+
       },
       /**
        * It save an existing desktop state with a new name.

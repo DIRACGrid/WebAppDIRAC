@@ -199,7 +199,6 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                                                                     // application
 
                         GLOBAL.APP.MAIN_VIEW.SM.saveState(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(desktop, stateType, stateName) {
-                              Ext.dirac.system_info.msg("Notification", stateName + ' is saved!');
                             });
 
                       } else {// we can modify the desktop, which is not belongs
