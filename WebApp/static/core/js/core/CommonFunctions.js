@@ -190,7 +190,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
           case "Notification" :
             config = {
               title : 'Notification',
-              position: 'tl',
+              position : 'tl',
               manager : GLOBAL.APP.MAIN_VIEW.Id,
               stickWhileHover : false,
               iconCls : 'ux-notification-icon-information',
@@ -200,7 +200,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           case "Error Notification" :
             config = {
-              autoClose: false,
+              autoClose : false,
               title : 'Error Notification',
               position : 'tl',
               manager : GLOBAL.APP.MAIN_VIEW.Id,
@@ -209,6 +209,28 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
             };
 
             break;
+
+          case "Error" :
+            config = {
+              autoClose : false,
+              title : 'Error Notification',
+              position : 'tl',
+              manager : GLOBAL.APP.MAIN_VIEW.Id,
+              iconCls : 'ux-notification-icon-error',
+              html : message
+            };
+
+            break;
+
+          default :
+            config = {
+              autoClose : false,
+              title : 'Error Notification',
+              position : 'tl',
+              manager : GLOBAL.APP.MAIN_VIEW.Id,
+              iconCls : 'ux-notification-icon-error',
+              html : message
+            };
 
         }
 

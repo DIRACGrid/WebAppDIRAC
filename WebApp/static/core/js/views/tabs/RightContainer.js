@@ -99,160 +99,6 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
       getStateData : function() {
         var me = this;
         var oData = [];
-        var activetab = me.getApplicationContainer().getActiveTab();
-        if (activetab.view == 'presenterView') {
-          var views = activetab.getPresenter();
-          if (views && (len = views.items.length)) {
-            for (var i = 0; i < len; i++) {
-              win = views.items.getAt(i);
-              /*
-               * Depends on the loadedObjectType
-               */
-              var oElem = null;
-
-              if (win.loadedObjectType == "app") {
-
-                oData.push({
-                      module : win.getAppClassName(),
-                      data : win.loadedObject.getStateData(),
-                      currentState : win.currentState,
-                      loadedObjectType : win.loadedObjectType
-                    });
-
-              } else if (win.loadedObjectType == "link") {
-
-                oData.push({
-                      link : win.linkToLoad,
-                      loadedObjectType : win.loadedObjectType
-                    });
-              }
-            }
-          }
-        } else {
-          var tabs = activetab.items;
-          var notLoadedApps = {};
-          if (tabs) {
-            var bFoundNotLoadedapps = false;
-            tabs.each(function(win, value, length) {
-
-                  /*
-                   * Depends on the loadedObjectType
-                   */
-                  var oElem = null;
-                  // We only save the applications which are loaded
-
-                  if (win.isLoaded) {
-
-                    if (win.loadedObjectType == "app") {
-
-                      oData.push({
-                            module : win.getAppClassName(),
-                            data : win.loadedObject.getStateData(),
-                            currentState : win.currentState,
-                            loadedObjectType : win.loadedObjectType
-                          });
-
-                    } else if (win.loadedObjectType == "link") {
-
-                      oData.push({
-                            link : win.linkToLoad,
-                            loadedObjectType : win.loadedObjectType
-                          });
-
-                    }
-                  } else {
-                    notLoadedApps[win.getAppClassName()] = {
-                      currentState : win.currentState,
-                      module : win.getAppClassName(),
-                      data : win.loadedObject.getStateData()
-                    };
-                    bFoundNotLoadedapps = true;
-                  }
-                });
-            if (bFoundNotLoadedapps) {
-              // We may have applications which are not opened. We have to save
-              // the status of this applications as well. These application
-              // states is retrieved from the SM.
-              var desktopName = activetab.title;
-              if (desktopName) { // && desktopName != 'Default'
-                if (GLOBAL.APP.SM.isStateLoaded("application", "desktop", desktopName) > -1) {
-                  var oStateData = GLOBAL.APP.SM.getStateData("application", "desktop", desktopName);
-                  if (oStateData.data.length == 0 && Object.keys(notLoadedApps).length > 0) {
-                    for (var i in notLoadedApps) {
-                      oData.push(notLoadedApps[i]);
-                    }
-
-                  } else {
-                    for (var i = 0; i < oStateData.data.length; i++) {
-                      if (!(oStateData.data[i].module in notLoadedApps))
-                        // a bit overcomplicated, but it works. This avoid to
-                        // save
-                        // the application which is closed.
-                        continue;
-                      if (!me.__isStateFound(oData, oStateData.data[i].currentState, oStateData.data[i].module)) {
-                        oData.push(oStateData.data[i]);
-                      }
-                    }
-                  }
-                } else if (desktopName == 'Default') {
-                  var tabs = activetab.items;
-                  var notLoadedApps = {};
-                  if (tabs) {
-                    tabs.each(function(win, value, length) {
-
-                          /*
-                           * Depends on the loadedObjectType
-                           */
-                          var oElem = null;
-                          // We only save the applications which are loaded
-
-                          if (win.isLoaded) {
-
-                            if (win.loadedObjectType == "app") {
-
-                              oData.push({
-                                    module : win.getAppClassName(),
-                                    data : win.loadedObject.getStateData(),
-                                    currentState : win.currentState
-                                  });
-
-                            } else if (win.loadedObjectType == "link") {
-
-                              oData.push({
-                                    link : win.linkToLoad
-                                  });
-
-                            }
-                          } else {
-                            notLoadedApps[win.getAppClassName()] = {
-                              currentState : win.currentState,
-                              module : win.getAppClassName(),
-                              data : win.loadedObject.getStateData()
-                            };
-                            bFoundNotLoadedapps = true;
-                          }
-                        });
-                  }
-                  if (Object.keys(notLoadedApps).length > 0) {
-                    for (var i in notLoadedApps) {
-                      var data = GLOBAL.APP.SM.getStateData("application", notLoadedApps[i].module, notLoadedApps[i].currentState);
-                      //check if the application states is saved and not loaded, get the application state from the profile
-                      if (data != -1) {
-                        oData.push(data);
-                      } else {
-                        oData.push(notLoadedApps[i]);
-                      }
-                    }
-                  }
-                } else {
-                  GLOBAL.APP.CF.alert(desktopName + " can not be saved!", "error");
-                }
-
-              }
-            }
-
-          }
-        }
         return oData;
       },
       /*************************************************************************
@@ -601,10 +447,10 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
       oprSaveDesktopState : function(desktopName) {
 
         var me = this;
-        me.hasClose = close;
+
         var desktop = null;
         if (desktopName) {
-          desktop = me.getApplicationContainer().getPanel(desktopName);
+          desktop = me.getApplicationContainer().getDesktop(desktopName);
         } else {
           desktop = me.getApplicationContainer().getActiveTab();
         }
@@ -620,11 +466,13 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                 GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
 
-              if (GLOBAL.APP.MAIN_VIEW.currentState != sStateName) {
+              if ((GLOBAL.APP.MAIN_VIEW.currentState == '') && (desktopName != sStateName) ) { 
+                // if the desktop is the default desktop, we have to add the new states and remove the old state from
+                //the activeStates.
 
                 // if there is an active desktop state, we have to remove it
-                if (GLOBAL.APP.MAIN_VIEW.currentState != "")
-                  GLOBAL.APP.SM.oprRemoveActiveState("desktop", GLOBAL.APP.MAIN_VIEW.currentState);// OK
+
+                GLOBAL.APP.SM.oprRemoveActiveState("desktop", GLOBAL.APP.MAIN_VIEW.currentState);// OK
 
                 // if there is a state, we set it as an active state
                 GLOBAL.APP.MAIN_VIEW.currentState = sStateName;
@@ -649,10 +497,10 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
           GLOBAL.APP.MAIN_VIEW.destroyDeleteApplications();
 
           // we do not want to save the default desktop as Default
-          GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", "desktop", GLOBAL.APP.MAIN_VIEW, funcAfterSave)
+          GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", "desktop", desktop, funcAfterSave)
 
         } else {
-          Ext.dirac.system_info.msg("Notification", 'No desktop found!');
+          Ext.dirac.system_info.msg("Notification", 'The desktop is not active!');
         }
       },
       oprSaveAsDesktopState : function(desktopName) {
@@ -661,7 +509,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         me.hasClose = close;
         var desktop = null;
         if (desktopName) {
-          desktop = me.getApplicationContainer().getPanel(desktopName);
+          desktop = me.getApplicationContainer().getDesktop(desktopName);
         } else {
           desktop = me.getApplicationContainer().getActiveTab();
         }
@@ -693,7 +541,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
             }
 
           };
-          GLOBAL.APP.MAIN_VIEW.SM.formSaveState("application", "desktop", GLOBAL.APP.MAIN_VIEW, funcAfterSave);
+          GLOBAL.APP.MAIN_VIEW.SM.formSaveState("application", "desktop", desktop, funcAfterSave);
           GLOBAL.APP.MAIN_VIEW.destroyDeleteApplications();
 
         } else {
@@ -709,7 +557,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
 
           if (stateType == 'application') {
             GLOBAL.APP.MAIN_VIEW.deleteStateFromMenu(sStateName);
-          } else {//it is a reference =>shared desktop....
+          } else {// it is a reference =>shared desktop....
             GLOBAL.APP.MAIN_VIEW.removeFormSharedDesktop(sStateName);
           }
 

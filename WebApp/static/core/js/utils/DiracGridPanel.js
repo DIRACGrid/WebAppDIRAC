@@ -91,13 +91,13 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
         var me = this;
         var grid = null;
-        if (data.columns){//I have changed the data structure
-          if ("columns" in data.columns){
-            grid = data.columns; 
-          }else{
-            grid = data;  
+        if (data.columns) {//I have changed the data structure
+          if ("columns" in data.columns) {
+            grid = data.columns;
+          } else {
+            grid = data;
           }
-        }else{
+        } else {
           grid = data.grid;
         }
         if (grid) {
@@ -147,12 +147,12 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       getStateData : function() {
 
         var me = this;
-      
+
         // data for grid columns
         var oReturn = {
-            columns : {}    
+          columns : {}
         };
-        
+
         for (var i = 0; i < me.columns.length; i++) {
 
           var col = me.columns[i];
@@ -167,7 +167,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
         oReturn.sorters = [];
         oReturn.groupers = [];
-        
+
         me.store.sorters.each(function(key, value) {
               GLOBAL.APP.CF.log('debug', ":", key);
               GLOBAL.APP.CF.log('debug', ":", value);
@@ -294,14 +294,14 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                 }
               });
         }
-        
+
         me.callParent(arguments);
-        
-        if(config.pagingToolbar){
+
+        if (config.pagingToolbar) {
           me.pagingToolbar = config.pagingToolbar;
           me.addDocked(me.pagingToolbar, "top");
         }
-        
+
       },
       /*************************************************************************
        * It render the Grid columns
@@ -317,7 +317,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
        * @param{String} value It render the status.
        */
       rendererStatus : function(value) {
-        if ((value == 'Done') || (value == 'Completed') || (value == 'Good') || (value == 'Active') || (value == 'Cleared') || (value == 'Completing')) {
+        if ((value == 'Done') || (value == 'Good') || (value == 'Active') || (value == 'Cleared')) {
           return '<img src="static/core/img/statusIcons/done.gif"/>';
         } else if (value == 'Bad') {
           return '<img src="static/core/img/statusIcons/bad.gif"/>';
@@ -333,7 +333,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
           return '<img src="static/core/img/statusIcons/running.gif"/>';
         } else if (value == 'NoMask') {
           return '<img src="static/core/img/statusIcons/unknown.gif"/>';
-        } else if (value == 'Completed') {
+        } else if ((value == 'Completed') || value == (value == 'Completing')) {
           return '<img src="static/core/img/statusIcons/completed.gif"/>';
         } else if (value == 'Idle') {
           return '<img src="static/core/img/statusIcons/idle.gif"/>';

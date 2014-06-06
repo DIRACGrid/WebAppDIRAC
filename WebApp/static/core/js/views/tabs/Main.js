@@ -25,9 +25,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       sharedObjects : null,
 
       loading : false,
-      
+
       appCounter : 0,
-      
+
       myDesktop : null,
 
       /**
@@ -209,13 +209,21 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             };
 
             var oDesktop = oParts[1].split(',');
+            oDesktop = Ext.Array.remove(oDesktop, "");
+            // we remove the empty string from the list.
+
             var dsktops = [];
             if (oDesktop.length > 0) {
 
               var defaultdesktop = oDesktop[0].split("*");
               if (defaultdesktop.length > 1) {
-                // TODO LOAD applications to the default desktop....
-                me.loadDefaultdesktop(defaultdesktop);
+                // LOAD applications to the default desktop....
+                var isLoaded = (oDesktop.length == 1 ? true : false);
+                var loadFinished = (oDesktop.length > 1 ? true : false);
+                // if the desktop is the default desktop and we do not have any
+                // desktop,
+                // the default desktop is loaded.
+                me.loadDefaultdesktop(defaultdesktop, isLoaded, loadFinished);
                 Ext.Array.erase(oDesktop, 0, 1);
               }
 
@@ -308,7 +316,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
     }
 
       },
-      loadDefaultdesktop : function(applications) {
+      loadDefaultdesktop : function(applications, isLoaded, loadFinished) {
         var me = this;
         var afterDefaultTabCreated = function(name, tab) {
           var setupData = {};
@@ -362,6 +370,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               }
             }
           }
+          me.loading = loadFinished;
+          tab.isLoaded = isLoaded;
         };
         GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", me.view, afterDefaultTabCreated);
 
@@ -369,30 +379,20 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       getStateData : function() {
 
         var me = this;
-
-        var oData = {
-          "dirac_view" : 1,
-          "version" : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
-          "data" : [],
-          "views" : {
-            "tabs" : {
-              "version" : 1,
-              "desktopGranularity" : me.desktopGranularity,
-              "positions" : []
-            }
-          }
-        };
-
-        oData.data = me.getRightContainer().getStateData();
-
-        return oData;
+        //TODO: Save the portal state. We can save the settings here.
+        return [];
 
       },
       loadState : function(oData, tab) {
 
         var me = this;
         me.loadRightContainer.show();
+
         if (me.ID in oData["views"]) {
+          if (oData["data"].length < 1) {
+            //we have no application in the desktop...
+            me.loadRightContainer.hide();
+          }
           for (var i = 0, len = oData["data"].length; i < len; i++) {
 
             if ("module" in oData["data"][i]) {
@@ -517,9 +517,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var me = this;
         var expanded = null;
         if (item.length == 2) {
-          if (item[0]=='Applications'){
+          if (item[0] == 'Applications') {
             expanded = true;
-          }else{
+          } else {
             expanded = false;
           }
           var childnode = rootNode.appendChild({
@@ -636,7 +636,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 application : sStateName,
                 allowDrag : false,
                 allowDrop : false,
-                type : (oStateData.view!=null?oStateData.view:"tabView"),
+                type : (oStateData.view != null ? oStateData.view : "tabView"),
                 leaf : true,
                 iconCls : 'icon-applications-states-all-default',
                 view : oStateData.view
@@ -801,6 +801,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   launcherElements : {
                     title : 'Module',
                     iconCls : 'notepad',
+                    applicationName : oParts[1],
                     width : 0,
                     height : 0,
                     maximized : true,
@@ -865,39 +866,15 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         if (activeDesktop) {
           var appl = activeDesktop.getActiveTab();
           if (appl) {
-            var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+            GLOBAL.APP.MAIN_VIEW.SM.saveState(activeDesktop.title, appl.loadedObject.self.getName(), appl.loadedObject.currentState, function(retCode, appName, stateType, stateName) {
+                  GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+                });
 
-              if ((iCode == 1) && (appl.currentState != sStateName)) {
-
-                var oldApplicationUrl = appl.getUrlDescription();
-                GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
-
-                if (appl.currentState != "")
-                  GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appl.currentState);
-
-                appl.loadedObject.currentState = sStateName;
-                appl.currentState = sStateName;
-                GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-                appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
-
-                if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
-                  GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-
-                Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl);
-                me.refreshUrlDesktopState();
-              }
-
-            };
-            GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", appl.loadedObject.self.getName(), appl.loadedObject, funcAfterSave);
-            // appl.oprSaveAppState(false);
-            // var appClassName = appl.getClassName();
-            // var desktopName = activeDesktop.title;
-            // me.refreashTree(desktopName, appClassName);
           } else {
-            Ext.dirac.system_info.msg("Error", 'You do not have any active tab on the desktop. Please select a tab (application) in the current desktop!!!');
+            Ext.dirac.system_info.msg("Error", 'You do not have any active application on the desktop. Please select an application (tab) on the desktop!!!');
           }
         } else {
-          Ext.dirac.system_info.msg("Error", 'Please open a dektop!!! ');
+          Ext.dirac.system_info.msg("Error Notification", 'Please open a dektop!!! ');
         }
       },
       /**
@@ -909,32 +886,30 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         var activeDesktop = me.getActiveDesktop();
         if (activeDesktop) {
+
           var appl = activeDesktop.getActiveTab();
+
           if (appl) {
-            var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+            GLOBAL.APP.MAIN_VIEW.SM.saveAsState(activeDesktop.title, appl.loadedObject.self.getName(), appl.loadedObject.currentState, function(desktop, app, stateName) {
+                  Ext.dirac.system_info.msg("Notification", stateName + ' application is saved on ' + desktop + '!');
 
-              if ((iCode == 1) && (appl.currentState != sStateName)) {
+                  if ((desktop != 'Default') && (appl.currentState != stateName)) {
 
-                var oldApplicationUrl = appl.getUrlDescription();
-                GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
+                    GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName, app);
 
-                if (appl.currentState != "")
-                  GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appl.currentState);
+                    if (appl.currentState != "")
+                      GLOBAL.APP.SM.oprRemoveActiveState(app, appl.currentState);
 
-                appl.loadedObject.currentState = sStateName;
-                appl.currentState = sStateName;
-                GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-                appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
+                    appl.loadedObject.currentState = stateName;
+                    appl.currentState = stateName;
+                    GLOBAL.APP.SM.oprAddActiveState(app, stateName);
+                    appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
 
-                if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
-                  GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-                Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl);
+                    if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+                      GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
 
-                me.refreshUrlDesktopState();
-              }
-
-            };
-            GLOBAL.APP.MAIN_VIEW.SM.formSaveState("application", appl.loadedObject.self.getName(), appl.loadedObject, funcAfterSave);
+                  }
+                });
 
           } else {
             Ext.dirac.system_info.msg("Error", 'Please open an application!!! ');
@@ -943,6 +918,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           Ext.dirac.system_info.msg("Error", 'Please open a dektop!!! ');
         }
       },
+
       /**
        * It refreshes the menu
        * 
@@ -1136,6 +1112,17 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       saveActiveDesktopState : function() {
         var me = this;
         me.getRightContainer().oprSaveDesktopState();
+      },
+      /*************************************************************************
+       * It is used to save the sate of a given desktop....
+       * 
+       * @param {String}
+       *          stateName the name of the desktop
+       */
+      saveDesktopState : function(stateName) {
+        var me = this;
+        me.getRightContainer().oprSaveDesktopState(stateName);
+
       },
       /**
        * It save an existing desktop state with a new name.
@@ -1811,14 +1798,19 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       createNewDesktop : function() {
         var me = this;
+        var cbfunc = function(name, tab){
+          tab.isLoaded = true;
+          me.saveActiveDesktopState();
+        };
+        
         var afterSave = function(name) {
-          me.createDesktopTab(name, me.ID);
+          me.createDesktopTab(name, me.ID, cbfunc);
           // add to the menu...
           me.__addDesktopToMenu(name);
           if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
             GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
 
-        }
+        };
         GLOBAL.APP.MAIN_VIEW.SM.formSaveDialog("application", "desktop", null, afterSave, "Create desktop:");
       },
       /*************************************************************************
