@@ -573,7 +573,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
             }
 
           };
-          GLOBAL.APP.MAIN_VIEW.SM.formSaveState("application", "desktop", GLOBAL.APP.MAIN_VIEW, funcAfterSave);
+          GLOBAL.APP.MAIN_VIEW.SM.formSaveState("application", "desktop", desktop, funcAfterSave);
           GLOBAL.APP.MAIN_VIEW.destroyDeleteApplications();
 
         } else {
