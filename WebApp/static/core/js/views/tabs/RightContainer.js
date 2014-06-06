@@ -99,38 +99,6 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
       getStateData : function() {
         var me = this;
         var oData = [];
-        var activetab = me.getApplicationContainer().getActiveTab();
-        if (activetab.view == 'presenterView') {
-          var views = activetab.getPresenter();
-          if (views && (len = views.items.length)) {
-            for (var i = 0; i < len; i++) {
-              win = views.items.getAt(i);
-              /*
-               * Depends on the loadedObjectType
-               */
-              var oElem = null;
-
-              if (win.loadedObjectType == "app") {
-
-                oData.push({
-                      module : win.getAppClassName(),
-                      data : win.loadedObject.getStateData(),
-                      currentState : win.currentState,
-                      loadedObjectType : win.loadedObjectType
-                    });
-
-              } else if (win.loadedObjectType == "link") {
-
-                oData.push({
-                      link : win.linkToLoad,
-                      loadedObjectType : win.loadedObjectType
-                    });
-              }
-            }
-          }
-        } else {
-          oData = activetab.getStateData();
-        }
         return oData;
       },
       /*************************************************************************

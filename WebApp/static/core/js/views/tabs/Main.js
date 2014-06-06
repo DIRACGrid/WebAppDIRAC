@@ -379,23 +379,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       getStateData : function() {
 
         var me = this;
-
-        var oData = {
-          "dirac_view" : 1,
-          "version" : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
-          "data" : [],
-          "views" : {
-            "tabs" : {
-              "version" : 1,
-              "desktopGranularity" : me.desktopGranularity,
-              "positions" : []
-            }
-          }
-        };
-
-        oData.data = me.getRightContainer().getStateData();
-
-        return oData;
+        //TODO: Save the portal state. We can save the settings here.
+        return [];
 
       },
       loadState : function(oData, tab) {
