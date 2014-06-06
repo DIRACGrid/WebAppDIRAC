@@ -166,7 +166,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
        *          cbAfterSave Function that is executed after the save has been
        *          saved
        */
-      formSaveStateOfData : function(desktop, selectedStateName, sStateType, sAppName, cbAfterSave) {
+      formSaveAsStateOfData : function(desktop, selectedStateName, sStateType, sAppName, cbAfterSave) {
 
         var me = this;
 
@@ -340,8 +340,8 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
         var me = this;
 
-        if (oAppObject.title == "") {
-
+        if (oAppObject.title == "" || oAppObject.title == 'Default' || oAppObject.currentState == "") {
+          // It is the default desktop or an application which is not saved
           me.formSaveState(sStateType, sAppName, oAppObject, cbAfterSave);
 
         } else {
@@ -992,40 +992,51 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
                 var appl = activeDesktop.getActiveTab();
 
-                var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+                var funcAfterSave = function(returnCode, appName, stateType, stateName) {
 
-                  if ((iCode == 1) && (appl.currentState != sStateName)) {
-
-                    var oldApplicationUrl = appl.getUrlDescription();
-                    GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
-
-                    if (appl.currentState != "")
-                      GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appl.currentState);
-
-                    appl.loadedObject.currentState = sStateName;
-                    appl.currentState = sStateName;
-                    GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-                    appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
-
-                    if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
-                      GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-
-                    Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl);
-                    me.refreshUrlDesktopState();
+                  if ((returnCode == 1) && (appl.currentState != stateName)) {
+                    me.__changeActiveState(appl, appName, stateType, stateName);
                   }
 
                 };
 
-                GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", appl.loadedObject.self.getName(), appl.loadedObject, cbFunc);
+                GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", appl.loadedObject.self.getName(), appl.loadedObject, funcAfterSave);
               } else {
                 var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
-                for (var i = 0; i < desktops.data.length; i++) {
-                  if (desktops.data[i].module == app && desktops.data[i].currentState == state) {
-                    desktops.data[i].data = appTab.loadedObject.getStateData();
-                    break;
+                var found = false;
+                if (desktops != -1) {
+                  for (var i = 0; i < desktops.data.length; i++) {
+                    if (desktops.data[i].module == app && desktops.data[i].currentState == state) {
+                      desktops.data[i].data = appTab.loadedObject.getStateData();
+                      found = true;
+                      break;
+                    }
                   }
                 }
-                me.oprSendDataForSave("desktop", desktops, "application", desktop, cbFunc);
+
+                if (!found) {
+
+                  me.formSaveStateOfData(desktop, appTab, "application", app, function(returnCode, sAppName, sStateType, sStateName) {
+                        // cbFunc(desktop, app, sStateName);
+                        if ((returnCode == 1) && (appTab.loadedObject.currentState != sStateName)) {
+
+                          GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appTab.loadedObject.currentState);
+
+                          appTab.loadedObject.currentState = sStateName;
+                          appTab.currentState = sStateName;
+                          GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
+                          appTab.setTitle(appTab.loadedObject.launcher.title + " [" + appTab.loadedObject.currentState + "]");
+
+                          if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+                            GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+                        }
+
+                        GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktop, sStateName, app);
+                      });
+                } else {
+                  me.oprSendDataForSave("desktop", desktops, "application", desktop, cbFunc);
+                }
+
               }
 
             } else { // The state is not loaded. We do not have to save...
@@ -1034,16 +1045,20 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
           } else {// the application state is not loaded...
             var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
+
             for (var i = 0; i < desktops.data.length; i++) {
               if (desktops.data[i].currentState == state) {
                 desktops.data[i] = appTab.loadedObject.getStateData();
                 break;
               }
             }
+
             me.oprSendDataForSave("desktop", desktops, "application", desktop, cbFunc);
           }
+        } else {
+          cbFunc(desktop, app, state);
         }
-        cbFunc(desktop, app, state);
+
       },
       saveAsState : function(desktop, app, state, cbFunc) {
         var me = this;
@@ -1060,50 +1075,218 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
                 var appl = activeDesktop.getActiveTab();
 
-                var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+                var funcAfterSave = function(returnCode, appName, stateType, stateName) {
 
-                  if ((iCode == 1) && (appl.currentState != sStateName)) {
+                  if ((returnCode == 1) && (appl.currentState != sStateName)) {
 
-                    var oldApplicationUrl = appl.getUrlDescription();
-                    GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
+                    me.__changeActiveState(appl, appName, stateType, stateName);
 
-                    if (appl.currentState != "")
-                      GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appl.currentState);
-
-                    appl.loadedObject.currentState = sStateName;
-                    appl.currentState = sStateName;
-                    GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-                    appl.setTitle(appl.loadedObject.launcher.title + " [" + appl.loadedObject.currentState + "]");
-
-                    if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
-                      GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-                    Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl);
-
-                    me.refreshUrlDesktopState();
                   }
                 };
 
                 GLOBAL.APP.MAIN_VIEW.SM.formSaveState("application", app, appl.loadedObject, funcAfterSave);
 
               } else {// we have to add to the menu and we have to save it...
-                me.formSaveStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
+                me.formSaveAsStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
                       cbFunc(desktop, app, sStateName);
                       GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktop, sStateName, app);
                     });
               }
             } else {
-              me.formSaveStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
+              me.formSaveAsStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
                     cbFunc(desktop, app, sStateName);
                     GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktop, sStateName, app);
                   });
             }
           } else {
-            me.formSaveStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
+            me.formSaveAsStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
                   cbFunc(desktop, app, sStateName);
                   GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktop, sStateName, app);
                 });
           }
         }
-      }
+      },
+      __changeActiveState : function(appObj, appName, stateType, stateName) {
+        var me = this;
+        var oldApplicationUrl = appObj.getUrlDescription();
+        GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName, appName);
 
+        if (appObj.currentState != "")
+          GLOBAL.APP.SM.oprRemoveActiveState(appName, appObj.currentState);
+
+        appObj.loadedObject.currentState = stateName;
+        appObj.currentState = stateName;
+        GLOBAL.APP.SM.oprAddActiveState(appName, stateName);
+        appObj.setTitle(appObj.loadedObject.launcher.title + " [" + appObj.loadedObject.currentState + "]");
+
+        if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+          GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+        Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, oldApplicationUrl);
+
+        GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+
+      },
+      /**
+       * Function called when the Save... button from the SAVE context menu is
+       * clicked
+       * 
+       * @param {String}
+       *          sStateType The type of the state [application|reference]
+       * @param {String}
+       *          sAppName Application class name
+       * @param {Object}
+       *          oAppObject The application object
+       * @param {Function}
+       *          cbAfterSave Function that is executed after the save has been
+       *          saved
+       */
+      formSaveStateOfData : function(desktop, appObj, sStateType, sAppName, cbAfterSave) {
+
+        var me = this;
+
+        me.txtStateName = Ext.create('Ext.form.field.Text', {
+
+              fieldLabel : "State Name:",
+              labelAlign : 'left',
+              margin : 10,
+              width : 400,
+              enableKeyEvents : true,
+              validateValue : function(sValue) {
+
+                sValue = Ext.util.Format.trim(sValue);
+
+                if (sValue.length < 1) {
+                  this.markInvalid("You must specify a name !");
+                  return false;
+
+                } else {
+
+                  if (GLOBAL.APP.SM.isStateLoaded(sStateType, sAppName, sValue) == 1) {
+
+                    this.markInvalid("The name you enetered already exists !");
+                    return false;
+
+                  } else {
+
+                    if (GLOBAL.APP.SM.isValidStateName(sValue)) {
+                      this.clearInvalid();
+                      return true;
+                    } else {
+
+                      this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
+                      return false;
+
+                    }
+
+                  }
+
+                }
+
+              },
+              validateOnChange : true,
+              validateOnBlur : false,
+              listeners : {
+
+                keypress : function(oTextField, e, eOpts) {
+
+                  if (e.getCharCode() == 13) {
+
+                    if (me.txtStateName.isValid()) {
+
+                      var sStateName = me.txtStateName.getValue();
+
+                      var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
+                      var data = {
+                        data : appObj.loadedObject.getStateData(),
+                        module : appObj.loadedObject.self.getName(),
+                        currentState : sStateName
+                      };
+                      desktops.data.push(data);
+                      me.oprSendDataForSave("desktop", desktops, "application", desktop, function(iCode, appName, stateType, stateName) {
+                            cbAfterSave(iCode, appObj.loadedObject.self.getName(), stateType, sStateName);
+                          });
+
+                    }
+
+                  }
+
+                }
+
+              }
+
+            });
+
+        // button for saving the state
+        me.btnSaveState = new Ext.Button({
+
+              text : 'Save',
+              margin : 3,
+              iconCls : "dirac-icon-save",
+              handler : function() {
+
+                if (me.txtStateName.isValid()) {
+
+                  var sStateName = me.txtStateName.getValue();
+
+                  var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
+                  var data = appObj.loadedObject.getStateData();
+                  var data = {
+                    data : appObj.loadedObject.getStateData(),
+                    module : appObj.loadedObject.self.getName(),
+                    currentState : sStateName
+                  };
+                  desktops.data.push(data);
+                  me.oprSendDataForSave("desktop", desktops, "application", desktop, function(iCode, appName, stateType, stateName) {
+                        cbAfterSave(iCode, appObj.loadedObject.self.getName(), stateType, sStateName);
+                      });
+
+                }
+
+              },
+              scope : me
+
+            });
+
+        // button to close the save form
+        me.btnCancelSaveState = new Ext.Button({
+
+              text : 'Cancel',
+              margin : 3,
+              iconCls : "toolbar-other-close",
+              handler : function() {
+
+                me.txtStateName.setValue("");
+                me.saveWindow.hide();
+
+              },
+              scope : me
+
+            });
+
+        var oToolbar = new Ext.toolbar.Toolbar({
+              border : false
+            });
+
+        oToolbar.add([me.btnSaveState, me.btnCancelSaveState]);
+
+        var oPanel = new Ext.create('Ext.panel.Panel', {
+              autoHeight : true,
+              border : false,
+              items : [oToolbar, me.txtStateName]
+            });
+
+        // initializing window showing the saving form
+        me.saveWindow = Ext.create('widget.window', {
+              height : 120,
+              width : 500,
+              title : 'Save state',
+              layout : 'fit',
+              modal : true,
+              items : oPanel
+            });
+
+        me.saveWindow.show();
+        me.txtStateName.focus();
+
+      }
     });

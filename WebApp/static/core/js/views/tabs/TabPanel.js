@@ -42,11 +42,26 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
      */
   },
   /**
-   * it returns the states of the applications 
+   * it returns the states of the applications
+   * 
    * @return {Object}
    */
   getStateData : function() {
     var me = this;
+
+    var desktop = {
+      "dirac_view" : 1,
+      "version" : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
+      "data" : [],
+      "views" : {
+        "tabs" : {
+          "version" : 1,
+          "desktopGranularity" : me.desktopGranularity,
+          "positions" : []
+        }
+      }
+    };
+
     var oData = [];
 
     me.items.each(function(win, value, length) {
@@ -115,7 +130,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           }
 
         });
-    return oData;
+    desktop.data = oData;
+    return desktop;
   },
   listeners : {
     'beforeclose' : function() {
@@ -187,6 +203,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         if (!GLOBAL.APP.MAIN_VIEW.loading && !newCard.isLoaded && newCard.title != 'Default') {
           GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(newCard.title, newCard);
           newCard.isLoaded = true;
+        } else if (newCard.title == 'Default'){
+          // it is the default desktop. It is activated it means it is loaded
+          newCard.isLoaded = true;
+        }
+        if (oldCard){
+          GLOBAL.APP.SM.oprRemoveActiveState("desktop", oldCard.title);
+          //we remove the old state. It is not active any more...
         }
       } else {// it is an application
         if (oldCard) {

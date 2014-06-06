@@ -210,18 +210,20 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
             var oDesktop = oParts[1].split(',');
             oDesktop = Ext.Array.remove(oDesktop, "");
-            //we remove the empty string from the list. 
+            // we remove the empty string from the list.
 
             var dsktops = [];
             if (oDesktop.length > 0) {
 
               var defaultdesktop = oDesktop[0].split("*");
               if (defaultdesktop.length > 1) {
-                //LOAD applications to the default desktop....
-                var isLoaded = (oDesktop.length == 1?true:false); 
-                //if the desktop is the default desktop and we do not have any desktop,
-                //the default desktop is loaded.
-                me.loadDefaultdesktop(defaultdesktop, isLoaded);
+                // LOAD applications to the default desktop....
+                var isLoaded = (oDesktop.length == 1 ? true : false);
+                var loadFinished = (oDesktop.length > 1 ? true : false);
+                // if the desktop is the default desktop and we do not have any
+                // desktop,
+                // the default desktop is loaded.
+                me.loadDefaultdesktop(defaultdesktop, isLoaded, loadFinished);
                 Ext.Array.erase(oDesktop, 0, 1);
               }
 
@@ -314,7 +316,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
     }
 
       },
-      loadDefaultdesktop : function(applications, isLoaded) {
+      loadDefaultdesktop : function(applications, isLoaded, loadFinished) {
         var me = this;
         var afterDefaultTabCreated = function(name, tab) {
           var setupData = {};
@@ -368,7 +370,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               }
             }
           }
-          me.loading = false; //the loading of applications is finished...
+          me.loading = loadFinished;
           tab.isLoaded = isLoaded;
         };
         GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", me.view, afterDefaultTabCreated);
@@ -400,7 +402,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         var me = this;
         me.loadRightContainer.show();
+
         if (me.ID in oData["views"]) {
+          if (oData["data"].length < 1) {
+            //we have no application in the desktop...
+            me.loadRightContainer.hide();
+          }
           for (var i = 0, len = oData["data"].length; i < len; i++) {
 
             if ("module" in oData["data"][i]) {
@@ -875,7 +882,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           var appl = activeDesktop.getActiveTab();
           if (appl) {
             GLOBAL.APP.MAIN_VIEW.SM.saveState(activeDesktop.title, appl.loadedObject.self.getName(), appl.loadedObject.currentState, function(retCode, appName, stateType, stateName) {
-                GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+                  GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
                 });
 
           } else {
@@ -1121,9 +1128,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var me = this;
         me.getRightContainer().oprSaveDesktopState();
       },
-      /***
+      /*************************************************************************
        * It is used to save the sate of a given desktop....
-       * @param {String} stateName the name of the desktop
+       * 
+       * @param {String}
+       *          stateName the name of the desktop
        */
       saveDesktopState : function(stateName) {
         var me = this;
@@ -1804,14 +1813,19 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       createNewDesktop : function() {
         var me = this;
+        var cbfunc = function(name, tab){
+          tab.isLoaded = true;
+          me.saveActiveDesktopState();
+        };
+        
         var afterSave = function(name) {
-          me.createDesktopTab(name, me.ID);
+          me.createDesktopTab(name, me.ID, cbfunc);
           // add to the menu...
           me.__addDesktopToMenu(name);
           if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
             GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
 
-        }
+        };
         GLOBAL.APP.MAIN_VIEW.SM.formSaveDialog("application", "desktop", null, afterSave, "Create desktop:");
       },
       /*************************************************************************

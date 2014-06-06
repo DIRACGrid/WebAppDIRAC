@@ -498,11 +498,13 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                 GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
 
-              if (GLOBAL.APP.MAIN_VIEW.currentState != sStateName) {
+              if ((GLOBAL.APP.MAIN_VIEW.currentState == '') && (desktopName != sStateName) ) { 
+                // if the desktop is the default desktop, we have to add the new states and remove the old state from
+                //the activeStates.
 
                 // if there is an active desktop state, we have to remove it
-                if (GLOBAL.APP.MAIN_VIEW.currentState != "")
-                  GLOBAL.APP.SM.oprRemoveActiveState("desktop", GLOBAL.APP.MAIN_VIEW.currentState);// OK
+
+                GLOBAL.APP.SM.oprRemoveActiveState("desktop", GLOBAL.APP.MAIN_VIEW.currentState);// OK
 
                 // if there is a state, we set it as an active state
                 GLOBAL.APP.MAIN_VIEW.currentState = sStateName;
