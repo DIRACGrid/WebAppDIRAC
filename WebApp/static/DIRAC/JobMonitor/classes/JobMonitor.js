@@ -61,7 +61,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
         var oReturn = {
           leftMenu : me.leftPanel.getStateData(),
           grid : me.grid.getStateData()
-          // show/hide for selectors and their selected data (including NOT button)
+          // show/hide for selectors and their selected data (including NOT
+          // button)
         };
 
         oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
@@ -586,12 +587,18 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                   iconCls : "dirac-icon-download"
                 }
               }, {
-                "text" : "Get StagerReport",
+                "text" : "Get Pending Request",
                 "handler" : me.__oprGetJobData,
                 "arguments" : ["getPending"],
                 "properties" : {
-                  tooltip : 'Click to show the stager log.',
-                  iconCls : "dirac-icon-download"
+                  tooltip : 'Click to view the pendig request of the selected job'
+                }
+              }, {
+                "text" : "Get StagerReport",
+                "handler" : me.__oprGetJobData,
+                "arguments" : ["getStagerReport"],
+                "properties" : {
+                  tooltip : 'Click to show the stager log.'
                 }
               }, {
                 "text" : "-"
@@ -1282,10 +1289,53 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                     // text
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Standard output for JobID:" + oId);
                   } else if (oDataKind == "getLogURL") {
-                    // ?
+
+                    me.getContainer().oprPrepareAndShowWindowHTML(jsonData["result"], 'Log file for JobId:' + oId);
 
                   } else if (oDataKind == "getPending") {
-                    // ?
+                    var data = [];
+                    if ("PendingRequest" in jsonData["result"]) {
+                      var rows = jsonData["result"]["PendingRequest"].split("\n");
+                      for (var i = 0; i < rows.length; i++) {
+                        var row = rows[i].split(":");
+                        row.pop();
+                        data.push(row);
+                      }
+                    } else {
+                      GLOBAL.APP.CF.alert("Error: No pending request(s) found");
+                    }
+
+                    me.getContainer().oprPrepareAndShowWindowGrid(data, "Production:" + oId, ["type", "operation", "status", "order", "targetSE", "file"], [{
+                              text : 'Type',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'type'
+                            }, {
+                              text : 'Opetation',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'operation'
+                            }, {
+                              text : 'Status',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'status'
+                            }, {
+                              text : 'Order',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'order'
+                            }, {
+                              text : 'Target Se',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'targetSE'
+                            }, {
+                              text : 'File',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'file'
+                            }]);
 
                   } else if (oDataKind == "getStagerReport") {
                     // ?

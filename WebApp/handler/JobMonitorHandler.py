@@ -5,6 +5,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
 from WebAppDIRAC.WebApp.handler.Palette import Palette
+from DIRAC.RequestManagementSystem.Client.Request       import Request
 import json
 
 
@@ -367,16 +368,23 @@ class JobMonitorHandler(WebHandler):
         callback = {"success":"false", "error":result["Message"]}
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getPending":
-      RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getJobParameters, jobId)
+      RPC = RPCClient("RequestManagement/ReqManager")
+      
+      result = yield self.threadTask(RPC.readRequestsForJobs, [jobId])
+      
       if result["OK"]:
-        items = []
-        for i in result["Value"].items():
-          if i[0] != "StandardOutput":
-            items.append([i[0], i[1]])
-        callback = {"success":"true", "result":items}
+        items = {} 
+        if jobId in result['Value']['Successful']:
+          req = Request(result['Value']['Successful'][jobId]).getDigest()['Value']
+          items["PendingRequest"]=req
+          callback= {"success":"true", "result":items}
+        elif jobId in result['Value']['Failed']: # when no request associated to the job
+          callback = {"success":"false", "error":result['Value']["Failed"][jobId]}
+        else:
+          callback = {"success":"false", "error":"No request found with unknown reason"}    
       else:
         callback = {"success":"false", "error":result["Message"]}
+        
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getLogURL":
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
@@ -385,7 +393,9 @@ class JobMonitorHandler(WebHandler):
         attr = result["Value"]
         if attr.has_key("Log URL"):
           url = attr["Log URL"].split('"')
-          callback = {"success":"true", "result":url[1]}
+          #we can not open non secured URL
+          httpsUrl = url[1].replace('http','https')
+          callback = {"success":"true", "result":httpsUrl}
         else:
           callback = {"success":"false", "error":"No URL found"}
       else:
