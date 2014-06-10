@@ -27,12 +27,16 @@ Ext.define('Ext.dirac.core.Container', {
       },
       menu : null,
       listeners : {
-        cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        
+        beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+          e.preventDefault();
           var me = this;
-          if(me.menu && cellIndex!= -1){
+          if (me.menu) {
             me.menu.showAt(e.xy);
           }
+          return false;
         }
+        
       }
     });
 

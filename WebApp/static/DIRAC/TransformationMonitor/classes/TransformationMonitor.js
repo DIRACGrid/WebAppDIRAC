@@ -4,7 +4,8 @@
 Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
       extend : 'Ext.dirac.core.Module',
       requires : ['Ext.panel.Panel', 'Ext.panel.Panel', 'Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracToolButton', 'DIRAC.TransformationMonitor.classes.GridPanel', "Ext.form.field.TextArea", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton',
-          'Ext.dirac.utils.DiracPageSizeCombo', 'Ext.dirac.utils.DiracPagingToolbar', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy', 'Ext.dirac.utils.DiracApplicationContextMenu', 'Ext.dirac.utils.DiracBaseSelector'],
+          'Ext.dirac.utils.DiracPageSizeCombo', 'Ext.dirac.utils.DiracPagingToolbar', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy', 'Ext.dirac.utils.DiracApplicationContextMenu', 'Ext.dirac.utils.DiracBaseSelector',
+          'DIRAC.TransformationMonitor.classes.GridPanel'],
       applicationsToOpen : {
         'JobMonitor' : 'DIRAC.JobMonitor.classes.JobMonitor'
       },
@@ -856,13 +857,11 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
             }];
 
         var oGrid = parent.__createStatusGridPanel(oFields, oColumns, url, params);
-        var oMenu = new Ext.menu.Menu({
-              items : [{
-                    text : 'Show value',
-                    handler : Ext.bind(parent.getContainer().showValue, oGrid, [oGrid], false)
-                  }]
-            });
-        oGrid.menu = oMenu;
+        /*
+         * var oMenu = new Ext.menu.Menu({ items : [{ text : 'Show value',
+         * handler : Ext.bind(parent.getContainer().showValue, oGrid, [oGrid],
+         * false) }] }); oGrid.menu = oMenu;
+         */
         parent.getContainer().showInWindow("Files with status Processed for production:" + oId, oGrid)
         parent.grid.body.unmask();
       },
@@ -993,16 +992,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               url : url,
               params : params,
               menu : null,
-              selType : 'cellmodel',
-              listeners : {
-                cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
-                  var me = this;
-                  if (cellIndex != -1) {
-                    me.menu.showAt(e.xy);
-                  }
-
-                }
-              }
+              selType : 'cellmodel' 
             });
 
         return oGrid;
