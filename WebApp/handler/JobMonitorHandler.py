@@ -406,7 +406,7 @@ class JobMonitorHandler(WebHandler):
       result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
         attr = result["Value"]
-        if attr.has_key("StagerReport"):
+        if "StagerReport" in attr:
           callback = {"success":"true", "result":attr["StagerReport"]}
         else:
           callback = {"success":"false", "error":"StagerReport not available"}

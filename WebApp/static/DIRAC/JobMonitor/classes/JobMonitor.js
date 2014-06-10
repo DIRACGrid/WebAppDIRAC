@@ -1338,14 +1338,15 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                             }]);
 
                   } else if (oDataKind == "getStagerReport") {
-                    // ?
+                    
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Stager report for JobId:" + oId);
 
                   } else if (oDataKind == "getPilotStdOut") {
-                    // text
+                    
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot StdOut for JobID:" + oId);
 
                   } else if (oDataKind == "getPilotStdErr") {
-                    // text
+                    
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot StdErr for JobID:" + oId);
 
                   }
