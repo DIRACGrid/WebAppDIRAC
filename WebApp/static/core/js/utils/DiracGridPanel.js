@@ -1,45 +1,92 @@
-/***
- * It is a predefined grid widget. It allows to easily create a Grid widget. You can provide the following values:
- *
- *
- *  -store: which is the data store object {@link Ext.dirac.utils.DiracJsonStore}.
- *
- *  -features: We can allow a list of futures: such as grouping etc.
- *
- *  -oClolumns: dictionary with the column names: {"a":{"dataIndex":"b"},"properties":{},renderFunction:"c"}
- *   There are different render functions provided by this widget. We can configure the grid panel to how render the data.
- *
- *    For example:
- *<pre>
- *      var oColumns = {
- *          "checkBox":{"dataIndex":"TransformationIDcheckBox"},
- *          "ID" : {"dataIndex":"TransformationID", "properties":{width:60, align:'left',hideable:false}},
- *          "Request" : {"dataIndex":"TransformationFamily","properties":{hidden:true}},
- *          "None" : {"dataIndex":"StatusIcon", "properties":{width:26,sortable:false, hideable:false,fixed:true,menuDisabled:true}, "renderFunction":"rendererStatus"},
- *          "Status":{"dataIndex":"Status","properties":{width:60}},
- *          "AgentType" :{"dataIndex":"AgentType","properties":{ width:60}},
- *          "Type":{"dataIndex":"Type"}}
- *  </pre>
- *  -tbar : it is a paging tool bar object. DIRAC provides the following widget: {@link Ext.dirac.utils.DiracPagingToolbar}.
- *
- *  -contextMenu: you can add a menu to the Grid. DIRAC provides the following menu: {@link Ext.dirac.utils.DiracApplicationContextMenu}.
- *
- *  -pagingToolbar: it keeps the paging tool bar.
- *
- *  -scope: it has to be provided, because the grid panel has to accessed to other widgets.
- *
+/*******************************************************************************
+ * It is a predefined grid widget. It allows to easily create a Grid widget. You
+ * can provide the following values:
+ * 
+ * 
+ * -store: which is the data store object {@link Ext.dirac.utils.DiracJsonStore}.
+ * 
+ * -features: We can allow a list of futures: such as grouping etc.
+ * 
+ * -oClolumns: dictionary with the column names:
+ * {"a":{"dataIndex":"b"},"properties":{},renderFunction:"c"} There are
+ * different render functions provided by this widget. We can configure the grid
+ * panel to how render the data.
+ * 
  * For example:
- *
- *<pre>
- *    me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
- *        store : me.dataStore,
- *        features: [{ftype:'grouping'}],
- *        oColumns : oColumns,
- *        contextMenu : me.contextGridMenu,
- *        pagingToolbar : pagingToolbar,
- *        scope : me
- *      });
- *</pre>
+ * 
+ * <pre>
+ * var oColumns = {
+ *   &quot;checkBox&quot; : {
+ *     &quot;dataIndex&quot; : &quot;TransformationIDcheckBox&quot;
+ *   },
+ *   &quot;ID&quot; : {
+ *     &quot;dataIndex&quot; : &quot;TransformationID&quot;,
+ *     &quot;properties&quot; : {
+ *       width : 60,
+ *       align : 'left',
+ *       hideable : false
+ *     }
+ *   },
+ *   &quot;Request&quot; : {
+ *     &quot;dataIndex&quot; : &quot;TransformationFamily&quot;,
+ *     &quot;properties&quot; : {
+ *       hidden : true
+ *     }
+ *   },
+ *   &quot;None&quot; : {
+ *     &quot;dataIndex&quot; : &quot;StatusIcon&quot;,
+ *     &quot;properties&quot; : {
+ *       width : 26,
+ *       sortable : false,
+ *       hideable : false,
+ *       fixed : true,
+ *       menuDisabled : true
+ *     },
+ *     &quot;renderFunction&quot; : &quot;rendererStatus&quot;
+ *   },
+ *   &quot;Status&quot; : {
+ *     &quot;dataIndex&quot; : &quot;Status&quot;,
+ *     &quot;properties&quot; : {
+ *       width : 60
+ *     }
+ *   },
+ *   &quot;AgentType&quot; : {
+ *     &quot;dataIndex&quot; : &quot;AgentType&quot;,
+ *     &quot;properties&quot; : {
+ *       width : 60
+ *     }
+ *   },
+ *   &quot;Type&quot; : {
+ *     &quot;dataIndex&quot; : &quot;Type&quot;
+ *   }
+ * }
+ * </pre>
+ * 
+ * -tbar : it is a paging tool bar object. DIRAC provides the following widget:
+ * {@link Ext.dirac.utils.DiracPagingToolbar}.
+ * 
+ * -contextMenu: you can add a menu to the Grid. DIRAC provides the following
+ * menu: {@link Ext.dirac.utils.DiracApplicationContextMenu}.
+ * 
+ * -pagingToolbar: it keeps the paging tool bar.
+ * 
+ * -scope: it has to be provided, because the grid panel has to accessed to
+ * other widgets.
+ * 
+ * For example:
+ * 
+ * <pre>
+ * me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
+ *       store : me.dataStore,
+ *       features : [{
+ *             ftype : 'grouping'
+ *           }],
+ *       oColumns : oColumns,
+ *       contextMenu : me.contextGridMenu,
+ *       pagingToolbar : pagingToolbar,
+ *       scope : me
+ *     });
+ * </pre>
  */
 Ext.define('Ext.dirac.utils.DiracGridPanel', {
       extend : 'Ext.grid.Panel',
@@ -91,7 +138,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
         var me = this;
         var grid = null;
-        if (data.columns) {//I have changed the data structure
+        if (data.columns) {// I have changed the data structure
           if ("columns" in data.columns) {
             grid = data.columns;
           } else {
@@ -284,12 +331,10 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
           Ext.apply(me, {
                 "listeners" : {
 
-                  cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
-
-                    if (cellIndex != 0) {
-                      config.contextMenu.showAt(e.xy);
-                    }
-
+                  beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                    e.preventDefault();
+                    config.contextMenu.showAt(e.xy);
+                    return false;
                   }
                 }
               });
@@ -341,8 +386,9 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
           return '<img src="static/core/img/statusIcons/unknown.gif"/>';
         }
       },
-      /***
-       * It render the columns in case we want to see the difference before load and after the load. More info {@link Ext.dirac.utils.DiracJsonStore}
+      /*************************************************************************
+       * It render the columns in case we want to see the difference before load
+       * and after the load. More info {@link Ext.dirac.utils.DiracJsonStore}
        */
       diffValues : function(value, metaData, record, rowIndex, colIndex, store) {
         var me = this;
