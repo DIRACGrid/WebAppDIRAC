@@ -1,4 +1,4 @@
-/***
+/*******************************************************************************
  * It is a text filed which is used by the selector.
  */
 Ext.define('Ext.dirac.utils.DiracTextField', {
@@ -6,6 +6,7 @@ Ext.define('Ext.dirac.utils.DiracTextField', {
       fieldLabel : "",
       labelAlign : 'top',
       anchor : "100%",
+     
       validator : function(value) {
 
         if (Ext.util.Format.trim(value) != "") {
@@ -29,10 +30,11 @@ Ext.define('Ext.dirac.utils.DiracTextField', {
       listeners : {
 
         keypress : function(oTextField, e, eOpts) {
+          var me = this;
 
           if (e.getCharCode() == 13) {
 
-            me.oprLoadGridData();
+            me.scope.oprLoadGridData();
 
           }
 

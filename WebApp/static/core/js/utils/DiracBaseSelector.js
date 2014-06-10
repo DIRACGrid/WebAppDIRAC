@@ -189,15 +189,14 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         if (oConfig.textFields) {
           for (field in oConfig.textFields) {
             var textFieldWidget = null;
-            if (oConfig.textFields[field]["type"] == "Number") {
+            if (oConfig.textFields[field]["type"] == "number" || oConfig.textFields[field]["type"] == "Number" ) {
               textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
                     fieldLabel : oConfig.textFields[field]["name"],
-                    oprLoadGridData : me.oprLoadGridData
+                    scope : me
                   });
             } else {
               textFieldWidget = Ext.create("Ext.form.field.Text", {
                     fieldLabel : oConfig.textFields[field]["name"],
-                    oprLoadGridData : me.oprLoadGridData,
                     labelAlign : 'top',
                     anchor : "100%"
                   });
