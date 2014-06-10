@@ -523,24 +523,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       getSelectionData : function() {
         var me = this;
 
-        var extraParams = {
-          limit : me.scope.grid.pagingToolbar.pageSizeCombo.getValue()
-        };
-        if (me.hasTimeSearchPanel) {
-          
-          var timeSearchData = me.timeSearchPanel.getSelectedData();
-          Ext.merge(extraParams, timeSearchData);
-        }
-        for (var i in me.cmbSelectors) {
-          var param = (me.cmbSelectors[i].isInverseSelection()) ? me.cmbSelectors[i].getInverseSelection().split(",") : me.cmbSelectors[i].getValue();
-          // var param = (me.cmbSelectors[i].isInverseSelection()) ?
-          // me.cmbSelectors[i].getInverseSelection() :
-          // me.cmbSelectors[i].getValue();
-          if (param.length != 0) {
-            extraParams[i] = Ext.JSON.encode(param);
-          }
-
-        }
+        var extraParams = {}
+        var foundTextSelector = false;
 
         for (var i in me.textFields) {
           var param = me.textFields[i].getValue().split(',')[0] != "" ? me.textFields[i].getValue().split(',') : [];
@@ -561,10 +545,31 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
                 interval.push(param[j]);
               }
             }
+            foundTextSelector = true;
             extraParams[i] = Ext.JSON.encode(interval);
           } else {
             extraParams[i] = Ext.JSON.encode(param);
           }
+        }
+
+        if (!foundTextSelector) {
+          extraParams["limit"] = me.scope.grid.pagingToolbar.pageSizeCombo.getValue();
+          if (me.hasTimeSearchPanel) {
+
+            var timeSearchData = me.timeSearchPanel.getSelectedData();
+            Ext.merge(extraParams, timeSearchData);
+          }
+          for (var i in me.cmbSelectors) {
+            var param = (me.cmbSelectors[i].isInverseSelection()) ? me.cmbSelectors[i].getInverseSelection().split(",") : me.cmbSelectors[i].getValue();
+            // var param = (me.cmbSelectors[i].isInverseSelection()) ?
+            // me.cmbSelectors[i].getInverseSelection() :
+            // me.cmbSelectors[i].getValue();
+            if (param.length != 0) {
+              extraParams[i] = Ext.JSON.encode(param);
+            }
+
+          }
+
         }
 
         return extraParams;
