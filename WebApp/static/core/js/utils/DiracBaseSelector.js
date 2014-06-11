@@ -59,7 +59,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       extend : 'Ext.panel.Panel',
-      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.dirac.utils.DiracToolButton'],
+      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracNumericField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.dirac.utils.DiracToolButton'],
       title : 'Selectors',
       region : 'west',
       floatable : false,
@@ -190,15 +190,14 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           for (field in oConfig.textFields) {
             var textFieldWidget = null;
             if (oConfig.textFields[field]["type"] == "number" || oConfig.textFields[field]["type"] == "Number") {
-              textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
+              textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
                     fieldLabel : oConfig.textFields[field]["name"],
                     scope : me
                   });
             } else {
-              textFieldWidget = Ext.create("Ext.form.field.Text", {
+              textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
                     fieldLabel : oConfig.textFields[field]["name"],
-                    labelAlign : 'top',
-                    anchor : "100%"
+                    scope : me
                   });
             }
             me.textFields[field] = textFieldWidget;
@@ -693,16 +692,14 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var textFieldWidget = null;
         for (var field in data) {
           if (data[field]["type"] == "Number") {
-            textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
+            textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
                   fieldLabel : data[field]["name"],
-                  oprLoadGridData : me.oprLoadGridData
+                  scope : me
                 });
           } else {
-            textFieldWidget = Ext.create("Ext.form.field.Text", {
+            textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
                   fieldLabel : data[field]["name"],
-                  oprLoadGridData : me.oprLoadGridData,
-                  labelAlign : 'top',
-                  anchor : "100%"
+                  scope : me
                 });
           }
           me.textFields[field] = textFieldWidget;
