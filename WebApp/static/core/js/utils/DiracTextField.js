@@ -6,8 +6,9 @@ Ext.define('Ext.dirac.utils.DiracTextField', {
       fieldLabel : "",
       labelAlign : 'top',
       anchor : "100%",
-     
+
       validator : function(value) {
+        var me = this;
 
         if (Ext.util.Format.trim(value) != "") {
           var newValue = "";
@@ -17,14 +18,16 @@ Ext.define('Ext.dirac.utils.DiracTextField', {
           }
           var regExpr = /^(\d+|\d+-\d+)(,(\d+|\d+-\d+))*$/;
 
-          if (String(newValue).search(regExpr) != -1)
+          if (String(newValue).search(regExpr) != -1) {
+            me.scope.disableElements(me);
             return true;
-          else
+          } else {
             return "The IDs expression is not valid";
-
-        } else
+          }
+        } else {
+          me.scope.enableElements();
           return true;
-
+        }
       },
       enableKeyEvents : true,
       listeners : {
@@ -32,6 +35,7 @@ Ext.define('Ext.dirac.utils.DiracTextField', {
         keypress : function(oTextField, e, eOpts) {
           var me = this;
 
+          //it disables all the widgets except this.
           if (e.getCharCode() == 13) {
 
             me.scope.oprLoadGridData();

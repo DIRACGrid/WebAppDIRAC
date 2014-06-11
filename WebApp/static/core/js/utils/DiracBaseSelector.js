@@ -189,7 +189,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         if (oConfig.textFields) {
           for (field in oConfig.textFields) {
             var textFieldWidget = null;
-            if (oConfig.textFields[field]["type"] == "number" || oConfig.textFields[field]["type"] == "Number" ) {
+            if (oConfig.textFields[field]["type"] == "number" || oConfig.textFields[field]["type"] == "Number") {
               textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
                     fieldLabel : oConfig.textFields[field]["name"],
                     scope : me
@@ -772,6 +772,36 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           for (var i in data) {
             me.datamap.push([i, i]);
           }
+        }
+      },
+      /**
+       * It disables the selectors execpt the selector which is in use.
+       * @param {Object} noToDisable it is the selector object which will be not disabled...
+       */
+      disableElements : function(notToDisable) {
+        var me = this;
+        me.timeSearchPanel.disable();
+
+        for (var cmb in me.cmbSelectors) {
+          me.cmbSelectors[cmb].disable();
+        }
+
+        for (var field in me.textFields) {
+          if (me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
+            me.textFields[field].disable();
+          }
+        }
+      },
+      enableElements : function() {
+        var me = this;
+        me.timeSearchPanel.enable();
+
+        for (var cmb in me.cmbSelectors) {
+          me.cmbSelectors[cmb].enable();
+        }
+
+        for (var field in me.textFields) {
+          me.textFields[field].enable();
         }
       }
     });
