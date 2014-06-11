@@ -981,19 +981,19 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
                 if (oTimeSpan.getValue() == -1) {
 
-                  if ((oCalenFrom.getValue() == null) || (Ext.util.Format.trim(oCalenFrom.getValue()) == "")) {
+                  if ((oCalenFrom.getValue() == null) || (Ext.Date.format(oCalenFrom.getValue(), "Y-m-d") == "")) {
                     GLOBAL.APP.CF.alert("Select a from date", "warning");
                     bValid = false;
                   }
 
-                  if ((oCalenTo.getValue() == null) || (Ext.util.Format.trim(oCalenTo.getValue()) == "")) {
+                  if ((oCalenTo.getValue() == null) || (Ext.Date.format(oCalenTo.getValue(), "Y-m-d") == "")) {
                     GLOBAL.APP.CF.alert("Select a to date", "warning");
                     bValid = false;
                   }
 
                   oParams["timespan"] = -1;
-                  oParams["fromDate"] = oCalenFrom.getValue();
-                  oParams["toDate"] = oCalenTo.getValue();
+                  oParams["fromDate"] = Ext.Date.format(oCalenFrom.getValue(), "Y-m-d");
+                  oParams["toDate"] = Ext.Date.format(oCalenTo.getValue(), "Y-m-d");
 
                 } else {
 
