@@ -177,7 +177,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
         me.pagingToolbar.loadState(data);
 
       },
-      /*************************************************************************
+      /**
        * It returns the available renderer.
        * 
        * @return{List}
@@ -348,7 +348,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
         }
 
       },
-      /*************************************************************************
+      /**
        * It render the Grid columns
        * 
        * @param{Number} val it is the column value
@@ -356,7 +356,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       rendererChkBox : function(val) {
         return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
       },
-      /*************************************************************************
+      /***
        * It render the Status
        * 
        * @param{String} value It render the status.
@@ -386,13 +386,13 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
           return '<img src="static/core/img/statusIcons/unknown.gif"/>';
         }
       },
-      /*************************************************************************
+      /**
        * It render the columns in case we want to see the difference before load
        * and after the load. More info {@link Ext.dirac.utils.DiracJsonStore}
        */
       diffValues : function(value, metaData, record, rowIndex, colIndex, store) {
         var me = this;
-        var id = record.data.TransformationID;
+        var id = record.data[me.store.getDiffId()];
         var diffValues = me.store.getDiffValues();
         if (diffValues) {
           if (id && diffValues[id]) {

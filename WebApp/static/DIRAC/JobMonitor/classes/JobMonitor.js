@@ -3,7 +3,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
       requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging", "Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea",
           "Ext.dirac.utils.DiracToolButton", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo', "Ext.dirac.utils.DiracPagingToolbar", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracBaseSelector",
-          "Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore", "Ext.dirac.utils.DiracJsonStore"],
+          "Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracArrayStore"],
 
       loadState : function(data) {
 
@@ -848,17 +848,24 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
             "dataIndex" : "value",
             "properties" : {
               flex : 1
-            }
+            },
+            "renderFunction" : "diffValues"
           }
         };
 
+        var dataStore = Ext.create("Ext.dirac.utils.DiracArrayStore", {
+              fields : ["key", "value", "code", "color"],
+              oDiffFields : {
+                'Id' : 'key',
+                'Fields' : ["value"]
+              },
+              scope : me
+            });
+            
         /*---------------------------------------------------*/
         me.statisticsSelectionGrid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
               region : 'west',
-              store : new Ext.data.ArrayStore({
-                    fields : ["key", "value", "code", "color"],
-                    data : []
-                  }),
+              store : dataStore,
               width : 300,
               header : false,
               border : 0,
@@ -1338,15 +1345,15 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                             }]);
 
                   } else if (oDataKind == "getStagerReport") {
-                    
+
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Stager report for JobId:" + oId);
 
                   } else if (oDataKind == "getPilotStdOut") {
-                    
+
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot StdOut for JobID:" + oId);
 
                   } else if (oDataKind == "getPilotStdErr") {
-                    
+
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot StdErr for JobID:" + oId);
 
                   }
