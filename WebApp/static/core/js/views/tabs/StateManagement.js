@@ -959,26 +959,29 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
                   cbAfterSave(1, sAppName, sStateType, sStateName);
 
-                } else if (oResponse.status == 400) {
-
-                  Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + oResponse.responseText + '.<br/> Please try again later !');
-                  cbAfterSave(-1, sAppName, sStateType, sStateName);
-
                 } else {
 
-                  Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + oResponse.statusText + '.<br/> Please try again later !');
-                  cbAfterSave(-2, sAppName, sStateType, sStateName);
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
+                  if (oResponse.status == 400) {
+
+                    cbAfterSave(-1, sAppName, sStateType, sStateName);
+
+                  } else {
+
+                    cbAfterSave(-2, sAppName, sStateType, sStateName);
+
+                  }
                 }
 
               },
               failure : function(response) {
 
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
                 if (response.status == 400) {
-                  Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
                   cbAfterSave(-3, sAppName, sStateType, sStateName);
                 } else {
-                  Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
                   cbAfterSave(-4, sAppName, sStateType, sStateName);
                 }
               }

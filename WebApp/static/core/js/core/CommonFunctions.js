@@ -236,5 +236,22 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
         Ext.create('widget.uxNotification', config).show();
 
+      },
+      showAjaxErrorMessage : function(response) {
+
+        if (response.timedout) {
+          Ext.dirac.system_info.msg("Error Notification", 'The request timed out! Please reload the application!!!');
+        } else {
+          if (response.responseText) {
+            var message = response.responseText.split("\n");
+            var messageLength = message.length - 2;
+            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
+            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + message[messageLength] + '.<br/> Please try again later !');
+          } else {
+            Ext.dirac.system_info.msg("Error Notification", "The reson of the failure is unknown!");
+          }
+
+        }
+
       }
     });

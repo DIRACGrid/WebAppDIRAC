@@ -962,7 +962,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                         },
                         url : GLOBAL.BASE_URL + me.applicationName + "/action",
                         failure : function(response) {
-                          alert(response.statusText);
+                          GLOBAL.APP.CF.showAjaxErrorMessage(response);
                         }
                       })
                 }

@@ -1089,7 +1089,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
               },
               failure : function(response, options) {
-                Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
               }
             });
 

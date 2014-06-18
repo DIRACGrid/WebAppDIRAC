@@ -1175,7 +1175,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                                                 me.getContainer().body.unmask();
                                               },
                                               failure : function(oRequest) {
-                                                GLOBAL.APP.CF.alert("Error: " + oRequest.statusText, "warning");
+                                                GLOBAL.APP.CF.showAjaxErrorMessage(response);
                                                 me.getContainer().body.unmask();
                                               },
                                               params : {
