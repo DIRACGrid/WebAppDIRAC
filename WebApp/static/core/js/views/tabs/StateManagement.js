@@ -345,8 +345,14 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
           me.formSaveState(sStateType, sAppName, oAppObject, cbAfterSave);
 
         } else {
+          var stateName = '';
+          if (sAppName == 'desktop') {
+            stateName = oAppObject.title;
+          } else {
+            stateName = oAppObject.currentState;
+          }
 
-          GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, oAppObject.title, cbAfterSave);
+          GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, stateName, cbAfterSave);
 
         }
       },
