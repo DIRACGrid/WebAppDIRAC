@@ -269,17 +269,19 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
        */
       loadState : function(data) {
         var me = this;
-  
+
         if (data && data.grid && data.grid.pagingToolbar) {
           var toolbar = data.grid.pagingToolbar;
           if (toolbar.pageSize) {
 
             me.pageSizeCombo.suspendEvents(false);
+            //we have to set correctly the page size of the store
+            me.store.pageSize = toolbar.pageSize;
             me.pageSizeCombo.setValue(toolbar.pageSize);
             me.pageSizeCombo.resumeEvents();
           }
           if (toolbar.refreshCycle) {
-            var refreshCycle = (toolbar.refreshCycle == 60000?900000:toolbar.refreshCycle);
+            var refreshCycle = (toolbar.refreshCycle == 60000 ? 900000 : toolbar.refreshCycle);
             var index = me.autoRefresh.items.findIndex("name", refreshCycle);
             me.autoRefresh.items.getAt(index).setChecked(true);
             me.__setRefreshCycle(refreshCycle);
