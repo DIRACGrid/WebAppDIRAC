@@ -244,9 +244,19 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
         } else {
           if (response.responseText) {
             var message = response.responseText.split("\n");
-            var messageLength = message.length - 2;
+            var shortMessage = "";
+            if (message.length > 1){ 
+              //We have case when we have more than one line. 
+              //In that case we show the lates line.
+              //We have this case when the handler of the application is crashing...
+              var messageLength = message.length - 2;
+              shortMessage = message[messageLength];
+            }else{
+              shortMessage = response.responseText;
+            }
+            
             Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
-            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + message[messageLength] + '.<br/> Please try again later !');
+            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + shortMessage + '.<br/> Please try again later !');
           } else {
             Ext.dirac.system_info.msg("Error Notification", "The reson of the failure is unknown!");
           }
