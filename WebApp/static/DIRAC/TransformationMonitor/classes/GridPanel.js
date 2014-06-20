@@ -11,13 +11,16 @@ Ext.define('DIRAC.TransformationMonitor.classes.GridPanel', {
       },
       menu : null,
       listeners : {
-        cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        
+        beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+          e.preventDefault();
           var me = this;
-          if (me.menu && cellIndex != -1) {
+          if (me.menu) {
             me.menu.showAt(e.xy);
           }
-
+          return false;
         }
+        
       },
       initComponent : function() {
         var me = this;

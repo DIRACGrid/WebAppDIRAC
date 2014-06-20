@@ -139,7 +139,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                               Ext.dirac.system_info.msg("Notification", 'Desktop view has changed successfully !');
                             },
                             failure : function(response) {
-                              Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+                              GLOBAL.APP.CF.showAjaxErrorMessage(response);
                             }
                           });
                     }
@@ -183,7 +183,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                               Ext.dirac.system_info.msg("Notification", 'Desktop view has changed successfully !');
                             },
                             failure : function(response) {
-                              Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+                              GLOBAL.APP.CF.showAjaxErrorMessage(response);
                             }
                           });
                     }

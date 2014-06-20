@@ -1,7 +1,7 @@
 /*******************************************************************************
  * It is a text filed which is used by the selector.
  */
-Ext.define('Ext.dirac.utils.DiracTextField', {
+Ext.define('Ext.dirac.utils.DiracNumericField', {
       extend : 'Ext.form.field.Text',
       fieldLabel : "",
       labelAlign : 'top',
@@ -11,9 +11,19 @@ Ext.define('Ext.dirac.utils.DiracTextField', {
         var me = this;
 
         if (Ext.util.Format.trim(value) != "") {
-          me.scope.disableElements(me);
-          return true;
+          var newValue = "";
+          for (var i = 0; i < value.length; i++) {
+            if (value.charAt(i) != ' ')
+              newValue += value.charAt(i);
+          }
+          var regExpr = /^(\d+|\d+-\d+)(,(\d+|\d+-\d+))*$/;
 
+          if (String(newValue).search(regExpr) != -1) {
+            me.scope.disableElements(me);
+            return true;
+          } else {
+            return "The IDs expression is not valid";
+          }
         } else {
           me.scope.enableElements();
           return true;

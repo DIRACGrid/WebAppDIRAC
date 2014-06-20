@@ -194,25 +194,27 @@ class TransformationMonitorHandler(WebHandler):
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
    
-    
+   
+    agentType = 'Manual'
     if cmd == 'clean':
       status = 'Cleaning'
     elif cmd == 'start':
       status = 'Active'
-    
+      agentType = 'Automatic'
     elif cmd == 'flush':
       status = 'Flush'
-    
+      agentType = 'Automatic'
     elif cmd == 'stop':
       status = 'Stopped'
     elif cmd == 'complete':
       status = 'Completed'
     else:
       self.finish( {"success":"false","error": "Unknown action"})
-      return
+      
     callback = []
     
     for i in ids:
+
       try:
         id = int(i)
 

@@ -22,26 +22,24 @@ class SystemAdministrationHandler(WebHandler):
     DN = str(userData["user"]["DN"])
     group = str(userData["user"]["group"])
 
-    # TODO: remove hosts code after v6r7 since it will be built-in
-    result = gConfig.getSections("/Registry/Hosts")
-    if not result[ "Value" ]:
-      self.finish({ "success" : "false" , "error" : result[ "Message" ] })
-      return
-    hosts = result[ "Value" ]
-    
     callback = []
     import pprint
   
-    for host in hosts:
-      client = SystemAdministratorClient(host , None , delegatedDN=DN ,
+   
+    client = SystemAdministratorIntegrator(delegatedDN=DN ,
                                           delegatedGroup=group)
-      resultHost = yield self.threadTask(client.getHostInfo)
-      if resultHost[ "OK" ]:
-        rec = resultHost["Value"]
-        rec["Host"] = host
-        callback.append(resultHost["Value"])
-      else:
-        callback.append({"Host":host})
+    resultHosts = yield self.threadTask(client.getHostInfo)
+    if resultHosts[ "OK" ]:
+      hosts = resultHosts['Value']
+      for i in hosts:
+        if hosts[i]['OK']:
+          host = hosts[i]['Value']
+          host['Host'] = i
+          callback.append(host)
+        else:
+          callback.append({'Host':i})
+    else:
+      self.finish({ "success" : "false" , "error" :  resultHosts['Message']})
    
     total = len(callback)
     if not total > 0:

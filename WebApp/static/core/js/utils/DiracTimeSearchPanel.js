@@ -182,8 +182,9 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
             });
         me.callParent(arguments);
       },
-      /***
+      /*************************************************************************
        * This function returns the selected timestamp.
+       * 
        * @return {Object}
        */
       getSelectedData : function() {
@@ -204,6 +205,8 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
 
           switch (iSpanValue) {
             case 1 :
+              var utcHours = oNowJs.getUTCHours();
+              oNowJs.setHours(utcHours);
               oBegin = Ext.Date.add(oNowJs, Ext.Date.HOUR, -1);
               break;
             case 2 :

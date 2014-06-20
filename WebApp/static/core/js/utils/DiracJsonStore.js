@@ -29,6 +29,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracJsonStore', {
       extend : 'Ext.data.JsonStore',
+
       autoLoad : true,
       remoteSort : true,
       /**
@@ -76,6 +77,10 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
         var me = this;
         return me.diffValues;
       },
+      getDiffId : function() {
+        var me = this;
+        return me.oDiffFields['Id'];
+      },
       /**
        * @property{String} groupField The values will be grouped by this field.
        */
@@ -84,10 +89,10 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
         load : function(oStore, records, successful, eOpts) {
           var me = this;
-          
-          if (!oStore.proxy.reader.rawData){
+
+          if (!oStore.proxy.reader.rawData) {
             return;
-            
+
           }
           var bResponseOK = (oStore.proxy.reader.rawData["success"] == "true");
           if (!bResponseOK) {

@@ -59,7 +59,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       extend : 'Ext.panel.Panel',
-      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.dirac.utils.DiracToolButton'],
+      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracNumericField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.dirac.utils.DiracToolButton'],
       title : 'Selectors',
       region : 'west',
       floatable : false,
@@ -189,17 +189,15 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         if (oConfig.textFields) {
           for (field in oConfig.textFields) {
             var textFieldWidget = null;
-            if (oConfig.textFields[field]["type"] == "Number") {
-              textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
+            if (oConfig.textFields[field]["type"] == "number" || oConfig.textFields[field]["type"] == "Number") {
+              textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
                     fieldLabel : oConfig.textFields[field]["name"],
-                    oprLoadGridData : me.oprLoadGridData
+                    scope : me
                   });
             } else {
-              textFieldWidget = Ext.create("Ext.form.field.Text", {
+              textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
                     fieldLabel : oConfig.textFields[field]["name"],
-                    oprLoadGridData : me.oprLoadGridData,
-                    labelAlign : 'top',
-                    anchor : "100%"
+                    scope : me
                   });
             }
             me.textFields[field] = textFieldWidget;
@@ -475,7 +473,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
                 },
                 failure : function(response) {
 
-                  Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
                 }
               });
         }
@@ -523,24 +522,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       getSelectionData : function() {
         var me = this;
 
-        var extraParams = {
-          limit : me.scope.grid.pagingToolbar.pageSizeCombo.getValue()
-        };
-        if (me.hasTimeSearchPanel) {
-          
-          var timeSearchData = me.timeSearchPanel.getSelectedData();
-          Ext.merge(extraParams, timeSearchData);
-        }
-        for (var i in me.cmbSelectors) {
-          var param = (me.cmbSelectors[i].isInverseSelection()) ? me.cmbSelectors[i].getInverseSelection().split(",") : me.cmbSelectors[i].getValue();
-          // var param = (me.cmbSelectors[i].isInverseSelection()) ?
-          // me.cmbSelectors[i].getInverseSelection() :
-          // me.cmbSelectors[i].getValue();
-          if (param.length != 0) {
-            extraParams[i] = Ext.JSON.encode(param);
-          }
-
-        }
+        var extraParams = {}
+        var foundTextSelector = false;
 
         for (var i in me.textFields) {
           var param = me.textFields[i].getValue().split(',')[0] != "" ? me.textFields[i].getValue().split(',') : [];
@@ -561,10 +544,31 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
                 interval.push(param[j]);
               }
             }
+            foundTextSelector = true;
             extraParams[i] = Ext.JSON.encode(interval);
           } else {
             extraParams[i] = Ext.JSON.encode(param);
           }
+        }
+
+        if (!foundTextSelector) {
+          extraParams["limit"] = me.scope.grid.pagingToolbar.pageSizeCombo.getValue();
+          if (me.hasTimeSearchPanel) {
+
+            var timeSearchData = me.timeSearchPanel.getSelectedData();
+            Ext.merge(extraParams, timeSearchData);
+          }
+          for (var i in me.cmbSelectors) {
+            var param = (me.cmbSelectors[i].isInverseSelection()) ? me.cmbSelectors[i].getInverseSelection().split(",") : me.cmbSelectors[i].getValue();
+            // var param = (me.cmbSelectors[i].isInverseSelection()) ?
+            // me.cmbSelectors[i].getInverseSelection() :
+            // me.cmbSelectors[i].getValue();
+            if (param.length != 0) {
+              extraParams[i] = Ext.JSON.encode(param);
+            }
+
+          }
+
         }
 
         return extraParams;
@@ -663,7 +667,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
               },
               failure : function(response) {
 
-                Ext.dirac.system_info.msg("Notification", 'Operation failed due to a network error.<br/> Please try again later !');
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                
               }
             });
 
@@ -689,16 +694,14 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var textFieldWidget = null;
         for (var field in data) {
           if (data[field]["type"] == "Number") {
-            textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
+            textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
                   fieldLabel : data[field]["name"],
-                  oprLoadGridData : me.oprLoadGridData
+                  scope : me
                 });
           } else {
-            textFieldWidget = Ext.create("Ext.form.field.Text", {
+            textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
                   fieldLabel : data[field]["name"],
-                  oprLoadGridData : me.oprLoadGridData,
-                  labelAlign : 'top',
-                  anchor : "100%"
+                  scope : me
                 });
           }
           me.textFields[field] = textFieldWidget;
@@ -768,6 +771,36 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           for (var i in data) {
             me.datamap.push([i, i]);
           }
+        }
+      },
+      /**
+       * It disables the selectors execpt the selector which is in use.
+       * @param {Object} noToDisable it is the selector object which will be not disabled...
+       */
+      disableElements : function(notToDisable) {
+        var me = this;
+        me.timeSearchPanel.disable();
+
+        for (var cmb in me.cmbSelectors) {
+          me.cmbSelectors[cmb].disable();
+        }
+
+        for (var field in me.textFields) {
+          if (me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
+            me.textFields[field].disable();
+          }
+        }
+      },
+      enableElements : function() {
+        var me = this;
+        me.timeSearchPanel.enable();
+
+        for (var cmb in me.cmbSelectors) {
+          me.cmbSelectors[cmb].enable();
+        }
+
+        for (var field in me.textFields) {
+          me.textFields[field].enable();
         }
       }
     });

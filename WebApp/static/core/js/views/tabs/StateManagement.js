@@ -345,8 +345,14 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
           me.formSaveState(sStateType, sAppName, oAppObject, cbAfterSave);
 
         } else {
+          var stateName = '';
+          if (sAppName == 'desktop') {
+            stateName = oAppObject.title;
+          } else {
+            stateName = oAppObject.currentState;
+          }
 
-          GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, oAppObject.title, cbAfterSave);
+          GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, stateName, cbAfterSave);
 
         }
       },
@@ -953,26 +959,29 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
 
                   cbAfterSave(1, sAppName, sStateType, sStateName);
 
-                } else if (oResponse.status == 400) {
-
-                  Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + oResponse.responseText + '.<br/> Please try again later !');
-                  cbAfterSave(-1, sAppName, sStateType, sStateName);
-
                 } else {
 
-                  Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + oResponse.statusText + '.<br/> Please try again later !');
-                  cbAfterSave(-2, sAppName, sStateType, sStateName);
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
+                  if (oResponse.status == 400) {
+
+                    cbAfterSave(-1, sAppName, sStateType, sStateName);
+
+                  } else {
+
+                    cbAfterSave(-2, sAppName, sStateType, sStateName);
+
+                  }
                 }
 
               },
               failure : function(response) {
 
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
                 if (response.status == 400) {
-                  Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.responseText + '.<br/> Please try again later !');
                   cbAfterSave(-3, sAppName, sStateType, sStateName);
                 } else {
-                  Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + '.<br/> Please try again later !');
                   cbAfterSave(-4, sAppName, sStateType, sStateName);
                 }
               }
