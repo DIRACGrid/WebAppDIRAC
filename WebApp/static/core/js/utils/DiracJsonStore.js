@@ -106,7 +106,7 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
             }
 
           } else {
-            if (oStore.proxy.reader.rawData)
+            if (oStore.proxy.reader.rawData && me.scope.grid && me.scope.grid.pagingToolbar)
               me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
 
             me.remoteSort = false;
