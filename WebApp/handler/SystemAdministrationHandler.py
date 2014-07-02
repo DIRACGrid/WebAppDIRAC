@@ -10,6 +10,7 @@ from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.List import uniqueElements
 import json
 import datetime
+import DIRAC.ConfigurationSystem.Client.Helpers.Registry as Registry
 
 class SystemAdministrationHandler( WebHandler ):
 
@@ -633,6 +634,12 @@ class SystemAdministrationHandler( WebHandler ):
    
     setup = userData['setup'].split( '-' )[-1]
     
+    hosts = []
+    result = Registry.getHosts()
+    if result['OK']:
+      hosts = result['Value']
+    
+    print 'HOST', hosts  
     componentTypes = ['Services', 'Agents']
     if "ComponentType" in self.request.arguments:
       componentTypes = self.request.arguments['ComponentType']
@@ -655,7 +662,7 @@ class SystemAdministrationHandler( WebHandler ):
             for j in components:
               if j == componentName:
                 fullName = '%s/%s' % ( i, j )
-    hosts = []
+  
     records = []
     if fullName != '':
       condDict = {'Setup':userData['setup'], 'ComponentName':fullName}
@@ -673,6 +680,8 @@ class SystemAdministrationHandler( WebHandler ):
         for type in components[ setup ]:
           for name in components[ setup ][ type ]:
             for component in components[ setup ][ type ][ name ]:
+              if 'Host' in component and component['Host'] not in hosts:
+                 continue 
               if 'LastHeartbeat' in component:
                 dateDiff = today - component['LastHeartbeat']
               else:

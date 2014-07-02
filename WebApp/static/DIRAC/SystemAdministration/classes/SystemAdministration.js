@@ -39,11 +39,11 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
         Ext.apply(me, {
               layout : 'border',
-              padding : 5,
               bodyBorder : false,
               defaults : {
                 collapsible : true,
-                split : true
+                split : true,
+                bodyPadding : 5
               }
             });
 
@@ -190,10 +190,12 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
         }
 
         me.systemInfoGrid = Ext.create('Ext.grid.Panel', {
-              region : "north",
+              region : 'north',
               title : "Overall System Information",
               store : me.systemInfoDataStore,
+              animCollapse : true,
               height : 300,
+              minHeight : 100,
               header : false,
               viewConfig : {
                 stripeRows : true,
@@ -547,12 +549,13 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
         me.hostGrid = Ext.create('Ext.grid.Panel', {
               region : "center",
+              collapsible : false,
+
               store : me.hostGridStore,
               header : false,
               moduleObject : me,
               height : 200,
               minHeight : 120,
-              collapsible : true,
               id : sId,
               viewConfig : {
                 stripeRows : true,
@@ -654,10 +657,9 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               collapsed : true,
               margins : '0',
               width : 350,
-              minWidth : 330,
+              minWidth : 100,
               maxWidth : 450,
-              bodyPadding : 5,
-              layout : 'anchor',
+              // bodyPadding : 5,
               autoScroll : true
             });
 
@@ -733,56 +735,101 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
         var hostColumns = {
           "Host" : {
-            "dataIndex" : "Host"
+            "dataIndex" : "Host",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "ComponentName" : {
-            "dataIndex" : "ComponentName"
+            "dataIndex" : "ComponentName",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
 
           "Description" : {
-            "dataIndex" : "Description"
+            "dataIndex" : "Description",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "Setup" : {
-            "dataIndex" : "Setup"
+            "dataIndex" : "Setup",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "Port" : {
-            "dataIndex" : "Port"
+            "dataIndex" : "Port",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "Type" : {
-            "dataIndex" : "Type"
+            "dataIndex" : "Type",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "Status" : {
-            "dataIndex" : "Status"
+            "dataIndex" : "Status",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "LastHeartbeat" : {
             "dataIndex" : "LastHeartbeat",
-            "renderer" : Ext.util.Format.dateRenderer('Y-m-d H:i:s')
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "LoggingState" : {
-            "dataIndex" : "LoggingState"
+            "dataIndex" : "LoggingState",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "Version" : {
-            "dataIndex" : "Version"
+            "dataIndex" : "Version",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "Platform" : {
-            "dataIndex" : "Platform"
+            "dataIndex" : "Platform",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "DIRACVersion" : {
-            "dataIndex" : "DIRACVersion"
+            "dataIndex" : "DIRACVersion",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "VersionTimestamp" : {
             "dataIndex" : "VersionTimestamp",
-            "renderer" : Ext.util.Format.dateRenderer('Y-m-d H:i:s')
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "StartTime" : {
             "dataIndex" : "StartTime",
-            "renderer" : Ext.util.Format.dateRenderer('Y-m-d H:i:s')
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "Queries" : {
-            "dataIndex" : "queries"
+            "dataIndex" : "queries",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           },
           "Cycles" : {
-            "dataIndex" : "cycles"
+            "dataIndex" : "cycles",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
           }
 
         };
@@ -845,7 +892,16 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               features : [{
                     ftype : 'grouping'
                   }],
-              scope : me
+              scope : me,
+              listeners : {
+                cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+
+                  me.hostGridStore.proxy.extraParams.hostname = record.get("Host");
+                  me.hostGridStore.load();
+
+                }
+              }
+
             });
 
         me.locationGrid.store.sort([{
@@ -854,8 +910,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
             }]);
 
         me.leftPanel.add([me.chkBoxes, me.cmbSystems]);
-        me.add([me.leftPanel, me.locationGrid]);
-        me.add([me.hostGrid, me.systemInfoGrid]);
+        me.add([me.systemInfoGrid, me.hostGrid, me.leftPanel, me.locationGrid]);
 
       },
 
@@ -1499,6 +1554,24 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
         me.locationGrid.store.removeAll();
         me.locationGrid.store.load();
         me.locationGrid.expand();
+        me.systemInfoGrid.collapse();
+      },
+      rendererGridColumn : function(value, record) {
+        var me = this;
+        var result = '';
+        var lastHeartBeat = new Date(record.get('LastHeartbeat'));
+        var now = new Date();
+        var diff = now - lastHeartBeat;
+        var millsecToHour = diff / 3600000.;
+        if (millsecToHour <= 48) {
+          // if two days we have no activities we assume the componnet is not
+          // used
+          //#0B3B0B
+          result = ' <font color="#122A0A">' + value + '</font>';
+        } else {
+          result = ' <font color="#DF0101">' + value + '</font>';
+        }
+        return result;
       }
 
     });
