@@ -27,8 +27,8 @@ class SystemAdministrationHandler( WebHandler ):
     callback = []
     import pprint
   
-    #self.finish( { "success" : "false" , "error" : "No system information found" } )
-    #return
+    self.finish( { "success" : "false" , "error" : "No system information found" } )
+    return
     client = SystemAdministratorIntegrator( delegatedDN = DN ,
                                           delegatedGroup = group )
     resultHosts = yield self.threadTask( client.getHostInfo )

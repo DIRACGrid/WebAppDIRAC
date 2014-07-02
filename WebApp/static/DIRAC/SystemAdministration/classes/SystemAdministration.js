@@ -1,7 +1,7 @@
 Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
       extend : 'Ext.dirac.core.Module',
 
-      requires : ['Ext.tab.Panel', 'Ext.ProgressBar', 'Ext.grid.feature.Grouping', 'Ext.data.ArrayStore', 'Ext.util.TaskRunner', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy'],
+      requires : ['Ext.tab.Panel', 'Ext.ProgressBar', 'Ext.grid.feature.Grouping', 'Ext.data.ArrayStore', 'Ext.util.TaskRunner', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy', 'Ext.dirac.utils.Printer'],
 
       initComponent : function() {
 
@@ -385,6 +385,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               }
             });
 
+       
         me.createBottomGridToolbar(me.systemInfoGrid);
 
         /*
@@ -900,7 +901,16 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   me.hostGridStore.load();
 
                 }
-              }
+              },
+
+              tbar : [{
+                    text : 'Print',
+                    iconCls : 'dirac-icon-print',
+                    handler : function() {
+                      Ext.dirac.utils.Printer.printAutomatically = false;
+                      Ext.dirac.utils.Printer.print(me.locationGrid);
+                    }
+                  }]
 
             });
 
@@ -1566,7 +1576,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
         if (millsecToHour <= 48) {
           // if two days we have no activities we assume the componnet is not
           // used
-          //#0B3B0B
+          // #0B3B0B
           result = ' <font color="#122A0A">' + value + '</font>';
         } else {
           result = ' <font color="#DF0101">' + value + '</font>';
