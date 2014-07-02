@@ -1569,17 +1569,17 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
       rendererGridColumn : function(value, record) {
         var me = this;
         var result = '';
-        var lastHeartBeat = new Date(record.get('LastHeartbeat'));
+        var lastHeartBeat = Ext.Date.parse(record.get('LastHeartbeat'),"Y-m-d H:i:s");
         var now = new Date();
         var diff = now - lastHeartBeat;
         var millsecToHour = diff / 3600000.;
         if (millsecToHour <= 48) {
           // if two days we have no activities we assume the componnet is not
           // used
-          // #0B3B0B
-          result = ' <font color="#122A0A">' + value + '</font>';
+          // #0B3B0B #122A0A #DF0101
+          result = ' <font color="green">' + value + '</font>';
         } else {
-          result = ' <font color="#DF0101">' + value + '</font>';
+          result = ' <font color="red">' + value + '</font>';
         }
         return result;
       }
