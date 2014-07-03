@@ -103,6 +103,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
        *                     selector widgets.
        */
       selectorMenu : null,
+      /**
+       * @cfg{Boolean} panelButtons If it is false, the buttons(submmit, reset,
+       *               etc) of the panel will be not added.
+       */
+      panelButtons : true,
       constructor : function(oConfig) {
         var me = this;
         me.callParent(arguments);
@@ -208,58 +213,60 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           me.add(me.textFields[field]);
         }
 
-        // Buttons at the top of the panel
-        var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
-              dock : 'bottom',
-              layout : {
-                pack : 'center'
-              },
-              items : []
-            });
+        if (me.panelButtons) {
+          // Buttons at the top of the panel
+          var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
+                dock : 'bottom',
+                layout : {
+                  pack : 'center'
+                },
+                items : []
+              });
 
-        me.btnSubmit = new Ext.Button({
+          me.btnSubmit = new Ext.Button({
 
-              text : 'Submit',
-              margin : 3,
-              iconCls : "dirac-icon-submit",
-              handler : function() {
-                me.oprLoadGridData();
-              },
-              scope : me
+                text : 'Submit',
+                margin : 3,
+                iconCls : "dirac-icon-submit",
+                handler : function() {
+                  me.oprLoadGridData();
+                },
+                scope : me
 
-            });
+              });
 
-        oPanelButtons.add(me.btnSubmit);
+          oPanelButtons.add(me.btnSubmit);
 
-        me.btnReset = new Ext.Button({
+          me.btnReset = new Ext.Button({
 
-              text : 'Reset',
-              margin : 3,
-              iconCls : "dirac-icon-reset",
-              handler : function() {
-                me.oprResetSelectionOptions();
-              },
-              scope : me
+                text : 'Reset',
+                margin : 3,
+                iconCls : "dirac-icon-reset",
+                handler : function() {
+                  me.oprResetSelectionOptions();
+                },
+                scope : me
 
-            });
+              });
 
-        oPanelButtons.add(me.btnReset);
+          oPanelButtons.add(me.btnReset);
 
-        me.btnRefresh = new Ext.Button({
+          me.btnRefresh = new Ext.Button({
 
-              text : 'Refresh',
-              margin : 3,
-              iconCls : "dirac-icon-refresh",
-              handler : function() {
-                me.oprSelectorsRefreshWithSubmit(false);
-              },
-              scope : me
+                text : 'Refresh',
+                margin : 3,
+                iconCls : "dirac-icon-refresh",
+                handler : function() {
+                  me.oprSelectorsRefreshWithSubmit(false);
+                },
+                scope : me
 
-            });
+              });
 
-        oPanelButtons.add(me.btnRefresh);
+          oPanelButtons.add(me.btnRefresh);
 
-        me.addDocked(oPanelButtons);
+          me.addDocked(oPanelButtons);
+        }
 
       },
       initComponent : function() {
@@ -552,8 +559,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
 
         if (!foundTextSelector) {
-          if (me.scope.grid && me.scope.grid.pagingToolbar){
-            extraParams["limit"] = me.scope.grid.pagingToolbar.pageSizeCombo.getValue();  
+          if (me.scope.grid && me.scope.grid.pagingToolbar) {
+            extraParams["limit"] = me.scope.grid.pagingToolbar.pageSizeCombo.getValue();
           }
           if (me.hasTimeSearchPanel) {
 
@@ -670,7 +677,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
               failure : function(response) {
 
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                
+
               }
             });
 
@@ -777,7 +784,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       },
       /**
        * It disables the selectors execpt the selector which is in use.
-       * @param {Object} noToDisable it is the selector object which will be not disabled...
+       * 
+       * @param {Object}
+       *          noToDisable it is the selector object which will be not
+       *          disabled...
        */
       disableElements : function(notToDisable) {
         var me = this;
