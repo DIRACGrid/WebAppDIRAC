@@ -119,7 +119,18 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
           }, {
             name : 'TransformationFamily',
             type : 'float'
+          }, {
+            name : 'Jobs_Matched'
+          }, {
+            name : 'Jobs_Killed'
+          }, {
+            name : 'Jobs_Staging'
+          }, {
+            name : 'Jobs_Checking'
+          }, {
+            name : 'Jobs_Rescheduled'
           }],
+
       initComponent : function() {
         var me = this;
 
@@ -204,7 +215,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               oDiffFields : {
                 'Id' : 'TransformationID',
                 'Fields' : ['Jobs_Created', 'Jobs_TotalCreated', 'Jobs_Done', 'Jobs_Failed', 'Jobs_Running', 'Jobs_Stalled', 'Jobs_Submitted', 'Jobs_Waiting', 'Jobs_Completed', 'Files_PercentProcessed', 'Files_Total', 'Files_Unused', 'Files_Assigned', 'Files_Processed',
-                    'Files_Problematic', 'Files_MaxReset']
+                    'Files_Problematic', 'Files_MaxReset', 'Jobs_Matched', 'Jobs_Killed', 'Jobs_Staging', 'Jobs_Checking', 'Jobs_Rescheduled']
               },
               scope : me
             });
@@ -260,6 +271,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               store : me.dataStore,
               scope : me
             });
+
         var oColumns = {
           "checkBox" : {
             "dataIndex" : "TransformationIDcheckBox"
@@ -368,8 +380,28 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
             "dataIndex" : "Jobs_Submitted",
             "renderFunction" : "diffValues"
           },
+          "Matched" : {
+            "dataIndex" : "Jobs_Matched",
+            "renderFunction" : "diffValues"
+          },
+          "Checking" : {
+            "dataIndex" : "Jobs_Checking",
+            "renderFunction" : "diffValues"
+          },
           "Waiting" : {
             "dataIndex" : "Jobs_Waiting",
+            "renderFunction" : "diffValues"
+          },
+          "Staging" : {
+            "dataIndex" : "Jobs_Staging",
+            "renderFunction" : "diffValues"
+          },
+          "Rescheduled" : {
+            "dataIndex" : "Jobs_Rescheduled",
+            "renderFunction" : "diffValues"
+          },
+          "Killed" : {
+            "dataIndex" : "Jobs_Killed",
             "renderFunction" : "diffValues"
           },
           "Running" : {
@@ -992,7 +1024,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               url : url,
               params : params,
               menu : null,
-              selType : 'cellmodel' 
+              selType : 'cellmodel'
             });
 
         return oGrid;

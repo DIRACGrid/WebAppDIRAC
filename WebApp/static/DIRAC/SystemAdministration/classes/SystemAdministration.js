@@ -888,7 +888,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 me.showActive.show();
                 me.showAll.hide();
                 me.__getHosts(true);
-                
+
               }
             });
         me.showActive = Ext.create('Ext.button.Button', {
@@ -899,9 +899,9 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 me.showActive.hide();
                 me.showAll.show();
                 me.__getHosts(false);
-                
+
               }
-            })
+            });
         me.locationGrid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
               region : "south",
               title : 'Reduced Overview',
@@ -1541,7 +1541,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
         var me = this;
         var data = me.leftPanel.getSelectionData();
         data["ComponentType"] = [];
-        data["showAll"] =  (me.showAll)?me.showAll.value:0;
+        data["showAll"] = (me.showAll) ? me.showAll.value : 0;
 
         for (var i = 0; i < me.chkBoxes.items.getAt(0).items.length; i++) {
           if (me.chkBoxes.items.getAt(0).items.getAt(i).getValue()) {
@@ -1571,10 +1571,10 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
             });
 
       },
-      
+
       __getHosts : function() {
         var me = this;
-        
+
         var params = me.getSelectedData();
         me.locationGrid.store.proxy.extraParams = params;
         me.locationGrid.store.removeAll();
