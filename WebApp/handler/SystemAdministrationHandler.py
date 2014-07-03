@@ -701,6 +701,11 @@ class SystemAdministrationHandler( WebHandler ):
     if "ComponentModule" in self.request.arguments:
       componentModules = list( json.loads( self.request.arguments[ 'ComponentModule' ][-1] ) )
     
+    showAll = 0
+    if "showAll" in self.request.arguments:
+      showAll = int(self.request.arguments[ 'showAll' ][-1])
+    
+    
     retVal = gConfig.getSections( '/Systems' )
     
     compMatching = {}    
@@ -722,11 +727,11 @@ class SystemAdministrationHandler( WebHandler ):
               module = gConfig.getValue(modulepath, '')
               if module != '' and module in componentModules:
                 fullNames+=[path]
-                compMatching[path] = module
               elif module == '' and j in componentModules:
                 fullNames += [path]
-                compMatching[path] = path
-                                  
+              
+              compMatching[path] = module if module != '' else path
+                               
     records = []
     if len(fullNames) > 0:
       condDict = {'Setup':userData['setup'], 'ComponentName':fullNames}
@@ -751,15 +756,13 @@ class SystemAdministrationHandler( WebHandler ):
               else:
                 dateDiff = today - today             
               
-              if dateDiff.days > 2 and 'Host' in component:  
+              if showAll == 0 and dateDiff.days >= 2 and 'Host' in component:  
                 continue
                 
               for conv in component:
                 component[conv] = str( component[conv] )
-              
+              component['ComponentModule'] = compMatching[component['ComponentName']] if component['ComponentName'] in compMatching else component['ComponentName'] 
               records += [component]
-              
-              component['ComponentModule'] = compMatching[component['ComponentName']]
       
       result = { "success" : "true" , "result" : records }
     else:

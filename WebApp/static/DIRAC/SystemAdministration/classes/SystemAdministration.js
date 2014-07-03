@@ -664,7 +664,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               panelButtons : false,
               title : 'Search',
               floatable : false,
-              //header : false,
+              // header : false,
               collapsed : true,
               margins : '0',
               width : 350,
@@ -880,6 +880,28 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               scope : me
             });
 
+        me.showAll = Ext.create('Ext.button.Button', {
+              text : 'ShowAll',
+              value : 0,
+              handler : function() {
+                me.showAll.value = 1;
+                me.showActive.show();
+                me.showAll.hide();
+                me.__getHosts(true);
+                
+              }
+            });
+        me.showActive = Ext.create('Ext.button.Button', {
+              hidden : true,
+              text : 'Show active',
+              handler : function() {
+                me.showAll.value = 0;
+                me.showActive.hide();
+                me.showAll.show();
+                me.__getHosts(false);
+                
+              }
+            })
         me.locationGrid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
               region : "south",
               title : 'Reduced Overview',
@@ -909,7 +931,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                       Ext.dirac.utils.Printer.printAutomatically = false;
                       Ext.dirac.utils.Printer.print(me.locationGrid);
                     }
-                  }]
+                  }, me.showAll, me.showActive]
 
             });
 
@@ -1519,6 +1541,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
         var me = this;
         var data = me.leftPanel.getSelectionData();
         data["ComponentType"] = [];
+        data["showAll"] =  (me.showAll)?me.showAll.value:0;
 
         for (var i = 0; i < me.chkBoxes.items.getAt(0).items.length; i++) {
           if (me.chkBoxes.items.getAt(0).items.getAt(i).getValue()) {
@@ -1548,10 +1571,11 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
             });
 
       },
+      
       __getHosts : function() {
         var me = this;
+        
         var params = me.getSelectedData();
-
         me.locationGrid.store.proxy.extraParams = params;
         me.locationGrid.store.removeAll();
         me.locationGrid.store.load();
