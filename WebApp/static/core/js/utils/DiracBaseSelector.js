@@ -552,7 +552,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
 
         if (!foundTextSelector) {
-          extraParams["limit"] = me.scope.grid.pagingToolbar.pageSizeCombo.getValue();
+          if (me.scope.grid && me.scope.grid.pagingToolbar){
+            extraParams["limit"] = me.scope.grid.pagingToolbar.pageSizeCombo.getValue();  
+          }
           if (me.hasTimeSearchPanel) {
 
             var timeSearchData = me.timeSearchPanel.getSelectedData();
