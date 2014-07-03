@@ -385,7 +385,6 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               }
             });
 
-       
         me.createBottomGridToolbar(me.systemInfoGrid);
 
         /*
@@ -649,12 +648,23 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
         me.createBottomGridToolbar(me.hostGrid);
 
-        me.leftPanel = Ext.create('Ext.panel.Panel', {
-              region : "west",
-              collapsible : true,
+        var selectors = {
+          ComponentModule : "Component Module",
+          ComponentName : "Component Name"
+        };
+
+        var map = [["ComponentModule", "ComponentModule"], ["ComponentName", "ComponentName"]];
+
+        me.leftPanel = Ext.create('Ext.dirac.utils.DiracBaseSelector', {
+              scope : me,
+              cmbSelectors : selectors,
+              datamap : map,
+              url : me.applicationName + '/getSelectionData',
+              hasTimeSearchPanel : false,
+              panelButtons : false,
               title : 'Search',
               floatable : false,
-              header : false,
+              //header : false,
               collapsed : true,
               margins : '0',
               width : 350,
@@ -715,28 +725,15 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   }]
             });
 
-        var selectorProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-              url : GLOBAL.BASE_URL + me.applicationName + '/getSelectionData',
-              extraParams : me.getSelectedData()
-            });
-
-        me.cmbSystems = Ext.create('Ext.form.field.ComboBox', {
-              fieldLabel : "Component Module",
-              queryMode : 'local',
-              labelAlign : 'top',
-              displayField : "Name",
-              valueField : "Name",
-              anchor : '100%',
-              store : Ext.create("Ext.data.JsonStore", {
-                    fields : ["Name"],
-                    autoLoad : true,
-                    proxy : selectorProxy
-                  })
-            });
-
         var hostColumns = {
           "Host" : {
             "dataIndex" : "Host",
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          "ComponentModule" : {
+            "dataIndex" : "ComponentModule",
             renderer : function(value, metaData, record, row, col, store, gridView) {
               return me.rendererGridColumn(value, record);
             }
@@ -843,7 +840,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
         me.hostsStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
               proxy : hostProxy,
-              groupField : 'ComponentName',
+              groupField : 'ComponentModule',
               autoLoad : false,
               fields : [{
                     name : 'Host'
@@ -855,6 +852,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     name : 'Version'
                   }, {
                     name : 'Description'
+                  }, {
+                    name : 'ComponentModule'
                   }, {
                     name : 'ComponentName'
                   }, {
@@ -919,7 +918,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               direction : 'DESC'
             }]);
 
-        me.leftPanel.add([me.chkBoxes, me.cmbSystems]);
+        me.leftPanel.add([me.chkBoxes, me.cmbModules, me.cmbSystems]);
         me.add([me.systemInfoGrid, me.hostGrid, me.leftPanel, me.locationGrid]);
 
       },
@@ -1518,10 +1517,9 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
       },
       getSelectedData : function() {
         var me = this;
-        me.chkBoxes
-        var data = {
-          "ComponentType" : []
-        };
+        var data = me.leftPanel.getSelectionData();
+        data["ComponentType"] = [];
+
         for (var i = 0; i < me.chkBoxes.items.getAt(0).items.length; i++) {
           if (me.chkBoxes.items.getAt(0).items.getAt(i).getValue()) {
             data.ComponentType.push(me.chkBoxes.items.getAt(0).items.getAt(i).name);
@@ -1541,14 +1539,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               success : function(response) {
                 var response = Ext.JSON.decode(response.responseText);
 
-                if (response["success"] == "true") {
-                  me.cmbSystems.store.removeAll();
+                me.leftPanel.__oprRefreshStoresForSelectors(response, true);
 
-                  me.cmbSystems.store.add(response["result"]);
-
-                } else {
-                  GLOBAL.APP.CF.alert(response["error"], "error");
-                }
               },
               failure : function(response) {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
@@ -1559,7 +1551,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
       __getHosts : function() {
         var me = this;
         var params = me.getSelectedData();
-        params.ComponentName = me.cmbSystems.getValue();
+
         me.locationGrid.store.proxy.extraParams = params;
         me.locationGrid.store.removeAll();
         me.locationGrid.store.load();
@@ -1569,7 +1561,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
       rendererGridColumn : function(value, record) {
         var me = this;
         var result = '';
-        var lastHeartBeat = Ext.Date.parse(record.get('LastHeartbeat'),"Y-m-d H:i:s");
+        var lastHeartBeat = Ext.Date.parse(record.get('LastHeartbeat'), "Y-m-d H:i:s");
         var now = new Date();
         var diff = now - lastHeartBeat;
         var millsecToHour = diff / 3600000.;

@@ -27,8 +27,8 @@ class SystemAdministrationHandler( WebHandler ):
     callback = []
     import pprint
   
-    #self.finish( { "success" : "false" , "error" : "No system information found" } )
-    #return
+    self.finish( { "success" : "false" , "error" : "No system information found" } )
+    return
     client = SystemAdministratorIntegrator( delegatedDN = DN ,
                                           delegatedGroup = group )
     resultHosts = yield self.threadTask( client.getHostInfo )
@@ -590,7 +590,7 @@ class SystemAdministrationHandler( WebHandler ):
       return { "success" : "false" , "error" : result }
   
   @asyncGen
-  def web_getSelectionData( self ):
+  def web_getComponentNames( self ):
         
     result = None
     
@@ -626,6 +626,55 @@ class SystemAdministrationHandler( WebHandler ):
     self.finish( result )
   
   @asyncGen
+  def web_getSelectionData( self ):
+        
+    data = {}
+    
+    userData = self.getSessionData()
+   
+    setup = userData['setup'].split( '-' )[-1]
+    systemList = []
+    system = None
+    
+    if "system" in self.request.arguments:
+      system = self.request.arguments[ 'system' ][-1] 
+    
+    componentTypes = ['Services', 'Agents']
+    if "ComponentType" in self.request.arguments:
+      componentTypes = self.request.arguments['ComponentType']
+            
+    retVal = gConfig.getSections( '/Systems' )
+        
+    components = []
+    componentNames = []
+    data['ComponentModule'] = []
+    data['ComponentName'] = []
+    if retVal['OK']:
+      systems = retVal['Value']
+      for i in systems:
+        for compType in componentTypes:
+          compPath = '/Systems/%s/%s/%s' % ( i, setup, compType )
+          retVal = gConfig.getSections( compPath )
+          if retVal['OK']:
+            records = retVal['Value']
+            componentNames += [ [cnames] for cnames in records ]
+            for record in records:
+              modulepath = "%s/%s/Module" % (compPath, record)
+              module = gConfig.getValue(modulepath, '')
+              if module != '' and module not in components:
+                components+=[module]
+                data['ComponentModule'].append([module])
+              elif record not in components and module == '':
+                data['ComponentModule'].append([record])
+                components+=[record]
+           
+      data['ComponentName'] = componentNames
+    else:
+      data = { "success" : "false" , "error" : result['Message'] }
+    
+    self.finish( data )
+    
+  @asyncGen
   def web_ComponentLocation( self ):
     
     rpcClient = RPCClient( "Framework/Monitoring" )
@@ -639,18 +688,23 @@ class SystemAdministrationHandler( WebHandler ):
     if result['OK']:
       hosts = result['Value']
     
-    print 'HOST', hosts  
+    
     componentTypes = ['Services', 'Agents']
     if "ComponentType" in self.request.arguments:
       componentTypes = self.request.arguments['ComponentType']
     
-    componentName = None
+    componentNames = []
     if "ComponentName" in self.request.arguments:
-      componentName = self.request.arguments['ComponentName'][-1]
+      componentNames = list( json.loads( self.request.arguments[ 'ComponentName' ][-1] ) )
+    
+    componentModules = []
+    if "ComponentModule" in self.request.arguments:
+      componentModules = list( json.loads( self.request.arguments[ 'ComponentModule' ][-1] ) )
     
     retVal = gConfig.getSections( '/Systems' )
-        
-    fullName = ''
+    
+    compMatching = {}    
+    fullNames = []
     if retVal['OK']:
       systems = retVal['Value']
       for i in systems:
@@ -660,12 +714,22 @@ class SystemAdministrationHandler( WebHandler ):
           if retVal['OK']:
             components = retVal['Value']
             for j in components:
-              if j == componentName:
-                fullName = '%s/%s' % ( i, j )
-  
+              path = '%s/%s' % ( i, j )
+              if j in componentNames:
+                fullNames += [path]
+                compMatching[path] = path
+              modulepath = "%s/%s/Module" % (compPath, j)   
+              module = gConfig.getValue(modulepath, '')
+              if module != '' and module in componentModules:
+                fullNames+=[path]
+                compMatching[path] = module
+              elif module == '' and j in componentModules:
+                fullNames += [path]
+                compMatching[path] = path
+                                  
     records = []
-    if fullName != '':
-      condDict = {'Setup':userData['setup'], 'ComponentName':fullName}
+    if len(fullNames) > 0:
+      condDict = {'Setup':userData['setup'], 'ComponentName':fullNames}
     else:
       if len( componentTypes ) < 2:
         type = 'agent' if componentTypes[-1] == 'Agents' else 'service' 
@@ -686,15 +750,18 @@ class SystemAdministrationHandler( WebHandler ):
                 dateDiff = today - component['LastHeartbeat']
               else:
                 dateDiff = today - today             
+              
+              if dateDiff.days > 2 and 'Host' in component:  
+                continue
+                
               for conv in component:
                 component[conv] = str( component[conv] )
               
               records += [component]
               
-              if dateDiff.days <= 10 and 'Host' in component:  
-                hosts += [component['Host']]
+              component['ComponentModule'] = compMatching[component['ComponentName']]
       
-      result = { "success" : "true" , "result" : records, "extra":hosts }
+      result = { "success" : "true" , "result" : records }
     else:
       result = { "success" : "false" , "error" : result['Message'] } 
   
