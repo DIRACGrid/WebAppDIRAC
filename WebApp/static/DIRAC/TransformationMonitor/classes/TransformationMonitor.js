@@ -129,6 +129,8 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
             name : 'Jobs_Checking'
           }, {
             name : 'Jobs_Rescheduled'
+          }, {
+            name : 'Jobs_Scheduled'
           }],
 
       initComponent : function() {
@@ -215,7 +217,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               oDiffFields : {
                 'Id' : 'TransformationID',
                 'Fields' : ['Jobs_Created', 'Jobs_TotalCreated', 'Jobs_Done', 'Jobs_Failed', 'Jobs_Running', 'Jobs_Stalled', 'Jobs_Submitted', 'Jobs_Waiting', 'Jobs_Completed', 'Files_PercentProcessed', 'Files_Total', 'Files_Unused', 'Files_Assigned', 'Files_Processed',
-                    'Files_Problematic', 'Files_MaxReset', 'Jobs_Matched', 'Jobs_Killed', 'Jobs_Staging', 'Jobs_Checking', 'Jobs_Rescheduled']
+                    'Files_Problematic', 'Files_MaxReset', 'Jobs_Matched', 'Jobs_Killed', 'Jobs_Staging', 'Jobs_Checking', 'Jobs_Rescheduled', 'Jobs_Scheduled']
               },
               scope : me
             });
@@ -408,6 +410,11 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
             "dataIndex" : "Jobs_Running",
             "renderFunction" : "diffValues"
           },
+          "Scheduled" : {
+            "dataIndex" : "Jobs_Scheduled",
+            "renderFunction" : "diffValues"
+          },
+
           "Done" : {
             "dataIndex" : "Jobs_Done",
             "renderFunction" : "diffValues"
