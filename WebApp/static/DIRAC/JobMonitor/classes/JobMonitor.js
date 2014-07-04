@@ -637,7 +637,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               pagingToolbar : pagingToolbar,
               scope : me
             });
-
+        
+        me.leftPanel.setGrid(me.grid);
+        
         me.grid.columns[1].setSortState("DESC");
 
         /* Definition of the statistics panel */

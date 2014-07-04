@@ -1,7 +1,7 @@
 Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
       extend : 'Ext.dirac.core.Module',
 
-      requires : ['Ext.tab.Panel', 'Ext.ProgressBar', 'Ext.grid.feature.Grouping', 'Ext.data.ArrayStore', 'Ext.util.TaskRunner', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy', 'Ext.dirac.utils.Printer'],
+      requires : ['Ext.tab.Panel', 'Ext.ProgressBar', 'Ext.grid.feature.Grouping', 'Ext.data.ArrayStore', 'Ext.util.TaskRunner', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy', 'Ext.dirac.utils.Printer', 'Ext.dirac.utils.DiracBaseSelector'],
 
       initComponent : function() {
 
@@ -979,7 +979,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               property : 'LastHeartbeat',
               direction : 'DESC'
             }]);
-
+        me.leftPanel.setGrid(me.locationGrid);
         me.leftPanel.add([me.chkBoxes, me.cmbModules, me.cmbSystems]);
         me.add([me.systemInfoGrid, me.hostGrid, me.leftPanel, me.locationGrid]);
 

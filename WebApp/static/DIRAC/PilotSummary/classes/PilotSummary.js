@@ -258,7 +258,9 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                     rowBodyTpl : ['<div id="expanded-Grid-{Site}"> </div>']
                   }]
             });
-
+        
+        me.leftPanel.setGrid(me.grid);
+        
         me.grid.view.on('expandbody', function(rowNode, record, expandbody) {
               var targetId = 'expanded-Grid-' + record.get('Site');
               if (Ext.getCmp(targetId + "_grid") == null) {

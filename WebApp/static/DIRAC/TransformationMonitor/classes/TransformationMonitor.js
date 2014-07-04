@@ -682,7 +682,9 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               pagingToolbar : pagingToolbar,
               scope : me
             });
-
+        
+        me.leftPanel.setGrid(me.grid);
+        
         me.add([me.leftPanel, me.grid]);
 
       },

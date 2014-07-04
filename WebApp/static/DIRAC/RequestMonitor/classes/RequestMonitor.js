@@ -262,7 +262,9 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
               pagingToolbar : pagingToolbar,
               scope : me
             });
-
+        
+        me.leftPanel.setGrid(me.grid);
+        
         me.add([me.leftPanel, me.grid]);
 
       }

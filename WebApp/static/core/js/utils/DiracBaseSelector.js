@@ -108,6 +108,12 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
        *               etc) of the panel will be not added.
        */
       panelButtons : true,
+      /**
+       * 
+       * @cfg{Object} We can accociate a DiracGridPanel. 
+       */
+      grid : null,
+      
       constructor : function(oConfig) {
         var me = this;
         me.callParent(arguments);
@@ -267,6 +273,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
           me.addDocked(oPanelButtons);
         }
+        
+        me.grid= oConfig.grid;
 
       },
       initComponent : function() {
@@ -422,10 +430,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
         var me = this;
 
-        if (me.scope.grid && me.scope.grid.store.loading && me.scope.grid.store.lastDataRequest) {
+        if (me.grid && me.grid.store.loading && me.grid.store.lastDataRequest) {
           var oRequests = Ext.Ajax.requests;
           for (id in oRequests) {
-            if (oRequests.hasOwnProperty(id) && (oRequests[id].options == me.scope.grid.store.lastDataRequest.request)) {
+            if (oRequests.hasOwnProperty(id) && (oRequests[id].options == me.grid.store.lastDataRequest.request)) {
               Ext.Ajax.abort(oRequests[id]);
             }
           }
@@ -559,8 +567,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
 
         if (!foundTextSelector) {
-          if (me.scope.grid && me.scope.grid.pagingToolbar) {
-            extraParams["limit"] = me.scope.grid.pagingToolbar.pageSizeCombo.getValue();
+          if (me.grid && me.grid.pagingToolbar) {
+            extraParams["limit"] = me.grid.pagingToolbar.pageSizeCombo.getValue();
           }
           if (me.hasTimeSearchPanel) {
 
@@ -588,12 +596,12 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       oprLoadGridData : function() {
         var me = this;
 
-        if (me.scope.grid && me.__oprValidateBeforeSubmit()) {
+        if (me.grid && me.__oprValidateBeforeSubmit()) {
 
           // set those data as extraParams in
-          me.scope.grid.store.proxy.extraParams = me.getSelectionData();
-          me.scope.grid.store.currentPage = 1;
-          me.scope.grid.store.load();
+          me.grid.store.proxy.extraParams = me.getSelectionData();
+          me.grid.store.currentPage = 1;
+          me.grid.store.load();
 
           var oCheckbox = Ext.query("#" + me.scope.id + " input.dirac-table-main-check-box");
           if (oCheckbox.length > 0) {
@@ -814,5 +822,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         for (var field in me.textFields) {
           me.textFields[field].enable();
         }
+      },
+      setGrid : function(grid){
+        var me = this;
+        me.grid = grid;
       }
     });
