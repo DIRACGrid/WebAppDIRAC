@@ -51,6 +51,46 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
       },
 
+      loadState : function(data) {
+        var me = this;
+
+        me.locationGrid.loadState(data);
+
+        me.leftPanel.loadState(data);
+
+        if (!data.leftPanelCollapsed) {
+
+          me.leftPanel.expand();
+
+        }
+
+        if (!data.locationGridCollapsed) {
+
+          me.locationGrid.expand();
+        }
+
+        if (data.systemInfoGridCollapsed) {
+          me.systemInfoGrid.collapse();
+        }
+
+      },
+
+      getStateData : function() {
+        var me = this;
+        var states = {};
+
+        states = {
+          grid : me.locationGrid.getStateData(),
+          leftMenu : me.leftPanel.getStateData()
+        };
+
+        states.leftPanelCollapsed = me.leftPanel.collapsed;
+        states.locationGridCollapsed = me.locationGrid.collapsed;
+        states.systemInfoGridCollapsed = me.systemInfoGrid.collapsed;
+
+        return states;
+      },
+
       buildUI : function() {
 
         var me = this;

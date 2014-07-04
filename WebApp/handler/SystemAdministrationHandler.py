@@ -669,6 +669,8 @@ class SystemAdministrationHandler( WebHandler ):
                 components+=[record]
            
       data['ComponentName'] = componentNames
+      data['ComponentName'].sort()
+      data['ComponentModule'].sort()
     else:
       data = { "success" : "false" , "error" : result['Message'] }
     

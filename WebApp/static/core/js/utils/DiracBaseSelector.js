@@ -422,7 +422,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
         var me = this;
 
-        if (me.scope.grid.store.loading && me.scope.grid.store.lastDataRequest) {
+        if (me.scope.grid && me.scope.grid.store.loading && me.scope.grid.store.lastDataRequest) {
           var oRequests = Ext.Ajax.requests;
           for (id in oRequests) {
             if (oRequests.hasOwnProperty(id) && (oRequests[id].options == me.scope.grid.store.lastDataRequest.request)) {
@@ -588,7 +588,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       oprLoadGridData : function() {
         var me = this;
 
-        if (me.__oprValidateBeforeSubmit()) {
+        if (me.scope.grid && me.__oprValidateBeforeSubmit()) {
 
           // set those data as extraParams in
           me.scope.grid.store.proxy.extraParams = me.getSelectionData();

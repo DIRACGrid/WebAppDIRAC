@@ -173,8 +173,10 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
           me.store.sorters.clear();
           me.store.sorters.addAll(me.store.decodeSorters(grid.sorters));
         }
-
-        me.pagingToolbar.loadState(data);
+        
+        if (me.pagingToolbar){
+          me.pagingToolbar.loadState(data);  
+        }
 
       },
       /**
@@ -232,8 +234,10 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                     "direction" : key.direction
                   });
             });
-
-        oReturn.pagingToolbar = me.pagingToolbar.getStateData();
+        
+        if (me.pagingToolbar){
+          oReturn.pagingToolbar = me.pagingToolbar.getStateData();  
+        }
 
         return oReturn;
 
