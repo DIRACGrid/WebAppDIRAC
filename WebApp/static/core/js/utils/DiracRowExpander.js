@@ -29,17 +29,7 @@ Ext.define('Ext.dirac.utils.DiracRowExpander', {
       alias : 'plugin.diracrowexpander',
 
       checkField : null,
-      afterRender : function() {
-        console.log('jajaj1');
-      },
-      afterrender : function() {
-        console.log("Jaj 2");
-      },
-      listeners : {
-        'afterrender' : function() {
-          console.log('Coool');
-        }
-      },
+      
       getHeaderConfig : function() {
         var me = this;
 

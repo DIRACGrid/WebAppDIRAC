@@ -17,7 +17,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
       },
       getStateData : function() {
         var me = this;
-        
+
         var oStates = {
           grid : me.grid.getStateData(),
           leftMenu : me.leftPanel.getStateData()
@@ -154,6 +154,13 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
           "CE" : {
             "dataIndex" : "CE"
           },
+          "Status" : {
+            "dataIndex" : "Status",
+            "properties" : {
+              width : 60,
+              sortable : false
+            }
+          },
           "PilotJobEff (%)" : {
             "dataIndex" : "PilotJobEff"
           },
@@ -259,9 +266,9 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                     rowBodyTpl : ['<div id="expanded-Grid-{Site}"> </div>']
                   }]
             });
-        
+
         me.leftPanel.setGrid(me.grid);
-        
+
         me.grid.view.on('expandbody', function(rowNode, record, expandbody) {
               var targetId = 'expanded-Grid-' + record.get('Site');
               if (Ext.getCmp(targetId + "_grid") == null) {
@@ -371,7 +378,6 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                           }]
                     });
 
-                expandedGridPanel.setLoading(true);
                 rowNode.grid = expandedGridPanel;
                 expandStore.load();
                 expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
