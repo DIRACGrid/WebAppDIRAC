@@ -40,7 +40,9 @@ Ext.define('Ext.dirac.utils.DiracAjaxProxy', {
       dontLoadOnCreation : false,
       listeners : {
         exception : function(proxy, response, operation) {
-          GLOBAL.APP.CF.showAjaxErrorMessage(response);
+          if (response.statusText == ""){
+            GLOBAL.APP.CF.showAjaxErrorMessage(response);
+          }
         }
       }
     });

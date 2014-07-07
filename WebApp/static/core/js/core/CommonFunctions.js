@@ -241,9 +241,14 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
         if (response.statusText == "transaction aborted")
           return;
+
+        /*if (response.statusText == "OK") {
+          var result = Ext.decode(responseText);
+        }*/
         if (response.timedout) {
           Ext.dirac.system_info.msg("Error Notification", 'The request timed out! Please reload the application!!!');
         } else {
+
           if (response.responseText) {
             var message = response.responseText.split("\n");
             var shortMessage = "";
