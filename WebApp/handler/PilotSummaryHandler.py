@@ -17,7 +17,7 @@ class PilotSummaryHandler(WebHandler):
     req = self.__request()
     
     result = yield self.threadTask(RPC.getPilotSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
-
+    
     if not result["OK"]:
       self.finish({"success":"false", "result":[], "total":0, "error":result["Message"]})
       return
@@ -114,8 +114,8 @@ class PilotSummaryHandler(WebHandler):
         site = [["Error during RPC call"]]
        
       callback["site"] = site
-      callback['Status'] = [['Good'],['Bad'],['Idle']]
-      
+      callback['Status'] = [['Good'],['Bad'],['Idle'],['Poor'],['Fair']]
+       
       self.finish(callback)
 
 
