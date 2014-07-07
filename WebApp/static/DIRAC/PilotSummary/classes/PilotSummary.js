@@ -98,10 +98,11 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
         var me = this;
 
         var selectors = {
-          site : "Site"
+          site : "Site",
+          Status : "Status"
         };
 
-        var map = [["site", "site"]];
+        var map = [["site", "site"], ["Status","Status"]];
 
         me.leftPanel = new Ext.create('Ext.dirac.utils.DiracBaseSelector', {
               scope : me,
