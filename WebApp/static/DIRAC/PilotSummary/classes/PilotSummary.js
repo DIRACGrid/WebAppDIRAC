@@ -129,7 +129,8 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
 
         var pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
               store : me.dataStore,
-              scope : me
+              scope : me,
+              value : 100
             });
 
         var oColumns = {
