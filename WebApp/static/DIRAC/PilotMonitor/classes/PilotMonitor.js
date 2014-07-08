@@ -114,6 +114,9 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
             name : 'PilotJobReference'
           }, {
             name : 'Owner'
+          }, {
+            name : 'StatusIcon',
+            mapping : 'Status'
           }],
 
       initComponent : function() {
