@@ -242,6 +242,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
           minorStatus : "Minor Status",
           appStatus : "Application Status",
           owner : "Owner",
+          OwnerGroup : "OwnerGroup",
           jobGroup : "Job Group",
           jobType : "Job Type"
         };
@@ -254,7 +255,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
         }
 
         var properties = [["NormalUser", "JobSharing", "owner"]];
-        var map = [["app", "appStatus"], ["minorstat", "minorStatus"], ["owner", "owner"], ["prod", "jobGroup"], ["site", "site"], ["status", "status"], ["types", "jobType"]];
+        var map = [["app", "appStatus"], ["minorstat", "minorStatus"], ["owner", "owner"], ["prod", "jobGroup"], ["site", "site"], ["status", "status"], ["types", "jobType"], ["OwnerGroup", "OwnerGroup"]];
 
         me.leftPanel = Ext.create('Ext.dirac.utils.DiracBaseSelector', {
               scope : me,
@@ -637,9 +638,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               pagingToolbar : pagingToolbar,
               scope : me
             });
-        
+
         me.leftPanel.setGrid(me.grid);
-        
+
         me.grid.columns[1].setSortState("DESC");
 
         /* Definition of the statistics panel */
@@ -676,7 +677,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               mode : 'local',
               store : new Ext.data.ArrayStore({
                     fields : ['category'],
-                    data : [["Status"], ["Site"], ["Minor Status"], ["Application Status"], ["Owner"], ["Job Group"]]
+                    data : [["Status"], ["Site"], ["Minor Status"], ["Application Status"], ["Owner"], ["Owner Group"], ["Job Group"]]
                   }),
               triggerAction : 'all',
               value : "Status",
@@ -863,7 +864,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               },
               scope : me
             });
-            
+
         /*---------------------------------------------------*/
         me.statisticsSelectionGrid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
               region : 'west',

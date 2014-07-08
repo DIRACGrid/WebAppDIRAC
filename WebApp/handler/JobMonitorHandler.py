@@ -203,6 +203,11 @@ class JobMonitorHandler( WebHandler ):
           gLogger.error( "RPC.getOwners() return error: %s" % result["Message"] )
           owner = [["Error happened on service side"]]
       callback["owner"] = owner
+    
+    result = yield self.threadTask( RPC.getOwnerGroup )
+    if result['OK']:
+      callback['OwnerGroup'] = [ [group] for group in result['Value']]  
+    
     self.finish( callback )
 
   def __request( self ):
@@ -211,7 +216,7 @@ class JobMonitorHandler( WebHandler ):
     self.globalSort = [["JobID", "DESC"]]
 
     req = {}
-
+    
     if self.request.arguments.has_key( "limit" ) and len( self.request.arguments["limit"][0] ) > 0:
       self.numberOfJobs = int( self.request.arguments["limit"][0] )
       if self.request.arguments.has_key( "start" ) and len( self.request.arguments["start"][0] ) > 0:
@@ -259,7 +264,12 @@ class JobMonitorHandler( WebHandler ):
       owner = list( json.loads( self.request.arguments[ 'owner' ][-1] ) )
       if len( owner ) > 0:
         req["Owner"] = owner
-
+    
+    if "OwnerGroup" in self.request.arguments:
+      ownerGroup = list( json.loads( self.request.arguments[ 'OwnerGroup' ][-1] ) )
+      if len( ownerGroup ) > 0:
+        req["OwnerGroup"] = ownerGroup
+        
     if 'startDate' in self.request.arguments and len( self.request.arguments["startDate"][0] ) > 0:
       if 'startTime' in self.request.arguments and len( self.request.arguments["startTime"][0] ) > 0:
         req["FromDate"] = str( self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0] )
@@ -465,7 +475,9 @@ class JobMonitorHandler( WebHandler ):
       selector = "ApplicationStatus"
     elif selector == "Job Group":
       selector = "JobGroup"
-
+    elif selector == "Owner Group":
+      selector = "OwnerGroup"
+    
     result = yield self.threadTask( RPC.getJobStats, selector, req )
 
     if result["OK"]:
