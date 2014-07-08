@@ -502,7 +502,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
         var oButtonGoToGrid = new Ext.Button({
 
               margin : 0,
-              iconCls : "jm-grid-icon",
+              iconCls : "pm-grid-icon",
               handler : function() {
                 me.centralWorkPanel.getLayout().setActiveItem(0);
               },
@@ -703,7 +703,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
               items : [{
                     html : "<div id='" + me.id + "-statistics-plot' style='width:100%;'></div>",
                     xtype : "box",
-                    cls : 'jm-statistics-plot-background'
+                    cls : 'pm-statistics-plot-background'
                   }]
             });
 

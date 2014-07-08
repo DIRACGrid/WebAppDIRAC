@@ -12,25 +12,12 @@
 }
 
 
-.jm-grid-icon {
+.pm-grid-icon {
 	background-image: url(../images/grid.png) !important;
 	background-color: transparent;
 }
 
-.jm-textbox-help-window textarea.x-form-field {
-	font-family: Courier, monospace !important;
-}
-
-.jm-main-check-box {
-	margin: 3px 0px 3px 0px !important;
-}
-
-.jm-red-reset-icon {
-	background-image: url(../images/resetButtonRed.png) !important;
-	background-color: transparent;
-}
-
-.jm-statistics-plot-background {
+.pm-statistics-plot-background {
 	background-image:
 		url(../../../core/img/wallpapers/dirac_symbol_background_b.png)
 		!important;
