@@ -220,19 +220,13 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
         };
 
         var showJobshandler = function() {
-          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
-          var sId = GLOBAL.APP.CF.zfill(oId, 8);
+          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"); 
           var setupdata = {};
           setupdata.data = {};
-          setupdata.currentState = sId;
+          setupdata.currentState = oId;
           setupdata.data.leftMenu = {};
-          setupdata.data.leftMenu.selectors = {};
-          setupdata.data.leftMenu.selectors.jobGroup = {
-            data_selected : [sId],
-            hidden : false,
-            not_selected : false
-          };
-
+          setupdata.data.leftMenu.JobID = oId;
+            
           GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
                 objectType : "app",
                 moduleName : me.applicationsToOpen['JobMonitor'],
