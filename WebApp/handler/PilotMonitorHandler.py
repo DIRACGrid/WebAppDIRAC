@@ -17,7 +17,7 @@ class PilotMonitorHandler(WebHandler):
   def web_getPilotData(self):
     RPC = RPCClient("WorkloadManagement/WMSAdministrator")
     req = self.__request()
-    print req
+    
     result = yield self.threadTask(RPC.getPilotMonitorWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
     
     if not result["OK"]:
@@ -155,6 +155,7 @@ class PilotMonitorHandler(WebHandler):
   ################################################################################
   def __request(self):
     req = {}
+    
     if "limit" in self.request.arguments:
       self.numberOfJobs = int(self.request.arguments["limit"][-1])
       if "start" in self.request.arguments:
@@ -165,6 +166,11 @@ class PilotMonitorHandler(WebHandler):
       self.numberOfJobs = 25
       self.pageNumber = 0
     
+    if 'site' in self.request.arguments:
+      site = list(json.loads(self.request.arguments[ 'site' ][-1]))
+      if len(site) > 0:
+        req['GridSite'] = site
+
     if 'taskQueueId' in self.request.arguments:
       taskQueueId = list(json.loads(self.request.arguments[ 'taskQueueId' ][-1]))
       if len(taskQueueId) > 0:
