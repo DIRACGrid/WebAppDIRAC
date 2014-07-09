@@ -116,9 +116,13 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
         };
 
         var textFields = {
-          'id' : "JobId(s)",
-          'reqId' : "RequestId(s)"
-        }
+          'id' : {
+            "name" : "JobId(s)"
+          },
+          'reqId' : {
+            "name" : "RequestId(s)"
+          }
+        };
 
         var map = [["requestType", "requestType"], ["status", "status"], ["operation", "operation"], ["owner", "owner"], ["ownerGroup", "ownerGroup"]];
 
@@ -262,9 +266,9 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
               pagingToolbar : pagingToolbar,
               scope : me
             });
-        
+
         me.leftPanel.setGrid(me.grid);
-        
+
         me.add([me.leftPanel, me.grid]);
 
       }
