@@ -350,10 +350,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
             "dataIndex" : "CurrentJobID"
           },
           "PilotJobReference" : {
-            "dataIndex" : "PilotJobReference",
-            "properties" : {
-              flex : 1
-            }
+            "dataIndex" : "PilotJobReference"
           },
           "None" : {
             "dataIndex" : "StatusIcon",
@@ -370,16 +367,10 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
             "dataIndex" : "Status"
           },
           "Site" : {
-            "dataIndex" : "GridSite",
-            "properties" : {
-              flex : 1
-            }
+            "dataIndex" : "GridSite"
           },
           "ComputingElement" : {
-            "dataIndex" : "DestinationSite",
-            "properties" : {
-              flex : 1
-            }
+            "dataIndex" : "DestinationSite"
           },
           "Broker" : {
             "dataIndex" : "Broker"
