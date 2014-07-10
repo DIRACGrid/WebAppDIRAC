@@ -33,15 +33,15 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
         'beforeclose' : function() {
           var me = this;
           var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer(); // we
-                                                                                                  // have
-                                                                                                  // to
-                                                                                                  // set
-                                                                                                  // the
-                                                                                                  // active
-                                                                                                  // tab
-                                                                                                  // to
-                                                                                                  // this
-                                                                                                  // widget.
+          // have
+          // to
+          // set
+          // the
+          // active
+          // tab
+          // to
+          // this
+          // widget.
           if (appContainer) {
             appContainer.setActiveTab(me);
           }
@@ -55,28 +55,28 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
 
               }, me);
           return false; // it cancel the close of the tab. it wait until the
-                        // state is saved.
+          // state is saved.
         },
         'close' : function() {
           var me = this;
           Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, me.title); // we
-                                                                                // have
-                                                                                // to
-                                                                                // remove
-                                                                                // the
-                                                                                // desktop
-                                                                                // from
-                                                                                // the
-                                                                                // list.
+          // have
+          // to
+          // remove
+          // the
+          // desktop
+          // from
+          // the
+          // list.
           GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.title); // We have
-                                                                    // to remove
-                                                                    // the
-                                                                    // desktop
-                                                                    // state
-                                                                    // from the
-                                                                    // list.
+          // to remove
+          // the
+          // desktop
+          // state
+          // from the
+          // list.
           GLOBAL.APP.MAIN_VIEW.currentState = ""; // the current state has to be
-                                                  // null;
+          // null;
           GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
         }
       },
@@ -163,10 +163,15 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
               widget.show();
             });
       },
+      
+      loadState : function(data){
+        var me = this;
+        me.getPresenter().loadState(data);
+      },
+      
       getStateData : function() {
         var me = this;
-        var me = this;
-
+        
         var desktop = {
           "dirac_view" : 1,
           "version" : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
@@ -182,35 +187,7 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
           }
         };
 
-        var oData = [];
-        var views = me.getPresenter();
-        if (views && (len = views.items.length)) {
-          for (var i = 0; i < len; i++) {
-            win = views.items.getAt(i);
-            /*
-             * Depends on the loadedObjectType
-             */
-            var oElem = null;
-
-            if (win.loadedObjectType == "app") {
-
-              oData.push({
-                    module : win.getAppClassName(),
-                    data : win.loadedObject.getStateData(),
-                    currentState : win.currentState,
-                    loadedObjectType : win.loadedObjectType
-                  });
-
-            } else if (win.loadedObjectType == "link") {
-
-              oData.push({
-                    link : win.linkToLoad,
-                    loadedObjectType : win.loadedObjectType
-                  });
-            }
-          }
-        }
-        desktop.data = oData;
+        Ext.apply(desktop, me.getPresenter().getStateData());
         return desktop;
       }
     });

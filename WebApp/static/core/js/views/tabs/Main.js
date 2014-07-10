@@ -388,6 +388,10 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var me = this;
         me.loadRightContainer.show();
 
+        if (tab){
+          tab.loadState(oData);
+        }
+        
         if (me.ID in oData["views"]) {
           if (oData["data"].length < 1) {
             //we have no application in the desktop...
@@ -404,6 +408,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               oAppStateData.currentState = oData["data"][i].currentState;
 
               if (i == oData["data"].length - 1) {
+                
                 var cbSetActiveTab = function(oTab) {
                   me.loadRightContainer.hide();
                   if (tab && tab.view == 'tabView') {// when the presenter
@@ -449,6 +454,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               oAppStateData.currentState = oData["data"][i].currentState;
 
               if (i == oData["data"].length - 1) {
+               
                 var cbSetActiveTab = function(oTab) {
                   me.loadRightContainer.hide();
                   if (tab && tab.view && tab.view == 'tabView') {// when the

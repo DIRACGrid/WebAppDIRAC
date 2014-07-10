@@ -74,7 +74,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           if (me.activeTab) {
             me.activeTab.setLoading(false);
           }
-          if (me.activeTab && me.activeTab.view == 'presenterView') {
+         /* if (me.activeTab && me.activeTab.view == 'presenterView') {
             me.mon(oElem.el, 'mouseover', function(event, html, eOpts) {
                   if (!me.isOpen) {
                     me.header.show();
@@ -85,7 +85,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                     me.header.hide();
                   }
                 }, me);
-          }
+          }*/
         }
 
       },

@@ -113,7 +113,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
        * @cfg{Object} We can accociate a DiracGridPanel. 
        */
       grid : null,
-      
+
       constructor : function(oConfig) {
         var me = this;
         me.callParent(arguments);
@@ -273,8 +273,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
           me.addDocked(oPanelButtons);
         }
-        
-        me.grid= oConfig.grid;
+
+        me.grid = oConfig.grid;
 
       },
       initComponent : function() {
@@ -508,6 +508,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         for (var j = 0; j < me.datamap.length; j++) {
 
           var dataOptions = [];
+          if (oData[me.datamap[j][0]] == null)
+            continue;
           for (var i = 0; i < oData[me.datamap[j][0]].length; i++)
             dataOptions.push([oData[me.datamap[j][0]][i][0], oData[me.datamap[j][0]][i][0]]);
 
@@ -823,7 +825,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           me.textFields[field].enable();
         }
       },
-      setGrid : function(grid){
+      setGrid : function(grid) {
         var me = this;
         me.grid = grid;
       }
