@@ -203,12 +203,14 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             if (oConfig.textFields[field]["type"] == "number" || oConfig.textFields[field]["type"] == "Number") {
               textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
                     fieldLabel : oConfig.textFields[field]["name"],
-                    scope : me
+                    scope : me,
+                    type : oConfig.textFields[field]["type"]
                   });
             } else {
               textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
                     fieldLabel : oConfig.textFields[field]["name"],
-                    scope : me
+                    scope : me,
+                    type : oConfig.textFields[field]["type"]
                   });
             }
             me.textFields[field] = textFieldWidget;
@@ -340,9 +342,12 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var me = this;
 
         var bToReload = false;
-
+        
+        var item  = null;
         // For the time span searching sub-panel
-        var item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
+        if (me.selectorMenu) {
+          item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
+        }
 
         if (me.timeSearchPanel) {
           item.setChecked(!data.leftMenu.timeSearchPanelHidden);
@@ -353,7 +358,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           me.textFields[field].setValue(data.leftMenu[field]);
         }
 
-        if (data.leftMenu.selectors) {
+        if (data.leftMenu.selectors && me.selectorMenu) {
           for (var i = 0; i < me.selectorMenu.items.length - 1; i++) {
 
             var item = me.selectorMenu.items.getAt(i);
@@ -548,7 +553,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           // ""?me.textFields[i].getValue():'';
           // extraParams[i] = param;
 
-          if (param.length != 0) {
+          if (param.length != 0 && me.textFields[i].type != "originalText") {
             var interval = [];
             for (var j = 0; j < param.length; j++) {
               if (param[j].split("-").length > 1) {

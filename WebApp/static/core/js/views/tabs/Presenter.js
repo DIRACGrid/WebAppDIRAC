@@ -373,6 +373,8 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
         var me = this;
         for (var i = 0; i < me.items.length; i++) {
           var tab = me.items.getAt(i);
+          if (tab && tab.header == null)
+            continue;
           if (value == true) {
             tab.header.show();
           } else {

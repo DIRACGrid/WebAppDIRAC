@@ -15,7 +15,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
         if (data.leftPanelCollapsed) {
 
-          if (data.leftPanelCollapsed)
             me.leftPanel.collapse();
 
         }

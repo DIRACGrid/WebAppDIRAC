@@ -379,7 +379,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       getStateData : function() {
 
         var me = this;
-        //TODO: Save the portal state. We can save the settings here.
+        // TODO: Save the portal state. We can save the settings here.
         return [];
 
       },
@@ -394,7 +394,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         if (me.ID in oData["views"]) {
           if (oData["data"].length < 1) {
-            //we have no application in the desktop...
+            // we have no application in the desktop...
             me.loadRightContainer.hide();
           }
           for (var i = 0, len = oData["data"].length; i < len; i++) {
@@ -835,7 +835,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 setupData : setupData,
                 loadedObjectType : "link",
                 linkToLoad : moduleName
-              });
+              }, oTab);
 
         }
         Ext.get("app-dirac-loading").hide();
