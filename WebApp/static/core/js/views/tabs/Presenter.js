@@ -22,9 +22,9 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
       multiSelect : true,
       plugins : ['paneldragdrop'],
       listeners : {
-        afterlayout : function( widget, layout, eOpts ){
-           var me = this;
-           me.setApplicationsHeader(me.tabheader);
+        afterlayout : function(widget, layout, eOpts) {
+          var me = this;
+          me.setApplicationsHeader(me.tabheader);
         }
       },
       tools : [{
@@ -67,7 +67,9 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
             callback : function(panel, tool) {
               var width = 99;
               delete panel.columnMenu;
+              delete panel.headerMenu;
               panel.columnMenu = null;
+              panel.headerMenu = null;
               panel.columnMenu = new Ext.menu.Menu();
               for (i = 1; i < panel.maxColumns; i++) {
                 var item = new Ext.menu.CheckItem({
@@ -84,12 +86,14 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
                     });
                 panel.columnMenu.add(item);
               }
+
               panel.headerMenu = Ext.menu.Menu({
                     items : [{
                           xtype : 'menucheckitem',
                           text : "Disable",
                           checked : (panel.tabheader == false ? true : false),
-                          group : 'column',
+                          group : 'columnHeader',
+                          value : 'menuDisable',
                           checkHandler : function(item, checked) {
                             if (checked) {
                               panel.tabheader = false;
@@ -99,7 +103,8 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
                         }, {
                           xtype : 'menucheckitem',
                           text : "Enable",
-                          group : 'column',
+                          group : 'columnHeader',
+                          value : 'menuEnable',
                           checked : (panel.tabheader == true ? true : true),
                           checkHandler : function(item, checked) {
                             if (checked) {
@@ -136,7 +141,7 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
         me.refreshCycle = oData.refreshCycle;
         me.setRefreshCycle(me.refreshCycle);
         me.tabheader = oData.tabheader;
-       
+
       },
       getStateData : function() {
 
