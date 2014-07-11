@@ -801,7 +801,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
        */
       disableElements : function(notToDisable) {
         var me = this;
-        me.timeSearchPanel.disable();
+
+        if (me.timeSearchPanel) {
+          me.timeSearchPanel.disable();
+        }
 
         for (var cmb in me.cmbSelectors) {
           me.cmbSelectors[cmb].disable();
@@ -815,7 +818,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       },
       enableElements : function() {
         var me = this;
-        me.timeSearchPanel.enable();
+
+        if (me.timeSearchPanel) {
+          me.timeSearchPanel.enable();
+        }
 
         for (var cmb in me.cmbSelectors) {
           me.cmbSelectors[cmb].enable();
