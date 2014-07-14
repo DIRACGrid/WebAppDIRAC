@@ -3,19 +3,20 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
 
       requires : ["Ext.grid.Panel", "Ext.dirac.utils.DiracBaseSelector", "DIRAC.ApplicationWizard.classes.Presenter"],
 
-      loadState : function(data) {
+      loadState : function(states) {
         var me = this;
-        me.leftPanel.loadState(data);
-        if (data.leftPanelCollapsed) {
-            me.leftPanel.collapse();
+        me.leftPanel.loadState(states);
+        if (states.leftPanelCollapsed) {
+          me.leftPanel.collapse();
         }
+        me.presenterView.loadState(states.pData);
 
       },
       getStateData : function() {
         var me = this;
         var data = {
           leftMenu : me.leftPanel.getStateData(),
-          pData : me.presenterView.presenter.getStateData(),
+          pData : me.presenterView.getStateData(),
           leftPanelCollapsed : me.leftPanel.collapsed
         };
         return data;
