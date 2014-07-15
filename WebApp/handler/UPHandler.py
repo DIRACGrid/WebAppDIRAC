@@ -192,3 +192,55 @@ class UPHandler( WebHandler ):
     self.set_status( 200 )
     self.finish()
   
+  @asyncGen
+  def web_listPublicStates( self ):
+    
+    up = self.__getUP()
+    retVal = yield self.threadTask( up.getUserProfileNames, {'PublishAccess':'ALL'} )
+       
+    if not retVal[ 'OK' ]:
+      raise WErr.fromSERROR( retVal )
+    
+    data = retVal['Value']
+    paramNames = ['UserName', 'Group', 'VO', 'StateName']
+    desktopsApplications = {}
+    desktopsApplications['desktops'] = []
+    desktopsApplications['applications'] = []
+    type = ''
+    for i in data:
+      if i == "Web/application/desktop":
+        type = 'desktops'
+      else:
+        type = 'applications'
+      
+      up = UserProfileClient( i )
+      retVal = up.listAvailableVars()
+      if not retVal['OK']:
+        raise WErr.fromSERROR( retVal )
+      else:
+        states = retVal['Value']
+        for state in states:
+          record = dict( zip( paramNames, state ) )
+          retVal = yield self.threadTask( up.getVarPermissions, record['StateName'] )
+          if not retVal['OK']:
+            raise WErr.fromSERROR( retVal )
+          else:
+            permissions = retVal['Value']
+            if permissions['PublishAccess'] == 'ALL':
+              desktopsApplications[type].append( record )
+    
+    self.finish( desktopsApplications )
+  
+  @asyncGen
+  def web_makePublicStates( self ):
+    up = self.__getUP()
+    try:
+      name = self.request.arguments[ 'name' ][-1]
+    except KeyError as excp:
+      raise WErr( 400, "Missing %s" % excp )
+          
+    result = yield self.threadTask( up.setVarPermissions, name, { 'PublishAccess': "ALL" } )
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result )
+    self.set_status( 200 )
+    self.finish()
