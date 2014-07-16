@@ -195,6 +195,10 @@ class UPHandler( WebHandler ):
   @asyncGen
   def web_listPublicStates( self ):
     
+    session = self.getSessionData()
+    
+    user = session["user"]["username"]
+    
     up = self.__getUP()
     retVal = yield self.threadTask( up.getUserProfileNames, {'PublishAccess':'ALL'} )
        
@@ -202,18 +206,21 @@ class UPHandler( WebHandler ):
       raise WErr.fromSERROR( retVal )
     
     data = retVal['Value']
-    paramNames = ['UserName', 'Group', 'VO', 'StateName']
-    desktopsApplications = {}
-    desktopsApplications['desktops'] = []
-    desktopsApplications['applications'] = []
+    paramNames = ['user', 'group', 'vo', 'name']
+    
+    mydesktops = {'name':'My Desktops', 'group':'', 'vo':'', 'user':'', 'children' :[]}
+    shareddesktops = {'name':'Shared Desktops', 'group':'', 'vo':'', 'user':'', 'expanded': 'true', 'children' :[]}
+    
+    myapplications = {'name':'My Applications', 'group':'', 'vo':'', 'user':'', 'children' :[]}
+    sharedapplications = {'name':'Shared Applications', 'group':'', 'vo':'', 'user':'', 'expanded': 'true', 'children' :[]}
+    
+    desktopsApplications = {'text':'.', 'children':[
+                                                   {'name':'Desktops', 'group':'', 'vo':'', 'user':'', 'children' :[mydesktops, shareddesktops]},
+                                                   {'name':'Applications', 'group':'', 'vo':'', 'user':'', 'children' :[myapplications, sharedapplications]}
+                                                   ]}
     type = ''
-    for i in data:
-      if i == "Web/application/desktop":
-        type = 'desktops'
-      else:
-        type = 'applications'
-      
-      application = i.replace('Web/application/','')
+    for i in data:      
+      application = i.replace( 'Web/application/', '' )
       up = UserProfileClient( i )
       retVal = up.listAvailableVars()
       if not retVal['OK']:
@@ -224,13 +231,27 @@ class UPHandler( WebHandler ):
         for state in states:
           record = dict( zip( paramNames, state ) )
           record['app'] = application
-          retVal = yield self.threadTask( up.getVarPermissions, record['StateName'] )
+          retVal = yield self.threadTask( up.getVarPermissions, record['name'] )
           if not retVal['OK']:
             raise WErr.fromSERROR( retVal )
           else:
             permissions = retVal['Value']
             if permissions['PublishAccess'] == 'ALL':
-              desktopsApplications[type].append( record )
+              if application == 'desktop':
+                record['type'] = 'desktop'
+                record['leaf'] = 'true'
+                if record['user'] == user:
+                  mydesktops['children'].append( record )
+                else:
+                  shareddesktops['children'].append( record )
+              else:
+                record['type'] = 'application'
+                record['leaf'] = 'true'
+                if record['user'] == user:
+                  myapplications['children'].append( record )
+                else:
+                  sharedapplications['children'].append( record )
+                
     
     self.finish( desktopsApplications )
   
