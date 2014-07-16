@@ -213,14 +213,17 @@ class UPHandler( WebHandler ):
       else:
         type = 'applications'
       
+      application = i.replace('Web/application/','')
       up = UserProfileClient( i )
       retVal = up.listAvailableVars()
       if not retVal['OK']:
         raise WErr.fromSERROR( retVal )
       else:
         states = retVal['Value']
+                
         for state in states:
           record = dict( zip( paramNames, state ) )
+          record['app'] = application
           retVal = yield self.threadTask( up.getVarPermissions, record['StateName'] )
           if not retVal['OK']:
             raise WErr.fromSERROR( retVal )
