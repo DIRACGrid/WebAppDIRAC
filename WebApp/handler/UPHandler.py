@@ -208,16 +208,53 @@ class UPHandler( WebHandler ):
     data = retVal['Value']
     paramNames = ['user', 'group', 'vo', 'name']
     
-    mydesktops = {'name':'My Desktops', 'group':'', 'vo':'', 'user':'', 'children' :[]}
-    shareddesktops = {'name':'Shared Desktops', 'group':'', 'vo':'', 'user':'', 'expanded': 'true', 'children' :[]}
+    mydesktops = {'name':'My Desktops', 
+                  'group':'', 
+                  'vo':'', 
+                  'user':'', 
+                  'iconCls' : 'core-desktop-icon', 
+                  'children' :[]
+                  }
+    shareddesktops = {'name':'Shared Desktops', 
+                      'group':'', 
+                      'vo':'', 
+                      'user':'', 
+                      'expanded': 'true', 
+                      'iconCls' : 'dirac-icon-share', 
+                      'children' :[]
+                      }
     
-    myapplications = {'name':'My Applications', 'group':'', 'vo':'', 'user':'', 'children' :[]}
-    sharedapplications = {'name':'Shared Applications', 'group':'', 'vo':'', 'user':'', 'expanded': 'true', 'children' :[]}
+    myapplications = {'name':'My Applications', 
+                      'group':'', 
+                      'vo':'', 
+                      'user':'', 
+                      'children' :[]
+                      }
+    sharedapplications = {'name':'Shared Applications', 
+                          'group':'', 
+                          'vo':'', 
+                          'user':'', 
+                          'expanded': 'true', 
+                          'iconCls' : 'dirac-icon-share', 
+                          'children' :[]
+                          }
     
-    desktopsApplications = {'text':'.', 'children':[
-                                                   {'name':'Desktops', 'group':'', 'vo':'', 'user':'', 'children' :[mydesktops, shareddesktops]},
-                                                   {'name':'Applications', 'group':'', 'vo':'', 'user':'', 'children' :[myapplications, sharedapplications]}
-                                                   ]}
+    desktopsApplications = {
+       'text':'.', 'children': [{'name':'Desktops',
+                                 'group':'',
+                                 'vo':'',
+                                 'user':'',
+                                 'children' :[mydesktops,
+                                              shareddesktops]
+                                 },{'name':'Applications', 
+                                    'group':'', 
+                                    'vo':'', 
+                                    'user':'', 
+                                    'children' :[myapplications, 
+                                                 sharedapplications]
+                                    }
+                                ]
+                            }
     type = ''
     for i in data:      
       application = i.replace( 'Web/application/', '' )
@@ -240,6 +277,7 @@ class UPHandler( WebHandler ):
               if application == 'desktop':
                 record['type'] = 'desktop'
                 record['leaf'] = 'true'
+                record['iconCls'] = 'core-desktop-icon',
                 if record['user'] == user:
                   mydesktops['children'].append( record )
                 else:
@@ -247,6 +285,7 @@ class UPHandler( WebHandler ):
               else:
                 record['type'] = 'application'
                 record['leaf'] = 'true'
+                record['iconCls'] = 'core-application-icon'
                 if record['user'] == user:
                   myapplications['children'].append( record )
                 else:
