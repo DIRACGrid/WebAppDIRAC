@@ -18,7 +18,7 @@ class UPHandler( WebHandler ):
       raise WErr( 401, "Not a registered user" )
     self.set_header( "Pragma", "no-cache" )
     self.set_header( "Cache-Control", "max-age=0, no-store, no-cache, must-revalidate" )
-    #Do not use the defined user setup. Use the web one to show the same profile independenly of
+    # Do not use the defined user setup. Use the web one to show the same profile independenly of
     # user setup
     self.__tc.setSetup( False )
 
@@ -58,7 +58,7 @@ class UPHandler( WebHandler ):
       access = 'ALL'
     if access not in ( 'ALL', 'VO', 'GROUP', 'USER' ):
       raise WErr( 400, "Invalid access" )
-    #TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
+    # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
     result = yield self.threadTask( up.setVarPermissions, name, { 'ReadAccess': access } )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
@@ -74,7 +74,7 @@ class UPHandler( WebHandler ):
       raise WErr( 400, "Missing %s" % excp )
     result = yield self.threadTask( up.retrieveVar, name )
     if not result[ 'OK' ]:
-      raise WErr.fromSERROR( result)
+      raise WErr.fromSERROR( result )
     data = result[ 'Value' ]
     data, count = DEncode.decode( zlib.decompress( base64.b64decode( data ) ) )
     self.finish( data )
@@ -103,7 +103,7 @@ class UPHandler( WebHandler ):
       raise WErr.fromSERROR( result )
     data = result[ 'Value' ]
     for k in data:
-      #Unpack data
+      # Unpack data
       data[ k ] = json.loads( DEncode.decode( zlib.decompress( base64.b64decode( data[ k ] ) ) )[0] )
     self.finish( data )
 
@@ -116,7 +116,7 @@ class UPHandler( WebHandler ):
       raise WErr( 400, "Missing %s" % excp )
     result = yield self.threadTask( up.deleteVar, name )
     if not result[ 'OK' ]:
-      raise WErr.fromSERROR( result)
+      raise WErr.fromSERROR( result )
     self.finish()
 
   @asyncGen
@@ -125,20 +125,20 @@ class UPHandler( WebHandler ):
     result = yield self.threadTask( up.listAvailableVars )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
-    data  = result['Value']
-    paramNames = ['UserName','Group','VO','desktop']
+    data = result['Value']
+    paramNames = ['UserName', 'Group', 'VO', 'desktop']
 
     records = []
     for i in data:
-      records += [dict(zip(paramNames, i))]
+      records += [dict( zip( paramNames, i ) )]
     sharedDesktops = {}
     for i in records:
       result = yield self.threadTask( up.getVarPermissions, i['desktop'] )
       if not result[ 'OK' ]:
         raise WErr.fromSERROR( result )
       if result['Value']['ReadAccess'] == 'ALL':
-        print i['UserName'], i['Group'],i
-        result = yield self.threadTask( up.retrieveVarFromUser , i['UserName'], i['Group'], i['desktop'])
+        print i['UserName'], i['Group'], i
+        result = yield self.threadTask( up.retrieveVarFromUser , i['UserName'], i['Group'], i['desktop'] )
         if not result[ 'OK' ]:
           raise WErr.fromSERROR( result )
         if i['UserName'] not in sharedDesktops:
@@ -148,7 +148,7 @@ class UPHandler( WebHandler ):
         else:
           sharedDesktops[i['UserName']][i['desktop']] = json.loads( DEncode.decode( zlib.decompress( base64.b64decode( result['Value'] ) ) )[0] )
           sharedDesktops[i['UserName']]['Metadata'] = i
-    self.finish(sharedDesktops)
+    self.finish( sharedDesktops )
 
   @asyncGen
   def web_makePublicDesktopState( self ):
@@ -161,9 +161,9 @@ class UPHandler( WebHandler ):
       access = self.request.arguments[ 'access' ][-1].upper()
     except KeyError as excp:
       access = 'ALL'
-    if access not in ( 'ALL', 'VO', 'GROUP','USER' ):
+    if access not in ( 'ALL', 'VO', 'GROUP', 'USER' ):
       raise WErr( 400, "Invalid access" )
-    #TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
+    # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
     result = yield self.threadTask( up.setVarPermissions, name, { 'ReadAccess': access } )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
@@ -171,20 +171,20 @@ class UPHandler( WebHandler ):
     self.finish()
 
   @asyncGen
-  def web_changeView(self):
+  def web_changeView( self ):
     up = self.__getUP()
     try:
       desktopName = self.request.arguments[ 'desktop' ][-1]
       view = self.request.arguments[ 'view' ][-1]
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
-    result = yield self.threadTask( up.retrieveVar, desktopName)
+    result = yield self.threadTask( up.retrieveVar, desktopName )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
-    data  = result['Value']
-    oDesktop = json.loads(DEncode.decode( zlib.decompress( base64.b64decode( data ) ) )[0])
-    oDesktop[unicode('view')] = unicode(view)
-    oDesktop = json.dumps(oDesktop)
+    data = result['Value']
+    oDesktop = json.loads( DEncode.decode( zlib.decompress( base64.b64decode( data ) ) )[0] )
+    oDesktop[unicode( 'view' )] = unicode( view )
+    oDesktop = json.dumps( oDesktop )
     data = base64.b64encode( zlib.compress( DEncode.encode( oDesktop ), 9 ) )
     result = yield self.threadTask( up.storeVar, desktopName, data )
     if not result[ 'OK' ]:
@@ -208,34 +208,34 @@ class UPHandler( WebHandler ):
     data = retVal['Value']
     paramNames = ['user', 'group', 'vo', 'name']
     
-    mydesktops = {'name':'My Desktops', 
-                  'group':'', 
-                  'vo':'', 
-                  'user':'', 
-                  'iconCls' : 'core-desktop-icon', 
+    mydesktops = {'name':'My Desktops',
+                  'group':'',
+                  'vo':'',
+                  'user':'',
+                  'iconCls' : 'core-desktop-icon',
                   'children' :[]
                   }
-    shareddesktops = {'name':'Shared Desktops', 
-                      'group':'', 
-                      'vo':'', 
-                      'user':'', 
-                      'expanded': 'true', 
-                      'iconCls' : 'dirac-icon-share', 
+    shareddesktops = {'name':'Shared Desktops',
+                      'group':'',
+                      'vo':'',
+                      'user':'',
+                      'expanded': 'true',
+                      'iconCls' : 'dirac-icon-share',
                       'children' :[]
                       }
     
-    myapplications = {'name':'My Applications', 
-                      'group':'', 
-                      'vo':'', 
-                      'user':'', 
+    myapplications = {'name':'My Applications',
+                      'group':'',
+                      'vo':'',
+                      'user':'',
                       'children' :[]
                       }
-    sharedapplications = {'name':'Shared Applications', 
-                          'group':'', 
-                          'vo':'', 
-                          'user':'', 
-                          'expanded': 'true', 
-                          'iconCls' : 'dirac-icon-share', 
+    sharedapplications = {'name':'Shared Applications',
+                          'group':'',
+                          'vo':'',
+                          'user':'',
+                          'expanded': 'true',
+                          'iconCls' : 'dirac-icon-share',
                           'children' :[]
                           }
     
@@ -246,11 +246,11 @@ class UPHandler( WebHandler ):
                                  'user':'',
                                  'children' :[mydesktops,
                                               shareddesktops]
-                                 },{'name':'Applications', 
-                                    'group':'', 
-                                    'vo':'', 
-                                    'user':'', 
-                                    'children' :[myapplications, 
+                                 }, {'name':'Applications',
+                                    'group':'',
+                                    'vo':'',
+                                    'user':'',
+                                    'children' :[myapplications,
                                                  sharedapplications]
                                     }
                                 ]
