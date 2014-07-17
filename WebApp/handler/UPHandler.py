@@ -212,7 +212,7 @@ class UPHandler( WebHandler ):
                   'group':'',
                   'vo':'',
                   'user':'',
-                  'iconCls' : 'core-desktop-icon',
+                  'iconCls' : 'my-desktop',
                   'children' :[]
                   }
     shareddesktops = {'name':'Shared Desktops',
@@ -220,7 +220,7 @@ class UPHandler( WebHandler ):
                       'vo':'',
                       'user':'',
                       'expanded': 'true',
-                      'iconCls' : 'dirac-icon-share',
+                      'iconCls' : 'shared-desktop',
                       'children' :[]
                       }
     
@@ -235,7 +235,7 @@ class UPHandler( WebHandler ):
                           'vo':'',
                           'user':'',
                           'expanded': 'true',
-                          'iconCls' : 'dirac-icon-share',
+                          'iconCls' : 'shared-desktop',
                           'children' :[]
                           }
     
