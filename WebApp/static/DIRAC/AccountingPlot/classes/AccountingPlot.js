@@ -678,6 +678,12 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
         }
 
+        if (sValue == 'DataOperation') {
+          //It has to added afterward as we can not select it from
+          //the selection condition.
+          oListForGroup.push(['Channel', 'Channel']);
+        }
+
         var oStore = new Ext.data.ArrayStore({
               fields : ['value', 'text'],
               data : oListForGroup
@@ -712,7 +718,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
           var oList = oSelectionData[oBox.getName()];
           me.__oprDoubleElementItemList(oList);
-              
+
           oBox.loadData(oList);
 
         }

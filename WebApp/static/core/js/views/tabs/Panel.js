@@ -74,18 +74,13 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           if (me.activeTab) {
             me.activeTab.setLoading(false);
           }
-          if (me.activeTab && me.activeTab.view == 'presenterView') {
-            me.mon(oElem.el, 'mouseover', function(event, html, eOpts) {
-                  if (!me.isOpen) {
-                    me.header.show();
-                  }
-                }, me);
-            me.mon(oElem.el, 'mouseout', function(event, html, eOpts) {
-                  if (!me.isOpen) {
-                    me.header.hide();
-                  }
-                }, me);
-          }
+          /*
+           * if (me.activeTab && me.activeTab.view == 'presenterView') {
+           * me.mon(oElem.el, 'mouseover', function(event, html, eOpts) { if
+           * (!me.isOpen) { me.header.show(); } }, me); me.mon(oElem.el,
+           * 'mouseout', function(event, html, eOpts) { if (!me.isOpen) {
+           * me.header.hide(); } }, me); }
+           */
         }
 
       },
@@ -96,9 +91,10 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
        * @param{Object} panel the object which needs to be removed.
        */
       removeAndclose : function(panel) {
+        var me = this;
         var activeTab = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer().getActiveTab();
         if (activeTab) {
-          if (activeTab.view == 'presenterView') { // the activeTab is
+         if (activeTab.view == 'presenterView') { // the activeTab is
             // Ext.dirac.views.tabs.PresenterView
             // which contains the
             // container.

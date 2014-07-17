@@ -222,5 +222,11 @@
 	
 }
 
+.dirac-icon-print {
+	background-image: url('../img/icons/system/printer.png') !important;
+    background-color: transparent;
+}
+
+
 
 

@@ -88,7 +88,6 @@ class AccountingPlotHandler(WebHandler):
       name = name[1:]
       pD[ name ] = str( value )
 
-    print pD
     #Personalized title?
     if 'plotTitle' in pD:
       extraParams[ 'plotTitle' ] = pD[ 'plotTitle' ]
@@ -132,13 +131,9 @@ class AccountingPlotHandler(WebHandler):
         return S_ERROR( "Missing starTime!" )
       else:
         start = Time.fromString( pD[ 'startTime' ] )
-        print "ASD", start
         del( pD[ 'startTime' ] )
     del( pD[ 'timeSelector' ] )
-    
-    print start
-    print end
-    
+        
     for k in pD:
       if k.find( "ex_" ) == 0:
         extraParams[ k[3:] ] = pD[ k ]

@@ -8,7 +8,6 @@ import tempfile
 import json
 import ast
 import tornado
-from WebAppDIRAC.Lib import Conf
 
 class ActivityMonitorHandler( WebHandler ):
 
@@ -84,8 +83,6 @@ class ActivityMonitorHandler( WebHandler ):
     except Exception, e:
       self.finish( { 'success' : "false", 'error' : "Error while processing plot parameters: %s" % str( e ) } )
       return
-
-    print plotRequest
 
     rpcClient = RPCClient( "Framework/Monitoring" )
     retVal = yield self.threadTask( rpcClient.plotView, plotRequest )
@@ -235,22 +232,55 @@ class ActivityMonitorHandler( WebHandler ):
 
     self.finish( {"success":"true"} )
   
+  def __getSetctions( self, path ):
+    
+    result = []
+    
+    userData = self.getSessionData()
+    
+    retVal = gConfig.getSections( '/DIRAC/Setups' )
+    if retVal['OK']:
+      setups = [ i.split( '-' )[-1] for i in retVal['Value']]
+    setup = userData['setup'].split( '-' )[-1]
+    leaf = True if path.find( 'Agents' ) != -1 or path.find( 'Services' ) != -1 else False
+    retVal = gConfig.getSections( path )
+    
+    if retVal['OK']:
+      records = retVal['Value']
+      for i in records:
+        if i in setups and i != setup:
+          continue
+        if i == setup:
+          path = "%s/%s" % ( path, i )
+          result = self.__getSetctions( path )
+                  
+        if i not in [setup, 'Databases', 'URLs']:
+          
+          id = "%s/%s" % ( path, i )
+          components = path.split( '/' )
+          if len( components ) > 2:
+            componentName = "%s/%s" % ( components[2], i )
+          else:
+            componentName = i
+          result += [{'text':i, 'qtip': "Systems", "leaf" : leaf, 'component' : componentName, 'id':id}]
+    else:
+       result = []
+    
+    return result
+      
   @asyncGen
   def web_getDynamicPlotViews( self ):
     """
     It retrieves the systems from the CS.
     """
     nodes = []
-    path = self.request.arguments['node'][0]    
-    result = Conf.getMonitoringSectionFromCS( path )
+    path = self.request.arguments['node'][0] 
+    
+    result = self.__getSetctions( path )  
+    print result
     for i in result:
-      for j in i:
-        node = {}
-        node['text'] = j[1]
-        node['id'] = j[1] if path == '/'  else "%s/%s" % ( path, j[1] )
-        node['leaf'] = True if j[0] == 'comp' else False
-        node['component'] = j[2]  if j[0] == 'comp' else ''
-        nodes += [node]
+      nodes += [i]
+      
     result = tornado.escape.json_encode( nodes )
     self.finish( result )
 

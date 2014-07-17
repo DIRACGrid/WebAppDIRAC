@@ -379,7 +379,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       getStateData : function() {
 
         var me = this;
-        //TODO: Save the portal state. We can save the settings here.
+        // TODO: Save the portal state. We can save the settings here.
         return [];
 
       },
@@ -388,9 +388,13 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var me = this;
         me.loadRightContainer.show();
 
+        if (tab && tab.view == 'presenterView') {
+          tab.loadState(oData);
+        }
+
         if (me.ID in oData["views"]) {
           if (oData["data"].length < 1) {
-            //we have no application in the desktop...
+            // we have no application in the desktop...
             me.loadRightContainer.hide();
           }
           for (var i = 0, len = oData["data"].length; i < len; i++) {
@@ -404,6 +408,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               oAppStateData.currentState = oData["data"][i].currentState;
 
               if (i == oData["data"].length - 1) {
+
                 var cbSetActiveTab = function(oTab) {
                   me.loadRightContainer.hide();
                   if (tab && tab.view == 'tabView') {// when the presenter
@@ -449,6 +454,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               oAppStateData.currentState = oData["data"][i].currentState;
 
               if (i == oData["data"].length - 1) {
+
                 var cbSetActiveTab = function(oTab) {
                   me.loadRightContainer.hide();
                   if (tab && tab.view && tab.view == 'tabView') {// when the
@@ -829,7 +835,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 setupData : setupData,
                 loadedObjectType : "link",
                 linkToLoad : moduleName
-              });
+              }, oTab);
 
         }
         Ext.get("app-dirac-loading").hide();
@@ -1798,11 +1804,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       createNewDesktop : function() {
         var me = this;
-        var cbfunc = function(name, tab){
+        var cbfunc = function(name, tab) {
           tab.isLoaded = true;
           me.saveActiveDesktopState();
         };
-        
+
         var afterSave = function(name) {
           me.createDesktopTab(name, me.ID, cbfunc);
           // add to the menu...

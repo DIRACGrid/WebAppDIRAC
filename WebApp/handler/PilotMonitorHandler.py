@@ -4,6 +4,8 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
+from WebAppDIRAC.WebApp.handler.Palette import Palette
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForDN
 import json
 import ast
 
@@ -12,9 +14,10 @@ class PilotMonitorHandler(WebHandler):
   AUTH_PROPS = "authenticated"
   
   @asyncGen
-  def web_getJobData(self):
+  def web_getPilotData(self):
     RPC = RPCClient("WorkloadManagement/WMSAdministrator")
     req = self.__request()
+    
     result = yield self.threadTask(RPC.getPilotMonitorWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
     
     if not result["OK"]:
@@ -148,81 +151,86 @@ class PilotMonitorHandler(WebHandler):
       callback["owner"] = owner
     
     self.finish(callback)
-    
+  
+  ################################################################################
   def __request(self):
-    self.pageNumber = 0
-    self.numberOfJobs = 25
-    self.globalSort = [["SubmissionTime","DESC"]]
-    
     req = {}
     
-    if self.request.arguments.has_key("limit") and len(self.request.arguments["limit"][0]) > 0:
-      self.numberOfJobs = int(self.request.arguments["limit"][0])
-      if self.request.arguments.has_key("start") and len(self.request.arguments["start"][0]) > 0:
-        self.pageNumber = int(self.request.arguments["start"][0])
+    if "limit" in self.request.arguments:
+      self.numberOfJobs = int(self.request.arguments["limit"][-1])
+      if "start" in self.request.arguments:
+        self.pageNumber = int(self.request.arguments["start"][-1])
       else:
         self.pageNumber = 0
-    
-    if self.request.arguments.has_key("pilotId") and len(self.request.arguments["pilotId"][0]) > 0:
-      pageNumber = 0
-      req["PilotJobReference"] = str(self.request.arguments["pilotId"][0])
-    elif self.request.arguments.has_key("taskQueueId") and len(self.request.arguments["taskQueueId"][0]) > 0:
-      pageNumber = 0
-      req["TaskQueueID"] = str(self.request.arguments["taskQueueId"][0])
     else:
-      result = gConfig.getOption("/Website/ListSeparator")
-      if result["OK"]:
-        separator = result["Value"]
+      self.numberOfJobs = 25
+      self.pageNumber = 0
+    
+    if 'site' in self.request.arguments:
+      site = list(json.loads(self.request.arguments[ 'site' ][-1]))
+      if len(site) > 0:
+        req['GridSite'] = site
+
+    if 'taskQueueId' in self.request.arguments:
+      taskQueueId = list(json.loads(self.request.arguments[ 'taskQueueId' ][-1]))
+      if len(taskQueueId) > 0:
+        req['TaskQueueID'] = taskQueueId
+
+    if 'pilotId' in self.request.arguments:
+      pilotId = list(json.loads(self.request.arguments[ 'pilotId' ][-1]))
+      if len(pilotId) > 0:
+        req['PilotJobReference'] = pilotId
+
+    if 'broker' in self.request.arguments:
+      broker = list(json.loads(self.request.arguments["broker"][-1]))
+      if len(broker) > 0:
+        req['broker'] = broker
+
+    if 'status' in self.request.arguments:
+      status = list(json.loads(self.request.arguments["status"][-1]))
+      if len(status) > 0:
+        req['Status'] = status
+
+    
+    if 'computingElement' in self.request.arguments:
+      ce = list(json.loads(self.request.arguments["computingElement"][-1]))
+      if len(ce) > 0:
+        req['DestinationSite'] = ce
+
+    if 'owner' in self.request.arguments:
+      owner = list(json.loads(self.request.arguments["owner"][-1]))
+      if len(owner) > 0:
+        req['Owner'] = owner
+    
+    if 'ownerGroup' in self.request.arguments:
+      ownerGroup = list(json.loads(self.request.arguments["ownerGroup"][-1]))
+      if len(ownerGroup) > 0:
+        req['OwnerGroup'] = ownerGroup
+
+    if 'sort' in self.request.arguments:
+      sort = json.loads(self.request.arguments['sort'][-1])
+      if len(sort) > 0:
+        self.globalSort = []
+        for i in sort :
+          self.globalSort  += [[i['property'],i['direction']]]
+    else:
+      self.globalSort = [["SubmissionTime","DESC"]]
+
+    if 'startDate' in self.request.arguments and len(self.request.arguments["startDate"][0]) > 0:
+      if 'startTime' in self.request.arguments and len(self.request.arguments["startTime"][0]) > 0:
+        req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
       else:
-        separator = ","
-        
-      if self.request.arguments.has_key("broker") and len(self.request.arguments["broker"][0]) > 0:
-        if str(self.request.arguments["broker"][0]) != "":
-          req["Broker"] = str(self.request.arguments["broker"][0]).split(separator)
-          
-      if self.request.arguments.has_key("site") and len(self.request.arguments["site"][0]) > 0:
-        if str(self.request.arguments["site"][0]) != "":
-          req["GridSite"] = str(self.request.arguments["site"][0]).split(separator)
-          
-      if self.request.arguments.has_key("status") and len(self.request.arguments["status"][0]) > 0:
-        if str(self.request.arguments["status"][0]) != "":
-          req["Status"] = str(self.request.arguments["status"][0]).split(separator)
-          
-      if self.request.arguments.has_key("computingElement") and len(self.request.arguments["computingElement"][0]) > 0:
-        if str(self.request.arguments["computingElement"][0]) != "":
-          req["DestinationSite"] = str(self.request.arguments["computingElement"][0]).split(separator)
-          
-      if self.request.arguments.has_key("ownerGroup") and len(self.request.arguments["ownerGroup"][0]) > 0:
-        if str(self.request.arguments["ownerGroup"][0]) != "":
-          req["OwnerGroup"] = str(self.request.arguments["ownerGroup"][0]).split(separator)
-      
-      if self.request.arguments.has_key("owner") and len(self.request.arguments["owner"][0]) > 0:
-        if str(self.request.arguments["owner"][0]) != "":
-          req["Owner"] = str(self.request.arguments["owner"][0]).split(separator)
-              
-      if self.request.arguments.has_key("startDate") and len(self.request.arguments["startDate"][0]) > 0:
-        if str(self.request.arguments["startDate"][0]) != "YYYY-mm-dd":
-          if self.request.arguments.has_key("startTime") and len(self.request.arguments["startTime"][0]) > 0:
-            req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
-          else:
-            req["FromDate"] = str(self.request.arguments["startDate"][0])
-            
-      if self.request.arguments.has_key("endDate") and len(self.request.arguments["endDate"][0]) > 0:
-        if str(self.request.arguments["endDate"][0]) != "YYYY-mm-dd":
-          if self.request.arguments.has_key("endTime") and len(self.request.arguments["endTime"][0]) > 0:
-            req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
-          else:
-            req["ToDate"] = str(self.request.arguments["endDate"][0])
-            
-      if self.request.arguments.has_key("date") and len(self.request.arguments["date"][0]) > 0:
-        if str(self.request.arguments["date"][0]) != "YYYY-mm-dd":
-          req["LastUpdate"] = str(self.request.arguments["date"][0])
-          
-      if self.request.arguments.has_key("sort") and len(self.request.arguments["sort"][0]) > 0:
-        sortValue = self.request.arguments["sort"][0]
-        #converting the string into a dictionary
-        sortValue = ast.literal_eval(sortValue.strip("[]"))
-        self.globalSort = [[sortValue["property"],sortValue["direction"]]]
+        req["FromDate"] = str(self.request.arguments["startDate"][0])
+
+    if 'endDate' in self.request.arguments and len(self.request.arguments["endDate"][0]) > 0:
+      if 'endTime' in self.request.arguments and len(self.request.arguments["endTime"][0]) > 0:
+        req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
+      else:
+        req["ToDate"] = str(self.request.arguments["endDate"][0])
+
+    if 'date' in self.request.arguments and len(self.request.arguments["date"][0]) > 0:
+      req["LastUpdate"] = str(self.request.arguments["date"][0])
+    gLogger.info("REQUEST:",req)
     return req
   
   @asyncGen
@@ -254,3 +262,82 @@ class PilotMonitorHandler(WebHandler):
         callback = {"success":"false","error":result["Message"]}
     
     self.finish(callback)
+  
+  @asyncGen
+  def web_getStatisticsData( self ):
+    req = self.__request()
+    
+    paletteColor = Palette()
+
+    RPC = RPCClient( "WorkloadManagement/WMSAdministrator" )
+
+    selector = self.request.arguments["statsField"][0]
+
+    if selector == 'Site':
+      selector = "GridSite"
+    if selector == "Computing Element":
+      selector = "DestinationSite"
+    elif selector == "Owner Group":
+      selector = "OwnerGroup"
+    elif selector == "Owner":
+      selector = "OwnerDN"
+    
+    
+    result = yield self.threadTask( RPC.getPilotStatistics, selector, req )
+    if not result['OK']:
+      if 'FromDate' in req:
+        del req['FromDate']
+    
+      if 'LastUpdate' in req:
+        del req['LastUpdate']
+      
+      if 'ToDate' in req:
+        del req['ToDate']
+      
+      result = yield self.threadTask( RPC.getCounters, "PilotAgents", [selector], req )
+        
+      statistics = {}
+      if result['OK']:
+        for status, count in result['Value']:
+          if "OwnerDN" in status:
+            userName = getUsernameForDN( status['OwnerDN'] )
+            if userName['OK']:
+              status['OwnerDN'] = userName['Value'] 
+          statistics[status[selector]] = count
+  
+      result = S_OK(statistics)
+    
+    if result["OK"]:
+      callback = []
+      result = dict( result["Value"] )
+      keylist = result.keys()
+      keylist.sort()
+      if selector == "Site":
+        tier1 = gConfig.getValue( "/Website/PreferredSites", [] )
+        if len( tier1 ) > 0:
+          tier1.sort()
+          for i in tier1:
+            if result.has_key( i ):
+              countryCode = i.rsplit( ".", 1 )[1]
+              callback.append( {"key":i, "value":result[i], "code":countryCode, "color": paletteColor.getColor( countryCode ) } )
+      for key in keylist:
+        if selector == "Site" and tier1:
+          if key not in tier1:
+            try:
+              countryCode = key.rsplit( ".", 1 )[1]
+            except:
+              countryCode = "Unknown"
+            callback.append( {"key":key, "value":result[key], "code":countryCode, "color": paletteColor.getColor( key ) } )
+        elif selector == "Site" and not tier1:
+          try:
+            countryCode = key.rsplit( ".", 1 )[1]
+          except:
+            countryCode = "Unknown"
+          callback.append( {"key":key, "value":result[key], "code":countryCode, "color": paletteColor.getColor( key ) } )
+        else:
+          callback.append( {"key":key, "value":result[key], "code":"", "color": paletteColor.getColor( key ) } )
+      callback = {"success":"true", "result":callback}
+    else:
+      callback = {"success":"false", "error":result["Message"]}
+      
+    self.finish( callback )

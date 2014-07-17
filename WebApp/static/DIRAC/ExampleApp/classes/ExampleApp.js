@@ -216,7 +216,9 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
          pagingToolbar : pagingToolbar,
          scope : me
        });
-
+       
+       me.leftPanel.setGrid(me.grid);
+       
        me.add([ me.leftPanel, me.grid ]);
      },
      __executeAction : function(action){

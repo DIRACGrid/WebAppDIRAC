@@ -116,9 +116,13 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
         };
 
         var textFields = {
-          'id' : "JobId(s)",
-          'reqId' : "RequestId(s)"
-        }
+          'id' : {
+            "name" : "JobId(s)"
+          },
+          'reqId' : {
+            "name" : "RequestId(s)"
+          }
+        };
 
         var map = [["requestType", "requestType"], ["status", "status"], ["operation", "operation"], ["owner", "owner"], ["ownerGroup", "ownerGroup"]];
 
@@ -216,19 +220,13 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
         };
 
         var showJobshandler = function() {
-          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
-          var sId = GLOBAL.APP.CF.zfill(oId, 8);
+          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID"); 
           var setupdata = {};
           setupdata.data = {};
-          setupdata.currentState = sId;
+          setupdata.currentState = oId;
           setupdata.data.leftMenu = {};
-          setupdata.data.leftMenu.selectors = {};
-          setupdata.data.leftMenu.selectors.jobGroup = {
-            data_selected : [sId],
-            hidden : false,
-            not_selected : false
-          };
-
+          setupdata.data.leftMenu.JobID = oId;
+            
           GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
                 objectType : "app",
                 moduleName : me.applicationsToOpen['JobMonitor'],
@@ -262,6 +260,8 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
               pagingToolbar : pagingToolbar,
               scope : me
             });
+
+        me.leftPanel.setGrid(me.grid);
 
         me.add([me.leftPanel, me.grid]);
 

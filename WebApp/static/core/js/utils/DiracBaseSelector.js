@@ -103,6 +103,17 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
        *                     selector widgets.
        */
       selectorMenu : null,
+      /**
+       * @cfg{Boolean} panelButtons If it is false, the buttons(submmit, reset,
+       *               etc) of the panel will be not added.
+       */
+      panelButtons : true,
+      /**
+       * 
+       * @cfg{Object} We can accociate a DiracGridPanel. 
+       */
+      grid : null,
+
       constructor : function(oConfig) {
         var me = this;
         me.callParent(arguments);
@@ -192,12 +203,14 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             if (oConfig.textFields[field]["type"] == "number" || oConfig.textFields[field]["type"] == "Number") {
               textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
                     fieldLabel : oConfig.textFields[field]["name"],
-                    scope : me
+                    scope : me,
+                    type : oConfig.textFields[field]["type"]
                   });
             } else {
               textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
                     fieldLabel : oConfig.textFields[field]["name"],
-                    scope : me
+                    scope : me,
+                    type : oConfig.textFields[field]["type"]
                   });
             }
             me.textFields[field] = textFieldWidget;
@@ -208,58 +221,62 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           me.add(me.textFields[field]);
         }
 
-        // Buttons at the top of the panel
-        var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
-              dock : 'bottom',
-              layout : {
-                pack : 'center'
-              },
-              items : []
-            });
+        if (me.panelButtons) {
+          // Buttons at the top of the panel
+          var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
+                dock : 'bottom',
+                layout : {
+                  pack : 'center'
+                },
+                items : []
+              });
 
-        me.btnSubmit = new Ext.Button({
+          me.btnSubmit = new Ext.Button({
 
-              text : 'Submit',
-              margin : 3,
-              iconCls : "dirac-icon-submit",
-              handler : function() {
-                me.oprLoadGridData();
-              },
-              scope : me
+                text : 'Submit',
+                margin : 3,
+                iconCls : "dirac-icon-submit",
+                handler : function() {
+                  me.oprLoadGridData();
+                },
+                scope : me
 
-            });
+              });
 
-        oPanelButtons.add(me.btnSubmit);
+          oPanelButtons.add(me.btnSubmit);
 
-        me.btnReset = new Ext.Button({
+          me.btnReset = new Ext.Button({
 
-              text : 'Reset',
-              margin : 3,
-              iconCls : "dirac-icon-reset",
-              handler : function() {
-                me.oprResetSelectionOptions();
-              },
-              scope : me
+                text : 'Reset',
+                margin : 3,
+                iconCls : "dirac-icon-reset",
+                handler : function() {
+                  me.oprResetSelectionOptions();
+                },
+                scope : me
 
-            });
+              });
 
-        oPanelButtons.add(me.btnReset);
+          oPanelButtons.add(me.btnReset);
 
-        me.btnRefresh = new Ext.Button({
+          me.btnRefresh = new Ext.Button({
 
-              text : 'Refresh',
-              margin : 3,
-              iconCls : "dirac-icon-refresh",
-              handler : function() {
-                me.oprSelectorsRefreshWithSubmit(false);
-              },
-              scope : me
+                text : 'Refresh',
+                margin : 3,
+                iconCls : "dirac-icon-refresh",
+                handler : function() {
+                  me.oprSelectorsRefreshWithSubmit(false);
+                },
+                scope : me
 
-            });
+              });
 
-        oPanelButtons.add(me.btnRefresh);
+          oPanelButtons.add(me.btnRefresh);
 
-        me.addDocked(oPanelButtons);
+          me.addDocked(oPanelButtons);
+        }
+
+        me.grid = oConfig.grid;
 
       },
       initComponent : function() {
@@ -325,9 +342,12 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var me = this;
 
         var bToReload = false;
-
+        
+        var item  = null;
         // For the time span searching sub-panel
-        var item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
+        if (me.selectorMenu) {
+          item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
+        }
 
         if (me.timeSearchPanel) {
           item.setChecked(!data.leftMenu.timeSearchPanelHidden);
@@ -338,7 +358,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           me.textFields[field].setValue(data.leftMenu[field]);
         }
 
-        if (data.leftMenu.selectors) {
+        if (data.leftMenu.selectors && me.selectorMenu) {
           for (var i = 0; i < me.selectorMenu.items.length - 1; i++) {
 
             var item = me.selectorMenu.items.getAt(i);
@@ -415,10 +435,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
         var me = this;
 
-        if (me.scope.grid.store.loading && me.scope.grid.store.lastDataRequest) {
+        if (me.grid && me.grid.store.loading && me.grid.store.lastDataRequest) {
           var oRequests = Ext.Ajax.requests;
           for (id in oRequests) {
-            if (oRequests.hasOwnProperty(id) && (oRequests[id].options == me.scope.grid.store.lastDataRequest.request)) {
+            if (oRequests.hasOwnProperty(id) && (oRequests[id].options == me.grid.store.lastDataRequest.request)) {
               Ext.Ajax.abort(oRequests[id]);
             }
           }
@@ -493,6 +513,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         for (var j = 0; j < me.datamap.length; j++) {
 
           var dataOptions = [];
+          if (oData[me.datamap[j][0]] == null)
+            continue;
           for (var i = 0; i < oData[me.datamap[j][0]].length; i++)
             dataOptions.push([oData[me.datamap[j][0]][i][0], oData[me.datamap[j][0]][i][0]]);
 
@@ -531,7 +553,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           // ""?me.textFields[i].getValue():'';
           // extraParams[i] = param;
 
-          if (param.length != 0) {
+          if (param.length != 0 && me.textFields[i].type != "originalText") {
             var interval = [];
             for (var j = 0; j < param.length; j++) {
               if (param[j].split("-").length > 1) {
@@ -552,7 +574,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
 
         if (!foundTextSelector) {
-          extraParams["limit"] = me.scope.grid.pagingToolbar.pageSizeCombo.getValue();
+          if (me.grid && me.grid.pagingToolbar) {
+            extraParams["limit"] = me.grid.pagingToolbar.pageSizeCombo.getValue();
+          }
           if (me.hasTimeSearchPanel) {
 
             var timeSearchData = me.timeSearchPanel.getSelectedData();
@@ -579,12 +603,12 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       oprLoadGridData : function() {
         var me = this;
 
-        if (me.__oprValidateBeforeSubmit()) {
+        if (me.grid && me.__oprValidateBeforeSubmit()) {
 
           // set those data as extraParams in
-          me.scope.grid.store.proxy.extraParams = me.getSelectionData();
-          me.scope.grid.store.currentPage = 1;
-          me.scope.grid.store.load();
+          me.grid.store.proxy.extraParams = me.getSelectionData();
+          me.grid.store.currentPage = 1;
+          me.grid.store.load();
 
           var oCheckbox = Ext.query("#" + me.scope.id + " input.dirac-table-main-check-box");
           if (oCheckbox.length > 0) {
@@ -668,7 +692,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
               failure : function(response) {
 
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                
+
               }
             });
 
@@ -775,11 +799,17 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       },
       /**
        * It disables the selectors execpt the selector which is in use.
-       * @param {Object} noToDisable it is the selector object which will be not disabled...
+       * 
+       * @param {Object}
+       *          noToDisable it is the selector object which will be not
+       *          disabled...
        */
       disableElements : function(notToDisable) {
         var me = this;
-        me.timeSearchPanel.disable();
+
+        if (me.timeSearchPanel) {
+          me.timeSearchPanel.disable();
+        }
 
         for (var cmb in me.cmbSelectors) {
           me.cmbSelectors[cmb].disable();
@@ -793,7 +823,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       },
       enableElements : function() {
         var me = this;
-        me.timeSearchPanel.enable();
+
+        if (me.timeSearchPanel) {
+          me.timeSearchPanel.enable();
+        }
 
         for (var cmb in me.cmbSelectors) {
           me.cmbSelectors[cmb].enable();
@@ -802,5 +835,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         for (var field in me.textFields) {
           me.textFields[field].enable();
         }
+      },
+      setGrid : function(grid) {
+        var me = this;
+        me.grid = grid;
       }
     });

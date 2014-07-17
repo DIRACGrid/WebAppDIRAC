@@ -161,7 +161,8 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
         me.pagingToolbarItems.push('Items per page: ');
 
         me.pageSizeCombo = Ext.create("Ext.dirac.utils.DiracPageSizeCombo", {
-              scope : config.scope
+              scope : config.scope,
+              value : ((config.value)?config.value : 25)
             });
 
         me.pageSizeCombo.on("change", function(combo, newValue, oldValue, eOpts) {

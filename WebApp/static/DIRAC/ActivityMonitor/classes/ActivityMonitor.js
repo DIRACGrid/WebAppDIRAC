@@ -1247,7 +1247,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
               },
               root : {
                 text : '/',
-                id : '/',
+                id : '/Systems',
                 expanded : true
               },
               folderSort : true,

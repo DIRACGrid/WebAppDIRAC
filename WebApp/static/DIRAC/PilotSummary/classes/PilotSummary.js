@@ -17,7 +17,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
       },
       getStateData : function() {
         var me = this;
-        
+
         var oStates = {
           grid : me.grid.getStateData(),
           leftMenu : me.leftPanel.getStateData()
@@ -98,10 +98,11 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
         var me = this;
 
         var selectors = {
-          site : "Site"
+          site : "Site",
+          Status : "Status"
         };
 
-        var map = [["site", "site"]];
+        var map = [["site", "site"], ["Status","Status"]];
 
         me.leftPanel = new Ext.create('Ext.dirac.utils.DiracBaseSelector', {
               scope : me,
@@ -129,7 +130,8 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
 
         var pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
               store : me.dataStore,
-              scope : me
+              scope : me,
+              value : 100
             });
 
         var oColumns = {
@@ -152,6 +154,13 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
           },
           "CE" : {
             "dataIndex" : "CE"
+          },
+          "Status" : {
+            "dataIndex" : "Status",
+            "properties" : {
+              width : 60,
+              sortable : false
+            }
           },
           "PilotJobEff (%)" : {
             "dataIndex" : "PilotJobEff"
@@ -258,6 +267,8 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                     rowBodyTpl : ['<div id="expanded-Grid-{Site}"> </div>']
                   }]
             });
+
+        me.leftPanel.setGrid(me.grid);
 
         me.grid.view.on('expandbody', function(rowNode, record, expandbody) {
               var targetId = 'expanded-Grid-' + record.get('Site');
@@ -368,7 +379,6 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                           }]
                     });
 
-                expandedGridPanel.setLoading(true);
                 rowNode.grid = expandedGridPanel;
                 expandStore.load();
                 expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
