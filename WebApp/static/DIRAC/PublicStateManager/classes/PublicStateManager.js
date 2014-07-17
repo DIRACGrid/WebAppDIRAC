@@ -44,10 +44,9 @@ Ext.define('DIRAC.PublicStateManager.classes.PublicStateManager', {
         }
 
         Ext.apply(me, {
-              layout : 'border',
-              bodyBorder : false,
+              layout : 'fit',
               defaults : {
-                collapsible : true,
+                collapsible : false,
                 split : true
               }
             });
@@ -61,7 +60,7 @@ Ext.define('DIRAC.PublicStateManager.classes.PublicStateManager', {
         var me = this;
         me.leftPanel = Ext.create("DIRAC.PublicStateManager.classes.MenuGrid", {
               collapsible : true,
-              region : 'west'
+              region : 'center'
             });
         me.add([me.leftPanel]);
       }

@@ -3,50 +3,46 @@ Ext.define('DIRAC.PublicStateManager.classes.MenuGrid', {
 
       requires : ['Ext.data.*', 'Ext.grid.*', 'Ext.tree.*',
           // 'Ext.ux.CheckColumn',
-          'DIRAC.PublicStateManager.classes.MenuModel'],
+          'DIRAC.PublicStateManager.classes.MenuModel', 'Ext.data.TreeStore'],
       xtype : 'tree-grid',
 
       title : 'Desktops&Applications',
       height : 300,
-      useArrows : true,
+      width : 600,
+      useArrows : false,
       rootVisible : false,
       multiSelect : true,
-      singleExpand : true,
-
+      singleExpand : false,
       initComponent : function() {
-        this.width = 600;
+        var me = this;
 
-        Ext.apply(this, {
-              store : new Ext.data.TreeStore({
-                    model : DIRAC.PublicStateManager.classes.MenuModel,
-                    proxy : {
-                      type : 'ajax',
-                      url : GLOBAL.BASE_URL + 'UP/listPublicStates',
-                      extraParams : {
-                        app : 'desktop',
-                        obj : 'application'
-                      }
-                    },
-                    folderSort : true
-                  }),
+        me.store = Ext.create("Ext.data.TreeStore", {
+              model : DIRAC.PublicStateManager.classes.MenuModel,
+              proxy : {
+                type : 'ajax',
+                url : GLOBAL.BASE_URL + 'UP/listPublicStates',
+                extraParams : {
+                  app : 'desktop',
+                  obj : 'application'
+                }
+              },
+              folderSort : true
+            });
+
+        Ext.apply(me, {
               columns : [{
-                    xtype : 'treecolumn', // this is so we know which column
-                                          // will
-                    // show the tree
+                    xtype : 'treecolumn',
                     text : 'Name',
                     flex : 2,
                     sortable : true,
                     dataIndex : 'name'
                   }, {
-                    // we must use the templateheader component so we can use a
-                    // custom tpl
                     xtype : 'templatecolumn',
                     text : 'Type',
                     flex : 1,
                     sortable : true,
                     dataIndex : 'type',
                     align : 'center',
-                    // add in the custom tpl for the rows
                     tpl : Ext.create('Ext.XTemplate', '{type:this.formatApplicationType}', {
                           formatApplicationType : function(v) {
                             if (v == 'desktop') {
@@ -76,15 +72,28 @@ Ext.define('DIRAC.PublicStateManager.classes.MenuGrid', {
                     width : 55,
                     menuDisabled : true,
                     xtype : 'actioncolumn',
-                    tooltip : 'Edit task',
+                    tooltip : 'Load a state...',
                     align : 'center',
-                    iconCls : 'dirac-icon-plus',
+                    iconCls : 'dirac-icon-state',
                     handler : function(grid, rowIndex, colIndex, actionItem, event, record, row) {
-                      Ext.Msg.alert('Loading: ' + record.get('name'), record.get('app'));
+                      GLOBAL.APP.MAIN_VIEW.SM.formStateLoader(GLOBAL.APP.MAIN_VIEW.cbAfterLoadSharedState, GLOBAL.APP.MAIN_VIEW.cbAfterSaveSharedState);
+
+                      var prefix = "";
+                      if (record.get('type') == 'desktop') {
+                        prefix = "desktop|";
+                      } else {
+                        prefix = record.get('app') + '|';
+                      }
+
+                      var fullState = prefix + record.get('user') + '|' + record.get('group') + '|' + record.get('name');
+
+                      GLOBAL.APP.MAIN_VIEW.SM.txtLoadText.setRawValue(fullState);
+                      GLOBAL.APP.MAIN_VIEW.SM.txtLoadText.disable();
+
                     },
                     // Only leaf level tasks may be edited
                     isDisabled : function(view, rowIdx, colIdx, item, record) {
-                      return !record.data.leaf;
+                      return !record.data.leaf || (record.get('user') == GLOBAL.USER_CREDENTIALS.username);
                     }
                   }, {
                     text : 'Module',
@@ -94,6 +103,6 @@ Ext.define('DIRAC.PublicStateManager.classes.MenuGrid', {
                     hidden : true
                   }]
             });
-        this.callParent();
+        me.callParent();
       }
     });
