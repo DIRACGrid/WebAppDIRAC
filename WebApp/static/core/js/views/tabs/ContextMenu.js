@@ -21,7 +21,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     }
 
                   }, {
-                    text : 'Share to public',
+                    text : 'Make public',
                     iconCls : "dirac-icon-state",
                     disabled : false,
                     handler : function() {
