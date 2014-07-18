@@ -88,6 +88,7 @@ Ext.define('DIRAC.PublicStateManager.classes.MenuGrid', {
                       var fullState = prefix + record.get('user') + '|' + record.get('group') + '|' + record.get('name');
 
                       GLOBAL.APP.MAIN_VIEW.SM.txtLoadText.setRawValue(fullState);
+                      GLOBAL.APP.MAIN_VIEW.SM.txtRefName.setRawValue(record.get('name'));
                       GLOBAL.APP.MAIN_VIEW.SM.txtLoadText.disable();
 
                     },
