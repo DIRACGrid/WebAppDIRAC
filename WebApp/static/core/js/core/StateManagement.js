@@ -379,7 +379,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
               },
               failure : function(response) {
-                
+
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
                 if (response.status == 400) {
@@ -504,9 +504,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
                   cbAfterDelete(1, sAppName, sStateType, sStateName);
 
                 } else {
-                  
+
                   GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                  
+
                   if (response.status == 400) {
                     cbAfterDelete(-1, sAppName, sStateType, sStateName);
                   } else {
@@ -517,17 +517,17 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
               },
               failure : function(response) {
-                
+
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                
+
                 if (response.status == 400) {
-                  
+
                   cbAfterDelete(-3, sAppName, sStateType, sStateName);
-                  
+
                 } else {
-                  
+
                   cbAfterDelete(-4, sAppName, sStateType, sStateName);
-                  
+
                 }
               }
             });
@@ -576,25 +576,74 @@ Ext.define('Ext.dirac.core.StateManagement', {
                 } else {
 
                   GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                  
+
                   if (response.status == 400) {
                     cbAfterShare(-1, sAppName, sStateName, "");
                   } else
-                  cbAfterShare(-2, sAppName, sStateName, "");
+                    cbAfterShare(-2, sAppName, sStateName, "");
 
                 }
 
               },
               failure : function(response) {
-                
+
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                
+
                 if (response.status == 400) {
                   cbAfterShare(-3, sAppName, sStateName, "");
                 } else {
                   cbAfterShare(-4, sAppName, sStateName, "");
                 }
               }
+            });
+
+      },
+      /**
+       * Function that is used to share a state with other users.
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {String}
+       *          sStateName The name of the state.
+       * @param {Function}
+       *          cbAfterShare The callback function called on success or on
+       *          failure of the request for sharing a state.
+       * 
+       */
+      oprPublishState : function(sAppName, sStateName) {
+
+        var me = this;
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + 'UP/publishAppState',
+              params : {
+                obj : "application",
+                app : sAppName,
+                name : sStateName,
+                access : "ALL"
+              },
+              scope : me,
+              success : function(response) {
+
+                if (response.status == 200) {
+                  
+                  GLOBAL.APP.CF.msg('Notification', sStateName + " is available to the public!");
+    
+                } else {
+
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                }
+
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                
+              }
+
             });
 
       },
@@ -645,7 +694,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
                     cbAfterLoadSharedState(1, sLinkDescription, oDataReceived, stateName);
 
                 } else {
-                  
+
                   GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
                   if (response.status == 400) {
@@ -660,7 +709,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
               },
               failure : function(response) {
-                
+
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
                 if (response.status == 400) {
@@ -726,9 +775,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
                     cbAfterSaveSharedState(1, sRefName, sRef);
                   }
                 } else {
-                  
+
                   GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      
+
                   if (response.status == 400) {
                     if (cbAfterSaveSharedState != null) {
                       cbAfterSaveSharedState(-1, sRefName, sRef);
@@ -743,9 +792,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
               },
               failure : function(response) {
-                
+
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                
+
                 if (response.status == 400) {
                   if (cbAfterSaveSharedState != null) {
                     cbAfterSaveSharedState(-3, sRefName, sRef);
@@ -811,10 +860,10 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
               },
               failure : function(response) {
-                
+
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
                 me.cache["sharedDesktop"][sAppName] = {};
-                
+
               }
             });
 
@@ -871,19 +920,19 @@ Ext.define('Ext.dirac.core.StateManagement', {
                   cbAfterShare(1, sAppName, sStateName, sStringToShow);
 
                 } else {
-                  
+
                   GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
                   if (response.status == 400) {
                     cbAfterShare(-1, sAppName, sStateName, "");
                   } else
-                  cbAfterShare(-2, sAppName, sStateName, "");
+                    cbAfterShare(-2, sAppName, sStateName, "");
 
                 }
 
               },
               failure : function(response) {
-                
+
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
                 if (response.status == 400) {

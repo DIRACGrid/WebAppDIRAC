@@ -49,8 +49,8 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
               scope : me,
               listeners : {
                 beforeexpand : function(node, op) {
-                  
-                  if (node.data.text == 'Shared'){
+
+                  if (node.data.text == 'Shared') {
                     GLOBAL.APP.MAIN_VIEW.oprLoadSharedDesktopsAndApplications();
                     return;
                   }
@@ -205,8 +205,8 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
 
                     } else {
                       var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
-                      if (activeDesktop == null){
-                        GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view);  
+                      if (activeDesktop == null) {
+                        GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view);
                       }
                       GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application, activeDesktop);
                     }
@@ -248,7 +248,9 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                 }
               }
             });
-        me.contextMenu = Ext.create('Ext.dirac.views.tabs.ContextMenu');
+
+        me.contextMenu = Ext.create("Ext.dirac.views.tabs.ContextMenu", {});
+
         me.tree.on('itemcontextmenu', function(view, record, item, index, event) {
               var me = this;
               me.contextMenu.oSelectedMenuItem = record;

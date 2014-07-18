@@ -21,6 +21,25 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     }
 
                   }, {
+                    text : 'Share to public',
+                    iconCls : "dirac-icon-state",
+                    disabled : false,
+                    handler : function() {
+                      var me = this;
+
+                      if (me.oSelectedMenuItem.data.type == 'desktop') {
+                        
+                        GLOBAL.APP.SM.oprPublishState('desktop', me.oSelectedMenuItem.data.text);
+
+                      } else {
+                        
+                        GLOBAL.APP.SM.oprPublishState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text);
+                      
+                      }
+
+                    },
+                    scope : me
+                  }, {
                     text : 'Share desktop',
                     iconCls : "dirac-icon-state",
                     disabled : true,
@@ -193,16 +212,16 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     iconCls : "dirac-icon-save",
                     handler : function() {
                       if (me.oSelectedMenuItem.data.type == "app") {// the
-                                                                    // selected
-                                                                    // menu item
-                                                                    // is an
-                                                                    // application
+                        // selected
+                        // menu item
+                        // is an
+                        // application
 
                         GLOBAL.APP.MAIN_VIEW.SM.saveState(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(desktop, stateType, stateName) {
                             });
 
                       } else {// we can modify the desktop, which is not belongs
-                              // to Default.
+                        // to Default.
                         if (me.oSelectedMenuItem.data.text == "Deafult")
                           return; // do not delete the default desktop.
 
@@ -216,10 +235,10 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     value : 6,
                     handler : function() {
                       if (me.oSelectedMenuItem.data.type == "app") {// the
-                                                                    // selected
-                                                                    // menu item
-                                                                    // is an
-                                                                    // application
+                        // selected
+                        // menu item
+                        // is an
+                        // application
 
                         GLOBAL.APP.MAIN_VIEW.SM.saveAsState(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(desktop, stateType, stateName) {
                               Ext.dirac.system_info.msg("Notification", stateName + ' is saved!');
@@ -237,26 +256,26 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     value : 7,
                     handler : function() {
                       if (me.oSelectedMenuItem.data.type == "app") {// the
-                                                                    // selected
-                                                                    // menu item
-                                                                    // is an
-                                                                    // application
+                        // selected
+                        // menu item
+                        // is an
+                        // application
 
                         if (me.oSelectedMenuItem.data.desktop == "") { // if
-                                                                        // the
-                                                                        // desktop
-                                                                        // is
-                                                                        // empty
-                                                                        // it
-                                                                        // means
-                                                                        // the
-                                                                        // application
-                                                                        // is
-                                                                        // belongs
-                                                                        // to
-                                                                        // the
-                                                                        // default
-                                                                        // desktop.
+                          // the
+                          // desktop
+                          // is
+                          // empty
+                          // it
+                          // means
+                          // the
+                          // application
+                          // is
+                          // belongs
+                          // to
+                          // the
+                          // default
+                          // desktop.
                           GLOBAL.APP.MAIN_VIEW.SM.deleteState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
                                 GLOBAL.APP.MAIN_VIEW.removeNodeFormDefaultDesktop(me.oSelectedMenuItem.data.text);
 
@@ -269,7 +288,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                         }
 
                       } else {// we can modify the desktop, which is not belongs
-                              // to Default.
+                        // to Default.
                         if (me.oSelectedMenuItem.data.text == "Deafult")
                           return; // do not delete the default desktop.
 
