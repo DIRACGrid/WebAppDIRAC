@@ -212,6 +212,7 @@ class UPHandler( WebHandler ):
       raise WErr.fromSERROR( retVal )
     
     data = retVal['Value']
+    
     if data == None:
       self.finish( {"success":"false", "result":[], "total":0, "error":"There are no public states!"} )
       return
