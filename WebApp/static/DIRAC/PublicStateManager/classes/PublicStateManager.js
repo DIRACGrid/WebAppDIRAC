@@ -58,10 +58,38 @@ Ext.define('DIRAC.PublicStateManager.classes.PublicStateManager', {
       buildUI : function() {
 
         var me = this;
+        
         me.leftPanel = Ext.create("DIRAC.PublicStateManager.classes.MenuGrid", {
               collapsible : false,
+              store : me.treeStore,
               region : 'center'
             });
+        
+         var panelButtons = new Ext.create('Ext.toolbar.Toolbar', {
+              dock : 'top',
+              layout : {
+                pack : 'left'
+              },
+              items : []
+            });
+
+        var refreshButton = new Ext.Button({
+              text : 'refresh',
+              margin : 3,
+              iconCls : "dirac-icon-refresh",
+              handler : function() {
+                var me = this;
+                me.leftPanel.store.load();
+                me.leftPanel.setLoading(true);
+              },
+              scope : me
+            });
+
+        panelButtons.add(refreshButton);
+
+        me.leftPanel.addDocked(panelButtons);
+        
         me.add([me.leftPanel]);
+        me.leftPanel.setLoading(true);
       }
     });
