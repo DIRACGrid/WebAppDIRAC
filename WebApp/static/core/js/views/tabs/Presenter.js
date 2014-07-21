@@ -138,7 +138,10 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
         me.columnWidth = oData.columnWidth;
         me.setColumnWidth(me.columnWidth);
 
-        me.refreshCycle = oData.refreshCycle;
+        if (oData.refreshCycle){
+          me.refreshCycle = oData.refreshCycle;  
+        }
+        
         me.setRefreshCycle(me.refreshCycle);
         me.tabheader = oData.tabheader;
 
