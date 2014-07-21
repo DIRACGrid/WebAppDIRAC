@@ -163,15 +163,15 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
               widget.show();
             });
       },
-      
-      loadState : function(data){
+
+      loadState : function(data) {
         var me = this;
         me.getPresenter().loadState(data);
       },
-      
+
       getStateData : function() {
         var me = this;
-        
+
         var desktop = {
           "dirac_view" : 1,
           "version" : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
@@ -189,5 +189,17 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
 
         Ext.apply(desktop, me.getPresenter().getStateData());
         return desktop;
+      },
+      setActiveTab : function(panel) {
+        var me = this;
+        //we have nothing to do...
+      },
+      getPanel : function(name) {
+        var me = this;
+        return me.items.getAt(0).getPanel(name);
+      },
+      getApplicationsState : function() {
+        var me = this;
+        return me.items.getAt(0).getApplicationsState();
       }
     });

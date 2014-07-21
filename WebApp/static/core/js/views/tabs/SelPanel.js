@@ -210,29 +210,57 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                       }
                       GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application, activeDesktop);
                     }
-                  } else {
+                  } else {// check the existence of teh desktops
+
                     var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
-                    var cbSetActiveTab = null;
+
                     if (activeDesktop) {
-                      cbSetActiveTab = function(oTab) {
-                        if (activeDesktop.view == 'tabView') {
-                          activeDesktop.setActiveTab(oTab);
-                          GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
-                          GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
-                        }
-                      };
+                      var panel = activeDesktop.getPanel(item.data.stateToLoad);
+                      if (panel) {
+                        // we have to activate the panel
+                        activeDesktop.setActiveTab(panel);
+                      } else {
+
+                        var cbSetActiveTab = function(oTab) {
+                          if (activeDesktop.view == 'tabView') {
+                            activeDesktop.setActiveTab(oTab);
+                          }
+                        };
+
+                        GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
+                      }
+
                     } else {
-                      cbSetActiveTab = function(oTab) {
+                      GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.desktop, item.data.view);
+                      var cbLoadActiveTab = function(oTab) {
                         oTab.loadData();
-                        if (activeDesktop) {
-                          GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
-                        }
-                        GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
                       };
+                      GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbLoadActiveTab);
                     }
-                    GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
 
                   }
+                  
+                  /*var cbSetActiveTab = null;
+                  if (activeDesktop) {
+                    cbSetActiveTab = function(oTab) {
+                      if (activeDesktop.view == 'tabView') {
+                        activeDesktop.setActiveTab(oTab);
+                        GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
+                        GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
+                      }
+                    };
+                  } else {
+                    cbSetActiveTab = function(oTab) {
+                      oTab.loadData();
+                      if (activeDesktop) {
+                        GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
+                      }
+                      GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
+                    };
+                  }
+                  GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
+
+                  }*/
                 },
                 beforeitemmove : function(node, oldParent, newParent, index, eOpts) {
                   if (oldParent.getData().text != newParent.getData().text) {
