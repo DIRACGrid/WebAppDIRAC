@@ -264,29 +264,6 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
 
                   }
 
-                  /*
-                   * var cbSetActiveTab = null; if (activeDesktop) {
-                   * 
-                   * cbSetActiveTab = function(oTab) {
-                   * 
-                   * if (activeDesktop.view == 'tabView') {
-                   * activeDesktop.setActiveTab(oTab);
-                   * GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title,
-                   * item);
-                   * GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application,
-                   * "application", item.data.stateToLoad); } };
-                   *  } else { cbSetActiveTab = function(oTab) {
-                   * oTab.loadData(); if (activeDesktop) {
-                   * GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title,
-                   * item); }
-                   * 
-                   * GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application,
-                   * "application", item.data.stateToLoad); }; }
-                   * GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type,
-                   * item.data.application, item.data, activeDesktop,
-                   * cbSetActiveTab);
-                   */
-
                 },
                 beforeitemmove : function(node, oldParent, newParent, index, eOpts) {
                   if (oldParent.getData().text != newParent.getData().text) {
@@ -297,6 +274,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                       desktopName = 'Default';
                     }
                     GLOBAL.APP.MAIN_VIEW.closeTab(desktopName, tabName);
+                    GLOBAL.APP.MAIN_VIEW.saveDesktopState(desktopName);
 
                   }
                 }

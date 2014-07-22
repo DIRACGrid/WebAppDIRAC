@@ -93,9 +93,10 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     iconCls : "dirac-icon-private",
                     value : 2,
                     handler : function() {
+                      
                       var me = this;
                       var app = 'desktop';
-                      console.log(me.oSelectedMenuItem.data);
+                      
                       if (me.oSelectedMenuItem.data.type == 'app') {
                         app = me.oSelectedMenuItem.data.application;
                       }
