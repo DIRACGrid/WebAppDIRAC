@@ -2010,6 +2010,29 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           var deleteNode = node.findChild("text", appName);
           node.removeChild(deleteNode);
         }
+      },
+      moveApplication : function(applicationName, module, oldDesktopName, newDesktopName){
+        GLOBAL.APP.MAIN_VIEW.SM.moveAppState(applicationName, module, oldDesktopName, newDesktopName);
+      },
+      isTabOpen : function(desktopName, tabName) {
+        var me = this;
+        var desktops = null;
+        var appContainer = me.getRightContainer().getApplicationContainer();
+        if (appContainer) {
+          if (!desktopName) {
+            desktops = appContainer.getActiveTab();
+          } else {
+            desktops = appContainer.getTab(desktopName);
+          }
+          if (desktops) { // if the desktop is active
+            var tab = desktops.getPanel(tabName);
+            if (tab) { // if the windows is open.
+              Ext.dirac.system_info.msg("Error", tabName+" is in use on the " +  desktopName +". Please close it before move");
+              return true
+            }
+          }
+        } 
+        return false;
       }
 
     });

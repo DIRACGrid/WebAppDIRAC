@@ -267,14 +267,26 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                 },
                 beforeitemmove : function(node, oldParent, newParent, index, eOpts) {
                   if (oldParent.getData().text != newParent.getData().text) {
-                    tabName = node.getData().text;
+
+                    var tabName = node.getData().text;
+                    var moduleName = node.data.application;
+                    var oldDesktopName = 'Default';
+                    var newDesktopName = 'Default';
+
                     if (oldParent.getData().type == 'desktop') {
-                      desktopName = oldParent.getData().text;
-                    } else {
-                      desktopName = 'Default';
+                      oldDesktopName = oldParent.getData().text;
                     }
-                    GLOBAL.APP.MAIN_VIEW.closeTab(desktopName, tabName);
-                    GLOBAL.APP.MAIN_VIEW.saveDesktopState(desktopName);
+
+                    if (newParent.getData().type == 'desktop') {
+                      newDesktopName = newParent.getData().text;
+                    }
+
+                    //we have to close the application
+                    if (!GLOBAL.APP.MAIN_VIEW.isTabOpen(oldDesktopName, tabName)) {
+                      GLOBAL.APP.MAIN_VIEW.moveApplication(tabName, moduleName, oldDesktopName, newDesktopName);
+                    }else{
+                      return false;
+                    }
 
                   }
                 }

@@ -1300,5 +1300,34 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
         me.saveWindow.show();
         me.txtStateName.focus();
 
+      },
+      moveAppState : function(stateName, moduleName, fromDesktop, toDesktop) {
+        var me = this;
+        var data = null;
+
+        var fromDsktop = GLOBAL.APP.SM.getStateData("application", "desktop", fromDesktop);
+        if (fromDsktop != -1) {
+          for (var i = 0; i < fromDsktop.data.length; i++) {
+            if (fromDsktop.data[i].module == moduleName && fromDsktop.data[i].currentState == stateName) {
+              data = fromDsktop.data[i];
+              break;
+            }
+          }
+        }
+
+        me.addStateToDesktop(toDesktop, data, function() {
+              me.deleteStateFromDesktop(fromDesktop, moduleName, stateName, function() {
+                  });
+            });
+
+      },
+      addStateToDesktop : function(desktop, data, cbAfterSave) {
+        var me = this;
+
+        var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
+        desktops.data.push(data);
+        me.oprSendDataForSave("desktop", desktops, "application", desktop, cbAfterSave);
+
       }
+
     });
