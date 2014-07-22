@@ -135,10 +135,16 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
        */
       loadState : function(oData) {
         var me = this;
-        me.columnWidth = oData.columnWidth;
+
+        if (oData.columnWidth) {
+          me.columnWidth = oData.columnWidth;
+        }
         me.setColumnWidth(me.columnWidth);
 
-        me.refreshCycle = oData.refreshCycle;
+        if (oData.refreshCycle) {
+          me.refreshCycle = oData.refreshCycle;
+        }
+
         me.setRefreshCycle(me.refreshCycle);
         me.tabheader = oData.tabheader;
 
@@ -382,5 +388,20 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
           }
 
         }
+      },
+      getPanel : function(name) {
+        var me = this;
+        me.items.find();
+      },
+      getApplicationsState : function() {
+        var me = this;
+        var states = [];
+        me.items.each(function(value, index) {
+              states.push({
+                    "module" : value.appClassName,
+                    "currentState" : value.currentState
+                  });
+            });
+        return states;
       }
     });

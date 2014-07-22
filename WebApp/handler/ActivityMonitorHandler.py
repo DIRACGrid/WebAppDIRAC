@@ -232,7 +232,7 @@ class ActivityMonitorHandler( WebHandler ):
 
     self.finish( {"success":"true"} )
   
-  def __getSetctions( self, path ):
+  def __getSections( self, path ):
     
     result = []
     
@@ -252,7 +252,7 @@ class ActivityMonitorHandler( WebHandler ):
           continue
         if i == setup:
           path = "%s/%s" % ( path, i )
-          result = self.__getSetctions( path )
+          result = self.__getSections( path )
                   
         if i not in [setup, 'Databases', 'URLs']:
           
@@ -276,7 +276,7 @@ class ActivityMonitorHandler( WebHandler ):
     nodes = []
     path = self.request.arguments['node'][0] 
     
-    result = self.__getSetctions( path )  
+    result = self.__getSections( path )  
     print result
     for i in result:
       nodes += [i]

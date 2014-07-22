@@ -771,7 +771,15 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
 					},
 					iconCls : "dirac-icon-share"
-				} ]
+				},{
+          text : "Make public",
+          handler : function() {
+
+            GLOBAL.APP.SM.oprPublishState(me.loadedObject.self.getName(), stateName);
+
+          },
+          iconCls : "dirac-icon-share"
+        } ]
 			});
 
 			var iIndexPosition = 0;
@@ -903,7 +911,15 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
 					},
 					iconCls : "dirac-icon-share"
-				} ]
+				},{
+          text : "Make public",
+          handler : function() {
+
+            GLOBAL.APP.SM.oprPublishState(me.appClassName, stateName);
+
+          },
+          iconCls : "dirac-icon-share"
+        } ]
 			});
 
 			me.statesMenu.add(oNewItem);

@@ -568,5 +568,13 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
 
         };
         GLOBAL.APP.MAIN_VIEW.SM.formManageStates("desktop", funcAfterRemove);
+      },
+      setActiveTab : function(tab){
+        var me = this;
+        var container = me.getApplicationContainer();
+        if (container){
+          container.setActiveTab(tab);  
+        }
       }
+      
     });

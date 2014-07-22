@@ -1787,6 +1787,24 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             break;
         }
 
+        // we have to remove the applications which are already loaded.
+        if (tab) {
+          var loadedApplications = tab.getApplicationsState();
+          for (var i = 0; i < loadedApplications.length; i++) {
+            for (var j = 0; j < data.data.length; j++) {
+              if (loadedApplications[i].module == data.data[j].module && loadedApplications[i].currentState == data.data[j].currentState) {
+
+                Ext.Array.erase(data.data, j, 1);
+                break;
+
+              }
+            }
+          }
+        }
+
+        if (data.data.length == 0)
+          return;
+
         me.loadState(data, tab);
 
         if (me.currentState != "")

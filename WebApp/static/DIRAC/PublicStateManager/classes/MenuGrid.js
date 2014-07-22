@@ -13,6 +13,12 @@ Ext.define('DIRAC.PublicStateManager.classes.MenuGrid', {
       rootVisible : false,
       multiSelect : true,
       singleExpand : false,
+      listeners : {
+        afterrender : function(component, eOpts) {
+          var me = this;
+          me.setLoading(true);
+        }
+      },
       initComponent : function() {
         var me = this;
 
@@ -26,7 +32,13 @@ Ext.define('DIRAC.PublicStateManager.classes.MenuGrid', {
                   obj : 'application'
                 }
               },
-              folderSort : true
+              autoLoad : true,
+              listeners : {
+                load : function(oStore, oOperation, eOpts) {
+                  me.setLoading(false);
+                }
+              }
+
             });
 
         Ext.apply(me, {
@@ -88,6 +100,7 @@ Ext.define('DIRAC.PublicStateManager.classes.MenuGrid', {
                       var fullState = prefix + record.get('user') + '|' + record.get('group') + '|' + record.get('name');
 
                       GLOBAL.APP.MAIN_VIEW.SM.txtLoadText.setRawValue(fullState);
+                      GLOBAL.APP.MAIN_VIEW.SM.txtRefName.setRawValue(record.get('name'));
                       GLOBAL.APP.MAIN_VIEW.SM.txtLoadText.disable();
 
                     },
@@ -103,6 +116,8 @@ Ext.define('DIRAC.PublicStateManager.classes.MenuGrid', {
                     hidden : true
                   }]
             });
+
         me.callParent();
+
       }
     });

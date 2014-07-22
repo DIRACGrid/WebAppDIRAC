@@ -77,6 +77,7 @@ class AccountingPlotHandler(WebHandler):
 
   def __parseFormParams(self):
     params = self.request.arguments
+    
     pD = {}
     extraParams = {}
     pinDates = False
@@ -140,6 +141,8 @@ class AccountingPlotHandler(WebHandler):
     #Listify the rest
     for selName in pD:
       pD[ selName ] = List.fromChar( pD[ selName ], "," )
+    
+    print start, end
     return S_OK( ( typeName, reportName, start, end, pD, grouping, extraParams ) )
 
   @asyncGen

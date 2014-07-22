@@ -58,8 +58,14 @@ class UPHandler( WebHandler ):
       access = 'ALL'
     if access not in ( 'ALL', 'VO', 'GROUP', 'USER' ):
       raise WErr( 400, "Invalid access" )
+    
+    revokeAccess = { 'ReadAccess': access }
+    if access == 'USER':  # if we make private a state, 
+      # we have to revoke from the public as well 
+      revokeAccess['PublishAccess'] = 'USER'
+      
     # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
-    result = yield self.threadTask( up.setVarPermissions, name, { 'ReadAccess': access } )
+    result = yield self.threadTask( up.setVarPermissions, name, revokeAccess )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
     self.set_status( 200 )
@@ -206,6 +212,11 @@ class UPHandler( WebHandler ):
       raise WErr.fromSERROR( retVal )
     
     data = retVal['Value']
+    
+    if data == None:
+      self.finish( {"success":"false", "result":[], "total":0, "error":"There are no public states!"} )
+      return
+    
     paramNames = ['user', 'group', 'vo', 'name']
     
     mydesktops = {'name':'My Desktops',
@@ -295,14 +306,21 @@ class UPHandler( WebHandler ):
     self.finish( desktopsApplications )
   
   @asyncGen
-  def web_makePublicStates( self ):
+  def web_publishAppState( self ):
     up = self.__getUP()
     try:
       name = self.request.arguments[ 'name' ][-1]
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
-          
-    result = yield self.threadTask( up.setVarPermissions, name, { 'PublishAccess': "ALL" } )
+    try:
+      access = self.request.arguments[ 'access' ][-1].upper()
+    except KeyError as excp:
+      access = 'ALL'
+    
+    if access not in ( 'ALL', 'VO', 'GROUP', 'USER' ):
+      raise WErr( 400, "Invalid access" )
+    
+    result = yield self.threadTask( up.setVarPermissions, name, { 'PublishAccess': access, 'ReadAccess': access } )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
     self.set_status( 200 )

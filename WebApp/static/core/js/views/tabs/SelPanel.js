@@ -49,8 +49,8 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
               scope : me,
               listeners : {
                 beforeexpand : function(node, op) {
-                  
-                  if (node.data.text == 'Shared'){
+
+                  if (node.data.text == 'Shared') {
                     GLOBAL.APP.MAIN_VIEW.oprLoadSharedDesktopsAndApplications();
                     return;
                   }
@@ -205,34 +205,80 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
 
                     } else {
                       var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
-                      if (activeDesktop == null){
-                        GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view);  
+                      if (activeDesktop == null) {
+                        GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view);
                       }
                       GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application, activeDesktop);
                     }
-                  } else {
+                  } else {// check the existence of teh desktops
+
                     var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
-                    var cbSetActiveTab = null;
+
+                    // we have to get the parent node.
+                    var parentNodeName = item.parentNode.data.text;
+
+                    // we have to know the type of the desktop: presenterView or
+                    // tabView
+                    var view = item.parentNode.data.view;
+
+                    var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
+
                     if (activeDesktop) {
-                      cbSetActiveTab = function(oTab) {
-                        if (activeDesktop.view == 'tabView') {
-                          activeDesktop.setActiveTab(oTab);
-                          GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
-                          GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
-                        }
-                      };
+                      GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
+                      var panel = activeDesktop.getPanel(item.data.stateToLoad);
+                      if (panel) {
+                        // we have to activate the panel
+                        activeDesktop.setActiveTab(panel);
+                      } else {
+
+                        var cbSetActiveTab = function(oTab) {
+                          if (activeDesktop.view == 'tabView') {
+                            activeDesktop.setActiveTab(oTab);
+                          }
+                        };
+
+                        GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
+                      }
+
                     } else {
-                      cbSetActiveTab = function(oTab) {
+                      // we have to know the type of the desktop: presenterView
+                      // or tabView
+                      var view = item.parentNode.data.view;
+
+                      //When the application is in the Default desktop then the desktop variable is empty.
+                      //We have to use the name of the parent node...
+                      var desktopName = item.data.desktop;
+                      if (item.data.desktop == "") {
+                        desktopName = item.parentNode.data.text;
+                      }
+                      GLOBAL.APP.MAIN_VIEW.createDesktopTab(desktopName, view);
+                      var cbLoadActiveTab = function(oTab) {
                         oTab.loadData();
-                        if (activeDesktop) {
-                          GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
-                        }
-                        GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
                       };
+                      GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbLoadActiveTab);
                     }
-                    GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
 
                   }
+
+                  /*
+                   * var cbSetActiveTab = null; if (activeDesktop) {
+                   * cbSetActiveTab = function(oTab) { if (activeDesktop.view ==
+                   * 'tabView') { activeDesktop.setActiveTab(oTab);
+                   * GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title,
+                   * item);
+                   * GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application,
+                   * "application", item.data.stateToLoad); } }; } else {
+                   * cbSetActiveTab = function(oTab) { oTab.loadData(); if
+                   * (activeDesktop) {
+                   * GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title,
+                   * item); }
+                   * GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application,
+                   * "application", item.data.stateToLoad); }; }
+                   * GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type,
+                   * item.data.application, item.data, activeDesktop,
+                   * cbSetActiveTab);
+                   *  }
+                   */
                 },
                 beforeitemmove : function(node, oldParent, newParent, index, eOpts) {
                   if (oldParent.getData().text != newParent.getData().text) {
@@ -248,7 +294,9 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                 }
               }
             });
-        me.contextMenu = Ext.create('Ext.dirac.views.tabs.ContextMenu');
+
+        me.contextMenu = Ext.create("Ext.dirac.views.tabs.ContextMenu", {});
+
         me.tree.on('itemcontextmenu', function(view, record, item, index, event) {
               var me = this;
               me.contextMenu.oSelectedMenuItem = record;

@@ -496,7 +496,9 @@ Ext.define('Ext.dirac.views.desktop.StateManagement', {
 
 					GLOBAL.APP.MAIN_VIEW.closeAllActiveWindows();
 					GLOBAL.APP.MAIN_VIEW.currentState = "";
-					GLOBAL.APP.SM.oprLoadSharedState(me.txtLoadText.getValue(), cbAfterLoad);
+					GLOBAL.APP.SM.oprLoadSharedState(me.txtLoadText.getValue(), cbAfterLoad, me.txtRefName.getValue());
+          
+          me.manageWindow.hide();
 
 				}
 			},
@@ -522,6 +524,8 @@ Ext.define('Ext.dirac.views.desktop.StateManagement', {
 				if (oValid) {
 
 					GLOBAL.APP.SM.oprSaveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), cbAfterSave);
+          
+          me.manageWindow.hide();
 
 				}
 
@@ -549,6 +553,8 @@ Ext.define('Ext.dirac.views.desktop.StateManagement', {
 					GLOBAL.APP.MAIN_VIEW.currentState = "";
 					GLOBAL.APP.SM.oprLoadSharedState(me.txtLoadText.getValue(), cbAfterLoad);
 					GLOBAL.APP.SM.oprSaveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), cbAfterSave);
+          
+          me.manageWindow.hide();
 
 				}
 

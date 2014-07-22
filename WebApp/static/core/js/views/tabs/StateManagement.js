@@ -676,7 +676,8 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                 if (me.txtLoadText.validate()) {
 
                   GLOBAL.APP.MAIN_VIEW.currentState = "";
-                  GLOBAL.APP.SM.oprLoadSharedState(me.txtLoadText.getValue(), cbAfterLoad);
+                  GLOBAL.APP.SM.oprLoadSharedState(me.txtLoadText.getValue(), cbAfterLoad, me.txtRefName.getValue());
+                  me.manageWindow.hide();
 
                 }
               },
@@ -702,6 +703,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                 if (oValid) {
 
                   GLOBAL.APP.SM.oprSaveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), cbAfterSave);
+                  me.manageWindow.hide();
 
                 }
 
@@ -729,6 +731,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                   GLOBAL.APP.MAIN_VIEW.currentState = "";
                   GLOBAL.APP.SM.oprLoadSharedState(me.txtLoadText.getValue(), cbAfterLoad, me.txtRefName.getValue());
                   GLOBAL.APP.SM.oprSaveSharedState(me.txtRefName.getValue(), me.txtLoadText.getValue(), cbAfterSave);
+                  me.manageWindow.hide();
 
                 }
 

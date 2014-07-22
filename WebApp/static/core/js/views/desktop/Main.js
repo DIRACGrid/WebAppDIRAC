@@ -644,6 +644,17 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
                     },
                     iconCls : "dirac-icon-share"
+                  }, {
+                    text : "Make public",
+                    stateName : sStateName,
+                    handler : function() {
+
+                      var oThisItem = this;
+
+                      GLOBAL.APP.SM.oprPublishState("desktop", oThisItem.stateName);
+
+                    },
+                    iconCls : "dirac-icon-share"
                   }]
             });
 
@@ -780,6 +791,17 @@ Ext.define('Ext.dirac.views.desktop.Main', {
                           }
 
                         });
+
+                  },
+                  iconCls : "dirac-icon-share"
+                }, {
+                  text : "Make public",
+                  stateName : sStateName,
+                  handler : function() {
+
+                    var oThisItem = this;
+
+                    GLOBAL.APP.SM.oprPublishState("desktop", oThisItem.stateName);
 
                   },
                   iconCls : "dirac-icon-share"
