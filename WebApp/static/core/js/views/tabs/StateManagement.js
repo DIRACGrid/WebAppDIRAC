@@ -996,7 +996,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
         var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer();
         if (appContainer) {
           var tab = appContainer.getTabFromApplicationContainer(desktop);
-          if (tab.isLoaded) {
+          if (tab && tab.isLoaded) {
             var appTab = tab.getPanel(state);
             if (appTab && appTab.isLoaded) {
               if (desktop == 'Default') {
