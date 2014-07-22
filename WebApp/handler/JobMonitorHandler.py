@@ -187,9 +187,6 @@ class JobMonitorHandler( WebHandler ):
     # groupProperty = credentials.getProperties(group)
     if user == "Anonymous":
       callback["owner"] = [["Insufficient rights"]]
-    elif 'NormalUser' in  sData['user']['properties']:
-      owner = [[user]]
-      callback["owner"] = owner
     else:
       result = yield self.threadTask( RPC.getOwners )
       if result["OK"]:
@@ -199,6 +196,9 @@ class JobMonitorHandler( WebHandler ):
             owner.append( [str( i )] )
         else:
           owner = [["Nothing to display"]]
+      elif 'NormalUser' in  sData['user']['properties']:
+        owner = [[user]]
+        callback["owner"] = owner
       else:
           gLogger.error( "RPC.getOwners() return error: %s" % result["Message"] )
           owner = [["Error happened on service side"]]
