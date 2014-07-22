@@ -214,7 +214,17 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
 
                     var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
 
+                    // we have to get the parent node.
+                    var parentNodeName = item.parentNode.data.text;
+
+                    // we have to know the type of the desktop: presenterView or
+                    // tabView
+                    var view = item.parentNode.data.view;
+
+                    var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
+
                     if (activeDesktop) {
+                      GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
                       var panel = activeDesktop.getPanel(item.data.stateToLoad);
                       if (panel) {
                         // we have to activate the panel
@@ -231,7 +241,17 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                       }
 
                     } else {
-                      GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.desktop, item.data.view);
+                      // we have to know the type of the desktop: presenterView
+                      // or tabView
+                      var view = item.parentNode.data.view;
+
+                      //When the application is in the Default desktop then the desktop variable is empty.
+                      //We have to use the name of the parent node...
+                      var desktopName = item.data.desktop;
+                      if (item.data.desktop == "") {
+                        desktopName = item.parentNode.data.text;
+                      }
+                      GLOBAL.APP.MAIN_VIEW.createDesktopTab(desktopName, view);
                       var cbLoadActiveTab = function(oTab) {
                         oTab.loadData();
                       };
@@ -239,28 +259,26 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     }
 
                   }
-                  
-                  /*var cbSetActiveTab = null;
-                  if (activeDesktop) {
-                    cbSetActiveTab = function(oTab) {
-                      if (activeDesktop.view == 'tabView') {
-                        activeDesktop.setActiveTab(oTab);
-                        GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
-                        GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
-                      }
-                    };
-                  } else {
-                    cbSetActiveTab = function(oTab) {
-                      oTab.loadData();
-                      if (activeDesktop) {
-                        GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title, item);
-                      }
-                      GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application, "application", item.data.stateToLoad);
-                    };
-                  }
-                  GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
 
-                  }*/
+                  /*
+                   * var cbSetActiveTab = null; if (activeDesktop) {
+                   * cbSetActiveTab = function(oTab) { if (activeDesktop.view ==
+                   * 'tabView') { activeDesktop.setActiveTab(oTab);
+                   * GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title,
+                   * item);
+                   * GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application,
+                   * "application", item.data.stateToLoad); } }; } else {
+                   * cbSetActiveTab = function(oTab) { oTab.loadData(); if
+                   * (activeDesktop) {
+                   * GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title,
+                   * item); }
+                   * GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application,
+                   * "application", item.data.stateToLoad); }; }
+                   * GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type,
+                   * item.data.application, item.data, activeDesktop,
+                   * cbSetActiveTab);
+                   *  }
+                   */
                 },
                 beforeitemmove : function(node, oldParent, newParent, index, eOpts) {
                   if (oldParent.getData().text != newParent.getData().text) {

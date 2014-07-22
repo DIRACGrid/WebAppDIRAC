@@ -135,7 +135,10 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
        */
       loadState : function(oData) {
         var me = this;
-        me.columnWidth = oData.columnWidth;
+
+        if (oData.columnWidth) {
+          me.columnWidth = oData.columnWidth;
+        }
         me.setColumnWidth(me.columnWidth);
 
         if (oData.refreshCycle) {
