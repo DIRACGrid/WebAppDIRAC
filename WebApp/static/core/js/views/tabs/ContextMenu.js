@@ -28,13 +28,13 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                       var me = this;
 
                       if (me.oSelectedMenuItem.data.type == 'desktop') {
-                        
+
                         GLOBAL.APP.SM.oprPublishState('desktop', me.oSelectedMenuItem.data.text);
 
                       } else {
-                        
+
                         GLOBAL.APP.SM.oprPublishState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text);
-                      
+
                       }
 
                     },
@@ -250,7 +250,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                       }
 
                     }
-                  }, {
+                  },{
                     text : 'Delete',
                     iconCls : "dirac-icon-delete",
                     value : 7,
