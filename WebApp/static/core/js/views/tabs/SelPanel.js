@@ -316,7 +316,6 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     } else {
                       return false;
                     }
-
                   }
                 }
               }
