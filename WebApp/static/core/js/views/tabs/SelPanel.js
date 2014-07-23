@@ -204,10 +204,12 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                       GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
 
                     } else {
-                      var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
+                      var parentNodeName = (item.data.text == 'Default') ? 'Default' : item.parentNode.data.text;
+                      var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
                       if (activeDesktop == null) {
                         GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view);
                       }
+                      GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
                       GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application, activeDesktop);
                     }
                   } else {// check the existence of teh desktops
