@@ -192,25 +192,52 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                   if (item.data.type == "tabView" || item.data.type == "presenterView") {
                     if (item.data.isShared == true) {
                       if (item.data.stateType == 'desktop') {
+                        // the desktop is a shared desktop
 
-                        GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.stateToLoad, item.data.view);
-                        GLOBAL.APP.MAIN_VIEW._state_related_url.push(item.data.stateToLoad);
+                        var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(item.data.stateToLoad);
+                        if (activeDesktop == null) {
+                          GLOBAL.APP.MAIN_VIEW._state_related_url.push(item.data.stateToLoad);
+                          GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.stateToLoad, item.data.view);
+                          GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
+                        } else {
+                          GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
+                        }
+
                       } else {
+                        // it is an application and it is loaded to Default
+                        // desktop...
                         var stateUrl = item.data.application + ":" + item.data.stateToLoad;
                         if (!Ext.Array.contains(GLOBAL.APP.MAIN_VIEW._default_desktop_state, stateUrl)) {
                           GLOBAL.APP.MAIN_VIEW._default_desktop_state.push(stateUrl);
                         }
+                        var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer("Default");
+                        if (activeDesktop == null) {
+                          GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", item.data.view);
+                          activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer("Default");
+                        }
+                        GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
+                        var applicationTab = activeDesktop.getApplicationTab(item.data.application, item.data.stateToLoad);
+                        if (applicationTab) {
+                          // the application already exists
+                          activeDesktop.setActiveTab(applicationTab)
+                        } else {
+                          // we have to load the application
+                          GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
+                        }
+
                       }
-                      GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
+
+                      GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                     } else {
                       var parentNodeName = (item.data.text == 'Default') ? 'Default' : item.parentNode.data.text;
                       var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
                       if (activeDesktop == null) {
                         GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view);
+                        GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application, activeDesktop);
                       }
                       GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
-                      GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application, activeDesktop);
+
                     }
                   } else {// check the existence of teh desktops
 
@@ -283,10 +310,10 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                       newDesktopName = newParent.getData().text;
                     }
 
-                    //we have to close the application
+                    // we have to close the application
                     if (!GLOBAL.APP.MAIN_VIEW.isTabOpen(oldDesktopName, tabName)) {
                       GLOBAL.APP.MAIN_VIEW.moveApplication(tabName, moduleName, oldDesktopName, newDesktopName);
-                    }else{
+                    } else {
                       return false;
                     }
 

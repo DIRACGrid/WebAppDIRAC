@@ -285,6 +285,17 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                   });
             });
         return states;
+      },
+      getApplicationTab : function(appClassName, stateName) {
+        var me = this;
+        var panel = null;
+        me.items.each(function(panelObj, value, length) {
+              if (panelObj.appClassName == appClassName && panelObj.currentState == stateName) {
+                panel = panelObj;
+                return;
+              }
+            });
+        return panel;
       }
 
     });
