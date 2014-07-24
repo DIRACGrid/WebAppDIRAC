@@ -234,6 +234,8 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                       var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
                       if (activeDesktop == null) {
                         GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view);
+                      }
+                      if (activeDesktop == null || item.data.text == 'All') {
                         GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application, activeDesktop);
                       }
                       GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
