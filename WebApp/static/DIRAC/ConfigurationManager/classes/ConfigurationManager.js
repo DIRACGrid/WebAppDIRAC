@@ -882,15 +882,26 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 		var me = this;
 
 		var oWindow = me.getContainer().createChildWindow("Configuration As Text", false, 700, 500);
-
-    var oTextArea = new Ext.create('Ext.form.field.TextArea', {
+    //TODO: use the commented lines when it works
+    /*var oTextArea = new Ext.create('Ext.form.field.TextArea', {
 			value : sTextToShow,
 			cls : "cm-textbox-help-window",
       height : 700,
-      width : 500
-
-		});
-        
+      width : 500,
+      readOnly : true
+      
+		});*/
+    
+    var oTextArea = new Ext.create('Ext.panel.Panel', {
+      html : "<textarea rows='600' cols='400'>"+sTextToShow + "</textarea>",
+      cls : "cm-textbox-help-window",
+      height : 700,
+      width : 500,
+      readOnly : true,
+      autoScroll : true
+      
+    });
+    
 		oWindow.add(oTextArea);
 		
     me.btnViewConfigAsText.show();
