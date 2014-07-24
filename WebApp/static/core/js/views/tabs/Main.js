@@ -508,8 +508,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
 
         var oFunc = function(iCode, sAppName) {
-          me.loadRightContainer.hide();
-          me.loadleftContainer.hide();
+          if (me.loadRightContainer) {
+            me.loadRightContainer.hide();
+          }
+          if (me.loadleftContainer) {
+            me.loadleftContainer.hide();
+          }
           me.createDesktopTree(rootNode);
         };
 
@@ -2011,7 +2015,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           node.removeChild(deleteNode);
         }
       },
-      moveApplication : function(applicationName, module, oldDesktopName, newDesktopName){
+      moveApplication : function(applicationName, module, oldDesktopName, newDesktopName) {
         GLOBAL.APP.MAIN_VIEW.SM.moveAppState(applicationName, module, oldDesktopName, newDesktopName);
       },
       isTabOpen : function(desktopName, tabName) {
@@ -2027,11 +2031,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           if (desktops) { // if the desktop is active
             var tab = desktops.getPanel(tabName);
             if (tab) { // if the windows is open.
-              Ext.dirac.system_info.msg("Error", tabName+" is in use on the " +  desktopName +". Please close it before move");
+              Ext.dirac.system_info.msg("Error", tabName + " is in use on the " + desktopName + ". Please close it before move");
               return true
             }
           }
-        } 
+        }
         return false;
       }
 
