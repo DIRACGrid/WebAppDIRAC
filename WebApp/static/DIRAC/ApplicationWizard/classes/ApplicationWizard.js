@@ -133,7 +133,9 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
 
         me.leftPanel.addDocked(leftPanelButtons);
 
-        me.presenterView = Ext.create("DIRAC.ApplicationWizard.classes.Presenter");
+        me.presenterView = Ext.create("DIRAC.ApplicationWizard.classes.Presenter", {
+              parent : me
+            });
 
         me.add([me.leftPanel, me.presenterView]);
       }

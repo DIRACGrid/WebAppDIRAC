@@ -165,7 +165,7 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
                 for (i = 1; i < panel.maxColumns; i++) {
                   var item = new Ext.menu.CheckItem({
                         value : i,// ??? maybe there is a way to get the
-                                  // position
+                        // position
                         // of the item in a container??
                         checked : (i == panel.columnWidth) ? true : false,
                         checkHandler : function(item, checked) {
@@ -239,10 +239,29 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
         if (el) {
           el.on('click', function(e, t, eOpts, me) {
                 var me = this;
+                isDoubleClickEvent = false;
+                var singeClickAction = function() {
+                  if (!isDoubleClickEvent) {
+                    // We have to make a difference between a click and double
+                    // click.
+                    var img = me.getImage(t.id);
+                    if (img) {
+                      me.fullSizeImage(img);
+                    }
+
+                  }
+                }
+                setTimeout(singeClickAction, 500);
+
+              }, this);
+          el.on('dblclick', function(e, t, eOpts, me) {
+                var me = this;
+                isDoubleClickEvent = true;
                 var img = me.getImage(t.id);
                 if (img) {
                   me.selectImage(img);
                   var oParams = img.plotParams;
+                  me.parent.__loadSelectionData(oParams);
                 }
 
               }, this);
@@ -274,17 +293,13 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
                     })
                 contextMenu.showAt(e.getXY());
               }, this);
-          el.on('dblclick', function(e, t, eOpts) {
-                var me = this;
-                console.log(me);
-                GLOBAL.APP.MAIN_VIEW.getRightContainer().openApplication(t.id);
-              }, this);
         } else {
           alert('Cannot add click event to the image!');
         }
       },
       unselectImage : function(img) {
         if (img) {
+          img.setBorder(0);
           img.getEl().fadeIn({
                 opacity : 100
               });// , duration: 2000});
@@ -294,7 +309,11 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
       selectImage : function(img) {
         var me = this;
         if (img) {
-          img.getEl().frame("#ff0000", 2);
+          img.el.applyStyles({
+                borderColor : 'red',
+                borderStyle : 'solid'
+              });
+          img.setBorder(2);
           if (img.selected) {
             img.getEl().fadeIn({
                   opacity : 100

@@ -55,7 +55,8 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
               region : 'center',
               // minWidth : 300,
               // title : name,
-              closable : false
+              closable : false,
+              parent : me
             });
         Ext.apply(me, {
               items : [me.presenter]
@@ -172,6 +173,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
                 layout : 'column',
                 loadedObjectType : "image",
                 columnWidth : width,
+                plotParams : images[i],
                 src : images[i],
                 listeners : {
                   render : function() {
@@ -220,6 +222,17 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
 
         me.presenter.remove(panel);
 
+      },
+      __loadSelectionData : function(link) {
+        var me = this;
+        var data = {
+          "leftMenu" : {
+            "imageUrl" : link,
+            "pageUrl" : ""
+          }
+        };
+
+        me.parent.leftPanel.loadState(data);
       }
 
     });
