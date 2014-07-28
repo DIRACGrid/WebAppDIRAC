@@ -23,12 +23,14 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
                 // it is an image
                 result.data.push({
                       src : item.src,
+                      title : item.title,
                       loadedObjectType : item.loadedObjectType
                     });
 
               } else {
                 result.data.push({
                       link : item.linkToLoad,
+                      title : item.title,
                       loadedObjectType : item.loadedObjectType
                     });
               }
@@ -43,9 +45,17 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
         me.presenter.loadState(states);
         for (var i = 0; i < states.data.length; i++) {
           if (states.data[i].loadedObjectType == 'image') {
-            me.addImages([states.data[i].src]);
+            var data = {
+              src : states.data[i].src,
+              title : states.data[i].title
+            };
+            me.addImages([data]);
           } else {
-            me.addLinks([states.data[i].link]);
+            var data = {
+              link : states.data[i].link,
+              title : states.data[i].title
+            };
+            me.addLinks([data]);
           }
         }
       },
@@ -78,9 +88,12 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
         for (var i = 0; i < links.length; i++) {
 
           var config = {
-            setupData : {},
+            setupData : {
+              text : links[i].title
+            },
             loadedObjectType : "link",
-            linkToLoad : links[i],
+            plotParams : links[i],
+            linkToLoad : links[i].link,
             listeners : {
               beforeclose : function(panel, eOpts) {
 
@@ -174,7 +187,8 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
                 loadedObjectType : "image",
                 columnWidth : width,
                 plotParams : images[i],
-                src : images[i],
+                title : images[i].title,
+                src : images[i].src,
                 listeners : {
                   render : function() {
                     var me = this;
@@ -223,15 +237,13 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
         me.presenter.remove(panel);
 
       },
-      __loadSelectionData : function(link) {
+      __loadSelectionData : function(plotParams) {
         var me = this;
         var data = {
-          "leftMenu" : {
-            "imageUrl" : link,
-            "pageUrl" : ""
-          }
+          "leftMenu" : {}
         };
 
+        Ext.apply(data.leftMenu, plotParams);
         me.parent.leftPanel.loadState(data);
       }
 

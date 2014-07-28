@@ -6,6 +6,7 @@ Ext.define('Ext.dirac.utils.DiracTextField', {
       fieldLabel : "",
       labelAlign : 'top',
       anchor : "100%",
+      canDisable : true,
 
       validator : function(value) {
         var me = this;

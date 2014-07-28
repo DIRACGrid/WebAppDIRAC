@@ -386,9 +386,17 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
         }
         if (time == -1) {
           me.items.each(function(value, index) {
-                var src = value.src.split('&nocache')[0];
-                src += "&nocache=" + (new Date()).getTime();
-                value.setSrc(src);
+                if (value.src) {
+
+                  if (value.src.search("&nocache") != -1) {
+                    var src = value.src.split('&nocache')[0];
+
+                    src += "&nocache=" + (new Date()).getTime();
+                  } else {
+                    src = value.src;
+                  }
+                  value.setSrc(src);
+                }
               });
         } else if (time == 0) {
           me.items.each(function(value, index) {
@@ -398,9 +406,18 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
           me.items.each(function(value, index) {
                 clearInterval(value.refreshTimeout);
                 value.refreshTimeout = setInterval(function() {
-                      var src = value.src.split('&nocache')[0];
-                      src += "&nocache=" + (new Date()).getTime();
-                      value.setSrc(src);
+                      if (value.src) {
+
+                        if (value.src.search("&nocache") != -1) {
+
+                          var src = value.src.split('&nocache')[0];
+                          src += "&nocache=" + (new Date()).getTime();
+                        } else {
+                          src = value.src;
+                        }
+                        value.setSrc(src);
+
+                      }
                     }, time);
               });
 
@@ -445,5 +462,26 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
                   });
             });
         return states;
+      },
+      replaceImg : function(oldImg, newImg) {
+        var me = this;
+        var index = me.items.findIndex('id', oldImg.id);
+        if (index != -1) {
+          // me.unselectImage(me.items.getAt(index));
+          me.remove(me.items.getAt(index));
+          delete oldImg;
+          /* me.addImage(newImg); */
+          delete me.lastClickedImage;
+          me.lastClickedImage = null;
+          me.items.insert(index, newImg);
+          me.doLayout();
+
+          me.addClickEvent(me.items.getAt(index));
+          me.selectImage(me.items.getAt(index));
+
+        } else {
+          Ext.dirac.system_info.msg("Error Notification", 'Please select again the image what you want to modify');
+        }
+
       }
     });

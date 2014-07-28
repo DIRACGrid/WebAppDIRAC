@@ -76,13 +76,20 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
         var me = this;
 
         var textFields = {
-          'pageUrl' : {
+          'link' : {
             "name" : "Page url",
             "type" : "originalText"
           },
-          'imageUrl' : {
+          'src' : {
             "name" : "Image url",
             "type" : "originalText"
+          },
+          'title' : {
+            "name" : "Title",
+            "type" : "originalText",
+            "properties" : {
+              "canDisable" : false
+            }
           }
         };
 
@@ -108,10 +115,27 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
               iconCls : "dirac-icon-submit",
               handler : function() {
                 var urls = me.leftPanel.getSelectionData();
-                var pageUrl = Ext.JSON.decode(urls['pageUrl']);
-                var imageUrl = Ext.JSON.decode(urls['imageUrl']);
-                me.presenterView.addLinks(pageUrl);
-                me.presenterView.addImages(imageUrl);
+                var title = Ext.JSON.decode(urls['title']);
+                if (title.length > 0) {
+                  title = title[0];
+                } else {
+                  title = "";
+                }
+                var plotParams = {};
+                var link = Ext.JSON.decode(urls['link']);
+                if (link && link.length > 0) {
+                  plotParams = {
+                    link : link[0],
+                    title : title
+                  };
+                  me.presenterView.addLinks([plotParams]);
+                } else {
+                  plotParams = {
+                    src : Ext.JSON.decode(urls['src'])[0],
+                    title : title
+                  };
+                  me.presenterView.addImages([plotParams]);
+                }
               },
               scope : me
             });
@@ -130,6 +154,50 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
             });
 
         leftPanelButtons.add(resetButton);
+
+        var applyButton = new Ext.Button({
+              text : 'Apply',
+              tooltip : 'It updates the selected image.',
+              margin : 3,
+              iconCls : "dirac-icon-upload",
+              handler : function() {
+                var urls = me.leftPanel.getSelectionData();
+                var image = null;
+                var image = me.presenterView.presenter.getLastClickedImage();
+                if (image) {
+                  var src = Ext.JSON.decode(urls['src'])[0];
+                  var title = Ext.JSON.decode(urls['title'])[0];
+                  var newImage = Ext.create('DIRAC.ApplicationWizard.classes.Image', {
+                        layout : 'column',
+                        loadedObjectType : "image",
+                        columnWidth :image.columnWidth,
+                        plotParams : {
+                          src : src,
+                          title : title
+                        },
+                        title : title,
+                        src : src,
+                        listeners : {
+                          render : function() {
+                            var me = this;
+                            me.el.on({
+                                  load : function(evt, ele, opts) {
+                                    me.setLoading(false);
+                                  }
+                                });
+                          }
+                        }
+                      });
+
+                  me.presenterView.presenter.replaceImg(image, newImage);
+
+                }
+              },
+              scope : me
+
+            });
+
+        leftPanelButtons.add(applyButton);
 
         me.leftPanel.addDocked(leftPanelButtons);
 
