@@ -508,8 +508,8 @@ class TransformationMonitorHandler(WebHandler):
       if len(type) > 0:
         req['Type'] = type
 
-    if 'transformationGroup' in self.request.arguments:
-      group = list(json.loads(self.request.arguments["transformationGroup"][-1]))
+    if 'group' in self.request.arguments:
+      group = list(json.loads(self.request.arguments["group"][-1]))
       if len(group) > 0:
         req['TransformationGroup'] = group
 
