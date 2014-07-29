@@ -11,6 +11,8 @@ Ext.define('Ext.dirac.utils.DiracTextField', {
       validator : function(value) {
         var me = this;
 
+        if (!me.canDisable)
+          return true;
         if (Ext.util.Format.trim(value) != "") {
           me.scope.disableElements(me);
           return true;
