@@ -162,35 +162,48 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
               iconCls : "dirac-icon-upload",
               handler : function() {
                 var urls = me.leftPanel.getSelectionData();
-                var image = null;
-                var image = me.presenterView.presenter.getLastClickedImage();
-                if (image) {
-                  var src = Ext.JSON.decode(urls['src'])[0];
-                  var title = Ext.JSON.decode(urls['title'])[0];
-                  var newImage = Ext.create('DIRAC.ApplicationWizard.classes.Image', {
-                        layout : 'column',
-                        loadedObjectType : "image",
-                        columnWidth :image.columnWidth,
-                        plotParams : {
+                var link = Ext.JSON.decode(urls['link']);
+                if (link.length > 0) {
+                  link = link[0];
+                  title = Ext.JSON.decode(urls['title'])[0];
+                  me.presenterView.clickedPanel.setTitle(title);
+                  if (me.presenterView.clickedPanel.linkToLoad != link) {
+                    me.presenterView.clickedPanel.linkToLoad = link;
+                    me.presenterView.clickedPanel.items.getAt(0).el.set({'src':link})
+                    
+                  }
+
+                } else {
+                  var image = null;
+                  var image = me.presenterView.presenter.getLastClickedImage();
+                  if (image) {
+                    var src = Ext.JSON.decode(urls['src'])[0];
+                    var title = Ext.JSON.decode(urls['title'])[0];
+                    var newImage = Ext.create('DIRAC.ApplicationWizard.classes.Image', {
+                          layout : 'column',
+                          loadedObjectType : "image",
+                          columnWidth : image.columnWidth,
+                          plotParams : {
+                            src : src,
+                            title : title
+                          },
+                          title : title,
                           src : src,
-                          title : title
-                        },
-                        title : title,
-                        src : src,
-                        listeners : {
-                          render : function() {
-                            var me = this;
-                            me.el.on({
-                                  load : function(evt, ele, opts) {
-                                    me.setLoading(false);
-                                  }
-                                });
+                          listeners : {
+                            render : function() {
+                              var me = this;
+                              me.el.on({
+                                    load : function(evt, ele, opts) {
+                                      me.setLoading(false);
+                                    }
+                                  });
+                            }
                           }
-                        }
-                      });
+                        });
 
-                  me.presenterView.presenter.replaceImg(image, newImage);
+                    me.presenterView.presenter.replaceImg(image, newImage);
 
+                  }
                 }
               },
               scope : me

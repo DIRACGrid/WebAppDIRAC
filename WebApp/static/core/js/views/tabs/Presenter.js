@@ -467,11 +467,11 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
         var me = this;
         var index = me.items.findIndex('id', oldImg.id);
         if (index != -1) {
-          // me.unselectImage(me.items.getAt(index));
+
           me.remove(me.items.getAt(index));
           delete oldImg;
-          /* me.addImage(newImg); */
           delete me.lastClickedImage;
+          
           me.lastClickedImage = null;
           me.items.insert(index, newImg);
           me.doLayout();

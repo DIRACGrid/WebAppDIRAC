@@ -8,6 +8,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
       header : false,
       closable : true,
       autoRender : true,
+      clickedPanel : null,
       layout : {
         type : 'border',
         padding : 2
@@ -95,13 +96,28 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
             plotParams : links[i],
             linkToLoad : links[i].link,
             listeners : {
+
               beforeclose : function(panel, eOpts) {
 
                 activeTab.closeRemoveApplication(panel); // generate a close
                 // event again.
 
                 return false;
+              },
+
+              afterrender : function(panel) {
+                panel.header.el.on('dblclick', function(e, t, eOpts) {
+                      var panel = Ext.getCmp(t.id).up('panel');
+                                          
+                      var data = {
+                        link : panel.linkToLoad,
+                        title : panel.title
+                      };
+                      me.clickedPanel = panel;
+                      me.__loadSelectionData(data);
+                    });
               }
+
             }
           };
           var tab = new Ext.dirac.views.tabs.Panel(config);
