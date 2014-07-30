@@ -683,6 +683,11 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
           //the selection condition.
           oListForGroup.push(['Channel', 'Channel']);
         }
+        
+        if (sValue == 'Job'){
+          oListForGroup.push(['Country', 'Country']);
+          oListForGroup.push(['Grid', 'Grid']);
+        }
 
         var oStore = new Ext.data.ArrayStore({
               fields : ['value', 'text'],
