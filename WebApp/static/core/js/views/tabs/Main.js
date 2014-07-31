@@ -1631,7 +1631,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               // application in
               // the desktop
             }
-            if (activeDesktop) {
+            if (activeDesktop && activeDesktop.isLoaded) {
               var defaultDesktopStateName = activeDesktop.getUrlDescription();
 
               // if there is an active desktop state
