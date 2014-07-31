@@ -839,7 +839,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 setupData : setupData,
                 loadedObjectType : "link",
                 linkToLoad : moduleName
-              }, oTab);
+              }, oTab, cbFunction);
 
         }
         Ext.get("app-dirac-loading").hide();

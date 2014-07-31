@@ -189,7 +189,21 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     return;
                   }
 
-                  if (item.data.type == "tabView" || item.data.type == "presenterView") {
+                  if (item.data.type == 'link') {
+
+                    var cbSetActiveTab = function(oTab) {
+                      if (activeDesktop.view == 'tabView') {
+                        activeDesktop.setActiveTab(oTab);
+                      }
+                    };
+                    var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer("Default");
+                    if (activeDesktop == null) {
+                      GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", item.data.view);
+                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer("Default");
+                    }
+                    GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
+                    
+                  } else if (item.data.type == "tabView" || item.data.type == "presenterView") {
                     if (item.data.isShared == true) {
                       if (item.data.stateType == 'desktop') {
                         // the desktop is a shared desktop
