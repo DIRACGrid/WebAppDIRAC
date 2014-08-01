@@ -645,11 +645,11 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
             var allowedProperties = ["CSAdministrator", "JobAdministrator", "JobMonitor", "UserManager", "Operator", "ProductionManagement"];
             var found = false;
             for (var j = 0; j < allowedProperties.length; j++) { // Only
-                                                                  // powerfull
-                                                                  // users can
-                                                                  // choose the
-                                                                  // User and
-                                                                  // UserGroup
+              // powerfull
+              // users can
+              // choose the
+              // User and
+              // UserGroup
               if (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, allowedProperties[j]) != -1) {
                 found = true;
                 break;
@@ -707,9 +707,9 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
         if (me.__additionalDataLoad != null) {
           me.__additionalDataLoad();
           me.__additionalDataLoad = null;
+        } else {
+          me.advancedPlotTitle.setValue("");
         }
-
-        me.advancedPlotTitle.setValue("");
 
       },
 
