@@ -644,7 +644,12 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
           if ((oSelectionOptions[i][0] == "User") || (oSelectionOptions[i][0] == "UserGroup")) {
             var allowedProperties = ["CSAdministrator", "JobAdministrator", "JobMonitor", "UserManager", "Operator", "ProductionManagement"];
             var found = false;
-            for (var j = 0; j < allowedProperties.length; j++) { //Only powerfull users can choose the User and UserGroup 
+            for (var j = 0; j < allowedProperties.length; j++) { // Only
+                                                                  // powerfull
+                                                                  // users can
+                                                                  // choose the
+                                                                  // User and
+                                                                  // UserGroup
               if (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, allowedProperties[j]) != -1) {
                 found = true;
                 break;
@@ -679,12 +684,12 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
         }
 
         if (sValue == 'DataOperation') {
-          //It has to added afterward as we can not select it from
-          //the selection condition.
+          // It has to added afterward as we can not select it from
+          // the selection condition.
           oListForGroup.push(['Channel', 'Channel']);
         }
-        
-        if (sValue == 'Job'){
+
+        if (sValue == 'Job') {
           oListForGroup.push(['Country', 'Country']);
           oListForGroup.push(['Grid', 'Grid']);
         }
@@ -1224,9 +1229,12 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
 
           me.__additionalDataLoad();
           me.__additionalDataLoad = null;
-        }
 
-        me.cmbDomain.setValue(oParams["_typeName"]);
+        } else {
+
+          me.cmbDomain.setValue(oParams["_typeName"]);
+
+        }
 
       }
 
