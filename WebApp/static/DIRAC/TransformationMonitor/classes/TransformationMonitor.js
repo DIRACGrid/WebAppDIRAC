@@ -175,7 +175,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
           status : "Status",
           agentType : "Agent Type",
           type : "Type",
-          group : "Group",
+          transformationGroup : "Group",
           plugin : "Plugin"
         };
 
@@ -190,7 +190,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
           }
         };
 
-        var map = [["agentType", "agentType"], ["productionType", "type"], ["transformationGroup", "group"], ["plugin", "plugin"], ["prodStatus", "status"]];
+        var map = [["agentType", "agentType"], ["productionType", "type"], ["transformationGroup", "transformationGroup"], ["plugin", "plugin"], ["prodStatus", "status"]];
 
         me.leftPanel = new Ext.create('Ext.dirac.utils.DiracBaseSelector', {
               scope : me,

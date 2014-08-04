@@ -103,6 +103,7 @@ class TransformationMonitorHandler(WebHandler):
     else:
       result = self.__request()
       
+      print "SASAS", result
       result = yield self.threadTask(self.tsClient.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs)
       if not result["OK"]:
         self.finish(json.dumps({"success":"false", "error":result["Message"]}))
@@ -508,8 +509,8 @@ class TransformationMonitorHandler(WebHandler):
       if len(type) > 0:
         req['Type'] = type
 
-    if 'group' in self.request.arguments:
-      group = list(json.loads(self.request.arguments["group"][-1]))
+    if 'transformationGroup' in self.request.arguments:
+      group = list(json.loads(self.request.arguments["transformationGroup"][-1]))
       if len(group) > 0:
         req['TransformationGroup'] = group
 
