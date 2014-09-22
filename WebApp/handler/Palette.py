@@ -103,9 +103,11 @@ class Palette:
       return self.generateColor(label)
 
   def generateColor(self, label):
-
+    
+    if label == None: label = str(label)
+  
     myMD5 = md5.md5()
-    myMD5.update(label)
+    myMD5.update(str(label))
     hexstring = myMD5.hexdigest()
     color = "#" + hexstring[:6]
     return color
