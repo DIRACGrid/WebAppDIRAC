@@ -8,6 +8,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
       header : false,
       closable : true,
       autoRender : true,
+      clickedPanel : null,
       layout : {
         type : 'border',
         padding : 2
@@ -23,12 +24,14 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
                 // it is an image
                 result.data.push({
                       src : item.src,
+                      title : item.title,
                       loadedObjectType : item.loadedObjectType
                     });
 
               } else {
                 result.data.push({
                       link : item.linkToLoad,
+                      title : item.title,
                       loadedObjectType : item.loadedObjectType
                     });
               }
@@ -43,9 +46,17 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
         me.presenter.loadState(states);
         for (var i = 0; i < states.data.length; i++) {
           if (states.data[i].loadedObjectType == 'image') {
-            me.addImages([states.data[i].src]);
+            var data = {
+              src : states.data[i].src,
+              title : states.data[i].title
+            };
+            me.addImages([data]);
           } else {
-            me.addLinks([states.data[i].link]);
+            var data = {
+              link : states.data[i].link,
+              title : states.data[i].title
+            };
+            me.addLinks([data]);
           }
         }
       },
@@ -55,7 +66,8 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
               region : 'center',
               // minWidth : 300,
               // title : name,
-              closable : false
+              closable : false,
+              parent : me
             });
         Ext.apply(me, {
               items : [me.presenter]
@@ -77,17 +89,35 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
         for (var i = 0; i < links.length; i++) {
 
           var config = {
-            setupData : {},
+            setupData : {
+              text : links[i].title
+            },
             loadedObjectType : "link",
-            linkToLoad : links[i],
+            plotParams : links[i],
+            linkToLoad : links[i].link,
             listeners : {
+
               beforeclose : function(panel, eOpts) {
 
                 activeTab.closeRemoveApplication(panel); // generate a close
                 // event again.
 
                 return false;
+              },
+
+              afterrender : function(panel) {
+                panel.header.el.on('dblclick', function(e, t, eOpts) {
+                      var panel = Ext.getCmp(t.id).up('panel');
+                                          
+                      var data = {
+                        link : panel.linkToLoad,
+                        title : panel.title
+                      };
+                      me.clickedPanel = panel;
+                      me.__loadSelectionData(data);
+                    });
               }
+
             }
           };
           var tab = new Ext.dirac.views.tabs.Panel(config);
@@ -172,7 +202,9 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
                 layout : 'column',
                 loadedObjectType : "image",
                 columnWidth : width,
-                src : images[i],
+                plotParams : images[i],
+                title : images[i].title,
+                src : images[i].src,
                 listeners : {
                   render : function() {
                     var me = this;
@@ -220,6 +252,15 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
 
         me.presenter.remove(panel);
 
+      },
+      __loadSelectionData : function(plotParams) {
+        var me = this;
+        var data = {
+          "leftMenu" : {}
+        };
+
+        Ext.apply(data.leftMenu, plotParams);
+        me.parent.leftPanel.loadState(data);
       }
 
     });

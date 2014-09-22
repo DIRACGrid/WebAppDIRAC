@@ -10,7 +10,7 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
       columnWidth : 3,
       maxColumns : 6,
       refreshCycle : 0,
-      collapsible : true,
+      collapsible : false,
       tabheader : false,
       layout : 'column',
       /*
@@ -27,112 +27,6 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
           me.setApplicationsHeader(me.tabheader);
         }
       },
-      tools : [{
-            type : 'refresh',
-            tooltip : 'Setting the refresh period',
-            callback : function(panel, tool) {
-              delete panel.refreshMenu;
-              panel.refreshMenu = null;
-              panel.refreshMenu = Ext.create('Ext.menu.Menu', {
-                    listeners : {
-                      click : function(menu, menuItem, e, eOpts) {
-                        panel.setRefreshCycle(menuItem.value);
-                      }
-                    }
-                  });
-
-              for (var i in panel.menuItems) {
-                var item = null;
-                if (panel.menuItems[i] == '-1') {
-                  item = Ext.create('Ext.menu.Item', {
-                        text : i,
-                        value : panel.menuItems[i]
-                      });
-                } else {
-                  item = new Ext.menu.CheckItem({
-                        checked : (panel.menuItems[i] == panel.refreshCycle) ? true : false,
-                        group : 'column',
-                        value : panel.menuItems[i],
-                        text : i
-                      });
-                }
-                panel.refreshMenu.add(item);
-              }
-              panel.refreshMenu.showBy(tool.el);
-            }
-          }, {
-            'type' : 'gear',
-            tooltip : 'Change the column width',
-            scope : this,
-            callback : function(panel, tool) {
-              var width = 99;
-              delete panel.columnMenu;
-              delete panel.headerMenu;
-              panel.columnMenu = null;
-              panel.headerMenu = null;
-              panel.columnMenu = new Ext.menu.Menu();
-              for (i = 1; i < panel.maxColumns; i++) {
-                var item = new Ext.menu.CheckItem({
-                      value : i,// ??? maybe there is a way to get the position
-                      // of the item in a container??
-                      checked : (i == panel.columnWidth) ? true : false,
-                      checkHandler : function(item, checked) {
-                        if (checked) {
-                          panel.setColumnWidth(item.value);
-                        }
-                      },
-                      group : 'column',
-                      text : (i > 1) ? i + ' Columns' : i + ' Column'
-                    });
-                panel.columnMenu.add(item);
-              }
-
-              panel.headerMenu = Ext.menu.Menu({
-                    items : [{
-                          xtype : 'menucheckitem',
-                          text : "Disable",
-                          checked : (panel.tabheader == false ? true : false),
-                          group : 'columnHeader',
-                          value : 'menuDisable',
-                          checkHandler : function(item, checked) {
-                            if (checked) {
-                              panel.tabheader = false;
-                              panel.setApplicationsHeader(false);
-                            }
-                          }
-                        }, {
-                          xtype : 'menucheckitem',
-                          text : "Enable",
-                          group : 'columnHeader',
-                          value : 'menuEnable',
-                          checked : (panel.tabheader == true ? true : true),
-                          checkHandler : function(item, checked) {
-                            if (checked) {
-                              panel.tabheader = true;
-                              panel.setApplicationsHeader(true);
-                            }
-                          }
-                        }]
-                  });
-              panel.menu = new Ext.menu.Menu({
-                    items : [{
-                          text : 'Collumns',
-                          menu : panel.columnMenu
-                        }, {
-                          text : 'Header',
-                          menu : panel.headerMenu
-                        }]
-                  });
-
-              panel.menu.showBy(tool.el);
-            }
-          }],// it hides the header of the Presenter page!!!
-      /*
-       * listeners : { render: function (oElem, eOpts) { var me = this;
-       * me.header.hide(); me.mon(oElem.el, 'mouseover', function (event, html,
-       * eOpts) { me.header.show(); }, me); me.mon(oElem.el, 'mouseout',
-       * function (event, html, eOpts) { me.header.hide(); }, me); } },
-       */
       loadState : function(oData) {
         var me = this;
 
@@ -197,6 +91,135 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
           'Each hour' : 3600000,
           'Each day' : 86400000
         };
+        me.autoRefresh = Ext.create('Ext.menu.Menu', {
+              listeners : {
+                click : function(menu, menuItem, e, eOpts) {
+                  me.setRefreshCycle(menuItem.value);
+                }
+              }
+            });
+
+        for (var i in me.menuItems) {
+          var item = null;
+          if (me.menuItems[i] == '-1') {
+            item = Ext.create('Ext.menu.Item', {
+                  text : i,
+                  value : me.menuItems[i]
+                });
+          } else {
+            item = new Ext.menu.CheckItem({
+                  checked : (me.menuItems[i] == me.refreshCycle) ? true : false,
+                  group : 'column',
+                  value : me.menuItems[i],
+                  text : i
+                });
+          }
+          me.autoRefresh.add(item);
+        }
+
+        me.refreshTool = Ext.create("Ext.panel.Tool", {
+              type : 'refresh',
+              iconCls : Ext.baseCSSPrefix + 'tbar-loading',
+              tooltip : 'Setting the refresh period',
+              handler : function() {
+                if (!me.refreshMenu) {
+                  // when the button is not pressed very long...
+                  me.setRefreshCycle(-1);
+                }
+              }
+            });
+        me.refreshTool.on('render', function(oElem, eOpts) {
+              me.mon(oElem.el, 'mouseup', function(event, html, eOpts) {
+                    me.mouseup = true;
+                  }, me);
+              me.mon(oElem.el, 'mousedown', function(e, t, eOpts) {
+                    me.mouseup = false;
+                    Ext.defer(function() {
+                          if (me.mouseup == false) {
+                            // show menu
+                            me.autoRefresh.showBy(oElem.el);
+                            me.refreshMenu = true;
+                          } else {
+                            me.mouseup = false;
+                          }
+                        }, 1500, me);
+                  }, me);
+            });
+        me.refreshTool.on('click', function() {
+              if (me.refreshMenu) {
+                me.refreshMenu = false;
+                return false;
+              }
+            });
+
+        me.configurationTool = Ext.create("Ext.panel.Tool", {
+              'type' : 'gear',
+              tooltip : 'Change the column width',
+              scope : this,
+              callback : function(panel, tool) {
+                var width = 99;
+                delete panel.headerMenu;
+                panel.columnMenu = null;
+                panel.headerMenu = null;
+                panel.columnMenu = new Ext.menu.Menu();
+                for (i = 1; i < panel.maxColumns; i++) {
+                  var item = new Ext.menu.CheckItem({
+                        value : i,// ??? maybe there is a way to get the
+                        // position
+                        // of the item in a container??
+                        checked : (i == panel.columnWidth) ? true : false,
+                        checkHandler : function(item, checked) {
+                          if (checked) {
+                            panel.setColumnWidth(item.value);
+                          }
+                        },
+                        group : 'column',
+                        text : (i > 1) ? i + ' Columns' : i + ' Column'
+                      });
+                  panel.columnMenu.add(item);
+                }
+
+                panel.headerMenu = Ext.menu.Menu({
+                      items : [{
+                            xtype : 'menucheckitem',
+                            text : "Disable",
+                            checked : (panel.tabheader == false ? true : false),
+                            group : 'columnHeader',
+                            value : 'menuDisable',
+                            checkHandler : function(item, checked) {
+                              if (checked) {
+                                panel.tabheader = false;
+                                panel.setApplicationsHeader(false);
+                              }
+                            }
+                          }, {
+                            xtype : 'menucheckitem',
+                            text : "Enable",
+                            group : 'columnHeader',
+                            value : 'menuEnable',
+                            checked : (panel.tabheader == true ? true : true),
+                            checkHandler : function(item, checked) {
+                              if (checked) {
+                                panel.tabheader = true;
+                                panel.setApplicationsHeader(true);
+                              }
+                            }
+                          }]
+                    });
+                panel.menu = new Ext.menu.Menu({
+                      items : [{
+                            text : 'Collumns',
+                            menu : panel.columnMenu
+                          }, {
+                            text : 'Header',
+                            menu : panel.headerMenu
+                          }]
+                    });
+
+                panel.menu.showBy(tool.el);
+              }
+            });
+        me.tools = [me.refreshTool, me.configurationTool];
         me.callParent(arguments);
       },
       addImage : function(img) {
@@ -216,10 +239,29 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
         if (el) {
           el.on('click', function(e, t, eOpts, me) {
                 var me = this;
+                isDoubleClickEvent = false;
+                var singeClickAction = function() {
+                  if (!isDoubleClickEvent) {
+                    // We have to make a difference between a click and double
+                    // click.
+                    var img = me.getImage(t.id);
+                    if (img) {
+                      me.fullSizeImage(img);
+                    }
+
+                  }
+                }
+                setTimeout(singeClickAction, 500);
+
+              }, this);
+          el.on('dblclick', function(e, t, eOpts, me) {
+                var me = this;
+                isDoubleClickEvent = true;
                 var img = me.getImage(t.id);
                 if (img) {
                   me.selectImage(img);
                   var oParams = img.plotParams;
+                  me.parent.__loadSelectionData(oParams);
                 }
 
               }, this);
@@ -251,17 +293,13 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
                     })
                 contextMenu.showAt(e.getXY());
               }, this);
-          el.on('dblclick', function(e, t, eOpts) {
-                var me = this;
-                console.log(me);
-                GLOBAL.APP.MAIN_VIEW.getRightContainer().openApplication(t.id);
-              }, this);
         } else {
           alert('Cannot add click event to the image!');
         }
       },
       unselectImage : function(img) {
         if (img) {
+          img.setBorder(0);
           img.getEl().fadeIn({
                 opacity : 100
               });// , duration: 2000});
@@ -271,7 +309,11 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
       selectImage : function(img) {
         var me = this;
         if (img) {
-          img.getEl().frame("#ff0000", 2);
+          img.el.applyStyles({
+                borderColor : 'red',
+                borderStyle : 'solid'
+              });
+          img.setBorder(2);
           if (img.selected) {
             img.getEl().fadeIn({
                   opacity : 100
@@ -344,9 +386,17 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
         }
         if (time == -1) {
           me.items.each(function(value, index) {
-                var src = value.src.split('&nocache')[0];
-                src += "&nocache=" + (new Date()).getTime();
-                value.setSrc(src);
+                if (value.src) {
+
+                  if (value.src.search("&nocache") != -1) {
+                    var src = value.src.split('&nocache')[0];
+
+                    src += "&nocache=" + (new Date()).getTime();
+                  } else {
+                    src = value.src;
+                  }
+                  value.setSrc(src);
+                }
               });
         } else if (time == 0) {
           me.items.each(function(value, index) {
@@ -356,9 +406,18 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
           me.items.each(function(value, index) {
                 clearInterval(value.refreshTimeout);
                 value.refreshTimeout = setInterval(function() {
-                      var src = value.src.split('&nocache')[0];
-                      src += "&nocache=" + (new Date()).getTime();
-                      value.setSrc(src);
+                      if (value.src) {
+
+                        if (value.src.search("&nocache") != -1) {
+
+                          var src = value.src.split('&nocache')[0];
+                          src += "&nocache=" + (new Date()).getTime();
+                        } else {
+                          src = value.src;
+                        }
+                        value.setSrc(src);
+
+                      }
                     }, time);
               });
 
@@ -403,5 +462,26 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
                   });
             });
         return states;
+      },
+      replaceImg : function(oldImg, newImg) {
+        var me = this;
+        var index = me.items.findIndex('id', oldImg.id);
+        if (index != -1) {
+
+          me.remove(me.items.getAt(index));
+          delete oldImg;
+          delete me.lastClickedImage;
+          
+          me.lastClickedImage = null;
+          me.items.insert(index, newImg);
+          me.doLayout();
+
+          me.addClickEvent(me.items.getAt(index));
+          me.selectImage(me.items.getAt(index));
+
+        } else {
+          Ext.dirac.system_info.msg("Error Notification", 'Please select again the image what you want to modify');
+        }
+
       }
     });

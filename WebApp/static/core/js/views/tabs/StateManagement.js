@@ -996,7 +996,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
         var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer();
         if (appContainer) {
           var tab = appContainer.getTabFromApplicationContainer(desktop);
-          if (tab.isLoaded) {
+          if (tab && tab.isLoaded) {
             var appTab = tab.getPanel(state);
             if (appTab && appTab.isLoaded) {
               if (desktop == 'Default') {
@@ -1300,5 +1300,50 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
         me.saveWindow.show();
         me.txtStateName.focus();
 
+      },
+      moveAppState : function(stateName, moduleName, fromDesktopName, toDesktopName) {
+        var me = this;
+        var data = {};
+
+        if (fromDesktopName == 'Default') {
+          Ext.apply(data, {
+                data : GLOBAL.APP.SM.getStateData("application", moduleName, stateName),
+                currentState : stateName,
+                module : moduleName,
+                loadedObjectType : "app"
+              });
+          me.addStateToDesktop(toDesktopName, data, function() {
+                me.deleteState(moduleName, stateName, function() {
+                    });
+              });
+        } else {
+          var fromDsktop = GLOBAL.APP.SM.getStateData("application", "desktop", fromDesktopName);
+          if (fromDsktop != -1) {
+            for (var i = 0; i < fromDsktop.data.length; i++) {
+              if (fromDsktop.data[i].module == moduleName && fromDsktop.data[i].currentState == stateName) {
+                data = fromDsktop.data[i];
+                break;
+              }
+            }
+          }
+          me.addStateToDesktop(toDesktopName, data, function() {
+                me.deleteStateFromDesktop(fromDesktop, moduleName, stateName, function() {
+                    });
+              });
+        }
+
+      },
+      addStateToDesktop : function(desktopName, data, cbAfterSave) {
+        var me = this;
+
+        if (desktopName == 'Default') {
+          GLOBAL.APP.SM.oprSendDataForSave("application", data.data, data.module, data.currentState, cbAfterSave);
+        } else {
+          var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktopName);
+          desktops.data.push(data);
+          me.oprSendDataForSave("desktop", desktops, "application", desktopName, cbAfterSave);
+        }
+
       }
+
     });

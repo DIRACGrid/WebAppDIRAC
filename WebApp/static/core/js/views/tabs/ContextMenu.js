@@ -28,13 +28,13 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                       var me = this;
 
                       if (me.oSelectedMenuItem.data.type == 'desktop') {
-                        
+
                         GLOBAL.APP.SM.oprPublishState('desktop', me.oSelectedMenuItem.data.text);
 
                       } else {
-                        
+
                         GLOBAL.APP.SM.oprPublishState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text);
-                      
+
                       }
 
                     },
@@ -93,9 +93,10 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     iconCls : "dirac-icon-private",
                     value : 2,
                     handler : function() {
+                      
                       var me = this;
                       var app = 'desktop';
-                      console.log(me.oSelectedMenuItem.data);
+                      
                       if (me.oSelectedMenuItem.data.type == 'app') {
                         app = me.oSelectedMenuItem.data.application;
                       }
@@ -250,7 +251,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                       }
 
                     }
-                  }, {
+                  },{
                     text : 'Delete',
                     iconCls : "dirac-icon-delete",
                     value : 7,

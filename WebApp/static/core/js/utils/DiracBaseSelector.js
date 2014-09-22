@@ -213,6 +213,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
                     type : oConfig.textFields[field]["type"]
                   });
             }
+            if (oConfig.textFields[field]["properties"]) {
+              Ext.apply(textFieldWidget, oConfig.textFields[field]["properties"]);
+            }
             me.textFields[field] = textFieldWidget;
           }
         }
@@ -342,8 +345,8 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var me = this;
 
         var bToReload = false;
-        
-        var item  = null;
+
+        var item = null;
         // For the time span searching sub-panel
         if (me.selectorMenu) {
           item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
@@ -816,7 +819,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
 
         for (var field in me.textFields) {
-          if (me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
+          if (me.textFields[field].canDisable && me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
             me.textFields[field].disable();
           }
         }

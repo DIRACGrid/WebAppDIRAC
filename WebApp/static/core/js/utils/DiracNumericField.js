@@ -6,10 +6,14 @@ Ext.define('Ext.dirac.utils.DiracNumericField', {
       fieldLabel : "",
       labelAlign : 'top',
       anchor : "100%",
+      canDisable : true,
 
       validator : function(value) {
         var me = this;
-
+        
+        if (!me.canDisable)
+          return true;
+          
         if (Ext.util.Format.trim(value) != "") {
           var newValue = "";
           for (var i = 0; i < value.length; i++) {

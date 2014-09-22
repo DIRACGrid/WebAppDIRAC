@@ -106,7 +106,8 @@ Ext.define('DIRAC.PublicStateManager.classes.MenuGrid', {
                     },
                     // Only leaf level tasks may be edited
                     isDisabled : function(view, rowIdx, colIdx, item, record) {
-                      return !record.data.leaf || (record.get('user') == GLOBAL.USER_CREDENTIALS.username);
+                      return !record.data.leaf || (record.get('user') == GLOBAL.USER_CREDENTIALS.username && 
+                      record.get('group') == GLOBAL.USER_CREDENTIALS.group);
                     }
                   }, {
                     text : 'Module',

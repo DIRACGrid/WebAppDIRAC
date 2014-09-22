@@ -103,6 +103,7 @@ class TransformationMonitorHandler(WebHandler):
     else:
       result = self.__request()
       
+      print "SASAS", result
       result = yield self.threadTask(self.tsClient.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs)
       if not result["OK"]:
         self.finish(json.dumps({"success":"false", "error":result["Message"]}))

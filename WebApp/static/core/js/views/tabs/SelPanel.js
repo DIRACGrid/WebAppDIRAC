@@ -185,43 +185,91 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
               listeners : {
                 itemclick : function(record, item, index, e, eOpts) {
 
-                  if ((item.data.type == "Default") || (item.data.text == "All" && item.data.application == "Default" && item.parentNode.childNodes.length < 2)) {
+                  if ((item.data.expandable) || (item.data.type == "Default") || (item.data.text == "All" && item.data.application == "Default" && item.parentNode.childNodes.length < 2)) {
                     return;
                   }
 
-                  if (item.data.type == "tabView" || item.data.type == "presenterView") {
+                  if (item.data.type == 'link') {
+
+                    var cbSetActiveTab = function(oTab) {
+                      if (activeDesktop.view == 'tabView') {
+                        activeDesktop.setActiveTab(oTab);
+                      }
+                    };
+                    var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer("Default");
+                    if (activeDesktop == null) {
+                      GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", item.data.view);
+                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer("Default");
+                    }
+                    GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
+                    
+                  } else if (item.data.type == "tabView" || item.data.type == "presenterView") {
                     if (item.data.isShared == true) {
                       if (item.data.stateType == 'desktop') {
+                        // the desktop is a shared desktop
 
-                        GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.stateToLoad, item.data.view);
-                        GLOBAL.APP.MAIN_VIEW._state_related_url.push(item.data.stateToLoad);
+                        var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(item.data.stateToLoad);
+                        if (activeDesktop == null) {
+                          GLOBAL.APP.MAIN_VIEW._state_related_url.push(item.data.stateToLoad);
+                          GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.stateToLoad, item.data.view);
+                          GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
+                        } else {
+                          GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
+                        }
+
                       } else {
+                        // it is an application and it is loaded to Default
+                        // desktop...
                         var stateUrl = item.data.application + ":" + item.data.stateToLoad;
                         if (!Ext.Array.contains(GLOBAL.APP.MAIN_VIEW._default_desktop_state, stateUrl)) {
                           GLOBAL.APP.MAIN_VIEW._default_desktop_state.push(stateUrl);
                         }
+                        var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer("Default");
+                        if (activeDesktop == null) {
+                          GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", item.data.view);
+                          activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer("Default");
+                        }
+                        GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
+                        var applicationTab = activeDesktop.getApplicationTab(item.data.application, item.data.stateToLoad);
+                        if (applicationTab) {
+                          // the application already exists
+                          activeDesktop.setActiveTab(applicationTab)
+                        } else {
+                          // we have to load the application
+                          GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
+                        }
+
                       }
-                      GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
+
+                      GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
                     } else {
-                      var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
+                      var parentNodeName = (item.data.text == 'Default') ? 'Default' : item.parentNode.data.text;
+                      var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
                       if (activeDesktop == null) {
                         GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view);
                       }
-                      GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application, activeDesktop);
+                      if (activeDesktop == null || item.data.text == 'All') {
+                        GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application, activeDesktop);
+                      }
+                      GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
+
                     }
                   } else {// check the existence of teh desktops
 
-                    var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
-
                     // we have to get the parent node.
-                    var parentNodeName = item.parentNode.data.text;
+                    var parentNodeName = (item.data.text == 'Default') ? 'Default' : item.parentNode.data.text;
 
                     // we have to know the type of the desktop: presenterView or
                     // tabView
                     var view = item.parentNode.data.view;
+                    var activeDesktop = null;
 
-                    var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
+                    if (parentNodeName == 'Default') {
+                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
+                    } else {
+                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
+                    }
 
                     if (activeDesktop) {
                       GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
@@ -245,11 +293,12 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                       // or tabView
                       var view = item.parentNode.data.view;
 
-                      //When the application is in the Default desktop then the desktop variable is empty.
-                      //We have to use the name of the parent node...
+                      // When the application is in the Default desktop then the
+                      // desktop variable is empty.
+                      // We have to use the name of the parent node...
                       var desktopName = item.data.desktop;
                       if (item.data.desktop == "") {
-                        desktopName = item.parentNode.data.text;
+                        desktopName = (item.data.text == 'Default') ? 'Default' : item.parentNode.data.text;
                       }
                       GLOBAL.APP.MAIN_VIEW.createDesktopTab(desktopName, view);
                       var cbLoadActiveTab = function(oTab) {
@@ -260,36 +309,29 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
 
                   }
 
-                  /*
-                   * var cbSetActiveTab = null; if (activeDesktop) {
-                   * cbSetActiveTab = function(oTab) { if (activeDesktop.view ==
-                   * 'tabView') { activeDesktop.setActiveTab(oTab);
-                   * GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title,
-                   * item);
-                   * GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application,
-                   * "application", item.data.stateToLoad); } }; } else {
-                   * cbSetActiveTab = function(oTab) { oTab.loadData(); if
-                   * (activeDesktop) {
-                   * GLOBAL.APP.MAIN_VIEW.moveDesktopmMnuItem(activeDesktop.title,
-                   * item); }
-                   * GLOBAL.APP.MAIN_VIEW.addToDelete(item.data.application,
-                   * "application", item.data.stateToLoad); }; }
-                   * GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type,
-                   * item.data.application, item.data, activeDesktop,
-                   * cbSetActiveTab);
-                   *  }
-                   */
                 },
                 beforeitemmove : function(node, oldParent, newParent, index, eOpts) {
                   if (oldParent.getData().text != newParent.getData().text) {
-                    tabName = node.getData().text;
-                    if (oldParent.getData().type == 'desktop') {
-                      desktopName = oldParent.getData().text;
-                    } else {
-                      desktopName = 'Default';
-                    }
-                    GLOBAL.APP.MAIN_VIEW.closeTab(desktopName, tabName);
 
+                    var tabName = node.getData().text;
+                    var moduleName = node.data.application;
+                    var oldDesktopName = 'Default';
+                    var newDesktopName = 'Default';
+
+                    if (oldParent.getData().type == 'desktop') {
+                      oldDesktopName = oldParent.getData().text;
+                    }
+
+                    if (newParent.getData().type == 'desktop') {
+                      newDesktopName = newParent.getData().text;
+                    }
+
+                    // we have to close the application
+                    if (!GLOBAL.APP.MAIN_VIEW.isTabOpen(oldDesktopName, tabName)) {
+                      GLOBAL.APP.MAIN_VIEW.moveApplication(tabName, moduleName, oldDesktopName, newDesktopName);
+                    } else {
+                      return false;
+                    }
                   }
                 }
               }

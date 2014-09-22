@@ -155,6 +155,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
     except Exception, e:
       return {"success":0, "op":"setOptionValue", "message":"Can't decode path or value: %s" % str(e)}
 
+    self.__setCommiter()
+    
     self.__configData[ 'cfgData' ].setOptionValue(optionPath, optionValue)
 
     if self.__configData[ 'cfgData' ].getValue(optionPath) == optionValue:
@@ -168,7 +170,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
       value = str(params[ 'value' ])
     except Exception, e:
       return {"success":0, "op":"setComment", "message":"Can't decode path or value: %s" % str(e)}
-
+    
+    self.__setCommiter()
+    
     self.__configData[ 'cfgData' ].setComment(path, value)
     gLogger.info("Set comment", "%s = %s" % (path, value))
     return {"success":1, "op":"setComment", "parentNodeId":params["parentNodeId"], "comment":self.__configData[ 'cfgData' ].getComment(path)}
@@ -185,6 +189,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return {"success":0, "op":"copyKey", "message":"Parent path is not valid"}
       if len(newName) == 0:
         return {"success":0, "op":"copyKey", "message":"Put any name for the new key!"}
+      self.__setCommiter()
       if self.__configData[ 'cfgData' ].copyKey(originalPath, newName):
         pathList = List.fromChar(originalPath, "/")
 #         newPath = "/%s/%s" % ( "/".join( pathList[:-1] ), newName )
@@ -211,6 +216,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return {"success":0, "op":"renameKey", "message":"Put any name for the entity!"}
 
       if self.__configData[ 'cfgData' ].existsOption(keyPath) or self.__configData[ 'cfgData' ].existsSection(keyPath) :
+        self.__setCommiter()
         if self.__configData[ 'cfgData' ].renameKey(keyPath, newName):
           return {"success":1, "op":"renameKey", "parentNodeId":params["parentNodeId"], "newName":newName}
         else:
@@ -249,7 +255,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return {"success":0, "op":"createSection", "message":"Put any name for the section!"}
       sectionPath = "%s/%s" % (parentPath, sectionName)
       gLogger.info("Creating section", "%s" % sectionPath)
-
+      
+      self.__setCommiter()
+      
       if self.__configData[ 'cfgData' ].createSection(sectionPath):
         nD = { 'text' : sectionName, 'csName' : sectionName, 'csComment' : self.__configData[ 'cfgData' ].getComment(sectionPath) }
         htmlC = self.__htmlComment(nD[ 'csComment' ])
@@ -261,6 +269,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
           cfgData = self.__configData[ 'cfgData' ].getCFG()
           newCFG = CFG()
           newCFG.loadFromBuffer(configText)
+          self.__setCommiter()
           self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
           return {"success":1, "op":"createSection", "parentNodeId":params["parentNodeId"], "node":nD, "sectionFromConfig": 1}
         else:
@@ -289,7 +298,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
       optionPath = "%s/%s" % (parentPath, optionName)
       gLogger.info("Creating option", "%s = %s" % (optionPath, optionValue))
       if not self.__configData[ 'cfgData' ].existsOption(optionPath):
+        self.__setCommiter()
         self.__configData[ 'cfgData' ].setOptionValue(optionPath, optionValue)
+        
         return {"success":1, "op":"createOption", "parentNodeId":params["parentNodeId"], "optionName":optionName, "value":self.__configData[ 'cfgData' ].getValue(optionPath), "comment":self.__configData[ 'cfgData' ].getComment(optionPath)}
       else:
         return {"success":0, "op":"createOption", "message":"Option can't be created. It already exists?"}
@@ -345,7 +356,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
 #     gLogger.info( "Moving %s under %s before pos %s" % ( nodePath, destinationParentPath, beforeOfIndex ) )
     cfgData = self.__configData[ 'cfgData' ].getCFG()
-
+    
+    self.__setCommiter()
+    
     nodeDict = cfgData.getRecursive(nodePath)
 
     if not nodeDict:
@@ -440,6 +453,12 @@ class ConfigurationManagerHandler(WebSocketHandler):
     return self.write_message(json.dumps({"success":1, "op":"showCurrentDiff", "lines":processedData["lines"], "totalLines": processedData["totalLines"], "html":self.render_string("ConfigurationManager/diffConfig.tpl",
                                                                                                          titles=("Server's version", "User's current version"),
                                                                                                          diffList=processedData["diff"])}))
-
-
-
+  def __setCommiter( self ):
+    
+    sessionData = self.getSessionData()
+    
+    commiter = "%s@%s - %s" % ( sessionData["user"]["username"],
+                                sessionData["user"]["group"],
+                                Time.dateTime().strftime( "%Y-%m-%d %H:%M:%S" ) )
+    self.__configData[ 'cfgData' ].commiterId = commiter
+   

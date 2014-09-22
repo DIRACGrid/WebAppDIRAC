@@ -153,6 +153,9 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           else if (me.loadedObjectType == "link")
             me.setPropertiesWhenLink(me.setupData);
 
+          me.isLoaded = true; //the actual application is loaded,
+          //we have to add to the URL.
+          
           GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
           me.oneTimeAfterShow = true;

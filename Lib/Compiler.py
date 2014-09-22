@@ -119,6 +119,10 @@ class Compiler(object):
 
 
   def run( self ):
+    
+    #if the sencha does not installed, it will exit
+    self.__checkSenchacmd()
+    
     staticPath = os.path.join( self.__webAppPath, "static" )
     gLogger.notice( "Compiling core" )
     
@@ -193,6 +197,14 @@ class Compiler(object):
             continue
         classPath = expectedJS
     return classPath
+  
+  def __checkSenchacmd( self ):
+    
+    try:
+      self.__cmd( ["sencha"] )
+    except OSError, err:
+      raise OSError("sencha cmd is not installed!")
+    
       
 
 
