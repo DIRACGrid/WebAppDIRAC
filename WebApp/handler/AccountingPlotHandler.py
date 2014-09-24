@@ -2,7 +2,7 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
-from DIRAC import gConfig, S_OK, S_ERROR
+from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
@@ -61,7 +61,19 @@ class AccountingPlotHandler(WebHandler):
     if not retVal[ 'OK' ]:
       self.finish( {"success" : "false", "result" : "", "error" : retVal[ 'Message' ] } )
       return
-    callback["selectionValues"] = retVal[ 'Value' ]
+    
+    records = {}
+    for record in retVal['Value']: #may have more than 1000 of records. 
+      #do not show all of them in the web portal
+      length = len(retVal['Value'][record])
+      if  length > 10000:
+        records[record] = retVal['Value'][record][length-2000:]
+        message = "The %s accounting type contains to many rows: %s - > %d. Note: Only 1000 rows are returned!" % (typeName, record, length)
+        gLogger.warn(message)
+      else:
+        records[record] = retVal['Value'][record]
+    callback["selectionValues"] = records
+    
     #Cache for plotsList?
     data = AccountingPlotHandler.__keysCache.get( "reportsList:%s" % typeName )
     if not data:
