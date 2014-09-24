@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title>{{title}}</title>
-    <link rel="SHORTCUT ICON" href='{{base_url}}/static/core/img/icons/system/favicon.ico'>
+    <link rel="SHORTCUT ICON" href='{{iconUrl}}'>
 
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/rgbcolor.js"></script>

@@ -62,8 +62,10 @@ class RootHandler(WebHandler):
     if self.request.arguments.has_key("open_app") and len(self.request.arguments["open_app"][0]) > 0:
       open_app = self.request.arguments["open_app"][0].strip()
     
+    icon = data[ 'baseURL' ] + Conf.getIcon()
+    
     level = str(gLogger.getLevel()).lower()
-    self.render( "root.tpl", base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
+    self.render( "root.tpl", iconUrl=icon, base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
                  ext_version = data[ 'extVersion' ], url_state = url_state,
                  extensions = data[ 'extensions' ],
                  credentials = data[ 'user' ], title = Conf.getTitle(),
