@@ -95,17 +95,8 @@ class JobMonitorHandler( WebHandler ):
         prod = []
         prods = result["Value"]
         if len( prods ) > 0:
-          # prod.append([str("All")])
-          tmp = []
-          for keys in prods:
-            try:
-              productionId = str( int( keys ) ).zfill( 8 )
-            except:
-              productionId = str( keys )
-            tmp.append( str( productionId ) )
-          tmp.sort( reverse = True )
-          for i in tmp:
-            prod.append( [str( i )] )
+          prods.sort( reverse = True )
+          prod = [ [ i ] for i in prods ]
         else:
           prod = [["Nothing to display"]]
       else:
