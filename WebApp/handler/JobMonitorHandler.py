@@ -346,8 +346,11 @@ class JobMonitorHandler( WebHandler ):
         attr = result["Value"]
         items = []
         for i in attr.items():
-          if i[0] != "StandardOutput":
+          if i[0] == "Log URL":  # the link has to be opened in a new tab.
+            items.append( [i[0], i[1].replace( '>', ' target="_blank">' )] )
+          elif i[0] != "StandardOutput":
             items.append( [i[0], i[1]] )
+          
         callback = {"success":"true", "result":items}
       else:
         callback = {"success":"false", "error":result["Message"]}
