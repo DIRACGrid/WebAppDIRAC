@@ -27,8 +27,8 @@ class SystemAdministrationHandler( WebHandler ):
     callback = []
     import pprint
   
-    #self.finish( { "success" : "false" , "error" : "No system information found" } )
-    #return
+    # self.finish( { "success" : "false" , "error" : "No system information found" } )
+    # return
     client = SystemAdministratorIntegrator( delegatedDN = DN ,
                                           delegatedGroup = group )
     resultHosts = yield self.threadTask( client.getHostInfo )
@@ -636,6 +636,12 @@ class SystemAdministrationHandler( WebHandler ):
     systemList = []
     system = None
     
+    hosts = []
+    result = Registry.getHosts()
+    if result['OK']:
+      hosts = [ [i] for i in result['Value'] ]
+    data['Hosts'] = hosts
+    
     if "system" in self.request.arguments:
       system = self.request.arguments[ 'system' ][-1] 
     
@@ -659,18 +665,19 @@ class SystemAdministrationHandler( WebHandler ):
             records = retVal['Value']
             componentNames += [ [cnames] for cnames in records ]
             for record in records:
-              modulepath = "%s/%s/Module" % (compPath, record)
-              module = gConfig.getValue(modulepath, '')
+              modulepath = "%s/%s/Module" % ( compPath, record )
+              module = gConfig.getValue( modulepath, '' )
               if module != '' and module not in components:
-                components+=[module]
-                data['ComponentModule'].append([module])
+                components += [module]
+                data['ComponentModule'].append( [module] )
               elif record not in components and module == '':
-                data['ComponentModule'].append([record])
-                components+=[record]
+                data['ComponentModule'].append( [record] )
+                components += [record]
            
       data['ComponentName'] = componentNames
       data['ComponentName'].sort()
       data['ComponentModule'].sort()
+      
     else:
       data = { "success" : "false" , "error" : result['Message'] }
     
@@ -705,9 +712,11 @@ class SystemAdministrationHandler( WebHandler ):
     
     showAll = 0
     if "showAll" in self.request.arguments:
-      showAll = int(self.request.arguments[ 'showAll' ][-1])
+      showAll = int( self.request.arguments[ 'showAll' ][-1] )
     
-    
+    selectedHosts = []
+    if "Hosts" in self.request.arguments:  # we only use the selected host(s)
+      selectedHosts = list( json.loads( self.request.arguments[ 'Hosts' ][-1] ) )
     retVal = gConfig.getSections( '/Systems' )
     
     compMatching = {}    
@@ -725,17 +734,17 @@ class SystemAdministrationHandler( WebHandler ):
               if j in componentNames:
                 fullNames += [path]
                 compMatching[path] = path
-              modulepath = "%s/%s/Module" % (compPath, j)   
-              module = gConfig.getValue(modulepath, '')
+              modulepath = "%s/%s/Module" % ( compPath, j )   
+              module = gConfig.getValue( modulepath, '' )
               if module != '' and module in componentModules:
-                fullNames+=[path]
+                fullNames += [path]
               elif module == '' and j in componentModules:
                 fullNames += [path]
               
               compMatching[path] = module if module != '' else path
                                
     records = []
-    if len(fullNames) > 0:
+    if len( fullNames ) > 0:
       condDict = {'Setup':userData['setup'], 'ComponentName':fullNames}
     else:
       if len( componentTypes ) < 2:
@@ -743,7 +752,10 @@ class SystemAdministrationHandler( WebHandler ):
         condDict = {'Setup':userData['setup'], 'Type':type}
       else:
         condDict = {'Setup':userData['setup']}
+    
+    gLogger.debug( "condDict" + str( condDict ) )
     retVal = rpcClient.getComponentsStatus( condDict )
+    
     today = datetime.datetime.today()
     if retVal['OK']:
       components = retVal['Value'][0]
@@ -751,7 +763,9 @@ class SystemAdministrationHandler( WebHandler ):
         for type in components[ setup ]:
           for name in components[ setup ][ type ]:
             for component in components[ setup ][ type ][ name ]:
-              if 'Host' in component and component['Host'] not in hosts:
+              if len( selectedHosts ) > 0 and 'Host' in component and component['Host'] not in selectedHosts:
+                continue
+              elif 'Host' in component and component['Host'] not in hosts:
                  continue 
               if 'LastHeartbeat' in component:
                 dateDiff = today - component['LastHeartbeat']
@@ -760,7 +774,7 @@ class SystemAdministrationHandler( WebHandler ):
               
               if showAll == 0 and dateDiff.days >= 2 and 'Host' in component:  
                 continue
-                
+              
               for conv in component:
                 component[conv] = str( component[conv] )
               component['ComponentModule'] = compMatching[component['ComponentName']] if component['ComponentName'] in compMatching else component['ComponentName'] 
