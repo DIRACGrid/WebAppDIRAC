@@ -690,10 +690,11 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
         var selectors = {
           ComponentModule : "Component Module",
-          ComponentName : "Component Name"
+          ComponentName : "Component Name",
+          Hosts : "Hosts"
         };
 
-        var map = [["ComponentModule", "ComponentModule"], ["ComponentName", "ComponentName"]];
+        var map = [["ComponentModule", "ComponentModule"], ["ComponentName", "ComponentName"], ["Hosts", "Hosts"]];
 
         me.leftPanel = Ext.create('Ext.dirac.utils.DiracBaseSelector', {
               scope : me,

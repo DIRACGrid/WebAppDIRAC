@@ -142,4 +142,6 @@ def __recursiveTreeTraversal( base, path, visit, leaf ):
     opVal = gConfig.getValue( "%s/%s" % ( fullName, opName ) )
     schema.append( [( "comp", opName, opVal )] )
   return schema
-  
+
+def getIcon():
+  return getCSValue("Icon","/static/core/img/icons/system/favicon.ico")

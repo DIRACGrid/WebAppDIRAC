@@ -95,17 +95,8 @@ class JobMonitorHandler( WebHandler ):
         prod = []
         prods = result["Value"]
         if len( prods ) > 0:
-          # prod.append([str("All")])
-          tmp = []
-          for keys in prods:
-            try:
-              productionId = str( int( keys ) ).zfill( 8 )
-            except:
-              productionId = str( keys )
-            tmp.append( str( productionId ) )
-          tmp.sort( reverse = True )
-          for i in tmp:
-            prod.append( [str( i )] )
+          prods.sort( reverse = True )
+          prod = [ [ i ] for i in prods ]
         else:
           prod = [["Nothing to display"]]
       else:
@@ -355,8 +346,11 @@ class JobMonitorHandler( WebHandler ):
         attr = result["Value"]
         items = []
         for i in attr.items():
-          if i[0] != "StandardOutput":
+          if i[0] == "Log URL":  # the link has to be opened in a new tab.
+            items.append( [i[0], i[1].replace( '>', ' target="_blank">' )] )
+          elif i[0] != "StandardOutput":
             items.append( [i[0], i[1]] )
+          
         callback = {"success":"true", "result":items}
       else:
         callback = {"success":"false", "error":result["Message"]}

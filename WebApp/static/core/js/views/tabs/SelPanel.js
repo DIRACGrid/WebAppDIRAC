@@ -258,7 +258,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                   } else {// check the existence of teh desktops
 
                     // we have to get the parent node.
-                    var parentNodeName = (item.data.text == 'Default') ? 'Default' : item.parentNode.data.text;
+                    var parentNodeName = (item.data.text == 'Default' || item.data.type == 'app') ? 'Default' : item.parentNode.data.text;
 
                     // we have to know the type of the desktop: presenterView or
                     // tabView

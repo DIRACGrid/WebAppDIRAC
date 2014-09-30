@@ -557,22 +557,16 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             // used.
             var newnode = rootNode.appendChild({
                   'text' : item[1],
-                  expandable : true,
-                  application : item[2],
-                  leaf : false,
-                  allowDrag : false,
-                  iconCls : 'core-application-icon'
-                });
-            newnode.appendChild({
-                  'text' : 'Default',
-                  type : 'app',
-                  allowDrag : false,
                   expandable : false,
+                  application : sStartClass, //item[2],
                   leaf : true,
-                  application : sStartClass,
+                  allowDrag : false,
+                  iconCls : 'core-application-icon',
                   stateToLoad : 'Default',
-                  iconCls : 'icon-applications-states-all-default'
+                  type : 'app',
+                  desktop : 'Default'
                 });
+           
           } else {
             var newnode = rootNode.appendChild({
                   'text' : item[1],
