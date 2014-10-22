@@ -206,13 +206,12 @@ class Compiler(object):
     
     try:
       path = os.path.join(self.__senchacmddir, self.__senchaVersion)
-      print "DSDSDSDS", path
-      if os.path.exists( path ):
+      if os.path.exists( path ): 
         sys.path.append(path)
         syspath = os.environ['PATH']
         os.environ['PATH'] = path + os.pathsep + syspath
-        print os.environ['PATH']
-        self.__cmd( ["sencha"] )
+
+      self.__cmd( ["sencha"] )
     except OSError, err:
       raise OSError("sencha cmd is not installed!")
     
