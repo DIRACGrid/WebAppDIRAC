@@ -1,4 +1,4 @@
-Ext.define("DIRAC.resourceSummary.classes.ResourceSummary", {
+Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       extend : 'Ext.dirac.core.Module',
       requires : ["Ext.dirac.utils.DiracBaseSelector", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracAjaxProxy", "Ext.dirac.utils.DiracPagingToolbar", 'Ext.dirac.utils.DiracToolButton', "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracGridPanel",
           "Ext.dirac.utils.DiracRowExpander"],
@@ -42,8 +42,7 @@ Ext.define("DIRAC.resourceSummary.classes.ResourceSummary", {
             type : 'date',
             dateFormat : 'Y-m-d H:i:s'
           }, {
-            name : 'TokenOwner',
-            type : 'float'
+            name : 'TokenOwner'
           }],
       initComponent : function() {
         var me = this;
@@ -121,7 +120,7 @@ Ext.define("DIRAC.resourceSummary.classes.ResourceSummary", {
 
         var oColumns = {
           "None2" : {
-            "dataIndex" : "StatusIcon",
+            "dataIndex" : "Status",
             "properties" : {
               width : 26,
               sortable : false,
@@ -228,23 +227,23 @@ Ext.define("DIRAC.resourceSummary.classes.ResourceSummary", {
               enableLocking : true,
               plugins : [{
                     ptype : 'diracrowexpander',
-                    checkField : {
-                      'CE' : 'Multiple'
+                    containValue : {
+                      'StatusType' : "elements"
                     },
-                    rowBodyTpl : ['<div id="expanded-Grid-{Site}"> </div>']
+                    rowBodyTpl : ['<div id="expanded-Grid-{Name}"> </div>']
                   }]
             });
 
         me.leftPanel.setGrid(me.grid);
 
         me.grid.view.on('expandbody', function(rowNode, record, expandbody) {
-              var targetId = 'expanded-Grid-' + record.get('Site');
+              var targetId = 'expanded-Grid-' + record.get('Name');
               if (Ext.getCmp(targetId + "_grid") == null) {
                 var params = {
-                  "expand" : Ext.JSON.encode([record.data.Site])
+                  "name" : Ext.JSON.encode([record.data.Name])
                 };
                 var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy', {
-                      url : GLOBAL.BASE_URL + 'PilotSummary/getPilotSummaryData'
+                      url : GLOBAL.BASE_URL + 'ResourceSummary/expand'
                     });
                 oProxy.extraParams = params;
                 var expandStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -260,89 +259,55 @@ Ext.define("DIRAC.resourceSummary.classes.ResourceSummary", {
                       id : targetId + "_grid",
                       store : expandStore,
                       columns : [{
-                            header : 'Site',
-                            sortable : false,
-                            dataIndex : 'Site',
+                            header : 'Name',
+                            sortable : true,
+                            dataIndex : 'Name',
                             align : 'left',
                             hideable : false,
                             fixed : true
                           }, {
-                            header : 'CE',
-                            sortable : false,
-                            dataIndex : 'CE',
+                            header : 'ResourceType',
+                            sortable : true,
+                            dataIndex : 'ElementType',
                             align : 'left',
                             hideable : false,
                             fixed : true
+                          }, {
+                            header : 'StatusType',
+                            width : 60,
+                            sortable : true,
+                            dataIndex : 'StatusType',
+                            align : 'left'
                           }, {
                             header : 'Status',
-                            width : 60,
                             sortable : false,
                             dataIndex : 'Status',
                             align : 'left'
                           }, {
-                            header : 'PilotJobEff (%)',
-                            sortable : false,
-                            dataIndex : 'PilotJobEff',
+                            header : 'Reason',
+                            sortable : true,
+                            dataIndex : 'Reason',
                             align : 'left'
                           }, {
-                            header : 'PilotsPerJob',
+                            header : 'DateEffective',
                             sortable : false,
-                            dataIndex : 'PilotsPerJob',
+                            dataIndex : 'DateEffective',
                             align : 'left'
                           }, {
-                            header : 'Submitted',
-                            sortable : false,
-                            dataIndex : 'Submitted',
-                            align : 'left',
-                            hidden : true
-                          }, {
-                            header : 'Ready',
-                            sortable : false,
-                            dataIndex : 'Ready',
-                            align : 'left',
-                            hidden : true
-                          }, {
-                            header : 'Waiting',
-                            sortable : false,
-                            dataIndex : 'Waiting',
+                            header : 'LastCheckTime',
+                            sortable : true,
+                            dataIndex : 'LastCheckTime',
                             align : 'left'
                           }, {
-                            header : 'Scheduled',
-                            sortable : false,
-                            dataIndex : 'Scheduled',
+                            header : 'TokenOwner',
+                            sortable : true,
+                            dataIndex : 'TokenOwner',
                             align : 'left'
                           }, {
-                            header : 'Running',
-                            sortable : false,
-                            dataIndex : 'Running',
+                            header : 'TokenExpiration',
+                            sortable : true,
+                            dataIndex : 'TokenExpiration',
                             align : 'left'
-                          }, {
-                            header : 'Done',
-                            sortable : false,
-                            dataIndex : 'Done',
-                            align : 'left'
-                          }, {
-                            header : 'Aborted',
-                            sortable : false,
-                            dataIndex : 'Aborted',
-                            align : 'left'
-                          }, {
-                            header : 'Aborted_Hour',
-                            sortable : false,
-                            dataIndex : 'Aborted_Hour',
-                            align : 'left'
-                          }, {
-                            header : 'Done_Empty',
-                            sortable : false,
-                            dataIndex : 'Done_Empty',
-                            align : 'left',
-                            hidden : true
-                          }, {
-                            header : 'Total',
-                            sortable : false,
-                            dataIndex : 'Total',
-                            align : 'left',
-                            hidden : true
                           }]
                     });
 
@@ -357,5 +322,6 @@ Ext.define("DIRAC.resourceSummary.classes.ResourceSummary", {
 
         me.add([me.leftPanel, me.grid]);
 
-      }
+      },
+      
     });

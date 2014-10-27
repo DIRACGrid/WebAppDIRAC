@@ -1,6 +1,10 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
+
 from DIRAC import gLogger
+import collections
+import json
 
 class ResourceSummaryHandler( WebHandler ):
 
@@ -89,10 +93,81 @@ class ResourceSummaryHandler( WebHandler ):
     rssMachine = RSSMachine( None )
     rssMachine.orderPolicyResults( elementList )    
         
-    result = { 'success': 'true', 'result': elementList, 'total': len( elementList ) }
+    self.finish( { 'success': 'true', 'result': elementList, 'total': len( elementList ) } )
     
-    self.finish( result )
+        
+  def combine( self, elementValues ):
     
+    statuses = [ element[ 'Status' ] for element in elementValues ]
+    
+    statusSet = set( statuses )
+        
+    if len( statusSet ) == 1:
+      status = statusSet.pop()
+      reason = 'All %s' % status
+    
+    else:     
+        
+      if set( [ 'Active', 'Degraded' ] ) & set( statusSet ):
+        status = 'Degraded'
+        reason = 'Not completely active'
+
+      else:
+        status = 'Banned'
+        reason = 'Not usable'
+          
+#      if set( [ 'Unknown','Active', 'Degraded' ] ) & set( statusSet ):
+#        for upStatus in [ 'Active', 'Degraded' ]:
+#          if upStatus in statusSet:
+#            status = upStatus
+#            reason = '%d %s' % ( statuses.count( upStatus ), upStatus )
+#            break
+#      else:
+#        for downStatus in [ 'Unknown','Probing','Banned','Error' ]:
+#          if downStatus in statusSet:
+#            status = downStatus
+#            reason = '%d %s' % ( statuses.count( downStatus ), downStatus )
+#            break
+
+    # Make a copy
+    combined = {}
+    combined.update( elementValues[ 0 ] )
+    combined[ 'StatusType' ] = '%d elements' % len( statuses ) 
+    combined[ 'Status' ] = status
+    combined[ 'Reason' ] = reason
+    combined[ 'DateEffective' ] = ''
+    combined[ 'LastCheckTime' ] = ''
+    combined[ 'TokenOwner' ] = ''
+    combined[ 'TokenExpiration' ] = ''
+      
+    return combined
+  
+  @asyncGen
+  def web_expand( self ):
+    '''
+      This method handles the POST requests
+    '''
+    
+    requestParams = self.__requestParams()
+    gLogger.info( requestParams )
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+       
+    elements = pub.getElementStatuses( 'Resource',
+                                       requestParams[ 'name' ],
+                                       None, None, None, None )
+    if not elements[ 'OK' ]:
+      c.result = { 'success' : 'false', 'error' : elements[ 'Message' ] }
+      return c.result
+
+    elementList = [ dict( zip( elements[ 'Columns' ], element ) ) for element in elements[ 'Value' ] ]
+    for element in elementList:
+      element[ 'DateEffective' ] = str( element[ 'DateEffective' ] )
+      element[ 'LastCheckTime' ] = str( element[ 'LastCheckTime' ] )
+      element[ 'TokenExpiration' ] = str( element[ 'TokenExpiration' ] )      
+    
+    self.finish( { 'success': 'true', 'result': elementList, 'total': len( elementList ) } )
+      
   def __requestParams( self ):
     '''
       We receive the request and we parse it, in this case, we are doing nothing,
@@ -113,6 +188,6 @@ class ResourceSummaryHandler( WebHandler ):
     
     for key in responseParams:
       if key in self.request.arguments and str( self.request.arguments[ key ][-1] ):
-        responseParams[ key ] = list( self.request.arguments[ key ][-1] )  
+        responseParams[ key ] = list( json.loads( self.request.arguments[ key ][-1] ) )   
   
     return responseParams    
