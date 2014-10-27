@@ -1,7 +1,7 @@
 /**
  * This class used to expand a row in a Grid Panel. It allows to configure which
  * rows can be expanded:
- *
+ * 
  * @example
  * me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
  *         store : me.dataStore,
@@ -24,12 +24,15 @@
  *       });
  */
 Ext.define('Ext.dirac.utils.DiracRowExpander', {
+
       extend : 'Ext.grid.plugin.RowExpander',
 
       alias : 'plugin.diracrowexpander',
 
       checkField : null,
-      
+
+      containValue : null,
+
       getHeaderConfig : function() {
         var me = this;
 
@@ -57,6 +60,14 @@ Ext.define('Ext.dirac.utils.DiracRowExpander', {
                 }
               }
               return html;
+            } else if (me.containValue) {
+              var html = '';
+              for (var key in me.containValue) {
+                if (~metadata.record.data[key].indexOf(me.containValue[key])) {
+                  html = '<div class="' + Ext.baseCSSPrefix + 'grid-row-expander" role="presentation"></div>';
+                }
+              }
+              return html;
             } else {
               return '<div class="' + Ext.baseCSSPrefix + 'grid-row-expander" role="presentation"></div>';
             }
@@ -68,6 +79,6 @@ Ext.define('Ext.dirac.utils.DiracRowExpander', {
               return me.selectRowOnExpand;
             }
           }
-        };
+        }
       }
     });
