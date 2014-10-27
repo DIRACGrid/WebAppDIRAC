@@ -1,44 +1,44 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC import gLogger
 
-class PilotSummaryHandler(WebHandler):
+class ResourceSummaryHandler( WebHandler ):
 
   AUTH_PROPS = "authenticated"
 
   @asyncGen
-  def web_getSelectionData(self):
-    sData = self.getSessionData()
-    callback = {}
-    group = sData["user"]["group"]
-    user = sData["user"]["username"]
-    if user == "Anonymous":
-      self.finish({"success":"false", "result":[], "total":0, "error":"Insufficient rights"})
-    else:
-      RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getSites)
-      if result["OK"]:
-        tier1 = gConfig.getValue("/Website/PreferredSites")
-        if tier1:
-          try:
-            tier1 = tier1.split(", ")
-          except:
-            tier1 = list()
-        else:
-          tier1 = list()
-        site = []
-        if len(result["Value"])>0:
-          s = list(result["Value"])
-          for i in tier1:
-            site.append([str(i)])
-          for i in s:
-            if i not in tier1:
-              site.append([str(i)])
-        else:
-          site = [["Nothing to display"]]
+  def web_getSelectionData( self ):
+    
+    callback = {
+                'name'        : set(),
+                'elementType' : set(),
+                'status'      : set(),
+                'statusType'  : set(),
+                'tokenOwner'  : set()
+                }
+     
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    
+    gLogger.info( self.request.arguments )    
+    
+    elementStatuses = pub.getElementStatuses( 'Resource', None, None, None, None, None )
+    
+    if elementStatuses[ 'OK' ]:
         
-      else:
-        site = [["Error during RPC call"]]
-       
-      callback["site"] = site
-      callback['Status'] = [['Good'],['Bad'],['Idle'],['Poor'],['Fair']]
-       
-      self.finish(callback)
+      for elementStatus in elementStatuses[ 'Value' ]:
+      
+        callback[ 'status' ].add( elementStatus[ 0 ] )
+        callback[ 'name' ].add( elementStatus[ 2 ] )
+        callback[ 'elementType' ].add( elementStatus[ 5 ] )
+        callback[ 'statusType' ].add( elementStatus[ 6 ] )
+        callback[ 'tokenOwner' ].add( elementStatus[ 8 ] )
+          
+    for key, value in callback.items():
+    
+      callback[ key ] = [ [ item ] for item in list( value ) ]
+      callback[ key ].sort()
+      callback[ key ] = [ [ 'All' ] ] + callback[ key ] 
+          
+        
+      
+    self.finish( callback )
