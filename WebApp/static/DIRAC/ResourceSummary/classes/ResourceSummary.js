@@ -80,21 +80,21 @@ Ext.define("DIRAC.resourceSummary.classes.ResourceSummary", {
         var me = this;
 
         var selectors = {
-          name : "name",
+          name : "Name",
           elementType : "ResourceType",
           status : "Status",
           statusType : "StatusType",
           tokenOwner : "TokenOwner"
         };
 
-        var map = [["site", "site"], ["Status", "Status"]];
+        var map = [["name", "name"], ["elementType", "elementType"], ["status", "status"], ["statusType", "statusType"], ["tokenOwner", "tokenOwner"]];
 
         me.leftPanel = new Ext.create('Ext.dirac.utils.DiracBaseSelector', {
               scope : me,
               cmbSelectors : selectors,
               datamap : map,
               hasTimeSearchPanel : false,
-              url : "PilotSummary/getSelectionData"
+              url : "ResourceSummary/getSelectionData"
             });
 
         /*
@@ -103,7 +103,7 @@ Ext.define("DIRAC.resourceSummary.classes.ResourceSummary", {
          * -----------------------------------------------------------------------------------------------------------
          */
         var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy', {
-              url : GLOBAL.BASE_URL + 'PilotSummary/getPilotSummaryData'
+              url : GLOBAL.BASE_URL + 'ResourceSummary/getResourceSummaryData'
             });
 
         me.diffValues = {};
@@ -131,68 +131,50 @@ Ext.define("DIRAC.resourceSummary.classes.ResourceSummary", {
             },
             "renderFunction" : "rendererStatus"
           },
-          "Site" : {
-            "dataIndex" : "Site",
+          "Name" : {
+            "dataIndex" : "Name",
             "properties" : {
               fixed : true
             }
           },
-          "CE" : {
-            "dataIndex" : "CE"
+          "ResourceType" : {
+            "dataIndex" : "ElementType"
           },
-          "Status" : {
-            "dataIndex" : "Status",
+          "StatusType" : {
+            "dataIndex" : "StatusType",
             "properties" : {
               width : 60,
               sortable : false
             }
           },
-          "PilotJobEff (%)" : {
-            "dataIndex" : "PilotJobEff"
+          "Status" : {
+            "dataIndex" : "Status"
           },
-          "PilotsPerJob" : {
-            "dataIndex" : "PilotsPerJob"
+          "Reason" : {
+            "dataIndex" : "Reason"
           },
-          "Submitted" : {
-            "dataIndex" : "Submitted",
+          "DateEffective" : {
+            "dataIndex" : "DateEffective",
             "properties" : {
-              hidden : true
+              sortable : true
             }
           },
-          "Ready" : {
-            "dataIndex" : "Ready",
+          "LastCheckTime" : {
+            "dataIndex" : "LastCheckTime",
             "properties" : {
-              hidden : true
+              sortable : true
             }
           },
-          "Waiting" : {
-            "dataIndex" : "Waiting"
-          },
-          "Scheduled" : {
-            "dataIndex" : "Scheduled"
-          },
-          "Running" : {
-            "dataIndex" : "Running"
-          },
-          "Done" : {
-            "dataIndex" : "Done"
-          },
-          "Aborted" : {
-            "dataIndex" : "Aborted"
-          },
-          "Aborted_Hour" : {
-            "dataIndex" : "Aborted_Hour"
-          },
-          "Done_Empty" : {
-            "dataIndex" : "Done_Empty",
+          "TokenOwner" : {
+            "dataIndex" : "TokenOwner",
             "properties" : {
-              hidden : true
+              sortable : true
             }
           },
-          "Total" : {
-            "dataIndex" : "Total",
+          "TokenExpiration" : {
+            "dataIndex" : "TokenExpiration",
             "properties" : {
-              hidden : true
+              sortable : true
             }
           }
         };
