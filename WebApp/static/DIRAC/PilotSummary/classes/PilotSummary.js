@@ -250,7 +250,6 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
         me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
               store : me.dataStore,
               columnLines : true,
-              enableLocking : true,
               width : 600,
               height : 300,
               oColumns : oColumns,
@@ -258,7 +257,6 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
               pagingToolbar : pagingToolbar,
               scope : me,
               columnLines : true,
-              enableLocking : true,
               plugins : [{
                     ptype : 'diracrowexpander',
                     checkField : {
