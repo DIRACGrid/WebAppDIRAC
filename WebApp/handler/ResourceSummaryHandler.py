@@ -167,7 +167,124 @@ class ResourceSummaryHandler( WebHandler ):
       element[ 'TokenExpiration' ] = str( element[ 'TokenExpiration' ] )      
     
     self.finish( { 'success': 'true', 'result': elementList, 'total': len( elementList ) } )
+  
+  @asyncGen
+  def web_action( self ):
+    
+    requestParams = self.__requestParams()
+    if 'action' in requestParams and requestParams[ 'action' ]:
       
+      actionName = requestParams[ 'action' ][ 0 ]
+      
+      methodName = actionName
+      if not actionName.startswith( 'set' ):
+        methodName = '_get%s' % actionName
+      
+      try:
+        result = getattr( self, methodName )( requestParams )
+      except AttributeError:
+        result = { 'success' : 'false', 'error' : 'bad action %s' % actionName }  
+    
+    else:
+      
+      result = { 'success' : 'false', 'error' : 'Missing action' }
+    
+    self.finish( result )
+    
+  def setToken( self, requestParams ):
+    
+    sData = self.getSessionData()
+    
+    username = sData["user"]["username"]
+    
+    if username == 'anonymous':
+      self.finish( { 'success' : 'false', 'error' : 'Cannot perform this operation as anonymous' } )
+    elif not 'SiteManager' in sData['user']['properties']:
+      self.finish( { 'success' : 'false', 'error' : 'Not authorized' } )
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    res = pub.setToken( 'Resource',
+                         requestParams[ 'name' ][ 0 ],
+                         requestParams[ 'statusType' ][ 0 ],
+                         requestParams[ 'status' ][ 0 ],
+                         requestParams[ 'elementType' ][ 0 ],
+                         username,
+                         requestParams[ 'lastCheckTime' ][ 0 ] ) 
+                   
+    if not res[ 'OK' ]:
+      return { 'success' : 'false', 'error' : res[ 'Message' ] } 
+          
+    return { 'success' : 'true', 'result' : res[ 'Value' ] } 
+
+  def setStatus( self, requestParams ):
+    
+    sData = self.getSessionData()
+    
+    username = sData["user"]["username"]
+    
+    
+    if username == 'anonymous':
+      self.finish( { 'success' : 'false', 'error' : 'Cannot perform this operation as anonymous' } )
+    elif not 'SiteManager' in sData['user']['properties']:
+      self.finish( { 'success' : 'false', 'error' : 'Not authorized' } )
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    res = pub.setStatus( 'Resource',
+                         requestParams[ 'name' ][ 0 ],
+                         requestParams[ 'statusType' ][ 0 ],
+                         requestParams[ 'status' ][ 0 ],
+                         requestParams[ 'elementType' ][ 0 ],
+                         username,
+                         requestParams[ 'lastCheckTime' ][ 0 ] ) 
+                   
+    if not res[ 'OK' ]:
+      return { 'success' : 'false', 'error' : res[ 'Message' ] } 
+          
+    return { 'success' : 'true', 'result' : res[ 'Value' ] } 
+
+  def _getHistory( self, requestParams ):
+  
+    # Sanitize
+    if not 'name' in requestParams or not requestParams[ 'name' ]:
+      return { 'success' : 'false', 'error' : 'Missing name' }
+    if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
+      return { 'success' : 'false', 'error' : 'Missing elementType' }
+    if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
+      return { 'success' : 'false', 'error' : 'Missing statusType' }
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    res = pub.getElementHistory( 'Resource', requestParams[ 'name' ],
+                                 requestParams[ 'elementType' ],
+                                 requestParams[ 'statusType' ] )
+    
+    if not res[ 'OK' ]:
+      gLogger.error( res[ 'Message' ] )
+      return { 'success' : 'false', 'error' : 'error getting history' } 
+    
+    history = [ [ r[0], str( r[1] ), r[2] ] for r in res[ 'Value' ] ]
+    
+    return { 'success' : 'true', 'result' : history, 'total' : len( history ) }  
+
+  def _getPolicies( self, requestParams ):
+  
+    # Sanitize
+    if not 'name' in requestParams or not requestParams[ 'name' ]:
+      self.finish( { 'success' : 'false', 'error' : 'Missing name' } )
+    if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
+      self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    res = pub.getElementPolicies( 'Resource', requestParams[ 'name' ],
+                                  requestParams[ 'statusType' ] )
+    
+    if not res[ 'OK' ]:
+      gLogger.error( res[ 'Message' ] )
+      return { 'success' : 'false', 'error' : 'error getting policies' } 
+    
+    policies = [ [ r[0], r[1], str( r[2] ), str( r[3] ), r[4] ] for r in res[ 'Value' ] ]
+    
+    return { 'success' : 'true', 'result' : policies, 'total' : len( policies ) }    
+   
   def __requestParams( self ):
     '''
       We receive the request and we parse it, in this case, we are doing nothing,

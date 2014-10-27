@@ -105,7 +105,6 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
               url : GLOBAL.BASE_URL + 'ResourceSummary/getResourceSummaryData'
             });
 
-        me.diffValues = {};
         me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
               proxy : oProxy,
               fields : me.dataFields,
@@ -178,30 +177,20 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           }
         };
 
-        var showPilothandler = function() {
-          var oSite = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Site");
-          var setupdata = {};
-          setupdata.data = {};
-          setupdata.currentState = oSite;
-          setupdata.data.leftMenu = {};
-          setupdata.data.leftMenu.selectors = {};
-          setupdata.data.leftMenu.selectors.site = {
-            data_selected : [oSite],
-            hidden : false,
-            not_selected : false
-          };
-
-          GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
-                objectType : "app",
-                moduleName : me.applicationsToOpen['PilotMonitor'],
-                setupData : setupdata
-              });
-        }
-
+       
         var menuitems = {
           'Visible' : [{
-                "text" : "Show Pilots",
-                "handler" : showPilothandler,
+                "text" : "Overview",
+                "handler" : function() {
+                  alert("It is not implemented!!!!")
+                },
+                "properties" : {
+                  tooltip : 'Click to show the jobs which belong to the selected request.'
+                }
+              }, {
+                "text" : "History",
+                "handler" : me.__oprOnResourceSummaryData,
+                "arguments" : ["History"],
                 "properties" : {
                   tooltip : 'Click to show the jobs which belong to the selected request.'
                 }
@@ -216,15 +205,12 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
         me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
               store : me.dataStore,
               columnLines : true,
-              enableLocking : true,
               width : 600,
               height : 300,
               oColumns : oColumns,
               contextMenu : me.contextGridMenu,
               pagingToolbar : pagingToolbar,
               scope : me,
-              columnLines : true,
-              enableLocking : true,
               plugins : [{
                     ptype : 'diracrowexpander',
                     containValue : {
@@ -232,6 +218,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                     },
                     rowBodyTpl : ['<div id="expanded-Grid-{Name}"> </div>']
                   }]
+
             });
 
         me.leftPanel.setGrid(me.grid);
@@ -315,7 +302,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                 expandStore.load();
                 expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
                 expandedGridPanel.fireEvent("bind", expandedGridPanel, {
-                      id : record.get('id')
+                      id : record.get('Name')
                     });
               }
             });
@@ -323,5 +310,58 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
         me.add([me.leftPanel, me.grid]);
 
       },
-      
+      __oprOnResourceSummaryData : function(action) {
+        var me = this;
+
+        var name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
+        var elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
+        var statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+        me.getContainer().body.mask("Wait ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode([action]),
+                name :  Ext.JSON.encode([name]),
+                elementType :  Ext.JSON.encode([elementType]),
+                statusType :  Ext.JSON.encode([statusType])
+              },
+              scope : me,
+              success : function(response) {
+
+                me.getContainer().body.unmask();
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+
+                  if (action == "History") {
+                     me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "History:" + name + "("+statusType + ")", ["Status", "DataEffectiv", "Reason"], [{
+                              text : 'Status',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'Status'
+                            }, {
+                              text : 'DataEffectiv',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'DataEffectiv'
+                            }, {
+                              text : 'Reason',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'Reason'
+                            }]);
+
+                  } else {
+
+                    GLOBAL.APP.CF.alert(jsonData["error"], "error");
+
+                  }
+
+                }
+              }
+            });
+
+      }
+
     });
