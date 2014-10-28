@@ -3,8 +3,9 @@ import os
 import subprocess
 import gzip
 import shutil
+import sys
 
-from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC import gLogger, S_OK, S_ERROR, rootPath
 from DIRAC.ConfigurationSystem.Client.Helpers.CSGlobals import getInstalledExtensions
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
@@ -27,7 +28,10 @@ class Compiler(object):
 
     self.__debugFlag = str( gLogger.getLevel() in ( 'DEBUG', 'VERBOSE', 'INFO' ) ).lower()
     self.__inDir = os.path.join( os.path.dirname( self.__webAppPath ), "Lib", "CompileTemplates" )
-
+    
+    self.__senchacmddir = os.path.join(rootPath, "sbin", "Sencha", "Cmd")
+    self.__senchaVersion = "5.0.2.270"
+    
   def __writeINFile( self, tplName, extra = False ):
     inTpl = os.path.join( self.__inDir, tplName )
     try:
@@ -201,6 +205,12 @@ class Compiler(object):
   def __checkSenchacmd( self ):
     
     try:
+      path = os.path.join(self.__senchacmddir, self.__senchaVersion)
+      if os.path.exists( path ): 
+        sys.path.append(path)
+        syspath = os.environ['PATH']
+        os.environ['PATH'] = path + os.pathsep + syspath
+
       self.__cmd( ["sencha"] )
     except OSError, err:
       raise OSError("sencha cmd is not installed!")
