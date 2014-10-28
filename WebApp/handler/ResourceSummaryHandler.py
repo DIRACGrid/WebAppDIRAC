@@ -198,18 +198,18 @@ class ResourceSummaryHandler( WebHandler ):
     username = sData["user"]["username"]
     
     if username == 'anonymous':
-      self.finish( { 'success' : 'false', 'error' : 'Cannot perform this operation as anonymous' } )
+      return { 'success' : 'false', 'error' : 'Cannot perform this operation as anonymous' } 
     elif not 'SiteManager' in sData['user']['properties']:
-      self.finish( { 'success' : 'false', 'error' : 'Not authorized' } )
+      return { 'success' : 'false', 'error' : 'Not authorized' } 
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
     res = pub.setToken( 'Resource',
-                         requestParams[ 'name' ][ 0 ],
-                         requestParams[ 'statusType' ][ 0 ],
-                         requestParams[ 'status' ][ 0 ],
-                         requestParams[ 'elementType' ][ 0 ],
+                         str(requestParams[ 'name' ][ 0 ]),
+                         str(requestParams[ 'statusType' ][ 0 ]),
+                         str(requestParams[ 'status' ][ 0 ]),
+                         str(requestParams[ 'elementType' ][ 0 ]),
                          username,
-                         requestParams[ 'lastCheckTime' ][ 0 ] ) 
+                         str(requestParams[ 'lastCheckTime' ][ 0 ]) ) 
                    
     if not res[ 'OK' ]:
       return { 'success' : 'false', 'error' : res[ 'Message' ] } 
@@ -224,18 +224,19 @@ class ResourceSummaryHandler( WebHandler ):
     
     
     if username == 'anonymous':
-      self.finish( { 'success' : 'false', 'error' : 'Cannot perform this operation as anonymous' } )
+      return { 'success' : 'false', 'error' : 'Cannot perform this operation as anonymous' } 
     elif not 'SiteManager' in sData['user']['properties']:
-      self.finish( { 'success' : 'false', 'error' : 'Not authorized' } )
+      return { 'success' : 'false', 'error' : 'Not authorized' } 
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
+    
     res = pub.setStatus( 'Resource',
-                         requestParams[ 'name' ][ 0 ],
-                         requestParams[ 'statusType' ][ 0 ],
-                         requestParams[ 'status' ][ 0 ],
-                         requestParams[ 'elementType' ][ 0 ],
+                         str( requestParams[ 'name' ][ 0 ] ),
+                         str( requestParams[ 'statusType' ][ 0 ] ),
+                         str( requestParams[ 'status' ][ 0 ] ),
+                         str( requestParams[ 'elementType' ][ 0 ] ),
                          username,
-                         requestParams[ 'lastCheckTime' ][ 0 ] ) 
+                         str(requestParams[ 'lastCheckTime' ][ 0 ]) ) 
                    
     if not res[ 'OK' ]:
       return { 'success' : 'false', 'error' : res[ 'Message' ] } 
