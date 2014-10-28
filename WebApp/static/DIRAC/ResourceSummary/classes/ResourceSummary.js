@@ -470,7 +470,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
 
                   } else {
                     me.getContainer().body.unmask();
-                    GLOBAL.APP.CF.alert(jsonData["error"], "error");
+                    Ext.dirac.system_info.msg("error", jsonData["error"]);
 
                   }
 
@@ -504,7 +504,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                 elementType : Ext.JSON.encode([elementType]),
                 statusType : Ext.JSON.encode([statusType]),
                 status : Ext.JSON.encode([newStatus]),
-                lastCheckTime : Ext.JSON.encode([lastCheckTime])
+                lastCheckTime : Ext.JSON.encode([Ext.Date.format(lastCheckTime,"Y-m-d H:i:s")])
               },
               scope : me,
               failure : function(response) {
@@ -516,10 +516,10 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                 var jsonData = Ext.JSON.decode(response.responseText);
 
                 if (jsonData["success"] == "true") {
-                  GLOBAL.APP.CF.alert(jsonData["result"]);
+                  Ext.dirac.system_info.msg("info", jsonData["result"]);
                 } else {
                   me.getContainer().body.unmask();
-                  GLOBAL.APP.CF.alert(jsonData["error"], "error");
+                  Ext.dirac.system_info.msg("error", jsonData["error"]);
                 }
               }
             });
