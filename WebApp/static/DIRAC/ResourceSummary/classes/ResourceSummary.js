@@ -181,28 +181,28 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           'Visible' : [{
                 "text" : "Active",
                 "handler" : me.__oprSetResources,
-                "arguments":["setStatus","Active"],
+                "arguments" : ["setStatus", "Active"],
                 "properties" : {
                   tooltip : 'Click to activate the resource.'
                 }
               }, {
                 "text" : "Degraded",
-                "handler" :  me.__oprSetResources,
-                "arguments":["setStatus","Degraded"],
+                "handler" : me.__oprSetResources,
+                "arguments" : ["setStatus", "Degraded"],
                 "properties" : {
                   tooltip : 'Click to set degraded the resource.'
                 }
               }, {
                 "text" : "Probing",
-                "handler" :  me.__oprSetResources,
-                "arguments":["setStatus","Probing"],
+                "handler" : me.__oprSetResources,
+                "arguments" : ["setStatus", "Probing"],
                 "properties" : {
                   tooltip : 'Click to set probing the resource.'
                 }
               }, {
                 "text" : "Banned",
-                "handler" :  me.__oprSetResources,
-                "arguments":["setStatus","Banned"],
+                "handler" : me.__oprSetResources,
+                "arguments" : ["setStatus", "Banned"],
                 "properties" : {
                   tooltip : 'Click to set banned the resource.'
                 }
@@ -212,14 +212,14 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           'Visible' : [{
                 "text" : "Acquire",
                 "handler" : me.__oprSetResources,
-                "arguments":["setToken","Acquire"],
+                "arguments" : ["setToken", "Acquire"],
                 "properties" : {
                   tooltip : 'Click to acquire the resource.'
                 }
               }, {
                 "text" : "Release",
                 "handler" : me.__oprSetResources,
-                "arguments":["setToken","Release"],
+                "arguments" : ["setToken", "Release"],
                 "properties" : {
                   tooltip : 'Click to release the resource.'
                 }
@@ -516,13 +516,10 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                 var jsonData = Ext.JSON.decode(response.responseText);
 
                 if (jsonData["success"] == "true") {
-
-                  } else {
-                    me.getContainer().body.unmask();
-                    GLOBAL.APP.CF.alert(jsonData["error"], "error");
-
-                  }
-
+                  GLOBAL.APP.CF.alert(jsonData["result"]);
+                } else {
+                  me.getContainer().body.unmask();
+                  GLOBAL.APP.CF.alert(jsonData["error"], "error");
                 }
               }
             });
