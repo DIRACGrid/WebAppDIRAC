@@ -32,6 +32,8 @@ Ext.define('Ext.dirac.utils.DiracRowExpander', {
       checkField : null,
 
       containValue : null,
+      
+      selectRowOnExpand : true,
 
       getHeaderConfig : function() {
         var me = this;

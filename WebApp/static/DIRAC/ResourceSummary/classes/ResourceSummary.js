@@ -177,7 +177,48 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           }
         };
 
-       
+        var statusSubmenu = {
+          'Visible' : [{
+                "text" : "Active",
+                "handler" : "",
+                "properties" : {
+                  tooltip : 'Click to activate the resource.'
+                }
+              }, {
+                "text" : "Degraded",
+                "handler" : "",
+                "properties" : {
+                  tooltip : 'Click to set degraded the resource.'
+                }
+              }, {
+                "text" : "Probing",
+                "handler" : "",
+                "properties" : {
+                  tooltip : 'Click to set probing the resource.'
+                }
+              }, {
+                "text" : "Banned",
+                "handler" : "",
+                "properties" : {
+                  tooltip : 'Click to set banned the resource.'
+                }
+              }]
+        };
+        var tokenSubmenu = {
+          'Visible' : [{
+                "text" : "Acquire",
+                "handler" : "",
+                "properties" : {
+                  tooltip : 'Click to acquire the resource.'
+                }
+              }, {
+                "text" : "Release",
+                "handler" : "",
+                "properties" : {
+                  tooltip : 'Click to release the resource.'
+                }
+              }]
+        };
         var menuitems = {
           'Visible' : [{
                 "text" : "Overview",
@@ -188,12 +229,29 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                   tooltip : 'Click to show the jobs which belong to the selected request.'
                 }
               }, {
+                "text" : "-" // separator
+              }, {
                 "text" : "History",
                 "handler" : me.__oprOnResourceSummaryData,
                 "arguments" : ["History"],
                 "properties" : {
-                  tooltip : 'Click to show the jobs which belong to the selected request.'
+                  tooltip : 'Click to show the history of the selected resource.'
                 }
+              }, {
+                "text" : "Policies",
+                "handler" : me.__oprOnResourceSummaryData,
+                "arguments" : ["Policies"],
+                "properties" : {
+                  tooltip : 'Click to show the policies of the selected resource.'
+                }
+              }, {
+                "text" : "-" // separator
+              }, {
+                "text" : "Set status",
+                "subMenu" : statusSubmenu
+              }, {
+                "text" : "Set token",
+                "subMenu" : tokenSubmenu
               }]
         };
 
@@ -240,11 +298,16 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                       autoLoad : true
                     });
 
-                var expandedGridPanel = Ext.create('Ext.grid.Panel', {
+                me.expandedGridPanel = Ext.create('Ext.grid.Panel', {
                       forceFit : true,
                       renderTo : targetId,
+                      isExpanded : false,
                       id : targetId + "_grid",
                       store : expandStore,
+                      viewConfig : {
+                        stripeRows : true,
+                        enableTextSelection : true
+                      },
                       columns : [{
                             header : 'Name',
                             sortable : true,
@@ -295,13 +358,22 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                             sortable : true,
                             dataIndex : 'TokenExpiration',
                             align : 'left'
-                          }]
+                          }],
+                      "listeners" : {
+
+                        beforecellcontextmenu : function(table, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                          e.preventDefault();
+                          me.contextGridMenu.showAt(e.xy);
+                          this.isExpanded = true;
+                          return false;
+                        }
+                      }
                     });
 
-                rowNode.grid = expandedGridPanel;
+                rowNode.grid = me.expandedGridPanel;
                 expandStore.load();
-                expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
-                expandedGridPanel.fireEvent("bind", expandedGridPanel, {
+                me.expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
+                me.expandedGridPanel.fireEvent("bind", me.expandedGridPanel, {
                       id : record.get('Name')
                     });
               }
@@ -312,19 +384,26 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       },
       __oprOnResourceSummaryData : function(action) {
         var me = this;
-
-        var name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
-        var elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
-        var statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+        var name, elementType, statusType = null;
+        if (!me.expandedGridPanel.isExpanded) {
+          name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
+          elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
+          statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+        } else {
+          me.expandedGridPanel.isExpanded = false;
+          name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "Name");
+          elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "ElementType");
+          statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "StatusType");
+        }
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
               method : 'POST',
               params : {
                 action : Ext.JSON.encode([action]),
-                name :  Ext.JSON.encode([name]),
-                elementType :  Ext.JSON.encode([elementType]),
-                statusType :  Ext.JSON.encode([statusType])
+                name : Ext.JSON.encode([name]),
+                elementType : Ext.JSON.encode([elementType]),
+                statusType : Ext.JSON.encode([statusType])
               },
               scope : me,
               success : function(response) {
@@ -335,7 +414,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                 if (jsonData["success"] == "true") {
 
                   if (action == "History") {
-                     me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "History:" + name + "("+statusType + ")", ["Status", "DataEffectiv", "Reason"], [{
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "History:" + name + "(" + statusType + ")", ["Status", "DataEffectiv", "Reason"], [{
                               text : 'Status',
                               flex : 1,
                               sortable : false,
@@ -352,8 +431,36 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                               dataIndex : 'Reason'
                             }]);
 
-                  } else {
+                  } else if (action == "Policies") {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Policies:" + name + "(" + statusType + ")", ["Status", "PolicyName", "DataEffectiv", "LastCheckTime", "Reason"], [{
+                              text : 'Status',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'Status'
+                            }, {
+                              text : 'PolicyName',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'PolicyName'
+                            }, {
+                              text : 'DataEffectiv',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'DataEffectiv'
+                            }, {
+                              text : 'LastCheckTime',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'LastCheckTime'
+                            }, {
+                              text : 'Reason',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'Reason'
+                            }]);
 
+                  } else {
+                    me.getContainer().body.unmask();
                     GLOBAL.APP.CF.alert(jsonData["error"], "error");
 
                   }
