@@ -180,25 +180,29 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
         var statusSubmenu = {
           'Visible' : [{
                 "text" : "Active",
-                "handler" : "",
+                "handler" : me.__oprSetResources,
+                "arguments":["setStatus","Active"],
                 "properties" : {
                   tooltip : 'Click to activate the resource.'
                 }
               }, {
                 "text" : "Degraded",
-                "handler" : "",
+                "handler" :  me.__oprSetResources,
+                "arguments":["setStatus","Degraded"],
                 "properties" : {
                   tooltip : 'Click to set degraded the resource.'
                 }
               }, {
                 "text" : "Probing",
-                "handler" : "",
+                "handler" :  me.__oprSetResources,
+                "arguments":["setStatus","Probing"],
                 "properties" : {
                   tooltip : 'Click to set probing the resource.'
                 }
               }, {
                 "text" : "Banned",
-                "handler" : "",
+                "handler" :  me.__oprSetResources,
+                "arguments":["setStatus","Banned"],
                 "properties" : {
                   tooltip : 'Click to set banned the resource.'
                 }
@@ -207,13 +211,15 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
         var tokenSubmenu = {
           'Visible' : [{
                 "text" : "Acquire",
-                "handler" : "",
+                "handler" : me.__oprSetResources,
+                "arguments":["setToken","Acquire"],
                 "properties" : {
                   tooltip : 'Click to acquire the resource.'
                 }
               }, {
                 "text" : "Release",
-                "handler" : "",
+                "handler" : me.__oprSetResources,
+                "arguments":["setToken","Release"],
                 "properties" : {
                   tooltip : 'Click to release the resource.'
                 }
@@ -406,6 +412,9 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                 statusType : Ext.JSON.encode([statusType])
               },
               scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              },
               success : function(response) {
 
                 me.getContainer().body.unmask();
@@ -458,6 +467,55 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                               sortable : false,
                               dataIndex : 'Reason'
                             }]);
+
+                  } else {
+                    me.getContainer().body.unmask();
+                    GLOBAL.APP.CF.alert(jsonData["error"], "error");
+
+                  }
+
+                }
+              }
+            });
+
+      },
+      __oprSetResources : function(action, newStatus) {
+        var me = this;
+        var name, elementType, statusType = null;
+        if (!me.expandedGridPanel.isExpanded) {
+          name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
+          elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
+          statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+          lastCheckTime = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime");
+        } else {
+          me.expandedGridPanel.isExpanded = false;
+          name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "Name");
+          elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "ElementType");
+          statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "StatusType");
+          lastCheckTime = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "LastCheckTime");
+        }
+        me.getContainer().body.mask("Wait ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode([action]),
+                name : Ext.JSON.encode([name]),
+                elementType : Ext.JSON.encode([elementType]),
+                statusType : Ext.JSON.encode([statusType]),
+                status : Ext.JSON.encode([newStatus]),
+                lastCheckTime : Ext.JSON.encode([lastCheckTime])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              },
+              success : function(response) {
+
+                me.getContainer().body.unmask();
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
 
                   } else {
                     me.getContainer().body.unmask();
