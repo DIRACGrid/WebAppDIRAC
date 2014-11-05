@@ -534,7 +534,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       },
       __oprShowEditor : function() {
         var me = this;
-        var values = me.__getSelectedValues();
+        var values = me.expandedGridPanel.getSelectionModel().getSelection()[0].data; 
         me.overviewPanel.updatePanel(values);
         me.overviewPanel.expand();
         me.overviewPanel.show();
