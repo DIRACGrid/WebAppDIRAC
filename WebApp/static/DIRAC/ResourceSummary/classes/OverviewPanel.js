@@ -47,6 +47,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
             '<b>DateEffective:</b> {DateEffective} <br><b>LastCheckTime:</b> {LastCheckTime}<br/> <b>TokenOwner:</b> {TokenOwner}<br/>', '<b>TokenExpiration:</b> {TokenExpiration}<br/>', '</div>', '</tpl>');
 
         me.view = new Ext.view.View({
+              columnWidth : 1 / 3,
               tpl : tpl,
               store : viewStore,
               itemSelector : 'div.dataset-statistics',
@@ -54,26 +55,60 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
             });
 
         me.viewPanel = Ext.create("Ext.panel.Panel", {
-              title : "sasasa",
+              columnWidth : 1 / 3,
               items : me.view,
               layout : 'fit'
             })
+        var historyStore = new Ext.data.ArrayStore({
+              fields : ["Status", "DataEffectiv", "Reason"],
+              data : []
+            });
+
+        me.historyGrid = Ext.create("Ext.grid.Panel", {
+              layout : 'fit',
+              store : historyStore,
+              columns : [{
+                    text : 'Status',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'Status'
+                  }, {
+                    text : 'DataEffectiv',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'DataEffectiv'
+                  }, {
+                    text : 'Reason',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'Reason'
+                  }],
+              width : '100%',
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              }
+            })
         me.historyPanel = Ext.create("Ext.panel.Panel", {
               title : "History",
-              html : "cool"
+              columnWidth : 1 / 3,
+              items : [me.historyGrid]
             });
         me.downTimePanel = Ext.create("Ext.panel.Panel", {
               title : "Downtimes",
+              columnWidth : 1 / 3,
               html : "dadad"
 
             });
         me.policies = Ext.create("Ext.panel.Panel", {
               title : "Policies",
+              columnWidth : 1 / 3,
               html : "dsdsd"
 
             });
         me.timeline = Ext.create("Ext.panel.Panel", {
               title : "Timeline",
+              columnWidth : 1 / 3,
               html : "dsdsd"
 
             });
@@ -89,6 +124,30 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         var me = this;
         me.viewPanel.setTitle(selection.Name);
         me.view.getStore().loadData([selection]);
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode(["History"]),
+                name : Ext.JSON.encode([selection.Name]),
+                elementType : Ext.JSON.encode([selection.ElementType]),
+                statusType : Ext.JSON.encode([selection.StatusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+                  me.historyGrid.getStore().loadData(jsonData["result"]);
+                }
+              }
+            });
+
       }
 
     });
