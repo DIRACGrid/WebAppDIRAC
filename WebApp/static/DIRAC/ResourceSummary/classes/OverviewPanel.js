@@ -25,6 +25,8 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         var me = this;
 
         me.dataFields = [{
+              name : 'Name'
+            }, {
               name : 'StatusType'
             }, {
               name : 'Status'
@@ -45,8 +47,8 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         var viewStore = Ext.create('Ext.data.Store', {
               fields : me.dataFields
             });
-        var tpl = new Ext.XTemplate('<tpl for=".">', '<div style="margin-bottom: 10px;" class="dataset-statistics">', '<b>Status Type:</b> {StatusType}<br/>', '<b>Status:</b> {Status}<br/>', '<b>ElementType:</b> {ElementType}<br/>', '<b>Reason:</b> {Reason}<br/>',
-            '<b>DateEffective:</b> {DateEffective} <br><b>LastCheckTime:</b> {LastCheckTime}<br/> <b>TokenOwner:</b> {TokenOwner}<br/>', '<b>TokenExpiration:</b> {TokenExpiration}<br/>', '</div>', '</tpl>');
+        var tpl = new Ext.XTemplate('<tpl for=".">', '<div style="margin-bottom: 10px;" class="dataset-statistics">', '<b>Name:</b> {Name}<br/>', '<b>Status Type:</b> {StatusType}<br/>', '<b>Status:</b> {Status}<br/>', '<b>ElementType:</b> {ElementType}<br/>',
+            '<b>Reason:</b> {Reason}<br/>', '<b>DateEffective:</b> {DateEffective} <br><b>LastCheckTime:</b> {LastCheckTime}<br/> <b>TokenOwner:</b> {TokenOwner}<br/>', '<b>TokenExpiration:</b> {TokenExpiration}<br/>', '</div>', '</tpl>');
 
         me.view = new Ext.view.View({
               columnWidth : 1 / 3,
@@ -57,6 +59,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
             });
 
         me.viewPanel = Ext.create("Ext.panel.Panel", {
+              "title" : "Resource",
               columnWidth : 1 / 3,
               items : me.view,
               layout : 'fit',
@@ -236,19 +239,49 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               resizable : true,
               listeners : {
                 itemclick : function(tree, record, item, index, e, eOpts) {
-                  me.updatePanel(record.get("openResource"));
+                  if (record.get("openResource")) {
+                    me.updatePanel(record.get("openResource"));
+                  }
                 }
               }
             });
-       
+
         me.callParent(arguments);
-        me.add([me.viewPanel,  me.familymaters, me.timeline, me.policies, me.historyPanel, me.downTimePanel ]);
+        me.add([me.viewPanel, me.familymaters, me.timeline, me.policies, me.historyPanel, me.downTimePanel]);
 
       },
       updatePanel : function(selection) {
         var me = this;
-        me.viewPanel.setTitle(selection.Name);
-        me.view.getStore().loadData([selection]);
+
+        me.viewPanel.body.mask("Loading ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode(["Info"]),
+                name : Ext.JSON.encode([selection.Name]),
+                elementType : Ext.JSON.encode([selection.ElementType]),
+                statusType : Ext.JSON.encode([selection.StatusType]),
+                element : (selection.Element ? Ext.JSON.encode([selection.Element]) : Ext.JSON.encode(["Resource"]))
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.viewPanel.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+                  me.setTitle(jsonData["result"]["Name"]);
+                  me.view.getStore().loadData([jsonData["result"]]);
+                  me.viewPanel.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg("error", jsonData["error"]);
+                }
+              }
+            });
 
         me.historyGrid.body.mask("Loading ...");
         Ext.Ajax.request({

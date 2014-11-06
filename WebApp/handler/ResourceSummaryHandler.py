@@ -378,6 +378,39 @@ class ResourceSummaryHandler( WebHandler ):
         tree.append( [ None, k, v, se ] )
 
     return { 'success' : 'true', 'result' : tree, 'total' : len( tree ) }
+  
+  def _getInfo( self, requestParams ):
+    if not 'name' in requestParams or not requestParams[ 'name' ]:
+      return { 'success' : 'false', 'error' : 'Missing name' }
+    if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
+      return { 'success' : 'false', 'error' : 'Missing elementType' }
+    if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
+      return { 'success' : 'false', 'error' : 'Missing statusType' }
+    if not 'element' in requestParams or not requestParams['element']:
+      return { 'success' : 'false', 'error' : 'Missing element' }
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    
+    res = pub.getElementStatuses( str( requestParams[ 'element' ][-1] ),
+                                    str( requestParams[ 'name' ][-1] ),
+                                    str( requestParams[ 'elementType' ][-1] ),
+                                    str( requestParams[ 'statusType' ][-1] ),
+                                    None,
+                                    None )
+    
+    if not res[ 'OK' ]:
+        return { 'success' : 'false', 'error' : res["Message"] }
+    else:
+        
+      columns = res[ 'Columns' ]
+      
+      res = dict( zip( columns, res[ 'Value' ][ 0 ] ) )
+      res[ 'DateEffective' ] = str( res[ 'DateEffective' ] )
+      res[ 'LastCheckTime' ] = str( res[ 'LastCheckTime' ] )
+      res[ 'TokenExpiration' ] = str( res[ 'TokenExpiration' ] )
+      
+      return { 'success' : 'true', 'result' : res, 'total' : len( res ) }
+    
   def __requestParams( self ):
     '''
       We receive the request and we parse it, in this case, we are doing nothing,
