@@ -94,10 +94,53 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               columnWidth : 1 / 3,
               items : [me.historyGrid]
             });
+
+        me.downtimeGrid = Ext.create("Ext.grid.Panel", {
+              layout : 'fit',
+              store : Ext.create("Ext.data.ArrayStore", {
+                    fields : ['StartDate', 'EndDare', 'Link', 'Description', 'Severity'],
+                    data : []
+                  }),
+              columns : [{
+                    text : 'StartDate',
+                    sortable : true,
+                    dataIndex : 'StartDate',
+                    align : 'left',
+                    flex : 1
+                  }, {
+                    text : 'EndDate',
+                    sortable : true,
+                    dataIndex : 'EndDate',
+                    align : 'left',
+                    flex : 1
+                  }, {
+                    text : 'Description',
+                    sortable : true,
+                    dataIndex : 'Description',
+                    align : 'left',
+                    flex : 1
+                  }, {
+                    text : 'Severity',
+                    sortable : true,
+                    dataIndex : 'Severity',
+                    align : 'left',
+                    flex : 1
+                  }, {
+                    text : 'Link',
+                    dataIndex : 'Link',
+                    hidden : true,
+                    flex : 1
+                  }],
+              width : '100%',
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              }
+            });
         me.downTimePanel = Ext.create("Ext.panel.Panel", {
               title : "Downtimes",
               columnWidth : 1 / 3,
-              html : "dadad"
+              items : [me.downtimeGrid]
 
             });
         me.policies = Ext.create("Ext.panel.Panel", {
@@ -125,6 +168,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         me.viewPanel.setTitle(selection.Name);
         me.view.getStore().loadData([selection]);
 
+        me.historyGrid.body.mask("Loading ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
               method : 'POST',
@@ -137,6 +181,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               scope : me,
               failure : function(response) {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.historyGrid.body.unmask();
               },
               success : function(response) {
 
@@ -144,6 +189,34 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
 
                 if (jsonData["success"] == "true") {
                   me.historyGrid.getStore().loadData(jsonData["result"]);
+                  me.historyGrid.body.unmask();
+                }
+              }
+            });
+
+        me.downtimeGrid.body.mask("Loading ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode(["Downtime"]),
+                name : Ext.JSON.encode([selection.Name]),
+                elementType : Ext.JSON.encode([selection.ElementType]),
+                element : Ext.JSON.encode(["Resource"]),
+                statusType : Ext.JSON.encode([selection.StatusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.downtimeGrid.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+                  me.downtimeGrid.getStore().loadData(jsonData["result"]);
+                  me.downtimeGrid.body.unmask();
                 }
               }
             });

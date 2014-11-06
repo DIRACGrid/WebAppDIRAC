@@ -204,12 +204,12 @@ class ResourceSummaryHandler( WebHandler ):
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
     res = pub.setToken( 'Resource',
-                         str(requestParams[ 'name' ][ 0 ]),
-                         str(requestParams[ 'statusType' ][ 0 ]),
-                         str(requestParams[ 'status' ][ 0 ]),
-                         str(requestParams[ 'elementType' ][ 0 ]),
+                         str( requestParams[ 'name' ][ 0 ] ),
+                         str( requestParams[ 'statusType' ][ 0 ] ),
+                         str( requestParams[ 'status' ][ 0 ] ),
+                         str( requestParams[ 'elementType' ][ 0 ] ),
                          username,
-                         str(requestParams[ 'lastCheckTime' ][ 0 ]) ) 
+                         str( requestParams[ 'lastCheckTime' ][ 0 ] ) ) 
                    
     if not res[ 'OK' ]:
       return { 'success' : 'false', 'error' : res[ 'Message' ] } 
@@ -236,7 +236,7 @@ class ResourceSummaryHandler( WebHandler ):
                          str( requestParams[ 'status' ][ 0 ] ),
                          str( requestParams[ 'elementType' ][ 0 ] ),
                          username,
-                         str(requestParams[ 'lastCheckTime' ][ 0 ]) ) 
+                         str( requestParams[ 'lastCheckTime' ][ 0 ] ) ) 
                    
     if not res[ 'OK' ]:
       return { 'success' : 'false', 'error' : res[ 'Message' ] } 
@@ -286,6 +286,31 @@ class ResourceSummaryHandler( WebHandler ):
     
     return { 'success' : 'true', 'result' : policies, 'total' : len( policies ) }    
    
+  def _getDowntime( self, requestParams ):
+  
+    # Sanitize
+    if not 'name' in requestParams or not requestParams[ 'name' ]:
+      return { 'success' : 'false', 'error' : 'Missing name' }
+    if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
+      return { 'success' : 'false', 'error' : 'Missing elementType' }
+    if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
+      return { 'success' : 'false', 'error' : 'Missing statusType' }
+    if not 'element' in requestParams or not requestParams['element']:
+      return { 'success' : 'false', 'error' : 'Missing element' }
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    
+    print requestParams[ 'element' ], requestParams[ 'elementType'], requestParams[ 'name' ]
+    
+    res = pub.getDowntimes( str(requestParams[ 'element' ][-1]), str(requestParams[ 'elementType'][-1]), str(requestParams[ 'name' ][-1]) )
+    if not res[ 'OK' ]:
+        gLogger.error( res[ 'Message' ] )
+        return { 'success' : 'false', 'error' : 'error getting downtimes' }
+      
+    downtimes = [ [ str( dt[0] ), str( dt[1] ), dt[2], dt[3], dt[4] ] for dt in res[ 'Value' ] ]
+    
+    return { 'success' : 'true', 'result' : downtimes, 'total' : len( downtimes ) }  
+  
   def __requestParams( self ):
     '''
       We receive the request and we parse it, in this case, we are doing nothing,
@@ -295,6 +320,7 @@ class ResourceSummaryHandler( WebHandler ):
     gLogger.always( "!!!  PARAMS: ", str( self.request.arguments ) ) 
     
     responseParams = { 
+                      'element'       : None,
                       'name'          : None,
                       'elementType'   : None,
                       'statusType'    : None,
