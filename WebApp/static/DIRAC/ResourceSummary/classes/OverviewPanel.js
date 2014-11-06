@@ -143,10 +143,50 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               items : [me.downtimeGrid]
 
             });
+
+        me.policiesGrid = Ext.create("Ext.grid.Panel", {
+              layout : 'fit',
+              store : Ext.create("Ext.data.ArrayStore", {
+                    fields : ["Status", "PolicyName", "DataEffectiv", "LastCheckTime", "Reason"],
+                    data : []
+                  }),
+              columns : [{
+                    text : 'Status',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'Status'
+                  }, {
+                    text : 'PolicyName',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'PolicyName'
+                  }, {
+                    text : 'DataEffectiv',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'DataEffectiv'
+                  }, {
+                    text : 'LastCheckTime',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'LastCheckTime'
+                  }, {
+                    text : 'Reason',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'Reason'
+                  }],
+              width : '100%',
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              }
+            });
+
         me.policies = Ext.create("Ext.panel.Panel", {
               title : "Policies",
               columnWidth : 1 / 3,
-              html : "dsdsd"
+              items : [me.policiesGrid]
 
             });
         me.timeline = Ext.create("Ext.panel.Panel", {
@@ -157,6 +197,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
             });
         me.familymaters = Ext.create("Ext.panel.Panel", {
               title : "Family matters",
+              columnWidth : 1 / 3,
               html : "dsdsd"
 
             });
@@ -217,6 +258,32 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                 if (jsonData["success"] == "true") {
                   me.downtimeGrid.getStore().loadData(jsonData["result"]);
                   me.downtimeGrid.body.unmask();
+                }
+              }
+            });
+
+        me.policiesGrid.body.mask("Loading ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode(["Policies"]),
+                name : Ext.JSON.encode([selection.Name]),
+                elementType : Ext.JSON.encode([selection.ElementType]),
+                statusType : Ext.JSON.encode([selection.StatusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.policiesGrid.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+                  me.policiesGrid.getStore().loadData(jsonData["result"]);
+                  me.policiesGrid.body.unmask();
                 }
               }
             });
