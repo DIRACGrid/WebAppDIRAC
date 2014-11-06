@@ -77,7 +77,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       buildUI : function() {
 
         var me = this;
-
+        
         var selectors = {
           name : "Name",
           elementType : "ResourceType",

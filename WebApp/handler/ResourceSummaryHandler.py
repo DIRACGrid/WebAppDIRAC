@@ -300,9 +300,7 @@ class ResourceSummaryHandler( WebHandler ):
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
     
-    print requestParams[ 'element' ], requestParams[ 'elementType'], requestParams[ 'name' ]
-    
-    res = pub.getDowntimes( str(requestParams[ 'element' ][-1]), str(requestParams[ 'elementType'][-1]), str(requestParams[ 'name' ][-1]) )
+    res = pub.getDowntimes( str( requestParams[ 'element' ][-1] ), str( requestParams[ 'elementType'][-1] ), str( requestParams[ 'name' ][-1] ) )
     if not res[ 'OK' ]:
         gLogger.error( res[ 'Message' ] )
         return { 'success' : 'false', 'error' : 'error getting downtimes' }
@@ -311,6 +309,75 @@ class ResourceSummaryHandler( WebHandler ):
     
     return { 'success' : 'true', 'result' : downtimes, 'total' : len( downtimes ) }  
   
+  def _getTimeline( self, requestParams ):
+  
+    # Sanitize
+    if not 'name' in requestParams or not requestParams[ 'name' ]:
+      return { 'success' : 'false', 'error' : 'Missing name' }
+    if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
+      return { 'success' : 'false', 'error' : 'Missing elementType' }
+    if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
+      return { 'success' : 'false', 'error' : 'Missing statusType' }
+    
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    
+    res = pub.getElementHistory( 'Resource', str( requestParams[ 'name' ][-1] ),
+                                   str( requestParams[ 'elementType' ][-1] ),
+                                   str( requestParams[ 'statusType' ][-1] ) )
+
+    if not res[ 'OK' ]:
+      gLogger.error( res[ 'Message' ] )
+      return { 'success' : 'false', 'error' : 'error getting history' }
+
+    history = []
+
+    for status, dateEffective, reason in res[ 'Value' ]:
+
+      
+      # history.append( [ history[ -1 ][ 0 ], str( dateEffective - timedelta( seconds = 1 ) ), '' ] )        
+        
+      history.append( [ status, str( dateEffective ), reason ] )
+                      
+    
+    return { 'success' : 'true', 'result' : history, 'total' : len( history ) }  
+  
+  def _getTree( self, requestParams ):
+    
+    if not 'name' in requestParams or not requestParams[ 'name' ]:
+      return { 'success' : 'false', 'error' : 'Missing name' }
+    if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
+      return { 'success' : 'false', 'error' : 'Missing elementType' }
+    if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
+      return { 'success' : 'false', 'error' : 'Missing statusType' }
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    
+    res = pub.getTree( 'Resource', str( requestParams[ 'elementType' ][-1] ), str( requestParams[ 'name' ][-1] ) )
+    if not res[ 'OK' ]:
+      gLogger.error( res[ 'Message' ] )
+      return { 'success' : 'false', 'error' : 'error getting tree' }
+    res = res[ 'Value' ]
+    
+    siteName = res.keys()[ 0 ]
+
+    tree = [ [ siteName, None, None, None ] ]
+    for k, v in res[ siteName ][ 'statusTypes' ].items():
+      tree.append( [ None, k, v, siteName ] )
+
+    tree.append( [ 'ces', None, None, siteName ] )
+    for ce, ceDict in res[ siteName ][ 'ces' ].items():
+      tree.append( [ ce, None, None, 'ces' ] )
+      for k, v in ceDict.items():
+        tree.append( [ None, k, v, ce ] )
+
+    tree.append( [ 'ses', None, None, siteName ] )
+    for se, seDict in res[ siteName ][ 'ses' ].items():
+      tree.append( [ se, None, None, 'ses' ] )
+      for k, v in seDict.items():
+        tree.append( [ None, k, v, se ] )
+
+    return { 'success' : 'true', 'result' : tree, 'total' : len( tree ) }
   def __requestParams( self ):
     '''
       We receive the request and we parse it, in this case, we are doing nothing,

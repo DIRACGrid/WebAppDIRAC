@@ -1,5 +1,6 @@
 Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       extend : "Ext.panel.Panel",
+      requires : ["DIRAC.ResourceSummary.classes.TreeModel"],
       title : 'Overview',
       region : 'east',
       autoScroll : true,
@@ -22,6 +23,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       },
       initComponent : function() {
         var me = this;
+
         me.dataFields = [{
               name : 'StatusType'
             }, {
@@ -57,7 +59,8 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         me.viewPanel = Ext.create("Ext.panel.Panel", {
               columnWidth : 1 / 3,
               items : me.view,
-              layout : 'fit'
+              layout : 'fit',
+              resizable : true
             })
         var historyStore = new Ext.data.ArrayStore({
               fields : ["Status", "DataEffectiv", "Reason"],
@@ -84,6 +87,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                     dataIndex : 'Reason'
                   }],
               width : '100%',
+              height : '50%',
               viewConfig : {
                 stripeRows : true,
                 enableTextSelection : true
@@ -92,7 +96,9 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         me.historyPanel = Ext.create("Ext.panel.Panel", {
               title : "History",
               columnWidth : 1 / 3,
-              items : [me.historyGrid]
+              items : [me.historyGrid],
+              height : '50%',
+              resizable : true
             });
 
         me.downtimeGrid = Ext.create("Ext.grid.Panel", {
@@ -135,12 +141,19 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               viewConfig : {
                 stripeRows : true,
                 enableTextSelection : true
+              },
+              listeners : {
+                itemclick : function(table, record, item, index, e, eOpts) {
+                  window.open(record.get('Link'));
+                }
               }
             });
         me.downTimePanel = Ext.create("Ext.panel.Panel", {
               title : "Downtimes",
               columnWidth : 1 / 3,
-              items : [me.downtimeGrid]
+              items : [me.downtimeGrid],
+              height : '50%',
+              resizable : true
 
             });
 
@@ -186,23 +199,51 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         me.policies = Ext.create("Ext.panel.Panel", {
               title : "Policies",
               columnWidth : 1 / 3,
-              items : [me.policiesGrid]
-
+              items : [me.policiesGrid],
+              resizable : true
             });
+
         me.timeline = Ext.create("Ext.panel.Panel", {
               title : "Timeline",
               columnWidth : 1 / 3,
-              html : "dsdsd"
+              height : 300,
+              width : 200,
+              resizable : true,
+              items : [{
+                    html : "<div id='" + me.id + "-timeline-plot' style='width:100%;'></div>",
+                    xtype : "box"
+                  }]
 
             });
-        me.familymaters = Ext.create("Ext.panel.Panel", {
+
+        me.treeStore = Ext.create('Ext.data.TreeStore', {
+
+              model : "DIRAC.ResourceSummary.classes.TreeModel",
+              root : {
+                expanded : true,
+                children : []
+              }
+
+            });
+        me.familymaters = Ext.create('Ext.tree.Panel', {
               title : "Family matters",
+              width : 200,
+              height : 150,
+              store : me.treeStore,
+              rootVisible : true,
+              renderTo : Ext.getBody(),
               columnWidth : 1 / 3,
-              html : "dsdsd"
-
+              resizable : true,
+              listeners : {
+                itemclick : function(tree, record, item, index, e, eOpts) {
+                  me.updatePanel(record.get("openResource"));
+                }
+              }
             });
+       
         me.callParent(arguments);
-        me.add([me.viewPanel, me.historyPanel, me.downTimePanel, me.policies, me.timeline, me.familymaters]);
+        me.add([me.viewPanel,  me.familymaters, me.timeline, me.policies, me.historyPanel, me.downTimePanel ]);
+
       },
       updatePanel : function(selection) {
         var me = this;
@@ -231,6 +272,8 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                 if (jsonData["success"] == "true") {
                   me.historyGrid.getStore().loadData(jsonData["result"]);
                   me.historyGrid.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
               }
             });
@@ -258,6 +301,8 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                 if (jsonData["success"] == "true") {
                   me.downtimeGrid.getStore().loadData(jsonData["result"]);
                   me.downtimeGrid.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
               }
             });
@@ -284,10 +329,237 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                 if (jsonData["success"] == "true") {
                   me.policiesGrid.getStore().loadData(jsonData["result"]);
                   me.policiesGrid.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
               }
             });
 
+        me.timeline.body.mask("Loading ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode(["Timeline"]),
+                name : Ext.JSON.encode([selection.Name]),
+                elementType : Ext.JSON.encode([selection.ElementType]),
+                statusType : Ext.JSON.encode([selection.StatusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.timeline.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+                  me.timeline.body.unmask();
+
+                  var height = me.timeline.getHeight() - 20;
+                  document.getElementById(me.id + "-timeline-plot").style.height = "" + height + "px";
+
+                  var width = me.timeline.getWidth() - 20;
+                  document.getElementById(me.id + "-timeline-plot").style.width = "" + width + "px";
+                  var chart = new google.visualization.AnnotatedTimeLine(document.getElementById(me.id + "-timeline-plot"));
+                  var data = new google.visualization.DataTable();
+                  data.addColumn('datetime', 'DateTime');
+                  data.addColumn('number', 'Status');
+                  data.addColumn('string', 'title1');
+                  data.addColumn('string', 'text1');
+
+                  var rows = []
+
+                  for (var i = 0; i < jsonData["result"].length; i++) {
+                    title = jsonData["result"][i][0];
+                    annotation = jsonData["result"][i][2];
+
+                    if (annotation == '') {
+                      annotation = null;
+                      title = null;
+                    }
+                    row = [Ext.Date.parse(jsonData["result"][i][1], "Y-m-d H:i:s"), me.__statusValue(jsonData["result"][i][0]), title, annotation];
+                    rows.push(row);
+                  }
+
+                  var lastRow = [new Date(), row[1], undefined, undefined];
+
+                  rows.push(lastRow);
+
+                  data.addRows(rows);
+                  chart.draw(data, {
+                        displayAnnotations : true
+                      });
+
+                } else {
+                  GLOBAL.APP.CF.msg("error", jsonData["error"]);
+                }
+              }
+            });
+
+        me.familymaters.body.mask("Loading ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode(["Tree"]),
+                name : Ext.JSON.encode([selection.Name]),
+                elementType : Ext.JSON.encode([selection.ElementType]),
+                statusType : Ext.JSON.encode([selection.StatusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.familymaters.body.unmask();
+              },
+              success : function(response) {
+
+                me.familymaters.body.unmask();
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+                  var json = []
+
+                  for (var i = 1; i < jsonData["result"].length; i++) {
+                    if (jsonData["result"][i][0] == null) {
+                      json.push({
+                            "text" : jsonData["result"][i][1],
+                            "id" : i,
+                            "leaf" : true,
+                            "iconCls" : jsonData["result"][i][2].toLowerCase(),
+                            "html" : '#'
+                          });
+                    } else {
+                      break
+                    }
+                  }
+
+                  var ces = []
+                  var ce = []
+                  var buffer = []
+
+                  for (var j = i + 1; j < jsonData["result"].length; j++) {
+
+                    if (jsonData["result"][j][0] == "ses") {
+                      ces.push({
+                            "text" : ce[0],
+                            "id" : 2000 + j,
+                            "leaf" : false,
+                            "children" : buffer
+                          });
+                      break;
+                    }
+
+                    if (jsonData["result"][j][3] == "ces") {
+                      if (ce.length != 0) {
+                        ces.push({
+                              "text" : ce[0],
+                              "id" : 2000 + j,
+                              "leaf" : false,
+                              "children" : buffer
+                            });
+                        buffer = []
+                        ce = [];
+                      }
+                      ce = jsonData["result"][j]
+                    } else {
+                      buffer.push({
+                            "text" : jsonData["result"][j][1],
+                            "id" : j,
+                            "leaf" : true,
+                            "iconCls" : jsonData["result"][j][2].toLowerCase(),
+                            "openResource" : {
+                              "Element" : "Resource",
+                              "Name" : ce[0],
+                              "ElementType" : "CE",
+                              "StatusType" : jsonData["result"][j][1]
+                            }
+                          });
+                    }
+                  }
+                  json.push({
+                        "text" : "Computing Elements",
+                        "id" : 1000,
+                        "leaf" : false,
+                        "children" : ces
+                      });
+
+                  var ses = []
+                  var se = []
+                  buffer = []
+
+                  for (var k = j + 1; k < jsonData["result"].length; k++) {
+
+                    if (jsonData["result"][k][3] == "ses") {
+                      if (se.length != 0) {
+                        ses.push({
+                              "text" : se[0],
+                              "id" : 3000 + k,
+                              "leaf" : false,
+                              "children" : buffer
+                            });
+                        buffer = []
+                        se = [];
+                      }
+                      se = jsonData["result"][k]
+                    } else {
+                      buffer.push({
+                            "text" : jsonData["result"][k][1],
+                            "id" : k,
+                            "leaf" : true,
+                            "iconCls" : jsonData["result"][k][2].toLowerCase(),
+                            "openResource" : {
+                              "Element" : "Resource",
+                              "Name" : se[0],
+                              "ElementType" : "StorageElement",
+                              "StatusType" : jsonData["result"][k][1]
+                            }
+
+                          });
+                    }
+                  }
+
+                  ses.push({
+                        "text" : se[0],
+                        "id" : 3000 + k,
+                        "leaf" : false,
+                        "children" : buffer
+                      });
+                  json.push({
+                        "text" : "Storage Elements",
+                        "id" : 5000,
+                        "leaf" : false,
+                        "children" : ses
+                      });
+
+                  siteName = jsonData["result"][0][0]
+                  var rootNode = {
+                    expanded : true,
+                    text : siteName,
+                    children : json
+                  };
+                  me.treeStore.setRootNode(rootNode);
+                } else {
+                  GLOBAL.APP.CF.msg("error", jsonData["error"]);
+                }
+              }
+            });
+
+      },
+      __statusValue : function(statusName) {
+        if (statusName == 'Error')
+          return 0;
+        else if (statusName == 'Banned')
+          return 1;
+        else if (statusName == 'Probing')
+          return 2;
+        else if (statusName == 'Degraded')
+          return 3;
+        else if (statusName == 'Active')
+          return 4;
+        else
+          return -1;
       }
 
     });
