@@ -231,7 +231,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         me.familymaters = Ext.create('Ext.tree.Panel', {
               title : "Family matters",
               width : 200,
-              height : 150,
+              height : 300,
               store : me.treeStore,
               rootVisible : true,
               renderTo : Ext.getBody(),
@@ -240,7 +240,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               listeners : {
                 itemclick : function(tree, record, item, index, e, eOpts) {
                   if (record.get("openResource")) {
-                    me.updatePanel(record.get("openResource"));
+                    me.loadData(record.get("openResource"));
                   }
                 }
               }
@@ -250,7 +250,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         me.add([me.viewPanel, me.familymaters, me.timeline, me.policies, me.historyPanel, me.downTimePanel]);
 
       },
-      updatePanel : function(selection) {
+      loadData : function(selection) {
         var me = this;
 
         me.viewPanel.body.mask("Loading ...");

@@ -157,9 +157,8 @@ class ResourceSummaryHandler( WebHandler ):
                                        requestParams[ 'name' ],
                                        None, None, None, None )
     if not elements[ 'OK' ]:
-      c.result = { 'success' : 'false', 'error' : elements[ 'Message' ] }
-      return c.result
-
+      return { 'success' : 'false', 'error' : elements[ 'Message' ] }
+      
     elementList = [ dict( zip( elements[ 'Columns' ], element ) ) for element in elements[ 'Value' ] ]
     for element in elementList:
       element[ 'DateEffective' ] = str( element[ 'DateEffective' ] )
