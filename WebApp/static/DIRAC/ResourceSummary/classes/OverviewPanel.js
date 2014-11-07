@@ -16,6 +16,22 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       hidden : true,
       layout : "column",
       columnWidth : 2,
+      tools : [{
+            type : 'maximize',
+            tooltip : 'Maximize the application.',
+            handler : function(event, toolEl, panelHeader) {
+              var me = this;
+              alert("implement me");
+            }
+          }, {
+            type : 'minimize',
+            tooltip : 'Minimize the application.',
+            hidden : true,
+            handler : function(event, toolEl, panelHeader) {
+              var me = this;
+              alert("implement me");
+            }
+          }],
       listeners : {
         collapse : function(panel, eOpts) {
           panel.hide();
