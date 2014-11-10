@@ -25,6 +25,9 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               var widget = me.up("panel");
               var parent = me.up("panel").parentWidget;
 
+              parent.grid.hide();
+              parent.leftPanel.hide();
+
               for (var i = 0; i < widget.tools.length; i++) {
                 if (widget.tools[i].type == 'maximize' || widget.tools[i].type == 'close' || widget.tools[i].type == "collapse-right") {
                   widget.tools[i].hide();
@@ -51,6 +54,9 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               var parent = me.up("panel").parentWidget;
               var widget = me.up("panel");
 
+              parent.grid.show();
+              parent.leftPanel.show();
+
               for (var i = 0; i < widget.tools.length; i++) {
                 if (widget.tools[i].type == 'maximize' || widget.tools[i].type == 'close' || widget.tools[i].type == "collapse-right") {
                   widget.tools[i].show();
@@ -66,6 +72,8 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       listeners : {
         collapse : function(panel, eOpts) {
           panel.hide();
+          panel.parentWidget.grid.show();
+          panel.parentWidget.leftPanel.show();
         }
       },
       initComponent : function() {
