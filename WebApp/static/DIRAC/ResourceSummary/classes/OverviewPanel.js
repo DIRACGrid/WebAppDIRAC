@@ -21,7 +21,25 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
             tooltip : 'Maximize the application.',
             handler : function(event, toolEl, panelHeader) {
               var me = this;
-              alert("implement me");
+
+              var widget = me.up("panel");
+              var parent = me.up("panel").parentWidget;
+
+              for (var i = 0; i < widget.tools.length; i++) {
+                if (widget.tools[i].type == 'maximize' || widget.tools[i].type == 'close' || widget.tools[i].type == "collapse-right") {
+                  widget.tools[i].hide();
+                } else if (widget.tools[i].type == 'minimize') {
+                  widget.tools[i].show();
+                }
+              }
+
+              widget.panelSize = {
+                height : widget.getHeight(),
+                width : widget.getWidth()
+              };
+
+              widget.setHeight(widget.maximizedSize.height);
+              widget.setWidth(widget.maximizedSize.width);
             }
           }, {
             type : 'minimize',
@@ -29,7 +47,20 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
             hidden : true,
             handler : function(event, toolEl, panelHeader) {
               var me = this;
-              alert("implement me");
+
+              var parent = me.up("panel").parentWidget;
+              var widget = me.up("panel");
+
+              for (var i = 0; i < widget.tools.length; i++) {
+                if (widget.tools[i].type == 'maximize' || widget.tools[i].type == 'close' || widget.tools[i].type == "collapse-right") {
+                  widget.tools[i].show();
+                } else if (widget.tools[i].type == 'minimize') {
+                  widget.tools[i].hide();
+                }
+              }
+
+              widget.setHeight(widget.panelSize.height);
+              widget.setWidth(widget.panelSize.width);
             }
           }],
       listeners : {
@@ -275,10 +306,10 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               method : 'POST',
               params : {
                 action : Ext.JSON.encode(["Info"]),
-                name : Ext.JSON.encode([selection.Name]),
-                elementType : Ext.JSON.encode([selection.ElementType]),
-                statusType : Ext.JSON.encode([selection.StatusType]),
-                element : (selection.Element ? Ext.JSON.encode([selection.Element]) : Ext.JSON.encode(["Resource"]))
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType]),
+                element : (selection.element ? Ext.JSON.encode([selection.element]) : Ext.JSON.encode(["Resource"]))
               },
               scope : me,
               failure : function(response) {
@@ -305,9 +336,9 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               method : 'POST',
               params : {
                 action : Ext.JSON.encode(["History"]),
-                name : Ext.JSON.encode([selection.Name]),
-                elementType : Ext.JSON.encode([selection.ElementType]),
-                statusType : Ext.JSON.encode([selection.StatusType])
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType])
               },
               scope : me,
               failure : function(response) {
@@ -333,10 +364,10 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               method : 'POST',
               params : {
                 action : Ext.JSON.encode(["Downtime"]),
-                name : Ext.JSON.encode([selection.Name]),
-                elementType : Ext.JSON.encode([selection.ElementType]),
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
                 element : Ext.JSON.encode(["Resource"]),
-                statusType : Ext.JSON.encode([selection.StatusType])
+                statusType : Ext.JSON.encode([selection.statusType])
               },
               scope : me,
               failure : function(response) {
@@ -362,9 +393,9 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               method : 'POST',
               params : {
                 action : Ext.JSON.encode(["Policies"]),
-                name : Ext.JSON.encode([selection.Name]),
-                elementType : Ext.JSON.encode([selection.ElementType]),
-                statusType : Ext.JSON.encode([selection.StatusType])
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType])
               },
               scope : me,
               failure : function(response) {
@@ -390,9 +421,9 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               method : 'POST',
               params : {
                 action : Ext.JSON.encode(["Timeline"]),
-                name : Ext.JSON.encode([selection.Name]),
-                elementType : Ext.JSON.encode([selection.ElementType]),
-                statusType : Ext.JSON.encode([selection.StatusType])
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType])
               },
               scope : me,
               failure : function(response) {
@@ -453,9 +484,9 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               method : 'POST',
               params : {
                 action : Ext.JSON.encode(["Tree"]),
-                name : Ext.JSON.encode([selection.Name]),
-                elementType : Ext.JSON.encode([selection.ElementType]),
-                statusType : Ext.JSON.encode([selection.StatusType])
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType])
               },
               scope : me,
               failure : function(response) {
@@ -519,10 +550,10 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                             "leaf" : true,
                             "iconCls" : jsonData["result"][j][2].toLowerCase(),
                             "openResource" : {
-                              "Element" : "Resource",
-                              "Name" : ce[0],
-                              "ElementType" : "CE",
-                              "StatusType" : jsonData["result"][j][1]
+                              "element" : "Resource",
+                              "name" : ce[0],
+                              "elementType" : "CE",
+                              "statusType" : jsonData["result"][j][1]
                             }
                           });
                     }
@@ -559,10 +590,10 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                             "leaf" : true,
                             "iconCls" : jsonData["result"][k][2].toLowerCase(),
                             "openResource" : {
-                              "Element" : "Resource",
-                              "Name" : se[0],
-                              "ElementType" : "StorageElement",
-                              "StatusType" : jsonData["result"][k][1]
+                              "element" : "Resource",
+                              "name" : se[0],
+                              "elementType" : "StorageElement",
+                              "statusType" : jsonData["result"][k][1]
                             }
 
                           });

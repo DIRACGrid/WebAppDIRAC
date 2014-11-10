@@ -77,7 +77,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       buildUI : function() {
 
         var me = this;
-        
+
         var selectors = {
           name : "Name",
           elementType : "ResourceType",
@@ -384,24 +384,23 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
             });
 
         me.overviewPanel = Ext.create("DIRAC.ResourceSummary.classes.OverviewPanel", {
-              applicationName : me.applicationName
+              applicationName : me.applicationName,
+              parentWidget : me
             });
         me.add([me.leftPanel, me.grid, me.overviewPanel]);
 
       },
       __oprOnResourceSummaryData : function(action) {
         var me = this;
+        var selectedValues = me.__getSelectedValues();
         var name, elementType, statusType = null;
-        if (!me.expandedGridPanel.isExpanded) {
-          name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
-          elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
-          statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
-        } else {
-          me.expandedGridPanel.isExpanded = false;
-          name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "Name");
-          elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "ElementType");
-          statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "StatusType");
+
+        if (values) {
+          name = selectedValues.Name;
+          elementType = selectedValues.ElementType;
+          statusType = selectedValues.StatusType;
         }
+
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
@@ -484,17 +483,25 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
         var me = this;
 
         var values = {};
-        if (!me.expandedGridPanel.isExpanded) {
+
+        if (me.expandedGridPanel) {
+          if (!me.expandedGridPanel.isExpanded) {
+            values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
+            values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
+            values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+            values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
+          } else {
+            me.expandedGridPanel.isExpanded = false;
+            values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "Name");
+            values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "ElementType");
+            values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "StatusType");
+            values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "LastCheckTime"), "Y-m-d H:i:s");
+          }
+        } else {
           values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
           values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
           values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
           values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
-        } else {
-          me.expandedGridPanel.isExpanded = false;
-          values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "Name");
-          values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "ElementType");
-          values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "StatusType");
-          values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "LastCheckTime"), "Y-m-d H:i:s");
         }
         return values;
       },
@@ -534,7 +541,11 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       },
       __oprShowEditor : function() {
         var me = this;
-        var values = me.expandedGridPanel.getSelectionModel().getSelection()[0].data; 
+        var values = me.__getSelectedValues();
+        me.overviewPanel.maximizedSize = {
+          height : me.grid.getHeight() + me.leftPanel.getHeight(),
+          width : me.grid.getWidth() + me.leftPanel.getWidth()
+        };
         me.overviewPanel.loadData(values);
         me.overviewPanel.expand();
         me.overviewPanel.show();
