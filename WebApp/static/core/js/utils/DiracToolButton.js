@@ -21,51 +21,7 @@ Ext.define('Ext.dirac.utils.DiracToolButton', {
 
       initComponent : function() {
         var me = this;
-        me.callParent(arguments);
-        me.addEvents(
-            /**
-             * @event menushow If this button has a menu, this event fires when
-             *        it is shown
-             * @param {Ext.button.Button}
-             *          this
-             * @param {Ext.menu.Menu}
-             *          menu
-             */
-            'menushow',
-
-            /**
-             * @event menuhide If this button has a menu, this event fires when
-             *        it is hidden
-             * @param {Ext.button.Button}
-             *          this
-             * @param {Ext.menu.Menu}
-             *          menu
-             */
-            'menuhide',
-
-            /**
-             * @event menutriggerover If this button has a menu, this event
-             *        fires when the mouse enters the menu triggering element
-             * @param {Ext.button.Button}
-             *          this
-             * @param {Ext.menu.Menu}
-             *          menu
-             * @param {Event}
-             *          e
-             */
-            'menutriggerover',
-
-            /**
-             * @event menutriggerout If this button has a menu, this event fires
-             *        when the mouse leaves the menu triggering element
-             * @param {Ext.button.Button}
-             *          this
-             * @param {Ext.menu.Menu}
-             *          menu
-             * @param {Event}
-             *          e
-             */
-            'menutriggerout');
+        me.callParent(arguments);  
         if (me.menu) {
           // Flag that we'll have a splitCls
           me.split = true;
