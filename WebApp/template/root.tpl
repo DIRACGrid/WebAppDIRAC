@@ -54,7 +54,8 @@
             'Ext.dirac.core': '{{base_url}}/static/core/js/core',
             'Ext.dirac.views': '{{base_url}}/static/core/js/views',
             'Ext.dirac.utils': '{{base_url}}/static/core/js/utils',
-            'Ext.ux.form':'{{base_url}}/static/extjs/{{ext_version}}/examples/ux/form'
+            'Ext.ux.form':'{{base_url}}/static/extjs/{{ext_version}}/examples/ux/form',
+            'Ext.ux':'{{base_url}}/static/extjs/{{ext_version}}/examples/ux'
           });
 
           Ext.require(['Ext.dirac.core.App','Ext.*']);

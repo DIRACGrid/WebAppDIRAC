@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.TabPanel', {
       extend : 'Ext.tab.Panel',
-      requires : ['Ext.dirac.views.tabs.TabScrollerMenu'],
+      requires : ['Ext.dirac.views.tabs.TabScrollerMenu', "Ext.ux.TabReorderer"],
       xtype : 'diractabcontainer',
       alias : 'widget.tabPanel',
       resizeTabs : true,
@@ -27,7 +27,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
             ptype : 'tabscrollermenu',
             maxText : 15,
             pageSize : 5
-          }],
+          }, Ext.create('Ext.ux.TabReorderer')],
       setWorkspace : function(wsk) {
         this.workspace = wsk;
       },
