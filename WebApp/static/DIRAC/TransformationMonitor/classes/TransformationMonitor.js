@@ -692,6 +692,9 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
 
         var me = this;
         var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID");
+        if (!oId) {
+          return;
+        }
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + "/action",
