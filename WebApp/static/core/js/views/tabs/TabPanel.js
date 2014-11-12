@@ -105,6 +105,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                       if ((oStateData.data[i].module == win.getAppClassName()) && (oStateData.data[i].currentState == win.currentState))
 
                         oData.push(oStateData.data[i]);
+                        delete oStateData.data[i];
+                        break;
 
                     }
                   } else if (desktopName == 'Default') {

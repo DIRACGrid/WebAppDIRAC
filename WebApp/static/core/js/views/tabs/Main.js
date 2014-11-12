@@ -558,7 +558,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             var newnode = rootNode.appendChild({
                   'text' : item[1],
                   expandable : false,
-                  application : sStartClass, //item[2],
+                  application : sStartClass, // item[2],
                   leaf : true,
                   allowDrag : false,
                   iconCls : 'core-application-icon',
@@ -1433,13 +1433,27 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       refreshMyDesktop : function(nodeName) {
         var me = this;
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        var treePanel = null;
+        if (selPanel) {
+          treePanel = selPanel.getTreePanel();
+        }
+
+        treePanel.setLoading(true);
         if (nodeName) {
           var oNode = me.myDesktop.findChild('text', nodeName);
           oNode.collapse();
-          oNode.expand();
+          Ext.defer(function() {
+                oNode.expand();
+                treePanel.setLoading(false);
+              }, 1000); // wait a bit and after expand the tree.
         } else {
           me.myDesktop.collapse();
-          me.myDesktop.expand();
+          Ext.defer(function() {
+                me.myDesktop.expand();
+                treePanel.setLoading(false);
+              }, 1000);
+
         }
       },
       /**
