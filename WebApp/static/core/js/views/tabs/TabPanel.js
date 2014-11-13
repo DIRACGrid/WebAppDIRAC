@@ -159,7 +159,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               });
           desktop.data = oData;
         } catch (err) {
-          Ext.dirac.system_info.msg("Error Notification", 'The following desktop can not be saved:' + desktopName);
+          Ext.dirac.system_info.msg("Error Notification", 'The following desktop can not be saved:' +  me.title);
           Ext.dirac.system_info.msg("Error Notification", "Error: " + err);
           desktop = null;
         }
