@@ -901,7 +901,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
                   if ((desktop != 'Default') && (appl.currentState != stateName)) {
 
-                    GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName, app);
+                    //GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName, app);
 
                     if (appl.currentState != "")
                       GLOBAL.APP.SM.oprRemoveActiveState(app, appl.currentState);

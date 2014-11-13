@@ -70,7 +70,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                 // and
                 // they have the same state.
                 if (!win.isLoaded) {
-                  if (Object.keys(apps) && (Ext.Array.contains(Object.keys(apps), win.getAppClassName())) && apps[win.getAppClassName()] == wino.currentState) {
+                  if (Object.keys(apps) && (Ext.Array.contains(Object.keys(apps), win.getAppClassName())) && apps[win.getAppClassName()] == win.currentState) {
                     toLoadApps[win.getAppClassName()] = win.currentState;
                   } else {
                     apps[win.getAppClassName()] = win.currentState;

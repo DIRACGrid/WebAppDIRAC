@@ -295,6 +295,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
         var oSendData = oAppObject.getStateData();
 
+        if (!oSendData)
+          return; //we do not have the data which has to be saved...
+
         console.log(oSendData);
 
         if ("dirac_view" in oSendData) {
@@ -628,9 +631,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
               success : function(response) {
 
                 if (response.status == 200) {
-                  
+
                   GLOBAL.APP.CF.msg('Notification', sStateName + " is available to the public!");
-    
+
                 } else {
 
                   GLOBAL.APP.CF.showAjaxErrorMessage(response);
@@ -641,7 +644,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
               failure : function(response) {
 
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                
+
               }
 
             });

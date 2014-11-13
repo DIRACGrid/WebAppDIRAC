@@ -224,7 +224,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                       var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
                       var duplicateState = {};
                       for (var i = 0; i < desktops.data.length; i++) {
-                        if (desktops.data[i].currentState == selectedStateName) {
+                        if (desktops.data[i].currentState == selectedStateName && desktops.data[i].module == sAppName) {
                           duplicateState = Ext.clone(desktops.data[i]);
                           duplicateState.currentState = sStateName;
                           duplicateState.desktop = desktop;
@@ -261,7 +261,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                   var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
                   var duplicateState = {};
                   for (var i = 0; i < desktops.data.length; i++) {
-                    if (desktops.data[i].currentState == selectedStateName) {
+                    if (desktops.data[i].currentState == selectedStateName && desktops.data[i].module == sAppName) {
                       duplicateState = Ext.clone(desktops.data[i]);
                       duplicateState.currentState = sStateName;
                       duplicateState.desktop = desktop;
@@ -930,7 +930,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
         if (!GLOBAL.APP.SM.isAnyActiveState(appName, stateName, cbAfterSave)) {
           var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
           for (var i = 0; i < desktops.data.length; i++) {
-            if (desktops.data[i].currentState == stateName) {
+            if (desktops.data[i].currentState == stateName && desktops.data[i].module == appName) {
               Ext.Array.erase(desktops.data, i, 1);
               break;
             }
@@ -1059,7 +1059,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
             var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
 
             for (var i = 0; i < desktops.data.length; i++) {
-              if (desktops.data[i].currentState == state) {
+              if (desktops.data[i].currentState == state && desktops.data[i].module == app) {
                 desktops.data[i] = appTab.loadedObject.getStateData();
                 break;
               }
