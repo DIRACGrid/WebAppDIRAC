@@ -871,7 +871,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           var appl = activeDesktop.getActiveTab();
           if (appl) {
             GLOBAL.APP.MAIN_VIEW.SM.saveState(activeDesktop.title, appl.loadedObject.self.getName(), appl.loadedObject.currentState, function(retCode, appName, stateType, stateName) {
-                  GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+                  if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow) {
+                    GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+                  }
                 });
 
           } else {

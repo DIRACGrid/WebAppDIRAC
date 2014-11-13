@@ -94,7 +94,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
         var me = this;
         var activeTab = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer().getActiveTab();
         if (activeTab) {
-         if (activeTab.view == 'presenterView') { // the activeTab is
+          if (activeTab.view == 'presenterView') { // the activeTab is
             // Ext.dirac.views.tabs.PresenterView
             // which contains the
             // container.
@@ -148,14 +148,18 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
       loadData : function() {
         var me = this;
         if (!me.oneTimeAfterShow) {
-          if (me.loadedObjectType == "app")
-            me.setLoadedObject(me.setupData, true);
-          else if (me.loadedObjectType == "link")
+          if (me.loadedObjectType == "app") {
+            try {
+              me.setLoadedObject(me.setupData, true);
+            } catch (err) {
+              Ext.dirac.system_info.msg("Error Notification", "Application: " + me.getAppClassName() + " : " + err);
+            }
+          } else if (me.loadedObjectType == "link")
             me.setPropertiesWhenLink(me.setupData);
 
-          me.isLoaded = true; //the actual application is loaded,
-          //we have to add to the URL.
-          
+          me.isLoaded = true; // the actual application is loaded,
+          // we have to add to the URL.
+
           GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
           me.oneTimeAfterShow = true;
