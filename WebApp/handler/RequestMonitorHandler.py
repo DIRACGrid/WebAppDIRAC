@@ -15,7 +15,7 @@ class RequestMonitorHandler(WebHandler):
     RPC = RPCClient("RequestManagement/ReqManager", timeout = 600 )
     callback = {}
     req = self.__request()
-    print 'dsdsds', req
+   
     result = yield self.threadTask(RPC.getRequestSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:

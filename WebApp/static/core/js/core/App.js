@@ -23,8 +23,6 @@ Ext.define('Ext.dirac.core.App', {
 
 		var me = this;
 
-		me.addEvents('ready', 'beforeunload');
-
 		me.mixins.observable.constructor.call(this, undefined);
 
 		Ext.dirac.system_info = function() {

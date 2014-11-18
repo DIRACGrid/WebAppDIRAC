@@ -202,7 +202,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                       activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer("Default");
                     }
                     GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
-                    
+
                   } else if (item.data.type == "tabView" || item.data.type == "presenterView") {
                     if (item.data.isShared == true) {
                       if (item.data.stateType == 'desktop') {
@@ -440,7 +440,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
             // var model =
             // Ext.ModelManager.getModel('Ext.dirac.views.tabs.TreeMenuModel');
             // Ext.data.NodeInterface.decorate(model);
-            var newnode = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.TreeNodeModel');
+            var newnode = Ext.create('Ext.dirac.views.tabs.TreeNodeModel', nodeObj);
             // n = node.createNode(nodeObj);
             node.appendChild(newnode);
 

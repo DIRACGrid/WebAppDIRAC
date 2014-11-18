@@ -682,9 +682,9 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               pagingToolbar : pagingToolbar,
               scope : me
             });
-        
+
         me.leftPanel.setGrid(me.grid);
-        
+
         me.add([me.leftPanel, me.grid]);
 
       },
@@ -692,6 +692,9 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
 
         var me = this;
         var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "TransformationID");
+        if (!oId) {
+          return;
+        }
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + "/action",
@@ -854,12 +857,14 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               text : 'TransformationId',
               flex : 1,
               sortable : false,
-              dataIndex : oFields[1]
+              dataIndex : oFields[1],
+              hidden : true
             }, {
               text : 'FileId',
               flex : 1,
               sortable : false,
-              dataIndex : oFields[2]
+              dataIndex : oFields[2],
+              hidden : true
             }, {
               text : 'Status',
               flex : 1,
@@ -903,7 +908,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
          * handler : Ext.bind(parent.getContainer().showValue, oGrid, [oGrid],
          * false) }] }); oGrid.menu = oMenu;
          */
-        parent.getContainer().showInWindow("Files with status Processed for production:" + oId, oGrid)
+        parent.getContainer().showInWindow("Files with status " + oStatus + " for production:" + oId, oGrid)
         parent.grid.body.unmask();
       },
       __flushRun : function(parentGrid) {

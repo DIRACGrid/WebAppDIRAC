@@ -501,7 +501,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           expanded : true,
           root : true
         };
-        var rootNode = Ext.ModelManager.create(config, 'Ext.dirac.views.tabs.TreeMenuModel');
+        var rootNode = Ext.create('Ext.dirac.views.tabs.TreeMenuModel', config);
 
         for (var j = 0; j < GLOBAL.APP.configData["menu"].length; j++) {
           me.__getAppRecursivelyFromConfig(GLOBAL.APP.configData["menu"][j], rootNode);
@@ -558,7 +558,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             var newnode = rootNode.appendChild({
                   'text' : item[1],
                   expandable : false,
-                  application : sStartClass, //item[2],
+                  application : sStartClass, // item[2],
                   leaf : true,
                   allowDrag : false,
                   iconCls : 'core-application-icon',
@@ -566,7 +566,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   type : 'app',
                   desktop : 'Default'
                 });
-           
+
           } else {
             var newnode = rootNode.appendChild({
                   'text' : item[1],
@@ -871,7 +871,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           var appl = activeDesktop.getActiveTab();
           if (appl) {
             GLOBAL.APP.MAIN_VIEW.SM.saveState(activeDesktop.title, appl.loadedObject.self.getName(), appl.loadedObject.currentState, function(retCode, appName, stateType, stateName) {
-                  GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+                  if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow) {
+                    GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+                  }
                 });
 
           } else {
@@ -899,7 +901,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
                   if ((desktop != 'Default') && (appl.currentState != stateName)) {
 
-                    GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName, app);
+                    //GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName, app);
 
                     if (appl.currentState != "")
                       GLOBAL.APP.SM.oprRemoveActiveState(app, appl.currentState);
@@ -1026,7 +1028,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           };
 
           Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
-          var newNode = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.TreeNodeModel');
+          var newNode = Ext.create('Ext.dirac.views.tabs.TreeNodeModel', nodeObj);
           node.insertChild(0, newNode);
           node.appendChild(defaultNode);
         } else {
@@ -1237,7 +1239,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                     alias : 'widget.desktopnodemodel'
                   });
               Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
-              var node = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.DesktopNodeModel');
+              var node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
               var childNode = rootNode.appendChild(node);
               nodeObj = {
                 'text' : 'All',
@@ -1255,7 +1257,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                     alias : 'widget.desktopnodemodel'
                   });
               Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
-              var node = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.DesktopNodeModel');
+              var node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
               childNode.appendChild(node);
               childNode.expand();
 
@@ -1433,13 +1435,27 @@ Ext.define('Ext.dirac.views.tabs.Main', {
        */
       refreshMyDesktop : function(nodeName) {
         var me = this;
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        var treePanel = null;
+        if (selPanel) {
+          treePanel = selPanel.getTreePanel();
+        }
+
+        treePanel.setLoading(true);
         if (nodeName) {
           var oNode = me.myDesktop.findChild('text', nodeName);
           oNode.collapse();
-          oNode.expand();
+          Ext.defer(function() {
+                oNode.expand();
+                treePanel.setLoading(false);
+              }, 1000); // wait a bit and after expand the tree.
         } else {
           me.myDesktop.collapse();
-          me.myDesktop.expand();
+          Ext.defer(function() {
+                me.myDesktop.expand();
+                treePanel.setLoading(false);
+              }, 1000);
+
         }
       },
       /**
@@ -1508,7 +1524,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   alias : 'widget.desktopnodemodel'
                 });
             Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
-            var node = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.DesktopNodeModel');
+            var node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
             rootNode.appendChild(node);
           } catch (err) {
             Ext.log({
@@ -1567,7 +1583,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   alias : 'widget.desktopnodemodel'
                 });
             Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
-            var node = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.DesktopNodeModel');
+            var node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
             rootNode.appendChild(node);
           } catch (err) {
             Ext.log({
@@ -1931,7 +1947,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           // var model =
           // Ext.ModelManager.getModel('Ext.dirac.views.tabs.TreeMenuModel');
           // Ext.data.NodeInterface.decorate(model);
-          var newnode = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.TreeNodeModel');
+          var newnode = Ext.create('Ext.dirac.views.tabs.TreeNodeModel', nodeObj);
           // n = node.createNode(nodeObj);
           me.defaultDesktop.appendChild(newnode);
         }
@@ -1985,7 +2001,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           // var model =
           // Ext.ModelManager.getModel('Ext.dirac.views.tabs.TreeMenuModel');
           // Ext.data.NodeInterface.decorate(model);
-          var newnode = Ext.ModelManager.create(nodeObj, 'Ext.dirac.views.tabs.TreeNodeModel');
+          var newnode = Ext.create('Ext.dirac.views.tabs.TreeNodeModel', nodeObj);
           // n = node.createNode(nodeObj);
           var desktopNode = me.myDesktop.findChild('text', desktopName);
           desktopNode.expand();

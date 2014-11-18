@@ -1,7 +1,7 @@
 Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       extend : 'Ext.dirac.core.Module',
       requires : ["Ext.dirac.utils.DiracBaseSelector", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracAjaxProxy", "Ext.dirac.utils.DiracPagingToolbar", 'Ext.dirac.utils.DiracToolButton', "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracGridPanel",
-          "Ext.dirac.utils.DiracRowExpander"],
+          "Ext.dirac.utils.DiracRowExpander", "DIRAC.ResourceSummary.classes.OverviewPanel"],
       loadState : function(data) {
         var me = this;
 
@@ -228,9 +228,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
         var menuitems = {
           'Visible' : [{
                 "text" : "Overview",
-                "handler" : function() {
-                  alert("It is not implemented!!!!")
-                },
+                "handler" : me.__oprShowEditor,
                 "properties" : {
                   tooltip : 'Click to show the jobs which belong to the selected request.'
                 }
@@ -385,22 +383,24 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
               }
             });
 
-        me.add([me.leftPanel, me.grid]);
+        me.overviewPanel = Ext.create("DIRAC.ResourceSummary.classes.OverviewPanel", {
+              applicationName : me.applicationName,
+              parentWidget : me
+            });
+        me.add([me.leftPanel, me.grid, me.overviewPanel]);
 
       },
       __oprOnResourceSummaryData : function(action) {
         var me = this;
+        var selectedValues = me.__getSelectedValues();
         var name, elementType, statusType = null;
-        if (!me.expandedGridPanel.isExpanded) {
-          name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
-          elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
-          statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
-        } else {
-          me.expandedGridPanel.isExpanded = false;
-          name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "Name");
-          elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "ElementType");
-          statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "StatusType");
+
+        if (values) {
+          name = selectedValues.Name;
+          elementType = selectedValues.ElementType;
+          statusType = selectedValues.StatusType;
         }
+
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
@@ -479,32 +479,46 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
             });
 
       },
+      __getSelectedValues : function() {
+        var me = this;
+
+        var values = {};
+
+        if (me.expandedGridPanel) {
+          if (!me.expandedGridPanel.isExpanded) {
+            values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
+            values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
+            values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+            values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
+          } else {
+            me.expandedGridPanel.isExpanded = false;
+            values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "Name");
+            values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "ElementType");
+            values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "StatusType");
+            values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "LastCheckTime"), "Y-m-d H:i:s");
+          }
+        } else {
+          values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
+          values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
+          values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+          values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
+        }
+        return values;
+      },
       __oprSetResources : function(action, newStatus) {
         var me = this;
-        var name, elementType, statusType = null;
-        if (!me.expandedGridPanel.isExpanded) {
-          name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
-          elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
-          statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
-          lastCheckTime = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime");
-        } else {
-          me.expandedGridPanel.isExpanded = false;
-          name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "Name");
-          elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "ElementType");
-          statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "StatusType");
-          lastCheckTime = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "LastCheckTime");
-        }
+        var selectedValues = me.__getSelectedValues();
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
               method : 'POST',
               params : {
                 action : Ext.JSON.encode([action]),
-                name : Ext.JSON.encode([name]),
-                elementType : Ext.JSON.encode([elementType]),
-                statusType : Ext.JSON.encode([statusType]),
+                name : Ext.JSON.encode([selectedValues.name]),
+                elementType : Ext.JSON.encode([selectedValues.elementType]),
+                statusType : Ext.JSON.encode([selectedValues.statusType]),
                 status : Ext.JSON.encode([newStatus]),
-                lastCheckTime : Ext.JSON.encode([Ext.Date.format(lastCheckTime,"Y-m-d H:i:s")])
+                lastCheckTime : Ext.JSON.encode([selectedValues.lastCheckTime])
               },
               scope : me,
               failure : function(response) {
@@ -524,6 +538,17 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
               }
             });
 
+      },
+      __oprShowEditor : function() {
+        var me = this;
+        var values = me.__getSelectedValues();
+        me.overviewPanel.maximizedSize = {
+          height : me.grid.getHeight() + me.leftPanel.getHeight(),
+          width : me.grid.getWidth() + me.leftPanel.getWidth()
+        };
+        me.overviewPanel.loadData(values);
+        me.overviewPanel.expand();
+        me.overviewPanel.show();
       }
 
     });
