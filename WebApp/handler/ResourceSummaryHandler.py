@@ -26,7 +26,7 @@ class ResourceSummaryHandler( WebHandler ):
     
     gLogger.info( self.request.arguments )    
     
-    elementStatuses = pub.getElementStatuses( 'Resource', None, None, None, None, None )
+    elementStatuses = yield self.threadTask( pub.getElementStatuses, 'Resource', None, None, None, None, None )
     
     if elementStatuses[ 'OK' ]:
         
@@ -58,7 +58,7 @@ class ResourceSummaryHandler( WebHandler ):
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
        
-    elementStatuses = pub.getElementStatuses( 'Resource',
+    elementStatuses = yield self.threadTask( pub.getElementStatuses, 'Resource',
                                               requestParams[ 'name' ],
                                               requestParams[ 'elementType' ],
                                               requestParams[ 'statusType' ],
@@ -66,7 +66,6 @@ class ResourceSummaryHandler( WebHandler ):
                                               requestParams[ 'tokenOwner' ] )
     if not elementStatuses[ 'OK' ]:
       self.finish( { 'success' : 'false', 'error' : elementStatuses[ 'Message' ] } )
-      return c.result
        
     elementTree = collections.defaultdict( list )
     
@@ -91,7 +90,8 @@ class ResourceSummaryHandler( WebHandler ):
         elementList.append( self.combine( elementValues ) ) 
     
     rssMachine = RSSMachine( None )
-    rssMachine.orderPolicyResults( elementList )    
+    
+    yield self.threadTask( rssMachine.orderPolicyResults, elementList )    
         
     self.finish( { 'success': 'true', 'result': elementList, 'total': len( elementList ) } )
     
@@ -153,11 +153,11 @@ class ResourceSummaryHandler( WebHandler ):
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
        
-    elements = pub.getElementStatuses( 'Resource',
+    elements = yield self.threadTask( pub.getElementStatuses, 'Resource',
                                        requestParams[ 'name' ],
                                        None, None, None, None )
     if not elements[ 'OK' ]:
-      return { 'success' : 'false', 'error' : elements[ 'Message' ] }
+      self.finish( { 'success' : 'false', 'error' : elements[ 'Message' ] } )
       
     elementList = [ dict( zip( elements[ 'Columns' ], element ) ) for element in elements[ 'Value' ] ]
     for element in elementList:
@@ -197,12 +197,12 @@ class ResourceSummaryHandler( WebHandler ):
     username = sData["user"]["username"]
     
     if username == 'anonymous':
-      return { 'success' : 'false', 'error' : 'Cannot perform this operation as anonymous' } 
+      self.finish( { 'success' : 'false', 'error' : 'Cannot perform this operation as anonymous' } ) 
     elif not 'SiteManager' in sData['user']['properties']:
-      return { 'success' : 'false', 'error' : 'Not authorized' } 
+      self.finish( { 'success' : 'false', 'error' : 'Not authorized' } ) 
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
-    res = pub.setToken( 'Resource',
+    res = yield self.threadTask( pub.setToken, 'Resource',
                          str( requestParams[ 'name' ][ 0 ] ),
                          str( requestParams[ 'statusType' ][ 0 ] ),
                          str( requestParams[ 'status' ][ 0 ] ),
@@ -211,9 +211,9 @@ class ResourceSummaryHandler( WebHandler ):
                          str( requestParams[ 'lastCheckTime' ][ 0 ] ) ) 
                    
     if not res[ 'OK' ]:
-      return { 'success' : 'false', 'error' : res[ 'Message' ] } 
+      self.finish( { 'success' : 'false', 'error' : res[ 'Message' ] } ) 
           
-    return { 'success' : 'true', 'result' : res[ 'Value' ] } 
+    self.finish( { 'success' : 'true', 'result' : res[ 'Value' ] } ) 
 
   def setStatus( self, requestParams ):
     
@@ -223,13 +223,13 @@ class ResourceSummaryHandler( WebHandler ):
     
     
     if username == 'anonymous':
-      return { 'success' : 'false', 'error' : 'Cannot perform this operation as anonymous' } 
+      self.finish( { 'success' : 'false', 'error' : 'Cannot perform this operation as anonymous' } ) 
     elif not 'SiteManager' in sData['user']['properties']:
-      return { 'success' : 'false', 'error' : 'Not authorized' } 
+      self.finish( { 'success' : 'false', 'error' : 'Not authorized' } ) 
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
     
-    res = pub.setStatus( 'Resource',
+    res = yield self.threadTask( pub.setStatus, 'Resource',
                          str( requestParams[ 'name' ][ 0 ] ),
                          str( requestParams[ 'statusType' ][ 0 ] ),
                          str( requestParams[ 'status' ][ 0 ] ),
@@ -238,32 +238,32 @@ class ResourceSummaryHandler( WebHandler ):
                          str( requestParams[ 'lastCheckTime' ][ 0 ] ) ) 
                    
     if not res[ 'OK' ]:
-      return { 'success' : 'false', 'error' : res[ 'Message' ] } 
+      self.finish( { 'success' : 'false', 'error' : res[ 'Message' ] } ) 
           
-    return { 'success' : 'true', 'result' : res[ 'Value' ] } 
+    self.finish( { 'success' : 'true', 'result' : res[ 'Value' ] } ) 
 
   def _getHistory( self, requestParams ):
   
     # Sanitize
     if not 'name' in requestParams or not requestParams[ 'name' ]:
-      return { 'success' : 'false', 'error' : 'Missing name' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing name' } )
     if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
-      return { 'success' : 'false', 'error' : 'Missing elementType' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing elementType' } )
     if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
-      return { 'success' : 'false', 'error' : 'Missing statusType' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
-    res = pub.getElementHistory( 'Resource', requestParams[ 'name' ],
+    res = yield self.threadTask( pub.getElementHistory, 'Resource', requestParams[ 'name' ],
                                  requestParams[ 'elementType' ],
                                  requestParams[ 'statusType' ] )
     
     if not res[ 'OK' ]:
       gLogger.error( res[ 'Message' ] )
-      return { 'success' : 'false', 'error' : 'error getting history' } 
+      self.finish( { 'success' : 'false', 'error' : 'error getting history' } ) 
     
     history = [ [ r[0], str( r[1] ), r[2] ] for r in res[ 'Value' ] ]
     
-    return { 'success' : 'true', 'result' : history, 'total' : len( history ) }  
+    self.finish( { 'success' : 'true', 'result' : history, 'total' : len( history ) } )  
 
   def _getPolicies( self, requestParams ):
   
@@ -274,60 +274,60 @@ class ResourceSummaryHandler( WebHandler ):
       self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
-    res = pub.getElementPolicies( 'Resource', requestParams[ 'name' ],
+    res = yield self.threadTask( pub.getElementPolicies, 'Resource', requestParams[ 'name' ],
                                   requestParams[ 'statusType' ] )
     
     if not res[ 'OK' ]:
       gLogger.error( res[ 'Message' ] )
-      return { 'success' : 'false', 'error' : 'error getting policies' } 
+      self.finish( { 'success' : 'false', 'error' : 'error getting policies' } ) 
     
     policies = [ [ r[0], r[1], str( r[2] ), str( r[3] ), r[4] ] for r in res[ 'Value' ] ]
     
-    return { 'success' : 'true', 'result' : policies, 'total' : len( policies ) }    
+    self.finish( { 'success' : 'true', 'result' : policies, 'total' : len( policies ) } )    
    
   def _getDowntime( self, requestParams ):
   
     # Sanitize
     if not 'name' in requestParams or not requestParams[ 'name' ]:
-      return { 'success' : 'false', 'error' : 'Missing name' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing name' } )
     if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
-      return { 'success' : 'false', 'error' : 'Missing elementType' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing elementType' } )
     if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
-      return { 'success' : 'false', 'error' : 'Missing statusType' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
     if not 'element' in requestParams or not requestParams['element']:
-      return { 'success' : 'false', 'error' : 'Missing element' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing element' } )
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
     
-    res = pub.getDowntimes( str( requestParams[ 'element' ][-1] ), str( requestParams[ 'elementType'][-1] ), str( requestParams[ 'name' ][-1] ) )
+    res = yield self.threadTask( pub.getDowntimes, str( requestParams[ 'element' ][-1] ), str( requestParams[ 'elementType'][-1] ), str( requestParams[ 'name' ][-1] ) )
     if not res[ 'OK' ]:
         gLogger.error( res[ 'Message' ] )
-        return { 'success' : 'false', 'error' : 'error getting downtimes' }
+        self.finish( { 'success' : 'false', 'error' : 'error getting downtimes' } )
       
     downtimes = [ [ str( dt[0] ), str( dt[1] ), dt[2], dt[3], dt[4] ] for dt in res[ 'Value' ] ]
     
-    return { 'success' : 'true', 'result' : downtimes, 'total' : len( downtimes ) }  
+    self.finish( { 'success' : 'true', 'result' : downtimes, 'total' : len( downtimes ) } )  
   
   def _getTimeline( self, requestParams ):
   
     # Sanitize
     if not 'name' in requestParams or not requestParams[ 'name' ]:
-      return { 'success' : 'false', 'error' : 'Missing name' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing name' } )
     if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
-      return { 'success' : 'false', 'error' : 'Missing elementType' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing elementType' } )
     if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
-      return { 'success' : 'false', 'error' : 'Missing statusType' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
     
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
     
-    res = pub.getElementHistory( 'Resource', str( requestParams[ 'name' ][-1] ),
+    res = yield self.threadTask( pub.getElementHistory, 'Resource', str( requestParams[ 'name' ][-1] ),
                                    str( requestParams[ 'elementType' ][-1] ),
                                    str( requestParams[ 'statusType' ][-1] ) )
 
     if not res[ 'OK' ]:
       gLogger.error( res[ 'Message' ] )
-      return { 'success' : 'false', 'error' : 'error getting history' }
+      self.finish( { 'success' : 'false', 'error' : 'error getting history' } )
 
     history = []
 
@@ -339,23 +339,23 @@ class ResourceSummaryHandler( WebHandler ):
       history.append( [ status, str( dateEffective ), reason ] )
                       
     
-    return { 'success' : 'true', 'result' : history, 'total' : len( history ) }  
+    self.finish( { 'success' : 'true', 'result' : history, 'total' : len( history ) } )  
   
   def _getTree( self, requestParams ):
     
     if not 'name' in requestParams or not requestParams[ 'name' ]:
-      return { 'success' : 'false', 'error' : 'Missing name' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing name' } )
     if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
-      return { 'success' : 'false', 'error' : 'Missing elementType' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing elementType' } )
     if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
-      return { 'success' : 'false', 'error' : 'Missing statusType' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
     
-    res = pub.getTree( 'Resource', str( requestParams[ 'elementType' ][-1] ), str( requestParams[ 'name' ][-1] ) )
+    res = yield self.threadTask( pub.getTree, 'Resource', str( requestParams[ 'elementType' ][-1] ), str( requestParams[ 'name' ][-1] ) )
     if not res[ 'OK' ]:
       gLogger.error( res[ 'Message' ] )
-      return { 'success' : 'false', 'error' : 'error getting tree' }
+      self.finish( { 'success' : 'false', 'error' : 'error getting tree' } )
     res = res[ 'Value' ]
     
     siteName = res.keys()[ 0 ]
@@ -376,21 +376,21 @@ class ResourceSummaryHandler( WebHandler ):
       for k, v in seDict.items():
         tree.append( [ None, k, v, se ] )
 
-    return { 'success' : 'true', 'result' : tree, 'total' : len( tree ) }
+    self.finish( { 'success' : 'true', 'result' : tree, 'total' : len( tree ) } )
   
   def _getInfo( self, requestParams ):
     if not 'name' in requestParams or not requestParams[ 'name' ]:
-      return { 'success' : 'false', 'error' : 'Missing name' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing name' } )
     if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
-      return { 'success' : 'false', 'error' : 'Missing elementType' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing elementType' } )
     if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
-      return { 'success' : 'false', 'error' : 'Missing statusType' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
     if not 'element' in requestParams or not requestParams['element']:
-      return { 'success' : 'false', 'error' : 'Missing element' }
+      self.finish( { 'success' : 'false', 'error' : 'Missing element' } )
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
     
-    res = pub.getElementStatuses( str( requestParams[ 'element' ][-1] ),
+    res = yield self.threadTask( pub.getElementStatuses, str( requestParams[ 'element' ][-1] ),
                                     str( requestParams[ 'name' ][-1] ),
                                     str( requestParams[ 'elementType' ][-1] ),
                                     str( requestParams[ 'statusType' ][-1] ),
@@ -398,7 +398,7 @@ class ResourceSummaryHandler( WebHandler ):
                                     None )
     
     if not res[ 'OK' ]:
-        return { 'success' : 'false', 'error' : res["Message"] }
+        self.finish( { 'success' : 'false', 'error' : res["Message"] } )
     else:
         
       columns = res[ 'Columns' ]
@@ -408,7 +408,7 @@ class ResourceSummaryHandler( WebHandler ):
       res[ 'LastCheckTime' ] = str( res[ 'LastCheckTime' ] )
       res[ 'TokenExpiration' ] = str( res[ 'TokenExpiration' ] )
       
-      return { 'success' : 'true', 'result' : res, 'total' : len( res ) }
+      self.finish( { 'success' : 'true', 'result' : res, 'total' : len( res ) } )
     
   def __requestParams( self ):
     '''
