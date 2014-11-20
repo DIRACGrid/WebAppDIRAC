@@ -49,7 +49,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         if (data && data.views && data.views.tabs && data.views.tabs.tabChangeCycle) {
           me.tabChangeCycle = data.views.tabs.tabChangeCycle;
           if (me.tabChangeCycle > 0) {
-            me.setRefreshTime(tabChangeCycle);
+            me.setRefreshTime(me.tabChangeCycle);
           }
         }
       },

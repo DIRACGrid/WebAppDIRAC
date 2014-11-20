@@ -388,7 +388,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var me = this;
         me.loadRightContainer.show();
 
-        if (tab && tab.view == 'presenterView') {
+        if (tab) {
           tab.loadState(oData);
         }
 
