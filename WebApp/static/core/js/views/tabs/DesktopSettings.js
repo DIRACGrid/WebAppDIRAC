@@ -23,7 +23,7 @@ Ext.define("Ext.dirac.views.tabs.DesktopSettings", {
             text : "None"
           }, {
             xtype : 'label',
-            text : "Period"
+            text : "Automatic tab change"
           }],
       initComponent : function() {
         var me = this;
@@ -60,7 +60,6 @@ Ext.define("Ext.dirac.views.tabs.DesktopSettings", {
               text : 'Disable',
               menu : me.autoChange
             });
-      me.setTabChangePeriod(900000);
       
       },
       setTabChange : function(value, text) {
@@ -79,5 +78,9 @@ Ext.define("Ext.dirac.views.tabs.DesktopSettings", {
             });
           }
         };
+      },
+      setDesktopName : function(name){
+        var me = this;
+        me.items.getAt(1).setText(name);
       }
     });
