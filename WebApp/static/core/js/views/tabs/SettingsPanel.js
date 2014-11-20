@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
       extend : 'Ext.panel.Panel',
-      required : ['Ext.form.Panel'],
+      required : ['Ext.form.Panel', 'Ext.dirac.views.tabs.DesktopSettings'],
       title : 'Settings',
       frame : false,
       width : 200,
@@ -18,9 +18,10 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
       layout : 'vbox',
       initComponent : function() {
         var me = this;
+        me.desktopSettings = Ext.create("Ext.dirac.views.tabs.DesktopSettings");
         if (GLOBAL.APP.configData.user.username) {
           Ext.apply(me, {
-                items : [me.addUserForm()]
+                items : [me.addUserForm(), me.desktopSettings]
               });
         } else {
           var userName = null;
@@ -51,9 +52,10 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
           }
 
           Ext.apply(me, {
-                items : [userName]
+                items : [userName, me.desktopSettings]
               });
         }
+        
         me.callParent(arguments);
       },
       addUserName : function(name) {
@@ -79,7 +81,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
         var me = this;
 
         var form = Ext.create('Ext.form.Panel', {
-              title : 'Configuration',
+              title : 'Portal configuration',
               layout : 'fit',
               bodyPadding : 10,
               width : 400,
@@ -252,5 +254,34 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
               });
         }
         return new Ext.button.Button(button_views);
+      },
+      addDesktopConfiguration : function() {
+        var me = this;
+
+        var form = Ext.create('Ext.form.Panel', {
+              title : 'Activ desktop configuration',
+              layout : 'fit',
+              bodyPadding : 10,
+              width : 400,
+              layout : {
+                type : 'table',
+                columns : 2,
+                tdAttrs : {
+                  style : 'padding: 5px 10px;'
+                }
+              },
+              defaults : {
+                width : 150,
+                textAlign : 'left'
+              },
+              items : [{
+                    xtype : 'label',
+                    text : 'Desktop Name:'
+                  }, {
+                    xtype : 'label',
+                    text : "None"
+                  }]
+            });
+        return form;
       }
     });
