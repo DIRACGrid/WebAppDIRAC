@@ -13,6 +13,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       hasClose : false,
       activeTab : 0,
       layout : 'fit',
+      tabChangeTimeout : null,
+      tabChangeCycle : 0,
+      tabCounter : 0,
       view : 'tabView',
       // renderTo:Ext.getBody(),
       /*
@@ -41,6 +44,15 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
          * me.loadMask = new Ext.LoadMask(me, { msg : "Loading ..." });
          */
       },
+      loadState : function(data) {
+        var me = this;
+        if (data && data.views && data.views.tabs && data.views.tabs.tabChangeCycle) {
+          me.tabChangeCycle = data.views.tabs.tabChangeCycle;
+          if (me.tabChangeCycle > 0) {
+            me.setRefreshTime(tabChangeCycle);
+          }
+        }
+      },
       /**
        * it returns the states of the applications
        * 
@@ -57,7 +69,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
             "tabs" : {
               "version" : 1,
               "desktopGranularity" : me.desktopGranularity,
-              "positions" : []
+              "positions" : [],
+              "tabChangeCycle" : me.tabChangeCycle
             }
           }
         };
@@ -159,7 +172,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               });
           desktop.data = oData;
         } catch (err) {
-          Ext.dirac.system_info.msg("Error Notification", 'The following desktop can not be saved:' +  me.title);
+          Ext.dirac.system_info.msg("Error Notification", 'The following desktop can not be saved:' + me.title);
           Ext.dirac.system_info.msg("Error Notification", "Error: " + err);
           desktop = null;
         }
@@ -328,6 +341,20 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               }
             });
         return panel;
+      },
+      setRefreshTime : function(time) {
+        var me = this;
+        me.tabChangeCycle = time;
+        clearInterval(me.tabChangeTimeout);
+        me.tabChangeTimeout = setInterval(function() {
+              if (me.tabCounter < me.items.length) {
+                me.setActiveTab(me.tabCounter);
+                me.tabCounter += 1;
+              } else {
+                me.tabCounter = 0;
+              }
+
+            }, me.tabChangeCycle);
       }
 
     });
