@@ -29,8 +29,9 @@ Ext.define("Ext.dirac.views.tabs.DesktopSettings", {
         var me = this;
         me.menuItems = {
           'Disable' : 0,
-          'Each 5m' : 60000, // 60000,//900000,
-          'Each 10m' : 900000, // 60000,//900000,
+          'Each 2m' : 120000,
+          'Each 5m' :  300000, // 60000,//900000,
+          'Each 10m' : 600000, // 60000,//900000,
           'Each 15m' : 900000, // 60000,//900000,
           'Each hour' : 3600000,
           'Each day' : 86400000
