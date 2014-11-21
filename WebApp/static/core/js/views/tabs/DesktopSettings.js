@@ -60,26 +60,30 @@ Ext.define("Ext.dirac.views.tabs.DesktopSettings", {
               text : 'Disable',
               menu : me.autoChange
             });
-      
+
       },
       setTabChange : function(value, text) {
         var me = this;
         me.items.getAt(3).setText(text);
+        var setDesktopName = function(name) {
+          me.setDesktopName(name);
+        };
+        GLOBAL.APP.MAIN_VIEW.setTabChangePeriod(value, setDesktopName)
       },
-      setTabChangePeriod : function(value){
+      setTabChangePeriod : function(value) {
         var me = this;
-        for (i in me.menuItems){
-          if (me.menuItems[i] == value){
+        for (i in me.menuItems) {
+          if (me.menuItems[i] == value) {
             me.items.getAt(3).setText(i);
-            me.autoChange.items.each(function(item){
-              if(item.value == value){
-                item.checked = true;
-              }
-            });
+            me.autoChange.items.each(function(item) {
+                  if (item.value == value) {
+                    item.checked = true;
+                  }
+                });
           }
         };
       },
-      setDesktopName : function(name){
+      setDesktopName : function(name) {
         var me = this;
         me.items.getAt(1).setText(name);
       }

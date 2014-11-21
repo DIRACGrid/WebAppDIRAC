@@ -254,34 +254,5 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
               });
         }
         return new Ext.button.Button(button_views);
-      },
-      addDesktopConfiguration : function() {
-        var me = this;
-
-        var form = Ext.create('Ext.form.Panel', {
-              title : 'Activ desktop configuration',
-              layout : 'fit',
-              bodyPadding : 10,
-              width : 400,
-              layout : {
-                type : 'table',
-                columns : 2,
-                tdAttrs : {
-                  style : 'padding: 5px 10px;'
-                }
-              },
-              defaults : {
-                width : 150,
-                textAlign : 'left'
-              },
-              items : [{
-                    xtype : 'label',
-                    text : 'Desktop Name:'
-                  }, {
-                    xtype : 'label',
-                    text : "None"
-                  }]
-            });
-        return form;
       }
     });

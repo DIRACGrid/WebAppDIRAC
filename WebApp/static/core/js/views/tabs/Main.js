@@ -901,7 +901,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
                   if ((desktop != 'Default') && (appl.currentState != stateName)) {
 
-                    //GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName, app);
+                    // GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName,
+                    // app);
 
                     if (appl.currentState != "")
                       GLOBAL.APP.SM.oprRemoveActiveState(app, appl.currentState);
@@ -2047,6 +2048,30 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
         }
         return false;
+      },
+      /**
+       * It use to set the automatic tab change of the active desktop
+       * 
+       * @param {Inteher}
+       *          time it is the time in millisecond to wait before change the
+       *          tab.
+       * @param {function}
+       *          cbFunction this is a callback function. The input parameter is
+       *          the desktop name.
+       */
+      setTabChangePeriod : function(time, cbFunction) {
+        var me = this;
+        var appContainer = me.getRightContainer().getApplicationContainer();
+        if (appContainer) {
+          desktop = appContainer.getActiveTab();
+          if (desktop) {
+            desktop.setTabChangeTime(time);
+            if (cbFunction) {
+              cbFunction(desktop.title);
+            }
+          }
+
+        }
       }
 
     });

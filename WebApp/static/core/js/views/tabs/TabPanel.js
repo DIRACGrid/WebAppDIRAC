@@ -49,7 +49,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         if (data && data.views && data.views.tabs && data.views.tabs.tabChangeCycle) {
           me.tabChangeCycle = data.views.tabs.tabChangeCycle;
           if (me.tabChangeCycle > 0) {
-            me.setRefreshTime(me.tabChangeCycle);
+            me.setTabChangeTime(me.tabChangeCycle);
           }
         }
       },
@@ -342,7 +342,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
             });
         return panel;
       },
-      setRefreshTime : function(time) {
+      setTabChangeTime : function(time) {
         var me = this;
         me.tabChangeCycle = time;
         clearInterval(me.tabChangeTimeout);
