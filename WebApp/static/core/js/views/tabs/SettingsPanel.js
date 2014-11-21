@@ -55,7 +55,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
                 items : [userName, me.desktopSettings]
               });
         }
-        
+
         me.callParent(arguments);
       },
       addUserName : function(name) {
@@ -254,5 +254,10 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
               });
         }
         return new Ext.button.Button(button_views);
+      },
+      
+      getDesktopSettingsPanel : function() {
+        var me = this;
+        return me.desktopSettings;
       }
     });

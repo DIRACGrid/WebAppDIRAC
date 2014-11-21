@@ -48,9 +48,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         var me = this;
         if (data && data.views && data.views.tabs && data.views.tabs.tabChangeCycle) {
           me.tabChangeCycle = data.views.tabs.tabChangeCycle;
-          if (me.tabChangeCycle > 0) {
-            me.setTabChangeTime(me.tabChangeCycle);
-          }
+          me.autoTabChange();
         }
       },
       /**
@@ -260,7 +258,10 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
             if (oldCard) {
               GLOBAL.APP.SM.oprRemoveActiveState("desktop", oldCard.title);
               // we remove the old state. It is not active any more...
+              me.syncronizeWithSettings(newCard); // we have to refresh the
+              // Settings panel...
             }
+
           } else {// it is an application
             if (oldCard) {
               GLOBAL.APP.SM.oprRemoveActiveState(oldCard.getClassName(), oldCard.currentState);
@@ -346,15 +347,48 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         var me = this;
         me.tabChangeCycle = time;
         clearInterval(me.tabChangeTimeout);
-        me.tabChangeTimeout = setInterval(function() {
-              if (me.tabCounter < me.items.length) {
-                me.setActiveTab(me.tabCounter);
-                me.tabCounter += 1;
-              } else {
-                me.tabCounter = 0;
-              }
+        if (me.tabChangeCycle > 0) {
+          me.tabChangeTimeout = setInterval(function() {
+                if (me.tabCounter < me.items.length) {
+                  me.setActiveTab(me.tabCounter);
+                  me.tabCounter += 1;
+                } else {
+                  me.tabCounter = 0;
+                }
 
-            }, me.tabChangeCycle);
+              }, me.tabChangeCycle);
+        }
+      },
+      autoTabChange : function() {
+        var me = this;
+        var selPanel = GLOBAL.APP.MAIN_VIEW.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var settingPanel = selPanel.getSettimgsPanel().getDesktopSettingsPanel();
+        }
+
+        settingPanel.setDesktopName(me.title);
+        if (settingPanel && me.tabChangeCycle > 0) {
+          me.setTabChangeTime(me.tabChangeCycle);
+          settingPanel.setTabChangePeriod(me.tabChangeCycle);
+
+        } else {
+          if (me.tabChangeTimeout) {
+            clearInterval(me.tabChangeTimeout);
+          }
+          settingPanel.setTabChangePeriod(me.tabChangeCycle);
+        }
+      },
+      syncronizeWithSettings : function(tab) {
+        var selPanel = GLOBAL.APP.MAIN_VIEW.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var settingPanel = selPanel.getSettimgsPanel().getDesktopSettingsPanel();
+        }
+        settingPanel.setDesktopName(tab.title);
+        if (settingPanel && tab.tabChangeCycle) {
+          settingPanel.setTabChangePeriod(tab.tabChangeCycle);
+        } else {
+          settingPanel.setTabChangePeriod(0);
+        }
       }
 
     });
