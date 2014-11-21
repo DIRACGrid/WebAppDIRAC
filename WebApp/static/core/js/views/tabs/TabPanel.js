@@ -260,6 +260,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               // we remove the old state. It is not active any more...
               me.syncronizeWithSettings(newCard); // we have to refresh the
               // Settings panel...
+              if (newCard.plugins.length == 2) {
+                newCard.initPlugin(newCard.plugins[1]);
+              }
             }
 
           } else {// it is an application
