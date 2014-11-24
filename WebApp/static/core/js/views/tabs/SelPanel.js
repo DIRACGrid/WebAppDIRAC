@@ -391,6 +391,10 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
         me.settings = Ext.create('Ext.dirac.views.tabs.SettingsPanel');
         return me.settings;
       },
+      getSettimgsPanel : function(){
+        var me = this;
+        return me.settings;
+      },
       /*************************************************************************
        * It lists the application state. Each state is a node of the application
        * tree.

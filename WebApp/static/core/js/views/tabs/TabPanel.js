@@ -13,6 +13,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       hasClose : false,
       activeTab : 0,
       layout : 'fit',
+      tabChangeTimeout : null,
+      tabChangeCycle : 0,
+      tabCounter : 0,
       view : 'tabView',
       // renderTo:Ext.getBody(),
       /*
@@ -41,6 +44,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
          * me.loadMask = new Ext.LoadMask(me, { msg : "Loading ..." });
          */
       },
+      loadState : function(data) {
+        var me = this;
+        if (data && data.views && data.views.tabs && data.views.tabs.tabChangeCycle) {
+          me.tabChangeCycle = data.views.tabs.tabChangeCycle;
+          me.autoTabChange();
+        }
+      },
       /**
        * it returns the states of the applications
        * 
@@ -57,7 +67,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
             "tabs" : {
               "version" : 1,
               "desktopGranularity" : me.desktopGranularity,
-              "positions" : []
+              "positions" : [],
+              "tabChangeCycle" : me.tabChangeCycle
             }
           }
         };
@@ -159,7 +170,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               });
           desktop.data = oData;
         } catch (err) {
-          Ext.dirac.system_info.msg("Error Notification", 'The following desktop can not be saved:' +  me.title);
+          Ext.dirac.system_info.msg("Error Notification", 'The following desktop can not be saved:' + me.title);
           Ext.dirac.system_info.msg("Error Notification", "Error: " + err);
           desktop = null;
         }
@@ -247,7 +258,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
             if (oldCard) {
               GLOBAL.APP.SM.oprRemoveActiveState("desktop", oldCard.title);
               // we remove the old state. It is not active any more...
+              me.syncronizeWithSettings(newCard); // we have to refresh the
+              // Settings panel...
+              if (newCard.plugins.length == 2) {
+                newCard.initPlugin(newCard.plugins[1]);
+              }
             }
+
           } else {// it is an application
             if (oldCard) {
               GLOBAL.APP.SM.oprRemoveActiveState(oldCard.getClassName(), oldCard.currentState);
@@ -328,6 +345,53 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               }
             });
         return panel;
+      },
+      setTabChangeTime : function(time) {
+        var me = this;
+        me.tabChangeCycle = time;
+        clearInterval(me.tabChangeTimeout);
+        if (me.tabChangeCycle > 0) {
+          me.tabChangeTimeout = setInterval(function() {
+                if (me.tabCounter < me.items.length) {
+                  me.setActiveTab(me.tabCounter);
+                  me.tabCounter += 1;
+                } else {
+                  me.tabCounter = 0;
+                }
+
+              }, me.tabChangeCycle);
+        }
+      },
+      autoTabChange : function() {
+        var me = this;
+        var selPanel = GLOBAL.APP.MAIN_VIEW.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var settingPanel = selPanel.getSettimgsPanel().getDesktopSettingsPanel();
+        }
+
+        settingPanel.setDesktopName(me.title);
+        if (settingPanel && me.tabChangeCycle > 0) {
+          me.setTabChangeTime(me.tabChangeCycle);
+          settingPanel.setTabChangePeriod(me.tabChangeCycle);
+
+        } else {
+          if (me.tabChangeTimeout) {
+            clearInterval(me.tabChangeTimeout);
+          }
+          settingPanel.setTabChangePeriod(me.tabChangeCycle);
+        }
+      },
+      syncronizeWithSettings : function(tab) {
+        var selPanel = GLOBAL.APP.MAIN_VIEW.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var settingPanel = selPanel.getSettimgsPanel().getDesktopSettingsPanel();
+        }
+        settingPanel.setDesktopName(tab.title);
+        if (settingPanel && tab.tabChangeCycle) {
+          settingPanel.setTabChangePeriod(tab.tabChangeCycle);
+        } else {
+          settingPanel.setTabChangePeriod(0);
+        }
       }
 
     });
