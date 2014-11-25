@@ -180,7 +180,7 @@ class ResourceSummaryHandler( WebHandler ):
         methodName = '_get%s' % actionName
       
       try:
-        result = getattr( self, methodName )( requestParams )
+        return  getattr( self, methodName )( requestParams )
       except AttributeError:
         result = { 'success' : 'false', 'error' : 'bad action %s' % actionName }  
     
@@ -262,6 +262,8 @@ class ResourceSummaryHandler( WebHandler ):
       self.finish( { 'success' : 'false', 'error' : 'error getting history' } ) 
     
     history = [ [ r[0], str( r[1] ), r[2] ] for r in res[ 'Value' ] ]
+    
+    gLogger.debug("History:" + str(history))
     
     self.finish( { 'success' : 'true', 'result' : history, 'total' : len( history ) } )  
 
