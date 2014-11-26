@@ -759,21 +759,16 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                 if (jsonData["success"] == "true") {
 
                   if (oDataKind == "getPilotOutput") {
-                    
+
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot Output for Job Reference:" + oId);
 
-                    //me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Output for Job Reference:" + oId);
-
                   } else if (oDataKind == "getPilotError") {
-                    
-                    me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot Error for Job Reference:" + oId);
 
-                    //me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Error for Job Reference:" + oId);
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot Error for Job Reference:" + oId);
 
                   } else if (oDataKind == "getLoggingInfo") {
 
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot Logging Info for Job Reference:" + oId);
-                    //me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Logging Info for Job Reference:" + oId);
 
                   }
 
@@ -787,47 +782,6 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
             });
       },
 
-      __oprPrepareAndShowWindowText : function(sTextToShow, sTitle) {
-
-        var me = this;
-
-        var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
-
-        var oTextArea = new Ext.create('Ext.form.field.TextArea', {
-              value : sTextToShow,
-              cls : "pm-textbox-help-window"
-
-            });
-
-        oWindow.add(oTextArea);
-        oWindow.show();
-
-      },
-      __oprPrepareAndShowWindowGrid : function(oData, sTitle, oFields, oColumns) {
-
-        var me = this;
-
-        var oStore = new Ext.data.ArrayStore({
-              fields : oFields,
-              data : oData
-            });
-
-        var oWindow = me.getContainer().createChildWindow(sTitle, false, 700, 500);
-
-        var oGrid = Ext.create('Ext.grid.Panel', {
-              store : oStore,
-              columns : oColumns,
-              width : '100%',
-              viewConfig : {
-                stripeRows : true,
-                enableTextSelection : true
-              }
-            });
-
-        oWindow.add(oGrid);
-        oWindow.show();
-
-      },
       __setActiveItemInTheCentralWorkPanel : function() {
         var me = this;
         me.centralWorkPanel.getLayout().setActiveItem(1);
