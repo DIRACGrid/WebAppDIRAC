@@ -759,16 +759,21 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                 if (jsonData["success"] == "true") {
 
                   if (oDataKind == "getPilotOutput") {
+                    
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot Output for Job Reference:" + oId);
 
-                    me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Output for Job Reference:" + oId);
+                    //me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Output for Job Reference:" + oId);
 
                   } else if (oDataKind == "getPilotError") {
+                    
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot Error for Job Reference:" + oId);
 
-                    me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Error for Job Reference:" + oId);
+                    //me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Error for Job Reference:" + oId);
 
                   } else if (oDataKind == "getLoggingInfo") {
 
-                    me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Logging Info for Job Reference:" + oId);
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Pilot Logging Info for Job Reference:" + oId);
+                    //me.__oprPrepareAndShowWindowText(jsonData["result"], "Pilot Logging Info for Job Reference:" + oId);
 
                   }
 
