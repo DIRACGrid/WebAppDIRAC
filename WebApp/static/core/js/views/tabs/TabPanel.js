@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.TabPanel', {
       extend : 'Ext.tab.Panel',
-      requires : ['Ext.dirac.views.tabs.TabScrollerMenu', "Ext.ux.TabReorderer"],
+      requires : ['Ext.dirac.views.tabs.TabScrollerMenu', "Ext.ux.TabReorderer", "Ext.dirac.views.tabs.TabMenuPlugin"],
       xtype : 'diractabcontainer',
       alias : 'widget.tabPanel',
       resizeTabs : true,
@@ -39,6 +39,19 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       },
       initComponent : function() {
         var me = this;
+        Ext.apply(me, {
+              activeTab : 0,
+              plugins : [Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
+                    width : 180,
+                    items : [{
+                          text : 'New Page',
+                          tooltip : 'Add a new page to hold widgets'
+                        }, {
+                          text : 'Reset Layout',
+                          tooltip : 'Restores the default layout'
+                        }]
+                  })]
+            });
         me.callParent(arguments);
         /*
          * me.loadMask = new Ext.LoadMask(me, { msg : "Loading ..." });
