@@ -30,18 +30,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
             ptype : 'tabscrollermenu',
             maxText : 15,
             pageSize : 5
-          }, Ext.create('Ext.ux.TabReorderer'), Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
-                width : 50,
-                activeTab : 0,
-                //position:'left',
-                items : [{
-                      text : 'Help',
-                      tooltip : 'Add a new page to hold widgets'
-                    }/*, {
-                       text: 'R',
-                       tooltip: 'Restores the default layout'
-                    }*/]
-              })],
+          }, Ext.create('Ext.ux.TabReorderer')],
       setWorkspace : function(wsk) {
         this.workspace = wsk;
       },
@@ -50,19 +39,6 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       },
       initComponent : function() {
         var me = this;
-        Ext.apply(me, {
-              activeTab : 0,
-              plugins : [Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
-                    width : 180,
-                    items : [{
-                          text : 'New Page',
-                          tooltip : 'Add a new page to hold widgets'
-                        }, {
-                          text : 'Reset Layout',
-                          tooltip : 'Restores the default layout'
-                        }]
-                  })]
-            });
         me.callParent(arguments);
         /*
          * me.loadMask = new Ext.LoadMask(me, { msg : "Loading ..." });
@@ -201,7 +177,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         return desktop;
       },
       listeners : {
-        'beforeclose' : function() {
+        beforeclose : function() {
           var me = this;
           var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer(); // we
           // have
@@ -229,7 +205,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           // state
           // is saved.
         },
-        'close' : function() {
+        close : function() {
           var me = this;
           Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, me.title); // we
           // have
@@ -254,7 +230,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           // null;
           GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
         },
-        'tabchange' : function(tabPanel, newCard, oldCard, eOpts) {
+        tabchange : function(tabPanel, newCard, oldCard, eOpts) {
           var me = this;
           /*
            * if (oldCard != null) {
@@ -301,7 +277,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
             }
           }
         },
-        afterlayout : function() { //it has to be fired to initialize the plugin.
+        afterlayout : function() { // it has to be fired to initialize the
+                                    // plugin.
           this.tabBar.fireEvent("afterLayout");
         }
       },

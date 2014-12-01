@@ -118,8 +118,6 @@ Ext.define('Ext.dirac.views.tabs.TabMenuPlugin', {
               id : toolbarId
             });
 
-        me.tabPanel.doLayout();
-
         result.reservedSpace += contentEl.getWidth();
         return result;
       }

@@ -398,25 +398,24 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                 });
           } else {
             tab = Ext.create('widget.tabPanel', {
-              region : 'center',
-              minWidth : 300,
-              title : name,
-              closable : true,
-              type : 'desktop',
-              isLoaded : isLoaded
-                /*plugins : [Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
-                    width : 180,
-                    items : [{
-                          text : 'New Page',
-                          tooltip : 'Add a new page to hold widgets'
-                        }, {
-                          text : 'Reset Layout',
-                          tooltip : 'Restores the default layout'
-                        }]
-                  })]*/
-              });
+                  region : 'center',
+                  minWidth : 300,
+                  title : name,
+                  closable : true,
+                  type : 'desktop',
+                  isLoaded : isLoaded
+                });
           }
-
+          tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
+                width : 50,
+                activeTab : 0,
+                // position:'left',
+                items : [{
+                      xtype : "button",
+                      cls : "x-tool-help",
+                      "text" : "Help"
+                    }]
+              }));
           me.getApplicationContainer().add(tab);
           me.getApplicationContainer().setActiveTab(tab);
         }
