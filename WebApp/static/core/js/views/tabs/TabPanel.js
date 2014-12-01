@@ -30,7 +30,18 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
             ptype : 'tabscrollermenu',
             maxText : 15,
             pageSize : 5
-          }, Ext.create('Ext.ux.TabReorderer')],
+          }, Ext.create('Ext.ux.TabReorderer'), Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
+                width : 50,
+                activeTab : 0,
+                //position:'left',
+                items : [{
+                      text : 'Help',
+                      tooltip : 'Add a new page to hold widgets'
+                    }/*, {
+                       text: 'R',
+                       tooltip: 'Restores the default layout'
+                    }*/]
+              })],
       setWorkspace : function(wsk) {
         this.workspace = wsk;
       },
@@ -289,6 +300,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               newCard.isLoaded = true;
             }
           }
+        },
+        afterlayout : function() { //it has to be fired to initialize the plugin.
+          this.tabBar.fireEvent("afterLayout");
         }
       },
       /**

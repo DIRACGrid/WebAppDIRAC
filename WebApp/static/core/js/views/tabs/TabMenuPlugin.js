@@ -1,12 +1,15 @@
 
 /**
- * @class Ext.ux.tab.Toolbar
+ * @class Ext.dirac.views.tabs.TabMenuPlugin
  * @extends Object Plugin (ptype = 'tabtoolbar') for adding a toolbar to a
  *          TabBar.
  * @constructor
  * @param {Object}
  *          config Configuration options
  * @ptype tabtoolbar
+ * 
+ * This plugin is an improvement version of Ext.ux.tab.Toolbar.
+ * 
  */
 Ext.define('Ext.dirac.views.tabs.TabMenuPlugin', {
       alias : 'plugin.tabtoolbar',
@@ -43,7 +46,8 @@ Ext.define('Ext.dirac.views.tabs.TabMenuPlugin', {
                 me.layout.overflowHandler.handleOverflow = Ext.Function.bind(me.overflowMenu, me);
               },
               single : true
-            });
+            }); // When we have lot of tabs which can not fit one scree, then we
+                // have to move the help to different position.
         me.tabBar.on({
               afterlayout : function() {
                 me.layout = me.tabBar.layout;
@@ -113,8 +117,8 @@ Ext.define('Ext.dirac.views.tabs.TabMenuPlugin', {
               items : Ext.Array.from(this.items),
               id : toolbarId
             });
-            
-        //me.tabPanel.doLayout();
+
+        me.tabPanel.doLayout();
 
         result.reservedSpace += contentEl.getWidth();
         return result;

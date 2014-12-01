@@ -5,7 +5,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.RightContainer', {
       extend : 'Ext.container.Container',
-      requires : ['Ext.dirac.views.tabs.TabPanel', 'Ext.dirac.views.tabs.Wallpaper', 'Ext.dirac.views.tabs.PresenterView', 'Ext.dirac.views.tabs.Panel','Ext.dirac.views.tabs.TabMenuPlugin'],
+      requires : ['Ext.dirac.views.tabs.TabPanel', 'Ext.dirac.views.tabs.Wallpaper', 'Ext.dirac.views.tabs.PresenterView', 'Ext.dirac.views.tabs.Panel', 'Ext.dirac.views.tabs.TabMenuPlugin'],
       xtype : 'diractabs',
       taskbar : null, // this is used by the desktop layout
       layout : 'fit',
@@ -61,7 +61,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
       createMenuWidgets : function() {
         var me = this;
 
-        /*me.appLicationContainer = Ext.create('widget.tabPanel', {
+        me.appLicationContainer = Ext.create('widget.tabPanel', {
               region : 'center',
               minWidth : 300,
               // layout:'fit',
@@ -73,70 +73,9 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               margin : '0 0 2 0',
               tabPosition : 'bottom',
               value : 'menuPanel'
-            });*/
-        me.appLicationContainer = Ext.create("Ext.tab.Panel",{
-            value : 'menuPanel',
-            activeTab: 0,
-            plugins: [{
-            ptype : 'tabscrollermenu',
-            maxText : 15,
-            pageSize : 5
-          },
-                Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
-                    width: 50,
-                    activeTab :0,
-                    //position:'left',
-                    items: [{
-                        text: 'Help',
-                        tooltip: 'Add a new page to hold widgets'
-                    }/*, {
-                        text: 'R',
-                        tooltip: 'Restores the default layout'
-                    }*/]
-                })
-            ],
-            items: [/*{
-                title: 'Test Tab'
-            },{
-            title : 'cssfs'
-            },{
-                title: 'Test Tab'
-            },{
-            title : 'cssfsffbjsvbjsdbv'
-            },{
-                title: 'Test Tab'
-            },{
-            title : 'cssfs'
-            },{
-                title: 'Test Tab'
-            },{
-            title : 'cssfsffbjsvbjsdbv'
-            },{
-                title: 'Test Tab'
-            },{
-            title : 'cssfs'
-            },{
-                title: 'Test Tab'
-            },{
-            title : 'cssfsffbjsvbjsdbv'
-            },{
-                title: 'Test Tab'
-            },*/{
-            title : 'cssfs'
-            },{
-                title: 'Test Tab'
-            },{
-            title : 'cssfsffbjsvbjsdbv'
-            }],
-            listeners : {
-              afterlayout : function(){
-                this.tabBar.fireEvent("afterLayout");
-                //this.fireEvent("render");
-              }
-            }
-        });
-             me.add(me.appLicationContainer);
-             var wallpaper = Ext.create('widget.wallpaper', {
+            });
+        me.add(me.appLicationContainer);
+        var wallpaper = Ext.create('widget.wallpaper', {
               layout : 'fit',
               margin : '0 0 2 0',
               value : 'welcome'
@@ -155,7 +94,6 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                 src : "http://diracgrid.org"
               }
             });
-            
 
       },
       getStateData : function() {
@@ -460,25 +398,25 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                 });
           } else {
             tab = Ext.create('widget.tabPanel', {
-                  region : 'center',
-                  minWidth : 300,
-                  title : name,
-                  closable : true,
-                  type : 'desktop',
-                  isLoaded : isLoaded
-                  /*plugins : [Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
-                        width : 180,
-                        items : [{
-                              text : 'New Page',
-                              tooltip : 'Add a new page to hold widgets'
-                            }, {
-                              text : 'Reset Layout',
-                              tooltip : 'Restores the default layout'
-                            }]
-                      })]*/
-                });
+              region : 'center',
+              minWidth : 300,
+              title : name,
+              closable : true,
+              type : 'desktop',
+              isLoaded : isLoaded
+                /*plugins : [Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
+                    width : 180,
+                    items : [{
+                          text : 'New Page',
+                          tooltip : 'Add a new page to hold widgets'
+                        }, {
+                          text : 'Reset Layout',
+                          tooltip : 'Restores the default layout'
+                        }]
+                  })]*/
+              });
           }
-          
+
           me.getApplicationContainer().add(tab);
           me.getApplicationContainer().setActiveTab(tab);
         }
