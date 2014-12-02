@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.TabPanel', {
       extend : 'Ext.tab.Panel',
-      requires : ['Ext.dirac.views.tabs.TabScrollerMenu', "Ext.ux.TabReorderer", "Ext.dirac.views.tabs.TabMenuPlugin"],
+      requires : ["Ext.ux.TabReorderer"],
       xtype : 'diractabcontainer',
       alias : 'widget.tabPanel',
       resizeTabs : true,
@@ -26,11 +26,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         background : '#AAAAAA'
       },
       workspace : null,
-      plugins : [{
-            ptype : 'tabscrollermenu',
-            maxText : 15,
-            pageSize : 5
-          }, Ext.create('Ext.ux.TabReorderer')],
+      plugins : [Ext.create('Ext.ux.TabReorderer')],
       setWorkspace : function(wsk) {
         this.workspace = wsk;
       },
@@ -260,8 +256,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               // we remove the old state. It is not active any more...
               me.syncronizeWithSettings(newCard); // we have to refresh the
               // Settings panel...
-              if (newCard.plugins.length == 2) {
-                newCard.initPlugin(newCard.plugins[1]);
+              if (newCard.plugins.length > 0) {
+                for (var i = 0; i < newCard.plugins.length; i++) {
+                  if (newCard.plugins[i].self.getName() == "Ext.ux.TabReorderer") {
+                    newCard.initPlugin(newCard.plugins[i]);
+                    break;
+                  }
+                }
               }
             }
 
@@ -278,7 +279,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           }
         },
         afterlayout : function() { // it has to be fired to initialize the
-                                    // plugin.
+          // plugin.
           this.tabBar.fireEvent("afterLayout");
         }
       },
