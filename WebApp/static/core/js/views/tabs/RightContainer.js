@@ -407,13 +407,14 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                 });
           }
           tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
-                width : 50,
-                activeTab : 0,
-                // position:'left',
+                width : 30,
+                position : 'right',
                 items : [{
                       xtype : "button",
-                      cls : "x-tool-help",
-                      "text" : "Help"
+                      glyph : '63',
+                      handler : function(){
+                        alert("Clicked!");
+                      }
                     }]
               }));
           me.getApplicationContainer().add(tab);
