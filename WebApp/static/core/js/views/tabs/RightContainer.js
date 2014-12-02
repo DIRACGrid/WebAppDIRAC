@@ -5,7 +5,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.RightContainer', {
       extend : 'Ext.container.Container',
-      requires : ['Ext.dirac.views.tabs.TabPanel', 'Ext.dirac.views.tabs.Wallpaper', 'Ext.dirac.views.tabs.PresenterView', 'Ext.dirac.views.tabs.Panel', 'Ext.dirac.views.tabs.TabMenuPlugin'],
+      requires : ['Ext.dirac.views.tabs.TabPanel', 'Ext.dirac.views.tabs.Wallpaper', 'Ext.dirac.views.tabs.PresenterView', 'Ext.dirac.views.tabs.Panel', 'Ext.dirac.views.tabs.TabMenuPlugin', 'Ext.dirac.views.tabs.TabScrollerButton'],
       xtype : 'diractabs',
       taskbar : null, // this is used by the desktop layout
       layout : 'fit',
@@ -406,18 +406,28 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                   isLoaded : isLoaded
                 });
           }
+          
           tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
-                width : 30,
+                width : 60, // 30
                 position : 'right',
                 items : [{
+                      xtype : "tabscrollerbutton",
+                      tabPanel : tab,
+                      menuPrefixText : "Applications",
+                      maxText : 100,
+                      pageSize : 5,
+                      tooltip : "Jump to the selected application."
+                    }, {
                       xtype : "button",
                       glyph : '63',
-                      handler : function(){
+                      tooltip : "It provides description of the active application.",
+                      handler : function() {
                         alert("Clicked!");
                       }
                     }]
               }));
           me.getApplicationContainer().add(tab);
+          tab.initPlugin(tab.plugins[0]);
           me.getApplicationContainer().setActiveTab(tab);
         }
         if (cbLoadDesktop) {
