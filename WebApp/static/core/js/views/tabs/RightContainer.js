@@ -422,7 +422,14 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                       glyph : '63',
                       tooltip : "It provides description of the active application.",
                       handler : function() {
-                        alert("Clicked!");
+                        var desktop = me.getApplicationContainer().getActiveTab();
+                        if(desktop){
+                          var app = desktop.getActiveTab();
+                          if (app){
+                            GLOBAL.APP.MAIN_VIEW.openHelpWindow(app.loadedObject);
+                          }
+                        }
+                        
                       }
                     }]
               }));

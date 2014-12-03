@@ -111,19 +111,25 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
 
                   if (win.loadedObjectType == "app") {
 
-                    oData.push({
-                          module : win.getAppClassName(),
-                          data : win.loadedObject.getStateData(),
-                          currentState : win.currentState,
-                          loadedObjectType : win.loadedObjectType
-                        });
+                    var item = {
+                      module : win.getAppClassName(),
+                      data : win.loadedObject.getStateData(),
+                      currentState : win.currentState,
+                      loadedObjectType : win.loadedObjectType
+                    };
+                    // if we have some help text, it will be automatically
+                    // saved.
+                    Ext.apply(item.data, win.loadedObject.getHelpText());
+                    oData.push(item);
 
                   } else if (win.loadedObjectType == "link") {
 
-                    oData.push({
-                          link : win.linkToLoad,
-                          loadedObjectType : win.loadedObjectType
-                        });
+                    var item = {
+                      link : win.linkToLoad,
+                      loadedObjectType : win.loadedObjectType
+                    };
+                    Ext.apply(item.data, win.loadedObject.getHelpText());
+                    oData.push(item);
 
                   }
                 } else {
@@ -151,11 +157,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                         oData.push(data);
                       } else {
 
-                        oData.push({
-                              currentState : win.currentState,
-                              module : win.getAppClassName(),
-                              data : win.loadedObject.getStateData()
-                            });
+                        var item = {
+                          currentState : win.currentState,
+                          module : win.getAppClassName(),
+                          data : win.loadedObject.getStateData()
+                        };
+                        Ext.apply(item.data, win.loadedObject.getHelpText());
+                        oData.push(item);
                       }
                     } else {
                       Ext.dirac.system_info.msg("Error Notification", 'The following desktop can not be saved:' + desktopName);
