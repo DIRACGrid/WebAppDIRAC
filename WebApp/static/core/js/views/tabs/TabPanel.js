@@ -119,7 +119,18 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                     };
                     // if we have some help text, it will be automatically
                     // saved.
-                    Ext.apply(item.data, win.loadedObject.getHelpText());
+                    if (win.childWindows.length > 0) {
+                      for (var i = 0; i < win.childWindows.length; i++) {
+                        if (win.childWindows[i].type == "help") {
+                          // The Notepad is open. The text has to be retrieved
+                          // from the notepad...
+                          Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
+                        }
+                      }
+                    } else {
+                      Ext.apply(item.data, win.loadedObject.getHelpText());
+                    }
+
                     oData.push(item);
 
                   } else if (win.loadedObjectType == "link") {
@@ -128,7 +139,15 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                       link : win.linkToLoad,
                       loadedObjectType : win.loadedObjectType
                     };
-                    Ext.apply(item.data, win.loadedObject.getHelpText());
+                    if (win.childWindows.length > 0) {
+                      for (var i = 0; i < win.childWindows.length; i++) {
+                        if (win.childWindows[i].type == "help") {
+                          Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
+                        }
+                      }
+                    } else {
+                      Ext.apply(item.data, win.loadedObject.getHelpText());
+                    }
                     oData.push(item);
 
                   }
@@ -162,7 +181,15 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                           module : win.getAppClassName(),
                           data : win.loadedObject.getStateData()
                         };
-                        Ext.apply(item.data, win.loadedObject.getHelpText());
+                        if (win.childWindows.length > 0) {
+                          for (var i = 0; i < win.childWindows.length; i++) {
+                            if (win.childWindows[i].type == "help") {
+                              Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
+                            }
+                          }
+                        } else {
+                          Ext.apply(item.data, win.loadedObject.getHelpText());
+                        }
                         oData.push(item);
                       }
                     } else {

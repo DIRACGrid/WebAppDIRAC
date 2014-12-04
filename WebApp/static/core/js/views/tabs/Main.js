@@ -2077,20 +2077,15 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var me = this;
         var win = app.createChildWindow(app.title, false, 700, 500);
         Ext.apply(win, {
+              type : "help",
               minimizable : false,
-              application : app.loadedObject,
-              listeners : {
-                beforeclose : function() {
-                  var notepad = this.items.getAt(0);
-                  var text = notepad.getStateData();
-                  this.application.setHelpText(text);
-                }
-              }
+              application : app.loadedObject
             });
         win.on('close', function() {
               var notepad = this.items.getAt(0);
               var text = notepad.getStateData();
               this.application.setHelpText(text);
+              Ext.Array.remove(app.childWindows, this);
             });
 
         me.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", app.loadedObject.getHelpText(), win);

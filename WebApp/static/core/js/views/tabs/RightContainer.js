@@ -291,6 +291,16 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                               }
                             }, me);
                       }
+                    }, {
+                      scope : tab,
+                      type : "help",
+                      tooltip : "It provides description of the active application.",
+                      handler : function() {
+                        var me = this;
+
+                        GLOBAL.APP.MAIN_VIEW.openHelpWindow(me);
+
+                      }
                     }]
               });
           activeTab.addWidget(tab);
@@ -405,36 +415,36 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                   type : 'desktop',
                   isLoaded : isLoaded
                 });
-          }
-          
-          tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
-                width : 60, // 30
-                position : 'right',
-                items : [{
-                      xtype : "tabscrollerbutton",
-                      tabPanel : tab,
-                      menuPrefixText : "Applications",
-                      maxText : 100,
-                      pageSize : 5,
-                      tooltip : "Jump to the selected application."
-                    }, {
-                      xtype : "button",
-                      glyph : '63',
-                      tooltip : "It provides description of the active application.",
-                      handler : function() {
-                        var desktop = me.getApplicationContainer().getActiveTab();
-                        if(desktop){
-                          var app = desktop.getActiveTab();
-                          if (app){
-                            GLOBAL.APP.MAIN_VIEW.openHelpWindow(app);
+            tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
+                  width : 60, // 30
+                  position : 'right',
+                  items : [{
+                        xtype : "tabscrollerbutton",
+                        tabPanel : tab,
+                        menuPrefixText : "Applications",
+                        maxText : 100,
+                        pageSize : 5,
+                        tooltip : "Jump to the selected application."
+                      }, {
+                        xtype : "button",
+                        glyph : '63',
+                        tooltip : "It provides description of the active application.",
+                        handler : function() {
+                          var desktop = me.getApplicationContainer().getActiveTab();
+                          if (desktop) {
+                            var app = desktop.getActiveTab();
+                            if (app) {
+                              GLOBAL.APP.MAIN_VIEW.openHelpWindow(app);
+                            }
                           }
+
                         }
-                        
-                      }
-                    }]
-              }));
+                      }]
+                }));
+            tab.initPlugin(tab.plugins[0]);
+          }
+
           me.getApplicationContainer().add(tab);
-          tab.initPlugin(tab.plugins[0]);
           me.getApplicationContainer().setActiveTab(tab);
         }
         if (cbLoadDesktop) {
