@@ -21,7 +21,10 @@ def rootURL():
   return getCSValue( "RootURL", "/DIRAC" )
 
 def balancer():
-  return getCSValue( "Balancer", "" )
+  b = getCSValue( "Balancer", "" ).lower()
+  if b in ( "", "none" ):
+      return ""
+  return b
 
 def numProcesses():
   return getCSValue( "NumProcesses", 1 )
@@ -108,7 +111,7 @@ def getMonitoringSectionFromCS( path ):
      result = gConfig.getSections( fullName )
      if not result['OK']:
        return result
-     else: 
+     else:
        services = []
        for i in result['Value']:
          services.append( [( 'service', i )] )
@@ -117,13 +120,13 @@ def getMonitoringSectionFromCS( path ):
     leaf = '%s/%s' % ( base, path )
     val = __recursiveTreeTraversal( base, "", nodes, leaf )
     return val
-  
+
 def __recursiveTreeTraversal( base, path, visit, leaf ):
   fullName = "%s/%s" % ( base, path )
   result = gConfig.getSections( fullName )
   schema = []
   if not result[ 'OK' ]:
-    return schema   
+    return schema
   sectionsList = result[ 'Value' ]
   for sName in sectionsList:
     if sName in visit:
@@ -133,7 +136,7 @@ def __recursiveTreeTraversal( base, path, visit, leaf ):
       schema = __recursiveTreeTraversal( base, path, visit, leaf )
     elif leaf == fullName:
       schema.append( [( 'service', sName )] )
-        
+
   result = gConfig.getOptions( fullName )
   if not result[ 'OK' ]:
     return schema
@@ -143,5 +146,8 @@ def __recursiveTreeTraversal( base, path, visit, leaf ):
     schema.append( [( "comp", opName, opVal )] )
   return schema
 
+<<<<<<< Updated upstream
 def getIcon():
   return getCSValue("Icon","/static/core/img/icons/system/favicon.ico")
+=======
+>>>>>>> Stashed changes
