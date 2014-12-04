@@ -426,7 +426,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                         if(desktop){
                           var app = desktop.getActiveTab();
                           if (app){
-                            GLOBAL.APP.MAIN_VIEW.openHelpWindow(app.loadedObject);
+                            GLOBAL.APP.MAIN_VIEW.openHelpWindow(app);
                           }
                         }
                         

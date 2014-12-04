@@ -2075,21 +2075,25 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       },
       openHelpWindow : function(app) {
         var me = this;
-        var win = me.getRightContainer().createModalWindow({
-              layout : 'fit',
-              width : 600,
-              height : 400,
+        var win = app.createChildWindow(app.title, false, 700, 500);
+        Ext.apply(win, {
               minimizable : false,
-              application : app,
+              application : app.loadedObject,
               listeners : {
-                  beforeclose : function(){
-                    var notepad = this.items.getAt(0);
-                    var text = notepad.getStateData();
-                    this.application.setHelpText(text);
-                  }
+                beforeclose : function() {
+                  var notepad = this.items.getAt(0);
+                  var text = notepad.getStateData();
+                  this.application.setHelpText(text);
                 }
+              }
             });
-        me.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", app.getHelpText(), win);
+        win.on('close', function() {
+              var notepad = this.items.getAt(0);
+              var text = notepad.getStateData();
+              this.application.setHelpText(text);
+            });
+
+        me.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", app.loadedObject.getHelpText(), win);
         win.show();
       },
 
