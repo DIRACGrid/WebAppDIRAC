@@ -291,7 +291,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               // we remove the old state. It is not active any more...
               me.syncronizeWithSettings(newCard); // we have to refresh the
               // Settings panel...
-              if (newCard.plugins.length > 0) {
+              if (newCard.plugins && newCard.plugins.length > 0) {
                 for (var i = 0; i < newCard.plugins.length; i++) {
                   if (newCard.plugins[i].self.getName() == "Ext.ux.TabReorderer") {
                     newCard.initPlugin(newCard.plugins[i]);
