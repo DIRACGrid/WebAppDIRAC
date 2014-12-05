@@ -107,23 +107,27 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
           } else {
             if (oStore.proxy.reader.rawData && me.scope.grid && me.scope.grid.pagingToolbar) {
-              var utcTime = "";
+              var utcTime = null;
               var newDate = Ext.Date.parse(Ext.String.trim(oStore.proxy.reader.rawData["date"].split("[UTC")[0]), "Y-m-d H:i");
               if (newDate) {
                 if (me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) {
-                  var msMinute = 60 * 1000, msDay = 60 * 60 * 24 * 1000;
+                  var msMinute = 60 * 1000, msDay = 60 * 60 * 24 * 1000, msHour = 60 * 60 * 1000;
+                  var days = Math.floor((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) / msDay);
+                  var hours = Math.floor(((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) % msDay) / msHour);
+                  var minutes = Math.floor(((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) % msDay) / msMinute);
 
-                  console.log(Math.floor((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) / msDay) + ' full days between');
-                  console.log(Math.floor(((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) % msDay) / msMinute) + ' full minutes between');
+                  utcTime = days + " " + hours + ":" + minutes;
 
-                  var elapsedTime = Ext.Date.getElapsed(newDate, me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp);
-                  utcTime = new Date(elapsedTime).toUTCString();
                 } else {
                   me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp = newDate;
                 }
 
               }
-              me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"] + "(" + utcTime + ")");
+              if (utcTime) {
+                me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"] + "(" + utcTime + ")");
+              } else {
+                me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+              }
             }
 
             me.remoteSort = false;
