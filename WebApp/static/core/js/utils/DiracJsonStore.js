@@ -106,8 +106,25 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
             }
 
           } else {
-            if (oStore.proxy.reader.rawData && me.scope.grid && me.scope.grid.pagingToolbar)
-              me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+            if (oStore.proxy.reader.rawData && me.scope.grid && me.scope.grid.pagingToolbar) {
+              var utcTime = "";
+              var newDate = Ext.Date.parse(Ext.String.trim(oStore.proxy.reader.rawData["date"].split("[UTC")[0]), "Y-m-d H:i");
+              if (newDate) {
+                if (me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) {
+                  var msMinute = 60 * 1000, msDay = 60 * 60 * 24 * 1000;
+
+                  console.log(Math.floor((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) / msDay) + ' full days between');
+                  console.log(Math.floor(((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) % msDay) / msMinute) + ' full minutes between');
+
+                  var elapsedTime = Ext.Date.getElapsed(newDate, me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp);
+                  utcTime = new Date(elapsedTime).toUTCString();
+                } else {
+                  me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp = newDate;
+                }
+
+              }
+              me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"] + "(" + utcTime + ")");
+            }
 
             me.remoteSort = false;
             me.sort();
