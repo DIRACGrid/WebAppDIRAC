@@ -294,9 +294,9 @@ Ext.define('Ext.dirac.core.StateManagement', {
         var me = this;
 
         var oSendData = oAppObject.getStateData();
-
+       
         if (!oSendData)
-          return; //we do not have the data which has to be saved...
+          return; // we do not have the data which has to be saved...
 
         console.log(oSendData);
 
@@ -812,12 +812,12 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
       },
       /**
-       * Function for reading the states and references of an application from the
-       * server
-       *
+       * Function for reading the states and references of an application from
+       * the server
+       * 
        * @param {String}
-       *          sAppName The class name of the application. The only exception is
-       *          the case of the main view: in this case the value of this
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
        *          parameter is “desktop”.
        * @param {Function}
        *          cbAfterRefresh The callback function called on success or on
@@ -873,32 +873,37 @@ Ext.define('Ext.dirac.core.StateManagement', {
       },
 
       /*-----------------------------------------------END - SHARE STATE-----------------------------------------------*/
-      //make private a shared state
+      // make private a shared state
       /**
        * Function that is used to share a state with other users.
-       *
+       * 
        * @param {String}
-       *          sAppName The class name of the application. The only exception is
-       *          the case of the main view: in this case the value of this
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
        *          parameter is “desktop”.
        * @param {String}
        *          sStateName The name of the state.
        * @param {Function}
-       *          cbAfterShare The callback function called on success or on failure
-       *          of the request for sharing a state.
-       *
+       *          cbAfterShare The callback function called on success or on
+       *          failure of the request for sharing a state.
+       * 
        */
       oprChangeSharedStateToPrivate : function(sAppName, sStateName, cbAfterShare) {
         var me = this;
         me.__changeAccess(sAppName, sStateName, cbAfterShare, "USER");
 
       },
-      /***
+      /*************************************************************************
        * It used to change the access of an desktop/application
-       * @param {String} sAppName 
-       * @param {String} sStateName
-       * @param {Function} cbAfterShare
-       * @param {String} access
+       * 
+       * @param {String}
+       *          sAppName
+       * @param {String}
+       *          sStateName
+       * @param {Function}
+       *          cbAfterShare
+       * @param {String}
+       *          access
        */
       __changeAccess : function(sAppName, sStateName, cbAfterShare, access) {
         var me = this;

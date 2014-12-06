@@ -5,7 +5,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.RightContainer', {
       extend : 'Ext.container.Container',
-      requires : ['Ext.dirac.views.tabs.TabPanel', 'Ext.dirac.views.tabs.Wallpaper', 'Ext.dirac.views.tabs.PresenterView', 'Ext.dirac.views.tabs.Panel'],
+      requires : ['Ext.dirac.views.tabs.TabPanel', 'Ext.dirac.views.tabs.Wallpaper', 'Ext.dirac.views.tabs.PresenterView', 'Ext.dirac.views.tabs.Panel', 'Ext.dirac.views.tabs.TabMenuPlugin', 'Ext.dirac.views.tabs.TabScrollerButton'],
       xtype : 'diractabs',
       taskbar : null, // this is used by the desktop layout
       layout : 'fit',
@@ -291,6 +291,16 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                               }
                             }, me);
                       }
+                    }, {
+                      scope : tab,
+                      type : "help",
+                      tooltip : "It provides description of the active application.",
+                      handler : function() {
+                        var me = this;
+
+                        GLOBAL.APP.MAIN_VIEW.openHelpWindow(me);
+
+                      }
                     }]
               });
           activeTab.addWidget(tab);
@@ -405,7 +415,35 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                   type : 'desktop',
                   isLoaded : isLoaded
                 });
+            tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
+                  width : 60, // 30
+                  position : 'right',
+                  items : [{
+                        xtype : "tabscrollerbutton",
+                        tabPanel : tab,
+                        menuPrefixText : "Applications",
+                        maxText : 100,
+                        pageSize : 5,
+                        tooltip : "Jump to the selected application."
+                      }, {
+                        xtype : "button",
+                        glyph : '63',
+                        tooltip : "It provides description of the active application.",
+                        handler : function() {
+                          var desktop = me.getApplicationContainer().getActiveTab();
+                          if (desktop) {
+                            var app = desktop.getActiveTab();
+                            if (app) {
+                              GLOBAL.APP.MAIN_VIEW.openHelpWindow(app);
+                            }
+                          }
+
+                        }
+                      }]
+                }));
+            tab.initPlugin(tab.plugins[0]);
           }
+
           me.getApplicationContainer().add(tab);
           me.getApplicationContainer().setActiveTab(tab);
         }
@@ -466,9 +504,10 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
                 GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
 
-              if ((GLOBAL.APP.MAIN_VIEW.currentState == '') && (desktopName != sStateName) ) { 
-                // if the desktop is the default desktop, we have to add the new states and remove the old state from
-                //the activeStates.
+              if ((GLOBAL.APP.MAIN_VIEW.currentState == '') && (desktopName != sStateName)) {
+                // if the desktop is the default desktop, we have to add the new
+                // states and remove the old state from
+                // the activeStates.
 
                 // if there is an active desktop state, we have to remove it
 
@@ -569,12 +608,12 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         };
         GLOBAL.APP.MAIN_VIEW.SM.formManageStates("desktop", funcAfterRemove);
       },
-      setActiveTab : function(tab){
+      setActiveTab : function(tab) {
         var me = this;
         var container = me.getApplicationContainer();
-        if (container){
-          container.setActiveTab(tab);  
+        if (container) {
+          container.setActiveTab(tab);
         }
       }
-      
+
     });

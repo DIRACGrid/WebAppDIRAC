@@ -195,6 +195,8 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
             if (loadState) {
               me.loadedObject.loadState(setupData.data);
+              me.loadedObject.setHelpText(setupData.data);
+              // we can add help to each customised application.
             }
           }
 
@@ -256,6 +258,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           me.closeAllChildWindows();
 
           me.loadedObject.loadState(oState);// OK
+          me.loadedObject.setHelpText(oState);
 
           if (me.currentState != "")
             GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);// OK

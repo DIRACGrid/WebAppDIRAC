@@ -14,6 +14,7 @@ Ext.define('Ext.dirac.core.Module', {
         this.launcher = config.launcherElements;
         this.applicationName = config.launcherElements.applicationName;
         this._container = null;
+        this.text = ""
 
         this.callParent();
         this.loadCSS();
@@ -55,5 +56,21 @@ Ext.define('Ext.dirac.core.Module', {
 
             }, me);
 
+      },
+      setHelpText : function(data) {
+        var me = this;
+        if (data.text) {
+          me.text = data.text;
+        }
+      },
+      getHelpText : function() {
+        var me = this;
+        var result = {};
+        if (me.text) {
+          result = {
+            text : me.text
+          };
+        }
+        return result;
       }
     });

@@ -2072,6 +2072,79 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
 
         }
+      },
+      openHelpWindow : function(app) {
+        var me = this;
+        var win = app.createChildWindow(app.title, false, 700, 500);
+        Ext.apply(win, {
+              type : "help",
+              minimizable : false,
+              application : app.loadedObject
+            });
+        win.on('close', function() {
+              var notepad = this.items.getAt(0);
+              var text = notepad.getStateData();
+              this.application.setHelpText(text);
+              Ext.Array.remove(app.childWindows, this);
+            });
+
+        me.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", app.loadedObject.getHelpText(), win);
+        win.show();
+      },
+
+      createHelpWindow : function(loadedObjectType, moduleName, setupData, win) {
+        var me = this;
+        Ext.get("app-dirac-loading").show();
+
+        var oParts = moduleName.split(".");
+        var sStartClass = "";
+
+        if (oParts.length == 2)
+          sStartClass = moduleName + ".classes." + oParts[1];
+        else
+          sStartClass = moduleName;
+
+        // if the development mod is off, we set up diffrent path to
+        // load javascript
+        if (GLOBAL.DEV == 0) {
+
+          var oConfig = {
+            enabled : true,
+            paths : {}
+          };
+
+          oConfig["paths"][oParts[0] + "." + oParts[1] + ".classes"] = "static/" + oParts[0] + "/" + oParts[1] + "/build";
+
+          Ext.Loader.setConfig(oConfig);
+
+        }
+
+        Ext.require(sStartClass, function() {
+
+          var me = this;
+
+          // creating an object of the demeanded application
+          var instance = Ext.create(sStartClass, {
+                renderTo : Ext.getBody(),
+                layout : 'fit',
+                launcherElements : {
+                  title : 'Module',
+                  applicationName : oParts[1],
+                  width : 0,
+                  height : 0,
+                  maximized : true,
+                  x : null,
+                  y : null
+                }
+              });
+
+          instance.loadState(setupData);
+          win.add(instance);
+            // initializing window
+
+          }, this);
+
+        Ext.get("app-dirac-loading").hide();
       }
 
     });

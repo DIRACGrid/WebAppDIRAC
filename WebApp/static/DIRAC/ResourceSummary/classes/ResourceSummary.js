@@ -393,13 +393,6 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       __oprOnResourceSummaryData : function(action) {
         var me = this;
         var selectedValues = me.__getSelectedValues();
-        var name, elementType, statusType = null;
-
-        if (values) {
-          name = selectedValues.Name;
-          elementType = selectedValues.ElementType;
-          statusType = selectedValues.StatusType;
-        }
 
         me.getContainer().body.mask("Wait ...");
         Ext.Ajax.request({
@@ -407,9 +400,9 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
               method : 'POST',
               params : {
                 action : Ext.JSON.encode([action]),
-                name : Ext.JSON.encode([name]),
-                elementType : Ext.JSON.encode([elementType]),
-                statusType : Ext.JSON.encode([statusType])
+                name : Ext.JSON.encode([selectedValues.name]),
+                elementType : Ext.JSON.encode([selectedValues.elementType]),
+                statusType : Ext.JSON.encode([selectedValues.statusType])
               },
               scope : me,
               failure : function(response) {
@@ -423,7 +416,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                 if (jsonData["success"] == "true") {
 
                   if (action == "History") {
-                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "History:" + name + "(" + statusType + ")", ["Status", "DataEffectiv", "Reason"], [{
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "History:" + selectedValues.name + "(" + selectedValues.statusType + ")", ["Status", "DataEffectiv", "Reason"], [{
                               text : 'Status',
                               flex : 1,
                               sortable : false,
@@ -441,7 +434,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                             }]);
 
                   } else if (action == "Policies") {
-                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Policies:" + name + "(" + statusType + ")", ["Status", "PolicyName", "DataEffectiv", "LastCheckTime", "Reason"], [{
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Policies:" + selectedValues.name + "(" + selectedValues.statusType + ")", ["Status", "PolicyName", "DataEffectiv", "LastCheckTime", "Reason"], [{
                               text : 'Status',
                               flex : 1,
                               sortable : false,

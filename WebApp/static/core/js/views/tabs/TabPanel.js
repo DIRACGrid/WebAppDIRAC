@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.TabPanel', {
       extend : 'Ext.tab.Panel',
-      requires : ['Ext.dirac.views.tabs.TabScrollerMenu', "Ext.ux.TabReorderer"],
+      requires : ["Ext.ux.TabReorderer"],
       xtype : 'diractabcontainer',
       alias : 'widget.tabPanel',
       resizeTabs : true,
@@ -26,11 +26,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         background : '#AAAAAA'
       },
       workspace : null,
-      plugins : [{
-            ptype : 'tabscrollermenu',
-            maxText : 15,
-            pageSize : 5
-          }, Ext.create('Ext.ux.TabReorderer')],
+      plugins : [Ext.create('Ext.ux.TabReorderer')],
       setWorkspace : function(wsk) {
         this.workspace = wsk;
       },
@@ -115,19 +111,44 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
 
                   if (win.loadedObjectType == "app") {
 
-                    oData.push({
-                          module : win.getAppClassName(),
-                          data : win.loadedObject.getStateData(),
-                          currentState : win.currentState,
-                          loadedObjectType : win.loadedObjectType
-                        });
+                    var item = {
+                      module : win.getAppClassName(),
+                      data : win.loadedObject.getStateData(),
+                      currentState : win.currentState,
+                      loadedObjectType : win.loadedObjectType
+                    };
+                    // if we have some help text, it will be automatically
+                    // saved.
+                    if (win.childWindows.length > 0) {
+                      for (var i = 0; i < win.childWindows.length; i++) {
+                        if (win.childWindows[i].type == "help") {
+                          // The Notepad is open. The text has to be retrieved
+                          // from the notepad...
+                          Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
+                        }
+                      }
+                    } else {
+                      Ext.apply(item.data, win.loadedObject.getHelpText());
+                    }
+
+                    oData.push(item);
 
                   } else if (win.loadedObjectType == "link") {
 
-                    oData.push({
-                          link : win.linkToLoad,
-                          loadedObjectType : win.loadedObjectType
-                        });
+                    var item = {
+                      link : win.linkToLoad,
+                      loadedObjectType : win.loadedObjectType
+                    };
+                    if (win.childWindows.length > 0) {
+                      for (var i = 0; i < win.childWindows.length; i++) {
+                        if (win.childWindows[i].type == "help") {
+                          Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
+                        }
+                      }
+                    } else {
+                      Ext.apply(item.data, win.loadedObject.getHelpText());
+                    }
+                    oData.push(item);
 
                   }
                 } else {
@@ -155,11 +176,21 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                         oData.push(data);
                       } else {
 
-                        oData.push({
-                              currentState : win.currentState,
-                              module : win.getAppClassName(),
-                              data : win.loadedObject.getStateData()
-                            });
+                        var item = {
+                          currentState : win.currentState,
+                          module : win.getAppClassName(),
+                          data : win.loadedObject.getStateData()
+                        };
+                        if (win.childWindows.length > 0) {
+                          for (var i = 0; i < win.childWindows.length; i++) {
+                            if (win.childWindows[i].type == "help") {
+                              Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
+                            }
+                          }
+                        } else {
+                          Ext.apply(item.data, win.loadedObject.getHelpText());
+                        }
+                        oData.push(item);
                       }
                     } else {
                       Ext.dirac.system_info.msg("Error Notification", 'The following desktop can not be saved:' + desktopName);
@@ -177,7 +208,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         return desktop;
       },
       listeners : {
-        'beforeclose' : function() {
+        beforeclose : function() {
           var me = this;
           var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer(); // we
           // have
@@ -205,7 +236,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           // state
           // is saved.
         },
-        'close' : function() {
+        close : function() {
           var me = this;
           Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, me.title); // we
           // have
@@ -230,7 +261,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           // null;
           GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
         },
-        'tabchange' : function(tabPanel, newCard, oldCard, eOpts) {
+        tabchange : function(tabPanel, newCard, oldCard, eOpts) {
           var me = this;
           /*
            * if (oldCard != null) {
@@ -260,8 +291,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               // we remove the old state. It is not active any more...
               me.syncronizeWithSettings(newCard); // we have to refresh the
               // Settings panel...
-              if (newCard.plugins.length == 2) {
-                newCard.initPlugin(newCard.plugins[1]);
+              if (newCard.plugins && newCard.plugins.length > 0) {
+                for (var i = 0; i < newCard.plugins.length; i++) {
+                  if (newCard.plugins[i].self.getName() == "Ext.ux.TabReorderer") {
+                    newCard.initPlugin(newCard.plugins[i]);
+                    break;
+                  }
+                }
               }
             }
 
@@ -276,6 +312,10 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               newCard.isLoaded = true;
             }
           }
+        },
+        afterlayout : function() { // it has to be fired to initialize the
+          // plugin.
+          this.tabBar.fireEvent("afterLayout");
         }
       },
       /**

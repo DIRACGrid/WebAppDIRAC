@@ -97,6 +97,10 @@ class JobMonitorHandler( WebHandler ):
         if len( prods ) > 0:
           prods.sort( reverse = True )
           prod = [ [ i ] for i in prods ]
+          if  len( prod ) > 10000:
+            prod = prod[0:1000]
+            message = "The job monitor selector contains to many rows: %s. Note: Only 1000 rows are returned!" % ( len(prod) )
+            gLogger.warn( message )
         else:
           prod = [["Nothing to display"]]
       else:

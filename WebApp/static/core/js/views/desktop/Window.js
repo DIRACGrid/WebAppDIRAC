@@ -5,1096 +5,1145 @@
  * 
  */
 Ext.define('Ext.dirac.views.desktop.Window', {
-	extend : 'Ext.window.Window',
-	requires : [ "Ext.dirac.utils.DiracToolButton", "Ext.menu.Menu", "Ext.menu.Item", "Ext.form.*", "Ext.LoadMask" ],
-	mixins : [ "Ext.dirac.core.Container" ],
-
-	/**
-	 * @property {String} currentState The name of the current active desktop
-	 *           state
-	 */
-	currentState : "",
-	/**
-	 * @property {Object} loadedObject The object of the module loaded within the
-	 *           window
-	 */
-	loadedObject : null,
-	/**
-	 * @property {Ext.LoadMask} loadMask The load mask used when a state is being
-	 *           loaded
-	 */
-	loadMask : null,
-	/**
-	 * @property {Ext.dirac.views.desktop.Main} desktop Reference to the desktop
-	 *           object
-	 */
-	desktop : null,
-
-	/**
-	 * @cfg {String} Configuration property that sets the resizable borders of a
-	 *      window
-	 */
-	resizeHandles : "s e se",
-
-	initComponent : function() {
-
-		var me = this;
-
-		// property indicating whether the window is pinned or not
-		me.desktopStickMode = false;
-
-		/*
-		 * if the window is pinned, then this is the matrix index regarding the X
-		 * axis
-		 */
-		me.i_x = -1;
-
-		/*
-		 * if the window is pinned, then this is the matrix index regarding the Y
-		 * axis
-		 */
-		me.i_y = -1;
-
-		/*
-		 * if the window is pinned, then this is the number of cells taken by the
-		 * app regarding the X axis
-		 */
-		me.ic_x = -1;
-
-		/*
-		 * if the window is pinned, then this is the number of cells taken by the
-		 * app regarding the Y axis
-		 */
-		me.ic_y = -1;
-
-		/*
-		 * if the window is pinned, then this is the X coordinate of the window
-		 */
-		me._x = -1;
-
-		/*
-		 * if the window is pinned, then this is the Y coordinate of the window
-		 */
-		me._y = -1;
-
-		/*
-		 * This data structure saves the state before the app gets pinned
-		 */
-		me._before_pin_state = {
-			x : 0,
-			y : 0,
-			width : 200,
-			height : 200,
-			maximized : false,
-			minimized : false
-		};
-
-		me.loadMask = new Ext.LoadMask(me, {
-			msg : "Loading ..."
-		});
-
-		if (me.loadedObjectType == "app") {
-			// setting the app object as an item in the window
-			me.items = [ me.loadedObject ];
-			me.appClassName = me.loadedObject.self.getName();
-		} else if (me.loadedObjectType == "link") {
-			me.items = [ {
-				xtype : "component",
-				autoEl : {
-					tag : "iframe",
-					src : me.linkToLoad
-				}
-			} ];
-			me.appClassName = "link";
-		}
+      extend : 'Ext.window.Window',
+      requires : ["Ext.dirac.utils.DiracToolButton", "Ext.menu.Menu", "Ext.menu.Item", "Ext.form.*", "Ext.LoadMask"],
+      mixins : ["Ext.dirac.core.Container"],
+
+      /**
+       * @property {String} currentState The name of the current active desktop
+       *           state
+       */
+      currentState : "",
+      /**
+       * @property {Object} loadedObject The object of the module loaded within
+       *           the window
+       */
+      loadedObject : null,
+      /**
+       * @property {Ext.LoadMask} loadMask The load mask used when a state is
+       *           being loaded
+       */
+      loadMask : null,
+      /**
+       * @property {Ext.dirac.views.desktop.Main} desktop Reference to the
+       *           desktop object
+       */
+      desktop : null,
+
+      /**
+       * @cfg {String} Configuration property that sets the resizable borders of
+       *      a window
+       */
+      resizeHandles : "s e se",
+
+      initComponent : function() {
+
+        var me = this;
+
+        // property indicating whether the window is pinned or not
+        me.desktopStickMode = false;
+
+        /*
+         * if the window is pinned, then this is the matrix index regarding the
+         * X axis
+         */
+        me.i_x = -1;
+
+        /*
+         * if the window is pinned, then this is the matrix index regarding the
+         * Y axis
+         */
+        me.i_y = -1;
+
+        /*
+         * if the window is pinned, then this is the number of cells taken by
+         * the app regarding the X axis
+         */
+        me.ic_x = -1;
+
+        /*
+         * if the window is pinned, then this is the number of cells taken by
+         * the app regarding the Y axis
+         */
+        me.ic_y = -1;
+
+        /*
+         * if the window is pinned, then this is the X coordinate of the window
+         */
+        me._x = -1;
+
+        /*
+         * if the window is pinned, then this is the Y coordinate of the window
+         */
+        me._y = -1;
+
+        /*
+         * This data structure saves the state before the app gets pinned
+         */
+        me._before_pin_state = {
+          x : 0,
+          y : 0,
+          width : 200,
+          height : 200,
+          maximized : false,
+          minimized : false
+        };
+
+        me.loadMask = new Ext.LoadMask(me, {
+              msg : "Loading ..."
+            });
+
+        if (me.loadedObjectType == "app") {
+          // setting the app object as an item in the window
+          me.items = [me.loadedObject];
+          me.appClassName = me.loadedObject.self.getName();
+        } else if (me.loadedObjectType == "link") {
+          me.items = [{
+                xtype : "component",
+                autoEl : {
+                  tag : "iframe",
+                  src : me.linkToLoad
+                }
+              }];
+          me.appClassName = "link";
+        }
 
-		// a list of the child windows
-		me.oneTimeAfterShow = false;
+        // a list of the child windows
+        me.oneTimeAfterShow = false;
 
-		me.childWindows = [];
-		me.callParent();
+        me.childWindows = [];
+        me.callParent();
 
-	},
+      },
 
-	afterShow : function() {
+      afterShow : function() {
 
-		var me = this;
+        var me = this;
 
-		me.callParent();
+        me.callParent();
 
-		if (!me.oneTimeAfterShow) {
-			if (me.loadedObjectType == "app")
-				me.setLoadedObject(me.setupData);
-			else if (me.loadedObjectType == "link")
-				me.setPropertiesWhenLink(me.setupData);
+        if (!me.oneTimeAfterShow) {
+          if (me.loadedObjectType == "app")
+            me.setLoadedObject(me.setupData);
+          else if (me.loadedObjectType == "link")
+            me.setPropertiesWhenLink(me.setupData);
 
-			GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+          GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
-			// removing the dblclick event handler from the window header
-			me.header.un({
-				dblclick : {
-					fn : me.toggleMaximize,
-					element : 'el',
-					scope : me
-				}
-			});
-			me.oneTimeAfterShow = true;
-		}
+          // removing the dblclick event handler from the window header
+          me.header.un({
+                dblclick : {
+                  fn : me.toggleMaximize,
+                  element : 'el',
+                  scope : me
+                }
+              });
+          me.oneTimeAfterShow = true;
+        }
 
-	},
+      },
 
-	/**
-	 * Function to set a state of the loaded object and a state of the window
-	 * itself
-	 * 
-	 * @param {Object}
-	 *          setupData Setup data
-	 */
-	setLoadedObject : function(setupData) {
+      /**
+       * Function to set a state of the loaded object and a state of the window
+       * itself
+       * 
+       * @param {Object}
+       *          setupData Setup data
+       */
+      setLoadedObject : function(setupData) {
 
-		var me = this;
+        var me = this;
 
-		me.minimized = false;
+        me.minimized = false;
 
-		var oDesktopDim = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+        var oDesktopDim = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-		if (setupData != null) {
+        if (setupData != null) {
 
-			if (("desktopStickMode" in setupData) && (parseInt(setupData["desktopStickMode"], 10) == 1)) {
-				/*
-				 * if the applcation has to be pinned
-				 */
-				me.i_x = setupData["i_x"];
-				me.i_y = setupData["i_y"];
-				me.ic_x = setupData["ic_x"];
-				me.ic_y = setupData["ic_y"];
+          if (("desktopStickMode" in setupData) && (parseInt(setupData["desktopStickMode"], 10) == 1)) {
+            /*
+             * if the applcation has to be pinned
+             */
+            me.i_x = setupData["i_x"];
+            me.i_y = setupData["i_y"];
+            me.ic_x = setupData["ic_x"];
+            me.ic_y = setupData["ic_y"];
 
-				/*
-				 * Taking the cells where the window is going to reside
-				 */
-				me.desktop.setDesktopMatrixCells(me.i_x, me.i_x + me.ic_x - 1, me.i_y, me.i_y + me.ic_y - 1, true);
+            /*
+             * Taking the cells where the window is going to reside
+             */
+            me.desktop.setDesktopMatrixCells(me.i_x, me.i_x + me.ic_x - 1, me.i_y, me.i_y + me.ic_y - 1, true);
 
-				me.desktopStickMode = true;
+            me.desktopStickMode = true;
 
-				me._x = Math.round(me.i_x * me.desktop.boxSizeX);
-				me._y = Math.round(me.i_y * me.desktop.boxSizeY);
+            me._x = Math.round(me.i_x * me.desktop.boxSizeX);
+            me._y = Math.round(me.i_y * me.desktop.boxSizeY);
 
-				var oPos = me.getPosition();
+            var oPos = me.getPosition();
 
-				if ("_before_pin_state" in setupData)
-					me._before_pin_state = setupData["_before_pin_state"];
+            if ("_before_pin_state" in setupData)
+              me._before_pin_state = setupData["_before_pin_state"];
 
-				me.suspendEvents(false);
-				// setting the position and the size of the window
-				me.setPosition(Math.round(me.i_x * me.desktop.boxSizeX), Math.round(me.i_y * me.desktop.boxSizeY));
-				me.setSize(Math.round(me.ic_x * me.desktop.boxSizeX), Math.round(me.ic_y * me.desktop.boxSizeY));
-				me.resumeEvents();
+            me.suspendEvents(false);
+            // setting the position and the size of the window
+            me.setPosition(Math.round(me.i_x * me.desktop.boxSizeX), Math.round(me.i_y * me.desktop.boxSizeY));
+            me.setSize(Math.round(me.ic_x * me.desktop.boxSizeX), Math.round(me.ic_y * me.desktop.boxSizeY));
+            me.resumeEvents();
 
-				me.desktopGridStickButton.setType("unpin");
-				me.getHeader().show();
+            me.desktopGridStickButton.setType("unpin");
+            me.getHeader().show();
 
-				/*
-				 * Hide minimize, maximize, restore
-				 */
-				me.tools[3].hide();
-				me.tools[4].hide();
-				me.tools[5].hide();
+            /*
+             * Hide minimize, maximize, restore
+             */
+            me.tools[3].hide();
+            me.tools[4].hide();
+            me.tools[5].hide();
 
-			} else if (("maximized" in setupData) && (setupData["maximized"])) {
+          } else if (("maximized" in setupData) && (setupData["maximized"])) {
 
-				if ("width" in setupData) {
+            if ("width" in setupData) {
 
-					if (parseInt(setupData.width, 10) <= 100) {
-						me.setWidth(parseInt(parseInt(setupData.width, 10) * oDesktopDim[0] / 100, 10));
-					} else {
-						me.setWidth(parseInt(setupData.width, 10));
-					}
+              if (parseInt(setupData.width, 10) <= 100) {
+                me.setWidth(parseInt(parseInt(setupData.width, 10) * oDesktopDim[0] / 100, 10));
+              } else {
+                me.setWidth(parseInt(setupData.width, 10));
+              }
 
-				} else {
+            } else {
 
-					me.setWidth(me.loadedObject.launcher.width);
+              me.setWidth(me.loadedObject.launcher.width);
 
-				}
+            }
 
-				if ("height" in setupData) {
+            if ("height" in setupData) {
 
-					if (parseInt(setupData.height, 10) <= 100) {
-						me.setHeight(parseInt(parseInt(setupData.height, 10) * oDesktopDim[1] / 100, 10));
-					} else {
-						me.setHeight(parseInt(setupData.height, 10));
-					}
-				} else {
+              if (parseInt(setupData.height, 10) <= 100) {
+                me.setHeight(parseInt(parseInt(setupData.height, 10) * oDesktopDim[1] / 100, 10));
+              } else {
+                me.setHeight(parseInt(setupData.height, 10));
+              }
+            } else {
 
-					me.setHeight(me.loadedObject.launcher.height);
+              me.setHeight(me.loadedObject.launcher.height);
 
-				}
+            }
 
-				/*
-				 * If it is not pinned but maximized
-				 */
-				me.maximize();
+            /*
+             * If it is not pinned but maximized
+             */
+            me.maximize();
 
-			} else if (("minimized" in setupData) && (setupData["minimized"])) {
+          } else if (("minimized" in setupData) && (setupData["minimized"])) {
 
-				/*
-				 * If it is not pinned but minimized
-				 */
+            /*
+             * If it is not pinned but minimized
+             */
 
-				if ("width" in setupData) {
+            if ("width" in setupData) {
 
-					if (parseInt(setupData.width, 10) <= 100) {
-						me.setWidth(parseInt(parseInt(setupData.width, 10) * oDesktopDim[0] / 100, 10));
-					} else {
-						me.setWidth(parseInt(setupData.width, 10));
-					}
+              if (parseInt(setupData.width, 10) <= 100) {
+                me.setWidth(parseInt(parseInt(setupData.width, 10) * oDesktopDim[0] / 100, 10));
+              } else {
+                me.setWidth(parseInt(setupData.width, 10));
+              }
 
-				}
+            }
 
-				if ("height" in setupData) {
+            if ("height" in setupData) {
 
-					if (parseInt(setupData.height, 10) <= 100) {
-						me.setHeight(parseInt(parseInt(setupData.height, 10) * oDesktopDim[1] / 100, 10));
-					} else {
-						me.setHeight(parseInt(setupData.height, 10));
-					}
-				}
+              if (parseInt(setupData.height, 10) <= 100) {
+                me.setHeight(parseInt(parseInt(setupData.height, 10) * oDesktopDim[1] / 100, 10));
+              } else {
+                me.setHeight(parseInt(setupData.height, 10));
+              }
+            }
 
-				me.desktop.minimizeWindow(me);
+            me.desktop.minimizeWindow(me);
 
-			} else {
+          } else {
 
-				/*
-				 * If the window is not maximized nor minimized nor pinned
-				 */
-				if ("x" in setupData) {
-					me.setPosition(parseInt(setupData.x, 10), parseInt(setupData.y, 10));
-				}
+            /*
+             * If the window is not maximized nor minimized nor pinned
+             */
+            if ("x" in setupData) {
+              me.setPosition(parseInt(setupData.x, 10), parseInt(setupData.y, 10));
+            }
 
-				if ("width" in setupData) {
-					if (parseInt(setupData.width, 10) <= 100) {
-						me.setWidth(parseInt(parseInt(setupData.width, 10) * oDesktopDim[0] / 100, 10));
-					} else {
-						me.setWidth(parseInt(setupData.width, 10));
-					}
-				}
+            if ("width" in setupData) {
+              if (parseInt(setupData.width, 10) <= 100) {
+                me.setWidth(parseInt(parseInt(setupData.width, 10) * oDesktopDim[0] / 100, 10));
+              } else {
+                me.setWidth(parseInt(setupData.width, 10));
+              }
+            }
 
-				if ("height" in setupData) {
-					if (parseInt(setupData.height, 10) <= 100) {
-						me.setHeight(parseInt(parseInt(setupData.height, 10) * oDesktopDim[1] / 100, 10));
-					} else {
-						me.setHeight(parseInt(setupData.height, 10));
-					}
-				}
+            if ("height" in setupData) {
+              if (parseInt(setupData.height, 10) <= 100) {
+                me.setHeight(parseInt(parseInt(setupData.height, 10) * oDesktopDim[1] / 100, 10));
+              } else {
+                me.setHeight(parseInt(setupData.height, 10));
+              }
+            }
 
-				// if no width nor height are set up
-				if ((!("height" in setupData)) && (!("width" in setupData))) {
+            // if no width nor height are set up
+            if ((!("height" in setupData)) && (!("width" in setupData))) {
 
-					if (!me.loadedObject.launcher.maximized) {
-						if ("width" in me.loadedObject.launcher) {
+              if (!me.loadedObject.launcher.maximized) {
+                if ("width" in me.loadedObject.launcher) {
 
-							me.setWidth(me.loadedObject.launcher.width);
+                  me.setWidth(me.loadedObject.launcher.width);
 
-						} else {
+                } else {
 
-							me.setWidth(600);
+                  me.setWidth(600);
 
-						}
+                }
 
-						if ("height" in me.loadedObject.launcher) {
+                if ("height" in me.loadedObject.launcher) {
 
-							me.setHeight(me.loadedObject.launcher.height);
+                  me.setHeight(me.loadedObject.launcher.height);
 
-						} else {
+                } else {
 
-							me.setHeight(400);
+                  me.setHeight(400);
 
-						}
-					} else {
+                }
+              } else {
 
-						me.maximize();
+                me.maximize();
 
-					}
+              }
 
-				}
+            }
 
-			}
+          }
 
-			// setting the Z-index
-			if ("zIndex" in setupData) {
+          // setting the Z-index
+          if ("zIndex" in setupData) {
 
-				me.setZIndex(setupData.zIndex);
+            me.setZIndex(setupData.zIndex);
 
-			}
+          }
 
-			// if there is a state to load, we load that state
-			if ("stateToLoad" in setupData) {
+          // if there is a state to load, we load that state
+          if ("stateToLoad" in setupData) {
 
-				me.oprLoadAppStateFromCache(setupData["stateToLoad"]);
+            me.oprLoadAppStateFromCache(setupData["stateToLoad"]);
 
-			} else {
+          } else {
 
-				// if there is no state to load, but only data to apply
-				if ("data" in setupData) {
+            // if there is no state to load, but only data to apply
+            if ("data" in setupData) {
 
-					if ("currentState" in setupData) {
+              if ("currentState" in setupData) {
 
-						if (setupData.currentState != "") {
-							me.currentState = setupData.currentState;
-							me.loadedObject.currentState = setupData.currentState;
-							GLOBAL.APP.SM.oprAddActiveState(me.loadedObject.self.getName(), me.currentState);
-						}
+                if (setupData.currentState != "") {
+                  me.currentState = setupData.currentState;
+                  me.loadedObject.currentState = setupData.currentState;
+                  GLOBAL.APP.SM.oprAddActiveState(me.loadedObject.self.getName(), me.currentState);
+                }
 
-					}
+              }
 
-					me.loadedObject.loadState(setupData.data);
-				}
+              me.loadedObject.loadState(setupData.data);
+              me.loadedObject.setHelpText(setupData.data);
+            }
 
-			}
+          }
 
-			// if the header of the window has to be hidden
-			if ("headerHidden" in setupData) {
+          // if the header of the window has to be hidden
+          if ("headerHidden" in setupData) {
 
-				if (setupData["headerHidden"] == 1)
-					me.getHeader().hide();
+            if (setupData["headerHidden"] == 1)
+              me.getHeader().hide();
 
-			}
+          }
 
-		} else {
+        } else {
 
-			// if no setupdata is provided
+          // if no setupdata is provided
 
-			if ((me.loadedObject.launcher.x != null) && (me.loadedObject.launcher.y != null)) {
+          if ((me.loadedObject.launcher.x != null) && (me.loadedObject.launcher.y != null)) {
 
-				me.setPosition(me.loadedObject.launcher.x, me.loadedObject.launcher.y);
+            me.setPosition(me.loadedObject.launcher.x, me.loadedObject.launcher.y);
 
-			} else {
+          } else {
 
-				me.setPosition(0, 0);
+            me.setPosition(0, 0);
 
-			}
+          }
 
-			if (("width" in me.loadedObject.launcher)&&(me.loadedObject.launcher.width > 0)) {
-				
-				me.setWidth(me.loadedObject.launcher.width);
+          if (("width" in me.loadedObject.launcher) && (me.loadedObject.launcher.width > 0)) {
 
-			} else {
-				
-				me.setWidth(600);
+            me.setWidth(me.loadedObject.launcher.width);
 
-			}
+          } else {
 
-			if (("height" in me.loadedObject.launcher)&&(me.loadedObject.launcher.height > 0)) {
-				
-				me.setHeight(me.loadedObject.launcher.height);
+            me.setWidth(600);
 
-			} else {
+          }
 
-				me.setHeight(400);
+          if (("height" in me.loadedObject.launcher) && (me.loadedObject.launcher.height > 0)) {
 
-			}
+            me.setHeight(me.loadedObject.launcher.height);
 
-			if (me.loadedObject.launcher.maximized) {
-				me.maximize();
-			}
+          } else {
 
-		}
+            me.setHeight(400);
 
-		/*
-		 * Setting other properties related to the window
-		 */
+          }
 
-		if (me.currentState == "") {
+          if (me.loadedObject.launcher.maximized) {
+            me.maximize();
+          }
 
-			me.setTitle(me.loadedObject.launcher.title);
-			me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title, 20));
+        }
 
-		} else {
-			me.setTitle(me.loadedObject.launcher.title + " [" + me.currentState + "]");
-			me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.currentState + "]", 20));
-		}
+        /*
+         * Setting other properties related to the window
+         */
 
-		if (me.desktopStickMode)
-			me.taskButton.setIconCls("system_pin_window");
-		else
-			me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
+        if (me.currentState == "") {
 
-		me.setIconCls(me.loadedObject.launcher.iconCls);
+          me.setTitle(me.loadedObject.launcher.title);
+          me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title, 20));
 
-		// making relation between the application and the window container
-		me.loadedObject.setContainer(me);
+        } else {
+          me.setTitle(me.loadedObject.launcher.title + " [" + me.currentState + "]");
+          me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.currentState + "]", 20));
+        }
 
-	},
+        if (me.desktopStickMode)
+          me.taskButton.setIconCls("system_pin_window");
+        else
+          me.taskButton.setIconCls(me.loadedObject.launcher.iconCls);
 
-	/**
-	 * Function invoked when the window gets restored to the previous state at the
-	 * desktop. The function is used in the Desktop object.
-	 * 
-	 * @param {Object}
-	 *          oData Data to be applied
-	 */
-	loadWindowFrameState : function(oData) {
+        me.setIconCls(me.loadedObject.launcher.iconCls);
 
-		var me = this;
+        // making relation between the application and the window container
+        me.loadedObject.setContainer(me);
 
-		me.suspendEvents(false);
-		me.minimized = false;
+      },
 
-		var oDesktopDim = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+      /**
+       * Function invoked when the window gets restored to the previous state at
+       * the desktop. The function is used in the Desktop object.
+       * 
+       * @param {Object}
+       *          oData Data to be applied
+       */
+      loadWindowFrameState : function(oData) {
 
-		if (("maximized" in oData) && (oData["maximized"])) {
+        var me = this;
 
-			me.maximize();
+        me.suspendEvents(false);
+        me.minimized = false;
 
-		} else if (("minimized" in oData) && (oData["minimized"])) {
+        var oDesktopDim = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-			if ("width" in setupData) {
+        if (("maximized" in oData) && (oData["maximized"])) {
 
-				if (parseInt(oData.width, 10) <= 100) {
-					me.setWidth(parseInt(parseInt(oData.width, 10) * oDesktopDim[0] / 100, 10));
-				} else {
-					me.setWidth(parseInt(oData.width, 10));
-				}
+          me.maximize();
 
-			}
+        } else if (("minimized" in oData) && (oData["minimized"])) {
 
-			if ("height" in setupData) {
+          if ("width" in setupData) {
 
-				if (parseInt(oData.height, 10) <= 100) {
-					me.setHeight(parseInt(parseInt(oData.height, 10) * oDesktopDim[1] / 100, 10));
-				} else {
-					me.setHeight(parseInt(oData.height, 10));
-				}
+            if (parseInt(oData.width, 10) <= 100) {
+              me.setWidth(parseInt(parseInt(oData.width, 10) * oDesktopDim[0] / 100, 10));
+            } else {
+              me.setWidth(parseInt(oData.width, 10));
+            }
 
-			}
+          }
 
-			me.desktop.minimizeWindow(me);
+          if ("height" in setupData) {
 
-		} else {
+            if (parseInt(oData.height, 10) <= 100) {
+              me.setHeight(parseInt(parseInt(oData.height, 10) * oDesktopDim[1] / 100, 10));
+            } else {
+              me.setHeight(parseInt(oData.height, 10));
+            }
 
-			if ("x" in oData) {
-				me.setPosition(parseInt(oData.x, 10), parseInt(oData.y, 10));
-			}
+          }
 
-			if ("width" in oData) {
+          me.desktop.minimizeWindow(me);
 
-				if (parseInt(oData.width, 10) <= 100) {
-					me.setWidth(parseInt(parseInt(oData.width, 10) * oDesktopDim[0] / 100, 10));
-				} else {
-					me.setWidth(parseInt(oData.width, 10));
-				}
-			}
+        } else {
 
-			if ("height" in oData) {
+          if ("x" in oData) {
+            me.setPosition(parseInt(oData.x, 10), parseInt(oData.y, 10));
+          }
 
-				if (parseInt(oData.height, 10) <= 100) {
-					me.setHeight(parseInt(parseInt(oData.height, 10) * oDesktopDim[1] / 100, 10));
-				} else {
-					me.setHeight(parseInt(oData.height, 10));
-				}
-			}
+          if ("width" in oData) {
 
-			if ((!("height" in oData)) && (!("width" in oData))) {
+            if (parseInt(oData.width, 10) <= 100) {
+              me.setWidth(parseInt(parseInt(oData.width, 10) * oDesktopDim[0] / 100, 10));
+            } else {
+              me.setWidth(parseInt(oData.width, 10));
+            }
+          }
 
-				if (!me.loadedObject.launcher.maximized) {
-					if ("width" in me.loadedObject.launcher) {
+          if ("height" in oData) {
 
-						me.setWidth(me.loadedObject.launcher.width);
+            if (parseInt(oData.height, 10) <= 100) {
+              me.setHeight(parseInt(parseInt(oData.height, 10) * oDesktopDim[1] / 100, 10));
+            } else {
+              me.setHeight(parseInt(oData.height, 10));
+            }
+          }
 
-					} else {
+          if ((!("height" in oData)) && (!("width" in oData))) {
 
-						me.setWidth(600);
+            if (!me.loadedObject.launcher.maximized) {
+              if ("width" in me.loadedObject.launcher) {
 
-					}
+                me.setWidth(me.loadedObject.launcher.width);
 
-					if ("height" in me.loadedObject.launcher) {
+              } else {
 
-						me.setHeight(me.loadedObject.launcher.height);
+                me.setWidth(600);
 
-					} else {
+              }
 
-						me.setHeight(400);
+              if ("height" in me.loadedObject.launcher) {
 
-					}
-				} else {
+                me.setHeight(me.loadedObject.launcher.height);
 
-					me.maximize();
+              } else {
 
-				}
+                me.setHeight(400);
 
-			}
+              }
+            } else {
 
-		}
+              me.maximize();
 
-		me.resumeEvents();
+            }
 
-	},
+          }
 
-	/**
-	 * Function to set a state of the window where a link has been loaded
-	 * 
-	 * @param {Object}
-	 *          setupData Setup data
-	 */
-	setPropertiesWhenLink : function(setupData) {
+        }
 
-		var me = this;
+        me.resumeEvents();
 
-		if (setupData.x && setupData.y)
-			me.setPosition(setupData.x, setupData.y);
-		else {
-			me.setPosition(0, 0);
-		}
+      },
 
-		if (!setupData.width && !setupData.height)
-			me.maximize();
-		else {
-			if (setupData.width)
-				me.setWidth(setupData.width);
+      /**
+       * Function to set a state of the window where a link has been loaded
+       * 
+       * @param {Object}
+       *          setupData Setup data
+       */
+      setPropertiesWhenLink : function(setupData) {
 
-			if (setupData.height)
-				me.setHeight(setupData.height);
-		}
+        var me = this;
 
-		me.setTitle(setupData.title);
-		me.taskButton.setIconCls("notepad");
-		me.taskButton.setText(Ext.util.Format.ellipsis(me.title, 20));
-		me.setIconCls("notepad");
+        if (setupData.x && setupData.y)
+          me.setPosition(setupData.x, setupData.y);
+        else {
+          me.setPosition(0, 0);
+        }
 
-		if (setupData.zIndex)
-			me.setZIndex(setupData.zIndex);
+        if (!setupData.width && !setupData.height)
+          me.maximize();
+        else {
+          if (setupData.width)
+            me.setWidth(setupData.width);
 
-	},
+          if (setupData.height)
+            me.setHeight(setupData.height);
+        }
 
-	/**
-	 * Getter function for the class of the loaded object
-	 * 
-	 * @return {String} The name of the class
-	 */
-	getAppClassName : function() {
+        me.setTitle(setupData.title);
+        me.taskButton.setIconCls("notepad");
+        me.taskButton.setText(Ext.util.Format.ellipsis(me.title, 20));
+        me.setIconCls("notepad");
 
-		return this.appClassName;
+        if (setupData.zIndex)
+          me.setZIndex(setupData.zIndex);
 
-	},
+      },
 
-	/**
-	 * Getter function for the current state of the loaded object
-	 * 
-	 * @return {String} The name of the class
-	 */
-	getCurrentState : function() {
+      /**
+       * Getter function for the class of the loaded object
+       * 
+       * @return {String} The name of the class
+       */
+      getAppClassName : function() {
 
-		return this.currentState;
+        return this.appClassName;
 
-	},
+      },
 
-	/**
-	 * Overriden function, inherited from Ext.window.Window used to set up the
-	 * buttons at the top right corner of the window
-	 */
-	addTools : function() {
+      /**
+       * Getter function for the current state of the loaded object
+       * 
+       * @return {String} The name of the class
+       */
+      getCurrentState : function() {
 
-		var me = this;
+        return this.currentState;
 
-		if (me.loadedObjectType == "app") {
+      },
 
-			me.statesMenu = new Ext.menu.Menu();
+      /**
+       * Overriden function, inherited from Ext.window.Window used to set up the
+       * buttons at the top right corner of the window
+       */
+      addTools : function() {
 
-			/*
-			 * if the cache for the state of the started application exist
-			 */
+        var me = this;
 
-			/*
-			 * A call to isStateLoaded can be used to see whether the application
-			 * states have been loaded
-			 */
-			var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, "|");// OK
+        if (me.loadedObjectType == "app") {
 
-			if (iAppStatesLoaded != -2) {
+          me.statesMenu = new Ext.menu.Menu();
 
-				if (GLOBAL.STATE_MANAGEMENT_ENABLED)
-					me.oprRefreshAppStates();
+          /*
+           * if the cache for the state of the started application exist
+           */
 
-			} else {
+          /*
+           * A call to isStateLoaded can be used to see whether the application
+           * states have been loaded
+           */
+          var iAppStatesLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, "|");// OK
 
-				/*
-				 * if the application cache does not exist
-				 */
+          if (iAppStatesLoaded != -2) {
 
-				var oFunc = function(iCode, sAppName) {
+            if (GLOBAL.STATE_MANAGEMENT_ENABLED)
+              me.oprRefreshAppStates();
 
-					if (iCode == 1) {
-						me.oprRefreshAppStates();
-					}
+          } else {
 
-				}
+            /*
+             * if the application cache does not exist
+             */
 
-				if (GLOBAL.STATE_MANAGEMENT_ENABLED)
-					GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(me.appClassName, oFunc);
+            var oFunc = function(iCode, sAppName) {
 
-			}
+              if (iCode == 1) {
+                me.oprRefreshAppStates();
+              }
 
-			var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+            }
 
-				if ((iCode == 1) && (me.currentState != sStateName)) {
+            if (GLOBAL.STATE_MANAGEMENT_ENABLED)
+              GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(me.appClassName, oFunc);
 
-					me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
+          }
 
-					if (me.currentState != "")
-						GLOBAL.APP.SM.oprRemoveActiveState(sAppName, me.currentState);
+          var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
 
-					me.loadedObject.currentState = sStateName;
-					me.currentState = sStateName;
-					GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
-					me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
-					me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]", 20));
-					GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+            if ((iCode == 1) && (me.currentState != sStateName)) {
 
-					if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
-						GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
-				}
+              me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
 
-			};
+              if (me.currentState != "")
+                GLOBAL.APP.SM.oprRemoveActiveState(sAppName, me.currentState);
 
-			var funcAfterRemove = function(sStateType, sAppName, sStateName) {
+              me.loadedObject.currentState = sStateName;
+              me.currentState = sStateName;
+              GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
+              me.setTitle(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]");
+              me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + me.loadedObject.currentState + "]", 20));
+              GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
-				me.desktop.removeStateFromWindows(sStateType, sAppName, sStateName);
+              if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+                GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+            }
 
-			}
+          };
 
-			me.loadMenu = new Ext.menu.Menu({
-				items : [ {
-					text : "Load state",
-					iconCls : "toolbar-other-load",
-					menu : me.statesMenu
-				}, {
-					text : "Save",
-					iconCls : "dirac-icon-save",
-					handler : Ext.bind(me.desktop.SM.oprSaveAppState, me.desktop.SM, [ "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave ], false),
-					scope : me
-				}, {
-					text : "Save As ...",
-					iconCls : "dirac-icon-save",
-					handler : Ext.bind(me.desktop.SM.formSaveState, me.desktop.SM, [ "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave ], false),
-					scope : me
-				}, {
-					text : "Refresh states",
-					iconCls : "toolbar-other-refresh",
-					handler : me.oprRefreshAllAppStates,
-					scope : me
-				}, {
-					text : "Manage states ...",
-					iconCls : "toolbar-other-manage",
-					handler : Ext.bind(me.desktop.SM.formManageStates, me.desktop.SM, [ me.loadedObject.self.getName(), funcAfterRemove ], false),
-					scope : me
-				} ]
-			});
+          var funcAfterRemove = function(sStateType, sAppName, sStateName) {
 
-			me.addTool({
-				xtype : "diracToolButton",
-				type : "save",
-				menu : ((GLOBAL.STATE_MANAGEMENT_ENABLED) ? me.loadMenu : []),
-				tooltip : "Save state menu"
-			});
+            me.desktop.removeStateFromWindows(sStateType, sAppName, sStateName);
 
-			me.desktopGridStickButton = new Ext.dirac.utils.DiracToolButton({
-				type : "pin",
-				handler : function() {
-					me.desktop.setDesktopStickMode(me);
-				},
-				tooltip : "Pin/Unpin window onto the desktop"
-			});
+          }
 
-			me.addTool(me.desktopGridStickButton);
+          me.loadMenu = new Ext.menu.Menu({
+                items : [{
+                      text : "Load state",
+                      iconCls : "toolbar-other-load",
+                      menu : me.statesMenu
+                    }, {
+                      text : "Save",
+                      iconCls : "dirac-icon-save",
+                      handler : Ext.bind(me.desktop.SM.oprSaveAppState, me.desktop.SM, ["application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave], false),
+                      scope : me
+                    }, {
+                      text : "Save As ...",
+                      iconCls : "dirac-icon-save",
+                      handler : Ext.bind(me.desktop.SM.formSaveState, me.desktop.SM, ["application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave], false),
+                      scope : me
+                    }, {
+                      text : "Refresh states",
+                      iconCls : "toolbar-other-refresh",
+                      handler : me.oprRefreshAllAppStates,
+                      scope : me
+                    }, {
+                      text : "Manage states ...",
+                      iconCls : "toolbar-other-manage",
+                      handler : Ext.bind(me.desktop.SM.formManageStates, me.desktop.SM, [me.loadedObject.self.getName(), funcAfterRemove], false),
+                      scope : me
+                    }]
+              });
 
-			me.addTool({
-				xtype : "diracToolButton",
-				type : "toggle",
-				handler : function() {
-					me.getHeader().hide();
-				},
-				tooltip : "Hide window header"
-			});
+          me.addTool({
+                xtype : "diracToolButton",
+                type : "save",
+                menu : ((GLOBAL.STATE_MANAGEMENT_ENABLED) ? me.loadMenu : []),
+                tooltip : "Save state menu"
+              });
 
-		}
+          me.desktopGridStickButton = new Ext.dirac.utils.DiracToolButton({
+                type : "pin",
+                handler : function() {
+                  me.desktop.setDesktopStickMode(me);
+                },
+                tooltip : "Pin/Unpin window onto the desktop"
+              });
 
-		me.callParent();
+          me.addTool(me.desktopGridStickButton);
 
-	},
-	/**
-	 * Function that is called when the refresh button of the SAVE window menu is
-	 * clicked
-	 */
-	oprRefreshAllAppStates : function() {
+          me.addTool({
+                xtype : "diracToolButton",
+                type : "toggle",
+                handler : function() {
+                  me.getHeader().hide();
+                },
+                tooltip : "Hide window header"
+              });
 
-		var me = this;
+          me.addTool({
+                xtype : "diracToolButton",
+                type : "help",
+                handler : me.openHelpWindow,
+                tooltip : "It provides description of the active application.",
+                scope : me
+              });
 
-		me.desktop.oprRefreshAllAppStates(me.appClassName);
+        }
 
-	},
-	/**
-	 * Function for adding new state within the list of existing states
-	 * 
-	 * @param {String}
-	 *          stateType The type of the state [application|reference]
-	 * @param {String}
-	 *          stateName The name of the state
-	 */
-	addNewState : function(stateType, stateName) {
+        me.callParent();
 
-		var me = this;
+      },
+      /**
+       * Function that is called when the refresh button of the SAVE window menu
+       * is clicked
+       */
+      oprRefreshAllAppStates : function() {
 
-		if (stateType == "application") {
+        var me = this;
 
-			var newItem = Ext.create('Ext.menu.Item', {
-				text : stateName,
-				handler : Ext.bind(me.oprLoadAppStateFromCache, me, [ stateName ], false),
-				scope : me,
-				iconCls : "dirac-icon-state",
-				stateType : stateType,
-				menu : [ {
-					text : "Share state",
-					handler : function() {
+        me.desktop.oprRefreshAllAppStates(me.appClassName);
 
-						GLOBAL.APP.SM.oprShareState(me.loadedObject.self.getName(), stateName, function(rCode, rAppName, rStateName, rMessage) {
+      },
+      /**
+       * Function for adding new state within the list of existing states
+       * 
+       * @param {String}
+       *          stateType The type of the state [application|reference]
+       * @param {String}
+       *          stateName The name of the state
+       */
+      addNewState : function(stateType, stateName) {
 
-							if (rCode == 1) {
+        var me = this;
 
-								var oHtml = "";
-								oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
-								oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
+        if (stateType == "application") {
 
-								Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
+          var newItem = Ext.create('Ext.menu.Item', {
+                text : stateName,
+                handler : Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
+                scope : me,
+                iconCls : "dirac-icon-state",
+                stateType : stateType,
+                menu : [{
+                      text : "Share state",
+                      handler : function() {
 
-							}
+                        GLOBAL.APP.SM.oprShareState(me.loadedObject.self.getName(), stateName, function(rCode, rAppName, rStateName, rMessage) {
 
-						});
+                              if (rCode == 1) {
 
-					},
-					iconCls : "dirac-icon-share"
-				},{
-          text : "Make public",
-          handler : function() {
+                                var oHtml = "";
+                                oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+                                oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
 
-            GLOBAL.APP.SM.oprPublishState(me.loadedObject.self.getName(), stateName);
+                                Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
 
-          },
-          iconCls : "dirac-icon-share"
-        } ]
-			});
+                              }
 
-			var iIndexPosition = 0;
+                            });
 
-			for ( var i = me.statesMenu.items.length - 1; i >= 0; i--) {
+                      },
+                      iconCls : "dirac-icon-share"
+                    }, {
+                      text : "Make public",
+                      handler : function() {
 
-				if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator") {
-					iIndexPosition = i;
-					break;
-				}
+                        GLOBAL.APP.SM.oprPublishState(me.loadedObject.self.getName(), stateName);
 
-			}
+                      },
+                      iconCls : "dirac-icon-share"
+                    }]
+              });
 
-			me.statesMenu.insert(iIndexPosition, newItem);
+          var iIndexPosition = 0;
 
-		} else if (stateType == "reference") {
+          for (var i = me.statesMenu.items.length - 1; i >= 0; i--) {
 
-			var newItem = Ext.create('Ext.menu.Item', {
-				text : stateName,
-				handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [ me.appClassName, stateName ], false),
-				scope : me,
-				iconCls : "dirac-icon-link",
-				stateType : stateType
-			});
+            if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator") {
+              iIndexPosition = i;
+              break;
+            }
 
-			me.statesMenu.add(newItem);
+          }
 
-		}
+          me.statesMenu.insert(iIndexPosition, newItem);
 
-	},
+        } else if (stateType == "reference") {
 
-	/**
-	 * Function for removing a state from the list of existing states
-	 * 
-	 * @param {String}
-	 *          stateType The type of the state [application|reference]
-	 * @param {String}
-	 *          stateName The name of the state
-	 */
-	removeState : function(stateType, stateName) {
+          var newItem = Ext.create('Ext.menu.Item', {
+                text : stateName,
+                handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [me.appClassName, stateName], false),
+                scope : me,
+                iconCls : "dirac-icon-link",
+                stateType : stateType
+              });
 
-		var me = this;
+          me.statesMenu.add(newItem);
 
-		if (stateType == "application") {
+        }
 
-			/*
-			 * Searching from the begging of the menu
-			 * 
-			 */
-			for ( var i = 0; i < me.statesMenu.items.length; i++) {
+      },
 
-				if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator")
-					break;
+      /**
+       * Function for removing a state from the list of existing states
+       * 
+       * @param {String}
+       *          stateType The type of the state [application|reference]
+       * @param {String}
+       *          stateName The name of the state
+       */
+      removeState : function(stateType, stateName) {
 
-				if (me.statesMenu.items.getAt(i).text == stateName) {
+        var me = this;
 
-					me.statesMenu.remove(me.statesMenu.items.getAt(i));
-					break;
+        if (stateType == "application") {
 
-				}
+          /*
+           * Searching from the begging of the menu
+           * 
+           */
+          for (var i = 0; i < me.statesMenu.items.length; i++) {
 
-			}
+            if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator")
+              break;
 
-		} else if (stateType == "reference") {
+            if (me.statesMenu.items.getAt(i).text == stateName) {
 
-			/*
-			 * Searching from the end of the menu
-			 * 
-			 */
-			for ( var i = me.statesMenu.items.length - 1; i >= 0; i--) {
+              me.statesMenu.remove(me.statesMenu.items.getAt(i));
+              break;
 
-				if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator")
-					break;
+            }
 
-				if (me.statesMenu.items.getAt(i).text == stateName) {
+          }
 
-					me.statesMenu.remove(me.statesMenu.items.getAt(i));
-					break;
+        } else if (stateType == "reference") {
 
-				}
+          /*
+           * Searching from the end of the menu
+           * 
+           */
+          for (var i = me.statesMenu.items.length - 1; i >= 0; i--) {
 
-			}
+            if (me.statesMenu.items.getAt(i).self.getName() == "Ext.menu.Separator")
+              break;
 
-		}
+            if (me.statesMenu.items.getAt(i).text == stateName) {
 
-	},
+              me.statesMenu.remove(me.statesMenu.items.getAt(i));
+              break;
 
-	/**
-	 * Function to refresh the states of a module. The states are read from the
-	 * cash.
-	 */
-	oprRefreshAppStates : function() {
+            }
 
-		var me = this;
+          }
 
-		// first we remove all items from the menu
-		me.statesMenu.removeAll();
+        }
 
-		// first we fill the menu with the states
-		var oStates = GLOBAL.APP.SM.getApplicationStates("application", me.appClassName);// OK
+      },
 
-		for ( var i = 0, len = oStates.length; i < len; i++) {
+      /**
+       * Function to refresh the states of a module. The states are read from
+       * the cash.
+       */
+      oprRefreshAppStates : function() {
 
-			var stateName = oStates[i];
+        var me = this;
 
-			var oNewItem = Ext.create('Ext.menu.Item', {
-				text : stateName,
-				handler : Ext.bind(me.oprLoadAppStateFromCache, me, [ stateName ], false),
-				scope : me,
-				iconCls : "dirac-icon-state",
-				stateType : "application",
-				menu : [ {
-					text : "Share state",
-					handler : function() {
+        // first we remove all items from the menu
+        me.statesMenu.removeAll();
 
-						GLOBAL.APP.SM.oprShareState(me.appClassName, stateName, function(rCode, rAppName, rStateName, rMessage) {
+        // first we fill the menu with the states
+        var oStates = GLOBAL.APP.SM.getApplicationStates("application", me.appClassName);// OK
 
-							if (rCode == 1) {
+        for (var i = 0, len = oStates.length; i < len; i++) {
 
-								var oHtml = "";
-								oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
-								oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
+          var stateName = oStates[i];
 
-								Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
+          var oNewItem = Ext.create('Ext.menu.Item', {
+                text : stateName,
+                handler : Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
+                scope : me,
+                iconCls : "dirac-icon-state",
+                stateType : "application",
+                menu : [{
+                      text : "Share state",
+                      handler : function() {
 
-							}
+                        GLOBAL.APP.SM.oprShareState(me.appClassName, stateName, function(rCode, rAppName, rStateName, rMessage) {
 
-						});
+                              if (rCode == 1) {
 
-					},
-					iconCls : "dirac-icon-share"
-				},{
-          text : "Make public",
-          handler : function() {
+                                var oHtml = "";
+                                oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
+                                oHtml += "<div style='padding:5px;font-weight:bold'>" + rMessage + "</div>";
 
-            GLOBAL.APP.SM.oprPublishState(me.appClassName, stateName);
+                                Ext.MessageBox.alert("Info for sharing the <span style='color:red'>" + rStateName + "</span> state:", oHtml);
 
-          },
-          iconCls : "dirac-icon-share"
-        } ]
-			});
+                              }
 
-			me.statesMenu.add(oNewItem);
+                            });
 
-		}
+                      },
+                      iconCls : "dirac-icon-share"
+                    }, {
+                      text : "Make public",
+                      handler : function() {
 
-		me.statesMenu.add("-");
+                        GLOBAL.APP.SM.oprPublishState(me.appClassName, stateName);
 
-		// then we fill the menu with the refrences
-		var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", me.appClassName);// OK
+                      },
+                      iconCls : "dirac-icon-share"
+                    }]
+              });
 
-		for ( var i = 0, len = oRefs.length; i < len; i++) {
+          me.statesMenu.add(oNewItem);
 
-			var stateName = oRefs[i];
+        }
 
-			var oNewItem = Ext.create('Ext.menu.Item', {
-				text : stateName,
-				handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [ me.appClassName, stateName ], false),
-				scope : me,
-				iconCls : "dirac-icon-link",
-				stateType : "reference"
-			});
+        me.statesMenu.add("-");
 
-			me.statesMenu.add(oNewItem);
+        // then we fill the menu with the refrences
+        var oRefs = GLOBAL.APP.SM.getApplicationStates("reference", me.appClassName);// OK
 
-		}
+        for (var i = 0, len = oRefs.length; i < len; i++) {
 
-	},
+          var stateName = oRefs[i];
 
-	/**
-	 * Function to load module state with data from the cache
-	 * 
-	 * @param {String}
-	 *          stateName The name of the state
-	 */
-	oprLoadAppStateFromCache : function(stateName) {
+          var oNewItem = Ext.create('Ext.menu.Item', {
+                text : stateName,
+                handler : Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [me.appClassName, stateName], false),
+                scope : me,
+                iconCls : "dirac-icon-link",
+                stateType : "reference"
+              });
 
-		var me = this;
+          me.statesMenu.add(oNewItem);
 
-		// checking whether the state exists or not
-		var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, stateName);// OK
+        }
 
-		switch (iStateLoaded) {
-		case -1:
-			GLOBAL.APP.CF.alert("The state does not exist !", "warning");
-			return;
-			break;
-		case -2:
-			me.funcPostponedLoading = function() {
+      },
 
-				me.oprLoadAppStateFromCache(stateName);
+      /**
+       * Function to load module state with data from the cache
+       * 
+       * @param {String}
+       *          stateName The name of the state
+       */
+      oprLoadAppStateFromCache : function(stateName) {
 
-			}
+        var me = this;
 
-			setTimeout(me.funcPostponedLoading, 1000);
-			return;
-			break;
-		}
+        // checking whether the state exists or not
+        var iStateLoaded = GLOBAL.APP.SM.isStateLoaded("application", me.appClassName, stateName);// OK
 
-		/*
-		 * loading the state data and setting other properties related to the window
-		 */
-		me.loadMask.show();
+        switch (iStateLoaded) {
+          case -1 :
+            GLOBAL.APP.CF.alert("The state does not exist !", "warning");
+            return;
+            break;
+          case -2 :
+            me.funcPostponedLoading = function() {
 
-		me.closeAllChildWindows();
+              me.oprLoadAppStateFromCache(stateName);
 
-		me.loadedObject.loadState(GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName));// OK
+            }
 
-		if (me.currentState != "")
-			GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);// OK
+            setTimeout(me.funcPostponedLoading, 1000);
+            return;
+            break;
+        }
 
-		me.currentState = stateName;
-		me.loadedObject.currentState = stateName;
+        /*
+         * loading the state data and setting other properties related to the
+         * window
+         */
+        me.loadMask.show();
 
-		GLOBAL.APP.SM.oprAddActiveState(me.appClassName, stateName);// OK
-		GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+        me.closeAllChildWindows();
 
-		me.setTitle(me.loadedObject.launcher.title + " [" + stateName + "]");
-		me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + stateName + "]", 20));
-		me.loadMask.hide();
+        var statData = GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName);
+        me.loadedObject.loadState(statData);// OK
+        me.loadedObject.setHelpText(statData);
 
-	},
+        if (me.currentState != "")
+          GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);// OK
 
-	/**
-	 * Function to load module state with data from the cache
-	 * 
-	 * @param {String}
-	 *          stateName The name of the state
-	 */
-	createChildWindow : function(sTitle, oModal, oWidth, oHeight) {
+        me.currentState = stateName;
+        me.loadedObject.currentState = stateName;
 
-		var me = this;
+        GLOBAL.APP.SM.oprAddActiveState(me.appClassName, stateName);// OK
+        GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
 
-		var oWindow = me.desktop.initWindow({
-			height : oHeight,
-			width : oWidth,
-			title : sTitle,
-			modal : oModal,
-			parentWindow : me,
-			isChildWindow : true,
-			iconCls : "system_child_window"
-		});
+        me.setTitle(me.loadedObject.launcher.title + " [" + stateName + "]");
+        me.taskButton.setText(Ext.util.Format.ellipsis(me.loadedObject.launcher.title + " [" + stateName + "]", 20));
+        me.loadMask.hide();
 
-		me.childWindows.push(oWindow);
+      },
 
-		return oWindow;
+      /**
+       * Function to load module state with data from the cache
+       * 
+       * @param {String}
+       *          stateName The name of the state
+       */
+      createChildWindow : function(sTitle, oModal, oWidth, oHeight) {
 
-	},
+        var me = this;
 
-	/**
-	 * Function to remove a child window from the list of child windows
-	 * 
-	 * @param {Ext.dirac.views.desktop.Window}
-	 *          oChildWindow Rference to the child window
-	 */
-	removeChildWindowFromList : function(oChildWindow) {
+        var oWindow = me.desktop.initWindow({
+              height : oHeight,
+              width : oWidth,
+              title : sTitle,
+              modal : oModal,
+              parentWindow : me,
+              isChildWindow : true,
+              iconCls : "system_child_window"
+            });
 
-		var me = this;
-		var oNewList = [];
+        me.childWindows.push(oWindow);
 
-		for ( var i = 0; i < me.childWindows.length; i++) {
+        return oWindow;
 
-			if (oChildWindow.id != me.childWindows[i].id)
-				oNewList.push(me.childWindows[i]);
+      },
 
-		}
+      /**
+       * Function to remove a child window from the list of child windows
+       * 
+       * @param {Ext.dirac.views.desktop.Window}
+       *          oChildWindow Rference to the child window
+       */
+      removeChildWindowFromList : function(oChildWindow) {
 
-		me.childWindows = oNewList;
+        var me = this;
+        var oNewList = [];
 
-	},
+        for (var i = 0; i < me.childWindows.length; i++) {
 
-	/**
-	 * Function to close all child windows
-	 * 
-	 */
-	closeAllChildWindows : function() {
+          if (oChildWindow.id != me.childWindows[i].id)
+            oNewList.push(me.childWindows[i]);
 
-		var me = this;
+        }
 
-		for ( var i = me.childWindows.length - 1; i >= 0; i--)
-			me.childWindows[i].close();
+        me.childWindows = oNewList;
 
-	},
+      },
 
-	/**
-	 * Function to get the data describing the state of the window at the desktop
-	 * area
-	 */
-	getUrlDescription : function() {
+      /**
+       * Function to close all child windows
+       * 
+       */
+      closeAllChildWindows : function() {
 
-		var me = this;
+        var me = this;
 
-		if (me.loadedObjectType == "link")
-			return "";
+        for (var i = me.childWindows.length - 1; i >= 0; i--)
+          me.childWindows[i].close();
 
-		var oPos = me.getPosition();
+      },
 
-		var oState = "0";
-		if (me.minimized)
-			oState = -1;
-		else if (me.maximized)
-			oState = 1;
+      /**
+       * Function to get the data describing the state of the window at the
+       * desktop area
+       */
+      getUrlDescription : function() {
 
-		var sRet = "";
-		sRet += me.loadedObject.self.getName() + ":";
-		sRet += me.currentState + ":";
-		sRet += oPos[0] + ":";
-		sRet += oPos[1] + ":";
-		sRet += me.getWidth() + ":";
-		sRet += me.getHeight() + ":";
-		sRet += oState + ":";
-		sRet += ((me.desktopStickMode) ? "1" : "0") + "," + ((me.getHeader().hidden) ? "1" : "0") + "," + me.i_x + "," + me.i_y + "," + me.ic_x + "," + me.ic_y;
+        var me = this;
 
-		return sRet;
+        if (me.loadedObjectType == "link")
+          return "";
 
-	}
+        var oPos = me.getPosition();
 
-});
+        var oState = "0";
+        if (me.minimized)
+          oState = -1;
+        else if (me.maximized)
+          oState = 1;
+
+        var sRet = "";
+        sRet += me.loadedObject.self.getName() + ":";
+        sRet += me.currentState + ":";
+        sRet += oPos[0] + ":";
+        sRet += oPos[1] + ":";
+        sRet += me.getWidth() + ":";
+        sRet += me.getHeight() + ":";
+        sRet += oState + ":";
+        sRet += ((me.desktopStickMode) ? "1" : "0") + "," + ((me.getHeader().hidden) ? "1" : "0") + "," + me.i_x + "," + me.i_y + "," + me.ic_x + "," + me.ic_y;
+
+        return sRet;
+
+      },
+      openHelpWindow : function() {
+        var me = this;
+
+        var win = Ext.create('Ext.window.Window', {
+              height : 700,
+              width : 500,
+              type : "help",
+              title : me.title,
+              modal : false,
+              parentWindow : me,
+              isChildWindow : true,
+              iconCls : "system_child_window",
+              stateful : false,
+              isWindow : true,
+              constrainHeader : true,
+              minimizable : false,
+              maximizable : true,
+              animCollapse : false,
+              border : false,
+              hideMode : 'offsets',
+              layout : 'fit',
+              application : me.loadedObject,
+              listeners : {
+                close : function() {
+                  var notepad = this.items.getAt(0);
+                  var text = notepad.getStateData();
+                  this.application.setHelpText(text);
+                  Ext.Array.remove(me.childWindows, this);
+                }
+              }
+            });
+
+        me.childWindows.push(win);
+
+        me.desktop.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", this.loadedObject.getHelpText(), win);
+        win.show();
+      }
+
+    });

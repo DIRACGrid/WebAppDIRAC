@@ -110,7 +110,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       panelButtons : true,
       /**
        * 
-       * @cfg{Object} We can accociate a DiracGridPanel. 
+       * @cfg{Object} We can accociate a DiracGridPanel.
        */
       grid : null,
 
@@ -475,6 +475,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
                   var me = this;
                   var response = Ext.JSON.decode(response.responseText);
+
+                  if (response.success == "false") {
+                    Ext.dirac.system_info.msg("Error", response.error);
+                    return;
+                  }
 
                   me.__oprRefreshStoresForSelectors(response, false);
 

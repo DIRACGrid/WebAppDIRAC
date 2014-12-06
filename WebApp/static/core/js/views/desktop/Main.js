@@ -6,6 +6,7 @@
  * broadcast part for the window states.
  * 
  */
+
 Ext.define('Ext.dirac.views.desktop.Main', {
   extend : 'Ext.panel.Panel',
   alias : 'widget.desktop',
@@ -113,12 +114,22 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
             if (win.loadedObjectType == "app") {
 
-              oData.data.push({
-                    module : win.getAppClassName(),
-                    data : win.loadedObject.getStateData(),
-                    currentState : win.currentState,
-                    loadedObjectType : win.loadedObjectType
-                  });
+              var item = {
+                module : win.getAppClassName(),
+                data : win.loadedObject.getStateData(),
+                currentState : win.currentState,
+                loadedObjectType : win.loadedObjectType
+              }
+              if (win.childWindows.length > 0) {
+                for (var i = 0; i < win.childWindows.length; i++) {
+                  if (win.childWindows[i].isChildWindow && win.childWindows[i].type == "help") {
+                    Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
+                  }
+                }
+              } else {
+                Ext.apply(item.data, win.loadedObject.getHelpText());
+              }
+              oData.data.push(item);
 
               oData.views.desktop.positions.push({
                     x : win.x,
@@ -2361,7 +2372,12 @@ Ext.define('Ext.dirac.views.desktop.Main', {
       for (var i = 0, len = oDataReceived["data"].length; i < len; i++) {
 
         var appStateData = oDataReceived["data"][i];
-        var loadedObjectType = ((!appStateData.loadedObjectType) ? "app" : appStateData.loadedObjectType); //TODO We can remove it later.
+        var loadedObjectType = ((!appStateData.loadedObjectType) ? "app" : appStateData.loadedObjectType); // TODO
+        // We
+        // can
+        // remove
+        // it
+        // later.
         var name = appStateData.module
 
         if (name)
@@ -2390,8 +2406,62 @@ Ext.define('Ext.dirac.views.desktop.Main', {
       me.addDesktopReference(sLinkName);
     }
 
-  }
+  },
+  createHelpWindow : function(loadedObjectType, moduleName, setupData, win) {
 
+    var me = this;
+    Ext.get("app-dirac-loading").show();
+
+    var oParts = moduleName.split(".");
+    var sStartClass = "";
+
+    if (oParts.length == 2)
+      sStartClass = moduleName + ".classes." + oParts[1];
+    else
+      sStartClass = moduleName;
+
+    // if the development mod is off, we set up diffrent path to
+    // load javascript
+    if (GLOBAL.DEV == 0) {
+
+      var oConfig = {
+        enabled : true,
+        paths : {}
+      };
+
+      oConfig["paths"][oParts[0] + "." + oParts[1] + ".classes"] = "static/" + oParts[0] + "/" + oParts[1] + "/build";
+
+      Ext.Loader.setConfig(oConfig);
+
+    }
+
+    Ext.require(sStartClass, function() {
+
+      var me = this;
+
+      // creating an object of the demeanded application
+      var instance = Ext.create(sStartClass, {
+            renderTo : Ext.getBody(),
+            layout : 'fit',
+            launcherElements : {
+              title : 'Module',
+              applicationName : oParts[1],
+              width : 0,
+              height : 0,
+              maximized : true,
+              x : null,
+              y : null
+            }
+          });
+
+      instance.loadState(setupData);
+      win.add(instance);
+        // initializing window
+
+      }, this);
+
+    Ext.get("app-dirac-loading").hide();
+  }
     /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
 
   });
