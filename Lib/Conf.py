@@ -1,6 +1,7 @@
 
 import os
 import uuid
+import tempfile
 import tornado.process
 from DIRAC import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Security import Locations, X509Chain
@@ -104,50 +105,6 @@ def getAuthSectionForHandler( route ):
 
 def getTheme():
   return getCSValue( "Theme", "desktop" )
-
-def getMonitoringSectionFromCS( path ):
-  sectionsList = []
-  base = "%s/Schema/System Monitoring" % ( BASECS )
-  nodes = path.split( '/' ) if path != '/' else []
-  if len( nodes ) == 0:
-     fullName = "%s/%s" % ( base, path )
-     result = gConfig.getSections( fullName )
-     if not result['OK']:
-       return result
-     else: 
-       services = []
-       for i in result['Value']:
-         services.append( [( 'service', i )] )
-       return services
-  else:
-    leaf = '%s/%s' % ( base, path )
-    val = __recursiveTreeTraversal( base, "", nodes, leaf )
-    return val
-  
-def __recursiveTreeTraversal( base, path, visit, leaf ):
-  fullName = "%s/%s" % ( base, path )
-  result = gConfig.getSections( fullName )
-  schema = []
-  if not result[ 'OK' ]:
-    return schema   
-  sectionsList = result[ 'Value' ]
-  for sName in sectionsList:
-    if sName in visit:
-      visit.remove( sName )
-      visited = "%s/%s" % ( base, sName )
-      path = "%s/%s" % ( path, sName ) if path != '' else sName
-      schema = __recursiveTreeTraversal( base, path, visit, leaf )
-    elif leaf == fullName:
-      schema.append( [( 'service', sName )] )
-        
-  result = gConfig.getOptions( fullName )
-  if not result[ 'OK' ]:
-    return schema
-  optionsList = result[ 'Value' ]
-  for opName in optionsList:
-    opVal = gConfig.getValue( "%s/%s" % ( fullName, opName ) )
-    schema.append( [( "comp", opName, opVal )] )
-  return schema
 
 def getIcon():
   return getCSValue("Icon","/static/core/img/icons/system/favicon.ico")
