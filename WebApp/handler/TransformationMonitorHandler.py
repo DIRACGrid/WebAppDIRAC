@@ -11,12 +11,9 @@ class TransformationMonitorHandler( WebHandler ):
 
   AUTH_PROPS = "authenticated"
 
-  tsClient = TransformationClient()
-  
-    
   def index( self ):
     pass
-
+  
   @asyncGen
   def web_getSelectionData( self ):
     sData = self.getSessionData()
@@ -29,7 +26,9 @@ class TransformationMonitorHandler( WebHandler ):
       callback = {}
 
   ####
-      result = yield self.threadTask( self.tsClient.getDistinctAttributeValues, "Plugin", {} )
+      tsClient = TransformationClient()
+      result = yield self.threadTask( tsClient.getDistinctAttributeValues, "Plugin", {} )
+      
       if result["OK"]:
         plugin = []
         if len( result["Value"] ) > 0:
@@ -41,7 +40,7 @@ class TransformationMonitorHandler( WebHandler ):
         plugin = "Error during RPC call"
       callback["plugin"] = plugin
   ####
-      result = yield self.threadTask( self.tsClient.getDistinctAttributeValues, "Status", {} )
+      result = yield self.threadTask( tsClient.getDistinctAttributeValues, "Status", {} )
       if result["OK"]:
         status = []
         if len( result["Value"] ) > 0:
@@ -53,7 +52,7 @@ class TransformationMonitorHandler( WebHandler ):
         status = "Error during RPC call"
       callback["prodStatus"] = status
   ####
-      result = yield self.threadTask( self.tsClient.getDistinctAttributeValues, "TransformationGroup", {} )
+      result = yield self.threadTask( tsClient.getDistinctAttributeValues, "TransformationGroup", {} )
       if result["OK"]:
         group = []
         if len( result["Value"] ) > 0:
@@ -65,7 +64,7 @@ class TransformationMonitorHandler( WebHandler ):
         group = "Error during RPC call"
       callback["transformationGroup"] = group
   ####
-      result = yield self.threadTask( self.tsClient.getDistinctAttributeValues, "AgentType", {} )
+      result = yield self.threadTask( tsClient.getDistinctAttributeValues, "AgentType", {} )
       if result["OK"]:
         atype = []
         if len( result["Value"] ) > 0:
@@ -77,7 +76,7 @@ class TransformationMonitorHandler( WebHandler ):
         atype = "Error during RPC call"
       callback["agentType"] = atype
   ####
-      result = yield self.threadTask( self.tsClient.getDistinctAttributeValues, "Type", {} )
+      result = yield self.threadTask( tsClient.getDistinctAttributeValues, "Type", {} )
       if result["OK"]:
         type = []
         if len( result["Value"] ) > 0:
@@ -98,12 +97,15 @@ class TransformationMonitorHandler( WebHandler ):
     sData = self.getSessionData()
     callback = {}
     user = sData["user"]["username"]
+    
+    tsClient = TransformationClient()
+    
     if user == "Anonymous":
       callback = {"success":"false", "error":"You are not authorised"}
     else:
       result = self.__request()
       
-      result = yield self.threadTask( self.tsClient.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs )
+      result = yield self.threadTask( tsClient.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs )
       if not result["OK"]:
         self.finish( json.dumps( {"success":"false", "error":result["Message"]} ) )
         return
@@ -194,6 +196,7 @@ class TransformationMonitorHandler( WebHandler ):
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
    
+    tsClient = TransformationClient()
    
     agentType = 'Manual'
     if cmd == 'clean':
@@ -218,11 +221,11 @@ class TransformationMonitorHandler( WebHandler ):
       try:
         id = int( i )
 
-        result = yield self.threadTask( self.tsClient.setTransformationParameter, id, 'Status', status )
+        result = yield self.threadTask( tsClient.setTransformationParameter, id, 'Status', status )
         
         if result["OK"]:
           resString = "ProdID: %s set to %s successfully" % ( i, cmd )
-          result = yield self.threadTask( self.tsClient.setTransformationParameter, id, 'AgentType', agentType )
+          result = yield self.threadTask( tsClient.setTransformationParameter, id, 'AgentType', agentType )
           if not result["OK"]:
             resString = "ProdID: %s failed to set to %s: %s" % ( i, cmd, result["Message"] )
         else:
@@ -238,12 +241,14 @@ class TransformationMonitorHandler( WebHandler ):
   def __fileRetry( self, prodid, mode ):
     callback = {}
     
+    tsClient = TransformationClient()
+    
     if mode == "proc":
-      res = self.tsClient.getTransformationFilesCount( prodid, "ErrorCount", {'Status':'Processed'} )
+      res = yield self.threadTask( tsClient.getTransformationFilesCount, prodid, "ErrorCount", {'Status':'Processed'} )
     elif mode == "not":
-      res = self.tsClient.getTransformationFilesCount( prodid, "ErrorCount", {'Status':['Unused', 'Assigned', 'Failed']} )
+      res = yield self.threadTask( tsClient.getTransformationFilesCount, prodid, "ErrorCount", {'Status':['Unused', 'Assigned', 'Failed']} )
     elif mode == "all":
-      res = self.tsClient.getTransformationFilesCount( prodid, "ErrorCount" )
+      res = yield self.threadTask( tsClient.getTransformationFilesCount, prodid, "ErrorCount" )
     else:
       return {"success":"false", "error":res["Message"]}
     if not res['OK']:
@@ -266,7 +271,8 @@ class TransformationMonitorHandler( WebHandler ):
   ################################################################################
   def __dataQuery( self, prodid ):
     callback = {}
-    res = self.tsClient.getTransformationInputDataQuery( prodid )
+    tsClient = TransformationClient()
+    res = yield self.threadTask( tsClient.getTransformationInputDataQuery, prodid )
     gLogger.info( "-= #######", res )
     if not res['OK']:
       callback = {"success":"false", "error":res["Message"]}
@@ -281,7 +287,9 @@ class TransformationMonitorHandler( WebHandler ):
   ################################################################################
   def __additionalParams( self, prodid ):
     callback = {}
-    res = self.tsClient.getAdditionalParameters( prodid )
+    tsClient = TransformationClient()
+    
+    res = yield self.threadTask( tsClient.getAdditionalParameters, prodid )
     if not res['OK']:
       callback = {"success":"false", "error":res["Message"]}
     else:
@@ -296,7 +304,8 @@ class TransformationMonitorHandler( WebHandler ):
   def __getLoggingInfo( self, id ):
   
     callback = {}
-    result = self.tsClient.getTransformationLogging( id )
+    tsClient = TransformationClient()
+    result = yield self.threadTask( tsClient.getTransformationLogging, id )
     if result["OK"]:
       result = result["Value"]
       if len( result ) > 0:
@@ -328,8 +337,8 @@ class TransformationMonitorHandler( WebHandler ):
   ################################################################################
   def __transformationFileStatus( self, id ):
     callback = {}
-    
-    res = self.tsClient.getTransformationFilesCount( id, "Status" )
+    tsClient = TransformationClient()
+    res = yield self.threadTask( tsClient.getTransformationFilesCount, id, "Status" )
     if not res['OK']:
       callback = {"success":"false", "error":res["Message"]}
     else:
@@ -351,7 +360,9 @@ class TransformationMonitorHandler( WebHandler ):
   def __transformationDetail( self, prodid ):
     callback = {}
     
-    res = self.tsClient.getTransformationParameters( prodid, ['DetailedInfo'] )
+    tsClient = TransformationClient()
+    res = yield self.threadTask( tsClient.getTransformationParameters, prodid, ['DetailedInfo'] )
+    
     if not res["OK"]:
       callback = {"success":"false", "error":res["Message"]}
     else:
@@ -373,8 +384,10 @@ class TransformationMonitorHandler( WebHandler ):
 
     gLogger.info( "extend %s" % transid )
     
+    tsClient = TransformationClient()
+    
     gLogger.info( "extendTransformation(%s,%s)" % ( transid, tasks ) )
-    res = self.tsClient.extendTransformation( transid, tasks )
+    res = yield self.threadTask( tsClient.extendTransformation, transid, tasks )
     if res["OK"]:
       resString = "%s extended by %s successfully" % ( transid, tasks )
     else:
@@ -394,8 +407,10 @@ class TransformationMonitorHandler( WebHandler ):
       status = self.request.arguments[ 'status' ][-1]
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
-
-    result = yield self.threadTask( self.tsClient.getTransformationFilesSummaryWeb, {'TransformationID':id, 'Status':status}, [["FileID", "ASC"]], start, limit )
+    
+    tsClient = TransformationClient()
+    result = yield self.threadTask( tsClient.getTransformationFilesSummaryWeb, {'TransformationID':id, 'Status':status}, [["FileID", "ASC"]], start, limit )
+    
     if not result['OK']:
       callback = {"success":"false", "error":result["Message"]}
     else:
@@ -455,7 +470,9 @@ class TransformationMonitorHandler( WebHandler ):
       raise WErr( 400, "Missing %s" % excp )
 
     gLogger.info( "\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % ( transID, runID, site ) )
-    result = self.tsClient.setTransformationRunsSite( transID, runID, site )
+    
+    tsClient = TransformationClient()
+    result = yield self.threadTask( tsClient.setTransformationRunsSite, transID, runID, site )
     
     if result["OK"]:
       callback = {"success":"true", "result":"true"}
