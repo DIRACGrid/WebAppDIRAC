@@ -22,13 +22,10 @@ def rootURL():
   return getCSValue( "RootURL", "/DIRAC" )
 
 def balancer():
-  retVal = getCSValue( "Balancer", "" )
-  balancer = ""
-  if retVal.lower() == "none":
-    balancer = ""
-  else:
-    balancer = retVal
-  return balancer  
+  b = getCSValue( "Balancer", "" ).lower()
+  if b in ( "", "none" ):
+      return ""
+  return b
 
 def numProcesses():
   return getCSValue( "NumProcesses", 1 )
