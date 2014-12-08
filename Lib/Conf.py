@@ -107,15 +107,15 @@ def getMonitoringSectionFromCS( path ):
   base = "%s/Schema/System Monitoring" % ( BASECS )
   nodes = path.split( '/' ) if path != '/' else []
   if len( nodes ) == 0:
-     fullName = "%s/%s" % ( base, path )
-     result = gConfig.getSections( fullName )
-     if not result['OK']:
-       return result
-     else:
-       services = []
-       for i in result['Value']:
-         services.append( [( 'service', i )] )
-       return services
+    fullName = "%s/%s" % ( base, path )
+    result = gConfig.getSections( fullName )
+    if not result['OK']:
+      return result
+    else:
+      services = []
+      for i in result['Value']:
+        services.append( [( 'service', i )] )
+      return services
   else:
     leaf = '%s/%s' % ( base, path )
     val = __recursiveTreeTraversal( base, "", nodes, leaf )
@@ -146,8 +146,5 @@ def __recursiveTreeTraversal( base, path, visit, leaf ):
     schema.append( [( "comp", opName, opVal )] )
   return schema
 
-<<<<<<< Updated upstream
 def getIcon():
   return getCSValue("Icon","/static/core/img/icons/system/favicon.ico")
-=======
->>>>>>> Stashed changes
