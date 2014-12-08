@@ -114,7 +114,7 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
                   var msMinute = 60 * 1000, msDay = 60 * 60 * 24 * 1000, msHour = 60 * 60 * 1000;
                   var days = Math.floor((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) / msDay);
                   var hours = Math.floor(((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) % msDay) / msHour);
-                  var minutes = Math.floor(((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) % msDay) / msMinute);
+                  var minutes = Math.floor((((newDate - me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp) % msDay) % msHour) / msMinute);
 
                   utcTime = days + " " + hours + ":" + minutes;
 
