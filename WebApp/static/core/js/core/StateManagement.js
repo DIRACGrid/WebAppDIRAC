@@ -297,7 +297,17 @@ Ext.define('Ext.dirac.core.StateManagement', {
 
         if (oAppObject.getHelpText && oSendData) {
 
-          Ext.apply(oSendData, oAppObject.getHelpText());
+          if (oAppObject.up("panel") && oAppObject.up("panel").childWindows && oAppObject.up("panel").childWindows.length > 0) {
+            for (var i = 0; i < oAppObject.up("panel").childWindows.length; i++) {
+              if (oAppObject.up("panel").childWindows[i].type == "help") {
+                // The Notepad is open. The text has to be retrieved
+                // from the notepad...
+                Ext.apply(oSendData, oAppObject.up("panel").childWindows[i].items.getAt(0).getStateData());
+              }
+            }
+          } else {
+            Ext.apply(oSendData, oAppObject.getHelpText());
+          }
 
         }
 
