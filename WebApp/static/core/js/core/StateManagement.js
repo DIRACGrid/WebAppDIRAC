@@ -380,7 +380,12 @@ Ext.define('Ext.dirac.core.StateManagement', {
                   var me = this;
                   Ext.dirac.system_info.msg("Notification", 'State saved successfully !');
 
-                  me.cache[sStateType][sAppName][sStateName] = oSendData;
+                  if (me.cache[sStateType][sAppName]) {
+                    me.cache[sStateType][sAppName][sStateName] = oSendData;
+                  } else {
+                    me.cache[sStateType][sAppName] = {};
+                    me.cache[sStateType][sAppName][sStateName] = oSendData;
+                  }
 
                   cbAfterSave(1, sAppName, sStateType, sStateName);
 
