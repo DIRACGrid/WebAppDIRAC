@@ -294,7 +294,13 @@ Ext.define('Ext.dirac.core.StateManagement', {
         var me = this;
 
         var oSendData = oAppObject.getStateData();
-       
+
+        if (oAppObject.getHelpText && oSendData) {
+
+          Ext.apply(oSendData, oAppObject.getHelpText());
+
+        }
+
         if (!oSendData)
           return; // we do not have the data which has to be saved...
 
