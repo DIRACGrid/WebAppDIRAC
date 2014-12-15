@@ -139,15 +139,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                       link : win.linkToLoad,
                       loadedObjectType : win.loadedObjectType
                     };
-                    if (win.childWindows.length > 0) {
-                      for (var i = 0; i < win.childWindows.length; i++) {
-                        if (win.childWindows[i].type == "help") {
-                          Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
-                        }
-                      }
-                    } else {
-                      Ext.apply(item.data, win.loadedObject.getHelpText());
-                    }
+                    
                     oData.push(item);
 
                   }

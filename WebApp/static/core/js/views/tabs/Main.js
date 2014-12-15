@@ -2075,23 +2075,28 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       },
       openHelpWindow : function(app) {
         var me = this;
-        var win = app.createChildWindow(app.title, false, 700, 500);
-        Ext.apply(win, {
-              type : "help",
-              minimizable : false,
-              application : app.loadedObject
-            });
-        win.on('close', function() {
-              var notepad = this.items.getAt(0);
-              if (notepad) {
-                var text = notepad.getStateData();
-                this.application.setHelpText(text);
-                Ext.Array.remove(app.childWindows, this);
-              }
-            });
+        if (app.appClassName == "link") {
+          Ext.dirac.system_info.msg("Error", 'You can not add help to an external link!');
+        } else {
 
-        me.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", app.loadedObject.getHelpText(), win);
-        win.show();
+          var win = app.createChildWindow(app.title, false, 700, 500);
+          Ext.apply(win, {
+                type : "help",
+                minimizable : false,
+                application : app.loadedObject
+              });
+          win.on('close', function() {
+                var notepad = this.items.getAt(0);
+                if (notepad) {
+                  var text = notepad.getStateData();
+                  this.application.setHelpText(text);
+                  Ext.Array.remove(app.childWindows, this);
+                }
+              });
+
+          me.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", app.loadedObject.getHelpText(), win);
+          win.show();
+        }
       },
 
       createHelpWindow : function(loadedObjectType, moduleName, setupData, win) {
