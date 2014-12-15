@@ -381,11 +381,23 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
       },
       setRefreshCycle : function(time) {
         var me = this;
+        var UTCTime = null;
+        if (me.updateTime) {
+          var now = new Date();
+          UTCTime = now.toUTCString();
+          UTCTime = UTCTime.replace('GMT', "[UTC]");
+        }
         if (time != -1) {
           me.refreshCycle = time;
         }
         if (time == -1) {
+          if (me.updateTime) {
+            me.updateTime.setText("Updated:" + UTCTime);
+          }
           me.items.each(function(value, index) {
+                if (me.updateTime) {
+                  me.updateTime.setText("Updated:" + UTCTime);
+                }
                 if (value.src) {
 
                   if (value.src.search("&nocache") != -1) {
@@ -406,6 +418,9 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
           me.items.each(function(value, index) {
                 clearInterval(value.refreshTimeout);
                 value.refreshTimeout = setInterval(function() {
+                      if (me.updateTime) {
+                        me.updateTime.setText("Updated:" + UTCTime);
+                      }
                       if (value.src) {
 
                         if (value.src.search("&nocache") != -1) {
@@ -471,7 +486,7 @@ Ext.define('Ext.dirac.views.tabs.Presenter', {
           me.remove(me.items.getAt(index));
           delete oldImg;
           delete me.lastClickedImage;
-          
+
           me.lastClickedImage = null;
           me.items.insert(index, newImg);
           me.doLayout();

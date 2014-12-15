@@ -244,11 +244,11 @@ class TransformationMonitorHandler( WebHandler ):
     tsClient = TransformationClient()
     
     if mode == "proc":
-      res = yield self.threadTask( tsClient.getTransformationFilesCount, prodid, "ErrorCount", {'Status':'Processed'} )
+      res = tsClient.getTransformationFilesCount( prodid, "ErrorCount", {'Status':'Processed'} )
     elif mode == "not":
-      res = yield self.threadTask( tsClient.getTransformationFilesCount, prodid, "ErrorCount", {'Status':['Unused', 'Assigned', 'Failed']} )
+      res = tsClient.getTransformationFilesCount( prodid, "ErrorCount", {'Status':['Unused', 'Assigned', 'Failed']} )
     elif mode == "all":
-      res = yield self.threadTask( tsClient.getTransformationFilesCount, prodid, "ErrorCount" )
+      res = tsClient.getTransformationFilesCount( prodid, "ErrorCount" )
     else:
       return {"success":"false", "error":res["Message"]}
     if not res['OK']:
@@ -272,7 +272,7 @@ class TransformationMonitorHandler( WebHandler ):
   def __dataQuery( self, prodid ):
     callback = {}
     tsClient = TransformationClient()
-    res = yield self.threadTask( tsClient.getTransformationInputDataQuery, prodid )
+    res = tsClient.getTransformationInputDataQuery( prodid )
     gLogger.info( "-= #######", res )
     if not res['OK']:
       callback = {"success":"false", "error":res["Message"]}
@@ -289,7 +289,7 @@ class TransformationMonitorHandler( WebHandler ):
     callback = {}
     tsClient = TransformationClient()
     
-    res = yield self.threadTask( tsClient.getAdditionalParameters, prodid )
+    res = tsClient.getAdditionalParameters( prodid )
     if not res['OK']:
       callback = {"success":"false", "error":res["Message"]}
     else:
@@ -305,7 +305,7 @@ class TransformationMonitorHandler( WebHandler ):
   
     callback = {}
     tsClient = TransformationClient()
-    result = yield self.threadTask( tsClient.getTransformationLogging, id )
+    result = tsClient.getTransformationLogging( id )
     if result["OK"]:
       result = result["Value"]
       if len( result ) > 0:
@@ -338,7 +338,7 @@ class TransformationMonitorHandler( WebHandler ):
   def __transformationFileStatus( self, id ):
     callback = {}
     tsClient = TransformationClient()
-    res = yield self.threadTask( tsClient.getTransformationFilesCount, id, "Status" )
+    res = tsClient.getTransformationFilesCount( id, "Status" )
     if not res['OK']:
       callback = {"success":"false", "error":res["Message"]}
     else:
@@ -361,7 +361,7 @@ class TransformationMonitorHandler( WebHandler ):
     callback = {}
     
     tsClient = TransformationClient()
-    res = yield self.threadTask( tsClient.getTransformationParameters, prodid, ['DetailedInfo'] )
+    res = tsClient.getTransformationParameters( prodid, ['DetailedInfo'] )
     
     if not res["OK"]:
       callback = {"success":"false", "error":res["Message"]}
@@ -387,7 +387,7 @@ class TransformationMonitorHandler( WebHandler ):
     tsClient = TransformationClient()
     
     gLogger.info( "extendTransformation(%s,%s)" % ( transid, tasks ) )
-    res = yield self.threadTask( tsClient.extendTransformation, transid, tasks )
+    res = tsClient.extendTransformation( transid, tasks )
     if res["OK"]:
       resString = "%s extended by %s successfully" % ( transid, tasks )
     else:

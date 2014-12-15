@@ -69,6 +69,20 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
               closable : false,
               parent : me
             });
+
+        me.presenter.updateTime = Ext.create("Ext.form.Label", {
+          xtype : "label",
+          text : "Updated: -",
+          style : ((GLOBAL.WEB_THEME == 'ext-all-neptune') ? 'font-weight:bold;color:#FFFFFF;' : 'font-weight:bold;color:#666666;')
+            // #990066;', //#666666;'
+            // html: "<span style='color:red'>Updated: - </span>"
+          });
+
+        var now = new Date();
+        var UTCTime = now.toUTCString();
+        UTCTime = UTCTime.replace('GMT', "[UTC]");
+        me.presenter.updateTime.setText("Updated:" + UTCTime);
+        me.presenter.tools.push(me.presenter.updateTime);
         Ext.apply(me, {
               items : [me.presenter]
             });
@@ -108,7 +122,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
               afterrender : function(panel) {
                 panel.header.el.on('dblclick', function(e, t, eOpts) {
                       var panel = Ext.getCmp(t.id).up('panel');
-                                          
+
                       var data = {
                         link : panel.linkToLoad,
                         title : panel.title

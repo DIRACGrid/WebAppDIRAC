@@ -294,7 +294,23 @@ Ext.define('Ext.dirac.core.StateManagement', {
         var me = this;
 
         var oSendData = oAppObject.getStateData();
-       
+
+        if (oAppObject.getHelpText && oSendData) {
+
+          if (oAppObject.up("panel") && oAppObject.up("panel").childWindows && oAppObject.up("panel").childWindows.length > 0) {
+            for (var i = 0; i < oAppObject.up("panel").childWindows.length; i++) {
+              if (oAppObject.up("panel").childWindows[i].type == "help") {
+                // The Notepad is open. The text has to be retrieved
+                // from the notepad...
+                Ext.apply(oSendData, oAppObject.up("panel").childWindows[i].items.getAt(0).getStateData());
+              }
+            }
+          } else {
+            Ext.apply(oSendData, oAppObject.getHelpText());
+          }
+
+        }
+
         if (!oSendData)
           return; // we do not have the data which has to be saved...
 
@@ -364,7 +380,12 @@ Ext.define('Ext.dirac.core.StateManagement', {
                   var me = this;
                   Ext.dirac.system_info.msg("Notification", 'State saved successfully !');
 
-                  me.cache[sStateType][sAppName][sStateName] = oSendData;
+                  if (me.cache[sStateType][sAppName]) {
+                    me.cache[sStateType][sAppName][sStateName] = oSendData;
+                  } else {
+                    me.cache[sStateType][sAppName] = {};
+                    me.cache[sStateType][sAppName][sStateName] = oSendData;
+                  }
 
                   cbAfterSave(1, sAppName, sStateType, sStateName);
 

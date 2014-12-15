@@ -1,6 +1,7 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
+from DIRAC.Core.Utilities import Time
 
 from DIRAC import gLogger
 import collections
@@ -93,7 +94,9 @@ class ResourceSummaryHandler( WebHandler ):
     
     yield self.threadTask( rssMachine.orderPolicyResults, elementList )    
         
-    self.finish( { 'success': 'true', 'result': elementList, 'total': len( elementList ) } )
+    timestamp = Time.dateTime().strftime( "%Y-%m-%d %H:%M [UTC]" )
+    
+    self.finish( { 'success': 'true', 'result': elementList, 'total': len( elementList ), "date":timestamp } )
     
         
   def combine( self, elementValues ):

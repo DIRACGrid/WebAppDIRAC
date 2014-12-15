@@ -2083,9 +2083,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             });
         win.on('close', function() {
               var notepad = this.items.getAt(0);
-              var text = notepad.getStateData();
-              this.application.setHelpText(text);
-              Ext.Array.remove(app.childWindows, this);
+              if (notepad) {
+                var text = notepad.getStateData();
+                this.application.setHelpText(text);
+                Ext.Array.remove(app.childWindows, this);
+              }
             });
 
         me.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", app.loadedObject.getHelpText(), win);
