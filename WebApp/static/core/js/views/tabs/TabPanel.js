@@ -118,7 +118,6 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                 // original state
                 for (var i = 0; i < desktopData.data.length; i++) {
                   if (desktopData.data[i].module == win.getAppClassName() && (desktopData.data[i].currentState == win.currentState) && desktopData.data[i].data == state) {
-                    console.log(state);
                     if (notLoadedStates[i] != 0) {
                       // we may have a situation when we have two state which
                       // are identical... This can happen when we do not provide
@@ -241,6 +240,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           Ext.dirac.system_info.msg("Error Notification", "Error: " + err);
           desktop = null;
         }
+        notLoadedStates = [];
+        delete notLoadedStates;
         return desktop;
       },
       listeners : {
