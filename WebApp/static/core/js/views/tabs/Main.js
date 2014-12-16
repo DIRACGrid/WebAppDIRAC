@@ -427,9 +427,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               me.loadRightContainer.hide();
               var oAppStateData = {};
 
-              oAppStateData.name = oData["data"][i].link;              
+              oAppStateData.name = oData["data"][i].link;
               Ext.apply(oAppStateData, oData["data"][i]);
-              
+
               me.createWindow("link", oAppStateData.name, oAppStateData, tab);
             }
 
@@ -441,9 +441,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             if ("link" in oData["data"][i]) {
               var oAppStateData = {};
 
-              oAppStateData.name = oData["data"][i].link;              
+              oAppStateData.name = oData["data"][i].link;
               Ext.apply(oAppStateData, oData["data"][i]);
-              
+
               me.createWindow("link", oAppStateData.name, oAppStateData, tab);
             } else if ("module" in oData["data"][i]) {
 
@@ -1581,26 +1581,40 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         for (var i = 0; i < desktops.data.length; i++) {
           try {
-            nodeObj = {
-              'text' : desktops.data[i].currentState,
-              expandable : false,
-              application : desktops.data[i].name,
-              stateToLoad : desktops.data[i].currentState,
-              desktop : sStateName,
-              type : 'app',
-              leaf : true,
-              iconCls : 'core-application-icon',
-              allowDrag : true,
-              allowDrop : true
-            };
-            Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
-                  extend : 'Ext.data.Model',
-                  fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
-                  alias : 'widget.desktopnodemodel'
-                });
-            Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
-            var node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
+            var node = null;
+            if (desktops.data[i].loadedObjectType == "link") {
+              node = {
+                'text' : desktops.data[i].text,
+                expandable : false,
+                application : desktops.data[i].link,
+                type : 'link',
+                iconCls : "system_web_window",
+                leaf : true
+              };
+            } else {
+              nodeObj = {
+                'text' : desktops.data[i].currentState,
+                expandable : false,
+                application : desktops.data[i].name,
+                stateToLoad : desktops.data[i].currentState,
+                desktop : sStateName,
+                type : 'app',
+                leaf : true,
+                iconCls : 'core-application-icon',
+                allowDrag : true,
+                allowDrop : true
+              };
+              Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
+                    extend : 'Ext.data.Model',
+                    fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
+                    alias : 'widget.desktopnodemodel'
+                  });
+              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+              node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
+            }
+            
             rootNode.appendChild(node);
+            
           } catch (err) {
             Ext.log({
                   level : 'error'
