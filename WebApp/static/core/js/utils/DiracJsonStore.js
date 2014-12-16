@@ -120,9 +120,9 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
                     utcTime = days + " " + hours + ":" + minutes;
 
-                  } else {
-                    me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp = newDate;
                   }
+
+                  me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp = newDate;
 
                 }
                 if (utcTime) {
