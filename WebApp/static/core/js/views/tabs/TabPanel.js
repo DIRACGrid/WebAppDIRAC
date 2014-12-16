@@ -137,9 +137,10 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
 
                     var item = {
                       link : win.linkToLoad,
-                      loadedObjectType : win.loadedObjectType
+                      loadedObjectType : win.loadedObjectType,
+                      text : win.title
                     };
-                    
+
                     oData.push(item);
 
                   }

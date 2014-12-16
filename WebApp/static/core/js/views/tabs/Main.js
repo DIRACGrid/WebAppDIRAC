@@ -427,9 +427,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               me.loadRightContainer.hide();
               var oAppStateData = {};
 
-              oAppStateData.name = oData["data"][i].link;
-              oAppStateData.data = oData["data"][i].data;
-              oAppStateData.currentState = oData["data"][i].currentState;
+              oAppStateData.name = oData["data"][i].link;              
+              Ext.apply(oAppStateData, oData["data"][i]);
+              
               me.createWindow("link", oAppStateData.name, oAppStateData, tab);
             }
 
@@ -441,9 +441,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             if ("link" in oData["data"][i]) {
               var oAppStateData = {};
 
-              oAppStateData.name = oData["data"][i].link;
-              oAppStateData.data = oData["data"][i].data;
-              oAppStateData.currentState = oData["data"][i].currentState;
+              oAppStateData.name = oData["data"][i].link;              
+              Ext.apply(oAppStateData, oData["data"][i]);
+              
               me.createWindow("link", oAppStateData.name, oAppStateData, tab);
             } else if ("module" in oData["data"][i]) {
 
@@ -1504,29 +1504,44 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
         for (var i = 0; i < oDesktop.data.length; i++) {
           try {
-            var appName = oDesktop.data[i].module.split(".");
-            var qtip = appName[appName.length - 1] + "<br>State Name: " + oDesktop.data[i].currentState;
-            nodeObj = {
-              'text' : oDesktop.data[i].currentState,
-              expandable : false,
-              application : oDesktop.data[i].module,
-              stateToLoad : oDesktop.data[i].currentState,
-              desktop : sStateName,
-              type : 'app',
-              leaf : true,
-              iconCls : 'core-application-icon',
-              allowDrag : true,
-              allowDrop : true,
-              qtip : qtip
-            };
-            Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
-                  extend : 'Ext.data.Model',
-                  fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
-                  alias : 'widget.desktopnodemodel'
-                });
-            Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
-            var node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
+            var node = null;
+            if (oDesktop.data[i].loadedObjectType == "link") {
+              node = {
+                'text' : oDesktop.data[i].text,
+                expandable : false,
+                application : oDesktop.data[i].link,
+                type : 'link',
+                iconCls : "system_web_window",
+                leaf : true
+              };
+            } else {
+              var appName = oDesktop.data[i].module.split(".");
+              var qtip = appName[appName.length - 1] + "<br>State Name: " + oDesktop.data[i].currentState;
+              nodeObj = {
+                'text' : oDesktop.data[i].currentState,
+                expandable : false,
+                application : oDesktop.data[i].module,
+                stateToLoad : oDesktop.data[i].currentState,
+                desktop : sStateName,
+                type : 'app',
+                leaf : true,
+                iconCls : 'core-application-icon',
+                allowDrag : true,
+                allowDrop : true,
+                qtip : qtip
+              };
+
+              Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
+                    extend : 'Ext.data.Model',
+                    fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
+                    alias : 'widget.desktopnodemodel'
+                  });
+              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+              node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
+            }
+
             rootNode.appendChild(node);
+
           } catch (err) {
             Ext.log({
                   level : 'error'
