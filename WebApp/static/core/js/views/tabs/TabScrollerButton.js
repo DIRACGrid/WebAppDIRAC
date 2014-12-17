@@ -113,7 +113,7 @@ Ext.define('Ext.dirac.views.tabs.TabScrollerButton', {
 
         tabsMenu.suspendLayouts();
         allItems = Ext.Array.filter(allItems, function(item) {
-              if (item.id == curActive.id) {
+              if (curActive && item.id == curActive.id) {
                 return false;
               }
               return item.hidden ? !!item.hiddenByLayout : true;

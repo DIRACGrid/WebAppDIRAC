@@ -71,11 +71,27 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
 
         var apps = {};
         var toLoadApps = {};
+        var lengthApplicationsonDesktop = me.items.length;
+        var lenghtNotOpenApplications = 0;
+        var desktopName = me.title;
+        var desktopData = null;
+        if (desktopName && desktopName != 'Default') {
+          if (GLOBAL.APP.SM.isStateLoaded("application", "desktop", desktopName) > -1) {
+            desktopData = GLOBAL.APP.SM.getStateData("application", "desktop", desktopName);
+            lenghtNotOpenApplications = desktopData.data.length;
+          }
+        }
+
+        var notLoadedStates = new Array(lenghtNotOpenApplications);
+        for (var i = 0; i < lenghtNotOpenApplications; i++) {
+          notLoadedStates[i] = 0;
+          // The applications are not loaded by default...
+        }
         try {
+
           me.items.each(function(win, value, length) {
                 // we have to select all the applications which are not loaded
-                // and
-                // they have the same state.
+                // and they have the same state.
                 if (!win.isLoaded) {
                   if (Object.keys(apps) && (Ext.Array.contains(Object.keys(apps), win.getAppClassName())) && apps[win.getAppClassName()] == win.currentState) {
                     toLoadApps[win.getAppClassName()] = win.currentState;
@@ -86,9 +102,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
               });
 
           me.items.each(function(win, value, length) {
-                // load the applications which have the same name. In this case
-                // we
-                // avoid to overwrite applications with wrong state.
+                // load the applications which have the same name.
+                // In this case we avoid to overwrite applications with wrong
+                // state.
                 if (!win.isLoaded) {
                   if (Object.keys(toLoadApps) && (Ext.Array.contains(Object.keys(toLoadApps), win.getAppClassName()))) {
                     if (toLoadApps[win.getAppClassName()] == win.currentState) {
@@ -96,8 +112,36 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                     }
                   }
                 }
+
+                var state = win.setupData.data; // the application which is
+                // loaded it still have the
+                // original state
+
+                for (var i = 0; i < desktopData.data.length; i++) {
+                  if (desktopData.data[i].module == win.getAppClassName() && (desktopData.data[i].currentState == win.currentState) && (desktopData.data[i].data == state)) {
+                    if (notLoadedStates[i] != 0) {
+                      // we may have a situation when we have two state which
+                      // are identical... This can happen when we do not provide
+                      // a title of a state.
+                      continue;
+                    } else {
+                      notLoadedStates[i] = 1;
+                      break;
+                    }
+                  }
+
+                }
+
               });
+
           var oData = [];
+
+          for (var i = 0; i < notLoadedStates.length; i++) {
+            // we save the application which is not open in the desktop....
+            if (notLoadedStates[i] == 0) {
+              oData.push(desktopData.data[i]);
+            }
+          }
 
           me.items.each(function(win, value, length) {
 
@@ -137,34 +181,30 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
 
                     var item = {
                       link : win.linkToLoad,
-                      loadedObjectType : win.loadedObjectType
+                      loadedObjectType : win.loadedObjectType,
+                      text : win.title
                     };
-                    if (win.childWindows.length > 0) {
-                      for (var i = 0; i < win.childWindows.length; i++) {
-                        if (win.childWindows[i].type == "help") {
-                          Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
-                        }
-                      }
-                    } else {
-                      Ext.apply(item.data, win.loadedObject.getHelpText());
-                    }
+
                     oData.push(item);
 
                   }
+                  //we save the latest application state.
+                  win.setupData.data = item.data;
+
                 } else {
                   // We may have applications which are not opened. We have to
                   // save
                   // the status of this applications as well. These
                   // application
                   // states is retrieved from the SM.
-                  var desktopName = me.title;
                   if (desktopName) { // && desktopName != 'Default'
-                    if (GLOBAL.APP.SM.isStateLoaded("application", "desktop", desktopName) > -1) {
-                      var oStateData = GLOBAL.APP.SM.getStateData("application", "desktop", desktopName);
-                      for (var i = 0; i < oStateData.data.length; i++) {
-                        if ((oStateData.data[i].module == win.getAppClassName()) && (oStateData.data[i].currentState == win.currentState))
-
-                          oData.push(oStateData.data[i]);
+                    if (desktopData) {
+                      var notLoadedDesktopState = win.setupData.data;
+                      for (var i = 0; i < desktopData.data.length; i++) {
+                        if ((desktopData.data[i].module == win.getAppClassName()) && (desktopData.data[i].currentState == win.currentState) && desktopData.data[i].data == notLoadedDesktopState) {
+                          oData.push(desktopData.data[i]);
+                          break;
+                        }
                       }
                     } else if (desktopName == 'Default') {
                       var data = GLOBAL.APP.SM.getStateData("application", win.getAppClassName(), win.currentState);
@@ -205,6 +245,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           Ext.dirac.system_info.msg("Error Notification", "Error: " + err);
           desktop = null;
         }
+        notLoadedStates = [];
+        delete notLoadedStates;
         return desktop;
       },
       listeners : {
@@ -370,7 +412,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         me.items.each(function(panelObj, value, length) {
               states.push({
                     "module" : panelObj.appClassName,
-                    "currentState" : panelObj.currentState
+                    "currentState" : panelObj.currentState,
+                    "data" : panelObj.setupData.data
                   });
             });
         return states;

@@ -428,8 +428,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               var oAppStateData = {};
 
               oAppStateData.name = oData["data"][i].link;
-              oAppStateData.data = oData["data"][i].data;
-              oAppStateData.currentState = oData["data"][i].currentState;
+              Ext.apply(oAppStateData, oData["data"][i]);
+
               me.createWindow("link", oAppStateData.name, oAppStateData, tab);
             }
 
@@ -442,8 +442,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               var oAppStateData = {};
 
               oAppStateData.name = oData["data"][i].link;
-              oAppStateData.data = oData["data"][i].data;
-              oAppStateData.currentState = oData["data"][i].currentState;
+              Ext.apply(oAppStateData, oData["data"][i]);
+
               me.createWindow("link", oAppStateData.name, oAppStateData, tab);
             } else if ("module" in oData["data"][i]) {
 
@@ -1504,29 +1504,44 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
         for (var i = 0; i < oDesktop.data.length; i++) {
           try {
-            var appName = oDesktop.data[i].module.split(".");
-            var qtip = appName[appName.length - 1] + "<br>State Name: " + oDesktop.data[i].currentState;
-            nodeObj = {
-              'text' : oDesktop.data[i].currentState,
-              expandable : false,
-              application : oDesktop.data[i].module,
-              stateToLoad : oDesktop.data[i].currentState,
-              desktop : sStateName,
-              type : 'app',
-              leaf : true,
-              iconCls : 'core-application-icon',
-              allowDrag : true,
-              allowDrop : true,
-              qtip : qtip
-            };
-            Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
-                  extend : 'Ext.data.Model',
-                  fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
-                  alias : 'widget.desktopnodemodel'
-                });
-            Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
-            var node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
+            var node = null;
+            if (oDesktop.data[i].loadedObjectType == "link") {
+              node = {
+                'text' : oDesktop.data[i].text,
+                expandable : false,
+                application : oDesktop.data[i].link,
+                type : 'link',
+                iconCls : "system_web_window",
+                leaf : true
+              };
+            } else {
+              var appName = oDesktop.data[i].module.split(".");
+              var qtip = appName[appName.length - 1] + "<br>State Name: " + oDesktop.data[i].currentState;
+              nodeObj = {
+                'text' : oDesktop.data[i].currentState,
+                expandable : false,
+                application : oDesktop.data[i].module,
+                stateToLoad : oDesktop.data[i].currentState,
+                desktop : sStateName,
+                type : 'app',
+                leaf : true,
+                iconCls : 'core-application-icon',
+                allowDrag : true,
+                allowDrop : true,
+                qtip : qtip
+              };
+
+              Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
+                    extend : 'Ext.data.Model',
+                    fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
+                    alias : 'widget.desktopnodemodel'
+                  });
+              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+              node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
+            }
+
             rootNode.appendChild(node);
+
           } catch (err) {
             Ext.log({
                   level : 'error'
@@ -1566,26 +1581,40 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         for (var i = 0; i < desktops.data.length; i++) {
           try {
-            nodeObj = {
-              'text' : desktops.data[i].currentState,
-              expandable : false,
-              application : desktops.data[i].name,
-              stateToLoad : desktops.data[i].currentState,
-              desktop : sStateName,
-              type : 'app',
-              leaf : true,
-              iconCls : 'core-application-icon',
-              allowDrag : true,
-              allowDrop : true
-            };
-            Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
-                  extend : 'Ext.data.Model',
-                  fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
-                  alias : 'widget.desktopnodemodel'
-                });
-            Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
-            var node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
+            var node = null;
+            if (desktops.data[i].loadedObjectType == "link") {
+              node = {
+                'text' : desktops.data[i].text,
+                expandable : false,
+                application : desktops.data[i].link,
+                type : 'link',
+                iconCls : "system_web_window",
+                leaf : true
+              };
+            } else {
+              nodeObj = {
+                'text' : desktops.data[i].currentState,
+                expandable : false,
+                application : desktops.data[i].name,
+                stateToLoad : desktops.data[i].currentState,
+                desktop : sStateName,
+                type : 'app',
+                leaf : true,
+                iconCls : 'core-application-icon',
+                allowDrag : true,
+                allowDrop : true
+              };
+              Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
+                    extend : 'Ext.data.Model',
+                    fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
+                    alias : 'widget.desktopnodemodel'
+                  });
+              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+              node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
+            }
+            
             rootNode.appendChild(node);
+            
           } catch (err) {
             Ext.log({
                   level : 'error'
@@ -1807,7 +1836,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           var loadedApplications = tab.getApplicationsState();
           for (var i = 0; i < loadedApplications.length; i++) {
             for (var j = 0; j < data.data.length; j++) {
-              if (loadedApplications[i].module == data.data[j].module && loadedApplications[i].currentState == data.data[j].currentState) {
+              if (loadedApplications[i].module == data.data[j].module && loadedApplications[i].currentState == data.data[j].currentState && loadedApplications[i].data == data.data[j].data) {
 
                 Ext.Array.erase(data.data, j, 1);
                 break;
@@ -2075,23 +2104,28 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       },
       openHelpWindow : function(app) {
         var me = this;
-        var win = app.createChildWindow(app.title, false, 700, 500);
-        Ext.apply(win, {
-              type : "help",
-              minimizable : false,
-              application : app.loadedObject
-            });
-        win.on('close', function() {
-              var notepad = this.items.getAt(0);
-              if (notepad) {
-                var text = notepad.getStateData();
-                this.application.setHelpText(text);
-                Ext.Array.remove(app.childWindows, this);
-              }
-            });
+        if (app.appClassName == "link") {
+          Ext.dirac.system_info.msg("Error", 'You can not add help to an external link!');
+        } else {
 
-        me.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", app.loadedObject.getHelpText(), win);
-        win.show();
+          var win = app.createChildWindow(app.title, false, 700, 500);
+          Ext.apply(win, {
+                type : "help",
+                minimizable : false,
+                application : app.loadedObject
+              });
+          win.on('close', function() {
+                var notepad = this.items.getAt(0);
+                if (notepad) {
+                  var text = notepad.getStateData();
+                  this.application.setHelpText(text);
+                  Ext.Array.remove(app.childWindows, this);
+                }
+              });
+
+          me.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", app.loadedObject.getHelpText(), win);
+          win.show();
+        }
       },
 
       createHelpWindow : function(loadedObjectType, moduleName, setupData, win) {
