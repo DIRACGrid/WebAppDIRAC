@@ -84,14 +84,14 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
 
         var notLoadedStates = new Array(lenghtNotOpenApplications);
         for (var i = 0; i < lenghtNotOpenApplications; i++) {
-          notLoadedStates[i] = 0; 
-          //The applications are not loaded by default...
+          notLoadedStates[i] = 0;
+          // The applications are not loaded by default...
         }
         try {
-          
+
           me.items.each(function(win, value, length) {
                 // we have to select all the applications which are not loaded
-                // and they have the same state. 
+                // and they have the same state.
                 if (!win.isLoaded) {
                   if (Object.keys(apps) && (Ext.Array.contains(Object.keys(apps), win.getAppClassName())) && apps[win.getAppClassName()] == win.currentState) {
                     toLoadApps[win.getAppClassName()] = win.currentState;
@@ -132,17 +132,16 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                 }
 
               });
-          
+
           var oData = [];
-          
-          
+
           for (var i = 0; i < notLoadedStates.length; i++) {
-          //we save the application which is not open in the desktop....
-            if (notLoadedStates[i] == 0){
+            // we save the application which is not open in the desktop....
+            if (notLoadedStates[i] == 0) {
               oData.push(desktopData.data[i]);
             }
           }
-          
+
           me.items.each(function(win, value, length) {
 
                 /*
@@ -196,10 +195,11 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                   // states is retrieved from the SM.
                   if (desktopName) { // && desktopName != 'Default'
                     if (desktopData) {
+                      var notLoadedDesktopState = win.setupData.data;
                       for (var i = 0; i < desktopData.data.length; i++) {
-                        if ((desktopData.data[i].module == win.getAppClassName()) && (desktopData.data[i].currentState == win.currentState))
-
+                        if ((desktopData.data[i].module == win.getAppClassName()) && (desktopData.data[i].currentState == win.currentState) && desktopData.data[i].data == notLoadedDesktopState) {
                           oData.push(desktopData.data[i]);
+                        }
                       }
                     } else if (desktopName == 'Default') {
                       var data = GLOBAL.APP.SM.getStateData("application", win.getAppClassName(), win.currentState);
