@@ -1836,7 +1836,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           var loadedApplications = tab.getApplicationsState();
           for (var i = 0; i < loadedApplications.length; i++) {
             for (var j = 0; j < data.data.length; j++) {
-              if (loadedApplications[i].module == data.data[j].module && loadedApplications[i].currentState == data.data[j].currentState) {
+              if (loadedApplications[i].module == data.data[j].module && loadedApplications[i].currentState == data.data[j].currentState && loadedApplications[i].data == data.data[j].data) {
 
                 Ext.Array.erase(data.data, j, 1);
                 break;

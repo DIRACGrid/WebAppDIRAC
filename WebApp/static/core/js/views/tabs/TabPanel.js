@@ -116,8 +116,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                 var state = win.setupData.data; // the application which is
                 // loaded it still have the
                 // original state
+
                 for (var i = 0; i < desktopData.data.length; i++) {
-                  if (desktopData.data[i].module == win.getAppClassName() && (desktopData.data[i].currentState == win.currentState) && desktopData.data[i].data == state) {
+                  if (desktopData.data[i].module == win.getAppClassName() && (desktopData.data[i].currentState == win.currentState) && (desktopData.data[i].data == state)) {
                     if (notLoadedStates[i] != 0) {
                       // we may have a situation when we have two state which
                       // are identical... This can happen when we do not provide
@@ -187,6 +188,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                     oData.push(item);
 
                   }
+                  //we save the latest application state.
+                  win.setupData.data = item.data;
+
                 } else {
                   // We may have applications which are not opened. We have to
                   // save
@@ -199,6 +203,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                       for (var i = 0; i < desktopData.data.length; i++) {
                         if ((desktopData.data[i].module == win.getAppClassName()) && (desktopData.data[i].currentState == win.currentState) && desktopData.data[i].data == notLoadedDesktopState) {
                           oData.push(desktopData.data[i]);
+                          break;
                         }
                       }
                     } else if (desktopName == 'Default') {
@@ -407,7 +412,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         me.items.each(function(panelObj, value, length) {
               states.push({
                     "module" : panelObj.appClassName,
-                    "currentState" : panelObj.currentState
+                    "currentState" : panelObj.currentState,
+                    "data" : panelObj.setupData.data
                   });
             });
         return states;
