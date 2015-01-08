@@ -556,7 +556,17 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         var foundTextSelector = false;
 
         for (var i in me.textFields) {
-          var param = me.textFields[i].getValue().split(',')[0] != "" ? me.textFields[i].getValue().split(',') : [];
+          var param = [];
+          if (me.textFields[i].getValue() != "") {
+            if (me.textFields[i].getValue().search(",") != -1) {
+              param = me.textFields[i].getValue().split(',');
+            } else if (me.textFields[i].getValue().search(" ") != -1) {
+              param = me.textFields[i].getValue().split(" ");
+            } else {
+              param.push(me.textFields[i].getValue());
+            }
+          }
+
           // var param = me.textFields[i].getValue().split(',')[0] !=
           // ""?me.textFields[i].getValue():'';
           // extraParams[i] = param;
