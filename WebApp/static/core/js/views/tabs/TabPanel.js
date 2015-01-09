@@ -113,6 +113,10 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                   }
                 }
 
+                if (win.loadedObjectType == "link") {
+                  return;
+                }
+                
                 var state = win.setupData.data; // the application which is
                 // loaded it still have the
                 // original state
