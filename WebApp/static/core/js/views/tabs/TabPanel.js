@@ -61,6 +61,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           "data" : [],
           "views" : {
             "tabs" : {
+              "activeTab" : null,
               "version" : 1,
               "desktopGranularity" : me.desktopGranularity,
               "positions" : [],
@@ -117,6 +118,11 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                   return;
                 }
                 
+                if (!desktopData){
+                  //the desktop is new. The state is not saved in the UP.
+                  notLoadedStates = [];
+                  return;
+                }
                 var state = win.setupData.data; // the application which is
                 // loaded it still have the
                 // original state
