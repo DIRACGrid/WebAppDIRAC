@@ -390,6 +390,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         if (tab) {
           tab.loadState(oData);
+        }else{
+          tab = me.getActiveDesktop();
         }
 
         if (me.ID in oData["views"]) {
@@ -438,6 +440,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                             });
                       }
                     } else {
+                      me.loadRightContainer.hide();
                       tab.setActiveTab(oTab);
                     }
                   }
