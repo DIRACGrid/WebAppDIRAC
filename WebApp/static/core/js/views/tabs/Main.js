@@ -416,7 +416,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   if (tab && tab.view == 'tabView') {
                     // when the presenter view used then does not have tabs
                     // we have to found what was the last active tab.
-                    var activeTab = tab._activeTab;
+                    var activeTab = oData.views.tabs.activeTab;
                     if (activeTab) {
                       if (tab.items.length < oData["data"].length) {
                         Ext.defer(function() { // wait until all application

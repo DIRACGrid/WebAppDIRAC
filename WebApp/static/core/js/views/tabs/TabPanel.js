@@ -132,6 +132,11 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                 var state = win.setupData.data; // the application which is
                 // loaded it still have the
                 // original state
+                
+                if(!state){
+                  notLoadedStates = [];
+                  return;
+                }
 
                 for (var i = 0; i < desktopData.data.length; i++) {
                   if (desktopData.data[i].module == win.getAppClassName() && (desktopData.data[i].currentState == win.currentState) && (desktopData.data[i].data == state)) {
