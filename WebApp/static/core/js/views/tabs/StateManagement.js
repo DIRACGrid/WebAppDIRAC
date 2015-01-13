@@ -54,7 +54,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                       return true;
                     } else {
 
-                      this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
+                      this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.', ' '");
                       return false;
 
                     }
@@ -199,7 +199,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                       return true;
                     } else {
 
-                      this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
+                      this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.', ' '");
                       return false;
 
                     }
@@ -809,7 +809,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                       return true;
                     } else {
 
-                      this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
+                      this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.', ' '");
                       return false;
 
                     }
@@ -1210,7 +1210,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                       return true;
                     } else {
 
-                      this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
+                      this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.', ' '");
                       return false;
 
                     }
