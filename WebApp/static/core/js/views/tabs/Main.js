@@ -390,7 +390,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         if (tab) {
           tab.loadState(oData);
-        }else{
+        } else {
           tab = me.getActiveDesktop();
         }
 
@@ -1816,7 +1816,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         } else {
 
-          var cbAfterCreate = function() {
+          var cbAfterCreate = function(name, tab) {
 
             for (var i = 0, len = oDataReceived["data"].length; i < len; i++) {
 
@@ -1828,6 +1828,34 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               if (name)
                 me.createWindow(loadedObjectType, name, appStateData);
 
+            }
+
+            var activeTab = oDataReceived.views.tabs.activeTab;
+            if (activeTab) {
+              if (tab.items.length < oDataReceived["data"].length) {
+                Ext.defer(function() { // wait until all application
+                      // window have created...
+                      me.loadRightContainer.show();
+                      tab.items.each(function(win, value, length) {
+                            if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
+                              tab.setActiveTab(win);
+                              me.loadRightContainer.hide();
+                              return;
+                            }
+                          });
+                    }, 100);
+              } else {
+                tab.items.each(function(win, value, length) {
+                      if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
+                        tab.setActiveTab(win);
+                        me.loadRightContainer.hide();
+                        return;
+                      }
+                    });
+              }
+            } else {
+              me.loadRightContainer.hide();
+              tab.setActiveTab(0);
             }
 
             if (me.currentState != "")
