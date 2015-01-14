@@ -89,6 +89,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           }
         }
 
+        if (GLOBAL.APP.SM.isStateLoaded("reference", "desktop", desktopName) > -1) {
+          me.items.each(function(win, value, length) {
+                if (!win.Loaded) {
+                  win.loadData();
+                }
+              });
+        }
         var notLoadedStates = new Array(lenghtNotOpenApplications);
         for (var i = 0; i < lenghtNotOpenApplications; i++) {
           notLoadedStates[i] = 0;
@@ -132,8 +139,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                 var state = win.setupData.data; // the application which is
                 // loaded it still have the
                 // original state
-                
-                if(!state){
+
+                if (!state) {
                   notLoadedStates = [];
                   return;
                 }
@@ -497,5 +504,4 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           settingPanel.setTabChangePeriod(0);
         }
       }
-
     });

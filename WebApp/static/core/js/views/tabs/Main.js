@@ -1483,7 +1483,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
       },
       /**
-       * It refresh a node in the myDesktop.
+       * It refresh a node in the myDesktop. If teh nodeName does not exists, it adds to the myDesktop
        * 
        * @param{String} nodeName
        */
@@ -1498,11 +1498,16 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         treePanel.setLoading(true);
         if (nodeName) {
           var oNode = me.myDesktop.findChild('text', nodeName);
-          oNode.collapse();
-          Ext.defer(function() {
-                oNode.expand();
-                treePanel.setLoading(false);
-              }, 1000); // wait a bit and after expand the tree.
+          if (oNode) {
+            oNode.collapse();
+            Ext.defer(function() {
+                  oNode.expand();
+                  treePanel.setLoading(false);
+                }, 1000); // wait a bit and after expand the tree.
+          } else {
+            me.__addDesktopToMenu(nodeName);
+            treePanel.setLoading(false);
+          }
         } else {
           me.myDesktop.collapse();
           Ext.defer(function() {
@@ -1830,6 +1835,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
             }
 
+            tab.loadState(oDataReceived);
+
             var activeTab = oDataReceived.views.tabs.activeTab;
             if (activeTab) {
               if (tab.items.length < oDataReceived["data"].length) {
@@ -1855,7 +1862,14 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               }
             } else {
               me.loadRightContainer.hide();
-              tab.setActiveTab(0);
+              if (tab.items.length == 0) {
+                Ext.defer(function() {
+                      tab.setActiveTab(0);
+                    }, 100);
+              } else {
+                tab.setActiveTab(0);
+              }
+
             }
 
             if (me.currentState != "")
