@@ -6,6 +6,7 @@ from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
+from DIRAC.AccountingSystem.private.FileCoding import extractRequestFromFileId, codeRequestInFileId
 import tempfile
 import datetime
 import json
@@ -187,10 +188,12 @@ class AccountingPlotHandler(WebHandler):
       self.finish(callback)
       return
     plotImageFile = str( self.request.arguments[ 'file' ][0] )
+    
     if plotImageFile.find( ".png" ) < -1:
       callback = {"success":"false","error":"Not a valid image!"}
       self.finish(callback)
       return
+    
     transferClient = TransferClient( "Accounting/ReportGenerator" )
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
@@ -209,6 +212,52 @@ class AccountingPlotHandler(WebHandler):
     self.set_header('Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ))
     self.finish(data)
 
+  @asyncGen
+  def web_getPlotImgFromCache( self ):
+    """
+    Get plot image from cache.
+    """
+    callback = {}
+    if 'file' not in self.request.arguments:
+      callback = {"success":"false","error":"Maybe you forgot the file?"}
+      self.finish(callback)
+      return
+    plotImageFile = str( self.request.arguments[ 'file' ][0] )
+    
+    retVal = extractRequestFromFileId( plotImageFile )
+    if not retVal['OK']:
+      callback = {"success":"false","error":retVal['Value']}
+      self.finish(callback)
+      return
+    fields = retVal['Value']
+    if "extraArgs" in fields: #in order to get the plot from the cache we have to clean the extraArgs...
+      fields["extraArgs"] = {}
+        
+    retVal  = codeRequestInFileId(fields)
+    if not retVal['OK']:
+      callback = {"success":"false","error":retVal['Value']}
+      self.finish(callback)
+      return
+    plotImageFile = retVal['Value']['plot']
+    
+    transferClient = TransferClient( "Accounting/ReportGenerator" )
+    tempFile = tempfile.TemporaryFile()
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    if not retVal[ 'OK' ]:
+      callback = {"success":"false","error":retVal[ 'Message' ]}
+      self.finish(callback)
+      return
+    tempFile.seek( 0 )
+    data = tempFile.read()
+    self.set_header('Content-type','image/png')
+    self.set_header('Content-Disposition','attachment; filename="%s.png"' % md5( plotImageFile ).hexdigest())
+    self.set_header('Content-Length',len( data ))
+    self.set_header('Content-Transfer-Encoding','Binary')
+    self.set_header('Cache-Control',"no-cache, no-store, must-revalidate, max-age=0")
+    self.set_header('Pragma',"no-cache")
+    self.set_header('Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ))
+    self.finish(data)
+      
   @asyncGen
   def web_getCsvPlotData( self ):
     callback = {}
