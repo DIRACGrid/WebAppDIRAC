@@ -46,6 +46,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           me.tabChangeCycle = data.views.tabs.tabChangeCycle;
           me.autoTabChange();
         }
+        if (data.views.tabs && data.views.tabs.activeTab) {
+          me._activeTab = data.views.tabs.activeTab;
+        }
       },
       /**
        * it returns the states of the applications
@@ -61,6 +64,10 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           "data" : [],
           "views" : {
             "tabs" : {
+              "activeTab" : {
+                name : me.getActiveTab().getAppClassName(),
+                currentState : me.getActiveTab().currentState
+              },
               "version" : 1,
               "desktopGranularity" : me.desktopGranularity,
               "positions" : [],
@@ -82,6 +89,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           }
         }
 
+        if (GLOBAL.APP.SM.isStateLoaded("reference", "desktop", desktopName) > -1) {
+          me.items.each(function(win, value, length) {
+                if (!win.Loaded) {
+                  win.loadData();
+                }
+              });
+        }
         var notLoadedStates = new Array(lenghtNotOpenApplications);
         for (var i = 0; i < lenghtNotOpenApplications; i++) {
           notLoadedStates[i] = 0;
@@ -113,9 +127,23 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                   }
                 }
 
+                if (win.loadedObjectType == "link") {
+                  return;
+                }
+
+                if (!desktopData) {
+                  // the desktop is new. The state is not saved in the UP.
+                  notLoadedStates = [];
+                  return;
+                }
                 var state = win.setupData.data; // the application which is
                 // loaded it still have the
                 // original state
+
+                if (!state) {
+                  notLoadedStates = [];
+                  return;
+                }
 
                 for (var i = 0; i < desktopData.data.length; i++) {
                   if (desktopData.data[i].module == win.getAppClassName() && (desktopData.data[i].currentState == win.currentState) && (desktopData.data[i].data == state)) {
@@ -188,7 +216,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                     oData.push(item);
 
                   }
-                  //we save the latest application state.
+                  // we save the latest application state.
                   win.setupData.data = item.data;
 
                 } else {
@@ -476,5 +504,4 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           settingPanel.setTabChangePeriod(0);
         }
       }
-
     });

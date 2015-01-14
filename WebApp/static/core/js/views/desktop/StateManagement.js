@@ -54,7 +54,7 @@ Ext.define('Ext.dirac.views.desktop.StateManagement', {
 							return true;
 						} else {
 
-							this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.'");
+							this.markInvalid("Allowed characters are: 0-9, a-z, A-Z, '_', '-', '.', ' '");
 							return false;
 
 						}

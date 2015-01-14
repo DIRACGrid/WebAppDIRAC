@@ -39,9 +39,20 @@ class UPHandler( WebHandler ):
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
     data = base64.b64encode( zlib.compress( DEncode.encode( state ), 9 ) )
+    # before we save the state (modify the state) we have to remeber the actual access: ReadAccess and PublishAccess
+    result = yield self.threadTask( up.getVarPermissions, name )
+    if result['OK']:
+      access = result['Value']
+    else:
+      access = {'ReadAccess': 'USER', 'PublishAccess': 'USER'}  # this is when the application/desktop does not exists.
     result = yield self.threadTask( up.storeVar, name, data )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
+    # change the access to the application/desktop
+    result = yield self.threadTask( up.setVarPermissions, name, access )
+    if not result[ 'OK' ]:
+      raise WErr.fromSERROR( result )
+    
     self.set_status( 200 )
     self.finish()
 

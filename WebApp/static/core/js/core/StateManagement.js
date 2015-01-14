@@ -264,7 +264,7 @@ Ext.define('Ext.dirac.core.StateManagement', {
        */
       isValidStateName : function(sStateName) {
 
-        var regExpr = /^([0-9a-zA-Z\.\_\-]+)+$/;
+        var regExpr = /^([0-9a-zA-Z\.\_\-\ ]+)+$/;
 
         return (String(sStateName).search(regExpr) != -1);
 

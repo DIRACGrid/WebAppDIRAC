@@ -390,6 +390,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         if (tab) {
           tab.loadState(oData);
+        } else {
+          tab = me.getActiveDesktop();
         }
 
         if (me.ID in oData["views"]) {
@@ -410,16 +412,42 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               if (i == oData["data"].length - 1) {
 
                 var cbSetActiveTab = function(oTab) {
-                  me.loadRightContainer.hide();
-                  if (tab && tab.view == 'tabView') {// when the presenter
-                    // view used then does
-                    // not have tabs
-                    tab.setActiveTab(oTab);
+
+                  if (tab && tab.view == 'tabView') {
+                    // when the presenter view used then does not have tabs
+                    // we have to found what was the last active tab.
+                    var activeTab = oData.views.tabs.activeTab;
+                    if (activeTab) {
+                      if (tab.items.length < oData["data"].length) {
+                        Ext.defer(function() { // wait until all application
+                              // window have created...
+                              me.loadRightContainer.show();
+                              tab.items.each(function(win, value, length) {
+                                    if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
+                                      tab.setActiveTab(win);
+                                      me.loadRightContainer.hide();
+                                      return;
+                                    }
+                                  });
+                            }, 100);
+                      } else {
+                        tab.items.each(function(win, value, length) {
+                              if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
+                                tab.setActiveTab(win);
+                                me.loadRightContainer.hide();
+                                return;
+                              }
+                            });
+                      }
+                    } else {
+                      me.loadRightContainer.hide();
+                      tab.setActiveTab(oTab);
+                    }
                   }
                 };
                 me.createWindow("app", oAppStateData.name, oAppStateData, tab, cbSetActiveTab);
-
               } else {
+
                 me.createWindow("app", oAppStateData.name, oAppStateData, tab);
               }
 
@@ -434,10 +462,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             }
 
           }
-        } else {// desktop theme
+
+        } else {// desktop theme( it is saved using the desktop theme.
 
           for (var i = 0, len = oData["data"].length; i < len; i++) {
-            me.loadRightContainer.hide();
+
             if ("link" in oData["data"][i]) {
               var oAppStateData = {};
 
@@ -456,12 +485,36 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               if (i == oData["data"].length - 1) {
 
                 var cbSetActiveTab = function(oTab) {
-                  me.loadRightContainer.hide();
-                  if (tab && tab.view && tab.view == 'tabView') {// when the
-                    // presenter view
-                    // used then does
-                    // not have tabs
-                    tab.setActiveTab(oTab);
+
+                  if (tab && tab.view == 'tabView') {
+                    // when the presenter view used then does not have tabs
+                    // we have to found what was the last active tab.
+                    var activeTab = tab._activeTab;
+                    if (activeTab) {
+                      if (tab.items.length < oData["data"].length) {
+                        Ext.defer(function() { // wait until all application
+                              // window have created...
+                              me.loadRightContainer.show();
+                              tab.items.each(function(win, value, length) {
+                                    if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
+                                      tab.setActiveTab(win);
+                                      me.loadRightContainer.hide();
+                                      return;
+                                    }
+                                  });
+                            }, 100);
+                      } else {
+                        tab.items.each(function(win, value, length) {
+                              if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
+                                tab.setActiveTab(win);
+                                me.loadRightContainer.hide();
+                                return;
+                              }
+                            });
+                      }
+                    } else {
+                      tab.setActiveTab(oTab);
+                    }
                   }
                 };
                 me.createWindow("app", oAppStateData.name, oAppStateData, tab, cbSetActiveTab);
@@ -1430,7 +1483,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
       },
       /**
-       * It refresh a node in the myDesktop.
+       * It refresh a node in the myDesktop. If teh nodeName does not exists, it adds to the myDesktop
        * 
        * @param{String} nodeName
        */
@@ -1445,11 +1498,16 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         treePanel.setLoading(true);
         if (nodeName) {
           var oNode = me.myDesktop.findChild('text', nodeName);
-          oNode.collapse();
-          Ext.defer(function() {
-                oNode.expand();
-                treePanel.setLoading(false);
-              }, 1000); // wait a bit and after expand the tree.
+          if (oNode) {
+            oNode.collapse();
+            Ext.defer(function() {
+                  oNode.expand();
+                  treePanel.setLoading(false);
+                }, 1000); // wait a bit and after expand the tree.
+          } else {
+            me.__addDesktopToMenu(nodeName);
+            treePanel.setLoading(false);
+          }
         } else {
           me.myDesktop.collapse();
           Ext.defer(function() {
@@ -1612,9 +1670,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
               node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
             }
-            
+
             rootNode.appendChild(node);
-            
+
           } catch (err) {
             Ext.log({
                   level : 'error'
@@ -1763,7 +1821,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         } else {
 
-          var cbAfterCreate = function() {
+          var cbAfterCreate = function(name, tab) {
 
             for (var i = 0, len = oDataReceived["data"].length; i < len; i++) {
 
@@ -1774,6 +1832,43 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
               if (name)
                 me.createWindow(loadedObjectType, name, appStateData);
+
+            }
+
+            tab.loadState(oDataReceived);
+
+            var activeTab = oDataReceived.views.tabs.activeTab;
+            if (activeTab) {
+              if (tab.items.length < oDataReceived["data"].length) {
+                Ext.defer(function() { // wait until all application
+                      // window have created...
+                      me.loadRightContainer.show();
+                      tab.items.each(function(win, value, length) {
+                            if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
+                              tab.setActiveTab(win);
+                              me.loadRightContainer.hide();
+                              return;
+                            }
+                          });
+                    }, 100);
+              } else {
+                tab.items.each(function(win, value, length) {
+                      if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
+                        tab.setActiveTab(win);
+                        me.loadRightContainer.hide();
+                        return;
+                      }
+                    });
+              }
+            } else {
+              me.loadRightContainer.hide();
+              if (tab.items.length == 0) {
+                Ext.defer(function() {
+                      tab.setActiveTab(0);
+                    }, 100);
+              } else {
+                tab.setActiveTab(0);
+              }
 
             }
 
