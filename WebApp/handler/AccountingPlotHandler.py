@@ -16,7 +16,7 @@ try:
 except:
   from md5 import md5
 
-class AccountingPlotHandler(WebHandler):
+class AccountingPlotHandler( WebHandler ):
 
   AUTH_PROPS = "all"
   __keysCache = DictCache.DictCache()
@@ -36,7 +36,7 @@ class AccountingPlotHandler(WebHandler):
       if not retVal[ 'OK' ]:
         return retVal
 
-      #Site ordering based on TierLevel / alpha
+      # Site ordering based on TierLevel / alpha
       if 'Site' in retVal[ 'Value' ]:
         siteLevel = {}
         for siteName in retVal[ 'Value' ][ 'Site' ]:
@@ -54,28 +54,28 @@ class AccountingPlotHandler(WebHandler):
     return data
 
   @asyncGen
-  def web_getSelectionData(self):
+  def web_getSelectionData( self ):
     callback = {}
     typeName = self.request.arguments["type"][0]
-    #Get unique key values
+    # Get unique key values
     retVal = yield self.threadTask( self.__getUniqueKeyValues, typeName )
     if not retVal[ 'OK' ]:
       self.finish( {"success" : "false", "result" : "", "error" : retVal[ 'Message' ] } )
       return
     
     records = {}
-    for record in retVal['Value']: #may have more than 1000 of records. 
-      #do not show all of them in the web portal
-      length = len(retVal['Value'][record])
+    for record in retVal['Value']:  # may have more than 1000 of records. 
+      # do not show all of them in the web portal
+      length = len( retVal['Value'][record] )
       if  length > 10000:
-        records[record] = retVal['Value'][record][length-2000:]
-        message = "The %s accounting type contains to many rows: %s - > %d. Note: Only 1000 rows are returned!" % (typeName, record, length)
-        gLogger.warn(message)
+        records[record] = retVal['Value'][record][length - 2000:]
+        message = "The %s accounting type contains to many rows: %s - > %d. Note: Only 1000 rows are returned!" % ( typeName, record, length )
+        gLogger.warn( message )
       else:
         records[record] = retVal['Value'][record]
     callback["selectionValues"] = records
     
-    #Cache for plotsList?
+    # Cache for plotsList?
     data = AccountingPlotHandler.__keysCache.get( "reportsList:%s" % typeName )
     if not data:
       repClient = ReportsClient()
@@ -88,7 +88,7 @@ class AccountingPlotHandler(WebHandler):
     callback["plotsList"] = data
     self.finish( {"success" : "true", "result" : callback } )
 
-  def __parseFormParams(self):
+  def __parseFormParams( self ):
     params = self.request.arguments
     
     pD = {}
@@ -102,33 +102,33 @@ class AccountingPlotHandler(WebHandler):
       name = name[1:]
       pD[ name ] = str( value )
 
-    #Personalized title?
+    # Personalized title?
     if 'plotTitle' in pD:
       extraParams[ 'plotTitle' ] = pD[ 'plotTitle' ]
       del( pD[ 'plotTitle' ] )
-    #Pin dates?
+    # Pin dates?
     if 'pinDates' in pD:
       pinDates = pD[ 'pinDates' ]
       del( pD[ 'pinDates' ] )
       pinDates = pinDates.lower() in ( "yes", "y", "true", "1" )
-    #Get plotname
+    # Get plotname
     if not 'grouping' in pD:
       return S_ERROR( "Missing grouping!" )
     grouping = pD[ 'grouping' ]
-    #Get plotname
+    # Get plotname
     if not 'typeName' in pD:
       return S_ERROR( "Missing type name!" )
     typeName = pD[ 'typeName' ]
     del( pD[ 'typeName' ] )
-    #Get plotname
+    # Get plotname
     if not 'plotName' in pD:
       return S_ERROR( "Missing plot name!" )
     reportName = pD[ 'plotName' ]
     del( pD[ 'plotName' ] )
-    #Get times
+    # Get times
     if not 'timeSelector' in pD:
       return S_ERROR( "Missing time span!" )
-    #Find the proper time!
+    # Find the proper time!
     pD[ 'timeSelector' ] = int( pD[ 'timeSelector' ] )
     if pD[ 'timeSelector' ] > 0:
       end = Time.dateTime()
@@ -151,7 +151,7 @@ class AccountingPlotHandler(WebHandler):
     for k in pD:
       if k.find( "ex_" ) == 0:
         extraParams[ k[3:] ] = pD[ k ]
-    #Listify the rest
+    # Listify the rest
     for selName in pD:
       pD[ selName ] = List.fromChar( pD[ selName ], "," )
     
@@ -161,7 +161,7 @@ class AccountingPlotHandler(WebHandler):
   @asyncGen
   def web_generatePlot( self ):
     callback = {}
-    retVal =  yield self.threadTask( self.__queryForPlot )
+    retVal = yield self.threadTask( self.__queryForPlot )
     if retVal[ 'OK' ]:
       callback = { 'success' : True, 'data' : retVal[ 'Value' ][ 'plot' ] }
     else:
@@ -184,33 +184,33 @@ class AccountingPlotHandler(WebHandler):
     """
     callback = {}
     if 'file' not in self.request.arguments:
-      callback = {"success":"false","error":"Maybe you forgot the file?"}
-      self.finish(callback)
+      callback = {"success":"false", "error":"Maybe you forgot the file?"}
+      self.finish( callback )
       return
     plotImageFile = str( self.request.arguments[ 'file' ][0] )
     
     if plotImageFile.find( ".png" ) < -1:
-      callback = {"success":"false","error":"Not a valid image!"}
-      self.finish(callback)
+      callback = {"success":"false", "error":"Not a valid image!"}
+      self.finish( callback )
       return
     
     transferClient = TransferClient( "Accounting/ReportGenerator" )
     tempFile = tempfile.TemporaryFile()
-    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    retVal = yield self.threadTask( transferClient.receiveFile, tempFile, plotImageFile )
     if not retVal[ 'OK' ]:
-      callback = {"success":"false","error":retVal[ 'Message' ]}
-      self.finish(callback)
+      callback = {"success":"false", "error":retVal[ 'Message' ]}
+      self.finish( callback )
       return
     tempFile.seek( 0 )
     data = tempFile.read()
-    self.set_header('Content-type','image/png')
-    self.set_header('Content-Disposition','attachment; filename="%s.png"' % md5( plotImageFile ).hexdigest())
-    self.set_header('Content-Length',len( data ))
-    self.set_header('Content-Transfer-Encoding','Binary')
-    self.set_header('Cache-Control',"no-cache, no-store, must-revalidate, max-age=0")
-    self.set_header('Pragma',"no-cache")
-    self.set_header('Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ))
-    self.finish(data)
+    self.set_header( 'Content-type', 'image/png' )
+    self.set_header( 'Content-Disposition', 'attachment; filename="%s.png"' % md5( plotImageFile ).hexdigest() )
+    self.set_header( 'Content-Length', len( data ) )
+    self.set_header( 'Content-Transfer-Encoding', 'Binary' )
+    self.set_header( 'Cache-Control', "no-cache, no-store, must-revalidate, max-age=0" )
+    self.set_header( 'Pragma', "no-cache" )
+    self.set_header( 'Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ) )
+    self.finish( data )
 
   @asyncGen
   def web_getPlotImgFromCache( self ):
@@ -219,58 +219,58 @@ class AccountingPlotHandler(WebHandler):
     """
     callback = {}
     if 'file' not in self.request.arguments:
-      callback = {"success":"false","error":"Maybe you forgot the file?"}
-      self.finish(callback)
+      callback = {"success":"false", "error":"Maybe you forgot the file?"}
+      self.finish( callback )
       return
     plotImageFile = str( self.request.arguments[ 'file' ][0] )
     
     retVal = extractRequestFromFileId( plotImageFile )
     if not retVal['OK']:
-      callback = {"success":"false","error":retVal['Value']}
-      self.finish(callback)
+      callback = {"success":"false", "error":retVal['Value']}
+      self.finish( callback )
       return
     fields = retVal['Value']
-    if "extraArgs" in fields: #in order to get the plot from the cache we have to clean the extraArgs...
+    if "extraArgs" in fields:  # in order to get the plot from the cache we have to clean the extraArgs...
       fields["extraArgs"] = {}
         
-    retVal  = codeRequestInFileId(fields)
+    retVal = codeRequestInFileId( fields )
     if not retVal['OK']:
-      callback = {"success":"false","error":retVal['Value']}
-      self.finish(callback)
+      callback = {"success":"false", "error":retVal['Value']}
+      self.finish( callback )
       return
     plotImageFile = retVal['Value']['plot']
     
     transferClient = TransferClient( "Accounting/ReportGenerator" )
     tempFile = tempfile.TemporaryFile()
-    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    retVal = yield self.threadTask( transferClient.receiveFile, tempFile, plotImageFile )
     if not retVal[ 'OK' ]:
-      callback = {"success":"false","error":retVal[ 'Message' ]}
-      self.finish(callback)
+      callback = {"success":"false", "error":retVal[ 'Message' ]}
+      self.finish( callback )
       return
     tempFile.seek( 0 )
     data = tempFile.read()
-    self.set_header('Content-type','image/png')
-    self.set_header('Content-Disposition','attachment; filename="%s.png"' % md5( plotImageFile ).hexdigest())
-    self.set_header('Content-Length',len( data ))
-    self.set_header('Content-Transfer-Encoding','Binary')
-    self.set_header('Cache-Control',"no-cache, no-store, must-revalidate, max-age=0")
-    self.set_header('Pragma',"no-cache")
-    self.set_header('Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ))
-    self.finish(data)
+    self.set_header( 'Content-type', 'image/png' )
+    self.set_header( 'Content-Disposition', 'attachment; filename="%s.png"' % md5( plotImageFile ).hexdigest() )
+    self.set_header( 'Content-Length', len( data ) )
+    self.set_header( 'Content-Transfer-Encoding', 'Binary' )
+    self.set_header( 'Cache-Control', "no-cache, no-store, must-revalidate, max-age=0" )
+    self.set_header( 'Pragma', "no-cache" )
+    self.set_header( 'Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ) )
+    self.finish( data )
       
   @asyncGen
   def web_getCsvPlotData( self ):
     callback = {}
     retVal = self.__parseFormParams()
     if not retVal[ 'OK' ]:
-      callback = {"success":"false","error":retVal[ 'Message' ]}
-      self.finish(callback)
+      callback = {"success":"false", "error":retVal[ 'Message' ]}
+      self.finish( callback )
     params = retVal[ 'Value' ]
     repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
-    retVal = yield self.threadTask(repClient.getReport, *params )
+    retVal = yield self.threadTask( repClient.getReport, *params )
     if not retVal[ 'OK' ]:
-      callback = {"success":"false","error":retVal[ 'Message' ]}
-      self.finish(callback)
+      callback = {"success":"false", "error":retVal[ 'Message' ]}
+      self.finish( callback )
     rawData = retVal[ 'Value' ]
     groupKeys = rawData[ 'data' ].keys()
     groupKeys.sort()
@@ -292,23 +292,23 @@ class AccountingPlotHandler(WebHandler):
     else:
       strData = "%s\n" % ",".join( groupKeys )
       strData += ",".join( [ str( rawData[ 'data' ][ k ] ) for k in groupKeys ] )
-    self.set_header('Content-type','text/csv')
-    self.set_header('Content-Disposition', 'attachment; filename="%s.csv"' % md5( str( params ) ).hexdigest())
-    self.set_header('Content-Length', len( strData ))
-    self.finish(strData)
+    self.set_header( 'Content-type', 'text/csv' )
+    self.set_header( 'Content-Disposition', 'attachment; filename="%s.csv"' % md5( str( params ) ).hexdigest() )
+    self.set_header( 'Content-Length', len( strData ) )
+    self.finish( strData )
 
   @asyncGen
   def web_getPlotData( self ):
     callback = {}
     retVal = self.__parseFormParams()
     if not retVal[ 'OK' ]:
-      callback = {"success":"false","error":retVal[ 'Message' ]}
-      self.finish(callback)
+      callback = {"success":"false", "error":retVal[ 'Message' ]}
+      self.finish( callback )
     params = retVal[ 'Value' ]
     repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
-    retVal = yield self.threadTask(repClient.getReport, *params )
+    retVal = yield self.threadTask( repClient.getReport, *params )
     if not retVal[ 'OK' ]:
-      callback = {"success":"false","error":retVal[ 'Message' ]}
-      self.finish(callback)
+      callback = {"success":"false", "error":retVal[ 'Message' ]}
+      self.finish( callback )
     rawData = retVal[ 'Value' ]
     self.finish( rawData['data'] )
