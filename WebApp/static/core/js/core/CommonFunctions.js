@@ -8,6 +8,8 @@
 Ext.define('Ext.dirac.core.CommonFunctions', {
       requires : ["Ext.dirac.utils.Notification"],
 
+      messages : [],
+
       getFieldValueFromSelectedRow : function(oGrid, oFieldName) {
 
         var oVal = "";
@@ -178,11 +180,18 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
         return sVal;
       },
       msg : function(type, message) {
+        var me = this;
+
         if (message == null)
           return;
 
         message = message.replace(new RegExp("\n", 'g'), "<br/>");
 
+        if (Ext.Array.contains(me.messages, message)) {
+          return;
+        } else {
+          me.messages.push(message);
+        }
         var config = {};
 
         switch (type) {
@@ -191,10 +200,11 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
             config = {
               title : 'Notification',
               position : 'tl',
-              manager : (GLOBAL.APP.MAIN_VIEW?GLOBAL.APP.MAIN_VIEW.Id:null),
+              manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
               stickWhileHover : false,
               iconCls : 'ux-notification-icon-information',
-              html : message
+              html : message,
+              message : message
             };
             break;
 
@@ -203,9 +213,10 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
               autoClose : false,
               title : 'Error Notification',
               position : 'tl',
-              manager : (GLOBAL.APP.MAIN_VIEW?GLOBAL.APP.MAIN_VIEW.Id:null),
+              manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
               iconCls : 'ux-notification-icon-error',
-              html : message
+              html : message,
+              message : message
             };
 
             break;
@@ -215,9 +226,10 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
               autoClose : false,
               title : 'Error Notification',
               position : 'tl',
-              manager : (GLOBAL.APP.MAIN_VIEW?GLOBAL.APP.MAIN_VIEW.Id:null),
+              manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
               iconCls : 'ux-notification-icon-error',
-              html : message
+              html : message,
+              message : message
             };
 
             break;
@@ -227,14 +239,19 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
               autoClose : false,
               title : 'Error Notification',
               position : 'tl',
-              manager : (GLOBAL.APP.MAIN_VIEW?GLOBAL.APP.MAIN_VIEW.Id:null),
+              manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
               iconCls : 'ux-notification-icon-error',
-              html : message
+              html : message,
+              message : message
             };
 
         }
 
-        Ext.create('widget.uxNotification', config).show();
+        var notificationobj = Ext.create('widget.uxNotification', config);
+        notificationobj.on("beforeclose", function(notification) {
+              Ext.Array.remove(me.messages, notification.message)
+            });
+        notificationobj.show();
 
       },
       showAjaxErrorMessage : function(response) {
@@ -242,9 +259,10 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
         if (response.statusText == "transaction aborted")
           return;
 
-        /*if (response.statusText == "OK") {
-          var result = Ext.decode(responseText);
-        }*/
+        /*
+         * if (response.statusText == "OK") { var result =
+         * Ext.decode(responseText); }
+         */
         if (response.timedout) {
           Ext.dirac.system_info.msg("Error Notification", 'The request timed out! Please reload the application!!!');
         } else {
@@ -253,9 +271,10 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
             var message = response.responseText.split("\n");
             var shortMessage = "";
             if (message.length > 1) {
-              //We have case when we have more than one line. 
-              //In that case we show the lates line.
-              //We have this case when the handler of the application is crashing...
+              // We have case when we have more than one line.
+              // In that case we show the lates line.
+              // We have this case when the handler of the application is
+              // crashing...
               var messageLength = message.length - 2;
               shortMessage = message[messageLength];
             } else {
