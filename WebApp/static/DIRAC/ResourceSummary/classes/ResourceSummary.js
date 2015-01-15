@@ -302,7 +302,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                       autoLoad : true
                     });
 
-                me.expandedGridPanel = Ext.create('Ext.grid.Panel', {
+                me.grid.expandedGridPanel = Ext.create('Ext.grid.Panel', {
                       forceFit : true,
                       renderTo : targetId,
                       isExpanded : false,
@@ -374,10 +374,10 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                       }
                     });
 
-                rowNode.grid = me.expandedGridPanel;
+                rowNode.grid = me.grid.expandedGridPanel;
                 expandStore.load();
-                me.expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
-                me.expandedGridPanel.fireEvent("bind", me.expandedGridPanel, {
+                me.grid.expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
+                me.grid.expandedGridPanel.fireEvent("bind", me.grid.expandedGridPanel, {
                       id : record.get('Name')
                     });
               }
@@ -477,18 +477,18 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
 
         var values = {};
 
-        if (me.expandedGridPanel) {
-          if (!me.expandedGridPanel.isExpanded) {
+        if (me.grid.expandedGridPanel) {
+          if (!me.grid.expandedGridPanel.isExpanded) {
             values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
             values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
             values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
             values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
           } else {
-            me.expandedGridPanel.isExpanded = false;
-            values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "Name");
-            values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "ElementType");
-            values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "StatusType");
-            values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.expandedGridPanel, "LastCheckTime"), "Y-m-d H:i:s");
+            me.grid.expandedGridPanel.isExpanded = false;
+            values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "Name");
+            values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "ElementType");
+            values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "StatusType");
+            values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "LastCheckTime"), "Y-m-d H:i:s");
           }
         } else {
           values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
