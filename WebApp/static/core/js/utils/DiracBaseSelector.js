@@ -638,6 +638,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           }
         }
 
+        if (me.grid.expandedGridPanel) {//delete the targetId
+          me.grid.expandedGridPanel.destroy();
+          delete me.grid.expandedGridPanel;
+        }
+
       },
       /**
        * It validates the selected values. It is used to make sure the values
