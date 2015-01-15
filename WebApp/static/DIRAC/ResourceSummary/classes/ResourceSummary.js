@@ -523,7 +523,29 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                 var jsonData = Ext.JSON.decode(response.responseText);
 
                 if (jsonData["success"] == "true") {
+                  var rowid = null;
                   Ext.dirac.system_info.msg("info", jsonData["result"]);
+                  var selectedRows = me.grid.getSelectionModel().getSelection();
+                  // we assume that we only select one row...
+                  me.grid.getStore().load();
+                  me.grid.expandedGridPanel.destroy();
+                  delete me.grid.expandedGridPanel;
+
+                  Ext.defer(function() {
+                        var records = me.grid.getStore().getRange();
+                        var record = null;
+                        for (var i = 0; i < records.length; i++) {
+                          if (records[i].get("Name") == selectedRows[0].get("Name")) {
+                            var record = me.grid.getView().getRecord(records[i]);
+                            rowid = record.index;
+                            me.grid.getSelectionModel().select(record);
+                            break;
+                          }
+                        }
+
+                        me.grid.getPlugin().toggleRow(rowid, record);
+                      }, 400);
+
                 } else {
                   me.getContainer().body.unmask();
                   Ext.dirac.system_info.msg("error", jsonData["error"]);
