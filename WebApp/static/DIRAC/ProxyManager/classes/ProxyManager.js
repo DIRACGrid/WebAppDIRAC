@@ -179,7 +179,7 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
               var timeLimit = 30; // 30 days before expiration
 
               if (secsLeft < timeLimit) {
-                return '<span style="color:red">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s")+' ('+secsLeft+')' + '</span>';
+                return '<span style="color:red">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s") + ' (' + secsLeft + ')' + '</span>';
               } else {
                 return '<span style="color:green">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s") + '</span>';
               }
@@ -211,26 +211,18 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
 
       },
       __deleteProxyes : function() {
-        alert("Not implemented!!!");
-      },
-      __renderExpirationDate : function(value, metadata, record, rowIndex, colIndex, store) {
-        var expStr = record.data.ExpirationTime.trim();
-        var dayTime = expStr.split(" ");
-        var expEpoch = new Date(dayTime[0]).getTime() / 1000;
-        var nowEpoch = new Date().getTime() / 1000;
-        var secsLeft = expEpoch - nowEpoch;
-        var timeLimit = 86400 * 30; // 30 days before expiration
-        if (secsLeft < 0) {
-          secsLeft = 0;
-        } else if (secsLeft > timeLimit) {
-          secsLeft = timeLimit;
+        var me = this;
+        var items = [];
+        var inputs = document.getElementsByTagName('input.checkrow');
+        for (var i = 0; i < inputs.length; i++) {
+          if (inputs[i].checked) {
+            items.push(inputs[i].id);
+          }
         }
-        if (secsLeft < 3600) {
-          var green = 0;
-        } else {
-          var green = 200;
-        }
-        var red = parseInt(255 * (timeLimit - secsLeft) / timeLimit);
-        return '<span style="color: rgb(' + red + ',' + green + ',0);">' + expStr + '</span>';
+        
+        var oItems = me.grid.pagingToolbar.getSelectedCheckboxData();
+
+        console.log(items);
       }
+
     });
