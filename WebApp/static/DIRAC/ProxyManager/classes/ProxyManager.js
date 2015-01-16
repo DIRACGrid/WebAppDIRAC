@@ -35,6 +35,8 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
         return oStates;
       },
       dataFields : [{
+            name : 'proxyid'
+          }, {
             name : 'UserName'
           }, {
             name : 'UserDN'
@@ -213,16 +215,47 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
       __deleteProxyes : function() {
         var me = this;
         var items = [];
-        var inputs = document.getElementsByTagName('input.checkrow');
-        for (var i = 0; i < inputs.length; i++) {
-          if (inputs[i].checked) {
-            items.push(inputs[i].id);
-          }
-        }
-        
-        var oItems = me.grid.pagingToolbar.getSelectedCheckboxData();
+        var elememts = Ext.query("#" + me.id + " input.checkrow");
 
-        console.log(items);
+        for (var i = 0; i < elememts.length; i++)
+          if (elememts[i].checked)
+            items.push(elememts[i].value);
+
+        if (items && items.length > 0) {
+          msg = 'proxies';
+
+          if (window.confirm("Are you sure you want to delete selected proxies?"))
+            Ext.Ajax.request({
+                  url : GLOBAL.BASE_URL + me.applicationName + "/deleteProxies",
+                  params : {
+                    idList : Ext.JSON.encode(items)
+                  },
+                  success : function(oResponse) {
+
+                    if (oResponse.status == 200) {
+
+                      response = Ext.JSON.decode(oResponse.responseText);
+                      if (response.success == "false") {
+                        Ext.dirac.system_info.msg("Error", response.error);
+                      } else {
+                        Ext.dirac.system_info.msg("Notification", 'Deleted ' + response.result + ' proxies');
+                      }
+
+                    } else {
+
+                      GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                    }
+
+                  },
+                  failure : function(response) {
+
+                    GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                  }
+
+                });
+        }
+
       }
 
     });

@@ -4,7 +4,7 @@ import json
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import uniqueElements
-from DIRAC import gConfig, gLogger
+from DIRAC import gConfig, gLogger, S_ERROR
 from DIRAC.Core.Utilities import Time
 
 class ProxyManagerHandler( WebHandler ):
@@ -91,7 +91,29 @@ class ProxyManagerHandler( WebHandler ):
     timestamp = Time.dateTime().strftime( "%Y-%m-%d %H:%M [UTC]" )
     data = {"success":"true", "result":proxies, "total":svcData[ 'TotalRecords' ], "date":timestamp}
     self.finish( data )
-
+  
+  @asyncGen
+  def web_deleteProxies( self ):
+        
+    try:
+      webIds = list( json.loads( self.request.arguments[ 'idList' ][-1] ) )
+    except Exception, e:
+      self.finish( {"success":"false", "error": "No valid id's specified"} )
+    idList = []
+    for id in webIds:
+      spl = id.split( "@" )
+      dn = "@".join( spl[:-1] )
+      group = spl[-1]
+      idList.append( ( dn, group ) )
+    rpcClient = RPCClient( "Framework/ProxyManager" )
+    retVal = rpcClient.deleteProxyBundle( idList )
+    callback = {}
+    if retVal['OK']:
+      callback = {"success":"true", "result": retVal['Value']}
+    else:
+      callback = {"success":"false", "error": retVal['Message']}
+    self.finish( callback )
+  
   def __humanize_time( self, sec = False ):
     """
     Converts number of seconds to human readble values. Max return value is 
