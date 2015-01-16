@@ -43,10 +43,7 @@ class ProxyManagerHandler( WebHandler ):
     groups.sort()
     users = map( lambda x: [x], users )
     groups = map( lambda x: [x], groups )
-    if len( users ) > 1:
-      users.insert( 0, ["All"] )
-    if len( groups ) > 1:
-      groups.insert( 0, ["All"] )
+    
     callback["username"] = users
     callback["usergroup"] = groups
     result = gConfig.getOption( "/Website/ProxyManagementMonitoring/TimeSpan" )

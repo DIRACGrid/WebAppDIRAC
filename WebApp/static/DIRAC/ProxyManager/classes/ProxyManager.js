@@ -121,11 +121,12 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
         var pagingToolbar = null;
 
         var toolButtons = {
-          'Public' : [{
+          'Visible' : [{
                 "text" : "Delete",
                 "handler" : me.__deleteProxyes,
                 "properties" : {
-                  tooltip : 'Click to delete the selected proxies!'
+                  tooltip : 'Click to delete the selected proxies!',
+                  iconCls : "dirac-icon-delete"
                 }
               }]
         };
