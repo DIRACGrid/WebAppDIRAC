@@ -79,11 +79,11 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
           }, {
             name : 'CreationDate',
             type : 'date',
-            dateFormat : 'Y-n-j H:i:s'
+            dateFormat : 'Y-m-d H:i:s'
           }, {
             name : 'LastUpdate',
             type : 'date',
-            dateFormat : 'Y-n-j H:i:s'
+            dateFormat : 'Y-m-d H:i:s'
           }, {
             name : 'Files_Total'
           }, {
