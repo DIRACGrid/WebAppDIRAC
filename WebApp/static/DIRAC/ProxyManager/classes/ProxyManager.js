@@ -168,7 +168,23 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
               width : 150,
               sortable : true
             },
-            "renderer" : Ext.util.Format.dateRenderer('Y-m-j H:i')
+            "renderer" : function(value, metadata, record, rowIndex, colIndex, store) {
+              var expEpoch = record.data.ExpirationTime.getTime();
+              var nowEpoch = Ext.Date.now();
+              var secsLeft = expEpoch - nowEpoch;
+
+              var msDay = 60 * 60 * 24 * 1000;
+              var secsLeft = Math.floor((expEpoch - nowEpoch) / msDay);
+
+              var timeLimit = 30; // 30 days before expiration
+
+              if (secsLeft < timeLimit) {
+                return '<span style="color:red">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s") + '</span>';
+              } else {
+                return '<span style="color:green">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s") + '</span>';
+              }
+
+            }
           },
           "Persistent" : {
             "dataIndex" : "PersistentFlag",
@@ -196,5 +212,25 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
       },
       __deleteProxyes : function() {
         alert("Not implemented!!!");
+      },
+      __renderExpirationDate : function(value, metadata, record, rowIndex, colIndex, store) {
+        var expStr = record.data.ExpirationTime.trim();
+        var dayTime = expStr.split(" ");
+        var expEpoch = new Date(dayTime[0]).getTime() / 1000;
+        var nowEpoch = new Date().getTime() / 1000;
+        var secsLeft = expEpoch - nowEpoch;
+        var timeLimit = 86400 * 30; // 30 days before expiration
+        if (secsLeft < 0) {
+          secsLeft = 0;
+        } else if (secsLeft > timeLimit) {
+          secsLeft = timeLimit;
+        }
+        if (secsLeft < 3600) {
+          var green = 0;
+        } else {
+          var green = 200;
+        }
+        var red = parseInt(255 * (timeLimit - secsLeft) / timeLimit);
+        return '<span style="color: rgb(' + red + ',' + green + ',0);">' + expStr + '</span>';
       }
     });

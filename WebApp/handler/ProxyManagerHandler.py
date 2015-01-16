@@ -127,14 +127,16 @@ class ProxyManagerHandler( WebHandler ):
   def __request( self ):
     gLogger.info( "!!!  PARAMS: ", str( self.request.arguments ) )
     req = {}
-    try:
-      start = int( self.request.arguments[ 'start' ] )
-    except:
-      start = 0
-    try:
-      limit = int( self.request.arguments[ 'limit' ] )
-    except:
-      limit = 25
+    
+    start = 0
+    limit = 25
+    
+    if self.request.arguments.has_key( "limit" ) and len( self.request.arguments["limit"][0] ) > 0:
+      limit = int( self.request.arguments["limit"][0] )
+    
+    if self.request.arguments.has_key( "start" ) and len( self.request.arguments["start"][0] ) > 0:
+        start = int( self.request.arguments["start"][0] )
+        
     try:
       sortDirection = str( self.request.arguments[ 'sortDirection' ] ).strip()
     except:
