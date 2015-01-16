@@ -179,7 +179,7 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
               var timeLimit = 30; // 30 days before expiration
 
               if (secsLeft < timeLimit) {
-                return '<span style="color:red">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s") + '</span>';
+                return '<span style="color:red">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s")+' ('+secsLeft+')' + '</span>';
               } else {
                 return '<span style="color:green">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s") + '</span>';
               }
