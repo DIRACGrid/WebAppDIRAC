@@ -145,6 +145,9 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
               hideable : true,
               ortable : true,
               align : 'left'
+            },
+            renderer : function flag(code) {
+              return '<img src="' +  GLOBAL.BASE_URL + 'static/core/img/flags/' + code + '.gif">';
             }
           },
           "SiteType" : {
@@ -289,11 +292,12 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
 
         me.leftPanel.setGrid(me.grid);
 
-        /*me.overviewPanel = Ext.create("DIRAC.ResourceSummary.classes.OverviewPanel", {
-              applicationName : me.applicationName,
-              parentWidget : me
-            });*/
-        me.add([me.leftPanel, me.grid]);//, me.overviewPanel]);
+        /*
+         * me.overviewPanel =
+         * Ext.create("DIRAC.ResourceSummary.classes.OverviewPanel", {
+         * applicationName : me.applicationName, parentWidget : me });
+         */
+        me.add([me.leftPanel, me.grid]);// , me.overviewPanel]);
 
       },
       __oprOnSiteSummaryData : function(action) {
