@@ -119,7 +119,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
               items : me.view,
               layout : 'fit',
               resizable : true
-            })
+            });
         var historyStore = new Ext.data.ArrayStore({
               fields : ["Status", "DataEffectiv", "Reason"],
               data : []
