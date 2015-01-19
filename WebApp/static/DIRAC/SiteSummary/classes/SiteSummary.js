@@ -1,7 +1,7 @@
 Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
       extend : 'Ext.dirac.core.Module',
       requires : ["Ext.dirac.utils.DiracBaseSelector", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracAjaxProxy", "Ext.dirac.utils.DiracPagingToolbar", 'Ext.dirac.utils.DiracToolButton', "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracGridPanel",
-          "Ext.dirac.utils.DiracRowExpander"],
+          "DIRAC.SiteSummary.classes.OverviewPanel"],
       loadState : function(data) {
         var me = this;
 
@@ -292,12 +292,12 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
 
         me.leftPanel.setGrid(me.grid);
 
-        /*
-         * me.overviewPanel =
-         * Ext.create("DIRAC.ResourceSummary.classes.OverviewPanel", {
-         * applicationName : me.applicationName, parentWidget : me });
-         */
-        me.add([me.leftPanel, me.grid]);// , me.overviewPanel]);
+        me.overviewPanel = Ext.create("DIRAC.SiteSummary.classes.OverviewPanel", {
+              applicationName : me.applicationName,
+              parentWidget : me
+            });
+
+        me.add([me.leftPanel, me.grid, me.overviewPanel]);
 
       },
       __oprOnSiteSummaryData : function(action) {

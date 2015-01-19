@@ -142,6 +142,43 @@ class SiteSummaryHandler( WebHandler ):
     policies = [ [ r[0], r[1], str( r[2] ), str( r[3] ), r[4] ] for r in res[ 'Value' ] ]
 
     self.finish( { 'success' : 'true', 'result' : policies, 'total' : len( policies ) } )
+  
+  def _getInfo( self, requestParams ):
+    requestParams = self.__requestParams()
+    gLogger.info( requestParams )
+
+    if not requestParams[ 'name' ]:
+      gLogger.warn( 'No name given' )
+      self.finish( { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' } )
+      
+    elementName = requestParams[ 'name' ][ 0 ]
+
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+
+    elementStatuses = pub.getElementStatuses( 'Site',
+                                              str(elementName),
+                                              None,
+                                              'all',
+                                              None,
+                                              None )
+
+    
+    if not elementStatuses[ 'OK' ]:
+      gLogger.error( elementStatuses[ 'Message' ] )
+      self.finish( { 'success': 'false', 'error': 'Error getting ElementStatus information' } )
+      
+    
+    if not elementStatuses[ 'Value' ]:
+      gLogger.error( 'element "%s" not found' % elementName )
+      self.finish( { 'success' : 'false', 'error' : 'element "%s" not found' % elementName } )
+      
+    elementStatus = [ dict( zip( elementStatuses[ 'Columns' ], element ) ) for element in elementStatuses[ 'Value' ] ][ 0 ]
+    elementStatus[ 'DateEffective' ] = str( elementStatus[ 'DateEffective' ] )
+    elementStatus[ 'LastCheckTime' ] = str( elementStatus[ 'LastCheckTime' ] )
+    elementStatus[ 'TokenExpiration' ] = str( elementStatus[ 'TokenExpiration' ] )
+    
+    
+    self.finish( { 'success' : 'true', 'result' : elementStatus, 'total' : len( elementStatus ) } )
     
   def __requestParams( self ):
     '''
