@@ -60,7 +60,7 @@ class SiteSummaryHandler( WebHandler ):
                                               requestParams[ 'status' ],
                                               requestParams[ 'tokenOwner' ] )
     if not elementStatuses[ 'OK' ]:
-      self.finish({ 'success' : 'false', 'error' : elementStatuses[ 'Message' ] })
+      self.finish( { 'success' : 'false', 'error' : elementStatuses[ 'Message' ] } )
       
     elementList = [ dict( zip( elementStatuses[ 'Columns' ], site ) ) for site in elementStatuses[ 'Value' ] ]
 
@@ -75,6 +75,73 @@ class SiteSummaryHandler( WebHandler ):
 
     self.finish( result )
 
+  
+   
+  @asyncGen
+  def web_action( self ):
+    
+    requestParams = self.__requestParams()
+    if 'action' in requestParams and requestParams[ 'action' ]:
+      
+      actionName = requestParams[ 'action' ][ 0 ]
+      
+      methodName = actionName
+      if not actionName.startswith( 'set' ):
+        methodName = '_get%s' % actionName
+      
+      try:
+        return  getattr( self, methodName )( requestParams )
+      except AttributeError:
+        result = { 'success' : 'false', 'error' : 'bad action %s' % actionName }  
+    
+    else:
+      
+      result = { 'success' : 'false', 'error' : 'Missing action' }
+    
+    self.finish( result )
+  
+  def _getHistory( self, requestParams ):
+
+    # Sanitize
+    if not 'name' in requestParams or not requestParams[ 'name' ]:
+      self.finish( { 'success' : 'false', 'error' : 'Missing name' } )
+    if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
+      self.finish( { 'success' : 'false', 'error' : 'Missing elementType' } )
+    if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
+      self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
+
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    res = pub.getElementHistory( 'Site', requestParams[ 'name' ],
+                                 requestParams[ 'elementType' ],
+                                 requestParams[ 'statusType' ] )
+
+    if not res[ 'OK' ]:
+      gLogger.error( res[ 'Message' ] )
+      self.finish( { 'success' : 'false', 'error' : 'error getting history' } )
+
+    history = [ [ r[0], str( r[1] ), r[2] ] for r in res[ 'Value' ] ]
+
+    self.finish( { 'success' : 'true', 'result' : history, 'total' : len( history ) } )
+
+  def _getPolicies( self, requestParams ):
+
+    # Sanitize
+    if not 'name' in requestParams or not requestParams[ 'name' ]:
+      self.finish( { 'success' : 'false', 'error' : 'Missing name' } )
+    if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
+      self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
+
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    res = pub.getElementPolicies( 'Site', requestParams[ 'name' ],
+                                  requestParams[ 'statusType' ] )
+
+    if not res[ 'OK' ]:
+      gLogger.error( res[ 'Message' ] )
+      self.finish( { 'success' : 'false', 'error' : 'error getting policies' } )
+
+    policies = [ [ r[0], r[1], str( r[2] ), str( r[3] ), r[4] ] for r in res[ 'Value' ] ]
+
+    self.finish( { 'success' : 'true', 'result' : policies, 'total' : len( policies ) } )
     
   def __requestParams( self ):
     '''

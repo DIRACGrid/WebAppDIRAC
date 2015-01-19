@@ -147,7 +147,7 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
               align : 'left'
             },
             renderer : function flag(code) {
-              return '<img src="' +  GLOBAL.BASE_URL + 'static/core/img/flags/' + code + '.gif">';
+              return '<img src="' + GLOBAL.BASE_URL + 'static/core/img/flags/' + code + '.gif">';
             }
           },
           "SiteType" : {
@@ -303,6 +303,82 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
       __oprOnSiteSummaryData : function(action) {
         var me = this;
         var selectedValues = me.__getSelectedValues();
+        me.getContainer().body.mask("Wait ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode([action]),
+                name : Ext.JSON.encode([selectedValues.name]),
+                elementType : Ext.JSON.encode([selectedValues.elementType]),
+                statusType : Ext.JSON.encode([selectedValues.statusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              },
+              success : function(response) {
+
+                me.getContainer().body.unmask();
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+
+                  if (action == "History") {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "History:" + selectedValues.name + "(" + selectedValues.statusType + ")", ["Status", "DataEffectiv", "Reason"], [{
+                              text : 'Status',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'Status'
+                            }, {
+                              text : 'DataEffectiv',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'DataEffectiv'
+                            }, {
+                              text : 'Reason',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'Reason'
+                            }]);
+
+                  } else if (action == "Policies") {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Policies:" + selectedValues.name + "(" + selectedValues.statusType + ")", ["Status", "PolicyName", "DataEffectiv", "LastCheckTime", "Reason"], [{
+                              text : 'Status',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'Status'
+                            }, {
+                              text : 'PolicyName',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'PolicyName'
+                            }, {
+                              text : 'DataEffectiv',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'DataEffectiv'
+                            }, {
+                              text : 'LastCheckTime',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'LastCheckTime'
+                            }, {
+                              text : 'Reason',
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : 'Reason'
+                            }]);
+
+                  } else {
+                    me.getContainer().body.unmask();
+                    Ext.dirac.system_info.msg("error", jsonData["error"]);
+
+                  }
+
+                }
+              }
+            });
       },
       __getSelectedValues : function() {
         var me = this;
@@ -312,7 +388,6 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
         values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
         values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
         values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
-        values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
 
         return values;
       },
