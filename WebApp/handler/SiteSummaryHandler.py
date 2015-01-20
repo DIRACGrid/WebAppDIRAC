@@ -2,6 +2,7 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping    import getGOCSiteName, getDIRACSiteName
+from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSiteComputingElements, getSiteStorageElements
 
 from DIRAC import gLogger
 import collections
@@ -145,7 +146,7 @@ class SiteSummaryHandler( WebHandler ):
     self.finish( { 'success' : 'true', 'result' : policies, 'total' : len( policies ) } )
   
   def _getInfo( self, requestParams ):
-    requestParams = self.__requestParams()
+    
     gLogger.info( requestParams )
 
     if not requestParams[ 'name' ]:
@@ -216,10 +217,40 @@ class SiteSummaryHandler( WebHandler ):
 
     elog = convertName.get( gocdb_name, "" );
     
-    elementStatus['Elog'] = '<a href="https://lblogbook.cern.ch/Operations/?Site=^'+elog+'%24&mode=summary" target="_blank">' + elog +'</a>'
+    elementStatus['Elog'] = '<a href="https://lblogbook.cern.ch/Operations/?Site=^' + elog + '%24&mode=summary" target="_blank">' + elog + '</a>'
     
     self.finish( { 'success' : 'true', 'result' : elementStatus, 'total' : len( elementStatus ) } )
+  
+  def _getStorages( self, requestParams ):
     
+    if not requestParams[ 'name' ]:
+      gLogger.warn( 'No name given' )
+      self.finish( { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' } )
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+      
+    elementName = requestParams[ 'name' ][ 0 ]
+    storage_elements = getSiteStorageElements( elementName )
+    storage_elements_status = []
+    gLogger.info( 'storage_elements = ' + str( storage_elements ) )
+
+    # FIXME: use properly RSS
+    for se in storage_elements:
+      sestatuses = yield self.threadTask( pub.getElementStatuses, 'Resource',
+                                            se,
+                                            None,
+                                            None,
+                                            None,
+                                            None )
+
+      seStatus = []
+
+      
+      for sestatus in sestatuses[ 'Value' ]:
+        storage_elements_status.append( [  sestatus[0], sestatus[2], sestatus[6]] )
+    
+    self.finish( { 'success' : 'true', 'result' : storage_elements_status, 'total' : len( storage_elements_status ) } ) 
+  
   def __requestParams( self ):
     '''
       We receive the request and we parse it, in this case, we are doing nothing,

@@ -108,8 +108,8 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               fields : me.dataFields
             });
         var tpl = new Ext.XTemplate('<tpl for=".">', '<div style="margin-bottom: 10px;" class="dataset-statistics">', '<b>Name:</b> {Name}<br/>', '<b>Status Type:</b> {StatusType}<br/>', '<b>Status:</b> {Status}<br/>', '<b>ElementType:</b> {ElementType}<br/>',
-            '<b>Reason:</b> {Reason}<br/>', '<b>DateEffective:</b> {DateEffective} <br><b>LastCheckTime:</b> {LastCheckTime}<br/> <b>TokenOwner:</b> {TokenOwner}<br/>', '<b>TokenExpiration:</b> {TokenExpiration}<br/>', '<b>GOCDB:</b> {GOCDB}<br/>', 
-            '<b>GGUS:</b> {GGUS}<br/>','<b>Elog:</b> {Elog}<br/>','</div>', '</tpl>');
+            '<b>Reason:</b> {Reason}<br/>', '<b>DateEffective:</b> {DateEffective} <br><b>LastCheckTime:</b> {LastCheckTime}<br/> <b>TokenOwner:</b> {TokenOwner}<br/>', '<b>TokenExpiration:</b> {TokenExpiration}<br/>', '<b>GOCDB:</b> {GOCDB}<br/>', '<b>GGUS:</b> {GGUS}<br/>',
+            '<b>Elog:</b> {Elog}<br/>', '</div>', '</tpl>');
 
         me.view = new Ext.view.View({
               columnWidth : 1 / 3,
@@ -127,7 +127,75 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               resizable : true
             });
 
+        var historyStore = new Ext.data.ArrayStore({
+              fields : ["Status", "Name", "StatusType"],
+              data : []
+            });
+
+        me.historyGrid = Ext.create("Ext.grid.Panel", {
+              layout : 'fit',
+              store : historyStore,
+              columns : [{
+                    text : 'Status',
+                    sortable : false,
+                    width : 26,
+                    sortable : false,
+                    hideable : false,
+                    fixed : true,
+                    menuDisabled : true,
+                    dataIndex : 'Status',
+                    renderer : function(value) {
+                      if ((value == 'Done') || (value == 'Good') || (value == 'Active') || (value == 'Cleared')) {
+                        return '<img src="static/core/img/statusIcons/done.gif"/>';
+                      } else if (value == 'Bad') {
+                        return '<img src="static/core/img/statusIcons/bad.gif"/>';
+                      } else if ((value == 'Failed') || (value == 'Bad') || (value == 'Banned') || (value == 'Aborted')) {
+                        return '<img src="static/core/img/statusIcons/failed.gif"/>';
+                      } else if ((value == 'Waiting') || (value == 'Stopped') || (value == 'Poor') || (value == 'Probing')) {
+                        return '<img src="static/core/img/statusIcons/waiting.gif"/>';
+                      } else if (value == 'Deleted') {
+                        return '<img src="static/core/img/statusIcons/deleted.gif"/>';
+                      } else if (value == 'Matched') {
+                        return '<img src="static/core/img/statusIcons/matched.gif"/>';
+                      } else if ((value == 'Running') || (value == 'Active') || (value == 'Fair')) {
+                        return '<img src="static/core/img/statusIcons/running.gif"/>';
+                      } else if (value == 'NoMask') {
+                        return '<img src="static/core/img/statusIcons/unknown.gif"/>';
+                      } else if ((value == 'Completed') || value == (value == 'Completing')) {
+                        return '<img src="static/core/img/statusIcons/completed.gif"/>';
+                      } else if (value == 'Idle') {
+                        return '<img src="static/core/img/statusIcons/idle.gif"/>';
+                      } else {
+                        return '<img src="static/core/img/statusIcons/unknown.gif"/>';
+                      }
+                    }
+                  }, {
+                    text : 'Name',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'Name'
+                  }, {
+                    text : 'Status Type',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'StatusType'
+                  }],
+              width : '100%',
+              height : '50%',
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              }
+            })
+        me.historyPanel = Ext.create("Ext.panel.Panel", {
+              title : "Storage Elements",
+              columnWidth : 1 / 3,
+              items : [me.historyGrid],
+              height : '50%',
+              resizable : true
+            });
         me.callParent(arguments);
+        me.viewPanel.add(me.historyGrid);
         me.add([me.viewPanel]);
 
       },
@@ -158,6 +226,32 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                   me.setTitle(jsonData["result"]["Name"]);
                   me.view.getStore().loadData([jsonData["result"]]);
                   me.viewPanel.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg("error", jsonData["error"]);
+                }
+              }
+            });
+
+        me.historyGrid.body.mask("Loading ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode(["Storages"]),
+                name : Ext.JSON.encode([selection.name])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.historyGrid.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+                  me.historyGrid.getStore().loadData(jsonData["result"]);
+                  me.historyGrid.body.unmask();
                 } else {
                   GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
