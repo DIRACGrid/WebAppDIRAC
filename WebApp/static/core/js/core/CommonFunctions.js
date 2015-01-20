@@ -221,6 +221,18 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
             break;
 
+          case "info" :
+            config = {
+              title : 'Notification',
+              position : 'tl',
+              manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
+              stickWhileHover : false,
+              iconCls : 'ux-notification-icon-information',
+              html : message,
+              message : message
+            };
+            break;
+
           case "Error" :
             config = {
               autoClose : false,
