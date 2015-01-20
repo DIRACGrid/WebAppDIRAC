@@ -1,6 +1,7 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping    import getGOCSiteName, getDIRACSiteName
 
 from DIRAC import gLogger
 import collections
@@ -156,7 +157,7 @@ class SiteSummaryHandler( WebHandler ):
     pub = RPCClient( 'ResourceStatus/Publisher' )
 
     elementStatuses = pub.getElementStatuses( 'Site',
-                                              str(elementName),
+                                              str( elementName ),
                                               None,
                                               'all',
                                               None,
@@ -177,6 +178,45 @@ class SiteSummaryHandler( WebHandler ):
     elementStatus[ 'LastCheckTime' ] = str( elementStatus[ 'LastCheckTime' ] )
     elementStatus[ 'TokenExpiration' ] = str( elementStatus[ 'TokenExpiration' ] )
     
+    gocdb_name = getGOCSiteName( elementName )
+    if not gocdb_name[ 'OK' ]:
+      gLogger.error( gocdb_name[ 'Message' ] )
+      elementStatus[ 'GOCDB' ] = ""
+      gocdb_name = ''
+    else:
+      gocdb_name = gocdb_name[ 'Value' ]
+      elementStatus[ 'GOCDB' ] = '<a href="https://goc.egi.eu/portal/index.php?Page_Type=Submit_Search&SearchString=%s" target="_blank">%s</a>' % ( gocdb_name, gocdb_name )
+    
+    dirac_names = getDIRACSiteName( gocdb_name )
+    if not dirac_names[ 'OK' ]:
+      gLogger.error( dirac_names[ 'Message' ] )
+      dirac_names = []
+    else:
+      elementStatus[ 'GOCDB' ] += "("
+      for i in dirac_names['Value']:
+        elementStatus[ 'GOCDB' ] += "%s " % i
+      elementStatus[ 'GOCDB' ] += ")"
+      
+    elementStatus["GGUS"] = '<a href="https://ggus.eu/ws/ticket_search.php?show_columns_check[]=REQUEST_ID&show_columns_check[]=TICKET_TYPE&show_columns_check[]=AFFECTED_VO&'
+    elementStatus["GGUS"] += 'show_columns_check[]=AFFECTED_SITE&show_columns_check[]=PRIORITY&show_columns_check[]=RESPONSIBLE_UNIT&show_columns_check[]=STATUS&show_columns_check[]=DATE_OF_CREATION&'
+    
+    elementStatus["GGUS"] += 'show_columns_check[]=LAST_UPDATE&show_columns_check[]=TYPE_OF_PROBLEM&show_columns_check[]=SUBJECT&ticket=&supportunit=all&su_hierarchy=all&vo=all&user=&keyword=&involvedsupporter=&assignto=&'
+    elementStatus["GGUS"] += 'affectedsite=%s&specattrib=0&status=open&priority=all&typeofproblem=all&ticketcategory=&mouarea=&technology_provider=&date_type=creation+date&radiotf=1&timeframe=any&from_date=&to_date=&' % gocdb_name
+    elementStatus["GGUS"] += 'untouched_date=&orderticketsby=GHD_INT_REQUEST_ID&orderhow=descending" target="_blank"> %s tickets</a>' % gocdb_name 
+    
+    convertName = {'CERN-PROD':'CERN',
+                   'INFN-T1':'CNAF',
+                   'FZK-LCG2':'GridKa',
+                   'IN2P3-CC':'IN2P3',
+                   'NIKHEF-ELPROD':'NIKHEF',
+                   'pic':'PIC',
+                   'RAL-LCG2':'RAL',
+                   'SARA-MATRIX':'SARA'}
+
+
+    elog = convertName.get( gocdb_name, "" );
+    
+    elementStatus['Elog'] = '<a href="https://lblogbook.cern.ch/Operations/?Site=^'+elog+'%24&mode=summary" target="_blank">' + elog +'</a>'
     
     self.finish( { 'success' : 'true', 'result' : elementStatus, 'total' : len( elementStatus ) } )
     
@@ -202,3 +242,4 @@ class SiteSummaryHandler( WebHandler ):
         responseParams[ key ] = list( json.loads( self.request.arguments[ key ][-1] ) )   
   
     return responseParams    
+

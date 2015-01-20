@@ -96,13 +96,20 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               name : 'TokenOwner'
             }, {
               name : 'TokenExpiration'
+            }, {
+              name : 'GOCDB'
+            }, {
+              name : 'GGUS'
+            }, {
+              name : 'Elog'
             }];
 
         var viewStore = Ext.create('Ext.data.Store', {
               fields : me.dataFields
             });
         var tpl = new Ext.XTemplate('<tpl for=".">', '<div style="margin-bottom: 10px;" class="dataset-statistics">', '<b>Name:</b> {Name}<br/>', '<b>Status Type:</b> {StatusType}<br/>', '<b>Status:</b> {Status}<br/>', '<b>ElementType:</b> {ElementType}<br/>',
-            '<b>Reason:</b> {Reason}<br/>', '<b>DateEffective:</b> {DateEffective} <br><b>LastCheckTime:</b> {LastCheckTime}<br/> <b>TokenOwner:</b> {TokenOwner}<br/>', '<b>TokenExpiration:</b> {TokenExpiration}<br/>', '</div>', '</tpl>');
+            '<b>Reason:</b> {Reason}<br/>', '<b>DateEffective:</b> {DateEffective} <br><b>LastCheckTime:</b> {LastCheckTime}<br/> <b>TokenOwner:</b> {TokenOwner}<br/>', '<b>TokenExpiration:</b> {TokenExpiration}<br/>', '<b>GOCDB:</b> {GOCDB}<br/>', 
+            '<b>GGUS:</b> {GGUS}<br/>','<b>Elog:</b> {Elog}<br/>','</div>', '</tpl>');
 
         me.view = new Ext.view.View({
               columnWidth : 1 / 3,
