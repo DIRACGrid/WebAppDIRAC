@@ -272,10 +272,10 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               resizable : false,
               layout : 'column'
             });
-        
+
         me.rightPanel.add(me.plotPanel);
         me.viewPanel.add(me.leftPanel);
-        
+
         me.add([me.viewPanel, me.rightPanel]);
         me.viewPanel.setLoading(true);
 
@@ -393,7 +393,23 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                           columnWidth : width,
                           src : src
                         });
+                    img.on('click', function(e, t, eOpts, me) {
+                          var me = this;
+                          var img = me.plotPanel.getComponent(t.id);
+                          if (img) {
+                            me.fullSizeImage(img);
+                          }
+
+                        }, this);
                     me.plotPanel.add(img);
+                    img.getEl().on('click', function(e, t, eOpts, me) {
+                          var me = this;
+                          var img = me.plotPanel.getComponent(t.id);
+                          if (img) {
+                            me.fullSizeImage(img);
+                          }
+
+                        }, this);
                   }
                 } else {
                   GLOBAL.APP.CF.msg("error", jsonData["error"]);
@@ -402,28 +418,38 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
             });
 
       },
-      gocdb_to_elog_site_name : function(name) {
-        switch (name) {
-          case 'CERN-PROD' :
-            return 'CERN';
-          case 'INFN-T1' :
-            return 'CNAF';
-          case 'FZK-LCG2' :
-            return 'GridKa';
-          case 'IN2P3-CC' :
-            return 'IN2P3';
-          case 'NIKHEF-ELPROD' :
-            return 'NIKHEF';
-          case 'pic' :
-            return 'PIC';
-          case 'RAL-LCG2' :
-            return 'RAL';
-          case 'SARA-MATRIX' :
-            return 'SARA';
+      fullSizeImage : function(img) {
+        var me = this;
 
-          default :
-            return '';
+        var html = '<img src="' + img.src + '" />';
+        if (Ext.firefoxVersion > 0) {
+
+          var win = new Ext.window.Window({
+                collapsible : true,
+                constrain : true,
+                constrainHeader : true,
+                html : html,
+                layout : 'fit',
+                minHeight : 200,
+                minWidth : 320,
+                maximizable : true,
+                minimizable : true
+              });
+          win.show();
+
+        } else {
+          var panel = Ext.create('Ext.panel.Panel', {
+                constrainHeader : false,
+                constrain : true,
+                html : html,
+                layout : 'fit',
+                height : 600,
+                width : 834
+              });
+
+          var win = me.up("panel").createChildWindow(img.plotParams._plotName + '::' + img.plotParams._grouping, false, 850, 650);
+          win.add(panel);
+          win.show();
         }
       }
-
     });
