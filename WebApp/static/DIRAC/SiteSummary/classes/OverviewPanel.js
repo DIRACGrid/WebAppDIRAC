@@ -126,7 +126,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               layout : 'fit',
               resizable : true
             });
-        
+
         var ceStore = new Ext.data.ArrayStore({
               fields : ["Status", "Name", "StatusType"],
               data : []
@@ -188,7 +188,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 enableTextSelection : true
               }
             });
-            
+
         var stotageStore = new Ext.data.ArrayStore({
               fields : ["Status", "Name", "StatusType"],
               data : []
@@ -257,9 +257,26 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               resizable : true
             });
         me.callParent(arguments);
+
+        me.rightPanel = Ext.create("Ext.panel.Panel", {
+              columnWidth : 1 / 2,
+              items : [],
+              resizable : false,
+              layout : 'fit'
+            });
+
+        me.plotPanel = Ext.create("Ext.panel.Panel", {
+              title : 'Plots',
+              columnWidth : 3,
+              items : [],
+              resizable : false,
+              layout : 'column'
+            });
         
+        me.rightPanel.add(me.plotPanel);
         me.viewPanel.add(me.leftPanel);
-        me.add([me.viewPanel]);
+        
+        me.add([me.viewPanel, me.rightPanel]);
         me.viewPanel.setLoading(true);
 
       },
@@ -267,7 +284,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
         var me = this;
 
         me.viewPanel.body.mask("Loading ...");
-        //me.leftPanel.body.mask("Loading ...");
+        // me.leftPanel.body.mask("Loading ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
               method : 'POST',
@@ -296,7 +313,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 }
               }
             });
-            
+
         me.ceGrid.body.mask("Loading ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
@@ -322,7 +339,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 }
               }
             });
-            
+
         me.storageGrid.body.mask("Loading ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
@@ -343,6 +360,41 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 if (jsonData["success"] == "true") {
                   me.storageGrid.getStore().loadData(jsonData["result"]);
                   me.storageGrid.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg("error", jsonData["error"]);
+                }
+              }
+            });
+        me.rightPanel.body.mask("Loading ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode(["Images"]),
+                name : Ext.JSON.encode([selection.name])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.rightPanel.body.unmask();
+              },
+              success : function(response) {
+                me.rightPanel.body.unmask();
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+
+                  var width = 99 / 2;
+                  width = '.' + Math.round(width);
+                  for (var i = 0; i < jsonData.result.length; i++) {
+                    var src = GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + jsonData.result[i] + "&nocache=" + (new Date()).getTime();
+                    var img = Ext.create('Ext.Img', {
+                          columnWidth : width,
+                          src : src
+                        });
+                    me.plotPanel.add(img);
+                  }
                 } else {
                   GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }

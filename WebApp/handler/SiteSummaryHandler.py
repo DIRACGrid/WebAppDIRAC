@@ -3,6 +3,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping    import getGOCSiteName, getDIRACSiteName
 from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSiteComputingElements, getSiteStorageElements
+from DIRAC.AccountingSystem.private.FileCoding      import codeRequestInFileId
 
 from DIRAC import gLogger
 import collections
@@ -278,6 +279,77 @@ class SiteSummaryHandler( WebHandler ):
 
     return { 'success' : 'true', 'result' : computing_elements_status, 'total' : len( computing_elements_status ) }
       
+  def _getImages( self, requestParams ):
+    
+    if not requestParams[ 'name' ]:
+      gLogger.warn( 'No name given' )
+      return { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' } 
+        
+    elementName = requestParams[ 'name' ][ 0 ]
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+
+    elementStatuses = pub.getElementStatuses( 'Site',
+                                              str(elementName),
+                                              None,
+                                              'all',
+                                              None,
+                                              None )
+
+
+    print 'dada', elementStatuses
+    if not elementStatuses[ 'Value' ]:
+      gLogger.error( 'element "%s" not found' % elementName )
+      return { 'success' : 'false', 'error' : 'element "%s" not found' % elementName }
+      
+
+    elementStatus = [ dict( zip( elementStatuses[ 'Columns' ], element ) ) for element in elementStatuses[ 'Value' ] ][ 0 ]
+
+    plotDict1 = self.getPlotDict( elementStatus[ 'Name' ], 'FinalMajorStatus',
+                                  'RunningJobs', 'Job', plotTitle = 'Final Minor Status of done jobs' )
+    image1 = codeRequestInFileId( plotDict1 )[ 'Value' ][ 'plot' ]
+
+    plotDict2 = self.getPlotDict( elementStatus[ 'Name' ], 'GridStatus',
+                                  'NumberOfPilots', 'Pilot' )
+    image2 = codeRequestInFileId( plotDict2 )[ 'Value' ][ 'plot' ]
+
+    plotDict3 = self.getPlotDict( elementStatus[ 'Name' ], 'JobType',
+                                  'RunningJobs', 'Job', plotTitle = 'Type of done jobs' )
+    image3 = codeRequestInFileId( plotDict3 )[ 'Value' ][ 'plot' ]
+
+    plotDict4 = self.getPlotDict( elementStatus[ 'Name' ], 'JobSplitType',
+                                  'NumberOfJobs', 'WMSHistory', status = 'Running' )
+    image4 = codeRequestInFileId( plotDict4 )[ 'Value' ][ 'plot' ]
+
+    plotDict5 = self.getPlotDict( elementStatus[ 'Name' ], 'Channel',
+                                  'SuceededTransfers', 'DataOperation' )
+    image5 = codeRequestInFileId( plotDict5 )[ 'Value' ][ 'plot' ]
+
+    plotDict6 = self.getPlotDict( elementStatus[ 'Name' ], 'FinalStatus',
+                                  'FailedTransfers', 'DataOperation' )
+    image6 = codeRequestInFileId( plotDict6 )[ 'Value' ][ 'plot' ]
+    
+    return { 'success' : 'true', 'result' : [image1, image2, image3, image4, image5, image6], 'total' :  6  }
+  def getPlotDict( self, siteName, grouping, reportName, typeName, plotTitle = None,
+                   status = None ):
+
+    plotDict = { 'condDict'   : {
+                                  'Site'     : [ siteName ],
+                                  'grouping' : [ grouping ]
+                                 },
+                  'extraArgs'  : {
+                                  'lastSeconds' : 43200
+                                  },
+                  'grouping'   : grouping,
+                  'reportName' : reportName,
+                  'typeName'   : typeName }
+
+    if plotTitle is not None:
+      plotDict[ 'condDict' ][ 'plotTitle' ] = plotTitle
+    if status is not None:
+      plotDict[ 'condDict' ][ 'status' ] = status
+
+    return plotDict
+  
   def __requestParams( self ):
     '''
       We receive the request and we parse it, in this case, we are doing nothing,
