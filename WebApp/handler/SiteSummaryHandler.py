@@ -92,7 +92,7 @@ class SiteSummaryHandler( WebHandler ):
         methodName = '_get%s' % actionName
       
       try:
-        return  getattr( self, methodName )( requestParams )
+        result = yield self.threadTask( getattr( self, methodName ), requestParams )
       except AttributeError:
         result = { 'success' : 'false', 'error' : 'bad action %s' % actionName }  
     
@@ -106,11 +106,11 @@ class SiteSummaryHandler( WebHandler ):
 
     # Sanitize
     if not 'name' in requestParams or not requestParams[ 'name' ]:
-      self.finish( { 'success' : 'false', 'error' : 'Missing name' } )
+      return { 'success' : 'false', 'error' : 'Missing name' } 
     if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
-      self.finish( { 'success' : 'false', 'error' : 'Missing elementType' } )
+      return { 'success' : 'false', 'error' : 'Missing elementType' } 
     if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
-      self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
+      return { 'success' : 'false', 'error' : 'Missing statusType' } 
 
     pub = RPCClient( 'ResourceStatus/Publisher' )
     res = pub.getElementHistory( 'Site', requestParams[ 'name' ],
@@ -119,17 +119,17 @@ class SiteSummaryHandler( WebHandler ):
 
     if not res[ 'OK' ]:
       gLogger.error( res[ 'Message' ] )
-      self.finish( { 'success' : 'false', 'error' : 'error getting history' } )
+      return { 'success' : 'false', 'error' : 'error getting history' } 
 
     history = [ [ r[0], str( r[1] ), r[2] ] for r in res[ 'Value' ] ]
 
-    self.finish( { 'success' : 'true', 'result' : history, 'total' : len( history ) } )
+    return { 'success' : 'true', 'result' : history, 'total' : len( history ) } 
 
   def _getPolicies( self, requestParams ):
 
     # Sanitize
     if not 'name' in requestParams or not requestParams[ 'name' ]:
-      self.finish( { 'success' : 'false', 'error' : 'Missing name' } )
+      return { 'success' : 'false', 'error' : 'Missing name' } 
     if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
       self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
 
@@ -139,11 +139,11 @@ class SiteSummaryHandler( WebHandler ):
 
     if not res[ 'OK' ]:
       gLogger.error( res[ 'Message' ] )
-      self.finish( { 'success' : 'false', 'error' : 'error getting policies' } )
+      return { 'success' : 'false', 'error' : 'error getting policies' } 
 
     policies = [ [ r[0], r[1], str( r[2] ), str( r[3] ), r[4] ] for r in res[ 'Value' ] ]
 
-    self.finish( { 'success' : 'true', 'result' : policies, 'total' : len( policies ) } )
+    return { 'success' : 'true', 'result' : policies, 'total' : len( policies ) } 
   
   def _getInfo( self, requestParams ):
     
@@ -219,13 +219,13 @@ class SiteSummaryHandler( WebHandler ):
     
     elementStatus['Elog'] = '<a href="https://lblogbook.cern.ch/Operations/?Site=^' + elog + '%24&mode=summary" target="_blank">' + elog + '</a>'
     
-    self.finish( { 'success' : 'true', 'result' : elementStatus, 'total' : len( elementStatus ) } )
+    return { 'success' : 'true', 'result' : elementStatus, 'total' : len( elementStatus ) } 
   
   def _getStorages( self, requestParams ):
     
     if not requestParams[ 'name' ]:
       gLogger.warn( 'No name given' )
-      self.finish( { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' } )
+      return { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' } 
     
     pub = RPCClient( 'ResourceStatus/Publisher' )
       
@@ -236,21 +236,48 @@ class SiteSummaryHandler( WebHandler ):
 
     # FIXME: use properly RSS
     for se in storage_elements:
-      sestatuses = yield self.threadTask( pub.getElementStatuses, 'Resource',
+      sestatuses = pub.getElementStatuses( 'Resource',
                                             se,
                                             None,
                                             None,
                                             None,
                                             None )
 
-      seStatus = []
-
       
       for sestatus in sestatuses[ 'Value' ]:
         storage_elements_status.append( [  sestatus[0], sestatus[2], sestatus[6]] )
     
-    self.finish( { 'success' : 'true', 'result' : storage_elements_status, 'total' : len( storage_elements_status ) } ) 
+    return { 'success' : 'true', 'result' : storage_elements_status, 'total' : len( storage_elements_status ) }  
   
+  def _getComputingElements( self, requestParams ):
+    
+    if not requestParams[ 'name' ]:
+      gLogger.warn( 'No name given' )
+      return { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' } 
+    
+    pub = RPCClient( 'ResourceStatus/Publisher' )
+    
+    elementName = requestParams[ 'name' ][ 0 ]
+    
+    computing_elements = getSiteComputingElements( elementName )
+    computing_elements_status = []
+    gLogger.info( 'computing_elements = ' + str( computing_elements ) )
+
+    for ce in computing_elements:
+      cestatuses = pub.getElementStatuses( 'Resource',
+                                            ce,
+                                            None,
+                                            'all',
+                                            None,
+                                            None )
+      gLogger.info( 'cestatus = ' + str( cestatuses ) )
+
+      
+      for cestatus in cestatuses[ 'Value' ]:
+        computing_elements_status.append( [  cestatus[0], cestatus[2], cestatus[6]] )
+
+    return { 'success' : 'true', 'result' : computing_elements_status, 'total' : len( computing_elements_status ) }
+      
   def __requestParams( self ):
     '''
       We receive the request and we parse it, in this case, we are doing nothing,

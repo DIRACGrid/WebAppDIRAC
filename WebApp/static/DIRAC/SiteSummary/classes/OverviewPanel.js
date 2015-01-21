@@ -112,7 +112,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
             '<b>Elog:</b> {Elog}<br/>', '</div>', '</tpl>');
 
         me.view = new Ext.view.View({
-              columnWidth : 1 / 3,
+              columnWidth : 1 / 2,
               tpl : tpl,
               store : viewStore,
               itemSelector : 'div.dataset-statistics',
@@ -121,20 +121,21 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
 
         me.viewPanel = Ext.create("Ext.panel.Panel", {
               "title" : "Details",
-              columnWidth : 1 / 3,
+              columnWidth : 1 / 2,
               items : me.view,
               layout : 'fit',
               resizable : true
             });
-
-        var historyStore = new Ext.data.ArrayStore({
+        
+        var ceStore = new Ext.data.ArrayStore({
               fields : ["Status", "Name", "StatusType"],
               data : []
             });
 
-        me.historyGrid = Ext.create("Ext.grid.Panel", {
+        me.ceGrid = Ext.create("Ext.grid.Panel", {
+              title : 'Computing elements',
               layout : 'fit',
-              store : historyStore,
+              store : ceStore,
               columns : [{
                     text : 'Status',
                     sortable : false,
@@ -186,17 +187,81 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 stripeRows : true,
                 enableTextSelection : true
               }
-            })
-        me.historyPanel = Ext.create("Ext.panel.Panel", {
+            });
+            
+        var stotageStore = new Ext.data.ArrayStore({
+              fields : ["Status", "Name", "StatusType"],
+              data : []
+            });
+
+        me.storageGrid = Ext.create("Ext.grid.Panel", {
+              title : "Storage elements",
+              layout : 'fit',
+              store : stotageStore,
+              columns : [{
+                    text : 'Status',
+                    sortable : false,
+                    width : 26,
+                    sortable : false,
+                    hideable : false,
+                    fixed : true,
+                    menuDisabled : true,
+                    dataIndex : 'Status',
+                    renderer : function(value) {
+                      if ((value == 'Done') || (value == 'Good') || (value == 'Active') || (value == 'Cleared')) {
+                        return '<img src="static/core/img/statusIcons/done.gif"/>';
+                      } else if (value == 'Bad') {
+                        return '<img src="static/core/img/statusIcons/bad.gif"/>';
+                      } else if ((value == 'Failed') || (value == 'Bad') || (value == 'Banned') || (value == 'Aborted')) {
+                        return '<img src="static/core/img/statusIcons/failed.gif"/>';
+                      } else if ((value == 'Waiting') || (value == 'Stopped') || (value == 'Poor') || (value == 'Probing')) {
+                        return '<img src="static/core/img/statusIcons/waiting.gif"/>';
+                      } else if (value == 'Deleted') {
+                        return '<img src="static/core/img/statusIcons/deleted.gif"/>';
+                      } else if (value == 'Matched') {
+                        return '<img src="static/core/img/statusIcons/matched.gif"/>';
+                      } else if ((value == 'Running') || (value == 'Active') || (value == 'Fair')) {
+                        return '<img src="static/core/img/statusIcons/running.gif"/>';
+                      } else if (value == 'NoMask') {
+                        return '<img src="static/core/img/statusIcons/unknown.gif"/>';
+                      } else if ((value == 'Completed') || value == (value == 'Completing')) {
+                        return '<img src="static/core/img/statusIcons/completed.gif"/>';
+                      } else if (value == 'Idle') {
+                        return '<img src="static/core/img/statusIcons/idle.gif"/>';
+                      } else {
+                        return '<img src="static/core/img/statusIcons/unknown.gif"/>';
+                      }
+                    }
+                  }, {
+                    text : 'Name',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'Name'
+                  }, {
+                    text : 'Status Type',
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : 'StatusType'
+                  }],
+              width : '100%',
+              height : '50%',
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              }
+            });
+        /*me.leftPanel = Ext.create("Ext.panel.Panel", {
               title : "Storage Elements",
               columnWidth : 1 / 3,
-              items : [me.historyGrid],
+              items : [me.storageGrid],
               height : '50%',
               resizable : true
-            });
+            });*/
         me.callParent(arguments);
-        me.viewPanel.add(me.historyGrid);
+        me.viewPanel.add(me.ceGrid);
+        me.viewPanel.add(me.storageGrid);
         me.add([me.viewPanel]);
+        me.viewPanel.setLoading(true);
 
       },
       loadData : function(selection) {
@@ -231,8 +296,34 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 }
               }
             });
+            
+        me.ceGrid.body.mask("Loading ...");
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + '/action',
+              method : 'POST',
+              params : {
+                action : Ext.JSON.encode(["ComputingElements"]),
+                name : Ext.JSON.encode([selection.name])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.ceGrid.body.unmask();
+              },
+              success : function(response) {
 
-        me.historyGrid.body.mask("Loading ...");
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData["success"] == "true") {
+                  me.ceGrid.getStore().loadData(jsonData["result"]);
+                  me.ceGrid.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg("error", jsonData["error"]);
+                }
+              }
+            });
+            
+        me.storageGrid.body.mask("Loading ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
               method : 'POST',
@@ -243,15 +334,15 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               scope : me,
               failure : function(response) {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                me.historyGrid.body.unmask();
+                me.storageGrid.body.unmask();
               },
               success : function(response) {
 
                 var jsonData = Ext.JSON.decode(response.responseText);
 
                 if (jsonData["success"] == "true") {
-                  me.historyGrid.getStore().loadData(jsonData["result"]);
-                  me.historyGrid.body.unmask();
+                  me.storageGrid.getStore().loadData(jsonData["result"]);
+                  me.storageGrid.body.unmask();
                 } else {
                   GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
