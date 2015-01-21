@@ -46,6 +46,9 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
             dateFormat : 'Y-m-d H:i:s'
           }, {
             name : 'TokenOwner'
+          }, {
+            name : 'StatusIcon',
+            mapping : 'Status'
           }],
 
       initComponent : function() {
@@ -122,8 +125,8 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
             });
 
         var oColumns = {
-          "None2" : {
-            "dataIndex" : "Status",
+          "None" : {
+            "dataIndex" : "StatusIcon",
             "properties" : {
               width : 26,
               sortable : false,

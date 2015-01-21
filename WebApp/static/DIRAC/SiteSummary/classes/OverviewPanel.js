@@ -9,7 +9,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
       margins : '2 0 2 0',
       cmargins : '2 2 2 2',
       bodyStyle : 'padding: 5px',
-      width : 600,
+      width : 800,
       labelAlign : 'top',
       minWidth : 200,
       hidden : true,
@@ -250,16 +250,15 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 enableTextSelection : true
               }
             });
-        /*me.leftPanel = Ext.create("Ext.panel.Panel", {
-              title : "Storage Elements",
-              columnWidth : 1 / 3,
-              items : [me.storageGrid],
+        me.leftPanel = Ext.create("Ext.panel.Panel", {
+              columnWidth : 1 / 2,
+              items : [me.ceGrid, me.storageGrid],
               height : '50%',
               resizable : true
-            });*/
+            });
         me.callParent(arguments);
-        me.viewPanel.add(me.ceGrid);
-        me.viewPanel.add(me.storageGrid);
+        
+        me.viewPanel.add(me.leftPanel);
         me.add([me.viewPanel]);
         me.viewPanel.setLoading(true);
 
@@ -268,6 +267,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
         var me = this;
 
         me.viewPanel.body.mask("Loading ...");
+        //me.leftPanel.body.mask("Loading ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
               method : 'POST',
