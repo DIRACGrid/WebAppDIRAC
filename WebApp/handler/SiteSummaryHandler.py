@@ -11,7 +11,7 @@ import json
 
 class SiteSummaryHandler( WebHandler ):
 
-  AUTH_PROPS = "authenticated"
+  AUTH_PROPS = "all"
 
   @asyncGen
   def web_getSelectionData( self ):
