@@ -132,6 +132,21 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               data : []
             });
 
+        var menuitems = {
+          'Visible' : [{
+                "text" : "Overview",
+                "handler" : me.__showElement,
+                "properties" : {
+                  tooltip : 'Click for more details.'
+                }
+              }]
+        };
+
+        me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
+              menu : menuitems,
+              scope : me
+            });
+
         me.ceGrid = Ext.create("Ext.grid.Panel", {
               title : 'Computing elements',
               layout : 'fit',
@@ -186,6 +201,15 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               viewConfig : {
                 stripeRows : true,
                 enableTextSelection : true
+              },
+              "listeners" : {
+
+                beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                  e.preventDefault();
+                  me.contextGridMenu.record = record;
+                  me.contextGridMenu.showAt(e.xy);
+                  return false;
+                }
               }
             });
 
@@ -248,7 +272,17 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               viewConfig : {
                 stripeRows : true,
                 enableTextSelection : true
+              },
+              "listeners" : {
+
+                beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                  e.preventDefault();
+                  me.contextGridMenu.record = record;
+                  me.contextGridMenu.showAt(e.xy);
+                  return false;
+                }
               }
+
             });
         me.leftPanel = Ext.create("Ext.panel.Panel", {
               columnWidth : 1 / 2,
@@ -385,6 +419,8 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
 
                 if (jsonData["success"] == "true") {
 
+                  me.plotPanel.removeAll(); // remove the plots
+
                   var width = 99 / 2;
                   width = '.' + Math.round(width);
                   for (var i = 0; i < jsonData.result.length; i++) {
@@ -451,5 +487,29 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
           win.add(panel);
           win.show();
         }
+      },
+      __showElement : function() {
+        var me = this;
+        console.log(me.contextGridMenu.record);
+
+        var setupdata = {
+          currentState : me.contextGridMenu.record.get("Name"),
+          data : {
+            leftMenu : {
+              selectors : {
+                name : {
+                  data_selected : [me.contextGridMenu.record.get("Name")]
+                }
+              }
+            }
+          }
+        };
+
+        GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+              objectType : "app",
+              moduleName : me.parentWidget.applicationsToOpen['ResourceSummary'],
+              setupData : setupdata
+            });
+
       }
     });

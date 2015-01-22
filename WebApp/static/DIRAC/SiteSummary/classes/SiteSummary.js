@@ -19,7 +19,17 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
 
         return oStates;
       },
+      
+       /**
+       * This is used to open an application.
+       * 
+       * @cfg{Object} it contains the application name and the module name.
+       */
+      applicationsToOpen : {
+        'ResourceSummary' : 'DIRAC.ResourceSummary.classes.ResourceSummary'
+      },
 
+      
       dataFields : [{
             name : 'Name'
           }, {
