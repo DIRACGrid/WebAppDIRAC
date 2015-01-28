@@ -279,7 +279,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               autoLoad : false,
               proxy : oProxy,
               fields : me.dataFields,
-              scope : me
+              scope : me,
+              remoteSort : false,
+              autoLoad : true
             });
 
         var pagingToolbar = {};
