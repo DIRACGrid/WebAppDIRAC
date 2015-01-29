@@ -778,6 +778,11 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
                 }
 
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                
               }
             });
       },
