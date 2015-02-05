@@ -638,7 +638,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           }
         }
 
-        if (me.grid.expandedGridPanel) {//delete the targetId
+        if (me.grid && me.grid.expandedGridPanel) {//delete the targetId
           me.grid.expandedGridPanel.destroy();
           delete me.grid.expandedGridPanel;
         }
