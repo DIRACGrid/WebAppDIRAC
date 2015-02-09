@@ -1299,7 +1299,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Standard output for JobID:" + oId);
                   } else if (oDataKind == "getLogURL") {
 
-                    me.getContainer().oprPrepareAndShowWindowHTML(jsonData["result"], 'Log file for JobId:' + oId);
+                    me.getContainer().oprShowInNewTab(jsonData["result"]);
+                    //me.getContainer().oprPrepareAndShowWindowHTML(jsonData["result"], 'Log file for JobId:' + oId);
 
                   } else if (oDataKind == "getPending") {
                     var data = [];

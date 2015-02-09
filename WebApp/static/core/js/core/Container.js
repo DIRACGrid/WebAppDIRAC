@@ -107,5 +107,9 @@ Ext.define('Ext.dirac.core.Container', {
             });
         window.add(htmlPanel);
         window.show();
+      },
+      oprShowInNewTab : function (url){
+        var win = window.open(url, '_blank');
+        win.focus();
       }
     });
