@@ -108,8 +108,29 @@ Ext.define('Ext.dirac.core.Container', {
         window.add(htmlPanel);
         window.show();
       },
-      oprShowInNewTab : function (url){
-        var win = window.open(url, '_blank');
-        win.focus();
+
+      oprShowInNewTab : function(url, title) {
+
+        if (Ext.isSafari) {
+
+          var panelContent = new Ext.panel.Panel({
+                region : 'center',
+                margins : '0 0 0 0',
+                autoScroll : true,
+                html : '<iframe style="overflow:auto;width:100%;height:100%;" frameborder="0"  src="' + url + '"></iframe>'
+              });
+
+          var win = this.createChildWindow(title, false, 700, 500);
+          win.add(panelContent);
+          win.show();
+        } else {
+          var win = window.open(url, "_blank");
+          if (win == null || typeof(win) == 'undefined') {
+            Ext.dirac.system_info.msg("Error Notification", 'Please disable your pop-up blocker and click the "Get Log file" menu item again.');
+          } else {
+            win.focus();
+          }
+        }
       }
+
     });
