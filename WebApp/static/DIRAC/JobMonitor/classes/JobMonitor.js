@@ -1244,12 +1244,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                     me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Attributes for JobID:" + oId, ["name", "value"], [{
                               text : 'Name',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'name'
                             }, {
                               text : 'Value',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'value'
                             }]);
 
@@ -1258,12 +1258,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                     me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Parameters for JobID:" + oId, ["name", "value"], [{
                               text : 'Name',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'name'
                             }, {
                               text : 'Value',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'value'
                             }]);
 
@@ -1272,27 +1272,27 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                     me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Attributes for JobID:" + oId, ["status", "minor_status", "app_status", "date_time", "source"], [{
                               text : 'Source',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'source'
                             }, {
                               text : 'Status',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'status'
                             }, {
                               text : 'Minor Status',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'minor_status'
                             }, {
                               text : 'Application Status',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'app_status'
                             }, {
                               text : 'Date Time',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'date_time'
                             }]);
 
@@ -1301,7 +1301,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Standard output for JobID:" + oId);
                   } else if (oDataKind == "getLogURL") {
 
-                    me.getContainer().oprPrepareAndShowWindowHTML(jsonData["result"], 'Log file for JobId:' + oId);
+                    me.getContainer().oprShowInNewTab(jsonData["result"], 'Log file for JobId:' + oId);
+                    //me.getContainer().oprPrepareAndShowWindowHTML(jsonData["result"], 'Log file for JobId:' + oId);
 
                   } else if (oDataKind == "getPending") {
                     var data = [];
@@ -1323,32 +1324,32 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                     me.getContainer().oprPrepareAndShowWindowGrid(data, "Production:" + oId, ["type", "operation", "status", "order", "targetSE", "file"], [{
                               text : 'Type',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'type'
                             }, {
                               text : 'Opetation',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'operation'
                             }, {
                               text : 'Status',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'status'
                             }, {
                               text : 'Order',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'order'
                             }, {
                               text : 'Target Se',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'targetSE'
                             }, {
                               text : 'File',
                               flex : 1,
-                              sortable : false,
+                              sortable : true,
                               dataIndex : 'file'
                             }]);
 
