@@ -134,9 +134,11 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
             }
 
-            me.remoteSort = false;
-            me.sort();
-            me.remoteSort = true;
+            if (me.remoteSort) {
+              me.remoteSort = false;
+              me.sort();
+              me.remoteSort = true;
+            }
 
           }
 

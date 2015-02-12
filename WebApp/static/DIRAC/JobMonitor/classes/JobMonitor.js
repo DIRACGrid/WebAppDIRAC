@@ -15,7 +15,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
         if (data.leftPanelCollapsed) {
 
-            me.leftPanel.collapse();
+          me.leftPanel.collapse();
 
         }
 
@@ -279,7 +279,9 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               autoLoad : false,
               proxy : oProxy,
               fields : me.dataFields,
-              scope : me
+              scope : me,
+              remoteSort : false,
+              autoLoad : true
             });
 
         var pagingToolbar = {};
@@ -1307,8 +1309,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                       var rows = jsonData["result"]["PendingRequest"].split("\n");
                       for (var i = 0; i < rows.length; i++) {
                         var row = rows[i].split(":");
-                        row.pop();
-                        data.push(row);
+                        if (i == 0) {
+                          data.push(row);
+                        } else {
+                          row.pop();
+                          data.push(row);
+                        }
                       }
                     } else {
                       GLOBAL.APP.CF.alert("Error: No pending request(s) found");
