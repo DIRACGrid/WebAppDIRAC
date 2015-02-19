@@ -1,1627 +1,1631 @@
 Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
-	extend : 'Ext.dirac.core.Module',
-	requires : [ 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.TextArea",
-			"Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface",
-			'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping', 'Ext.tree.Panel', 'Ext.data.TreeStore' ],
+      extend : 'Ext.dirac.core.Module',
+      requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.util.*",
+          "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping', 'Ext.tree.Panel', 'Ext.data.TreeStore'],
 
-	loadState : function(oData) {
+      loadState : function(oData) {
 
-		var me = this;
+        var me = this;
 
-		me.setLoading("Loading state ...");
+        me.setLoading("Loading state ...");
 
-		me.txtPathField.setValue(oData["path"]);
+        me.txtPathField.setValue(oData["path"]);
 
-		/*
-		 * We starting adding one by one block, for each block we are going to check
-		 * if A) the parameter exists into the list of parameters and B) the values
-		 * are within the possible values We stop loading the blocks only if some of
-		 * the condition A) and B) are not fulfilled.
-		 * 
-		 */
-		me.__postponedLoadState(oData);
+        /*
+         * We starting adding one by one block, for each block we are going to
+         * check if A) the parameter exists into the list of parameters and B)
+         * the values are within the possible values We stop loading the blocks
+         * only if some of the condition A) and B) are not fulfilled.
+         * 
+         */
+        me.__postponedLoadState(oData);
 
-		// me.setLoading(false);
+        // me.setLoading(false);
 
-	},
+      },
 
-	__postponedLoadState : function(oData) {
+      __postponedLoadState : function(oData) {
 
-		var me = this;
+        var me = this;
 
-		if (me.queryData == null) {
+        if (me.queryData == null) {
 
-			Ext.Function.defer(me.__postponedLoadState, 1000, me, [ oData ]);
+          Ext.Function.defer(me.__postponedLoadState, 1000, me, [oData]);
 
-		} else {
+        } else {
 
-			/*
-			 * We start loading block by block
-			 */
+          /*
+           * We start loading block by block
+           */
 
-			me.__loadingStateDataStruct = {
+          me.__loadingStateDataStruct = {
 
-				blocks : oData["blocks"],
-				index : 0,
-				error_message : "",
-				next : function() {
+            blocks : oData["blocks"],
+            index : 0,
+            error_message : "",
+            next : function() {
 
-					var oIter = this;
+              var oIter = this;
 
-					if (oIter.blocks.length == 0) {
-						oIter.finished = true;
-						me.setLoading(false);
-						return;
-					}
+              if (oIter.blocks.length == 0) {
+                oIter.finished = true;
+                me.setLoading(false);
+                return;
+              }
 
-					if (oIter.index == oIter.blocks.length - 1) {
-						oIter.finished = true;
-					}
+              if (oIter.index == oIter.blocks.length - 1) {
+                oIter.finished = true;
+              }
 
-					var oBlockData = oIter.blocks[oIter.index];
+              var oBlockData = oIter.blocks[oIter.index];
 
-					/*
-					 * We check whether the parameter name exists
-					 */
-					if (!(oBlockData[0] in me.queryData)) {
-						oIter.finished = true;
-						oIter.error_message = "'" + oBlockData[0] + "' was not found in the current set of metadata fields !";
-						GLOBAL.APP.CF.alert(oIter.error_message, "error");
-						me.setLoading(false);
-						return;
-					}
+              /*
+               * We check whether the parameter name exists
+               */
+              if (!(oBlockData[0] in me.queryData)) {
+                oIter.finished = true;
+                oIter.error_message = "'" + oBlockData[0] + "' was not found in the current set of metadata fields !";
+                GLOBAL.APP.CF.alert(oIter.error_message, "error");
+                me.setLoading(false);
+                return;
+              }
 
-					/*
-					 * We check whether the values are defined for the parameter
-					 */
-					switch (oBlockData[1]) {
+              /*
+               * We check whether the values are defined for the parameter
+               */
+              switch (oBlockData[1]) {
 
-					case "varchar(128)":
-						var oDataArray = oBlockData[4].split(":::");
+                case "varchar(128)" :
+                  var oDataArray = oBlockData[4].split(":::");
 
-						for ( var i = 0; i < oDataArray.length; i++) {
+                  for (var i = 0; i < oDataArray.length; i++) {
 
-							if (me.queryData[oBlockData[0]].indexOf(oDataArray[i]) == -1) {
+                    if (me.queryData[oBlockData[0]].indexOf(oDataArray[i]) == -1) {
 
-								oIter.finished = true;
-								oIter.error_message = "'" + oDataArray[i] + "' value was not found as a value of the '" + oBlockData[0] + "' field !";
-								GLOBAL.APP.CF.alert(oIter.error_message, "error");
-								me.setLoading(false);
-								return;
+                      oIter.finished = true;
+                      oIter.error_message = "'" + oDataArray[i] + "' value was not found as a value of the '" + oBlockData[0] + "' field !";
+                      GLOBAL.APP.CF.alert(oIter.error_message, "error");
+                      me.setLoading(false);
+                      return;
 
-							}
+                    }
 
-						}
+                  }
 
-						break;
+                  break;
 
-					default:
+                default :
 
-						if (me.queryData[oBlockData[0]].indexOf(oBlockData[4]) == -1) {
+                  if (me.queryData[oBlockData[0]].indexOf(oBlockData[4]) == -1) {
 
-							oIter.finished = true;
-							oIter.error_message = "'" + oBlockData[4] + "' value was not found as a value of the '" + oBlockData[0] + "' field !";
-							GLOBAL.APP.CF.alert(oIter.error_message, "error");
-							me.setLoading(false);
-							return;
+                    oIter.finished = true;
+                    oIter.error_message = "'" + oBlockData[4] + "' value was not found as a value of the '" + oBlockData[0] + "' field !";
+                    GLOBAL.APP.CF.alert(oIter.error_message, "error");
+                    me.setLoading(false);
+                    return;
 
-						}
-						break;
+                  }
+                  break;
 
-					}
+              }
 
-					switch (oBlockData[1]) {
+              switch (oBlockData[1]) {
 
-					case "varchar(128)":
+                case "varchar(128)" :
 
-						var oNewBlock = me.__getDropDownField(oBlockData[0], oBlockData[1]);
-						me.queryPanel.add(oNewBlock);
-						oNewBlock.items.getAt(2).setValue(oBlockData[4].split(":::"));
+                  var oNewBlock = me.__getDropDownField(oBlockData[0], oBlockData[1]);
+                  me.queryPanel.add(oNewBlock);
+                  oNewBlock.items.getAt(2).setValue(oBlockData[4].split(":::"));
 
-						if (oBlockData[3])
-							oNewBlock.items.getAt(2).setInverseSelection(true);
+                  if (oBlockData[3])
+                    oNewBlock.items.getAt(2).setInverseSelection(true);
 
-						me.__getQueryData(true);
+                  me.__getQueryData(true);
 
-						break;
+                  break;
 
-					default:
+                default :
 
-						var oNewBlock = me.__getValueField(oBlockData[0], oBlockData[1]);
-						me.queryPanel.add(oNewBlock);
-						oNewBlock.items.getAt(2).setValue(oBlockData[4]);
-						oNewBlock.items.getAt(1).setIconCls(oBlockData[2]);
+                  var oNewBlock = me.__getValueField(oBlockData[0], oBlockData[1]);
+                  me.queryPanel.add(oNewBlock);
+                  oNewBlock.items.getAt(2).setValue(oBlockData[4]);
+                  oNewBlock.items.getAt(1).setIconCls(oBlockData[2]);
 
-						me.__getQueryData(true);
+                  me.__getQueryData(true);
 
-						break;
+                  break;
 
-					}
+              }
 
-					if (oIter.finished) {
+              if (oIter.finished) {
 
-						me.oprLoadFilesGridData();
-						me.setLoading(false);
+                me.oprLoadFilesGridData();
+                me.setLoading(false);
 
-					}
+              }
 
-					oIter.index++;
+              oIter.index++;
 
-				},
-				finished : false
+            },
+            finished : false
 
-			};
+          };
 
-			me.__loadingStateDataStruct.next();
+          me.__loadingStateDataStruct.next();
 
-		}
+        }
 
-	},
+      },
 
-	getStateData : function() {
+      getStateData : function() {
 
-		var me = this;
-		var oReturn = {};
+        var me = this;
+        var oReturn = {};
 
-		var oSendData = [];
+        var oSendData = [];
 
-		for ( var i = 0; i < me.queryPanel.items.length; i++) {
+        for (var i = 0; i < me.queryPanel.items.length; i++) {
 
-			var oBlock = me.queryPanel.items.getAt(i);
+          var oBlock = me.queryPanel.items.getAt(i);
 
-			var oItem = [ oBlock.fieldName, oBlock.fieldType, oBlock.items.getAt(1).iconCls ];
+          var oItem = [oBlock.fieldName, oBlock.fieldType, oBlock.items.getAt(1).iconCls];
 
-			if (oBlock.blockType == "string") {
+          if (oBlock.blockType == "string") {
 
-				oItem.push(((oBlock.items.getAt(2).isInverseSelection()) ? 1 : 0));
-				oItem.push(oBlock.items.getAt(2).getValue().join(":::"));
+            oItem.push(((oBlock.items.getAt(2).isInverseSelection()) ? 1 : 0));
+            oItem.push(oBlock.items.getAt(2).getValue().join(":::"));
 
-			} else {
+          } else {
 
-				oItem.push(0);
-				oItem.push(oBlock.items.getAt(2).getValue());
+            oItem.push(0);
+            oItem.push(oBlock.items.getAt(2).getValue());
 
-			}
+          }
 
-			oSendData.push(oItem);
+          oSendData.push(oItem);
 
-		}
+        }
 
-		oReturn["path"] = me.txtPathField.getValue();
-		oReturn["blocks"] = oSendData;
+        oReturn["path"] = me.txtPathField.getValue();
+        oReturn["blocks"] = oSendData;
 
-		return oReturn;
+        return oReturn;
 
-	},
+      },
 
-	initComponent : function() {
+      initComponent : function() {
 
-		var me = this;
+        var me = this;
 
-		if (GLOBAL.VIEW_ID == "desktop") {
+        if (GLOBAL.VIEW_ID == "desktop") {
 
-			me.launcher.title = "File Catalog";
-			me.launcher.maximized = true;
+          me.launcher.title = "File Catalog";
+          me.launcher.maximized = true;
 
-		}
+        }
 
-		if (GLOBAL.VIEW_ID == "tabs") {
+        if (GLOBAL.VIEW_ID == "tabs") {
 
-			me.launcher.title = "File Catalog";
-			me.launcher.maximized = true;
+          me.launcher.title = "File Catalog";
+          me.launcher.maximized = true;
 
-		}
+        }
 
-		me.__loadingStateDataStruct = null;
+        me.__loadingStateDataStruct = null;
 
-		Ext.apply(me, {
-			layout : 'border',
-			bodyBorder : false,
-			defaults : {
-				collapsible : true,
-				split : true
-			},
-			items : []
-		});
+        Ext.apply(me, {
+              layout : 'border',
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              },
+              items : []
+            });
 
-		me.callParent(arguments);
+        me.callParent(arguments);
 
-	},
+      },
 
-	buildUI : function() {
+      buildUI : function() {
 
-		var me = this;
+        var me = this;
 
-		/*-------------------------------------------------------------------------------------*/
+        /*-------------------------------------------------------------------------------------*/
 
-		me.queryPanelToolbarCenter = new Ext.toolbar.Toolbar({
-			dock : 'bottom',
-			layout : {
-				pack : 'center'
-			},
-			items : []
-		});
+        me.queryPanelToolbarCenter = new Ext.toolbar.Toolbar({
+              dock : 'bottom',
+              layout : {
+                pack : 'center'
+              },
+              items : []
+            });
 
-		me.btnSubmitLeftPanel = new Ext.Button({
+        me.btnSubmitLeftPanel = new Ext.Button({
 
-			text : 'Submit',
+              text : 'Submit',
 
-			iconCls : "dirac-icon-submit",
-			handler : function() {
+              iconCls : "dirac-icon-submit",
+              handler : function() {
 
-				if (me.__isEveryBlockBlured()) {
+                if (me.__isEveryBlockBlured()) {
 
-					me.oprLoadFilesGridData();
+                  me.oprLoadFilesGridData();
 
-				} else {
+                } else {
 
-					me.funcAfterEveryBlockGetsBlured = function() {
+                  me.funcAfterEveryBlockGetsBlured = function() {
 
-						me.oprLoadFilesGridData();
+                    me.oprLoadFilesGridData();
 
-					};
+                  };
 
-					me.btnSubmitLeftPanel.focus();
-				}
-			},
-			scope : me
+                  me.btnSubmitLeftPanel.focus();
+                }
+              },
+              scope : me
 
-		});
+            });
 
-		me.btnResetLeftPanel = new Ext.Button({
+        me.btnResetLeftPanel = new Ext.Button({
 
-			text : 'Refresh',
+              text : 'Refresh',
 
-			iconCls : "dirac-icon-refresh",
-			handler : function() {
-				me.__getQueryData(true);
-			},
-			scope : me
+              iconCls : "dirac-icon-refresh",
+              handler : function() {
+                me.__getQueryData(true);
+              },
+              scope : me
 
-		});
+            });
 
-		me.btnClearQuery = new Ext.Button({
+        me.btnClearQuery = new Ext.Button({
 
-			text : 'Clear',
+              text : 'Clear',
 
-			iconCls : "dirac-icon-reset",
-			handler : function() {
+              iconCls : "dirac-icon-reset",
+              handler : function() {
 
-				for ( var i = me.queryPanel.items.length - 1; i >= 0; i--) {
+                for (var i = me.queryPanel.items.length - 1; i >= 0; i--) {
 
-					var oBlock = me.queryPanel.items.getAt(i);
+                  var oBlock = me.queryPanel.items.getAt(i);
 
-					me.queryPanel.remove(oBlock);
+                  me.queryPanel.remove(oBlock);
 
-				}
+                }
 
-				me.__getQueryData(true);
+                me.__getQueryData(true);
 
-			},
-			scope : me
+              },
+              scope : me
 
-		});
+            });
 
-		me.queryPanelToolbarCenter.add([ me.btnSubmitLeftPanel, me.btnResetLeftPanel, me.btnClearQuery ]);
+        me.queryPanelToolbarCenter.add([me.btnSubmitLeftPanel, me.btnResetLeftPanel, me.btnClearQuery]);
 
-		var queryPanelToolbarTop = new Ext.toolbar.Toolbar({
-			dock : 'top',
-			layout : {
-				pack : 'center'
-			},
-			items : []
-		});
+        var queryPanelToolbarTop = new Ext.toolbar.Toolbar({
+              dock : 'top',
+              layout : {
+                pack : 'center'
+              },
+              items : []
+            });
 
-		queryPanelToolbarTop.add({
-			xtype : 'tbtext',
-			text : "Path to start from:"
-		});
+        queryPanelToolbarTop.add({
+              xtype : 'tbtext',
+              text : "Path to start from:"
+            });
 
-		me.txtPathField = new Ext.form.field.Text({
-			width : 200,
-			value : '/',
-			flex : 1,
-			listeners : {
+        me.txtPathField = new Ext.form.field.Text({
+              width : 200,
+              value : '/',
+              flex : 1,
+              listeners : {
 
-				blur : function(oField, oEvent, eOpts) {
+                blur : function(oField, oEvent, eOpts) {
 
-					me.__getQueryData(true);
+                  me.__getQueryData(true);
 
-				}
+                }
 
-			}
-		});
+              }
+            });
 
-		queryPanelToolbarTop.add(me.txtPathField);
+        queryPanelToolbarTop.add(me.txtPathField);
 
-		me.btnResetPath = new Ext.Button({
+        me.btnResetPath = new Ext.Button({
 
-			text : '',
+              text : '',
 
-			iconCls : "dirac-icon-reset",
-			handler : function() {
-				me.txtPathField.setValue("/");
-				me.__getQueryData(true);
-			},
-			scope : me
+              iconCls : "dirac-icon-reset",
+              handler : function() {
+                me.txtPathField.setValue("/");
+                me.__getQueryData(true);
+              },
+              scope : me
 
-		});
+            });
 
-		queryPanelToolbarTop.add(me.btnResetPath);
+        queryPanelToolbarTop.add(me.btnResetPath);
 
-		me.queryPanel = new Ext.create('Ext.panel.Panel', {
-			title : 'Query',
-			region : 'north',
-			header : false,
-			floatable : false,
-			bodyBorder : false,
-			margins : '0',
-			width : 450,
-			minWidth : 400,
-			maxWidth : 550,
-			bodyPadding : 0,
-			autoScroll : true,
-			split : true,
-			height : 400
-		});
+        me.queryPanel = new Ext.create('Ext.panel.Panel', {
+              title : 'Query',
+              region : 'north',
+              header : false,
+              floatable : false,
+              bodyBorder : false,
+              margins : '0',
+              width : 450,
+              minWidth : 400,
+              maxWidth : 550,
+              bodyPadding : 0,
+              autoScroll : true,
+              split : true,
+              height : 400
+            });
 
-		/*-------------------------------------------------------------------------------------*/
+        /*-------------------------------------------------------------------------------------*/
 
-		me.filesDataStore = new Ext.data.JsonStore({
+        me.filesDataStore = new Ext.data.JsonStore({
 
-			proxy : {
-				type : 'ajax',
-				url : GLOBAL.BASE_URL + 'FileCatalog/getFilesData',
-				reader : {
-					type : 'json',
-					root : 'result'
-				},
-				timeout : 1800000
-			},
-			groupField : 'dirname',
-			fields : [ {
-				name : 'dirname'
-			}, {
-				name : 'filename'
-			}, {
-				name : 'date'
-			}, {
-				name : 'size'
-			}, {
-				name : 'metadata'
-			}, {
-				name : "fullfilename"
-			} ],
-			remoteSort : true,
-			pageSize : 100,
-			listeners : {
+              proxy : {
+                type : 'ajax',
+                url : GLOBAL.BASE_URL + 'FileCatalog/getFilesData',
+                reader : {
+                  type : 'json',
+                  root : 'result'
+                },
+                timeout : 1800000,
+                listeners : {
+                  exception : function(proxy, response, operation) {
+                    GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                  }
+                }
 
-				load : function(oStore, records, successful, eOpts) {
+              },
+              groupField : 'dirname',
+              fields : [{
+                    name : 'dirname'
+                  }, {
+                    name : 'filename'
+                  }, {
+                    name : 'date'
+                  }, {
+                    name : 'size'
+                  }, {
+                    name : 'metadata'
+                  }, {
+                    name : "fullfilename"
+                  }],
+              remoteSort : true,
+              pageSize : 100,
+              listeners : {
 
-					if (oStore.proxy.reader.rawData["total"] == 0)
-						GLOBAL.APP.CF.alert("There were no data matching your selection !", "info");
+                load : function(oStore, records, successful, eOpts) {
 
-					me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
-					me.queryPanel.body.unmask();
-					me.metadataCatalogGrid.body.unmask();
-					me.queryPanelToolbarCenter.show();
+                  if (oStore.proxy.reader.rawData["total"] == 0)
+                    GLOBAL.APP.CF.alert("There were no data matching your selection !", "info");
 
-				}
+                  me.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+                  me.queryPanel.body.unmask();
+                  me.metadataCatalogGrid.body.unmask();
+                  me.queryPanelToolbarCenter.show();
 
-			}
-		});
+                }
 
-		me.checkboxFunctionDefinition = '<input type="checkbox" value="" onchange="';
-		me.checkboxFunctionDefinition += 'var oChecked=this.checked;';
-		me.checkboxFunctionDefinition += 'var oElems=Ext.query(\'#' + me.id + ' input.checkrow\');';
-		me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
-		me.checkboxFunctionDefinition += '" class="meta-main-check-box"/>';
+              }
+            });
 
-		me.pagingToolbar = {};
-		me.pagingToolbar.updateStamp = new Ext.Button({
-			disabled : true,
-			text : 'Updated: -'
-		});
+        me.checkboxFunctionDefinition = '<input type="checkbox" value="" onchange="';
+        me.checkboxFunctionDefinition += 'var oChecked=this.checked;';
+        me.checkboxFunctionDefinition += 'var oElems=Ext.query(\'#' + me.id + ' input.checkrow\');';
+        me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
+        me.checkboxFunctionDefinition += '" class="meta-main-check-box"/>';
 
-		me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
-			allowBlank : false,
-			displayField : 'number',
-			editable : false,
-			maxLength : 4,
-			maxLengthText : 'The maximum value for this field is 1000',
-			minLength : 1,
-			minLengthText : 'The minimum value for this field is 1',
-			mode : 'local',
-			store : new Ext.data.ArrayStore({
-				fields : [ 'number' ],
-				data : [ [ 25 ], [ 50 ], [ 100 ], [ 200 ], [ 500 ], [ 1000 ] ]
-			}),
-			triggerAction : 'all',
-			value : 100,
-			width : 50
-		});
+        me.pagingToolbar = {};
+        me.pagingToolbar.updateStamp = new Ext.Button({
+              disabled : true,
+              text : 'Updated: -'
+            });
 
-		me.pagingToolbar.pageSizeCombo.on("change", function(combo, newValue, oldValue, eOpts) {
-			var me = this;
-			me.filesDataStore.pageSize = newValue;
-			me.oprLoadFilesGridData();
-		}, me);
+        me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
+              allowBlank : false,
+              displayField : 'number',
+              editable : false,
+              maxLength : 4,
+              maxLengthText : 'The maximum value for this field is 1000',
+              minLength : 1,
+              minLengthText : 'The minimum value for this field is 1',
+              mode : 'local',
+              store : new Ext.data.ArrayStore({
+                    fields : ['number'],
+                    data : [[25], [50], [100], [200], [500], [1000]]
+                  }),
+              triggerAction : 'all',
+              value : 100,
+              width : 50
+            });
 
-		me.pagingToolbar.btnGrouping = new Ext.Button({
-			tooltip : 'Ungroup',
-			iconCls : "meta-ungroup-icon",
-			handler : function() {
+        me.pagingToolbar.pageSizeCombo.on("change", function(combo, newValue, oldValue, eOpts) {
+              var me = this;
+              me.filesDataStore.pageSize = newValue;
+              me.oprLoadFilesGridData();
+            }, me);
 
-				if (me.groupingFeature.disabled) {
-					me.groupingFeature.enable();
-					me.pagingToolbar.btnGrouping.setTooltip("Ungroup");
-					me.pagingToolbar.btnGrouping.setIconCls("meta-ungroup-icon");
-					me.filesGrid.columns[1].hide();
-				} else {
+        me.pagingToolbar.btnGrouping = new Ext.Button({
+              tooltip : 'Ungroup',
+              iconCls : "meta-ungroup-icon",
+              handler : function() {
 
-					me.groupingFeature.disable();
-					me.pagingToolbar.btnGrouping.setTooltip("Group");
-					me.pagingToolbar.btnGrouping.setIconCls("meta-group-icon");
+                if (me.groupingFeature.disabled) {
+                  me.groupingFeature.enable();
+                  me.pagingToolbar.btnGrouping.setTooltip("Ungroup");
+                  me.pagingToolbar.btnGrouping.setIconCls("meta-ungroup-icon");
+                  me.filesGrid.columns[1].hide();
+                } else {
 
-					me.filesGrid.columns[1].show();
-					me.filesGrid.columns[1].flex = 1;
-					me.filesGrid.doLayout();
+                  me.groupingFeature.disable();
+                  me.pagingToolbar.btnGrouping.setTooltip("Group");
+                  me.pagingToolbar.btnGrouping.setIconCls("meta-group-icon");
 
-				}
+                  me.filesGrid.columns[1].show();
+                  me.filesGrid.columns[1].flex = 1;
+                  me.filesGrid.doLayout();
 
-			},
-			scope : me
-		});
+                }
 
-		me.pagingToolbar.btnSaveFile = new Ext.Button({
-			tooltip : 'Save',
-			iconCls : "dirac-icon-save",
-			handler : function() {
-				me.__getMetadataFile();
-			},
-			scope : me
-		});
+              },
+              scope : me
+            });
 
-		me.pagingToolbar.btnShowQuery = new Ext.Button({
-			tooltip : 'Show Query',
-			iconCls : "meta-query-icon",
-			handler : function() {
+        me.pagingToolbar.btnSaveFile = new Ext.Button({
+              tooltip : 'Save',
+              iconCls : "dirac-icon-save",
+              handler : function() {
+                me.__getMetadataFile();
+              },
+              scope : me
+            });
 
-				var oWindow = me.getContainer().createChildWindow("Show Query", false, 400, 300);
+        me.pagingToolbar.btnShowQuery = new Ext.Button({
+              tooltip : 'Show Query',
+              iconCls : "meta-query-icon",
+              handler : function() {
 
-				var oTextArea = new Ext.create('Ext.form.field.TextArea', {
-					value : me.lastSubmittedQuery,
-					cls : "meta-textbox-help-window"
+                var oWindow = me.getContainer().createChildWindow("Show Query", false, 400, 300);
 
-				});
+                var oTextArea = new Ext.create('Ext.form.field.TextArea', {
+                      value : me.lastSubmittedQuery,
+                      cls : "meta-textbox-help-window"
 
-				oWindow.add(oTextArea);
-				oWindow.show();
+                    });
 
-			},
-			scope : me
-		});
+                oWindow.add(oTextArea);
+                oWindow.show();
 
-		var pagingToolbarItems = [ me.pagingToolbar.btnGrouping, me.pagingToolbar.btnSaveFile, me.pagingToolbar.btnShowQuery, '-', '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ',
-				me.pagingToolbar.pageSizeCombo, '-' ];
+              },
+              scope : me
+            });
 
-		me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
-			store : me.filesDataStore,
-			displayInfo : true,
-			displayMsg : 'Displaying topics {0} - {1} of {2}',
-			items : pagingToolbarItems,
-			emptyMsg : "No topics to display",
-			prependButtons : true
-		});
+        var pagingToolbarItems = [me.pagingToolbar.btnGrouping, me.pagingToolbar.btnSaveFile, me.pagingToolbar.btnShowQuery, '-', '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-'];
 
-		for ( var i = 0; i < me.pagingToolbar.toolbar.items.length; i++) {
+        me.pagingToolbar.toolbar = Ext.create('Ext.toolbar.Paging', {
+              store : me.filesDataStore,
+              displayInfo : true,
+              displayMsg : 'Displaying topics {0} - {1} of {2}',
+              items : pagingToolbarItems,
+              emptyMsg : "No topics to display",
+              prependButtons : true
+            });
 
-			if (me.pagingToolbar.toolbar.items.getAt(i).itemId == "refresh") {
+        for (var i = 0; i < me.pagingToolbar.toolbar.items.length; i++) {
 
-				me.pagingToolbar.toolbar.items.getAt(i).setIconCls("dirac-icon-submit");
-				me.pagingToolbar.toolbar.items.getAt(i).setTooltip("Submit");
-				me.pagingToolbar.toolbar.items.getAt(i).handler = function() {
-					if (me.__isEveryBlockBlured()) {
+          if (me.pagingToolbar.toolbar.items.getAt(i).itemId == "refresh") {
 
-						me.oprLoadFilesGridData();
+            me.pagingToolbar.toolbar.items.getAt(i).setIconCls("dirac-icon-submit");
+            me.pagingToolbar.toolbar.items.getAt(i).setTooltip("Submit");
+            me.pagingToolbar.toolbar.items.getAt(i).handler = function() {
+              if (me.__isEveryBlockBlured()) {
 
-					} else {
+                me.oprLoadFilesGridData();
 
-						me.funcAfterEveryBlockGetsBlured = function() {
+              } else {
 
-							me.oprLoadFilesGridData();
+                me.funcAfterEveryBlockGetsBlured = function() {
 
-						};
+                  me.oprLoadFilesGridData();
 
-						me.btnSubmitLeftPanel.focus();
-					}
-				};
+                };
 
-				break;
+                me.btnSubmitLeftPanel.focus();
+              }
+            };
 
-			}
+            break;
 
-		}
+          }
 
-		me.pagingToolbar.toolbar.items.insert(4, me.pagingToolbar.toolbar.items.items[21]);
-		me.pagingToolbar.toolbar.items.insert(24, me.pagingToolbar.toolbar.items.items[7]);
-		me.pagingToolbar.toolbar.items.insert(21, me.pagingToolbar.toolbar.items.items[22]);
+        }
 
-		me.groupingFeature = Ext.create('Ext.grid.feature.Grouping', {
-			groupHeaderTpl : '{columnName}: {name} ({rows.length} Item{[values.rows.length > 1 ? "s" : ""]})',
-			hideGroupedHeader : true,
-			startCollapsed : true,
-			id : 'directoryGrouping'
-		});
+        me.pagingToolbar.toolbar.items.insert(4, me.pagingToolbar.toolbar.items.items[21]);
+        me.pagingToolbar.toolbar.items.insert(24, me.pagingToolbar.toolbar.items.items[7]);
+        me.pagingToolbar.toolbar.items.insert(21, me.pagingToolbar.toolbar.items.items[22]);
 
-		var oRightPanel = new Ext.create('Ext.panel.Panel', {
-			region : 'center',
-			layout : 'border',
-			header : false,
-			bodyBorder : false,
-			defaults : {
-				collapsible : true,
-				split : true
-			}
+        me.groupingFeature = Ext.create('Ext.grid.feature.Grouping', {
+              groupHeaderTpl : '{columnName}: {name} ({rows.length} Item{[values.rows.length > 1 ? "s" : ""]})',
+              hideGroupedHeader : true,
+              startCollapsed : true,
+              id : 'directoryGrouping'
+            });
 
-		});
+        var oRightPanel = new Ext.create('Ext.panel.Panel', {
+              region : 'center',
+              layout : 'border',
+              header : false,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
 
-		me.treeFileCatalogStore = Ext.create('Ext.data.TreeStore', {
-			proxy : {
-				type : 'ajax',
-				url : GLOBAL.BASE_URL + 'FileCatalog/getSubnodeFiles',
-				reader : {
-					type : 'json',
-					root : 'nodes'
-				}
-			},
-			root : {
-				text : '/'
-			},
-			listeners : {
-				beforeexpand : function(oNode, eOpts) {
-					me.treeFileCatalogStore.proxy.extraParams = {
-						"path" : me.__getNodePath(oNode)
-					};
-				}
-			}
-		});
+            });
 
-		me.treeFileCatalogStore.getRootNode().expand();
-
-		me.fileCatalogTree = new Ext.create('Ext.tree.Panel', {
-			region : 'north',
-			store : me.treeFileCatalogStore,
-			header : false,
-			height : 300,
-			listeners : {
-
-				beforeitemcontextmenu : function(oView, oNode, item, index, e, eOpts) {
-					e.preventDefault();
-					if (!oNode.isLeaf()) {
-						me.sectionMenu.node = oNode;
-						me.sectionMenu.showAt(e.xy);
-					}
-
-					return false;
-				},
-
-				beforecontainercontextmenu : function(oView, e, eOpts) {
-					return false;
-				}
-			}
-		});
-
-		me.filesGrid = Ext.create('Ext.grid.Panel', {
-			region : 'center',
-			header : false,
-			store : me.filesDataStore,
-			flex : 1,
-			viewConfig : {
-				stripeRows : true,
-				enableTextSelection : true
-			},
-			features : [ me.groupingFeature ],
-			columns : [ {
-				header : me.checkboxFunctionDefinition,
-				name : 'checkBox',
-				width : 26,
-				sortable : false,
-				dataIndex : 'fullfilename',
-				renderer : function(value, metaData, record, row, col, store, gridView) {
-					return this.rendererChkBox(value);
-				},
-				hideable : false,
-				fixed : true,
-				menuDisabled : true,
-				align : "center"
-			}, {
-				header : 'Directory',
-				sortable : true,
-				dataIndex : 'dirname',
-				hideable : false
-			}, {
-				header : 'File',
-				sortable : true,
-				dataIndex : 'filename',
-				align : 'left',
-				hideable : false,
-				flex : 1
-			}, {
-				header : 'Date',
-				sortable : true,
-				dataIndex : 'date',
-				align : 'left',
-				width : 150
-			}, {
-				header : 'Size',
-				sortable : true,
-				dataIndex : 'size',
-				align : 'left'
-			}, {
-				header : 'Metadata',
-				sortable : false,
-				dataIndex : 'metadata',
-				align : 'left',
-				flex : 2
-			} ],
-			rendererChkBox : function(val) {
-				return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
-			},
-			tbar : me.pagingToolbar.toolbar
-		});
-
-		/*
-		 * The grid for the metadata choice (part of the metadataOptionPanel)
-		 */
-
-		me.metadataCatalogStore = new Ext.data.ArrayStore({
-			fields : [ 'Type', 'Name' ],
-			data : []
-		});
-
-		me.metadataCatalogGrid = Ext.create('Ext.grid.Panel', {
-			title : 'Directory Metadata',
-			region : 'center',
-			hideHeaders : true,
-			store : me.metadataCatalogStore,
-			bodyBorder : false,
-			viewConfig : {
-				stripeRows : true,
-				enableTextSelection : true
-			},
-			columns : [ {
-				width : 26,
-				sortable : false,
-				dataIndex : 'Type',
-				renderer : function(value, metaData, record, row, col, store, gridView) {
-					return this.rendererType(value);
-				},
-				hideable : false,
-				fixed : true,
-				menuDisabled : true,
-				align : 'center'
-			}, {
-				dataIndex : 'Name',
-				align : 'left',
-				sortable : true,
-				hideable : false,
-				sortState : "ASC",
-				flex : 1
-			} ],
-			rendererType : function(value) {
-				if (value == 'varchar(128)') {
-					return '<img src="static/DIRAC/FileCatalog/images/new_string.png">';
-				} else if (value == 'int') {
-					return '<img src="static/DIRAC/FileCatalog/images/new_int.png">';
-				} else if (value == 'datetime') {
-					return '<img src="static/DIRAC/FileCatalog/images/new_date.png">';
-				} else {
-					return '<img src="static/DIRAC/FileCatalog/images/new_float.png">';
-				}
-			},
-			listeners : {
-
-				itemclick : function(oView, oRecord, item, index, e, eOpts) {
-
-					if (me.__isEveryBlockBlured()) {
-
-						switch (oRecord.get("Type")) {
-
-						case "varchar(128)":
-							me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"), oRecord.get("Type")));
-							break;
-						default:
-							me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
-							break;
-
-						}
-
-					} else {
-
-						me.funcAfterEveryBlockGetsBlured = function() {
-
-							switch (oRecord.get("Type")) {
-
-							case "varchar(128)":
-								me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"), oRecord.get("Type")));
-								break;
-							default:
-								me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
-								break;
+        me.treeFileCatalogStore = Ext.create('Ext.data.TreeStore', {
+              proxy : {
+                type : 'ajax',
+                url : GLOBAL.BASE_URL + 'FileCatalog/getSubnodeFiles',
+                reader : {
+                  type : 'json',
+                  root : 'nodes'
+                }
+              },
+              root : {
+                text : '/'
+              },
+              listeners : {
+                beforeexpand : function(oNode, eOpts) {
+                  me.treeFileCatalogStore.proxy.extraParams = {
+                    "path" : me.__getNodePath(oNode)
+                  };
+                }
+              }
+            });
 
-							}
+        me.treeFileCatalogStore.getRootNode().expand();
+
+        me.fileCatalogTree = new Ext.create('Ext.tree.Panel', {
+              region : 'north',
+              store : me.treeFileCatalogStore,
+              header : false,
+              height : 300,
+              listeners : {
+
+                beforeitemcontextmenu : function(oView, oNode, item, index, e, eOpts) {
+                  e.preventDefault();
+                  if (!oNode.isLeaf()) {
+                    me.sectionMenu.node = oNode;
+                    me.sectionMenu.showAt(e.xy);
+                  }
+
+                  return false;
+                },
+
+                beforecontainercontextmenu : function(oView, e, eOpts) {
+                  return false;
+                }
+              }
+            });
+
+        me.filesGrid = Ext.create('Ext.grid.Panel', {
+              region : 'center',
+              header : false,
+              store : me.filesDataStore,
+              flex : 1,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              },
+              features : [me.groupingFeature],
+              columns : [{
+                    header : me.checkboxFunctionDefinition,
+                    name : 'checkBox',
+                    width : 26,
+                    sortable : false,
+                    dataIndex : 'fullfilename',
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererChkBox(value);
+                    },
+                    hideable : false,
+                    fixed : true,
+                    menuDisabled : true,
+                    align : "center"
+                  }, {
+                    header : 'Directory',
+                    sortable : true,
+                    dataIndex : 'dirname',
+                    hideable : false
+                  }, {
+                    header : 'File',
+                    sortable : true,
+                    dataIndex : 'filename',
+                    align : 'left',
+                    hideable : false,
+                    flex : 1
+                  }, {
+                    header : 'Date',
+                    sortable : true,
+                    dataIndex : 'date',
+                    align : 'left',
+                    width : 150
+                  }, {
+                    header : 'Size',
+                    sortable : true,
+                    dataIndex : 'size',
+                    align : 'left'
+                  }, {
+                    header : 'Metadata',
+                    sortable : false,
+                    dataIndex : 'metadata',
+                    align : 'left',
+                    flex : 2
+                  }],
+              rendererChkBox : function(val) {
+                return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
+              },
+              tbar : me.pagingToolbar.toolbar
+            });
+
+        /*
+         * The grid for the metadata choice (part of the metadataOptionPanel)
+         */
+
+        me.metadataCatalogStore = new Ext.data.ArrayStore({
+              fields : ['Type', 'Name'],
+              data : []
+            });
+
+        me.metadataCatalogGrid = Ext.create('Ext.grid.Panel', {
+              title : 'Directory Metadata',
+              region : 'center',
+              hideHeaders : true,
+              store : me.metadataCatalogStore,
+              bodyBorder : false,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              },
+              columns : [{
+                    width : 26,
+                    sortable : false,
+                    dataIndex : 'Type',
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererType(value);
+                    },
+                    hideable : false,
+                    fixed : true,
+                    menuDisabled : true,
+                    align : 'center'
+                  }, {
+                    dataIndex : 'Name',
+                    align : 'left',
+                    sortable : true,
+                    hideable : false,
+                    sortState : "ASC",
+                    flex : 1
+                  }],
+              rendererType : function(value) {
+                if (value == 'varchar(128)') {
+                  return '<img src="static/DIRAC/FileCatalog/images/new_string.png">';
+                } else if (value == 'int') {
+                  return '<img src="static/DIRAC/FileCatalog/images/new_int.png">';
+                } else if (value == 'datetime') {
+                  return '<img src="static/DIRAC/FileCatalog/images/new_date.png">';
+                } else {
+                  return '<img src="static/DIRAC/FileCatalog/images/new_float.png">';
+                }
+              },
+              listeners : {
+
+                itemclick : function(oView, oRecord, item, index, e, eOpts) {
+
+                  if (me.__isEveryBlockBlured()) {
+
+                    switch (oRecord.get("Type")) {
+
+                      case "varchar(128)" :
+                        me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"), oRecord.get("Type")));
+                        break;
+                      default :
+                        me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
+                        break;
+
+                    }
+
+                  } else {
+
+                    me.funcAfterEveryBlockGetsBlured = function() {
+
+                      switch (oRecord.get("Type")) {
+
+                        case "varchar(128)" :
+                          me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"), oRecord.get("Type")));
+                          break;
+                        default :
+                          me.queryPanel.add(me.__getValueField(oRecord.get("Name"), oRecord.get("Type")));
+                          break;
 
-						};
+                      }
 
-						me.btnSubmitLeftPanel.focus();
-					}
+                    };
 
-				}
+                    me.btnSubmitLeftPanel.focus();
+                  }
 
-			}
+                }
 
-		});
+              }
 
-		var oLeftPanel = new Ext.create('Ext.panel.Panel', {
-			region : 'west',
-			layout : 'border',
-			header : false,
-			bodyBorder : false,
-			defaults : {
-				collapsible : true,
-				split : true
-			},
-			width : 450,
-			minWidth : 400,
-			maxWidth : 550,
-			items : [ me.queryPanel, me.metadataCatalogGrid ]
+            });
 
-		});
+        var oLeftPanel = new Ext.create('Ext.panel.Panel', {
+              region : 'west',
+              layout : 'border',
+              header : false,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              },
+              width : 450,
+              minWidth : 400,
+              maxWidth : 550,
+              items : [me.queryPanel, me.metadataCatalogGrid]
 
-		oLeftPanel.addDocked([ queryPanelToolbarTop, me.queryPanelToolbarCenter ]);
+            });
 
-		oRightPanel.add([ me.fileCatalogTree, me.filesGrid ]);
+        oLeftPanel.addDocked([queryPanelToolbarTop, me.queryPanelToolbarCenter]);
 
-		me.add([ oLeftPanel, oRightPanel ]);
+        oRightPanel.add([me.fileCatalogTree, me.filesGrid]);
 
-		me.fieldsTypes = null;
-		me.queryData = null;
+        me.add([oLeftPanel, oRightPanel]);
 
-		Ext.Ajax.request({
-			url : GLOBAL.BASE_URL + 'FileCatalog/getMetadataFields',
-			method : 'POST',
-			params : {},
-			scope : me,
-			success : function(oReponse) {
+        me.fieldsTypes = null;
+        me.queryData = null;
 
-				oResponse = Ext.JSON.decode(oReponse.responseText);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + 'FileCatalog/getMetadataFields',
+              method : 'POST',
+              params : {},
+              scope : me,
+              success : function(oReponse) {
 
-				if (oResponse.success == "true") {
+                oResponse = Ext.JSON.decode(oReponse.responseText);
 
-					// populating the fields for the first time
+                if (oResponse.success == "true") {
 
-					me.fieldsTypes = oResponse.result;
+                  // populating the fields for the first time
 
-					me.__getQueryData(true);
+                  me.fieldsTypes = oResponse.result;
 
-				} else {
-					GLOBAL.APP.CF.alert(oResponse.error, "error");
-				}
+                  me.__getQueryData(true);
 
-			}
-		});
+                } else {
+                  GLOBAL.APP.CF.alert(oResponse.error, "error");
+                }
 
-		me.funcAfterEveryBlockGetsBlured = null;
-		me.lastSubmittedQuery = "";
+              }
+            });
 
-		me.sectionMenu = new Ext.menu.Menu({
-			width : 150,
-			items : [ {
-				text : 'Set as starting path',
-				listeners : {
-					click : me.oprSetStartPath
-				}
-			} ],
-			moduleObject : me
-		});
+        me.funcAfterEveryBlockGetsBlured = null;
+        me.lastSubmittedQuery = "";
 
-	},
+        me.sectionMenu = new Ext.menu.Menu({
+              width : 150,
+              items : [{
+                    text : 'Set as starting path',
+                    listeners : {
+                      click : me.oprSetStartPath
+                    }
+                  }],
+              moduleObject : me
+            });
 
-	oprSetStartPath : function(oItem, e, eOpts) {
+      },
 
-		var oNode = oItem.parentMenu.node;
-		var oModule = oItem.parentMenu.moduleObject;
+      oprSetStartPath : function(oItem, e, eOpts) {
 
-		oModule.txtPathField.setValue(oModule.__getNodePath(oNode));
-		oModule.__getQueryData(true);
+        var oNode = oItem.parentMenu.node;
+        var oModule = oItem.parentMenu.moduleObject;
 
-	},
+        oModule.txtPathField.setValue(oModule.__getNodePath(oNode));
+        oModule.__getQueryData(true);
 
-	oprLoadFilesGridData : function() {
+      },
 
-		// me.metadataCatalogGrid.body.mask("Wait ...");
-		var me = this;
+      oprLoadFilesGridData : function() {
 
-		me.queryPanel.body.mask("Wait ...");
-		me.metadataCatalogGrid.body.mask("Wait ...");
-		me.queryPanelToolbarCenter.hide();
+        // me.metadataCatalogGrid.body.mask("Wait ...");
+        var me = this;
 
-		var oSendData = {};
+        me.queryPanel.body.mask("Wait ...");
+        me.metadataCatalogGrid.body.mask("Wait ...");
+        me.queryPanelToolbarCenter.hide();
 
-		for ( var i = 0; i < me.queryPanel.items.length; i++) {
+        var oSendData = {};
 
-			var oBlock = me.queryPanel.items.getAt(i);
-			var oData = me.__getValueBlockDescription(oBlock);
+        for (var i = 0; i < me.queryPanel.items.length; i++) {
 
-			if (oData[0] != "")
-				oSendData["p." + oBlock.fieldName + "." + oData[0]] = oData[1];
+          var oBlock = me.queryPanel.items.getAt(i);
+          var oData = me.__getValueBlockDescription(oBlock);
 
-		}
+          if (oData[0] != "")
+            oSendData["p." + oBlock.fieldName + "." + oData[0]] = oData[1];
 
-		oSendData.path = me.txtPathField.getValue();
+        }
 
-		me.lastSubmittedQuery = me.__restructureQueryForShow(oSendData);
+        oSendData.path = me.txtPathField.getValue();
 
-		// set those data as extraParams in
-		me.filesGrid.store.proxy.extraParams = oSendData;
-		me.filesGrid.store.currentPage = 1;
-		me.filesGrid.store.load();
-	},
+        me.lastSubmittedQuery = me.__restructureQueryForShow(oSendData);
 
-	__restructureQueryForShow : function(oSendData) {
+        // set those data as extraParams in
+        me.filesGrid.store.proxy.extraParams = oSendData;
+        me.filesGrid.store.currentPage = 1;
+        me.filesGrid.store.load();
+      },
 
-		var req = {
-			"selection" : {},
-			"path" : ""
-		};
+      __restructureQueryForShow : function(oSendData) {
 
-		for ( var sParam in oSendData) {
+        var req = {
+          "selection" : {},
+          "path" : ""
+        };
 
-			var oParts = sParam.split('.');
+        for (var sParam in oSendData) {
 
-			if (oParts.length != 3)
-				continue;
+          var oParts = sParam.split('.');
 
-			var sName = oParts[1];
-			var sLogic = oParts[2];
-			var oValue = oSendData[sParam].split("|")
+          if (oParts.length != 3)
+            continue;
 
-			if (!(sName in req["selection"]))
-				req["selection"][sName] = {};
+          var sName = oParts[1];
+          var sLogic = oParts[2];
+          var oValue = oSendData[sParam].split("|")
 
-			if (!(sLogic in req["selection"][sName])) {
-				if (oValue[0] == "v") {
-					req["selection"][sName][sLogic] = "";
-				} else if (oValue[0] == "s") {
-					req["selection"][sName][sLogic] = [];
-				}
-			}
+          if (!(sName in req["selection"]))
+            req["selection"][sName] = {};
 
-			if (oValue[0] == "v") {
-				req["selection"][sName][sLogic] = oValue[1];
-			} else if (oValue[0] == "s") {
-				req["selection"][sName][sLogic] = oValue[1].split(":::");
-			}
+          if (!(sLogic in req["selection"][sName])) {
+            if (oValue[0] == "v") {
+              req["selection"][sName][sLogic] = "";
+            } else if (oValue[0] == "s") {
+              req["selection"][sName][sLogic] = [];
+            }
+          }
 
-		}
+          if (oValue[0] == "v") {
+            req["selection"][sName][sLogic] = oValue[1];
+          } else if (oValue[0] == "s") {
+            req["selection"][sName][sLogic] = oValue[1].split(":::");
+          }
 
-		if ("path" in oSendData)
-			req["path"] = oSendData["path"];
+        }
 
-		var sText = JSON.stringify(req["selection"]);
+        if ("path" in oSendData)
+          req["path"] = oSendData["path"];
 
-		var iTab = 0;
-		var sNewText = "";
+        var sText = JSON.stringify(req["selection"]);
 
-		for ( var i = 0; i < sText.length; i++) {
+        var iTab = 0;
+        var sNewText = "";
 
-			switch (sText.charAt(i)) {
+        for (var i = 0; i < sText.length; i++) {
 
-			case '{':
-				var sTabs = "";
-				for ( var j = 0; j <= iTab; j++)
-					sTabs += "\t";
-				sNewText += "{\n" + sTabs;
-				iTab++;
-				break;
-			case '}':
-				var sTabs = "";
-				for ( var j = 0; j < iTab - 1; j++)
-					sTabs += "\t";
+          switch (sText.charAt(i)) {
 
-				if (i + 1 < sText.length) {
-					if (sText.charAt(i + 1) == ",") {
-						sNewText += "\n" + sTabs + "},\n" + sTabs;
-						i++;
-					} else {
-						sNewText += "\n" + sTabs + "}\n" + sTabs;
-					}
-				} else {
-					sNewText += "\n" + sTabs + "}\n" + sTabs;
+            case '{' :
+              var sTabs = "";
+              for (var j = 0; j <= iTab; j++)
+                sTabs += "\t";
+              sNewText += "{\n" + sTabs;
+              iTab++;
+              break;
+            case '}' :
+              var sTabs = "";
+              for (var j = 0; j < iTab - 1; j++)
+                sTabs += "\t";
 
-				}
-				iTab--;
-				break;
+              if (i + 1 < sText.length) {
+                if (sText.charAt(i + 1) == ",") {
+                  sNewText += "\n" + sTabs + "},\n" + sTabs;
+                  i++;
+                } else {
+                  sNewText += "\n" + sTabs + "}\n" + sTabs;
+                }
+              } else {
+                sNewText += "\n" + sTabs + "}\n" + sTabs;
 
-			default:
-				sNewText += sText.charAt(i);
+              }
+              iTab--;
+              break;
 
-			}
+            default :
+              sNewText += sText.charAt(i);
 
-		}
+          }
 
-		return "metaDict = " + sNewText + 'path = "' + req["path"] + '"';
+        }
 
-	},
+        return "metaDict = " + sNewText + 'path = "' + req["path"] + '"';
 
-	onItemLogicOperationClick : function(oItem, e, eOpts) {
+      },
 
-		var oButton = oItem.up("button");
-		oButton.setIconCls(oItem.iconCls);
-		oButton.moduleObject.__getQueryData(true);
+      onItemLogicOperationClick : function(oItem, e, eOpts) {
 
-	},
+        var oButton = oItem.up("button");
+        oButton.setIconCls(oItem.iconCls);
+        oButton.moduleObject.__getQueryData(true);
 
-	__removeLastBlockIfEmpty : function() {
+      },
 
-		var me = this;
+      __removeLastBlockIfEmpty : function() {
 
-		if (me.queryPanel.items.length > 0) {
-			var oLastBlock = me.queryPanel.items.getAt(me.queryPanel.items.length - 1);
+        var me = this;
 
-			var oDropDown = oLastBlock.items.getAt(2);
+        if (me.queryPanel.items.length > 0) {
+          var oLastBlock = me.queryPanel.items.getAt(me.queryPanel.items.length - 1);
 
-			if (oLastBlock.blockType == "string") {
+          var oDropDown = oLastBlock.items.getAt(2);
 
-				if (oDropDown.getValue().length == 0) {
+          if (oLastBlock.blockType == "string") {
 
-					me.queryPanel.remove(oLastBlock);
+            if (oDropDown.getValue().length == 0) {
 
-				}
-			} else {
-				if (oDropDown.getValue() == null) {
+              me.queryPanel.remove(oLastBlock);
 
-					me.queryPanel.remove(oLastBlock);
+            }
+          } else {
+            if (oDropDown.getValue() == null) {
 
-				}
-			}
-		}
+              me.queryPanel.remove(oLastBlock);
 
-	},
-	__removeBlock : function(oBlock) {
+            }
+          }
+        }
 
-		var me = this;
-		me.queryPanel.remove(oBlock);
-		me.__getQueryData(true);
+      },
+      __removeBlock : function(oBlock) {
 
-	},
+        var me = this;
+        me.queryPanel.remove(oBlock);
+        me.__getQueryData(true);
 
-	__getDropDownField : function(sName, sType) {
+      },
 
-		var me = this;
+      __getDropDownField : function(sName, sType) {
 
-		me.__removeLastBlockIfEmpty();
+        var me = this;
 
-		var oDropDown = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
-			queryMode : 'local',
-			displayField : "text",
-			valueField : "value",
-			width : 250,
-			margin : 3,
-			focusBlurState : 0,
-			store : new Ext.data.ArrayStore({
-				fields : [ 'value', 'text' ],
-				data : me.__getFieldOptions(sName)
-			}),
-			listeners : {
+        me.__removeLastBlockIfEmpty();
 
-				blur : function(oField, oEvent, eOpts) {
-					oField.focusBlurState = 0;
-					me.__getQueryData(true);
+        var oDropDown = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
+              queryMode : 'local',
+              displayField : "text",
+              valueField : "value",
+              width : 250,
+              margin : 3,
+              focusBlurState : 0,
+              store : new Ext.data.ArrayStore({
+                    fields : ['value', 'text'],
+                    data : me.__getFieldOptions(sName)
+                  }),
+              listeners : {
 
-				},
-				focus : function(oField, oEvent, eOpts) {
-					oField.focusBlurState = 1;
-				},
-				expand : function(oField, eOpts) {
+                blur : function(oField, oEvent, eOpts) {
+                  oField.focusBlurState = 0;
+                  me.__getQueryData(true);
 
-					me.queryPanel.body.mask("Wait ...");
-					oField.collapse();
-					me.__expandMenuBeforeExpandMenu(oPanel);
+                },
+                focus : function(oField, oEvent, eOpts) {
+                  oField.focusBlurState = 1;
+                },
+                expand : function(oField, eOpts) {
 
-				}
+                  me.queryPanel.body.mask("Wait ...");
+                  oField.collapse();
+                  me.__expandMenuBeforeExpandMenu(oPanel);
 
-			},
-			onClearButtonAfterClick : function(oSelectBox) {
+                }
 
-				me.__getQueryData(true);
+              },
+              onClearButtonAfterClick : function(oSelectBox) {
 
-			},
-			onNotButtonAfterClick : function(oSelectBox) {
+                me.__getQueryData(true);
 
-				me.__getQueryData(true);
+              },
+              onNotButtonAfterClick : function(oSelectBox) {
 
-			},
-			onItemRemovedClick : function(oSelectBox) {
+                me.__getQueryData(true);
 
-				me.__getQueryData(true);
+              },
+              onItemRemovedClick : function(oSelectBox) {
 
-			}
-		});
-
-		var oPanel = Ext.create('Ext.container.Container', {
-			layout : {
-				type : 'hbox',
-				// align : 'stretch',
-				margin : 3
-			},
-			fieldName : sName,
-			fieldType : sType,
-			blockType : "string",
-			items : [ {
-				xtype : 'panel',
-				html : "<div style='padding:7px 0px 0px 5px;'>" + sName + "</div>",
-				border : false,
-				flex : 1
-			}, {
-				xtype : "button",
-				iconCls : "meta-in-icon",
-				margin : 3
-			}, oDropDown, {
-				xtype : "button",
-				iconCls : "dirac-icon-reset",
-				margin : 3,
-				handler : function() {
-
-					me.__removeBlock(oPanel);
-
-				}
-			} ]
-
-		});
-
-		return oPanel;
-
-	},
-	__getValueField : function(sName, sType) {
-
-		var me = this;
-
-		me.__removeLastBlockIfEmpty();
-
-		var oDropDown = Ext.create('Ext.form.field.ComboBox', {
-			queryMode : 'local',
-			displayField : "text",
-			valueField : "value",
-			width : 250,
-			margin : 3,
-			focusBlurState : 0,
-			store : new Ext.data.ArrayStore({
-				fields : [ 'value', 'text' ],
-				data : me.__getFieldOptions(sName)
-			}),
-			listeners : {
-
-				blur : function(oField, oEvent, eOpts) {
-					oField.focusBlurState = 0;
-					me.__getQueryData(true);
-				},
-				focus : function(oField, oEvent, eOpts) {
-					oField.focusBlurState = 1;
-				},
-				expand : function(oField, eOpts) {
-
-					me.queryPanel.body.mask("Wait ...");
-					oField.collapse();
-					me.__expandMenuBeforeExpandMenu(oPanel);
-
-				}
-
-			}
-		});
-
-		var oPanel = Ext.create('Ext.container.Container', {
-			layout : {
-				type : 'hbox',
-				// align : 'stretch',
-				margin : 3
-			},
-			fieldName : sName,
-			fieldType : sType,
-			blockType : "value",
-			items : [ {
-				xtype : 'panel',
-				html : "<div style='padding:7px 0px 0px 5px;'>" + sName + "</div>",
-				border : false,
-				flex : 1
-			}, {
-				xtype : "button",
-				iconCls : "meta-equal-icon",
-				margin : 3,
-				moduleObject : me,
-				menu : [ {
-					text : "Equal to",
-					iconCls : "meta-equal-icon",
-					width : 200,
-					listeners : {
-						click : me.onItemLogicOperationClick
-					}
-				}, {
-					text : "Not equal to",
-					iconCls : "meta-nequal-icon",
-					width : 200,
-					listeners : {
-						click : me.onItemLogicOperationClick
-					}
-				}, {
-					text : "Greater than",
-					iconCls : "meta-great-icon",
-					width : 200,
-					listeners : {
-						click : me.onItemLogicOperationClick
-					}
-				}, {
-					text : "Less than",
-					iconCls : "meta-less-icon",
-					width : 200,
-					listeners : {
-						click : me.onItemLogicOperationClick
-					}
-				}, {
-					text : "Greater than or equal to",
-					iconCls : "meta-gequal-icon",
-					width : 200,
-					listeners : {
-						click : me.onItemLogicOperationClick
-					}
-				}, {
-					text : "Less than or equal to",
-					iconCls : "meta-lequal-icon",
-					width : 200,
-					listeners : {
-						click : me.onItemLogicOperationClick
-					}
-				} ]
-			}, oDropDown, {
-				xtype : "button",
-				iconCls : "dirac-icon-reset",
-				margin : 3,
-				handler : function() {
+                me.__getQueryData(true);
 
-					me.__removeBlock(oPanel);
+              }
+            });
+
+        var oPanel = Ext.create('Ext.container.Container', {
+              layout : {
+                type : 'hbox',
+                // align : 'stretch',
+                margin : 3
+              },
+              fieldName : sName,
+              fieldType : sType,
+              blockType : "string",
+              items : [{
+                    xtype : 'panel',
+                    html : "<div style='padding:7px 0px 0px 5px;'>" + sName + "</div>",
+                    border : false,
+                    flex : 1
+                  }, {
+                    xtype : "button",
+                    iconCls : "meta-in-icon",
+                    margin : 3
+                  }, oDropDown, {
+                    xtype : "button",
+                    iconCls : "dirac-icon-reset",
+                    margin : 3,
+                    handler : function() {
+
+                      me.__removeBlock(oPanel);
+
+                    }
+                  }]
+
+            });
+
+        return oPanel;
+
+      },
+      __getValueField : function(sName, sType) {
+
+        var me = this;
+
+        me.__removeLastBlockIfEmpty();
+
+        var oDropDown = Ext.create('Ext.form.field.ComboBox', {
+              queryMode : 'local',
+              displayField : "text",
+              valueField : "value",
+              width : 250,
+              margin : 3,
+              focusBlurState : 0,
+              store : new Ext.data.ArrayStore({
+                    fields : ['value', 'text'],
+                    data : me.__getFieldOptions(sName)
+                  }),
+              listeners : {
+
+                blur : function(oField, oEvent, eOpts) {
+                  oField.focusBlurState = 0;
+                  me.__getQueryData(true);
+                },
+                focus : function(oField, oEvent, eOpts) {
+                  oField.focusBlurState = 1;
+                },
+                expand : function(oField, eOpts) {
+
+                  me.queryPanel.body.mask("Wait ...");
+                  oField.collapse();
+                  me.__expandMenuBeforeExpandMenu(oPanel);
+
+                }
+
+              }
+            });
+
+        var oPanel = Ext.create('Ext.container.Container', {
+              layout : {
+                type : 'hbox',
+                // align : 'stretch',
+                margin : 3
+              },
+              fieldName : sName,
+              fieldType : sType,
+              blockType : "value",
+              items : [{
+                    xtype : 'panel',
+                    html : "<div style='padding:7px 0px 0px 5px;'>" + sName + "</div>",
+                    border : false,
+                    flex : 1
+                  }, {
+                    xtype : "button",
+                    iconCls : "meta-equal-icon",
+                    margin : 3,
+                    moduleObject : me,
+                    menu : [{
+                          text : "Equal to",
+                          iconCls : "meta-equal-icon",
+                          width : 200,
+                          listeners : {
+                            click : me.onItemLogicOperationClick
+                          }
+                        }, {
+                          text : "Not equal to",
+                          iconCls : "meta-nequal-icon",
+                          width : 200,
+                          listeners : {
+                            click : me.onItemLogicOperationClick
+                          }
+                        }, {
+                          text : "Greater than",
+                          iconCls : "meta-great-icon",
+                          width : 200,
+                          listeners : {
+                            click : me.onItemLogicOperationClick
+                          }
+                        }, {
+                          text : "Less than",
+                          iconCls : "meta-less-icon",
+                          width : 200,
+                          listeners : {
+                            click : me.onItemLogicOperationClick
+                          }
+                        }, {
+                          text : "Greater than or equal to",
+                          iconCls : "meta-gequal-icon",
+                          width : 200,
+                          listeners : {
+                            click : me.onItemLogicOperationClick
+                          }
+                        }, {
+                          text : "Less than or equal to",
+                          iconCls : "meta-lequal-icon",
+                          width : 200,
+                          listeners : {
+                            click : me.onItemLogicOperationClick
+                          }
+                        }]
+                  }, oDropDown, {
+                    xtype : "button",
+                    iconCls : "dirac-icon-reset",
+                    margin : 3,
+                    handler : function() {
 
-				}
-			} ]
+                      me.__removeBlock(oPanel);
 
-		});
+                    }
+                  }]
 
-		return oPanel;
+            });
 
-	},
+        return oPanel;
 
-	__isEveryBlockBlured : function() {
+      },
 
-		var me = this;
+      __isEveryBlockBlured : function() {
 
-		var bBlured = true;
+        var me = this;
 
-		for ( var i = 0; i < me.queryPanel.items.length; i++) {
+        var bBlured = true;
 
-			var oBlock = me.queryPanel.items.getAt(i);
-			if (oBlock.focusBlurState == 1) {
+        for (var i = 0; i < me.queryPanel.items.length; i++) {
 
-				bBlured = false;
-				break;
+          var oBlock = me.queryPanel.items.getAt(i);
+          if (oBlock.focusBlurState == 1) {
 
-			}
+            bBlured = false;
+            break;
 
-		}
+          }
 
-		return bBlured;
+        }
 
-	},
+        return bBlured;
 
-	__expandMenuBeforeExpandMenu : function(oThisBlock) {
+      },
 
-		var me = this;
-		// collect already selected options
+      __expandMenuBeforeExpandMenu : function(oThisBlock) {
 
-		var sBlockType = oThisBlock.blockType;
-		var oDropDown = oThisBlock.items.getAt(2);
+        var me = this;
+        // collect already selected options
 
-		var ifValue = true;
+        var sBlockType = oThisBlock.blockType;
+        var oDropDown = oThisBlock.items.getAt(2);
 
-		switch (sBlockType) {
+        var ifValue = true;
 
-		case "value":
-			if (oDropDown.getValue() == null)
-				ifValue = false;
-			break;
-		case "string":
-			if (oDropDown.getValue().length == 0)
-				ifValue = false;
-			break;
+        switch (sBlockType) {
 
-		}
+          case "value" :
+            if (oDropDown.getValue() == null)
+              ifValue = false;
+            break;
+          case "string" :
+            if (oDropDown.getValue().length == 0)
+              ifValue = false;
+            break;
 
-		if (ifValue) {
+        }
 
-			var oSendData = {};
+        if (ifValue) {
 
-			for ( var i = 0; i < me.queryPanel.items.length; i++) {
+          var oSendData = {};
 
-				var oBlock = me.queryPanel.items.getAt(i);
+          for (var i = 0; i < me.queryPanel.items.length; i++) {
 
-				if (oThisBlock != oBlock) {
+            var oBlock = me.queryPanel.items.getAt(i);
 
-					var oData = me.__getValueBlockDescription(oBlock);
+            if (oThisBlock != oBlock) {
 
-					if (oData[0] != "")
-						oSendData["p." + oBlock.fieldName + "." + oData[0]] = oData[1];
-				}
-			}
+              var oData = me.__getValueBlockDescription(oBlock);
 
-			oSendData["path"] = me.txtPathField.getValue();
+              if (oData[0] != "")
+                oSendData["p." + oBlock.fieldName + "." + oData[0]] = oData[1];
+            }
+          }
 
-			Ext.Ajax.request({
-				url : GLOBAL.BASE_URL + 'FileCatalog/getQueryData',
-				method : 'POST',
-				params : oSendData,
-				scope : me,
-				timeout : 1800000,
-				success : function(oReponse) {
+          oSendData["path"] = me.txtPathField.getValue();
 
-					oResponse = Ext.JSON.decode(oReponse.responseText);
+          Ext.Ajax.request({
+                url : GLOBAL.BASE_URL + 'FileCatalog/getQueryData',
+                method : 'POST',
+                params : oSendData,
+                scope : me,
+                timeout : 1800000,
+                success : function(oReponse) {
 
-					if (oResponse.success == "true") {
+                  oResponse = Ext.JSON.decode(oReponse.responseText);
 
-						var oBackData = oResponse.result;
-						var oDropDown = oThisBlock.items.getAt(2);
+                  if (oResponse.success == "true") {
 
-						oDropDown.suspendEvents(false);
+                    var oBackData = oResponse.result;
+                    var oDropDown = oThisBlock.items.getAt(2);
 
-						var oList = [];
-						for ( var i = 0; i < oBackData[oThisBlock.fieldName].length; i++)
-							oList.push([ oBackData[oThisBlock.fieldName][i], oBackData[oThisBlock.fieldName][i] ]);
+                    oDropDown.suspendEvents(false);
 
-						var oNewStore = new Ext.data.ArrayStore({
-							fields : [ 'value', 'text' ],
-							data : oList
-						});
+                    var oList = [];
+                    for (var i = 0; i < oBackData[oThisBlock.fieldName].length; i++)
+                      oList.push([oBackData[oThisBlock.fieldName][i], oBackData[oThisBlock.fieldName][i]]);
 
-						switch (sBlockType) {
+                    var oNewStore = new Ext.data.ArrayStore({
+                          fields : ['value', 'text'],
+                          data : oList
+                        });
 
-						case "value":
-							oDropDown.bindStore(oNewStore);
-							break;
-						case "string":
-							oDropDown.refreshStore(oNewStore);
-							break;
+                    switch (sBlockType) {
 
-						}
+                      case "value" :
+                        oDropDown.bindStore(oNewStore);
+                        break;
+                      case "string" :
+                        oDropDown.refreshStore(oNewStore);
+                        break;
 
-						oDropDown.collapse();
-						oDropDown.expand();
+                    }
 
-						oDropDown.resumeEvents();
-						me.queryPanel.body.unmask();
+                    oDropDown.collapse();
+                    oDropDown.expand();
 
-						if (me.funcAfterEveryBlockGetsBlured != null) {
+                    oDropDown.resumeEvents();
+                    me.queryPanel.body.unmask();
 
-							me.funcAfterEveryBlockGetsBlured();
-							me.funcAfterEveryBlockGetsBlured = null
-						}
+                    if (me.funcAfterEveryBlockGetsBlured != null) {
 
-					} else {
+                      me.funcAfterEveryBlockGetsBlured();
+                      me.funcAfterEveryBlockGetsBlured = null
+                    }
 
-						GLOBAL.APP.CF.alert(oResponse.error, "error");
-						me.queryPanel.body.unmask();
+                  } else {
 
-					}
+                    GLOBAL.APP.CF.alert(oResponse.error, "error");
+                    me.queryPanel.body.unmask();
 
-				}
-			});
-		} else {
+                  }
 
-			oDropDown.suspendEvents(false);
+                }
+              });
+        } else {
 
-			var oNewStore = new Ext.data.ArrayStore({
-				fields : [ 'value', 'text' ],
-				data : me.__getFieldOptions(oThisBlock.fieldName)
-			});
+          oDropDown.suspendEvents(false);
 
-			switch (sBlockType) {
+          var oNewStore = new Ext.data.ArrayStore({
+                fields : ['value', 'text'],
+                data : me.__getFieldOptions(oThisBlock.fieldName)
+              });
 
-			case "value":
-				oDropDown.bindStore(oNewStore);
-				break;
-			case "string":
-				oDropDown.refreshStore(oNewStore);
-				break;
+          switch (sBlockType) {
 
-			}
+            case "value" :
+              oDropDown.bindStore(oNewStore);
+              break;
+            case "string" :
+              oDropDown.refreshStore(oNewStore);
+              break;
 
-			oDropDown.collapse();
-			oDropDown.expand();
+          }
 
-			oDropDown.resumeEvents();
-			me.queryPanel.body.unmask();
+          oDropDown.collapse();
+          oDropDown.expand();
 
-		}
+          oDropDown.resumeEvents();
+          me.queryPanel.body.unmask();
 
-	},
+        }
 
-	__getMetadataFile : function() {
+      },
 
-		var me = this;
+      __getMetadataFile : function() {
 
-		var oSendData = [];
+        var me = this;
 
-		for ( var i = 0; i < me.queryPanel.items.length; i++) {
+        var oSendData = [];
 
-			var oBlock = me.queryPanel.items.getAt(i);
-			var oData = me.__getValueBlockDescription(oBlock);
+        for (var i = 0; i < me.queryPanel.items.length; i++) {
 
-			if (oData[0] != "")
-				oSendData.push(oBlock.fieldName + "|" + oData[0] + "|" + oData[1]);
+          var oBlock = me.queryPanel.items.getAt(i);
+          var oData = me.__getValueBlockDescription(oBlock);
 
-		}
+          if (oData[0] != "")
+            oSendData.push(oBlock.fieldName + "|" + oData[0] + "|" + oData[1]);
 
-		if (oSendData.length > 0)
-			location.href = GLOBAL.BASE_URL + 'FileCatalog/getMetadataFilesInFile?path=' + encodeURIComponent(me.txtPathField.getValue()) + "&selection=" + encodeURIComponent(oSendData.join("<|>"));
+        }
 
-	},
+        if (oSendData.length > 0)
+          location.href = GLOBAL.BASE_URL + 'FileCatalog/getMetadataFilesInFile?path=' + encodeURIComponent(me.txtPathField.getValue()) + "&selection=" + encodeURIComponent(oSendData.join("<|>"));
 
-	__getQueryData : function(bRefreshMetadataList) {
+      },
 
-		var me = this;
-		// collect already selected options
-		me.metadataCatalogGrid.body.mask("Wait ...");
+      __getQueryData : function(bRefreshMetadataList) {
 
-		var oSendData = {};
+        var me = this;
+        // collect already selected options
+        me.metadataCatalogGrid.body.mask("Wait ...");
 
-		for ( var i = 0; i < me.queryPanel.items.length; i++) {
+        var oSendData = {};
 
-			var oBlock = me.queryPanel.items.getAt(i);
-			var oData = me.__getValueBlockDescription(oBlock);
+        for (var i = 0; i < me.queryPanel.items.length; i++) {
 
-			if (oData[0] != "")
-				oSendData["p." + oBlock.fieldName + "." + oData[0]] = oData[1];
+          var oBlock = me.queryPanel.items.getAt(i);
+          var oData = me.__getValueBlockDescription(oBlock);
 
-		}
+          if (oData[0] != "")
+            oSendData["p." + oBlock.fieldName + "." + oData[0]] = oData[1];
 
-		oSendData["path"] = me.txtPathField.getValue();
+        }
 
-		Ext.Ajax.request({
-			url : GLOBAL.BASE_URL + 'FileCatalog/getQueryData',
-			method : 'POST',
-			params : oSendData,
-			scope : me,
-			timeout : 1800000,
-			success : function(oReponse) {
+        oSendData["path"] = me.txtPathField.getValue();
 
-				oResponse = Ext.JSON.decode(oReponse.responseText);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + 'FileCatalog/getQueryData',
+              method : 'POST',
+              params : oSendData,
+              scope : me,
+              timeout : 1800000,
+              success : function(oReponse) {
 
-				if (oResponse.success == "true") {
-					me.queryData = oResponse.result;
+                oResponse = Ext.JSON.decode(oReponse.responseText);
 
-					if (bRefreshMetadataList) {
-						me.__oprRefreshMetadataFieldsList();
-					}
+                if (oResponse.success == "true") {
+                  me.queryData = oResponse.result;
 
-					me.metadataCatalogGrid.body.unmask();
+                  if (bRefreshMetadataList) {
+                    me.__oprRefreshMetadataFieldsList();
+                  }
 
-					if (me.funcAfterEveryBlockGetsBlured != null) {
+                  me.metadataCatalogGrid.body.unmask();
 
-						me.funcAfterEveryBlockGetsBlured();
-						me.funcAfterEveryBlockGetsBlured = null;
+                  if (me.funcAfterEveryBlockGetsBlured != null) {
 
-					}
+                    me.funcAfterEveryBlockGetsBlured();
+                    me.funcAfterEveryBlockGetsBlured = null;
 
-					if (me.__loadingStateDataStruct != null) {
+                  }
 
-						if (!me.__loadingStateDataStruct.finished) {
+                  if (me.__loadingStateDataStruct != null) {
 
-							me.__loadingStateDataStruct.next();
+                    if (!me.__loadingStateDataStruct.finished) {
 
-						}
+                      me.__loadingStateDataStruct.next();
 
-					}
+                    }
 
-				} else {
+                  }
 
-					GLOBAL.APP.CF.alert(oResponse.error, "error");
-					me.metadataCatalogGrid.body.unmask();
+                } else {
 
-				}
+                  GLOBAL.APP.CF.alert(oResponse.error, "error");
+                  me.metadataCatalogGrid.body.unmask();
 
-			}
-		});
+                }
 
-	},
+              }
+            });
 
-	__refreshQueryFieldsOptions : function() {
+      },
 
-		var me = this;
+      __refreshQueryFieldsOptions : function() {
 
-		for ( var i = 0; i < me.queryPanel.items.length; i++) {
+        var me = this;
 
-			var oBlock = me.queryPanel.items.getAt(i);
+        for (var i = 0; i < me.queryPanel.items.length; i++) {
 
-			var oDropDown = oBlock.items.getAt(2);
+          var oBlock = me.queryPanel.items.getAt(i);
 
-			var oValue = oDropDown.getValue();
+          var oDropDown = oBlock.items.getAt(2);
 
-			oDropDown.suspendEvents(false);
+          var oValue = oDropDown.getValue();
 
-			var oNewStore = new Ext.data.ArrayStore({
-				fields : [ 'value', 'text' ],
-				data : me.__getFieldOptions(oBlock.fieldName)
-			});
+          oDropDown.suspendEvents(false);
 
-			oDropDown.bindStore(oNewStore);
+          var oNewStore = new Ext.data.ArrayStore({
+                fields : ['value', 'text'],
+                data : me.__getFieldOptions(oBlock.fieldName)
+              });
 
-			oDropDown.setValue(oValue);
+          oDropDown.bindStore(oNewStore);
 
-			oDropDown.resumeEvents();
+          oDropDown.setValue(oValue);
 
-		}
+          oDropDown.resumeEvents();
 
-	},
+        }
 
-	__getValueBlockDescription : function(oBlock) {
+      },
 
-		var me = this;
-		var oButton = oBlock.items.getAt(1);
-		var oDropDown = oBlock.items.getAt(2);
+      __getValueBlockDescription : function(oBlock) {
 
-		var oRet = [ "", "" ];
+        var me = this;
+        var oButton = oBlock.items.getAt(1);
+        var oDropDown = oBlock.items.getAt(2);
 
-		if (oBlock.blockType == "string") {
-			if (oDropDown.getValue().length > 0) {
-				var sSign = me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection());
-				oRet = [ sSign, "s" + "|" + oDropDown.getValue().join(":::") ];
-			}
-		} else {
-			if (oDropDown.getValue() != null) {
-				var sSign = me.__getSignByIconCls(oButton.iconCls, false);
-				oRet = [ sSign, "v" + "|" + oDropDown.getValue() ];
-			}
-		}
+        var oRet = ["", ""];
 
-		return oRet;
+        if (oBlock.blockType == "string") {
+          if (oDropDown.getValue().length > 0) {
+            var sSign = me.__getSignByIconCls(oButton.iconCls, oDropDown.isInverseSelection());
+            oRet = [sSign, "s" + "|" + oDropDown.getValue().join(":::")];
+          }
+        } else {
+          if (oDropDown.getValue() != null) {
+            var sSign = me.__getSignByIconCls(oButton.iconCls, false);
+            oRet = [sSign, "v" + "|" + oDropDown.getValue()];
+          }
+        }
 
-	},
+        return oRet;
 
-	__getSignByIconCls : function(sIconCls, bNot) {
+      },
 
-		var sSign = "";
+      __getSignByIconCls : function(sIconCls, bNot) {
 
-		switch (sIconCls) {
+        var sSign = "";
 
-		case "meta-equal-icon":
-			if (bNot) {
-				sSign = "!=";
-			} else {
-				sSign = "=";
-			}
-			break;
-		case "meta-gequal-icon":
-			if (bNot) {
-				sSign = "<";
-			} else {
-				sSign = ">=";
-			}
-			break;
-		case "meta-great-icon":
-			if (bNot) {
-				sSign = "<=";
-			} else {
-				sSign = ">";
-			}
-			break;
-		case "meta-lequal-icon":
-			if (bNot) {
-				sSign = ">";
-			} else {
-				sSign = "<=";
-			}
-			break;
-		case "meta-less-icon":
-			if (bNot) {
-				sSign = ">=";
-			} else {
-				sSign = "<";
-			}
-			break;
-		case "meta-nequal-icon":
-			if (bNot) {
-				sSign = "=";
-			} else {
-				sSign = "!=";
-			}
-			break;
-		case "meta-in-icon":
-			if (bNot) {
-				sSign = "nin";
-			} else {
-				sSign = "in";
-			}
-			break;
+        switch (sIconCls) {
 
-		}
+          case "meta-equal-icon" :
+            if (bNot) {
+              sSign = "!=";
+            } else {
+              sSign = "=";
+            }
+            break;
+          case "meta-gequal-icon" :
+            if (bNot) {
+              sSign = "<";
+            } else {
+              sSign = ">=";
+            }
+            break;
+          case "meta-great-icon" :
+            if (bNot) {
+              sSign = "<=";
+            } else {
+              sSign = ">";
+            }
+            break;
+          case "meta-lequal-icon" :
+            if (bNot) {
+              sSign = ">";
+            } else {
+              sSign = "<=";
+            }
+            break;
+          case "meta-less-icon" :
+            if (bNot) {
+              sSign = ">=";
+            } else {
+              sSign = "<";
+            }
+            break;
+          case "meta-nequal-icon" :
+            if (bNot) {
+              sSign = "=";
+            } else {
+              sSign = "!=";
+            }
+            break;
+          case "meta-in-icon" :
+            if (bNot) {
+              sSign = "nin";
+            } else {
+              sSign = "in";
+            }
+            break;
 
-		return sSign;
+        }
 
-	},
+        return sSign;
 
-	__oprRefreshMetadataFieldsList : function() {
+      },
 
-		var me = this;
+      __oprRefreshMetadataFieldsList : function() {
 
-		me.metadataCatalogStore.removeAll();
+        var me = this;
 
-		var oNewData = [];
+        me.metadataCatalogStore.removeAll();
 
-		for ( var key in me.queryData) {
-			if (me.queryData[key].length > 0) {
-				oNewData.push([ me.fieldsTypes[key], key ]);
-			}
-		}
+        var oNewData = [];
 
-		for ( var i = 0; i < oNewData.length - 1; i++) {
-			for ( var j = i + 1; j < oNewData.length; j++) {
+        for (var key in me.queryData) {
+          if (me.queryData[key].length > 0) {
+            oNewData.push([me.fieldsTypes[key], key]);
+          }
+        }
 
-				if (oNewData[i][1].toLowerCase() > oNewData[j][1].toLowerCase()) {
+        for (var i = 0; i < oNewData.length - 1; i++) {
+          for (var j = i + 1; j < oNewData.length; j++) {
 
-					var elem = oNewData[i];
-					oNewData[i] = oNewData[j];
-					oNewData[j] = elem;
+            if (oNewData[i][1].toLowerCase() > oNewData[j][1].toLowerCase()) {
 
-				}
+              var elem = oNewData[i];
+              oNewData[i] = oNewData[j];
+              oNewData[j] = elem;
 
-			}
+            }
 
-		}
+          }
 
-		me.metadataCatalogStore.add(oNewData);
+        }
 
-	},
+        me.metadataCatalogStore.add(oNewData);
 
-	__getFieldOptions : function(sName) {
+      },
 
-		var me = this;
+      __getFieldOptions : function(sName) {
 
-		var oList = [];
-		for ( var i = 0; i < me.queryData[sName].length; i++)
-			oList.push([ me.queryData[sName][i], me.queryData[sName][i] ]);
+        var me = this;
 
-		return oList;
+        var oList = [];
+        for (var i = 0; i < me.queryData[sName].length; i++)
+          oList.push([me.queryData[sName][i], me.queryData[sName][i]]);
 
-	},
-	__getNodePath : function(oNode) {
-		var sPath = ""
-		var oCopyRefNode = oNode;
+        return oList;
 
-		if (oCopyRefNode.raw.text == "/") {
-			sPath = "/";
-		} else {
+      },
+      __getNodePath : function(oNode) {
+        var sPath = ""
+        var oCopyRefNode = oNode;
 
-			while (oCopyRefNode) {
+        if (oCopyRefNode.raw.text == "/") {
+          sPath = "/";
+        } else {
 
-				if (oCopyRefNode.raw.text == "/")
-					break;
+          while (oCopyRefNode) {
 
-				// if (oCopyRefNode.get("text"))
-				sPath = "/" + oCopyRefNode.get("text") + sPath;
-				// else
-				// break;
-				oCopyRefNode = oCopyRefNode.parentNode;
-			}
-			if (!sPath)
-				return "/";
-		}
-		return sPath;
-	}
-});
+            if (oCopyRefNode.raw.text == "/")
+              break;
+
+            // if (oCopyRefNode.get("text"))
+            sPath = "/" + oCopyRefNode.get("text") + sPath;
+            // else
+            // break;
+            oCopyRefNode = oCopyRefNode.parentNode;
+          }
+          if (!sPath)
+            return "/";
+        }
+        return sPath;
+      }
+    });

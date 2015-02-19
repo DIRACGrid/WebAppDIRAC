@@ -377,4 +377,6 @@ class FileCatalogHandler(WebHandler):
       nodeDef[ 'leaf' ] = True
       retData.append(nodeDef)
     
+    retData = sorted(retData, key=lambda node: node['text'].upper())
+    
     self.finish({"success" : "true", "nodes":retData})
