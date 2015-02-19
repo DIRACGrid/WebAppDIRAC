@@ -376,7 +376,13 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 					type : 'json',
 					root : 'result'
 				},
-				timeout : 1800000
+				timeout : 1800000,
+				listeners : {
+					exception : function(proxy, response, operation) {
+					 GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                    }
+			    }
+				
 			},
 			groupField : 'dirname',
 			fields : [ {
