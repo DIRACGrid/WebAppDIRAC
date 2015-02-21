@@ -326,7 +326,7 @@ class JobMonitorHandler( WebHandler ):
 
     if self.request.arguments["data_kind"][0] == "getJDL":
       RPC = RPCClient( "WorkloadManagement/JobMonitoring" )
-      result = yield self.threadTask( RPC.getJobJDL, jobId )
+      result = yield self.threadTask( RPC.getJobJDL, jobId, False )
       if result["OK"]:
         callback = {"success":"true", "result":result["Value"]}
       else:
