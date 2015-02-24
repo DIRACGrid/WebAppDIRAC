@@ -1483,7 +1483,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
       },
       /**
-       * It refresh a node in the myDesktop. If teh nodeName does not exists, it adds to the myDesktop
+       * It refresh a node in the myDesktop. If teh nodeName does not exists, it
+       * adds to the myDesktop
        * 
        * @param{String} nodeName
        */
@@ -1846,18 +1847,18 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                       tab.items.each(function(win, value, length) {
                             if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
                               tab.setActiveTab(win);
-                              me.loadRightContainer.hide();
                               return;
                             }
+                            me.loadRightContainer.hide();
                           });
                     }, 100);
               } else {
                 tab.items.each(function(win, value, length) {
                       if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
                         tab.setActiveTab(win);
-                        me.loadRightContainer.hide();
                         return;
                       }
+                      me.loadRightContainer.hide();
                     });
               }
             } else {
