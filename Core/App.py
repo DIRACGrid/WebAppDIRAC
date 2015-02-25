@@ -130,7 +130,7 @@ class App( object ):
       aviableProtocols = [ i for i in dir( ssl ) if  i.find( 'PROTOCOL' ) == 0]
       if  sslprotocol and sslprotocol != "":
         if ( sslprotocol in aviableProtocols ):
-          sslops['ssl_version'] = "ssl.%s" % sslprotocol
+          sslops['ssl_version'] = getattr(ssl, sslprotocol)
         else:
           message = "%s protocol is not provided. The following protocols are provided: %s" % ( sslprotocol, str( aviableProtocols ) )
           gLogger.warn( message )
