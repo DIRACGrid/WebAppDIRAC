@@ -105,3 +105,6 @@ def getTheme():
 
 def getIcon():
   return getCSValue("Icon","/static/core/img/icons/system/favicon.ico")
+
+def SSLProrocol():
+  return getCSValue( "SSLProtcol", "" )
