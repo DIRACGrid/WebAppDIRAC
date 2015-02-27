@@ -125,6 +125,16 @@ class App( object ):
                      keyfile = Conf.HTTPSKey(),
                      cert_reqs = ssl.CERT_OPTIONAL,
                      ca_certs = Conf.generateCAFile() )
+      
+      sslprotocol = str( Conf.SSLProrocol() ) 
+      aviableProtocols = [ i for i in dir( ssl ) if  i.find( 'PROTOCOL' ) == 0]
+      if  sslprotocol and sslprotocol != "":
+        if ( sslprotocol in aviableProtocols ):
+          sslops['ssl_version'] = getattr(ssl, sslprotocol)
+        else:
+          message = "%s protocol is not provided. The following protocols are provided: %s" % ( sslprotocol, str( aviableProtocols ) )
+          gLogger.warn( message )
+      
       self.log.debug( " - %s" % "\n - ".join( [ "%s = %s" % ( k, sslops[k] ) for k in sslops ] ) )
       srv = tornado.httpserver.HTTPServer( self.__app, ssl_options = sslops )
       port = Conf.HTTPSPort()

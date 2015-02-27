@@ -49,6 +49,7 @@ class SystemAdministrationHandler( WebHandler ):
       self.finish( { "success" : "false" , "error" : "No system information found" } )
       return
     
+    callback = sorted(callback, key=lambda i: i['Host'])
     self.finish( { "success" : "true" , "result" : callback , "total" : total } )
   
   @asyncGen  
