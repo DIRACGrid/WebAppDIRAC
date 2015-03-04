@@ -304,7 +304,7 @@ class SiteSummaryHandler( WebHandler ):
     elementStatus = [ dict( zip( elementStatuses[ 'Columns' ], element ) ) for element in elementStatuses[ 'Value' ] ][ 0 ]
 
     plotDict1 = self.getPlotDict( elementStatus[ 'Name' ], 'FinalMajorStatus',
-                                  'RunningJobs', 'Job', plotTitle = 'Final Minor Status of done jobs' )
+                                  'RunningJobs', 'Job', plotTitle = 'Final Minor Status of jobs' )
     image1 = codeRequestInFileId( plotDict1 )[ 'Value' ][ 'plot' ]
 
     plotDict2 = self.getPlotDict( elementStatus[ 'Name' ], 'GridStatus',
@@ -312,7 +312,7 @@ class SiteSummaryHandler( WebHandler ):
     image2 = codeRequestInFileId( plotDict2 )[ 'Value' ][ 'plot' ]
 
     plotDict3 = self.getPlotDict( elementStatus[ 'Name' ], 'JobType',
-                                  'RunningJobs', 'Job', plotTitle = 'Type of done jobs' )
+                                  'RunningJobs', 'Job', plotTitle = 'Jobs by job type' )
     image3 = codeRequestInFileId( plotDict3 )[ 'Value' ][ 'plot' ]
 
     plotDict4 = self.getPlotDict( elementStatus[ 'Name' ], 'JobSplitType',
@@ -340,12 +340,13 @@ class SiteSummaryHandler( WebHandler ):
                                   },
                   'grouping'   : grouping,
                   'reportName' : reportName,
-                  'typeName'   : typeName }
+                  'typeName'   : typeName,
+                  '_plotTitle'  : plotTitle}
 
     if plotTitle is not None:
-      plotDict[ 'condDict' ][ 'plotTitle' ] = plotTitle
+      plotDict[ 'extraArgs' ][ 'plotTitle' ] = plotTitle
     if status is not None:
-      plotDict[ 'condDict' ][ 'status' ] = status
+      plotDict[ 'condDict' ][ 'Status' ] = status
 
     return plotDict
   
