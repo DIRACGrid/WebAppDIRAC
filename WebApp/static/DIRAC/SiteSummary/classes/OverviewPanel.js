@@ -483,7 +483,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 width : 834
               });
 
-          var win = me.up("panel").createChildWindow(img.plotParams._plotName + '::' + img.plotParams._grouping, false, 850, 650);
+          var win = me.up("panel").createChildWindow("Site overview", false, 850, 650);
           win.add(panel);
           win.show();
         }
