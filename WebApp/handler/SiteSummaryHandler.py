@@ -296,7 +296,6 @@ class SiteSummaryHandler( WebHandler ):
                                               None )
 
 
-    print 'dada', elementStatuses
     if not elementStatuses[ 'Value' ]:
       gLogger.error( 'element "%s" not found' % elementName )
       return { 'success' : 'false', 'error' : 'element "%s" not found' % elementName }
