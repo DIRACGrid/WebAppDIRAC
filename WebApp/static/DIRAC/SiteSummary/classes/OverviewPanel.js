@@ -447,6 +447,12 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
 
                         }, this);
                   }
+                  
+                  
+                  me.plotPanel.doLayout();
+                  me.rightPanel.dorefresh();
+                  //me.plotPanel.dorefresh();
+                  //me.dorefresh();
                 } else {
                   GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
