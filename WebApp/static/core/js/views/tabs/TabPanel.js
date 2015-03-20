@@ -58,6 +58,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       getStateData : function() {
         var me = this;
 
+        var activeTab = "";
+        var state = "";
+        if (me.getActiveTab() != null){
+            activeTab = me.getActiveTab().getAppClassName();
+            state = me.getActiveTab().currentState
+        }
+       
         var desktop = {
           "dirac_view" : 1,
           "version" : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
@@ -65,8 +72,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           "views" : {
             "tabs" : {
               "activeTab" : {
-                name : me.getActiveTab().getAppClassName(),
-                currentState : me.getActiveTab().currentState
+                name : activeTab,
+                currentState : state
               },
               "version" : 1,
               "desktopGranularity" : me.desktopGranularity,
