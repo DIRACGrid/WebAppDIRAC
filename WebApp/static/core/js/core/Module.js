@@ -60,15 +60,18 @@ Ext.define('Ext.dirac.core.Module', {
       setHelpText : function(data) {
         var me = this;
         if (data.text) {
-          me.text = data.text;
+          me.helptext = data.text;
+        }
+        if (data.helptext){
+          me.helptext = data.helptext;
         }
       },
       getHelpText : function() {
         var me = this;
         var result = {};
-        if (me.text) {
+        if (me.helptext) {
           result = {
-            text : me.text
+            helptext : me.helptext
           };
         }
         return result;
