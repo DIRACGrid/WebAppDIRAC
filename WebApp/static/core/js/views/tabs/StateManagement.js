@@ -1026,7 +1026,10 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                           if (appTab.childWindows[i].type == "help") {
                             // The Notepad is open. The text has to be retrieved
                             // from the notepad...
-                            Ext.apply(desktops.data[i].data, appTab.childWindows[i].items.getAt(0).getStateData());
+                            var helptext = {
+                              "helptext" : appTab.childWindows[i].items.getAt(0).getValue()
+                            }
+                            Ext.apply(desktops.data[i].data, helptext);
                           }
                         }
                       } else {
@@ -1079,7 +1082,10 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                     if (appTab.childWindows[i].type == "help") {
                       // The Notepad is open. The text has to be retrieved
                       // from the notepad...
-                      Ext.apply(desktops.data[i].data, appTab.childWindows[i].items.getAt(0).getStateData());
+                      var helptext = {
+                        "helptext" : appTab.childWindows[i].items.getAt(0).getValue()
+                      }
+                      Ext.apply(desktops.data[i].data, helptext);
                     }
                   }
                 } else {
@@ -1244,7 +1250,10 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                           if (appObj.childWindows[i].type == "help") {
                             // The Notepad is open. The text has to be retrieved
                             // from the notepad...
-                            Ext.apply(data.data, appObj.childWindows[i].items.getAt(0).getStateData());
+                            var helptext = {
+                              "helptext" : appObj.childWindows[i].items.getAt(0).getValue()
+                            };
+                            Ext.apply(data.data, helptext);
                           }
                         }
                       } else {
@@ -1292,7 +1301,10 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                       if (appObj.childWindows[i].type == "help") {
                         // The Notepad is open. The text has to be retrieved
                         // from the notepad...
-                        Ext.apply(data.data, appObj.childWindows[i].items.getAt(0).getStateData());
+                        var helptext = {
+                          "helptext" : appObj.childWindows[i].items.getAt(0).getValue()
+                        }
+                        Ext.apply(data.data, helptext);
                       }
                     }
                   } else {

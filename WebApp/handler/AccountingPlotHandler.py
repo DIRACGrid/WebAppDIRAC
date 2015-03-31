@@ -230,8 +230,14 @@ class AccountingPlotHandler( WebHandler ):
       return
     fields = retVal['Value']
     if "extraArgs" in fields:  # in order to get the plot from the cache we have to clean the extraArgs...
-      fields["extraArgs"] = {}
-        
+      plotTitle = ""
+      if 'plotTitle' in fields["extraArgs"]:
+        plotTitle = fields["extraArgs"]["plotTitle"]
+        fields["extraArgs"] = {}
+        fields["extraArgs"]["plotTitle"] = plotTitle
+      else:
+        fields["extraArgs"] = {}
+            
     retVal = codeRequestInFileId( fields )
     if not retVal['OK']:
       callback = {"success":"false", "error":retVal['Value']}

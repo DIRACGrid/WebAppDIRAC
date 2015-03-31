@@ -302,7 +302,10 @@ Ext.define('Ext.dirac.core.StateManagement', {
               if (oAppObject.up("panel").childWindows[i].type == "help") {
                 // The Notepad is open. The text has to be retrieved
                 // from the notepad...
-                Ext.apply(oSendData, oAppObject.up("panel").childWindows[i].items.getAt(0).getStateData());
+                var helptext = {
+                  "helptext" : oAppObject.up("panel").childWindows[i].items.getAt(0).getValue()
+                };
+                Ext.apply(oSendData, helptext);
               }
             }
           } else {

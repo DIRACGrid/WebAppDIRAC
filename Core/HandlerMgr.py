@@ -49,7 +49,7 @@ class HandlerMgr( object ):
     """
     Load all handlers and generate the routes
     """
-    ol = ObjectLoader( [ 'WebAppDIRAC' ] )
+    ol = ObjectLoader()
     origin = "WebApp.handler"
     result = ol.getObjects( origin, parentClass = WebHandler, recurse = True )
     if not result[ 'OK' ]:

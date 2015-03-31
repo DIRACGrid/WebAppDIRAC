@@ -1,64 +1,72 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
+/*
+ * ! Ext JS Library 4.0 Copyright(c) 2006-2011 Sencha Inc. licensing@sencha.com
  * http://www.sencha.com/license
  */
 
 Ext.define('DIRAC.Notepad.classes.Notepad', {
-	extend : 'Ext.dirac.core.Module',
+      extend : 'Ext.dirac.core.Module',
 
-	requires : [ 'Ext.form.field.HtmlEditor' ],
+      requires : ['Ext.form.field.HtmlEditor'],
 
-	initComponent : function() {
+      initComponent : function() {
 
-		var me = this;
+        var me = this;
 
-		if (GLOBAL.VIEW_ID == "desktop") {
-			
-			me.launcher.title = "Notepad";
-			me.launcher.maximized = false;
-			me.launcher.width = 400;
-			me.launcher.height = 400;
-			
-		}
-		
-		if (GLOBAL.VIEW_ID == "tabs") {
-			
-			me.launcher.title = "Notepad";
-			me.launcher.maximized = false;
-			me.launcher.width = 400;
-			me.launcher.height = 400;
-			
-		}
+        if (GLOBAL.VIEW_ID == "desktop") {
 
-		me.editor = new Ext.form.field.HtmlEditor({
-			value : [ 'Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>', 'Give it a try!' ].join('')
+          me.launcher.title = "Notepad";
+          me.launcher.maximized = false;
+          me.launcher.width = 400;
+          me.launcher.height = 400;
 
-		});
+        }
 
-		Ext.apply(me, {
-			layout : 'fit',
-			items : [ me.editor ]
-		});
+        if (GLOBAL.VIEW_ID == "tabs") {
 
-		me.callParent(arguments);
+          me.launcher.title = "Notepad";
+          me.launcher.maximized = false;
+          me.launcher.width = 400;
+          me.launcher.height = 400;
 
-	},
+        }
 
-	loadState : function(data) {
+        me.editor = new Ext.form.field.HtmlEditor({
+              value : ['Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>', 'Give it a try!'].join('')
 
-		var me = this;
-		me.editor.setValue(data["text"]);
+            });
 
-	},
+        Ext.apply(me, {
+              layout : 'fit',
+              items : [me.editor]
+            });
 
-	getStateData : function() {
+        me.callParent(arguments);
 
-		var me = this;
-		return {
-			text : me.editor.getValue()
-		};
+      },
 
-	}
-});
+      loadState : function(data) {
+
+        var me = this;
+        
+        if ("helptext" in data){
+          me.editor.setValue(data["helptext"]);
+        }
+        if ("text" in data){
+          me.editor.setValue(data["text"]);
+        }
+
+      },
+
+      getStateData : function() {
+
+        var me = this;
+        return {
+          text : me.editor.getValue()
+        };
+
+      },
+      getValue : function() {
+        var me = this;
+        return me.editor.getValue();
+      }
+    });

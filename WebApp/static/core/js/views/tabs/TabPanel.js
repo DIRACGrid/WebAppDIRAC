@@ -58,6 +58,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       getStateData : function() {
         var me = this;
 
+        var activeTab = "";
+        var state = "";
+        if (me.getActiveTab() != null){
+            activeTab = me.getActiveTab().getAppClassName();
+            state = me.getActiveTab().currentState
+        }
+       
         var desktop = {
           "dirac_view" : 1,
           "version" : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
@@ -65,8 +72,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           "views" : {
             "tabs" : {
               "activeTab" : {
-                name : me.getActiveTab().getAppClassName(),
-                currentState : me.getActiveTab().currentState
+                name : activeTab,
+                currentState : state
               },
               "version" : 1,
               "desktopGranularity" : me.desktopGranularity,
@@ -196,7 +203,10 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                         if (win.childWindows[i].type == "help") {
                           // The Notepad is open. The text has to be retrieved
                           // from the notepad...
-                          Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
+                          var helptext = {
+                            "helptext" : win.childWindows[i].items.getAt(0).getValue()
+                          }
+                          Ext.apply(item.data, helptext);
                         }
                       }
                     } else {
@@ -252,7 +262,10 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                         if (win.childWindows.length > 0) {
                           for (var i = 0; i < win.childWindows.length; i++) {
                             if (win.childWindows[i].type == "help") {
-                              Ext.apply(item.data, win.childWindows[i].items.getAt(0).getStateData());
+                              var helptext = {
+                                "helptext" : win.childWindows[i].items.getAt(0).getValue()
+                              }
+                              Ext.apply(item.data, helptext);
                             }
                           }
                         } else {
