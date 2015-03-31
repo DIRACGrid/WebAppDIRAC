@@ -155,7 +155,6 @@ class AccountingPlotHandler( WebHandler ):
     for selName in pD:
       pD[ selName ] = List.fromChar( pD[ selName ], "," )
     
-    print start, end
     return S_OK( ( typeName, reportName, start, end, pD, grouping, extraParams ) )
 
   @asyncGen

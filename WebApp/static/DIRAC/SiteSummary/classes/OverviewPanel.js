@@ -447,6 +447,12 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
 
                         }, this);
                   }
+                  
+                  
+                  me.plotPanel.doLayout();
+                  me.rightPanel.dorefresh();
+                  //me.plotPanel.dorefresh();
+                  //me.dorefresh();
                 } else {
                   GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
@@ -483,7 +489,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 width : 834
               });
 
-          var win = me.up("panel").createChildWindow(img.plotParams._plotName + '::' + img.plotParams._grouping, false, 850, 650);
+          var win = me.up("panel").createChildWindow("Site overview", false, 850, 650);
           win.add(panel);
           win.show();
         }
