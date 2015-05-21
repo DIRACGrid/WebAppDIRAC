@@ -431,13 +431,19 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                                   });
                             }, 100);
                       } else {
+                        var found = false;
                         tab.items.each(function(win, value, length) {
                               if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
                                 tab.setActiveTab(win);
                                 me.loadRightContainer.hide();
+                                found = true;
                                 return;
                               }
                             });
+                        if (!found) {
+                          tab.setActiveTab(0);
+                          me.loadRightContainer.hide();
+                        }
                       }
                     } else {
                       me.loadRightContainer.hide();
@@ -446,8 +452,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   }
                 };
                 me.createWindow("app", oAppStateData.name, oAppStateData, tab, cbSetActiveTab);
+                //load the one application on the desktop
               } else {
-
+                //create each application
                 me.createWindow("app", oAppStateData.name, oAppStateData, tab);
               }
 
