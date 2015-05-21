@@ -272,7 +272,7 @@ class SystemAdministrationHandler( WebHandler ):
       if i == "action":
         continue
 
-      target = i.split( " @ " , 1 )
+      target = i.split( "@" )
       if not len( target ) == 2:
         continue
 
