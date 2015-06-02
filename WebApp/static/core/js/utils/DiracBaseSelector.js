@@ -59,7 +59,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       extend : 'Ext.panel.Panel',
-      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracNumericField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.dirac.utils.DiracToolButton'],
+      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracNumericField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.dirac.utils.DiracToolButton', 'Ext.form.field.Checkbox'],
       title : 'Selectors',
       region : 'west',
       floatable : false,
@@ -203,6 +203,13 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             if (oConfig.textFields[field]["type"] == "number" || oConfig.textFields[field]["type"] == "Number") {
               textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
                     fieldLabel : oConfig.textFields[field]["name"],
+                    scope : me,
+                    type : oConfig.textFields[field]["type"]
+                  });
+            } else if (oConfig.textFields[field]["type"] == "Checkbox" || oConfig.textFields[field]["type"] == "checkbox") {
+              textFieldWidget = Ext.create("Ext.form.field.Checkbox", {
+                    fieldLabel : oConfig.textFields[field]["fieldLabel"],
+                    name : oConfig.textFields[field]["name"],
                     scope : me,
                     type : oConfig.textFields[field]["type"]
                   });
@@ -557,6 +564,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
         for (var i in me.textFields) {
           var param = [];
+          if (me.textFields[i].type == "checkbox" || me.textFields[i].type == "Checkbox") {
+            var val = me.textFields[i].getValue();
+            extraParams[i] = Ext.JSON.encode([val]);
+            continue;
+          }
           if (me.textFields[i].getValue() != "") {
             if (me.textFields[i].getValue().search(",") != -1) {
               param = me.textFields[i].getValue().split(',');
@@ -638,7 +650,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           }
         }
 
-        if (me.grid && me.grid.expandedGridPanel) {//delete the targetId
+        if (me.grid && me.grid.expandedGridPanel) {// delete the targetId
           me.grid.expandedGridPanel.destroy();
           delete me.grid.expandedGridPanel;
         }
