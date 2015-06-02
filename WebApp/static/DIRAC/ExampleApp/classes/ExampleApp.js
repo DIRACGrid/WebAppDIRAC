@@ -57,7 +57,6 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
        //it loads the selector data
        me.leftPanel.loadState(data);
 
-
        //it loads the selector panel status.
        if (data.leftPanelCollapsed) {
 

@@ -205,7 +205,7 @@ class JobMonitorHandler( WebHandler ):
     
     self.finish( callback )
 
-  def __request( self ):
+  def _request( self ):
     self.pageNumber = 0
     self.numberOfJobs = 25
     self.globalSort = [["JobID", "DESC"]]
