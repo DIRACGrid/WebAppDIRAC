@@ -368,7 +368,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       rendererChkBox : function(val) {
         return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
       },
-      /***
+      /*************************************************************************
        * It render the Status
        * 
        * @param{String} value It render the status.

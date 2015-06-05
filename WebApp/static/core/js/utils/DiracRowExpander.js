@@ -32,7 +32,7 @@ Ext.define('Ext.dirac.utils.DiracRowExpander', {
       checkField : null,
 
       containValue : null,
-      
+
       selectRowOnExpand : true,
 
       getHeaderConfig : function() {
@@ -48,6 +48,12 @@ Ext.define('Ext.dirac.utils.DiracRowExpander', {
           menuDisabled : true,
           tdCls : Ext.baseCSSPrefix + 'grid-cell-special',
           innerCls : Ext.baseCSSPrefix + 'grid-cell-inner-row-expander',
+          /*renderer : function(value, metadata) {
+           if (!me.grid.ownerLockable) {
+                    metadata.tdAttr += ' rowspan="2"';
+                }
+                return '<div class="' + Ext.baseCSSPrefix + 'grid-row-expander"></div>';
+          },*/
           renderer : function(value, metadata) {
             // Only has to span 2 rows if it is not in a lockable grid.
             if (!me.grid.ownerLockable) {
@@ -66,6 +72,13 @@ Ext.define('Ext.dirac.utils.DiracRowExpander', {
               var html = '';
               for (var key in me.containValue) {
                 if (~metadata.record.data[key].indexOf(me.containValue[key])) {
+                  html = '<div class="' + Ext.baseCSSPrefix + 'grid-row-expander" role="presentation"></div>';
+                }
+              }
+              return html;
+            } else if (me.boolValue) {
+              for (var key in me.boolValue) {
+                if (metadata.record.data[key] == me.boolValue[key]) {
                   html = '<div class="' + Ext.baseCSSPrefix + 'grid-row-expander" role="presentation"></div>';
                 }
               }
