@@ -73,6 +73,14 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
                 });
             break;
 
+          default :
+            Ext.MessageBox.show({
+                  title : 'Error',
+                  msg : sMessage,
+                  buttons : Ext.MessageBox.OK,
+                  icon : Ext.MessageBox.ERROR
+                });
+
         }
 
       },
