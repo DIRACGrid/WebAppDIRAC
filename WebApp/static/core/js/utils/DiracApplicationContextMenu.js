@@ -184,7 +184,6 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
       doSow : function(record) {
         var me = this;
         for (var i = 0; i < me.items.length; i++) {
-          console.log(me.items.getAt(i));
           var menuItem = me.items.getAt(i);
           for (var key in menuItem.checkField) {
             if (key == "property")
