@@ -345,6 +345,9 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
                   beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
                     e.preventDefault();
+                    if (config.contextMenu.dynamicShow){
+                      config.contextMenu.doSow(record);
+                    }
                     config.contextMenu.showAt(e.xy);
                     return false;
                   }
