@@ -29,6 +29,7 @@ class SystemAdministrationHandler( WebHandler ):
   
     # self.finish( { "success" : "false" , "error" : "No system information found" } )
     # return
+    """
     client = SystemAdministratorIntegrator( delegatedDN = DN ,
                                           delegatedGroup = group )
     resultHosts = yield self.threadTask( client.getHostInfo )
@@ -43,7 +44,26 @@ class SystemAdministrationHandler( WebHandler ):
           callback.append( {'Host':i} )
     else:
       self.finish( { "success" : "false" , "error" :  resultHosts['Message']} )
-   
+    """
+    result = gConfig.getSections("/Registry/Hosts")
+    if not result[ "Value" ]:
+      self.finish({ "success" : "false" , "error" : result[ "Message" ] })
+      return
+    hosts = result[ "Value" ]
+    
+    callback = []
+    import pprint
+  
+    for host in hosts:
+      client = SystemAdministratorClient(host , None , delegatedDN=DN ,
+                                          delegatedGroup=group)
+      resultHost = yield self.threadTask(client.getHostInfo)
+      if resultHost[ "OK" ]:
+        rec = resultHost["Value"]
+        rec["Host"] = host
+        callback.append(resultHost["Value"])
+      else:
+        callback.append({"Host":host})
     total = len( callback )
     if not total > 0:
       self.finish( { "success" : "false" , "error" : "No system information found" } )
