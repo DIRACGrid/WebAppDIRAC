@@ -215,6 +215,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
         // making relation between the application and the window container
         me.loadedObject.setContainer(me);
+        
 
       },
       oprLoadAppStateFromCache : function(stateName, loadState, desktopName) {
@@ -259,6 +260,9 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
           me.loadedObject.loadState(oState);// OK
           me.loadedObject.setHelpText(oState);
+          
+          me.setupData.data = oState; //save the state of the application!
+          //you can see the same in the Main.js
 
           if (me.currentState != "")
             GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);// OK

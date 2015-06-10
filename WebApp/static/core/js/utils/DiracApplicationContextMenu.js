@@ -41,6 +41,8 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
        */
       menuitems : null,
 
+      dynamicShow : false,
+
       constructor : function(oConfig) {
         var me = this;
         me.callParent(arguments);
@@ -50,6 +52,7 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               });
         }
         if (oConfig) {
+          me.dynamicShow = oConfig.dynamicShow;
           if (oConfig.menu && "Visible" in oConfig.menu && oConfig.menu.Visible.length > 0) {
             for (var i = 0; i < oConfig.menu.Visible.length; i++) {
               var oMenuItem = null;
@@ -69,6 +72,9 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               }
               if (oConfig.menu.Visible[i].properties) {
                 Ext.apply(oMenuItem, oConfig.menu.Visible[i].properties);
+              }
+              if (oConfig.menu.Visible[i].checkField) {
+                oMenuItem.checkField = oConfig.menu.Visible[i].checkField;
               }
               me.add(oMenuItem);
 
@@ -93,6 +99,9 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               }
               if (oConfig.menu.Protected[i].properties) {
                 Ext.apply(oMenuItem, oConfig.menu.Protected[i].properties);
+              }
+              if (oConfig.menu.Protected[i].checkField) {
+                oMenuItem.checkField = oConfig.menu.Protected[i].checkField;
               }
               me.add(oMenuItem);
 
@@ -133,6 +142,9 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               if (subMenu.Visible[i].properties) {
                 Ext.apply(oMenuItem, subMenu.Visible[i].properties);
               }
+              if (subMenu.Visible[i].checkField) {
+                oMenuItem.checkField = subMenu.Visible[i].checkField;
+              }
               oMenu.menu.add(oMenuItem);
             }
           } else if ("Protected" in subMenu) {
@@ -151,7 +163,8 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               } else if ("subMenu" in subMenu.Protected[i]) {
                 var oMenuItem = new Ext.menu.Item({
                       text : oConfig.menu.Protected[i].text,
-                      disabled : lDisable
+                      disabled : lDisable,
+                      checkField : oConfig.menu.Protected[i].checkField
                     });
                 me.__createSubmenu(oMenuItem, oConfig.menu.Protected[i].subMenu);
                 oMenu.menu.add(oMenuItem);
@@ -159,7 +172,44 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               if (subMenu.Protected[i].properties) {
                 Ext.apply(oMenuItem, subMenu.Protected[i].properties);
               }
+              if (subMenu.Protected[i].checkField) {
+                oMenuItem.checkField = subMenu.Protected[i].checkField;
+              }
               oMenu.menu.add(oMenuItem);
+            }
+          }
+
+        }
+      },
+      doSow : function(record) {
+        var me = this;
+        for (var i = 0; i < me.items.length; i++) {
+          var menuItem = me.items.getAt(i);
+          for (var key in menuItem.checkField) {
+            if (key == "property")
+              continue; // it is not a condition...
+            if (record.get(key) == menuItem.checkField[key]) {
+              switch (menuItem.checkField["property"]) {
+                case "disable" :
+                  me.items.getAt(i).enable();
+                  break;
+                case "hide" :
+                  me.items.getAt(i).hide();
+                  break;
+                default :
+                  me.items.getAt(i).enable();
+              }
+            } else {
+              switch (menuItem.checkField["property"]) {
+                case "disable" :
+                  me.items.getAt(i).disable();
+                  break;
+                case "hide" :
+                  me.items.getAt(i).show();
+                  break;
+                default :
+                  me.items.getAt(i).show();
+              }
             }
           }
 

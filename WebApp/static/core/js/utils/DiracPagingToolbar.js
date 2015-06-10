@@ -113,6 +113,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
       store : null,
       constructor : function(config) {
         var me = this;
+        
         me.pagingToolbarItems = []; // make sure there is no element in the list
         me.pagingToolbarButtons = [];
         var idBtn = Ext.create('Ext.dirac.utils.DiracIdListButton', {
@@ -162,7 +163,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
 
         me.pageSizeCombo = Ext.create("Ext.dirac.utils.DiracPageSizeCombo", {
               scope : config.scope,
-              value : ((config.value)?config.value : 25)
+              value : ((config.value) ? config.value : 25)
             });
 
         me.pageSizeCombo.on("change", function(combo, newValue, oldValue, eOpts) {

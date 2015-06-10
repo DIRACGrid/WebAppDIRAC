@@ -345,6 +345,9 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
                   beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
                     e.preventDefault();
+                    if (config.contextMenu.dynamicShow){
+                      config.contextMenu.doSow(record);
+                    }
                     config.contextMenu.showAt(e.xy);
                     return false;
                   }
@@ -368,7 +371,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       rendererChkBox : function(val) {
         return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
       },
-      /***
+      /*************************************************************************
        * It render the Status
        * 
        * @param{String} value It render the status.
