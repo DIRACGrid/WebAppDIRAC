@@ -205,7 +205,7 @@ class JobMonitorHandler( WebHandler ):
     
     self.finish( callback )
 
-  def __request( self ):
+  def _request( self ):
     self.pageNumber = 0
     self.numberOfJobs = 25
     self.globalSort = [["JobID", "DESC"]]
@@ -285,7 +285,8 @@ class JobMonitorHandler( WebHandler ):
       if len( sort ) > 0:
         self.globalSort = []
         for i in sort :
-          self.globalSort += [[str( i['property'] ), str( i['direction'] )]]
+          if "LastSignOfLife" not in i['property']:
+            self.globalSort += [[str( i['property'] ), str( i['direction'] )]]
     else:
       self.globalSort = [["JobID", "DESC"]]
 
