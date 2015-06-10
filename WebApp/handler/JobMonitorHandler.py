@@ -16,7 +16,7 @@ class JobMonitorHandler( WebHandler ):
   @asyncGen
   def web_getJobData( self ):
     RPC = RPCClient( "WorkloadManagement/JobMonitoring", timeout = 600 )
-    req = self.__request()
+    req = self._request()
 
     result = yield self.threadTask( RPC.getJobPageSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs )
 
@@ -460,7 +460,7 @@ class JobMonitorHandler( WebHandler ):
 
   @asyncGen
   def web_getStatisticsData( self ):
-    req = self.__request()
+    req = self._request()
 
     paletteColor = Palette()
 
