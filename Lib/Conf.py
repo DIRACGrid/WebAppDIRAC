@@ -78,7 +78,7 @@ def generateCAFile():
               os.path.join( os.path.dirname( HTTPSCert() ), "cas.pem" ),
               False ):
     if not fn:
-      fn = tempfile.mkstemp( prefix = "cas.", suffix = ".pem" )
+      fn = tempfile.mkstemp( prefix = "cas.", suffix = ".pem" )[1]
     try:
       fd = open( fn, "w" )
     except IOError:
