@@ -234,9 +234,9 @@ class SystemAdministrationHandler( WebHandler ):
     for i in hosts:
       client = SystemAdministratorClient( str( i ) , None , delegatedDN = DN ,
                                           delegatedGroup = group )
-      if action is "restart":
+      if action == "restart":
         result = yield self.threadTask( client.restartComponent, str( "*" ) , str( "*" ) )
-      elif action is "revert":
+      elif action == "revert":
         result = yield self.threadTask( client.revertSoftware )
       else:
         error = i + ": Action %s is not defined" % action
