@@ -70,6 +70,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       bodyPadding : 5,
       layout : 'anchor',
       autoScroll : true,
+      allowMultipleSelect : false,
       /**
        * @cfg{Object}cmbSelectors It stores the combo box selectors.
        */
@@ -849,10 +850,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         for (var cmb in me.cmbSelectors) {
           me.cmbSelectors[cmb].disable();
         }
-
-        for (var field in me.textFields) {
-          if (me.textFields[field].canDisable && me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
-            me.textFields[field].disable();
+        if (!me.allowMultipleSelect) {
+          for (var field in me.textFields) {
+            if (me.textFields[field].canDisable && me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
+              me.textFields[field].disable();
+            }
           }
         }
       },
