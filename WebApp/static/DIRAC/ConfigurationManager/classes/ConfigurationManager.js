@@ -130,15 +130,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
           if (me.btnCommitConfiguration)
             me.btnCommitConfiguration.show();
 
-          if (me.btnViewConfigDifference)
-            me.btnViewConfigDifference.show();
-
         } else {
           if (me.btnCommitConfiguration)
             me.btnCommitConfiguration.hide();
-
-          if (me.btnViewConfigDifference)
-            me.btnViewConfigDifference.hide();
 
         }
 
@@ -212,7 +206,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 break;
               case "commitConfiguration" :
                 me.btnCommitConfiguration.show();
-                me.btnViewConfigDifference.show();
                 me.treePanel.body.unmask();
                 break;
             }
@@ -234,8 +227,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 break;
               case "showCurrentDiff" :
                 me.__showConfigDiffInWindow(oResponse);
-                me.btnCommitConfiguration.show();
-                me.btnViewConfigDifference.show();
+                me.setLoading(false);
                 break;
               case "resetConfiguration" :
                 me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
@@ -291,7 +283,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
               case "commitConfiguration" :
                 GLOBAL.APP.CF.alert("The changes in the configuration have been successfuly commited !", "info");
                 me.btnCommitConfiguration.show();
-                me.btnViewConfigDifference.show();
                 me.__setChangeMade(false);
                 me.__sendSocketMessage({
                       op : "resetConfiguration"
@@ -417,7 +408,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                     me.sectionMenu.hide();
                     me.valuePanel.hide();
                     me.btnCommitConfiguration.hide();
-                    me.btnViewConfigDifference.hide();
                   } else {
                     me.btnBrowseManage.setText("Browse");
                     me.btnBrowseManage.setIconCls("cm-to-browse-icon");
@@ -442,7 +432,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                           op : "commitConfiguration"
                         });
                     me.btnCommitConfiguration.hide();
-                    me.btnViewConfigDifference.hide();
+
                   }
                 },
                 scope : me,
@@ -457,15 +447,15 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 iconCls : "cm-to-browse-icon",
                 handler : function() {
 
+                  me.setLoading("Creating the diff.... Please be patient...");
                   me.__sendSocketMessage({
                         op : "showCurrentDiff"
                       });
                   me.btnCommitConfiguration.hide();
-                  me.btnViewConfigDifference.hide();
-
+                  
                 },
                 scope : me,
-                hidden : true
+                hidden : false
               });
 
           bBarElems.push("->");
