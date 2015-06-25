@@ -609,14 +609,6 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                 }
               }, {
                 "text" : "-"
-              }, // menu separator
-              {
-                "text" : "Show Reques",
-                "handler" : me.__oprGetJobData,
-                "arguments" : ["request"],
-                "properties" : {
-                  tooltip : 'Click to show the request.'
-                }
               }, {
                 "text" : "Logging Info",
                 "handler" : me.__oprGetJobData,
