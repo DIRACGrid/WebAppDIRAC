@@ -225,9 +225,8 @@ class UPHandler( WebHandler ):
     data = retVal['Value']
     
     if data == None:
-      self.finish( {"success":"false", "result":[], "total":0, "error":"There are no public states!"} )
-      return
-    
+      raise WErr(404, "There are no public states!" )
+      
     paramNames = ['user', 'group', 'vo', 'name']
     
     mydesktops = {'name':'My Desktops',

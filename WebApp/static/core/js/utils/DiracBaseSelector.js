@@ -71,6 +71,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       layout : 'anchor',
       autoScroll : true,
       /**
+       * @property{Boolean} allowMultipleSelect It allows to use all the textfield in the selector. By defauld only one textfield is used. 
+       */
+      disableTextFields : true,
+      /**
        * @cfg{Object}cmbSelectors It stores the combo box selectors.
        */
       cmbSelectors : {},
@@ -849,10 +853,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         for (var cmb in me.cmbSelectors) {
           me.cmbSelectors[cmb].disable();
         }
-
-        for (var field in me.textFields) {
-          if (me.textFields[field].canDisable && me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
-            me.textFields[field].disable();
+        if (me.disableTextFields) {
+          for (var field in me.textFields) {
+            if (me.textFields[field].canDisable && me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
+              me.textFields[field].disable();
+            }
           }
         }
       },
