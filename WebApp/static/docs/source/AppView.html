@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-core-AppView'>/**
+</span> * @class Ext.dirac.core.AppView
+ * @extends Ext.panel.Panel
+ * 
+ * This class manages the wallpaper, shortcuts, taskbar, desktop states, and the
+ * broadcast part for the window states.
+ * 
+ */
+Ext.define(&#39;Ext.dirac.core.AppView&#39;, {
+	extend : &#39;Ext.panel.Panel&#39;,
+	mixins : [ &quot;Ext.dirac.core.Stateful&quot; ],
+
+<span id='Ext-dirac-core-AppView-property-ID'>	ID : &quot;&quot;,
+</span>
+<span id='Ext-dirac-core-AppView-method-getViewMainDimensions'>	getViewMainDimensions : function() {
+</span>
+		return [ 0, 0 ];
+
+	},
+
+<span id='Ext-dirac-core-AppView-method-getViewId'>	getViewId : function() {
+</span>
+		return this.ID;
+
+	},
+
+<span id='Ext-dirac-core-AppView-method-createNewModuleContainer'>	createNewModuleContainer : function(oData) {
+</span>
+	}
+});
+</pre>
+</body>
+</html>

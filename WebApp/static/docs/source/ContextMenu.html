@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-ContextMenu'>/**
+</span> * @class Ext.dirac.views.tabs.ContextMenu
+ * @extends Ext.menu.Menu
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.ContextMenu&#39;, {
+      extend : &#39;Ext.menu.Menu&#39;,
+      xtype : &#39;applicationContextMenu&#39;,
+<span id='Ext-dirac-views-tabs-ContextMenu-property-oSelectedMenuItem'>      oSelectedMenuItem : null,
+</span><span id='Ext-dirac-views-tabs-ContextMenu-method-constructor'>      constructor : function(config) {
+</span>        var me = this;
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-views-tabs-ContextMenu-method-initComponent'>      initComponent : function(config) {
+</span>        var me = this;
+        Ext.apply(me, {
+              items : [{
+                    text : &quot;New Desktop&quot;,
+                    iconCls : &quot;dirac-icon-new-folder&quot;,
+                    handler : function() {
+                      GLOBAL.APP.MAIN_VIEW.createNewDesktop();
+                    }
+
+                  }, {
+                    text : &#39;Make public&#39;,
+                    iconCls : &quot;dirac-icon-state&quot;,
+                    disabled : false,
+                    handler : function() {
+                      var me = this;
+
+                      if (me.oSelectedMenuItem.data.type == &#39;desktop&#39;) {
+
+                        GLOBAL.APP.SM.oprPublishState(&#39;desktop&#39;, me.oSelectedMenuItem.data.text);
+
+                      } else {
+
+                        GLOBAL.APP.SM.oprPublishState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text);
+
+                      }
+
+                    },
+                    scope : me
+                  }, {
+                    text : &#39;Share desktop&#39;,
+                    iconCls : &quot;dirac-icon-state&quot;,
+                    disabled : true,
+                    value : 0,
+                    handler : function() {
+                      var me = this;
+
+                      GLOBAL.APP.SM.oprShareState(&quot;desktop&quot;, me.oSelectedMenuItem.data.text, function(rCode, rAppName, rStateName, rMessage) {
+
+                            if (rCode == 1) {
+
+                              var oHtml = &quot;&quot;;
+                              oHtml += &quot;&lt;div style=&#39;padding:5px&#39;&gt;The string you can send is as follows:&lt;/div&gt;&quot;;
+                              oHtml += &quot;&lt;div style=&#39;padding:5px;font-weight:bold&#39;&gt;&quot; + rMessage + &quot;&lt;/div&gt;&quot;;
+
+                              Ext.MessageBox.alert(&quot;Info for sharing the &lt;span style=&#39;color:red&#39;&gt;&quot; + rStateName + &quot;&lt;/span&gt; state:&quot;, oHtml);
+
+                            }
+
+                          });
+
+                    },
+                    scope : me
+                  }, {
+                    text : &#39;Share application&#39;,
+                    iconCls : &quot;dirac-icon-state&quot;,
+                    disabled : true,
+                    value : 1,
+                    handler : function() {
+                      var me = this;
+
+                      GLOBAL.APP.SM.oprShareState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(rCode, rAppName, rStateName, rMessage) {
+
+                            if (rCode == 1) {
+
+                              var oHtml = &quot;&quot;;
+                              oHtml += &quot;&lt;div style=&#39;padding:5px&#39;&gt;The string you can send is as follows:&lt;/div&gt;&quot;;
+                              oHtml += &quot;&lt;div style=&#39;padding:5px;font-weight:bold&#39;&gt;&quot; + rMessage + &quot;&lt;/div&gt;&quot;;
+
+                              Ext.MessageBox.alert(&quot;Info for sharing the &lt;span style=&#39;color:red&#39;&gt;&quot; + rStateName + &quot;&lt;/span&gt; state:&quot;, oHtml);
+
+                            }
+
+                          });
+
+                    },
+                    scope : me
+                  }, {
+                    text : &#39;Make private&#39;,
+                    disabled : true,
+                    iconCls : &quot;dirac-icon-private&quot;,
+                    value : 2,
+                    handler : function() {
+                      
+                      var me = this;
+                      var app = &#39;desktop&#39;;
+                      
+                      if (me.oSelectedMenuItem.data.type == &#39;app&#39;) {
+                        app = me.oSelectedMenuItem.data.application;
+                      }
+                      GLOBAL.APP.SM.oprChangeSharedStateToPrivate(app, me.oSelectedMenuItem.data.text, function(rCode, rAppName, rStateName, rMessage) {
+
+                            if (rCode == 1) {
+
+                              var oHtml = &quot;&quot;;
+                              oHtml += &quot;&lt;div style=&#39;padding:5px&#39;&gt;The desktop access has changed to private:&lt;/div&gt;&quot;;
+                              oHtml += &quot;&lt;div style=&#39;padding:5px;font-weight:bold&#39;&gt;&quot; + rMessage + &quot;&lt;/div&gt;&quot;;
+
+                              Ext.MessageBox.alert(&quot;Info for making private the &lt;span style=&#39;color:red&#39;&gt;&quot; + rStateName + &quot;&lt;/span&gt; state:&quot;, oHtml);
+
+                            }
+
+                          });
+
+                    },
+                    scope : me
+                  }, {
+                    text : &quot;Switch to presenter view&quot;,
+                    scope : me,
+                    value : 3,
+                    view : &#39;presenterView&#39;,
+                    iconCls : &quot;dirac-icon-presenter-theme&quot;,
+                    disabled : true,
+                    handler : function() {
+                      var me = this;
+                      me.oSelectedMenuItem.data.view = &#39;presenterView&#39;;
+                      me.oSelectedMenuItem.getChildAt(0).data.view = &#39;presenterView&#39;;
+                      Ext.Ajax.request({
+                            url : GLOBAL.BASE_URL + &#39;UP/changeView&#39;,
+                            params : {
+                              app : &quot;desktop&quot;,
+                              desktop : me.oSelectedMenuItem.data.text,
+                              view : &#39;presenterView&#39;,
+                              type : &#39;presenterView&#39;,
+                              obj : &quot;application&quot;
+                            },
+                            scope : me,
+                            success : function(response) {
+                              var iStateLoaded = GLOBAL.APP.SM.isStateLoaded(&quot;application&quot;, &quot;desktop&quot;, me.oSelectedMenuItem.data.text);
+
+                              switch (iStateLoaded) {
+                                case -1 :
+                                  GLOBAL.APP.CF.alert(&quot;The state does not exist !&quot;, &quot;warning&quot;);
+                                  return;
+                                  break;
+                                case -2 :
+                                  me.funcPostponedLoading = function() {
+                                    GLOBAL.APP.CF.alert(&quot;Network problem during the svae...&quot;, &quot;warning&quot;);
+                                  }
+                                  setTimeout(me.funcPostponedLoading, 1000);
+                                  return;
+                                  break;
+                              }
+                              GLOBAL.APP.SM.cache[&quot;application&quot;][&quot;desktop&quot;][me.oSelectedMenuItem.data.text].view = &#39;presenterView&#39;; // it
+                              // is a
+                              // hack
+                              Ext.dirac.system_info.msg(&quot;Notification&quot;, &#39;Desktop view has changed successfully !&#39;);
+                            },
+                            failure : function(response) {
+                              GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                            }
+                          });
+                    }
+                  }, {
+                    text : &quot;Switch to tab view&quot;,
+                    scope : me,
+                    disabled : true,
+                    value : 4,
+                    view : &#39;tabView&#39;,
+                    iconCls : &quot;dirac-icon-tab-theme&quot;,
+                    handler : function() {
+                      var me = this;
+                      me.oSelectedMenuItem.data.view = &#39;tabView&#39;;
+                      me.oSelectedMenuItem.getChildAt(0).data.view = &#39;tabView&#39;;
+                      Ext.Ajax.request({
+                            url : GLOBAL.BASE_URL + &#39;UP/changeView&#39;,
+                            params : {
+                              app : &quot;desktop&quot;,
+                              desktop : me.oSelectedMenuItem.data.text,
+                              view : &#39;tabView&#39;,
+                              obj : &quot;application&quot;
+                            },
+                            scope : me,
+                            success : function(response) {
+                              var iStateLoaded = GLOBAL.APP.SM.isStateLoaded(&quot;application&quot;, &quot;desktop&quot;, me.oSelectedMenuItem.data.text);
+
+                              switch (iStateLoaded) {
+                                case -1 :
+                                  GLOBAL.APP.CF.alert(&quot;The state does not exist !&quot;, &quot;warning&quot;);
+                                  return;
+                                  break;
+                                case -2 :
+                                  me.funcPostponedLoading = function() {
+                                    GLOBAL.APP.CF.alert(&quot;Network problem during the svae...&quot;, &quot;warning&quot;);
+                                  }
+                                  setTimeout(me.funcPostponedLoading, 1000);
+                                  return;
+                                  break;
+                              }
+                              GLOBAL.APP.SM.cache[&quot;application&quot;][&quot;desktop&quot;][me.oSelectedMenuItem.data.text].view = &#39;tabView&#39;;
+                              Ext.dirac.system_info.msg(&quot;Notification&quot;, &#39;Desktop view has changed successfully !&#39;);
+                            },
+                            failure : function(response) {
+                              GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                            }
+                          });
+                    }
+                  }, {
+                    text : &#39;Save&#39;,
+                    value : 5,
+                    iconCls : &quot;dirac-icon-save&quot;,
+                    handler : function() {
+                      if (me.oSelectedMenuItem.data.type == &quot;app&quot;) {// the
+                        // selected
+                        // menu item
+                        // is an
+                        // application
+
+                        GLOBAL.APP.MAIN_VIEW.SM.saveState(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(desktop, stateType, stateName) {
+                            });
+
+                      } else {// we can modify the desktop, which is not belongs
+                        // to Default.
+                        if (me.oSelectedMenuItem.data.text == &quot;Deafult&quot;)
+                          return; // do not delete the default desktop.
+
+                        GLOBAL.APP.MAIN_VIEW.saveDesktopState(me.oSelectedMenuItem.data.text);
+                      }
+
+                    }
+                  }, {
+                    text : &#39;Save As&#39;,
+                    iconCls : &quot;dirac-icon-save&quot;,
+                    value : 6,
+                    handler : function() {
+                      if (me.oSelectedMenuItem.data.type == &quot;app&quot;) {// the
+                        // selected
+                        // menu item
+                        // is an
+                        // application
+
+                        GLOBAL.APP.MAIN_VIEW.SM.saveAsState(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(desktop, stateType, stateName) {
+                              Ext.dirac.system_info.msg(&quot;Notification&quot;, stateName + &#39; is saved!&#39;);
+                              GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+                            });
+
+                      } else {
+                        GLOBAL.APP.MAIN_VIEW.saveAsActiveDesktopState(me.oSelectedMenuItem.data.text);
+                      }
+
+                    }
+                  },{
+                    text : &#39;Delete&#39;,
+                    iconCls : &quot;dirac-icon-delete&quot;,
+                    value : 7,
+                    handler : function() {
+                      if (me.oSelectedMenuItem.data.type == &quot;app&quot;) {// the
+                        // selected
+                        // menu item
+                        // is an
+                        // application
+
+                        if (me.oSelectedMenuItem.data.desktop == &quot;&quot;) { // if
+                          // the
+                          // desktop
+                          // is
+                          // empty
+                          // it
+                          // means
+                          // the
+                          // application
+                          // is
+                          // belongs
+                          // to
+                          // the
+                          // default
+                          // desktop.
+                          GLOBAL.APP.MAIN_VIEW.SM.deleteState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
+                                GLOBAL.APP.MAIN_VIEW.removeNodeFormDefaultDesktop(me.oSelectedMenuItem.data.text);
+
+                              });
+                        } else {
+                          GLOBAL.APP.MAIN_VIEW.SM.deleteStateFromDesktop(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
+                                GLOBAL.APP.MAIN_VIEW.removeApplicationFromDesktop(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.text);
+                              });
+
+                        }
+
+                      } else {// we can modify the desktop, which is not belongs
+                        // to Default.
+                        if (me.oSelectedMenuItem.data.text == &quot;Deafult&quot;)
+                          return; // do not delete the default desktop.
+
+                        GLOBAL.APP.MAIN_VIEW.SM.deleteState(&quot;desktop&quot;, me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
+                              GLOBAL.APP.MAIN_VIEW.deleteStateFromMenu(stateName);
+                            });
+                      }
+
+                    }
+                  }]
+            });
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-views-tabs-ContextMenu-method-enableMenuItem'>      enableMenuItem : function(menuItem) {
+</span>        var me = this;
+        me.items.each(function(item, index) {
+              if (item.value == menuItem) {
+                item.enable();
+              }
+            });
+
+      },
+<span id='Ext-dirac-views-tabs-ContextMenu-method-disableMenuItem'>      disableMenuItem : function(menuItem) {
+</span>        var me = this;
+        me.items.each(function(item, index) {
+              if (item.value == menuItem) {
+                item.disable();
+              }
+            });
+      }
+    });
+</pre>
+</body>
+</html>

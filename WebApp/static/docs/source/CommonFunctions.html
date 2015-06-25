@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-core-CommonFunctions'>/**
+</span> * @class Ext.dirac.core.CommonFunctions This class manages the entire
+ *        application platform
+ * @mixins Ext.util.Observable
+ * 
+ */
+
+Ext.define(&#39;Ext.dirac.core.CommonFunctions&#39;, {
+      requires : [&quot;Ext.dirac.utils.Notification&quot;],
+
+<span id='Ext-dirac-core-CommonFunctions-property-messages'>      messages : [],
+</span>
+<span id='Ext-dirac-core-CommonFunctions-method-getFieldValueFromSelectedRow'>      getFieldValueFromSelectedRow : function(oGrid, oFieldName) {
+</span>
+        var oVal = &quot;&quot;;
+        if (oGrid) {
+          var oSelectedRecords = oGrid.getSelectionModel().getSelection();
+
+          if (oSelectedRecords.length &gt; 0)
+            oVal = oSelectedRecords[0].get(oFieldName);
+        }
+        return oVal;
+
+      },
+
+<span id='Ext-dirac-core-CommonFunctions-method-getSelectedRecords'>      getSelectedRecords : function(oGrid) {
+</span>
+        return oGrid.getSelectionModel().getSelection();
+
+      },
+
+<span id='Ext-dirac-core-CommonFunctions-method-doubleItemValue'>      doubleItemValue : function(oList) {
+</span>
+        for (var i = 0; i &lt; oList.length; i++)
+          oList[i] = [oList[i], oList[i]];
+
+        return oList;
+
+      },
+
+<span id='Ext-dirac-core-CommonFunctions-method-alert'>      alert : function(sMessage, sType) {
+</span>
+        if (sMessage == null)
+          return;
+        sMessage = sMessage.replace(new RegExp(&quot;\n&quot;, &#39;g&#39;), &quot;&lt;br/&gt;&quot;);
+
+        switch (sType) {
+
+          case &quot;error&quot; :
+            Ext.MessageBox.show({
+                  title : &#39;Error&#39;,
+                  msg : sMessage,
+                  buttons : Ext.MessageBox.OK,
+                  icon : Ext.MessageBox.ERROR
+                });
+            break;
+
+          case &quot;info&quot; :
+            Ext.MessageBox.show({
+                  title : &#39;Information&#39;,
+                  msg : sMessage,
+                  buttons : Ext.MessageBox.OK,
+                  icon : Ext.MessageBox.INFO
+                });
+            break;
+
+          case &quot;warning&quot; :
+            Ext.MessageBox.show({
+                  title : &#39;Warning&#39;,
+                  msg : sMessage,
+                  buttons : Ext.MessageBox.OK,
+                  icon : Ext.MessageBox.WARNING
+                });
+            break;
+
+          default :
+            Ext.MessageBox.show({
+                  title : &#39;Error&#39;,
+                  msg : sMessage,
+                  buttons : Ext.MessageBox.OK,
+                  icon : Ext.MessageBox.ERROR
+                });
+
+        }
+
+      },
+
+<span id='Ext-dirac-core-CommonFunctions-property-job_status_palette'>      job_status_palette : {
+</span>        &#39;Received&#39; : &#39;#D9E7F8&#39;,
+        &#39;Checking&#39; : &#39;#FAFAFA&#39;,
+        &#39;Staging&#39; : &#39;#6190CD&#39;,
+        &#39;Waiting&#39; : &#39;#004EFF&#39;,
+        &#39;Matched&#39; : &#39;#FEF7AA&#39;,
+        &#39;Running&#39; : &#39;#FDEE65&#39;,
+        &#39;Stalled&#39; : &#39;#BC5757&#39;,
+        &#39;Completed&#39; : &#39;#00FF21&#39;,
+        &#39;Done&#39; : &#39;#238802&#39;,
+        &#39;Failed&#39; : &#39;#FF0000&#39;,
+        &#39;failed&#39; : &#39;#FF0000&#39;,
+        &#39;Killed&#39; : &#39;#111111&#39;
+      },
+
+<span id='Ext-dirac-core-CommonFunctions-property-job_minor_status_palette'>      job_minor_status_palette : {
+</span>        &quot;AncestorDepth Not Found&quot; : &#39;#BAA312&#39;,
+        &#39;Application Finished With Errors&#39; : &#39;#BC2133&#39;,
+        &#39;BK Input Data Not Available&#39; : &#39;#E6D600&#39;,
+        &#39;BK-LFC Integrity Check Failed&#39; : &#39;#BC1143&#39;,
+        &#39;Can not get Active and Banned Sites from JobDB&#39; : &#39;#84CBFF&#39;,
+        &#39;Chosen site is not eligible&#39; : &#39;#B4A243&#39;,
+        &#39;Error Sending Staging Request&#39; : &#39;#B4A243&#39;,
+        &#39;Exceeded Maximum Dataset Limit (100)&#39; : &#39;#BA5C9D&#39;,
+        &#39;Exception During Execution&#39; : &#39;#AA240C&#39;,
+        &#39;Execution Complete&#39; : &#39;#338B39&#39;,
+        &#39;Failed to access database&#39; : &#39;#FFE267&#39;,
+        &#39;File Catalog Access Failure&#39; : &#39;#FF8000&#39;,
+        &#39;Illegal Job JDL&#39; : &#39;#D96C00&#39;,
+        &#39;Impossible Site + InputData Requirement&#39; : &#39;#BDA822&#39;,
+        &#39;Impossible Site Requirement&#39; : &#39;#F87500&#39;,
+        &#39;Input Data Not Available&#39; : &#39;#2822A6&#39;,
+        &#39;Input Data Resolution&#39; : &#39;#FFBE94&#39;,
+        &#39;Input Sandbox Download&#39; : &#39;#586CFF&#39;,
+        &#39;Input data contains //&#39; : &#39;#AB7800&#39;,
+        &#39;Input data not correctly specified&#39; : &#39;#6812D6&#39;,
+        &#39;Job Wrapper Initialization&#39; : &#39;#FFFFCC&#39;,
+        &#39;Job has exceeded maximum wall clock time&#39; : &#39;#FF33CC&#39;,
+        &#39;Job has insufficient disk space to continue&#39; : &#39;#33FFCC&#39;,
+        &#39;Job has reached the CPU limit of the queue&#39; : &#39;#AABBCC&#39;,
+        &#39;No Ancestors Found For Input Data&#39; : &#39;#BDA544&#39;,
+        &#39;No candidate sites available&#39; : &#39;#E2FFBC&#39;,
+        &#39;No eligible sites for job&#39; : &#39;#A8D511&#39;,
+        &#39;Parameter not found&#39; : &#39;#FFB80C&#39;,
+        &#39;Pending Requests&#39; : &#39;#52FF4F&#39;,
+        &#39;Received Kill signal&#39; : &#39;#FF312F&#39;,
+        &#39;Socket read timeout exceeded&#39; : &#39;#B400FE&#39;,
+        &#39;Stalled&#39; : &#39;#FF655E&#39;,
+        &#39;Uploading Job Outputs&#39; : &#39;#FE8420&#39;,
+        &#39;Watchdog identified this job as stalled&#39; : &#39;#FFCC99&#39;
+      },
+<span id='Ext-dirac-core-CommonFunctions-method-log'>      /*************************************************************************
+</span>       * It uses the browser provided infrastructure to log the message. It is
+       * recommended to use for debug the code.
+       * 
+       * @param{String} logLevel it can be: log, error,info
+       * @param{String} message The message what will appear in the debugger of
+       *                the browser.
+       * @param{Object} loggedObject An object what we want to log in the
+       *                debugger of the browser.
+       */
+      log : function(logLevel, message, loggedObject) {
+        var config = null;
+
+        if (loggedObject) {
+          config = {
+            level : logLevel,
+            dump : loggedObject
+          };
+        } else {
+          config = {
+            level : logLevel
+          };
+        }
+        // &lt;debug&gt;
+        Ext.log(config, message);
+        // &lt;/debug&gt;
+      },
+<span id='Ext-dirac-core-CommonFunctions-method-zfill'>      zfill : function(number, zeros) {
+</span>        if (zeros &gt; 0) {
+          var str = &quot;&quot;;
+          nbzeros = zeros - number.toString().length;
+          for (var i = 0; i &lt; nbzeros; i++) {
+            str += &#39;0&#39;;
+          }
+          return str + number;
+        } else {
+          return number;
+        }
+      },
+<span id='Ext-dirac-core-CommonFunctions-method-getSelectedValue'>      getSelectedValue : function(oGrid) {
+</span>        var sVal = &quot;&quot;;
+        var oSelectedRecords = oGrid.getSelectionModel().getSelection();
+
+        if (oSelectedRecords.length &gt; 0) {
+          var pos = oGrid.getSelectionModel().getCurrentPosition();
+          var collumnIndex = pos.column;
+          var sColumnName = oGrid.columns[collumnIndex].dataIndex;
+          sVal = oSelectedRecords[0].get(sColumnName);
+        }
+        return sVal;
+      },
+<span id='Ext-dirac-core-CommonFunctions-method-msg'>      msg : function(type, message) {
+</span>        var me = this;
+
+        if (message == null)
+          return;
+
+        message = message.replace(new RegExp(&quot;\n&quot;, &#39;g&#39;), &quot;&lt;br/&gt;&quot;);
+
+        if (Ext.Array.contains(me.messages, message)) {
+          return;
+        } else {
+          me.messages.push(message);
+        }
+        var config = {};
+
+        switch (type) {
+
+          case &quot;Notification&quot; :
+            config = {
+              title : &#39;Notification&#39;,
+              position : &#39;tl&#39;,
+              manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
+              stickWhileHover : false,
+              iconCls : &#39;ux-notification-icon-information&#39;,
+              html : message,
+              message : message
+            };
+            break;
+
+          case &quot;Error Notification&quot; :
+            config = {
+              autoClose : false,
+              title : &#39;Error Notification&#39;,
+              position : &#39;tl&#39;,
+              manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
+              iconCls : &#39;ux-notification-icon-error&#39;,
+              html : message,
+              message : message
+            };
+
+            break;
+
+          case &quot;info&quot; :
+            config = {
+              title : &#39;Notification&#39;,
+              position : &#39;tl&#39;,
+              manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
+              stickWhileHover : false,
+              iconCls : &#39;ux-notification-icon-information&#39;,
+              html : message,
+              message : message
+            };
+            break;
+
+          case &quot;Error&quot; :
+            config = {
+              autoClose : false,
+              title : &#39;Error Notification&#39;,
+              position : &#39;tl&#39;,
+              manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
+              iconCls : &#39;ux-notification-icon-error&#39;,
+              html : message,
+              message : message
+            };
+
+            break;
+
+          default :
+            config = {
+              autoClose : false,
+              title : &#39;Error Notification&#39;,
+              position : &#39;tl&#39;,
+              manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
+              iconCls : &#39;ux-notification-icon-error&#39;,
+              html : message,
+              message : message
+            };
+
+        }
+
+        var notificationobj = Ext.create(&#39;widget.uxNotification&#39;, config);
+        notificationobj.on(&quot;beforeclose&quot;, function(notification) {
+              Ext.Array.remove(me.messages, notification.message)
+            });
+        notificationobj.show();
+
+      },
+<span id='Ext-dirac-core-CommonFunctions-method-showAjaxErrorMessage'>      showAjaxErrorMessage : function(response) {
+</span>
+        if (response.statusText == &quot;transaction aborted&quot;)
+          return;
+
+        /*
+         * if (response.statusText == &quot;OK&quot;) { var result =
+         * Ext.decode(responseText); }
+         */
+        if (response.timedout) {
+          Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &#39;The request timed out! Please reload the application!!!&#39;);
+        } else {
+
+          if (response.responseText) {
+            var message = response.responseText.split(&quot;\n&quot;);
+            var shortMessage = &quot;&quot;;
+            if (message.length &gt; 1) {
+              // We have case when we have more than one line.
+              // In that case we show the lates line.
+              // We have this case when the handler of the application is
+              // crashing...
+              var messageLength = message.length - 2;
+              shortMessage = message[messageLength];
+            } else {
+              shortMessage = response.responseText;
+            }
+
+            Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &#39;Operation failed: &#39; + response.statusText + &#39; .&lt;br/&gt; Please try again later !&#39;);
+            Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &#39;Operation failed: &#39; + shortMessage + &#39;.&lt;br/&gt; Please try again later !&#39;);
+          } else {
+            Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &quot;The reson of the failure is unknown!&quot;);
+          }
+
+        }
+
+      }
+    });
+</pre>
+</body>
+</html>

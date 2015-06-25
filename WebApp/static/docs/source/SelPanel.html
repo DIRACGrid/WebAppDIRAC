@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-SelPanel'>/**
+</span> * to be described
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.SelPanel&#39;, {
+      extend : &#39;Ext.panel.Panel&#39;,
+<span id='Ext-dirac-views-tabs-SelPanel-property-requies'>      requies : [&#39;Ext.dirac.views.tabs.ContextMenu&#39;, &#39;Ext.dirac.views.tabs.TreeMenuModel&#39;, &#39;Ext.tree.plugin.TreeViewDragDrop&#39;, &#39;Ext.dirac.views.tabs.SettingsPanel&#39;, &#39;Ext.LoadMask&#39;, &#39;Ext.dirac.views.tabs.StateManagerMenu&#39;],
+</span>      xtype : &#39;menuselpanel&#39;,
+      alias : &#39;widget.selPanel&#39;,
+<span id='Ext-dirac-views-tabs-SelPanel-property-tree'>      /**
+</span>       * @property {Ext.tree.Panel} tree it stores the reference to the menu.
+       */
+      tree : null,
+<span id='Ext-dirac-views-tabs-SelPanel-property-settings'>      settings : null,
+</span><span id='Ext-dirac-views-tabs-SelPanel-property-layout'>      layout : {
+</span>        type : &#39;accordion&#39;,
+        animate : true
+      },
+<span id='Ext-dirac-views-tabs-SelPanel-property-split'>      split : true,
+</span><span id='Ext-dirac-views-tabs-SelPanel-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+        me.loadMask = new Ext.LoadMask(me, {
+              msg : &quot;Loading menu...&quot;
+            });
+        Ext.apply(me, {
+              items : [me.createView(), me.createSettingsView()]
+            });
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-views-tabs-SelPanel-method-getTreePanel'>      /**
+</span>       * It returns the tree panel.
+       * 
+       * @return{Ext.tree.panel}
+       */
+      getTreePanel : function() {
+        var me = this;
+        return me.tree;
+      },
+<span id='Ext-dirac-views-tabs-SelPanel-method-createView'>      /**
+</span>       * Create the DataView to be used for the menu.
+       * 
+       * @private
+       * @return {Ext.view.View}
+       */
+      createView : function() {
+        var me = this;
+
+        var store = Ext.create(&#39;Ext.data.TreeStore&#39;, {
+              root : me.treeModel,
+              scope : me,
+              listeners : {
+                beforeexpand : function(node, op) {
+
+                  if (node.data.text == &#39;Shared&#39;) {
+                    GLOBAL.APP.MAIN_VIEW.oprLoadSharedDesktopsAndApplications();
+                    return;
+                  }
+                  /*
+                   * this.loadMask = new Ext.LoadMask(node, { msg : &quot;Loading
+                   * ...&quot; });
+                   */
+                  var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop(); // do
+                  // not refresh the tree node if we
+                  // have an active tab open
+
+                  var forceLoad = (activeDesktop &amp;&amp; node.childNodes.length - 1 != activeDesktop.items.length);
+                  // we load the states when the number of applications in the
+                  // desktop is not equal
+                  // to the applications which are in the menu...
+
+                  if (!forceLoad &amp;&amp; activeDesktop &amp;&amp; activeDesktop.title == node.data.text &amp;&amp; node.data.text != &#39;Default&#39;)
+                    return;
+
+                  if (node.loaded &amp;&amp; node.data.text == &#39;Default&#39;)
+                    return;
+
+                  if (node.data.type == &quot;desktop&quot;) {
+                    if (node.data.application != &#39;Default&#39;) { // trick: When the
+                      // Default node expanded we should not modify it.
+
+                      GLOBAL.APP.MAIN_VIEW.createDesktopTab(node.data.application, node.data.view); // an
+                      // empty tab is created the application states must be
+                      // listed.
+                      me.removeChildNodes(node); // it is used to refresh the
+                      // tree. may new applications opened and saved.
+                      GLOBAL.APP.MAIN_VIEW.addDesktopStatesToDesktop(node);
+
+                    }
+                  } else if (node.data.type == &#39;Default&#39;) { // it is the default
+                    // desktop
+                    if (!GLOBAL.STATE_MANAGEMENT_ENABLED)
+                      return;
+
+                    // we have to create a default desktop.
+                    var desktop = {
+                      views : {},
+                      data : []
+                    };
+
+                    var view = GLOBAL.APP.MAIN_VIEW.ID;
+                    desktop.views[GLOBAL.APP.MAIN_VIEW.ID] = {};
+                    GLOBAL.APP.SM.createDesktop(&quot;desktop&quot;, &#39;Default&#39;, desktop);
+
+                    if (!node.doNotCreateDesktop) {// when wo have another
+                      // desktop opened
+                      GLOBAL.APP.MAIN_VIEW.createDesktopTab(&quot;Default&quot;, node.data.view);
+                    }
+                    var node = GLOBAL.APP.MAIN_VIEW.defaultDesktop;
+                    me.removeChildNodes(node);
+                    me.tree.setLoading(true);
+                    var applications = GLOBAL.APP.MAIN_VIEW.applications;
+                    for (var i = 0; i &lt; applications.length; i++) {
+
+                      var oFunc = function(iCode, sAppName) {
+
+                        me.oprRefreshAppStates(sAppName, node);
+                        me.tree.setLoading(false);
+
+                      };
+
+                      GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(applications[i], oFunc);// OK
+
+                    }
+
+                  } else {// we have to check there is a state of the app
+                    if (!GLOBAL.STATE_MANAGEMENT_ENABLED)
+                      return;
+
+                    var oParts = node.data.application.split(&quot;.&quot;);
+                    var sStartClass = &quot;&quot;;
+                    if (oParts.length == 2) {
+                      sStartClass = node.data.application + &quot;.classes.&quot; + oParts[1];
+                    } else {
+                      sStartClass = node.data.application;
+                    }
+
+                    var oFunc = function() {
+                      return;
+                    };
+
+                    if (sStartClass != &quot;&quot;) {
+                      GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(sStartClass, oFunc);// OK
+                    }
+
+                  }
+                  node.loaded = true;
+                },
+                beforemove : function(node, oldParent, newParent, index, eOpts) {
+                  if (index == 0) {
+                    alert(&#39;Please move the node after Default/All!&#39;);
+                    return false;
+                  }
+                }
+              }
+            });
+
+        me.tree = Ext.create(&#39;Ext.tree.Panel&#39;, {
+              title : &#39;Desktops&amp;Applications&#39;,
+              split : true,
+              store : store,
+              scope : me,
+              rootVisible : false,
+              useArrows : true,
+              frame : false,
+              draggable : true,
+              width : 200,
+              height : 250,
+              tools : [{
+                    type : &#39;save&#39;,
+                    tooltip : &#39;Manage states!&#39;,
+                    // hidden:true,
+                    handler : function(event, toolEl, panelHeader) {
+                      var menu = Ext.create(&#39;Ext.dirac.views.tabs.StateManagerMenu&#39;);
+                      menu.showBy(toolEl);
+                    }
+                  }],
+              viewConfig : {
+                listeners : {
+
+        }       ,
+                enableDD : true,
+                plugins : {
+                  ptype : &#39;treeviewdragdrop&#39;
+                }
+              },
+              listeners : {
+                itemclick : function(record, item, index, e, eOpts) {
+
+                  if ((item.data.expandable) || (item.data.type == &quot;Default&quot;) || (item.data.text == &quot;All&quot; &amp;&amp; item.data.application == &quot;Default&quot; &amp;&amp; item.parentNode.childNodes.length &lt; 2)) {
+                    return;
+                  }
+
+                  if (item.data.type == &#39;link&#39;) {
+
+                    var cbSetActiveTab = function(oTab) {
+                      if (activeDesktop.view == &#39;tabView&#39;) {
+                        activeDesktop.setActiveTab(oTab);
+                      }
+                    };
+                    var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(&quot;Default&quot;);
+                    if (activeDesktop == null) {
+                      GLOBAL.APP.MAIN_VIEW.createDesktopTab(&quot;Default&quot;, item.data.view);
+                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(&quot;Default&quot;);
+                    }
+                    GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
+
+                  } else if (item.data.type == &quot;tabView&quot; || item.data.type == &quot;presenterView&quot;) {
+                    if (item.data.isShared == true) {
+                      if (item.data.stateType == &#39;desktop&#39;) {
+                        // the desktop is a shared desktop
+
+                        var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(item.data.stateToLoad);
+                        if (activeDesktop == null) {
+                          GLOBAL.APP.MAIN_VIEW._state_related_url.push(item.data.stateToLoad);
+                          GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.stateToLoad, item.data.view);
+                          GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
+                        } else {
+                          GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
+                        }
+
+                      } else {
+                        // it is an application and it is loaded to Default
+                        // desktop...
+                        var stateUrl = item.data.application + &quot;:&quot; + item.data.stateToLoad;
+                        if (!Ext.Array.contains(GLOBAL.APP.MAIN_VIEW._default_desktop_state, stateUrl)) {
+                          GLOBAL.APP.MAIN_VIEW._default_desktop_state.push(stateUrl);
+                        }
+                        var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(&quot;Default&quot;);
+                        if (activeDesktop == null) {
+                          GLOBAL.APP.MAIN_VIEW.createDesktopTab(&quot;Default&quot;, item.data.view);
+                          activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(&quot;Default&quot;);
+                        }
+                        GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
+                        var applicationTab = activeDesktop.getApplicationTab(item.data.application, item.data.stateToLoad);
+                        if (applicationTab) {
+                          // the application already exists
+                          activeDesktop.setActiveTab(applicationTab)
+                        } else {
+                          // we have to load the application
+                          GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.data.application, item.data.stateToLoad);
+                        }
+
+                      }
+
+                      GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+
+                    } else {
+                      var parentNodeName = (item.data.text == &#39;Default&#39;) ? &#39;Default&#39; : item.parentNode.data.text;
+                      var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
+                      if (activeDesktop == null) {
+                        GLOBAL.APP.MAIN_VIEW.createDesktopTab(item.data.application, item.data.view);
+                      }
+                      if (activeDesktop == null || item.data.text == &#39;All&#39;) {
+                        GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(item.data.application, activeDesktop);
+                      }
+                      GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
+
+                    }
+                  } else {// check the existence of teh desktops
+
+                    // we have to get the parent node.
+                    var parentNodeName = (item.data.text == &#39;Default&#39; || item.data.type == &#39;app&#39;) ? &#39;Default&#39; : item.parentNode.data.text;
+
+                    // we have to know the type of the desktop: presenterView or
+                    // tabView
+                    var view = item.parentNode.data.view;
+                    var activeDesktop = null;
+
+                    if (parentNodeName == &#39;Default&#39;) {
+                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
+                    } else {
+                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
+                    }
+
+                    if (activeDesktop) {
+                      GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
+                      var panel = activeDesktop.getPanel(item.data.stateToLoad);
+                      if (panel) {
+                        // we have to activate the panel
+                        activeDesktop.setActiveTab(panel);
+                      } else {
+
+                        var cbSetActiveTab = function(oTab) {
+                          if (activeDesktop.view == &#39;tabView&#39;) {
+                            activeDesktop.setActiveTab(oTab);
+                          }
+                        };
+
+                        GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbSetActiveTab);
+                      }
+
+                    } else {
+                      // we have to know the type of the desktop: presenterView
+                      // or tabView
+                      var view = item.parentNode.data.view;
+
+                      // When the application is in the Default desktop then the
+                      // desktop variable is empty.
+                      // We have to use the name of the parent node...
+                      var desktopName = item.data.desktop;
+                      if (item.data.desktop == &quot;&quot;) {
+                        desktopName = (item.data.text == &#39;Default&#39;) ? &#39;Default&#39; : item.parentNode.data.text;
+                      }
+                      GLOBAL.APP.MAIN_VIEW.createDesktopTab(desktopName, view);
+                      var cbLoadActiveTab = function(oTab) {
+                        oTab.loadData();
+                      };
+                      GLOBAL.APP.MAIN_VIEW.createWindow(item.data.type, item.data.application, item.data, activeDesktop, cbLoadActiveTab);
+                    }
+
+                  }
+
+                },
+                beforeitemmove : function(node, oldParent, newParent, index, eOpts) {
+                  if (oldParent.getData().text != newParent.getData().text) {
+
+                    var tabName = node.getData().text;
+                    var moduleName = node.data.application;
+                    var oldDesktopName = &#39;Default&#39;;
+                    var newDesktopName = &#39;Default&#39;;
+
+                    if (oldParent.getData().type == &#39;desktop&#39;) {
+                      oldDesktopName = oldParent.getData().text;
+                    }
+
+                    if (newParent.getData().type == &#39;desktop&#39;) {
+                      newDesktopName = newParent.getData().text;
+                    }
+
+                    // we have to close the application
+                    if (!GLOBAL.APP.MAIN_VIEW.isTabOpen(oldDesktopName, tabName)) {
+                      GLOBAL.APP.MAIN_VIEW.moveApplication(tabName, moduleName, oldDesktopName, newDesktopName);
+                    } else {
+                      return false;
+                    }
+                  }
+                }
+              }
+            });
+
+        me.contextMenu = Ext.create(&quot;Ext.dirac.views.tabs.ContextMenu&quot;, {});
+
+        me.tree.on(&#39;itemcontextmenu&#39;, function(view, record, item, index, event) {
+              var me = this;
+              me.contextMenu.oSelectedMenuItem = record;
+
+              if (record.data.type == &#39;desktop&#39;) {
+                me.contextMenu.enableMenuItem(0);
+                me.contextMenu.disableMenuItem(1);
+                me.contextMenu.enableMenuItem(2);
+                me.contextMenu.enableMenuItem(3);
+                me.contextMenu.enableMenuItem(4);
+              } else {
+                me.contextMenu.disableMenuItem(0);
+                me.contextMenu.enableMenuItem(1);
+                me.contextMenu.enableMenuItem(2);
+                me.contextMenu.disableMenuItem(3);
+                me.contextMenu.disableMenuItem(4);
+              }
+              if (record.data.isShared) {
+                me.contextMenu.disableMenuItem(0);
+                me.contextMenu.disableMenuItem(1);
+                me.contextMenu.disableMenuItem(2);
+                me.contextMenu.disableMenuItem(5);
+                me.contextMenu.disableMenuItem(6);
+                me.contextMenu.disableMenuItem(7);
+              } else {
+                me.contextMenu.enableMenuItem(5);
+                me.contextMenu.enableMenuItem(6);
+                me.contextMenu.enableMenuItem(7);
+              }
+              me.contextMenu.showAt(event.getX(), event.getY());
+              event.preventDefault();
+            }, me);
+        return me.tree;
+      },
+<span id='Ext-dirac-views-tabs-SelPanel-property-node'>      /**
+</span>       * It removes all the nodes except the first node.
+       * 
+       * @private
+       * @property {Ext.dirac.views.tabs.TreeMenuModel} node the node object
+       */
+      removeChildNodes : function(node) {
+        if (node.childNodes.length &gt; 1) {
+          var defaultNode = node.firstChild;
+          node.removeAll();
+          node.appendChild(defaultNode);
+        }
+      },
+<span id='Ext-dirac-views-tabs-SelPanel-method-createSettingsView'>      createSettingsView : function() {
+</span>        var me = this;
+        me.settings = Ext.create(&#39;Ext.dirac.views.tabs.SettingsPanel&#39;);
+        return me.settings;
+      },
+<span id='Ext-dirac-views-tabs-SelPanel-method-getSettimgsPanel'>      getSettimgsPanel : function(){
+</span>        var me = this;
+        return me.settings;
+      },
+<span id='Ext-dirac-views-tabs-SelPanel-method-oprRefreshAppStates'>      /*************************************************************************
+</span>       * It lists the application state. Each state is a node of the application
+       * tree.
+       * 
+       * @param{String}appClassName is the class name of the application.
+       * @param{Object} node is the current tree node. The states of an
+       *                application will be loaded under that node...
+       */
+      oprRefreshAppStates : function(appClassName, node) {
+        var me = this;
+        var oStates = GLOBAL.APP.SM.getApplicationStates(&quot;application&quot;, appClassName);// OK
+
+        for (var i = 0, len = oStates.length; i &lt; len; i++) {
+
+          var stateName = oStates[i];
+
+          var data = {
+            data : GLOBAL.APP.SM.getStateData(&quot;application&quot;, appClassName, stateName),
+            currentState : stateName,
+            module : appClassName
+          };
+
+          GLOBAL.APP.SM.addApplicationStates(&quot;desktop&quot;, &#39;Default&#39;, data);
+          try {
+            Ext.define(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;, {
+                  extend : &#39;Ext.data.Model&#39;,
+                  fields : [&#39;text&#39;, &#39;type&#39;, &#39;application&#39;, &#39;stateToLoad&#39;, &#39;desktop&#39;],
+                  alias : &#39;widget.treenodemodel&#39;
+                });
+            var application = appClassName.split(&quot;.&quot;);
+            var qTip = &quot;State Name: &quot; + stateName + &quot;&lt;br&gt;Application: &quot; + application[application.length - 1] + &quot;&lt;br&gt;&quot;;
+
+            nodeObj = {
+              &#39;text&#39; : stateName,
+              expandable : false,
+              application : appClassName,
+              stateToLoad : stateName,
+              type : &#39;app&#39;,
+              leaf : true,
+              iconCls : &#39;core-application-icon&#39;,
+              scope : me,
+              allowDrag : true,
+              allowDrop : true,
+              qtip : qTip
+            };
+            Ext.data.NodeInterface.decorate(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;);
+            // var model =
+            // Ext.ModelManager.getModel(&#39;Ext.dirac.views.tabs.TreeMenuModel&#39;);
+            // Ext.data.NodeInterface.decorate(model);
+            var newnode = Ext.create(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;, nodeObj);
+            // n = node.createNode(nodeObj);
+            node.appendChild(newnode);
+
+          } catch (err) {
+            Ext.log({
+                  level : &#39;error&#39;
+                }, &quot;Failed to create child nodes!&quot; + err);
+            Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;&quot;Failed to create child nodes!!!&#39;);
+          }
+
+        }
+      }
+
+    });
+</pre>
+</body>
+</html>

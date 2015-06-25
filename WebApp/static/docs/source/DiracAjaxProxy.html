@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracAjaxProxy'>/*******************************************************************************
+</span> * This class is used to create an Ajax proxy to retrieve data from the server.
+ * NOTE: In order to use it you have to specify the URL. The following example
+ * describes how it can be used within DIRAC framework. This proxy has to be set
+ * to a JsonStore. We propose to use {@link DiracJsonStore} as it has predefined
+ * methods.
+ * 
+ * &lt;pre&gt;
+ * var oProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+ *       url : GLOBAL.BASE_URL + &#39;JobMonitor/getJobData&#39;
+ *     });
+ * me.dataStore = Ext.create(&amp;quot;Ext.dirac.utils.DiracJsonStore&amp;quot;, {
+ *       proxy : oProxy,
+ *       fields : me.dataFields,
+ *       scope : me
+ *     });
+ * &lt;/pre&gt;
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+      extend : &#39;Ext.data.proxy.Ajax&#39;,
+<span id='Ext-dirac-utils-DiracAjaxProxy-property-type'>      type : &#39;ajax&#39;,
+</span><span id='Ext-dirac-utils-DiracAjaxProxy-property-reader'>      reader : {
+</span>        type : &#39;json&#39;,
+        root : &#39;result&#39;
+      },
+<span id='Ext-dirac-utils-DiracAjaxProxy-cfg-timeout'>      /**
+</span>       * @cfg{Number} timeout default timeout is 2 minutes (120000 millisecond).
+       */
+      timeout : 120000,
+<span id='Ext-dirac-utils-DiracAjaxProxy-cfg-url'>      /**
+</span>       * @cfg{url} url default is an empty string. You have to provide a URL
+       *           where to retrieve the data. The URL is the full path of the
+       *           web controller.
+       */
+      url : &quot;&quot;,
+<span id='Ext-dirac-utils-DiracAjaxProxy-cfg-This'>      /**
+</span>       * @cfg{dontLoadOnCreation} This is used to cancel the request to the web
+       *                          controller.
+       */
+      dontLoadOnCreation : false,
+<span id='Ext-dirac-utils-DiracAjaxProxy-property-listeners'>      listeners : {
+</span>        exception : function(proxy, response, operation) {
+          if (response.statusText == &quot;&quot;) {
+            GLOBAL.APP.CF.showAjaxErrorMessage(response);
+          }
+        }
+      }
+    });
+</pre>
+</body>
+</html>

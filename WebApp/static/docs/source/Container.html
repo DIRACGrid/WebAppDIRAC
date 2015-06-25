@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-core-StateManagement'>/**
+</span> * @class Ext.dirac.core.StateManagement This class manages the state management
+ *        within the Desktop view
+ * 
+ */
+
+Ext.define(&#39;Ext.dirac.core.Container&#39;, {
+<span id='Ext-dirac-core-StateManagement-method-createChildWindow'>      createChildWindow : function(sTitle, bModal, iWidth, iHeight) {
+</span>      },
+<span id='Ext-dirac-core-StateManagement-method-oprPrepareAndShowWindowGrid'>      oprPrepareAndShowWindowGrid : function(oData, sTitle, oFields, oColumns, menu) {
+</span>        var me = this;
+
+        var oStore = new Ext.data.ArrayStore({
+              fields : oFields,
+              data : oData
+            });
+
+        var oWindow = me.createChildWindow(sTitle, false, 700, 500);
+
+        var oGrid = Ext.create(&#39;Ext.grid.Panel&#39;, {
+              store : oStore,
+              columns : oColumns,
+              width : &#39;100%&#39;,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              },
+              menu : null,
+              listeners : {
+
+                beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                  e.preventDefault();
+                  var me = this;
+                  if (me.menu) {
+                    me.menu.showAt(e.xy);
+                  }
+                  return false;
+                }
+
+              }
+            });
+
+        if (menu) {
+          var oMenu = new Ext.menu.Menu();
+          for (var i in menu) {
+            oMenu.add({
+                  &#39;text&#39; : menu[i].text,
+                  handler : Ext.bind(menu[i].handler, oGrid, menu[i].arguments, false)
+                });
+          }
+          oGrid.menu = oMenu;
+        }
+
+        oWindow.add(oGrid);
+        oWindow.show();
+
+      },
+<span id='Ext-dirac-core-StateManagement-method-showValue'>      showValue : function(grid) {
+</span>        var me = this;
+        var sValue = GLOBAL.APP.CF.getSelectedValue(grid);
+        Ext.Msg.minWidth = 360;
+        Ext.Msg.alert(&#39;Cell value is:&#39;, sValue);
+      },
+<span id='Ext-dirac-core-StateManagement-method-showInWindow'>      showInWindow : function(sTitle, panel) {
+</span>        var me = this;
+        var oWindow = me.createChildWindow(sTitle, false, 700, 500);
+        oWindow.add(panel);
+        oWindow.show();
+      },
+<span id='Ext-dirac-core-StateManagement-method-oprPrepareAndShowWindowText'>      oprPrepareAndShowWindowText : function(sTextToShow, sTitle) {
+</span>
+        var me = this;
+
+        var oWindow = me.createChildWindow(sTitle, false, 700, 500);
+
+        var oTextArea = Ext.create(&#39;Ext.form.field.TextArea&#39;, {
+              value : sTextToShow,
+              cls : &quot;jm-textbox-help-window&quot;
+
+            });
+
+        oWindow.add(oTextArea);
+        oWindow.show();
+
+      },
+<span id='Ext-dirac-core-StateManagement-method-oprPrepareAndShowWindowHTML'>      /**
+</span>       * it is used to show an URL in a window.
+       * 
+       * @param {String}
+       *          url
+       * @param {String}
+       *          title is the title of the window
+       */
+      oprPrepareAndShowWindowHTML : function(url, title) {
+        var me = this;
+        var window = me.createChildWindow(title, false, 700, 500);
+        var htmlPanel = Ext.create(&#39;Ext.panel.Panel&#39;, {
+              layout : &#39;fit&#39;,
+              items : [{
+                    xtype : &quot;component&quot;,
+
+                    autoEl : {
+                      tag : &quot;iframe&quot;,
+                      src : url
+                    }
+                  }]
+            });
+        window.add(htmlPanel);
+        window.show();
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-oprShowInNewTab'>      oprShowInNewTab : function(url, title) {
+</span>
+        if (Ext.isSafari) {
+
+          var panelContent = new Ext.panel.Panel({
+                region : &#39;center&#39;,
+                margins : &#39;0 0 0 0&#39;,
+                autoScroll : true,
+                html : &#39;&lt;iframe style=&quot;overflow:auto;width:100%;height:100%;&quot; frameborder=&quot;0&quot;  src=&quot;&#39; + url + &#39;&quot;&gt;&lt;/iframe&gt;&#39;
+              });
+
+          var win = this.createChildWindow(title, false, 700, 500);
+          win.add(panelContent);
+          win.show();
+        } else {
+          var win = window.open(url, &quot;_blank&quot;);
+          if (win == null || typeof(win) == &#39;undefined&#39;) {
+            Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &#39;Please disable your pop-up blocker and click the &quot;Get Log file&quot; menu item again.&#39;);
+          } else {
+            win.focus();
+          }
+        }
+      },
+<span id='Ext-dirac-core-StateManagement-method-oprPrepareAndShowWindowTpl'>      oprPrepareAndShowWindowTpl : function(tplMarkup, tplData, sTitle) {
+</span>        var me = this;
+
+        var oWindow = me.createChildWindow(sTitle, false, 700, 400);
+
+        var tpl = new Ext.Template(tplMarkup);
+
+        var oPanel = Ext.create(&#39;Ext.panel.Panel&#39;, {
+              html : tpl.apply(tplData),
+              autoScroll : true
+            });
+        oWindow.add(oPanel);
+        oWindow.show();
+      }
+
+    });
+</pre>
+</body>
+</html>

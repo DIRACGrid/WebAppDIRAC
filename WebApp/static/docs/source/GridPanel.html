@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='DIRAC-TransformationMonitor-classes-GridPanel'>/*******************************************************************************
+</span> * It is a simple GridPanel.
+ */
+Ext.define(&#39;DIRAC.TransformationMonitor.classes.GridPanel&#39;, {
+      extend : &#39;Ext.grid.Panel&#39;,
+      requires : [&quot;Ext.data.ArrayStore&quot;],
+<span id='DIRAC-TransformationMonitor-classes-GridPanel-property-width'>      width : &#39;100%&#39;,
+</span><span id='DIRAC-TransformationMonitor-classes-GridPanel-property-viewConfig'>      viewConfig : {
+</span>        stripeRows : true,
+        enableTextSelection : true
+      },
+<span id='DIRAC-TransformationMonitor-classes-GridPanel-property-menu'>      menu : null,
+</span><span id='DIRAC-TransformationMonitor-classes-GridPanel-property-listeners'>      listeners : {
+</span>        
+        beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+          e.preventDefault();
+          var me = this;
+          if (me.menu) {
+            me.menu.showAt(e.xy);
+          }
+          return false;
+        }
+        
+      },
+<span id='DIRAC-TransformationMonitor-classes-GridPanel-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+
+        me.dataStore = new Ext.data.JsonStore({
+              params : me.params,
+              proxy : {
+                type : &#39;ajax&#39;,
+                url : me.url,
+                extraParams : me.params,
+                reader : {
+                  type : &#39;json&#39;,
+                  root : &#39;result&#39;
+                },
+                timeout : 1800000,
+                listeners : {
+                  exception : function(proxy, response, operation) {
+                    var jsonData = Ext.JSON.decode(response.responseText);
+                    if (jsonData &amp;&amp; jsonData[&quot;success&quot;] == &quot;false&quot;) {
+                      alert(jsonData[&quot;error&quot;]);
+                    }
+                  }
+                }
+              },
+
+              // alternatively, a Ext.data.Model name can be given
+              // (see Ext.data.Store for an example)
+              fields : me.oFields,
+              autoLoad : true,
+              remoteSort : true,
+              pageSize : 25,
+              listeners : {
+
+                load : function(oStore, records, successful, eOpts) {
+
+                  if (oStore.proxy.reader.rawData)
+                    me.pagingToolbar.updateStamp.setText(&#39;Updated: &#39; + oStore.proxy.reader.rawData[&quot;date&quot;]);
+
+                  me.dataStore.remoteSort = false;
+                  me.dataStore.sort();
+                  me.dataStore.remoteSort = true;
+
+                },
+
+                beforeload : function(oStore, oOperation, eOpts) {
+
+                  me.dataStore.lastDataRequest = oOperation;
+
+                }
+
+              }
+            });
+
+        me.pagingToolbar = {};
+        me.pagingToolbar.updateStamp = new Ext.Button({
+              disabled : true,
+              // disabledClass:&#39;my-disabled&#39;,
+              text : &#39;Updated: -&#39;
+            });
+
+        me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
+              allowBlank : false,
+              displayField : &#39;number&#39;,
+              editable : false,
+              maxLength : 4,
+              maxLengthText : &#39;The maximum value for this field is 1000&#39;,
+              minLength : 1,
+              minLengthText : &#39;The minimum value for this field is 1&#39;,
+              mode : &#39;local&#39;,
+              store : new Ext.data.ArrayStore({
+                    fields : [&#39;number&#39;],
+                    data : [[25], [50], [100], [200], [500], [1000]]
+                  }),
+              triggerAction : &#39;all&#39;,
+              value : 25,
+              width : 50
+            });
+
+        me.pagingToolbar.pageSizeCombo.on(&quot;change&quot;, function(combo, newValue, oldValue, eOpts) {
+              var me = this;
+              me.dataStore.pageSize = newValue;
+              me.oprLoadGridData();
+            }, me);
+
+        var pagingToolbarItems = [&#39;-&gt;&#39;, me.pagingToolbar.updateStamp, &#39;-&#39;, &#39;Items per page: &#39;, me.pagingToolbar.pageSizeCombo, &#39;-&#39;];
+
+        me.pagingToolbar.toolbar = Ext.create(&#39;Ext.toolbar.Paging&#39;, {
+              store : me.dataStore,
+              displayInfo : true,
+              displayMsg : &#39;Displaying topics {0} - {1} of {2}&#39;,
+              items : pagingToolbarItems,
+              emptyMsg : &quot;No topics to display&quot;,
+              prependButtons : true
+            });
+
+        Ext.apply(me, {
+              tbar : me.pagingToolbar.toolbar,
+              store : me.dataStore,
+              columns : me.oColumns
+            });
+        me.callParent(arguments);
+
+      },
+<span id='DIRAC-TransformationMonitor-classes-GridPanel-method-oprLoadGridData'>      oprLoadGridData : function() {
+</span>        var me = this;
+        me.store.proxy.extraParams.limit = me.pagingToolbar.pageSizeCombo.getValue();
+        me.store.load();
+      }
+    });</pre>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-StateManagerMenu'>/*******************************************************************************
+</span> * This class is the Graphical representation of the Manage states menu.
+ * 
+ * @class Ext.dirac.views.tabs.StateManagerMenu
+ * @extends Ext.menu.Menu
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.StateManagerMenu&#39;, {
+      extend : &#39;Ext.menu.Menu&#39;,
+      xtype : &#39;stateMenu&#39;,
+<span id='Ext-dirac-views-tabs-StateManagerMenu-property-items'>      items : [{
+</span>            text : &#39;Desktops&#39;,
+            menu : {
+              items : [{
+                    text : &quot;New Desktop&quot;,
+                    iconCls : &quot;dirac-icon-new-folder&quot;,
+                    handler : function() {
+                      GLOBAL.APP.MAIN_VIEW.createNewDesktop();
+                    }
+                  }, {
+                    text : &#39;Save&#39;,
+                    iconCls : &quot;dirac-icon-save&quot;,
+                    handler : function() {
+                      GLOBAL.APP.MAIN_VIEW.saveActiveDesktopState();
+                    }
+                  }, {
+                    text : &#39;Save As&#39;,
+                    iconCls : &quot;dirac-icon-save&quot;,
+                    handler : function() {
+                      GLOBAL.APP.MAIN_VIEW.saveAsActiveDesktopState();
+                    }
+                  }, {
+                    text : &#39;Delete&#39;,
+                    iconCls : &quot;dirac-icon-delete&quot;,
+                    handler : function() {
+                      GLOBAL.APP.MAIN_VIEW.deleteDesktopStates();
+                    }
+                  }]
+            }
+          }, {
+            text : &#39;Applications&#39;,
+            menu : {
+              items : [{
+                    text : &#39;Save&#39;,
+                    iconCls : &quot;dirac-icon-save&quot;,
+                    handler : function() {
+                      GLOBAL.APP.MAIN_VIEW.saveActiveApplicationState();
+                    }
+                  }, {
+                    text : &#39;Save As&#39;,
+                    iconCls : &quot;dirac-icon-save&quot;,
+                    handler : function() {
+                      GLOBAL.APP.MAIN_VIEW.saveAsActiveApplicationState();
+                    }
+                  }, {
+                    text : &#39;Delete&#39;,
+                    iconCls : &quot;dirac-icon-delete&quot;,
+                    handler : function() {
+                      GLOBAL.APP.MAIN_VIEW.deleteApplicationStates();
+                    }
+                  }]
+            }
+          }, &#39;-&#39;, {
+            text : &#39;State Loader&#39;,
+            iconCls : &#39;dirac-icon-state&#39;,
+            handler : function() {
+              GLOBAL.APP.MAIN_VIEW.SM.formStateLoader(GLOBAL.APP.MAIN_VIEW.cbAfterLoadSharedState, GLOBAL.APP.MAIN_VIEW.cbAfterSaveSharedState);
+            }
+          }]
+    });
+</pre>
+</body>
+</html>

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&quot;DIRAC.SiteSummary.classes.OverviewPanel&quot;, {
+      extend : &quot;Ext.panel.Panel&quot;,
+      title : &#39;Overview&#39;,
+      region : &#39;east&#39;,
+      autoScroll : true,
+      collapsible : true,
+      split : true,
+      region : &#39;east&#39;,
+      margins : &#39;2 0 2 0&#39;,
+      cmargins : &#39;2 2 2 2&#39;,
+      bodyStyle : &#39;padding: 5px&#39;,
+      width : 800,
+      labelAlign : &#39;top&#39;,
+      minWidth : 200,
+      hidden : true,
+      layout : &quot;column&quot;,
+      columnWidth : 2,
+      tools : [{
+            type : &#39;maximize&#39;,
+            tooltip : &#39;Maximize the application.&#39;,
+            handler : function(event, toolEl, panelHeader) {
+              var me = this;
+
+              var widget = me.up(&quot;panel&quot;);
+              var parent = me.up(&quot;panel&quot;).parentWidget;
+
+              parent.grid.hide();
+              parent.leftPanel.hide();
+
+              for (var i = 0; i &lt; widget.tools.length; i++) {
+                if (widget.tools[i].type == &#39;maximize&#39; || widget.tools[i].type == &#39;close&#39; || widget.tools[i].type == &quot;collapse-right&quot;) {
+                  widget.tools[i].hide();
+                } else if (widget.tools[i].type == &#39;minimize&#39;) {
+                  widget.tools[i].show();
+                }
+              }
+
+              widget.panelSize = {
+                height : widget.getHeight(),
+                width : widget.getWidth()
+              };
+
+              widget.setHeight(widget.maximizedSize.height);
+              widget.setWidth(widget.maximizedSize.width);
+            }
+          }, {
+            type : &#39;minimize&#39;,
+            tooltip : &#39;Minimize the application.&#39;,
+            hidden : true,
+            handler : function(event, toolEl, panelHeader) {
+              var me = this;
+
+              var parent = me.up(&quot;panel&quot;).parentWidget;
+              var widget = me.up(&quot;panel&quot;);
+
+              parent.grid.show();
+              parent.leftPanel.show();
+
+              for (var i = 0; i &lt; widget.tools.length; i++) {
+                if (widget.tools[i].type == &#39;maximize&#39; || widget.tools[i].type == &#39;close&#39; || widget.tools[i].type == &quot;collapse-right&quot;) {
+                  widget.tools[i].show();
+                } else if (widget.tools[i].type == &#39;minimize&#39;) {
+                  widget.tools[i].hide();
+                }
+              }
+
+              widget.setHeight(widget.panelSize.height);
+              widget.setWidth(widget.panelSize.width);
+            }
+          }],
+      listeners : {
+        collapse : function(panel, eOpts) {
+          panel.hide();
+          panel.parentWidget.grid.show();
+          panel.parentWidget.leftPanel.show();
+        }
+      },
+      initComponent : function() {
+        var me = this;
+
+        me.dataFields = [{
+              name : &#39;Name&#39;
+            }, {
+              name : &#39;StatusType&#39;
+            }, {
+              name : &#39;Status&#39;
+            }, {
+              name : &#39;ElementType&#39;
+            }, {
+              name : &#39;Reason&#39;
+            }, {
+              name : &#39;DateEffective&#39;
+            }, {
+              name : &#39;LastCheckTime&#39;
+            }, {
+              name : &#39;TokenOwner&#39;
+            }, {
+              name : &#39;TokenExpiration&#39;
+            }, {
+              name : &#39;GOCDB&#39;
+            }, {
+              name : &#39;GGUS&#39;
+            }, {
+              name : &#39;Elog&#39;
+            }];
+
+        var viewStore = Ext.create(&#39;Ext.data.Store&#39;, {
+              fields : me.dataFields
+            });
+        var tpl = new Ext.XTemplate(&#39;&lt;tpl for=&quot;.&quot;&gt;&#39;, &#39;&lt;div style=&quot;margin-bottom: 10px;&quot; class=&quot;dataset-statistics&quot;&gt;&#39;, &#39;&lt;b&gt;Name:&lt;/b&gt; {Name}&lt;br/&gt;&#39;, &#39;&lt;b&gt;Status Type:&lt;/b&gt; {StatusType}&lt;br/&gt;&#39;, &#39;&lt;b&gt;Status:&lt;/b&gt; {Status}&lt;br/&gt;&#39;, &#39;&lt;b&gt;ElementType:&lt;/b&gt; {ElementType}&lt;br/&gt;&#39;,
+            &#39;&lt;b&gt;Reason:&lt;/b&gt; {Reason}&lt;br/&gt;&#39;, &#39;&lt;b&gt;DateEffective:&lt;/b&gt; {DateEffective} &lt;br&gt;&lt;b&gt;LastCheckTime:&lt;/b&gt; {LastCheckTime}&lt;br/&gt; &lt;b&gt;TokenOwner:&lt;/b&gt; {TokenOwner}&lt;br/&gt;&#39;, &#39;&lt;b&gt;TokenExpiration:&lt;/b&gt; {TokenExpiration}&lt;br/&gt;&#39;, &#39;&lt;b&gt;GOCDB:&lt;/b&gt; {GOCDB}&lt;br/&gt;&#39;, &#39;&lt;b&gt;GGUS:&lt;/b&gt; {GGUS}&lt;br/&gt;&#39;,
+            &#39;&lt;b&gt;Elog:&lt;/b&gt; {Elog}&lt;br/&gt;&#39;, &#39;&lt;/div&gt;&#39;, &#39;&lt;/tpl&gt;&#39;);
+
+        me.view = new Ext.view.View({
+              columnWidth : 1 / 2,
+              tpl : tpl,
+              store : viewStore,
+              itemSelector : &#39;div.dataset-statistics&#39;,
+              autoHeight : true
+            });
+
+        me.viewPanel = Ext.create(&quot;Ext.panel.Panel&quot;, {
+              &quot;title&quot; : &quot;Details&quot;,
+              columnWidth : 1 / 2,
+              items : me.view,
+              layout : &#39;fit&#39;,
+              resizable : true
+            });
+
+        var ceStore = new Ext.data.ArrayStore({
+              fields : [&quot;Status&quot;, &quot;Name&quot;, &quot;StatusType&quot;],
+              data : []
+            });
+
+        var menuitems = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Overview&quot;,
+                &quot;handler&quot; : me.__showElement,
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click for more details.&#39;
+                }
+              }]
+        };
+
+        me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
+              menu : menuitems,
+              scope : me
+            });
+
+        me.ceGrid = Ext.create(&quot;Ext.grid.Panel&quot;, {
+              title : &#39;Computing elements&#39;,
+              layout : &#39;fit&#39;,
+              store : ceStore,
+              columns : [{
+                    text : &#39;Status&#39;,
+                    sortable : false,
+                    width : 26,
+                    sortable : false,
+                    hideable : false,
+                    fixed : true,
+                    menuDisabled : true,
+                    dataIndex : &#39;Status&#39;,
+                    renderer : function(value) {
+                      if ((value == &#39;Done&#39;) || (value == &#39;Good&#39;) || (value == &#39;Active&#39;) || (value == &#39;Cleared&#39;)) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/done.gif&quot;/&gt;&#39;;
+                      } else if (value == &#39;Bad&#39;) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/bad.gif&quot;/&gt;&#39;;
+                      } else if ((value == &#39;Failed&#39;) || (value == &#39;Bad&#39;) || (value == &#39;Banned&#39;) || (value == &#39;Aborted&#39;)) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/failed.gif&quot;/&gt;&#39;;
+                      } else if ((value == &#39;Waiting&#39;) || (value == &#39;Stopped&#39;) || (value == &#39;Poor&#39;) || (value == &#39;Probing&#39;)) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/waiting.gif&quot;/&gt;&#39;;
+                      } else if (value == &#39;Deleted&#39;) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/deleted.gif&quot;/&gt;&#39;;
+                      } else if (value == &#39;Matched&#39;) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/matched.gif&quot;/&gt;&#39;;
+                      } else if ((value == &#39;Running&#39;) || (value == &#39;Active&#39;) || (value == &#39;Fair&#39;)) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/running.gif&quot;/&gt;&#39;;
+                      } else if (value == &#39;NoMask&#39;) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/unknown.gif&quot;/&gt;&#39;;
+                      } else if ((value == &#39;Completed&#39;) || value == (value == &#39;Completing&#39;)) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/completed.gif&quot;/&gt;&#39;;
+                      } else if (value == &#39;Idle&#39;) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/idle.gif&quot;/&gt;&#39;;
+                      } else {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/unknown.gif&quot;/&gt;&#39;;
+                      }
+                    }
+                  }, {
+                    text : &#39;Name&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;Name&#39;
+                  }, {
+                    text : &#39;Status Type&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;StatusType&#39;
+                  }],
+              width : &#39;100%&#39;,
+              height : &#39;50%&#39;,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              },
+              &quot;listeners&quot; : {
+
+                beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                  e.preventDefault();
+                  me.contextGridMenu.record = record;
+                  me.contextGridMenu.showAt(e.xy);
+                  return false;
+                }
+              }
+            });
+
+        var stotageStore = new Ext.data.ArrayStore({
+              fields : [&quot;Status&quot;, &quot;Name&quot;, &quot;StatusType&quot;],
+              data : []
+            });
+
+        me.storageGrid = Ext.create(&quot;Ext.grid.Panel&quot;, {
+              title : &quot;Storage elements&quot;,
+              layout : &#39;fit&#39;,
+              store : stotageStore,
+              columns : [{
+                    text : &#39;Status&#39;,
+                    sortable : false,
+                    width : 26,
+                    sortable : false,
+                    hideable : false,
+                    fixed : true,
+                    menuDisabled : true,
+                    dataIndex : &#39;Status&#39;,
+                    renderer : function(value) {
+                      if ((value == &#39;Done&#39;) || (value == &#39;Good&#39;) || (value == &#39;Active&#39;) || (value == &#39;Cleared&#39;)) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/done.gif&quot;/&gt;&#39;;
+                      } else if (value == &#39;Bad&#39;) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/bad.gif&quot;/&gt;&#39;;
+                      } else if ((value == &#39;Failed&#39;) || (value == &#39;Bad&#39;) || (value == &#39;Banned&#39;) || (value == &#39;Aborted&#39;)) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/failed.gif&quot;/&gt;&#39;;
+                      } else if ((value == &#39;Waiting&#39;) || (value == &#39;Stopped&#39;) || (value == &#39;Poor&#39;) || (value == &#39;Probing&#39;)) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/waiting.gif&quot;/&gt;&#39;;
+                      } else if (value == &#39;Deleted&#39;) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/deleted.gif&quot;/&gt;&#39;;
+                      } else if (value == &#39;Matched&#39;) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/matched.gif&quot;/&gt;&#39;;
+                      } else if ((value == &#39;Running&#39;) || (value == &#39;Active&#39;) || (value == &#39;Fair&#39;)) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/running.gif&quot;/&gt;&#39;;
+                      } else if (value == &#39;NoMask&#39;) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/unknown.gif&quot;/&gt;&#39;;
+                      } else if ((value == &#39;Completed&#39;) || value == (value == &#39;Completing&#39;)) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/completed.gif&quot;/&gt;&#39;;
+                      } else if (value == &#39;Idle&#39;) {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/idle.gif&quot;/&gt;&#39;;
+                      } else {
+                        return &#39;&lt;img src=&quot;static/core/img/statusIcons/unknown.gif&quot;/&gt;&#39;;
+                      }
+                    }
+                  }, {
+                    text : &#39;Name&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;Name&#39;
+                  }, {
+                    text : &#39;Status Type&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;StatusType&#39;
+                  }],
+              width : &#39;100%&#39;,
+              height : &#39;50%&#39;,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              },
+              &quot;listeners&quot; : {
+
+                beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                  e.preventDefault();
+                  me.contextGridMenu.record = record;
+                  me.contextGridMenu.showAt(e.xy);
+                  return false;
+                }
+              }
+
+            });
+        me.leftPanel = Ext.create(&quot;Ext.panel.Panel&quot;, {
+              columnWidth : 1 / 2,
+              items : [me.ceGrid, me.storageGrid],
+              height : &#39;50%&#39;,
+              resizable : true
+            });
+        me.callParent(arguments);
+
+        me.rightPanel = Ext.create(&quot;Ext.panel.Panel&quot;, {
+              columnWidth : 1 / 2,
+              items : [],
+              resizable : false,
+              layout : &#39;fit&#39;
+            });
+
+        me.plotPanel = Ext.create(&quot;Ext.panel.Panel&quot;, {
+              title : &#39;Plots&#39;,
+              columnWidth : 3,
+              items : [],
+              resizable : false,
+              layout : &#39;column&#39;
+            });
+
+        me.rightPanel.add(me.plotPanel);
+        me.viewPanel.add(me.leftPanel);
+
+        me.add([me.viewPanel, me.rightPanel]);
+        me.viewPanel.setLoading(true);
+
+      },
+      loadData : function(selection) {
+        var me = this;
+
+        me.viewPanel.body.mask(&quot;Loading ...&quot;);
+        // me.leftPanel.body.mask(&quot;Loading ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([&quot;Info&quot;]),
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType]),
+                element : (selection.element ? Ext.JSON.encode([selection.element]) : Ext.JSON.encode([&quot;Resource&quot;]))
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.viewPanel.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+                  me.setTitle(jsonData[&quot;result&quot;][&quot;Name&quot;]);
+                  me.view.getStore().loadData([jsonData[&quot;result&quot;]]);
+                  me.viewPanel.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+
+        me.ceGrid.body.mask(&quot;Loading ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([&quot;ComputingElements&quot;]),
+                name : Ext.JSON.encode([selection.name])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.ceGrid.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+                  me.ceGrid.getStore().loadData(jsonData[&quot;result&quot;]);
+                  me.ceGrid.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+
+        me.storageGrid.body.mask(&quot;Loading ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([&quot;Storages&quot;]),
+                name : Ext.JSON.encode([selection.name])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.storageGrid.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+                  me.storageGrid.getStore().loadData(jsonData[&quot;result&quot;]);
+                  me.storageGrid.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+        me.rightPanel.body.mask(&quot;Loading ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([&quot;Images&quot;]),
+                name : Ext.JSON.encode([selection.name])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.rightPanel.body.unmask();
+              },
+              success : function(response) {
+                me.rightPanel.body.unmask();
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+
+                  me.plotPanel.removeAll(); // remove the plots
+
+                  var width = 99 / 2;
+                  width = &#39;.&#39; + Math.round(width);
+                  for (var i = 0; i &lt; jsonData.result.length; i++) {
+                    var src = GLOBAL.BASE_URL + &quot;AccountingPlot/getPlotImg?file=&quot; + jsonData.result[i] + &quot;&amp;nocache=&quot; + (new Date()).getTime();
+                    var img = Ext.create(&#39;Ext.Img&#39;, {
+                          columnWidth : width,
+                          src : src
+                        });
+                    img.on(&#39;click&#39;, function(e, t, eOpts, me) {
+                          var me = this;
+                          var img = me.plotPanel.getComponent(t.id);
+                          if (img) {
+                            me.fullSizeImage(img);
+                          }
+
+                        }, this);
+                    me.plotPanel.add(img);
+                    img.getEl().on(&#39;click&#39;, function(e, t, eOpts, me) {
+                          var me = this;
+                          var img = me.plotPanel.getComponent(t.id);
+                          if (img) {
+                            me.fullSizeImage(img);
+                          }
+
+                        }, this);
+                  }
+                  
+                  
+                  me.plotPanel.doLayout();
+                  me.rightPanel.dorefresh();
+                  //me.plotPanel.dorefresh();
+                  //me.dorefresh();
+                } else {
+                  GLOBAL.APP.CF.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+
+      },
+      fullSizeImage : function(img) {
+        var me = this;
+
+        var html = &#39;&lt;img src=&quot;&#39; + img.src + &#39;&quot; /&gt;&#39;;
+        if (Ext.firefoxVersion &gt; 0) {
+
+          var win = new Ext.window.Window({
+                collapsible : true,
+                constrain : true,
+                constrainHeader : true,
+                html : html,
+                layout : &#39;fit&#39;,
+                minHeight : 200,
+                minWidth : 320,
+                maximizable : true,
+                minimizable : true
+              });
+          win.show();
+
+        } else {
+          var panel = Ext.create(&#39;Ext.panel.Panel&#39;, {
+                constrainHeader : false,
+                constrain : true,
+                html : html,
+                layout : &#39;fit&#39;,
+                height : 600,
+                width : 834
+              });
+
+          var win = me.up(&quot;panel&quot;).createChildWindow(&quot;Site overview&quot;, false, 850, 650);
+          win.add(panel);
+          win.show();
+        }
+      },
+      __showElement : function() {
+        var me = this;
+        console.log(me.contextGridMenu.record);
+
+        var setupdata = {
+          currentState : me.contextGridMenu.record.get(&quot;Name&quot;),
+          data : {
+            leftMenu : {
+              selectors : {
+                name : {
+                  data_selected : [me.contextGridMenu.record.get(&quot;Name&quot;)]
+                }
+              }
+            }
+          }
+        };
+
+        GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+              objectType : &quot;app&quot;,
+              moduleName : me.parentWidget.applicationsToOpen[&#39;ResourceSummary&#39;],
+              setupData : setupdata
+            });
+
+      }
+    });
+</pre>
+</body>
+</html>

@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;DIRAC.RegistryManager.classes.RegistryManager&#39;,
+		{
+			extend : &#39;Ext.dirac.core.Module&#39;,
+			requires : [ &#39;Ext.util.*&#39;, &#39;Ext.panel.Panel&#39;, &quot;Ext.form.field.Text&quot;, &quot;Ext.button.Button&quot;, &quot;Ext.menu.Menu&quot;, &quot;Ext.form.field.ComboBox&quot;, &quot;Ext.layout.*&quot;, &quot;Ext.form.field.Date&quot;,
+					&quot;Ext.form.field.TextArea&quot;, &quot;Ext.form.field.Checkbox&quot;, &quot;Ext.form.FieldSet&quot;, &quot;Ext.Button&quot;, &quot;Ext.dirac.utils.DiracMultiSelect&quot;, &quot;Ext.util.*&quot;, &quot;Ext.toolbar.Toolbar&quot;, &quot;Ext.data.Record&quot;,
+					&#39;Ext.Array&#39; ],
+
+			initComponent : function() {
+
+				var me = this;
+
+        me.launcher.title = &quot;Registry Manager&quot;;
+				if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+					me.launcher.maximized = false;
+					var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+					me.launcher.height = oDimensions[1] / 2;
+					me.launcher.width = oDimensions[0] / 2;
+
+				}
+
+				if (GLOBAL.VIEW_ID == &quot;tabs&quot;) {
+
+				}
+
+				Ext.apply(me, {
+					layout : &#39;border&#39;,
+					bodyBorder : false,
+					defaults : {
+						collapsible : true,
+						split : true
+					},
+					items : [],
+					header : false
+				});
+
+				me.callParent(arguments);
+
+			},
+
+			__createSocket : function(sOnOpenFuncName) {
+
+				var me = this;
+
+				var sLoc = window.location;
+				var sWsuri;
+
+				if (sLoc.protocol === &quot;https:&quot;) {
+					sWsuri = &quot;wss:&quot;;
+				} else {
+					sWsuri = &quot;ws:&quot;;
+				}
+				sWsuri += &quot;//&quot; + sLoc.host + GLOBAL.BASE_URL + &#39;RegistryManager&#39;;
+
+				var socket = new WebSocket(sWsuri);
+
+				socket.onopen = function(e) {
+					console.log(&quot;CONNECTED&quot;);
+					me.isConnectionEstablished = true;
+					socket.send(JSON.stringify({
+						op : sOnOpenFuncName
+					}));
+
+					if (sOnOpenFuncName == &quot;init&quot;) {
+						me.grid.body.mask(&quot;Loading ...&quot;);
+						me.__sendSocketMessage({
+							op : &quot;getData&quot;,
+							type : &quot;users&quot;
+						});
+
+						me.__getGroupList();
+					}
+				};
+
+				socket.onerror = function(e) {
+					console.log(&quot;ERR &quot; + e.data);
+					me.isConnectionEstablished = false;
+				};
+
+				socket.onclose = function(e) {
+					me.isConnectionEstablished = false;
+					var sMessage = &quot;CONNECTION CLOSED&quot;;
+
+					if (me.changeMade)
+						sMessage += &quot; - UNCOMMITED CHANGES ARE LOST&quot;;
+
+					console.log(&quot;CLOSE&quot;);
+					sMessage += &quot;\nDo you want to reconnect now?&quot;;
+
+					if (me.dontShowMessageBeforeClose) {
+						if (confirm(sMessage)) {
+							// resetting the configuration
+							me.socket = me.__createSocket(&quot;resetConfiguration&quot;);
+
+						}
+					}
+				};
+
+				socket.onmessage = function(e) {
+
+					var oResponse = JSON.parse(e.data);
+					// console.log(&quot;RESPONSE&quot;);
+					// console.log(oResponse);
+
+					if (parseInt(oResponse.success, 10) == 0) {
+
+						GLOBAL.APP.CF.alert(oResponse.message, &quot;error&quot;);
+
+						switch (oResponse.op) {
+
+						case &quot;init&quot;:
+
+							break;
+						case &quot;getData&quot;:
+							me.grid.body.unmask();
+							break;
+						case &quot;addItem&quot;:
+							break;
+						case &quot;editItem&quot;:
+							break;
+						case &quot;deleteItem&quot;:
+							break;
+						case &quot;editRegistryProperties&quot;:
+							break;
+						case &quot;commitChanges&quot;:
+							me.getContainer().body.unmask();
+							break;
+
+						}
+
+					} else {
+
+						switch (oResponse.op) {
+
+						case &quot;init&quot;:
+
+							break;
+						case &quot;resetConfiguration&quot;:
+							me.rightPanel.removeAll();
+							me.rightPanel.setTitle(&quot;&quot;);
+							me.rightPanel.currentRecord = null;
+							me.rightPanel.currentType = &quot;&quot;;
+							me.grid.body.mask(&quot;Loading ...&quot;);
+
+							me.__sendSocketMessage({
+								op : &quot;getData&quot;,
+								type : me.getSelectedType()
+							});
+							break;
+						case &quot;getData&quot;:
+
+							if (oResponse.type == &quot;voms&quot;) {
+
+								me.vomsGrid.store.removeAll();
+
+								me.dataVomsStore = new Ext.data.JsonStore({
+									fields : me.gridFields[oResponse.type],
+									data : oResponse.data
+								});
+
+								me.vomsGrid.reconfigure(me.dataVomsStore, undefined);
+								me.vomsGrid.store.sort([ {
+									property : &#39;name&#39;,
+									direction : &#39;ASC&#39;
+								} ]);
+
+								me.otherDataMenu.setText(&quot;VOMS Servers&quot;);
+
+							} else if (oResponse.type == &quot;servers&quot;) {
+
+								me.serversGrid.store.removeAll();
+
+								me.dataServersStore = new Ext.data.JsonStore({
+									fields : me.gridFields[oResponse.type],
+									data : oResponse.data
+								});
+
+								me.serversGrid.reconfigure(me.dataServersStore, undefined);
+								me.serversGrid.store.sort([ {
+									property : &#39;name&#39;,
+									direction : &#39;ASC&#39;
+								} ]);
+
+								me.otherDataMenu.setText(&quot;VOMS Servers&quot;);
+
+							} else {
+
+								me.grid.store.removeAll();
+
+								me.dataStore = new Ext.data.JsonStore({
+									fields : me.gridFields[oResponse.type],
+									data : oResponse.data
+								});
+
+								me.grid.reconfigure(me.dataStore, me.gridColumns[oResponse.type]);
+								me.grid.store.sort([ {
+									property : &#39;name&#39;,
+									direction : &#39;ASC&#39;
+								} ]);
+
+								switch (oResponse.type) {
+
+								case &quot;hosts&quot;:
+									me.otherDataMenu.setText(&quot;Hosts&quot;);
+									break;
+								case &quot;users&quot;:
+									me.otherDataMenu.setText(&quot;Users&quot;);
+									break;
+								case &quot;groups&quot;:
+									me.otherDataMenu.setText(&quot;Groups&quot;);
+									break;
+
+								}
+
+								if (!me.firstTimeReadUsers) {
+
+									for ( var i = 0; i &lt; oResponse.data.length; i++) {
+										me.userList.push(oResponse.data[i][&quot;name&quot;]);
+									}
+
+									me.firstTimeReadUsers = true;
+								}
+							}
+
+							me.grid.body.unmask();
+							me.serversGrid.body.unmask();
+
+							break;
+						case &quot;addItem&quot;:
+							me.grid.body.mask(&quot;Loading ...&quot;);
+
+							var oDataToSend = {
+								op : &quot;getData&quot;,
+								type : me.rightPanel.currentType
+							};
+
+							if (me.rightPanel.currentType == &quot;servers&quot;) {
+
+								oDataToSend.vom = me.serversGrid.vom;
+
+							}
+
+							me.__sendSocketMessage(oDataToSend);
+
+							me.rightPanel.removeAll();
+							me.rightPanel.setTitle(&quot;&quot;);
+							me.rightPanel.currentRecord = null;
+							me.rightPanel.currentType = &quot;&quot;;
+
+							me.rightPanel.dockedItems.getAt(1).show();
+
+							break;
+						case &quot;editItem&quot;:
+							me.grid.body.mask(&quot;Loading ...&quot;);
+
+							var oDataToSend = {
+								op : &quot;getData&quot;,
+								type : me.rightPanel.currentType
+							};
+
+							if (me.rightPanel.currentType == &quot;servers&quot;) {
+
+								oDataToSend.vom = me.serversGrid.vom;
+
+							}
+
+							me.__sendSocketMessage(oDataToSend);
+							me.rightPanel.dockedItems.getAt(1).show();
+
+							break;
+						case &quot;deleteItem&quot;:
+							me.grid.body.mask(&quot;Loading ...&quot;);
+							var oDataToSend = {
+								op : &quot;getData&quot;,
+								type : me.rightPanel.currentType
+							};
+
+							if (me.rightPanel.currentType == &quot;servers&quot;) {
+
+								oDataToSend.vom = me.serversGrid.vom;
+
+							}
+
+							me.__sendSocketMessage(oDataToSend);
+
+							me.rightPanel.removeAll();
+							me.rightPanel.setTitle(&quot;&quot;);
+							me.rightPanel.currentRecord = null;
+							me.rightPanel.currentType = &quot;&quot;;
+
+							break;
+						case &quot;editRegistryProperties&quot;:
+
+							break;
+						case &quot;commitChanges&quot;:
+							GLOBAL.APP.CF.alert(&quot;The changes in the configuration have been successfuly commited !&quot;, &quot;info&quot;);
+							me.__sendSocketMessage({
+								op : &quot;resetConfiguration&quot;
+							});
+							me.getContainer().body.unmask();
+							break;
+						case &quot;getGroupList&quot;:
+
+							me.groupList = oResponse.data;
+							break;
+						case &quot;getRegistryProperties&quot;:
+							me.getContainer().body.unmask();
+							me.__createRegistryPropertiesForm(oResponse.data);
+							break;
+						case &quot;getVomsMapping&quot;:
+							me.getContainer().body.unmask();
+							me.__createVomsMappingForm(oResponse.data);
+							break;
+						}
+					}
+
+				};
+
+				return socket;
+			},
+
+			__setChangeMade : function(bChange) {
+
+				var me = this;
+
+				if (bChange &amp;&amp; me.canDoChanges) {
+
+					me.btnCommitChanges.show();
+
+				} else {
+
+					me.btnCommitChanges.hide();
+
+				}
+
+				me.changeMade = bChange;
+
+			},
+
+			buildUI : function() {
+
+				var me = this;
+
+				me.isConnectionEstablished = false;
+
+				me.socket = me.__createSocket(&quot;init&quot;);
+
+				me.rightPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+					region : &#39;east&#39;,
+					margins : &#39;0&#39;,
+					width : 350,
+					minWidth : 300,
+					maxWidth : 450,
+					layout : &quot;anchor&quot;,
+					autoDestroy : false,
+					currentRecord : null
+				});
+
+				me.otherDataMenu = new Ext.Button({
+					text : &quot;Users&quot;,
+					menu : [ {
+						handler : function() {
+							me.otherDataMenu.setText(&quot;Users&quot;);
+
+							me.grid.body.mask(&quot;Loading ...&quot;);
+							me.__sendSocketMessage({
+								op : &quot;getData&quot;,
+								type : &quot;users&quot;
+							});
+
+							me.centralWorkPanel.getLayout().setActiveItem(0);
+
+						},
+						text : &#39;Users&#39;
+					}, {
+						handler : function() {
+							me.otherDataMenu.setText(&quot;Groups&quot;);
+
+							me.grid.body.mask(&quot;Loading ...&quot;);
+							me.__sendSocketMessage({
+								op : &quot;getData&quot;,
+								type : &quot;groups&quot;
+							});
+
+							me.centralWorkPanel.getLayout().setActiveItem(0);
+
+						},
+						text : &#39;Groups&#39;
+					}, {
+						handler : function() {
+							me.otherDataMenu.setText(&quot;Hosts&quot;);
+
+							me.grid.body.mask(&quot;Loading ...&quot;);
+							me.__sendSocketMessage({
+								op : &quot;getData&quot;,
+								type : &quot;hosts&quot;
+							});
+
+							me.centralWorkPanel.getLayout().setActiveItem(0);
+
+						},
+						text : &#39;Hosts&#39;
+					}, {
+						handler : function() {
+							me.otherDataMenu.setText(&quot;VOMS Servers&quot;);
+							me.__sendSocketMessage({
+								op : &quot;getData&quot;,
+								type : &quot;voms&quot;
+							});
+							me.centralWorkPanel.getLayout().setActiveItem(1);
+						},
+						text : &#39;VOMS Servers&#39;
+					}, &#39;-&#39;, {
+						handler : function() {
+							me.getContainer().body.mask(&quot;Loading ...&quot;);
+							me.__sendSocketMessage({
+								op : &quot;getRegistryProperties&quot;
+							});
+						},
+						text : &#39;Registry Properties&#39;
+					}, {
+						handler : function() {
+							me.getContainer().body.mask(&quot;Loading ...&quot;);
+							me.__sendSocketMessage({
+								op : &quot;getVomsMapping&quot;
+							});
+						},
+						text : &#39;VOMS Mapping&#39;
+					} ]
+				});
+
+				me.btnCommitChanges = new Ext.Button({
+					text : &#39;Commit&#39;,
+					iconCls : &quot;dirac-icon-submit&quot;,
+					handler : function() {
+						if (confirm(&quot;Do you want to apply the configuration changes you&#39;ve done till now?&quot;)) {
+							me.getContainer().body.mask(&quot;Loading ...&quot;);
+							me.__sendSocketMessage({
+								op : &quot;commitChanges&quot;
+							});
+						}
+					},
+					scope : me,
+					hidden : true
+				});
+
+				var oLeftPanelTopToolbar = new Ext.toolbar.Toolbar({
+					dock : &#39;top&#39;,
+					items : [ me.otherDataMenu, &#39;-&gt;&#39;, me.btnCommitChanges ]
+				});
+
+				me.gridFields = {
+					users : [ {
+						name : &quot;name&quot;
+					}, {
+						name : &quot;dn&quot;
+					}, {
+						name : &quot;ca&quot;
+					}, {
+						name : &quot;email&quot;
+					} ],
+					groups : [ {
+						name : &quot;name&quot;
+					}, {
+						name : &quot;users&quot;
+					}, {
+						name : &quot;properties&quot;
+					}, {
+						name : &quot;vomsrole&quot;
+					}, {
+						name : &quot;autouploadproxy&quot;
+					}, {
+						name : &quot;autouploadpilotproxy&quot;
+					}, {
+						name : &quot;autoaddvoms&quot;
+					}, {
+						name : &quot;jobshare&quot;
+					} ],
+					hosts : [ {
+						name : &quot;name&quot;
+					}, {
+						name : &quot;dn&quot;
+					}, {
+						name : &quot;properties&quot;
+					} ],
+					voms : [ {
+						name : &quot;name&quot;
+					} ],
+					servers : [ {
+						name : &quot;name&quot;
+					}, {
+						name : &quot;dn&quot;
+					}, {
+						name : &quot;port&quot;
+					}, {
+						name : &quot;ca&quot;
+					} ]
+				};
+
+				me.gridColumns = {
+
+					users : [ {
+						header : &#39;Name&#39;,
+						sortable : true,
+						dataIndex : &#39;name&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						width : 200,
+						sortState : &quot;DESC&quot;
+					}, {
+						header : &#39;DN&#39;,
+						sortable : true,
+						dataIndex : &#39;dn&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1
+					}, {
+						header : &#39;CA&#39;,
+						sortable : true,
+						dataIndex : &#39;ca&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1
+					}, {
+						header : &#39;E-Mail&#39;,
+						sortable : true,
+						dataIndex : &#39;email&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1
+					} ],
+					groups : [ {
+						header : &#39;Name&#39;,
+						sortable : true,
+						dataIndex : &#39;name&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						width : 200,
+						sortState : &quot;DESC&quot;
+					}, {
+						header : &#39;Users&#39;,
+						sortable : true,
+						dataIndex : &#39;users&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1
+					}, {
+						header : &#39;Properties&#39;,
+						sortable : true,
+						dataIndex : &#39;properties&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1
+					}, {
+						header : &#39;VOMS Role&#39;,
+						sortable : true,
+						dataIndex : &#39;vomsrole&#39;,
+						align : &#39;left&#39;,
+						hideable : false
+					}, {
+						header : &#39;Auto Upload Proxy&#39;,
+						sortable : true,
+						dataIndex : &#39;autouploadproxy&#39;,
+						align : &#39;left&#39;,
+						hideable : false
+					}, {
+						header : &#39;Auto Upload Pilot Proxy&#39;,
+						sortable : true,
+						dataIndex : &#39;autouploadpilotproxy&#39;,
+						align : &#39;left&#39;,
+						hideable : false
+					}, {
+						header : &#39;Auto Add VOMS&#39;,
+						sortable : true,
+						dataIndex : &#39;autoaddvoms&#39;,
+						align : &#39;left&#39;,
+						hideable : false
+					}, {
+						header : &#39;Job Share&#39;,
+						sortable : true,
+						dataIndex : &#39;jobshare&#39;,
+						align : &#39;left&#39;,
+						hideable : false
+					} ],
+					hosts : [ {
+						header : &#39;Name&#39;,
+						sortable : true,
+						dataIndex : &#39;name&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						width : 200,
+						sortState : &quot;DESC&quot;
+					}, {
+						header : &#39;DN&#39;,
+						sortable : true,
+						dataIndex : &#39;dn&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1
+					}, {
+						header : &#39;Properties&#39;,
+						sortable : true,
+						dataIndex : &#39;properties&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1
+					} ],
+					servers : [ {
+						header : &#39;Name&#39;,
+						sortable : true,
+						dataIndex : &#39;name&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						width : 200,
+						sortState : &quot;DESC&quot;
+					}, {
+						header : &#39;DN&#39;,
+						sortable : true,
+						dataIndex : &#39;dn&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1
+					}, {
+						header : &#39;Port&#39;,
+						sortable : true,
+						dataIndex : &#39;port&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1
+					}, {
+						header : &#39;CA&#39;,
+						sortable : true,
+						dataIndex : &#39;ca&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1
+					} ],
+					voms : [ {
+						header : &#39;Name&#39;,
+						sortable : true,
+						dataIndex : &#39;name&#39;,
+						align : &#39;left&#39;,
+						hideable : false,
+						flex : 1,
+						sortState : &quot;DESC&quot;
+					} ]
+
+				};
+
+				me.dataStore = new Ext.data.JsonStore({
+					fields : me.gridFields[&quot;users&quot;],
+					data : []
+				});
+
+				me.grid = Ext.create(&#39;Ext.grid.Panel&#39;, {
+					store : me.dataStore,
+					height : &#39;600&#39;,
+					header : false,
+					viewConfig : {
+						stripeRows : true,
+						enableTextSelection : true
+					},
+					columns : me.gridColumns[&quot;users&quot;],
+					listeners : {
+
+						cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+
+							switch (me.getSelectedType()) {
+
+							case &quot;users&quot;:
+								me.__createUserForm(record);
+								break;
+							case &quot;groups&quot;:
+								me.__createGroupForm(record);
+								break;
+							case &quot;hosts&quot;:
+								me.__createHostForm(record);
+								break;
+
+							}
+
+						}
+
+					}
+				});
+
+				me.vomsServersPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+					floatable : false,
+					header : false,
+					border : false,
+					items : [],
+					layout : &quot;border&quot;,
+					defaults : {
+						collapsible : true,
+						split : true
+					}
+				});
+
+				me.dataVomsStore = new Ext.data.JsonStore({
+					fields : me.gridFields[&quot;voms&quot;],
+					data : []
+				});
+
+				me.vomsGrid = Ext.create(&#39;Ext.grid.Panel&#39;, {
+					region : &#39;north&#39;,
+					store : me.dataVomsStore,
+					height : 200,
+					header : false,
+					border : false,
+					viewConfig : {
+						stripeRows : true,
+						enableTextSelection : true
+					},
+					columns : me.gridColumns[&quot;voms&quot;],
+					listeners : {
+
+						cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+
+							me.serversGrid.vom = record.get(&quot;name&quot;);
+
+							me.serversGrid.body.mask(&quot;Loading ...&quot;);
+							me.__sendSocketMessage({
+								op : &quot;getData&quot;,
+								type : &quot;servers&quot;,
+								vom : record.get(&quot;name&quot;)
+							});
+
+							me.__createVomsForm(record);
+
+						}
+
+					}
+				});
+
+				me.dataServersStore = new Ext.data.JsonStore({
+					fields : me.gridFields[&quot;servers&quot;],
+					data : []
+				});
+
+				me.serversGrid = Ext.create(&#39;Ext.grid.Panel&#39;, {
+					region : &#39;center&#39;,
+					store : me.dataServersStore,
+					header : false,
+					viewConfig : {
+						stripeRows : true,
+						enableTextSelection : true
+					},
+					columns : me.gridColumns[&quot;servers&quot;],
+					listeners : {
+
+						cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+
+							me.__createServerForm(record);
+
+						}
+
+					}
+				});
+
+				me.vomsServersPanel.add([ me.vomsGrid, me.serversGrid ]);
+
+				me.centralWorkPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+					floatable : false,
+					layout : &#39;card&#39;,
+					region : &quot;center&quot;,
+					header : false,
+					border : false,
+					items : [ me.grid, me.vomsServersPanel ]
+				});
+
+				me.centralWorkPanel.addDocked(oLeftPanelTopToolbar);
+
+				me.gridContextMenu = new Ext.menu.Menu({
+					items : [ {
+						handler : function() {
+
+							if ((me.gridContextMenu.selectedType == &quot;voms&quot;) || (me.gridContextMenu.selectedType == &quot;servers&quot;)) {
+								switch (me.gridContextMenu.selectedType) {
+								case &quot;voms&quot;:
+									me.__createVomsForm(null);
+									break;
+								case &quot;servers&quot;:
+									me.__createServerForm(null);
+									break;
+								}
+							} else {
+
+								switch (me.getSelectedType()) {
+
+								case &quot;users&quot;:
+									me.__createUserForm(null);
+									break;
+								case &quot;groups&quot;:
+									me.__createGroupForm(null);
+									break;
+								case &quot;hosts&quot;:
+									me.__createHostForm(null);
+									break;
+
+								}
+							}
+
+						},
+						iconCls : &quot;dirac-icon-plus&quot;,
+						text : &#39;New user&#39;
+					}, {
+						handler : function() {
+
+							if ((me.gridContextMenu.selectedType == &quot;voms&quot;) || (me.gridContextMenu.selectedType == &quot;servers&quot;)) {
+
+								switch (me.gridContextMenu.selectedType) {
+								case &quot;voms&quot;:
+									var record = GLOBAL.APP.CF.getSelectedRecords(me.vomsGrid)[0];
+									me.__createVomsForm(record);
+									break;
+								case &quot;servers&quot;:
+									var record = GLOBAL.APP.CF.getSelectedRecords(me.serversGrid)[0];
+									me.__createServerForm(record);
+									break;
+								}
+
+							} else {
+
+								var record = GLOBAL.APP.CF.getSelectedRecords(me.grid)[0];
+
+								switch (me.getSelectedType()) {
+
+								case &quot;users&quot;:
+									me.__createUserForm(record);
+									break;
+								case &quot;groups&quot;:
+									me.__createGroupForm(record);
+									break;
+								case &quot;hosts&quot;:
+									me.__createHostForm(record);
+									break;
+
+								}
+
+							}
+
+						},
+						iconCls : &quot;dirac-icon-edit&quot;,
+						text : &#39;Edit user&#39;
+					}, {
+						handler : function() {
+							if ((me.gridContextMenu.selectedType == &quot;voms&quot;) || (me.gridContextMenu.selectedType == &quot;servers&quot;)) {
+
+								var sName = &quot;&quot;;
+
+								if (me.gridContextMenu.selectedType == &quot;voms&quot;) {
+									sName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.vomsGrid, &quot;name&quot;);
+								} else if (me.gridContextMenu.selectedType == &quot;servers&quot;) {
+									sName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.serversGrid, &quot;name&quot;);
+								}
+
+								me.__deleteItem(sName, me.gridContextMenu.selectedType);
+
+							} else {
+								var sName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;name&quot;);
+								me.__deleteItem(sName, me.getSelectedType());
+							}
+
+						},
+						iconCls : &quot;dirac-icon-delete&quot;,
+						text : &#39;Delete user&#39;
+					} ]
+				});
+
+				me.canDoChanges = false;
+
+				if ((&quot;properties&quot; in GLOBAL.USER_CREDENTIALS) &amp;&amp; (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, &quot;CSAdministrator&quot;) != -1)) {
+
+					me.canDoChanges = true;
+
+					var oRightPanelButtons = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+						dock : &#39;bottom&#39;,
+						layout : {
+							pack : &#39;center&#39;
+						},
+						items : []
+					});
+
+					me.btnSubmit = new Ext.Button({
+
+						text : &#39;Submit&#39;,
+						margin : 3,
+						iconCls : &quot;dirac-icon-submit&quot;,
+						handler : function() {
+
+							if (me.rightPanel.items.length &gt; 0) {
+
+								if (me.rightPanel.currentType == &quot;registry&quot;) {
+									var oDataToSend = me.__collectRegistryProperties();
+									oDataToSend.op = &quot;saveRegistryProperties&quot;;
+									me.__sendSocketMessage(oDataToSend);
+									me.__setChangeMade(true);
+								} else if (me.rightPanel.currentType == &quot;voms_mapping&quot;) {
+									var oDataToSend = me.__collectRegistryProperties();
+									oDataToSend.op = &quot;saveVomsMapping&quot;;
+									me.__sendSocketMessage(oDataToSend);
+									me.__setChangeMade(true);
+								} else {
+
+									var oDataToSend = {};
+									var bValid = true;
+
+									switch (me.rightPanel.currentType) {
+
+									case &quot;users&quot;:
+										if (me.userForm.txtName.validate()) {
+											oDataToSend.name = me.userForm.txtName.getValue();
+											oDataToSend.dn = me.userForm.txtDn.getValue();
+											oDataToSend.ca = me.userForm.txtCa.getValue();
+											oDataToSend.email = me.userForm.txtEmail.getValue();
+										} else {
+											bValid = false;
+										}
+										break;
+									case &quot;groups&quot;:
+										if (me.groupForm.txtName.validate()) {
+											oDataToSend.name = me.groupForm.txtName.getValue();
+											oDataToSend.jobshare = me.groupForm.txtJobShare.getValue();
+											oDataToSend.properties = me.groupForm.msProperties.getValues();
+											oDataToSend.users = me.groupForm.msUsers.getValues();
+											oDataToSend.autouploadproxy = me.groupForm.cbAutoUploadProxy.getValue();
+											oDataToSend.autouploadpilotproxy = me.groupForm.cbAutoUploadPilotProxy.getValue();
+											oDataToSend.autoaddvoms = me.groupForm.cbAutoAddVoms.getValue();
+										} else {
+											bValid = false;
+										}
+										break;
+									case &quot;hosts&quot;:
+										if (me.groupForm.txtName.validate()) {
+											oDataToSend.name = me.hostForm.txtName.getValue();
+											oDataToSend.dn = me.hostForm.txtDn.getValue();
+											oDataToSend.properties = me.hostForm.msProperties.getValues();
+										} else {
+											bValid = false;
+										}
+										break;
+									case &quot;servers&quot;:
+										if (me.serverForm.txtName.validate()) {
+											oDataToSend.name = me.serverForm.txtName.getValue();
+											oDataToSend.dn = me.serverForm.txtDn.getValue();
+											oDataToSend.ca = me.serverForm.txtCa.getValue();
+											oDataToSend.port = me.serverForm.txtPort.getValue();
+											oDataToSend.vom = me.serversGrid.vom;
+										} else {
+											bValid = false;
+										}
+										break;
+									case &quot;voms&quot;:
+										if (me.vomsForm.txtName.validate()) {
+											oDataToSend.name = me.vomsForm.txtName.getValue();
+										} else {
+											bValid = false;
+										}
+										break;
+
+									}
+									if (bValid) {
+										if (me.rightPanel.currentRecord == null) {
+											// in this case it means that we are creating new item
+											oDataToSend.op = &quot;addItem&quot;;
+										} else {
+											// in this case it means that we are updating an existing
+											// item
+											oDataToSend.op = &quot;editItem&quot;;
+										}
+
+										oDataToSend.type = me.rightPanel.currentType;
+										// console.log(&quot;DATA TO SEND&quot;);
+										// console.log(oDataToSend);
+										me.__sendSocketMessage(oDataToSend);
+										me.__setChangeMade(true);
+
+										me.rightPanel.dockedItems.getAt(1).hide();
+
+									}
+								}
+							}
+
+						},
+						scope : me
+
+					});
+
+					oRightPanelButtons.add(me.btnSubmit);
+
+					me.btnReset = new Ext.Button({
+
+						text : &#39;Reset&#39;,
+						margin : 3,
+						iconCls : &quot;dirac-icon-reset&quot;,
+						handler : function() {
+							var oRecord = me.rightPanel.currentRecord;
+
+							if (me.rightPanel.currentType == &quot;voms&quot;) {
+								me.__createVomsForm(oRecord);
+							} else if (me.rightPanel.currentType == &quot;servers&quot;) {
+								me.__createServerForm(oRecord);
+							} else if (me.rightPanel.currentType == &quot;registry&quot;) {
+								me.getContainer().body.mask(&quot;Loading ...&quot;);
+								me.__sendSocketMessage({
+									op : &quot;getRegistryProperties&quot;
+								});
+							} else if (me.rightPanel.currentType == &quot;voms_mapping&quot;) {
+								me.getContainer().body.mask(&quot;Loading ...&quot;);
+								me.__sendSocketMessage({
+									op : &quot;getVomsMapping&quot;
+								});
+							} else {
+
+								switch (me.getSelectedType()) {
+
+								case &quot;users&quot;:
+									me.__createUserForm(oRecord);
+									break;
+								case &quot;groups&quot;:
+									me.__createGroupForm(oRecord);
+									break;
+								case &quot;hosts&quot;:
+									me.__createHostForm(oRecord);
+									break;
+								}
+
+							}
+
+						},
+						scope : me
+
+					});
+
+					oRightPanelButtons.add(me.btnReset);
+
+					me.rightPanel.addDocked(oRightPanelButtons);
+				}
+
+				me.add([ me.centralWorkPanel, me.rightPanel ]);
+
+				me.dontShowMessageBeforeClose = true;
+				me.firstTimeReadUsers = false;
+				me.userList = [];
+				me.groupList = [];
+				me.changeMade = false;
+
+			},
+
+			getSelectedType : function() {
+
+				var me = this;
+				var sResponse = &quot;&quot;;
+
+				switch (me.otherDataMenu.text) {
+
+				case &quot;Users&quot;:
+					sResponse = &quot;users&quot;;
+					break;
+				case &quot;Groups&quot;:
+					sResponse = &quot;groups&quot;;
+					break;
+				case &quot;Hosts&quot;:
+					sResponse = &quot;hosts&quot;;
+					break;
+				default:
+					sResponse = &quot;&quot;;
+				}
+
+				return sResponse;
+			},
+
+			afterRender : function() {
+				var me = this;
+
+				me.__setDiracDestroyHandler();
+
+				this.callParent();
+
+				me.serversGrid.body.on(&quot;contextmenu&quot;, function(e, t, eOpts) {
+					e.preventDefault();
+
+					me.gridContextMenu.items.getAt(0).setText(&quot;New server&quot;);
+					me.gridContextMenu.items.getAt(1).setText(&quot;Edit server&quot;);
+					me.gridContextMenu.items.getAt(2).setText(&quot;Delete server&quot;);
+					me.gridContextMenu.selectedType = &quot;servers&quot;;
+					me.gridContextMenu.showAt(GLOBAL.MOUSE_X, GLOBAL.MOUSE_Y);
+
+					e.stopPropagation();
+					e.stopEvent();
+				});
+
+				me.vomsGrid.body.on(&quot;contextmenu&quot;, function(e, t, eOpts) {
+					e.preventDefault();
+
+					me.gridContextMenu.items.getAt(0).setText(&quot;New VOMS&quot;);
+					me.gridContextMenu.items.getAt(1).setText(&quot;Edit VOMS&quot;);
+					me.gridContextMenu.items.getAt(2).setText(&quot;Delete VOMS&quot;);
+					me.gridContextMenu.selectedType = &quot;voms&quot;;
+					me.gridContextMenu.showAt(GLOBAL.MOUSE_X, GLOBAL.MOUSE_Y);
+
+					e.stopPropagation();
+					e.stopEvent();
+				});
+
+				me.grid.body.on(&quot;contextmenu&quot;, function(e, t, eOpts) {
+					e.preventDefault();
+					var sNewNoun = me.getSelectedType().substr(0, me.getSelectedType().length - 1);
+
+					me.gridContextMenu.items.getAt(0).setText(&quot;New &quot; + sNewNoun);
+					me.gridContextMenu.items.getAt(1).setText(&quot;Edit &quot; + sNewNoun);
+					me.gridContextMenu.items.getAt(2).setText(&quot;Delete &quot; + sNewNoun);
+					me.gridContextMenu.selectedType = me.getSelectedType();
+
+					me.gridContextMenu.showAt(GLOBAL.MOUSE_X, GLOBAL.MOUSE_Y);
+
+					e.stopPropagation();
+					e.stopEvent();
+				});
+
+			},
+
+			__getGroupList : function() {
+
+				var me = this;
+
+				me.__sendSocketMessage({
+					op : &quot;getGroupList&quot;
+				});
+
+			},
+
+			__setDiracDestroyHandler : function() {
+
+				var me = this;
+
+				me.on(&quot;destroy&quot;, function(oComp, eOpts) {
+
+					var oThisContainer = this;
+
+					oThisContainer.dontShowMessageBeforeClose = false;
+					oThisContainer.socket.close();
+
+				}, me);
+
+			},
+
+			__createGroupForm : function(oRecord) {
+
+				var me = this;
+
+				if (&quot;groupForm&quot; in me) {
+
+					me.groupForm.txtName.setValue(&quot;&quot;);
+					me.groupForm.txtJobShare.setValue(&quot;&quot;);
+					me.groupForm.msProperties.multiList.store.removeAll();
+					me.groupForm.msUsers.multiList.store.removeAll();
+
+				} else {
+
+					me.groupForm = {};
+
+					me.groupForm.txtName = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;Name:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						labelWidth : 80,
+						anchor : &quot;100%&quot;,
+						validateValue : function(sValue) {
+
+							sValue = Ext.util.Format.trim(sValue);
+
+							if (sValue.length &lt; 1) {
+								this.markInvalid(&quot;You must specify a name !&quot;);
+								return false;
+
+							} else {
+
+								if (GLOBAL.APP.SM.isValidStateName(sValue)) {
+									this.clearInvalid();
+									return true;
+								} else {
+
+									this.markInvalid(&quot;Allowed characters are: 0-9, a-z, A-Z, &#39;_&#39;, &#39;-&#39;, &#39;.&#39;&quot;);
+									return false;
+
+								}
+
+							}
+
+						}
+					});
+
+					me.groupForm.cbAutoUploadProxy = Ext.create(&#39;Ext.form.field.ComboBox&#39;, {
+						fieldLabel : &quot;Auto Upload Proxy&quot;,
+						queryMode : &#39;local&#39;,
+						labelAlign : &#39;left&#39;,
+						displayField : &quot;value&quot;,
+						valueField : &quot;value&quot;,
+						width : 200,
+						store : new Ext.data.SimpleStore({
+							fields : [ &#39;value&#39; ],
+							data : [ [ &quot;None&quot; ], [ &quot;True&quot; ], [ &quot;False&quot; ] ]
+						}),
+						margin : 5,
+						labelWidth : 80,
+						editable : false
+					});
+
+					me.groupForm.cbAutoUploadPilotProxy = Ext.create(&#39;Ext.form.field.ComboBox&#39;, {
+						fieldLabel : &quot;Auto Upload Pilot Proxy&quot;,
+						queryMode : &#39;local&#39;,
+						labelAlign : &#39;left&#39;,
+						displayField : &quot;value&quot;,
+						valueField : &quot;value&quot;,
+						width : 200,
+						store : new Ext.data.SimpleStore({
+							fields : [ &#39;value&#39; ],
+							data : [ [ &quot;None&quot; ], [ &quot;True&quot; ], [ &quot;False&quot; ] ]
+						}),
+						margin : 5,
+						labelWidth : 80,
+						editable : false
+					});
+
+					me.groupForm.cbAutoAddVoms = Ext.create(&#39;Ext.form.field.ComboBox&#39;, {
+						fieldLabel : &quot;Auto Add VOMS&quot;,
+						queryMode : &#39;local&#39;,
+						labelAlign : &#39;left&#39;,
+						displayField : &quot;value&quot;,
+						valueField : &quot;value&quot;,
+						width : 200,
+						store : new Ext.data.SimpleStore({
+							fields : [ &#39;value&#39; ],
+							data : [ [ &quot;None&quot; ], [ &quot;True&quot; ], [ &quot;False&quot; ] ]
+						}),
+						margin : 5,
+						labelWidth : 80,
+						editable : false
+					});
+
+					me.groupForm.txtJobShare = Ext.create(&#39;Ext.form.field.Number&#39;, {
+						fieldLabel : &quot;Job Share:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						labelWidth : 80,
+						width : 200
+					});
+
+					me.groupForm.msProperties = me.__createMultiListWithButtons(&quot;Properties&quot;, [], null);
+					me.groupForm.msUsers = me.__createMultiListWithButtons(&quot;Users&quot;, [], function(sNewUser) {
+
+						if (Ext.Array.indexOf(me.userList, sNewUser) != -1) {
+
+							return true;
+
+						} else {
+
+							GLOBAL.APP.CF.alert(&#39;The user does not exists !&#39;, &#39;warning&#39;);
+							return false;
+						}
+
+					});
+
+				}
+
+				if ((oRecord != null) &amp;&amp; (oRecord != undefined)) {
+
+					me.groupForm.txtName.setValue(oRecord.get(&quot;name&quot;));
+					me.groupForm.cbAutoUploadProxy.setValue(oRecord.get(&quot;autouploadproxy&quot;));
+					me.groupForm.cbAutoUploadPilotProxy.setValue(oRecord.get(&quot;autouploadpilotproxy&quot;));
+					me.groupForm.cbAutoAddVoms.setValue(oRecord.get(&quot;autoaddvoms&quot;));
+					me.groupForm.txtJobShare.setValue(oRecord.get(&quot;jobshare&quot;));
+
+					var oData = oRecord.get(&quot;properties&quot;).split(&quot;,&quot;);
+
+					for ( var i = 0; i &lt; oData.length; i++)
+						me.groupForm.msProperties.multiList.store.add({
+							&quot;value&quot; : Ext.util.Format.trim(oData[i])
+						});
+
+					oData = oRecord.get(&quot;users&quot;).split(&quot;,&quot;);
+
+					for ( var i = 0; i &lt; oData.length; i++)
+						me.groupForm.msUsers.multiList.store.add({
+							&quot;value&quot; : Ext.util.Format.trim(oData[i])
+						});
+
+					me.rightPanel.setTitle(&quot;Group: &quot; + oRecord.get(&quot;name&quot;));
+					me.rightPanel.currentRecord = oRecord;
+					me.groupForm.txtName.setReadOnly(true);
+
+				} else {
+
+					me.rightPanel.setTitle(&quot;New Group&quot;);
+					me.rightPanel.currentRecord = null;
+					me.groupForm.txtName.setReadOnly(false);
+
+				}
+
+				me.rightPanel.currentType = &quot;groups&quot;;
+
+				me.rightPanel.removeAll();
+				me.rightPanel.add([ me.groupForm.txtName, me.groupForm.msUsers, me.groupForm.msProperties, me.groupForm.cbAutoUploadProxy, me.groupForm.cbAutoUploadPilotProxy, me.groupForm.cbAutoAddVoms,
+						me.groupForm.txtJobShare ]);
+
+			},
+
+			__createUserForm : function(oRecord) {
+
+				var me = this;
+
+				if (&quot;userForm&quot; in me) {
+
+					me.userForm.txtName.setValue(&quot;&quot;);
+					me.userForm.txtDn.setValue(&quot;&quot;);
+					me.userForm.txtCa.setValue(&quot;&quot;);
+					me.userForm.txtEmail.setValue(&quot;&quot;);
+
+				} else {
+					me.userForm = {};
+
+					me.userForm.txtName = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;Name:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 50,
+						validateValue : function(sValue) {
+
+							sValue = Ext.util.Format.trim(sValue);
+
+							if (sValue.length &lt; 1) {
+								this.markInvalid(&quot;You must specify a name !&quot;);
+								return false;
+
+							} else {
+
+								if (GLOBAL.APP.SM.isValidStateName(sValue)) {
+									this.clearInvalid();
+									return true;
+								} else {
+
+									this.markInvalid(&quot;Allowed characters are: 0-9, a-z, A-Z, &#39;_&#39;, &#39;-&#39;, &#39;.&#39;&quot;);
+									return false;
+
+								}
+
+							}
+
+						}
+					});
+
+					me.userForm.txtDn = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;DN:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 50
+					});
+
+					me.userForm.txtCa = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;CA:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 50
+					});
+
+					me.userForm.txtEmail = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;E-Mail:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 50
+					});
+
+				}
+
+				if ((oRecord != null) &amp;&amp; (oRecord != undefined)) {
+
+					me.userForm.txtName.setValue(oRecord.get(&quot;name&quot;));
+					me.userForm.txtDn.setValue(oRecord.get(&quot;dn&quot;));
+					me.userForm.txtCa.setValue(oRecord.get(&quot;ca&quot;));
+					me.userForm.txtEmail.setValue(oRecord.get(&quot;email&quot;));
+
+					me.rightPanel.setTitle(&quot;User: &quot; + oRecord.get(&quot;name&quot;));
+					me.rightPanel.currentRecord = oRecord;
+					me.userForm.txtName.setReadOnly(true);
+
+				} else {
+
+					me.rightPanel.setTitle(&quot;New User&quot;);
+					me.rightPanel.currentRecord = null;
+					me.userForm.txtName.setReadOnly(false);
+
+				}
+
+				me.rightPanel.currentType = &quot;users&quot;;
+
+				me.rightPanel.removeAll();
+				me.rightPanel.add([ me.userForm.txtName, me.userForm.txtDn, me.userForm.txtCa, me.userForm.txtEmail ]);
+
+			},
+
+			__createHostForm : function(oRecord) {
+
+				var me = this;
+
+				if (&quot;hostForm&quot; in me) {
+
+					me.hostForm.txtName.setValue(&quot;&quot;);
+					me.hostForm.txtDn.setValue(&quot;&quot;);
+					me.hostForm.msProperties.multiList.store.removeAll();
+
+				} else {
+					me.hostForm = {};
+
+					me.hostForm.txtName = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;Name:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 80,
+						validateValue : function(sValue) {
+
+							sValue = Ext.util.Format.trim(sValue);
+
+							if (sValue.length &lt; 1) {
+								this.markInvalid(&quot;You must specify a name !&quot;);
+								return false;
+
+							} else {
+
+								if (GLOBAL.APP.SM.isValidStateName(sValue)) {
+									this.clearInvalid();
+									return true;
+								} else {
+
+									this.markInvalid(&quot;Allowed characters are: 0-9, a-z, A-Z, &#39;_&#39;, &#39;-&#39;, &#39;.&#39;&quot;);
+									return false;
+
+								}
+
+							}
+
+						}
+					});
+
+					me.hostForm.txtDn = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;DN:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 80
+					});
+
+					me.hostForm.msProperties = me.__createMultiListWithButtons(&quot;Properties&quot;, [], null);
+
+				}
+
+				if ((oRecord != null) &amp;&amp; (oRecord != undefined)) {
+
+					me.hostForm.txtName.setValue(oRecord.get(&quot;name&quot;));
+					me.hostForm.txtDn.setValue(oRecord.get(&quot;dn&quot;));
+
+					var oData = oRecord.get(&quot;properties&quot;).split(&quot;,&quot;);
+
+					for ( var i = 0; i &lt; oData.length; i++)
+						me.hostForm.msProperties.multiList.store.add({
+							&quot;value&quot; : Ext.util.Format.trim(oData[i])
+						});
+
+					me.rightPanel.setTitle(&quot;Host: &quot; + oRecord.get(&quot;name&quot;));
+					me.rightPanel.currentRecord = oRecord;
+					me.hostForm.txtName.setReadOnly(true);
+
+				} else {
+
+					me.rightPanel.setTitle(&quot;New Host&quot;);
+					me.rightPanel.currentRecord = null;
+					me.hostForm.txtName.setReadOnly(false);
+
+				}
+
+				me.rightPanel.currentType = &quot;hosts&quot;;
+
+				me.rightPanel.removeAll();
+				me.rightPanel.add([ me.hostForm.txtName, me.hostForm.txtDn, me.hostForm.msProperties ]);
+
+			},
+
+			__createServerForm : function(oRecord) {
+
+				var me = this;
+
+				if (&quot;serverForm&quot; in me) {
+
+					me.serverForm.txtName.setValue(&quot;&quot;);
+					me.serverForm.txtDn.setValue(&quot;&quot;);
+					me.serverForm.txtCa.setValue(&quot;&quot;);
+					me.serverForm.txtPort.setValue(&quot;&quot;);
+
+				} else {
+					me.serverForm = {};
+
+					me.serverForm.txtName = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;Name:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 50,
+						validateValue : function(sValue) {
+
+							sValue = Ext.util.Format.trim(sValue);
+
+							if (sValue.length &lt; 1) {
+								this.markInvalid(&quot;You must specify a name !&quot;);
+								return false;
+
+							} else {
+
+								if (GLOBAL.APP.SM.isValidStateName(sValue)) {
+									this.clearInvalid();
+									return true;
+								} else {
+
+									this.markInvalid(&quot;Allowed characters are: 0-9, a-z, A-Z, &#39;_&#39;, &#39;-&#39;, &#39;.&#39;&quot;);
+									return false;
+
+								}
+
+							}
+
+						}
+					});
+
+					me.serverForm.txtDn = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;DN:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 50
+					});
+
+					me.serverForm.txtCa = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;CA:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 50
+					});
+
+					me.serverForm.txtPort = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;Port:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 50
+					});
+
+				}
+
+				if ((oRecord != null) &amp;&amp; (oRecord != undefined)) {
+
+					me.serverForm.txtName.setValue(oRecord.get(&quot;name&quot;));
+					me.serverForm.txtDn.setValue(oRecord.get(&quot;dn&quot;));
+					me.serverForm.txtCa.setValue(oRecord.get(&quot;ca&quot;));
+					me.serverForm.txtPort.setValue(oRecord.get(&quot;port&quot;));
+
+					me.rightPanel.setTitle(&quot;Server: &quot; + oRecord.get(&quot;name&quot;));
+					me.rightPanel.currentRecord = oRecord;
+					me.serverForm.txtName.setReadOnly(true);
+
+				} else {
+
+					me.rightPanel.setTitle(&quot;New Server&quot;);
+					me.rightPanel.currentRecord = null;
+					me.serverForm.txtName.setReadOnly(false);
+
+				}
+
+				me.rightPanel.currentType = &quot;servers&quot;;
+
+				me.rightPanel.removeAll();
+				me.rightPanel.add([ me.serverForm.txtName, me.serverForm.txtDn, me.serverForm.txtPort, me.serverForm.txtCa ]);
+
+			},
+
+			__createVomsForm : function(oRecord) {
+
+				var me = this;
+
+				if (&quot;vomsForm&quot; in me) {
+
+					me.vomsForm.txtName.setValue(&quot;&quot;);
+
+				} else {
+					me.vomsForm = {};
+
+					me.vomsForm.txtName = Ext.create(&#39;Ext.form.field.Text&#39;, {
+						fieldLabel : &quot;Name:&quot;,
+						labelAlign : &#39;left&#39;,
+						margin : 5,
+						anchor : &quot;100%&quot;,
+						labelWidth : 50,
+						validateValue : function(sValue) {
+
+							sValue = Ext.util.Format.trim(sValue);
+
+							if (sValue.length &lt; 1) {
+								this.markInvalid(&quot;You must specify a name !&quot;);
+								return false;
+
+							} else {
+
+								if (GLOBAL.APP.SM.isValidStateName(sValue)) {
+									this.clearInvalid();
+									return true;
+								} else {
+
+									this.markInvalid(&quot;Allowed characters are: 0-9, a-z, A-Z, &#39;_&#39;, &#39;-&#39;, &#39;.&#39;&quot;);
+									return false;
+
+								}
+
+							}
+
+						}
+					});
+
+				}
+
+				if ((oRecord != null) &amp;&amp; (oRecord != undefined)) {
+
+					me.vomsForm.txtName.setValue(oRecord.get(&quot;name&quot;));
+
+					me.rightPanel.setTitle(&quot;VOMs: &quot; + oRecord.get(&quot;name&quot;));
+					me.rightPanel.currentRecord = oRecord;
+					me.vomsForm.txtName.setReadOnly(true);
+
+				} else {
+
+					me.rightPanel.setTitle(&quot;New Voms&quot;);
+					me.rightPanel.currentRecord = null;
+					me.vomsForm.txtName.setReadOnly(false);
+
+				}
+
+				me.rightPanel.currentType = &quot;voms&quot;;
+
+				me.rightPanel.removeAll();
+				me.rightPanel.add([ me.vomsForm.txtName ]);
+
+			},
+
+			__createMultiListWithButtons : function(sTitle, oData, funcOnAddValidationFunction) {
+
+				var me = this;
+
+				var oMultiSelect = new Ext.ux.form.MultiSelect({
+					fieldLabel : sTitle,
+					queryMode : &#39;local&#39;,
+					labelAlign : &#39;left&#39;,
+					displayField : &quot;value&quot;,
+					valueField : &quot;value&quot;,
+					anchor : &#39;100%&#39;,
+					store : new Ext.data.SimpleStore({
+						fields : [ &#39;value&#39; ],
+						data : oData
+					}),
+					height : 150,
+					margin : &quot;0 5 5 5&quot;,
+					labelWidth : 80
+				});
+
+				var oAddButton = new Ext.Button({
+					iconCls : &quot;dirac-icon-plus&quot;,
+					handler : function() {
+						Ext.MessageBox.prompt(&#39;New Item&#39;, &#39;Enter the name of the new item :&#39;, function(btn, text) {
+							if (btn == &quot;ok&quot;) {
+								text = Ext.util.Format.trim(text);
+								if (text != &quot;&quot;) {
+
+									// first we check whether the item exists or not
+									var oStore = oMultiSelect.store;
+									var bFound = false;
+
+									for ( var i = 0; i &lt; oStore.getCount(); i++) {
+
+										if (oStore.getAt(i).get(&quot;value&quot;) == text) {
+
+											bFound = true;
+											break;
+
+										}
+
+									}
+
+									if (!bFound) {
+
+										if (funcOnAddValidationFunction != null) {
+
+											if (funcOnAddValidationFunction(text)) {
+
+												oStore.add({
+													value : text
+												});
+
+											}
+
+										} else {
+
+											oStore.add({
+												value : text
+											});
+
+										}
+
+									} else {
+
+										GLOBAL.APP.CF.alert(&#39;The item already exists in the list !&#39;, &#39;warning&#39;);
+
+									}
+
+								}
+							}
+						});
+					},
+					scope : me
+				});
+
+				var oDeleteButton = new Ext.Button({
+					iconCls : &quot;dirac-icon-delete&quot;,
+					handler : function() {
+
+						var oStore = oMultiSelect.store;
+						var oSelectedValues = oMultiSelect.getValue();
+
+						for ( var i = 0; i &lt; oSelectedValues.length; i++) {
+
+							var sItem = oSelectedValues[i];
+
+							for ( var j = 0; j &lt; oStore.getCount(); j++) {
+
+								if (oStore.getAt(j).get(&quot;value&quot;) == sItem) {
+
+									oStore.removeAt(j);
+									break;
+
+								}
+
+							}
+
+						}
+
+					},
+					scope : me
+				});
+
+				var oToolbar = new Ext.toolbar.Toolbar({
+					dock : &#39;top&#39;,
+					items : [ &#39;-&gt;&#39;, oAddButton, oDeleteButton ],
+					cls : &quot;rm-clean-background&quot;,
+					border : 0
+				});
+
+				var oMultiSelectBox = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+					anchor : &quot;100%&quot;,
+					margins : &#39;0&#39;,
+					multiList : oMultiSelect,
+					items : [ oToolbar, oMultiSelect ],
+					border : 0,
+					getValues : function() {
+
+						var oStore = oMultiSelect.store;
+						var sRet = &quot;&quot;;
+
+						for ( var i = 0; i &lt; oStore.getCount(); i++) {
+
+							sRet += ((sRet == &quot;&quot;) ? &quot;&quot; : &quot;,&quot;) + oStore.getAt(i).get(&quot;value&quot;);
+
+						}
+
+						return sRet;
+
+					}
+
+				});
+
+				return oMultiSelectBox;
+
+			},
+			__sendSocketMessage : function(oData) {
+
+				var me = this;
+				// console.log(&quot;SEND&quot;);
+				// console.log(oData);
+				if (!me.isConnectionEstablished) {
+
+					var sMessage = &quot;There is no connection established with the server.\nDo you want to reconnect now?&quot;;
+
+					if (confirm(sMessage)) {
+						// resetting the configuration
+						me.socket = me.__createSocket(&quot;resetConfiguration&quot;);
+					}
+
+				} else {
+
+					me.socket.send(JSON.stringify(oData));
+
+				}
+
+			},
+
+			__deleteItem : function(sName, sType) {
+
+				var me = this;
+
+				var oDataToSend = {
+					op : &quot;deleteItem&quot;,
+					type : sType,
+					name : sName
+				};
+
+				if (me.gridContextMenu.selectedType == &quot;servers&quot;) {
+
+					oDataToSend.vom = me.serversGrid.vom;
+
+				}
+
+				me.rightPanel.currentType = me.gridContextMenu.selectedType;
+
+				me.__sendSocketMessage(oDataToSend);
+
+			},
+
+			__createRegistryPropertiesForm : function(oData) {
+
+				var me = this;
+
+				me.rightPanel.currentType = &quot;registry&quot;;
+
+				me.rightPanel.removeAll();
+				me.rightPanel.setTitle(&quot;Registry Properties&quot;);
+
+				var oRegistryToolbar = new Ext.toolbar.Toolbar({
+					border : 0,
+					items : [ &#39;-&gt;&#39;, {
+						xtype : &quot;button&quot;,
+						iconCls : &quot;dirac-icon-plus&quot;,
+						margin : 3,
+						tooltip : &quot;Create option&quot;,
+						handler : function() {
+							me.__showFormForRegistryOption();
+						}
+					} ]
+				});
+
+				me.rightPanel.add(oRegistryToolbar);
+
+				for ( var sElem in oData) {
+
+					me.rightPanel.add(me.__createRegistryProperty(sElem, oData[sElem]));
+
+				}
+
+			},
+			__createRegistryProperty : function(sName, sValue) {
+
+				var me = this;
+
+				var oField = Ext.create(&#39;Ext.form.field.Text&#39;, {
+					fieldLabel : sName,
+					labelAlign : &#39;left&#39;,
+					margin : 5,
+					anchor : &quot;100%&quot;,
+					labelWidth : 140,
+					value : sValue
+				});
+
+				var oPanel = Ext.create(&#39;Ext.container.Container&#39;, {
+					layout : {
+						type : &#39;hbox&#39;,
+						margin : 3
+					},
+					blockType : &quot;string&quot;,
+					items : [ oField, {
+						xtype : &quot;button&quot;,
+						iconCls : &quot;dirac-icon-delete&quot;,
+						margin : 3,
+						handler : function() {
+							me.rightPanel.remove(this.up(&quot;container&quot;));
+						},
+						tooltip : &quot;Remove this item&quot;
+					} ]
+
+				});
+
+				return oPanel;
+
+			},
+			__showFormForRegistryOption : function() {
+
+				var me = this;
+
+				me.txtElementName = Ext.create(&#39;Ext.form.field.Text&#39;, {
+
+					fieldLabel : &quot;Name&quot;,
+					labelAlign : &#39;left&#39;,
+					allowBlank : false,
+					margin : 10,
+					anchor : &#39;100%&#39;
+
+				});
+
+				me.txtElementValue = Ext.create(&#39;Ext.form.field.Text&#39;, {
+					fieldLabel : &quot;Value&quot;,
+					labelAlign : &#39;left&#39;,
+					margin : 10,
+					width : 400,
+					anchor : &#39;100%&#39;
+				});
+
+				// button for saving the state
+				me.btnCreateElement = new Ext.Button({
+
+					text : &#39;Submit&#39;,
+					margin : 3,
+					iconCls : &quot;dirac-icon-submit&quot;,
+					handler : function() {
+
+						var bValid = me.txtElementName.validate();
+
+						if (bValid) {
+							me.rightPanel.add(me.__createRegistryProperty(me.txtElementName.getValue(), me.txtElementValue.getValue()));
+							me.createElementWindow.close();
+						}
+
+					},
+					scope : me
+
+				});
+
+				var oToolbar = new Ext.toolbar.Toolbar({
+					border : false
+				});
+
+				oToolbar.add([ me.btnCreateElement ]);
+
+				var oPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+					autoHeight : true,
+					border : false,
+					layout : &quot;anchor&quot;,
+					items : [ oToolbar, me.txtElementName, me.txtElementValue ]
+				});
+
+				var sTitle = &quot;Create an option&quot;;
+				var iHeight = 200;
+
+				// initializing window showing the saving form
+				me.createElementWindow = Ext.create(&#39;widget.window&#39;, {
+					height : iHeight,
+					width : 500,
+					title : sTitle,
+					layout : &#39;fit&#39;,
+					modal : true,
+					items : oPanel
+				});
+
+				me.createElementWindow.show();
+				me.txtElementName.focus();
+
+			},
+
+			__collectRegistryProperties : function() {
+
+				var me = this;
+				var oData = {};
+
+				if (me.rightPanel.items.length &gt; 1) {
+					for ( var i = 1; i &lt; me.rightPanel.items.length; i++) {
+						var oItem = me.rightPanel.items.getAt(i).items.getAt(0);
+
+						oData[oItem.fieldLabel] = oItem.getValue();
+
+					}
+				}
+
+				return oData;
+
+			},
+			__createVomsMappingForm : function(oData) {
+
+				var me = this;
+
+				me.rightPanel.currentType = &quot;voms_mapping&quot;;
+
+				me.rightPanel.removeAll();
+				me.rightPanel.setTitle(&quot;VOMS Mapping&quot;);
+
+				var oRegistryToolbar = new Ext.toolbar.Toolbar({
+					border : 0,
+					items : [ &#39;-&gt;&#39;, {
+						xtype : &quot;button&quot;,
+						iconCls : &quot;dirac-icon-plus&quot;,
+						margin : 3,
+						tooltip : &quot;Create option&quot;,
+						handler : function() {
+							me.__showFormForRegistryOption();
+						}
+					} ]
+				});
+
+				me.rightPanel.add(oRegistryToolbar);
+
+				for ( var i = 0; i &lt; oData.length; i++) {
+
+					me.rightPanel.add(me.__createRegistryProperty(oData[i][&quot;name&quot;], oData[i][&quot;value&quot;]));
+
+				}
+
+			}
+
+		});
+</pre>
+</body>
+</html>

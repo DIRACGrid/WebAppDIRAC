@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracJsonStore'>/*******************************************************************************
+</span> * It makes easier to create the data store data from JSON. It provides DIRAC
+ * specific functionalities. USAGE:
+ * 
+ * &lt;pre&gt;
+ * var oProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+ *       url : GLOBAL.BASE_URL + &#39;JobMonitor/getJobData&#39;
+ *     });
+ * &lt;/pre&gt;
+ * 
+ * me.dataStore = Ext.create(&quot;Ext.dirac.utils.DiracJsonStore&quot;,{ proxy : oProxy,
+ * fields : me.dataFields, scope: me}); Parameters: -oProxy can be any kind of
+ * data proxy. But we propose to use {@link Ext.dirac.utils.DiracAjaxProxy}
+ * -fields is a list of data fields. For example:
+ * 
+ * &lt;pre&gt;
+ * dataFields : [{
+ *       name : &#39;SystemPriority&#39;,
+ *       type : &#39;float&#39;
+ *     }, {
+ *       name : &#39;ApplicationNumStatus&#39;
+ *     }, {
+ *       name : &#39;JobID&#39;,
+ *       type : &#39;int&#39;
+ *     }]
+ * &lt;/pre&gt;
+ * 
+ * -scope: it is a pointer to the application.
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracJsonStore&#39;, {
+      extend : &#39;Ext.data.JsonStore&#39;,
+
+<span id='Ext-dirac-utils-DiracJsonStore-property-autoLoad'>      autoLoad : true,
+</span><span id='Ext-dirac-utils-DiracJsonStore-property-remoteSort'>      remoteSort : true,
+</span><span id='Ext-dirac-utils-DiracJsonStore-property-pageSize'>      /**
+</span>       * @property{Number} pageSize It is the number of rows. Default value is
+       *                   25.
+       */
+      pageSize : 25,
+<span id='Ext-dirac-utils-DiracJsonStore-cfg-proxy'>      /**
+</span>       * @cfg{Ext.dirac.utils.DiracAjaxProxy} proxy It is an Ajax proxy used to
+       *                                      load and save data. It can be
+       *                                      other types of proxy as well. More
+       *                                      info: {@link Ext.data.proxy.Proxy}
+       */
+      proxy : null,
+<span id='Ext-dirac-utils-DiracJsonStore-cfg-oDiffFields'>      /**
+</span>       * @cfg{Object} oDiffFields It contains a list of columns used to see
+       *              difference of a given value after the refresh. The Fields
+       *              list are the dataIndex. For example: oDiffFields
+       *              :{&#39;Id&#39;:&#39;TransformationID&#39;,&#39;Fields&#39;:[&#39;Jobs_Created&#39;,
+       *              &#39;Jobs_TotalCreated&#39;, &#39;Jobs_Done&#39;, &#39;Jobs_Failed&#39;,
+       *              &#39;Jobs_Running&#39;, &#39;Jobs_Stalled&#39;, &#39;Jobs_Submitted&#39;,
+       *              &#39;Jobs_Waiting&#39;, &#39;Jobs_Completed&#39;,
+       *              &#39;Files_PercentProcessed&#39;, &#39;Files_Total&#39;, &#39;Files_Unused&#39;,
+       *              &#39;Files_Assigned&#39;, &#39;Files_Processed&#39;, &#39;Files_Problematic&#39;,
+       *              &#39;Files_MaxReset&#39;]}, scope: me});
+       */
+      oDiffFields : null,
+<span id='Ext-dirac-utils-DiracJsonStore-cfg-diffValues'>      /**
+</span>       * @cfg{Object} diffValues it stores the values which are given by
+       *              oDiffFields before refresh.
+       */
+      diffValues : {},
+<span id='Ext-dirac-utils-DiracJsonStore-property-lastDataRequest'>      /**
+</span>       * @property{Ext.data.Operation} lastDataRequest it stores the latest
+       *                               {@link Ext.data.Operation}, which is
+       *                               used to cancel the AJAX request.
+       */
+      lastDataRequest : null,
+<span id='Ext-dirac-utils-DiracJsonStore-method-getDiffValues'>      /**
+</span>       * it returns the values for a given fields.
+       * 
+       * @return{Object} returns the saved values.
+       */
+      getDiffValues : function() {
+        var me = this;
+        return me.diffValues;
+      },
+<span id='Ext-dirac-utils-DiracJsonStore-method-getDiffId'>      getDiffId : function() {
+</span>        var me = this;
+        return me.oDiffFields[&#39;Id&#39;];
+      },
+<span id='Ext-dirac-utils-DiracJsonStore-property-groupField'>      /**
+</span>       * @property{String} groupField The values will be grouped by this field.
+       */
+      groupField : null,
+<span id='Ext-dirac-utils-DiracJsonStore-property-listeners'>      listeners : {
+</span>
+        load : function(oStore, records, successful, eOpts) {
+          var me = this;
+
+          if (!oStore.proxy.reader.rawData) {
+            return;
+
+          }
+          var bResponseOK = (oStore.proxy.reader.rawData[&quot;success&quot;] == &quot;true&quot;);
+          if (!bResponseOK) {
+
+            GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData[&quot;error&quot;], &quot;info&quot;);
+
+            if (parseInt(oStore.proxy.reader.rawData[&quot;total&quot;]) == 0) {
+
+              me.removeAll();
+
+            }
+
+          } else {
+            if (oStore.proxy.reader.rawData &amp;&amp; me.scope.grid &amp;&amp; me.scope.grid.pagingToolbar) {
+              var utcTime = null;
+              if (oStore.proxy.reader.rawData[&quot;date&quot;]) {
+                var newDate = Ext.Date.parse(Ext.String.trim(oStore.proxy.reader.rawData[&quot;date&quot;].split(&quot;[UTC&quot;)[0]), &quot;Y-m-d H:i&quot;);
+                if (newDate) {
+                  var currentTimestamp = me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp;
+                  if (currentTimestamp != null) {
+                    var msMinute = 60 * 1000, msDay = 60 * 60 * 24 * 1000, msHour = 60 * 60 * 1000;
+                    var days = Math.floor((newDate - currentTimestamp) / msDay);
+                    var hours = Math.floor(((newDate - currentTimestamp) % msDay) / msHour);
+                    var minutes = Math.floor((((newDate - currentTimestamp) % msDay) % msHour) / msMinute);
+
+                    utcTime = days + &quot; &quot; + hours + &quot;:&quot; + minutes;
+
+                  }
+
+                  me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp = newDate;
+
+                }
+                if (utcTime) {
+                  me.scope.grid.pagingToolbar.updateStamp.setText(&#39;Updated: &#39; + oStore.proxy.reader.rawData[&quot;date&quot;] + &quot;(&quot; + utcTime + &quot;)&quot;);
+                } else {
+                  me.scope.grid.pagingToolbar.updateStamp.setText(&#39;Updated: &#39; + oStore.proxy.reader.rawData[&quot;date&quot;]);
+                }
+              }
+
+            }
+
+            if (me.remoteSort) {
+              me.remoteSort = false;
+              me.sort();
+              me.remoteSort = true;
+            }
+
+          }
+
+        },
+
+        beforeload : function(oStore, oOperation, eOpts) {
+          var me = this;
+
+          if (me.oDiffFields) {// this is for marking the values in the
+            // table...
+            if (oStore.proxy.reader.rawData &amp;&amp; oStore.proxy.reader.rawData[&quot;total&quot;] &gt; 0) {
+              for (var i = 0; i &lt; oStore.proxy.reader.rawData[&quot;total&quot;]; i++) {
+                var record = oStore.getAt(i);
+                try {
+                  me.diffValues[record.data[me.oDiffFields.Id]] = {};
+                  for (var j = 0; j &lt; me.oDiffFields.Fields.length; j++) {
+                    me.diffValues[record.data[me.oDiffFields.Id]][me.oDiffFields.Fields[j]] = record.data[me.oDiffFields.Fields[j]];
+                  }
+                } catch (e) {
+                }
+              }
+            }
+          }
+
+          me.lastDataRequest = oOperation;
+
+          if (!oStore.dontLoadOnCreation) {
+            oStore.dontLoadOnCreation = true;
+            return false;
+          } else {
+            return true;
+          }
+
+        }
+
+      }
+    });</pre>
+</body>
+</html>

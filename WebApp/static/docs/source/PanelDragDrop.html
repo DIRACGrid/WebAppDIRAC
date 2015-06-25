@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-PanelDragDrop'>/**
+</span> * This plugin can enable a cell to cell drag and drop operation within the same grid view.
+ *
+ * Note that the plugin must be added to the grid view, not to the grid panel. For example, using {@link Ext.panel.Table viewConfig}:
+ *
+ *      viewConfig: {
+ *          plugins: {
+ *              ptype: &#39;celldragdrop&#39;,
+ *
+ *              // Remove text from source cell and replace with value of emptyText.
+ *              applyEmptyText: true,
+ *
+ *              //emptyText: Ext.String.htmlEncode(&#39;&lt;&lt;foo&gt;&gt;&#39;),
+ *
+ *              // Will only allow drops of the same type.
+ *              enforceType: true
+ *          }
+ *      }
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.PanelDragDrop&#39;, {
+  extend: &#39;Ext.AbstractPlugin&#39;,
+  alias: &#39;plugin.paneldragdrop&#39;,
+
+  uses: [&#39;Ext.dd.DragZone&#39;, &#39;Ext.dd.DropZone&#39;],
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-cfg-enforceType'>  /**
+</span>   * @cfg {Boolean} enforceType
+   * Set to `true` to only allow drops of the same type.
+   *
+   * Defaults to `false`.
+   */
+  enforceType: false,
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-cfg-applyEmptyText'>  /**
+</span>   * @cfg {Boolean} applyEmptyText
+   * If `true`, then use the value of {@link #emptyText} to replace the drag record&#39;s value after a node drop.
+   * Note that, if dropped on a cell of a different type, it will convert the default text according to its own conversion rules.
+   *
+   * Defaults to `false`.
+   */
+  applyEmptyText: false,
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-cfg-emptyText'>  /**
+</span>   * @cfg {Boolean} emptyText
+   * If {@link #applyEmptyText} is `true`, then this value as the drag record&#39;s value after a node drop.
+   *
+   * Defaults to an empty string.
+   */
+  emptyText: &#39;&#39;,
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-cfg-dropBackgroundColor'>  /**
+</span>   * @cfg {Boolean} dropBackgroundColor
+   * The default background color for when a drop is allowed.
+   *
+   * Defaults to green.
+   */
+  dropBackgroundColor: &#39;green&#39;,
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-cfg-noDropBackgroundColor'>  /**
+</span>   * @cfg {Boolean} noDropBackgroundColor
+   * The default background color for when a drop is not allowed.
+   *
+   * Defaults to red.
+   */
+  noDropBackgroundColor: &#39;red&#39;,
+
+  //&lt;locale&gt;
+<span id='Ext-dirac-views-tabs-PanelDragDrop-cfg-dragText'>  /**
+</span>   * @cfg {String} dragText
+   * The text to show while dragging.
+   *
+   * Two placeholders can be used in the text:
+   *
+   * - `{0}` The number of selected items.
+   * - `{1}` &#39;s&#39; when more than 1 items (only useful for English).
+   */
+  //dragText: &#39;{0} selected row{1}&#39;,
+  //&lt;/locale&gt;
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-cfg-ddGroup'>  /**
+</span>   * @cfg {String} ddGroup
+   * A named drag drop group to which this object belongs. If a group is specified, then both the DragZones and
+   * DropZone used by this plugin will only interact with other drag drop objects in the same group.
+   */
+  ddGroup: &quot;GridDD&quot;,
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-cfg-enableDrop'>  /**
+</span>   * @cfg {Boolean} enableDrop
+   * Set to `false` to disallow the View from accepting drop gestures.
+   */
+  enableDrop: true,
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-cfg-enableDrag'>  /**
+</span>   * @cfg {Boolean} enableDrag
+   * Set to `false` to disallow dragging items from the View.
+   */
+  enableDrag: true,
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-cfg-containerScroll'>  /**
+</span>   * @cfg {Object/Boolean} containerScroll
+   * True to register this container with the Scrollmanager for auto scrolling during drag operations.
+   * A {@link Ext.dd.ScrollManager} configuration may also be passed.
+   */
+  containerScroll: false,
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-method-init'>  init: function (view) {
+</span>    var me = this;
+
+    view.on(&#39;render&#39;, me.onViewRender, me, {
+      single: true
+    });
+  },
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-method-destroy'>  destroy: function () {
+</span>    var me = this;
+
+    Ext.destroy(me.dragZone, me.dropZone);
+  },
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-method-enable'>  enable: function () {
+</span>    var me = this;
+
+    if (me.dragZone) {
+      me.dragZone.unlock();
+    }
+    if (me.dropZone) {
+      me.dropZone.unlock();
+    }
+    me.callParent();
+  },
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-method-disable'>  disable: function () {
+</span>    var me = this;
+
+    if (me.dragZone) {
+      me.dragZone.lock();
+    }
+    if (me.dropZone) {
+      me.dropZone.lock();
+    }
+    me.callParent();
+  },
+
+<span id='Ext-dirac-views-tabs-PanelDragDrop-method-onViewRender'>  onViewRender: function (view) {
+</span>    var me = this,
+    scrollEl;
+
+    if (me.enableDrag) {
+      if (me.containerScroll) {
+        scrollEl = view.getEl();
+      }
+
+      me.dragZone = new Ext.dd.DragZone(view.getEl(),{
+        view: view,
+        ddGroup: me.dragGroup || me.ddGroup,
+        dragText: me.dragText,
+        containerScroll: me.containerScroll,
+        scrollEl: scrollEl,
+        getDragData: function (e) {
+          var view = this.view,
+          item = e.getTarget().id,
+          record = view.getComponent(item);
+          if (item) {
+
+            return {
+              event: new Ext.EventObjectImpl(e),
+              item: e.target,
+              record: record
+            };
+          }
+        },
+
+        onInitDrag: function (x, y) {
+          var self = this,
+          data = self.dragData,
+          view = self.view,
+          //selectionModel = view.getSelectionModel(),
+          record = data.record,
+          el = data.ddel;
+
+          // Update the selection to match what would have been selected if the user had
+          // done a full click on the target node rather than starting a drag from it.
+//        if (!selectionModel.isSelected(record)) {
+//        selectionModel.select(record, true);
+//        }
+
+//        self.ddel.update(el.textContent || el.innerText);
+//        self.proxy.update(self.ddel.dom);
+          self.onStartDrag(x, y);
+          return true;
+        }
+      });
+    }
+
+    if (me.enableDrop) {
+      me.dropZone = new Ext.dd.DropZone(view.el, {
+        view: view,
+        ddGroup: me.dropGroup || me.ddGroup,
+        containerScroll: true,
+
+        getTargetFromEvent: function (e) {
+          var me = this,
+          v = me.view,
+          image = e.getTarget(),
+          imageid, imageobj;
+
+          // Ascertain whether the mousemove is within a grid cell.
+          if (image) {
+            imageid = image.id;
+            if (imageid) {
+              imageobj = view.getComponent(imageid)
+              return {
+                node: imageobj,
+                record: imageobj
+              };
+            }
+          }
+        },
+
+        // On Node enter, see if it is valid for us to drop the field on that type of column.
+        onNodeEnter: function (target, dd, e, dragData) {
+          var me = this;
+          if (target.record != null){ //only allow to drop element, if the target an image. What about copy from other window?
+            var destType = target.record.id,
+            sourceType = dragData.record.id;
+            //destType = target.record.fields.get(target.columnName).type.type.toUpperCase(),
+            //sourceType = dragData.record.fields.get(dragData.columnName).type.type.toUpperCase();
+
+            delete me.dropOK;
+
+            // Return if no target node or if over the same cell as the source of the drag.
+            if (!target || target.node.id === dragData.item.id) {
+             // dragData.record.el.frame(&quot;#ff0000&quot;,1);
+              return;
+            }
+
+            me.dropOK = true;
+
+          }else{
+            me.dropOK = false;
+          }
+
+
+        },
+
+        // Return the class name to add to the drag proxy. This provides a visual indication
+        // of drop allowed or not allowed.
+        onNodeOver: function (target, dd, e, dragData) {
+          return this.dropOK ? this.dropAllowed : this.dropNotAllowed;
+        },
+
+        // Highlight the target node.
+        /*onNodeOut: function (target, dd, e, dragData) {
+          if (target.node.id === dragData.item.id) {
+            dragData.record.el.frame(&quot;#FFFFFF&quot;,1);
+          }else{
+            target.node.el.frame(&quot;#397D02&quot;,1);
+          }
+        },*/
+
+        // Process the drop event if we have previously ascertained that a drop is OK.
+        onNodeDrop: function (target, dd, e, dragData) {
+          if (this.dropOK) {
+            //target.node.el.frame(&quot;#397D02&quot;,1);
+            var index = view.items.indexOf(target.record);
+            view.insert(index, dragData.record);
+            return true;
+          }
+        },
+
+        onCellDrop: Ext.emptyFn
+      });
+    }
+  }
+});
+</pre>
+</body>
+</html>

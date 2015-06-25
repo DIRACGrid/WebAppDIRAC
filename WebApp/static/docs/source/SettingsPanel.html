@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-SettingsPanel'>/**
+</span> * To be defined!!
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.SettingsPanel&#39;, {
+      extend : &#39;Ext.panel.Panel&#39;,
+<span id='Ext-dirac-views-tabs-SettingsPanel-property-required'>      required : [&#39;Ext.form.Panel&#39;, &#39;Ext.dirac.views.tabs.DesktopSettings&#39;],
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-property-title'>      title : &#39;Settings&#39;,
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-property-frame'>      frame : false,
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-property-width'>      width : 200,
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-property-minWidth'>      minWidth : 150,
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-property-maxWidth'>      maxWidth : 400,
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-property-collapsible'>      collapsible : true,
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-property-useArrows'>      useArrows : true,
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-property-iconCls'>      iconCls : &#39;settings&#39;,
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-property-border'>      // animCollapse: true,
+</span>      border : false,
+<span id='Ext-dirac-views-tabs-SettingsPanel-property-autoScroll'>      autoScroll : true,
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-property-layout'>      layout : &#39;vbox&#39;,
+</span><span id='Ext-dirac-views-tabs-SettingsPanel-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+        me.desktopSettings = Ext.create(&quot;Ext.dirac.views.tabs.DesktopSettings&quot;);
+        if (GLOBAL.APP.configData.user.username) {
+          Ext.apply(me, {
+                items : [me.addUserForm(), me.desktopSettings]
+              });
+        } else {
+          var userName = null;
+          GLOBAL.STATE_MANAGEMENT_ENABLED = false;
+          /*
+           * If the user is not registered
+           */
+          if (location.protocol === &#39;http:&#39;) {
+
+            var oHref = location.href;
+            var oQPosition = oHref.indexOf(&quot;?&quot;);
+            var sAddr = &quot;&quot;;
+
+            if (oQPosition != -1) {
+
+              sAddr = oHref.substr(0, oQPosition);
+
+            } else {
+
+              sAddr = oHref;
+
+            }
+
+            userName = me.addUserName(&quot;Visitor (&lt;a href=&#39;https://&quot; + location.host.replace(&quot;8080&quot;, &quot;8443&quot;) + location.pathname + &quot;&#39;&gt;Secure connection&lt;/a&gt;)&quot;);
+
+          } else {
+            userName = me.addUserName(&quot;Visitor&quot;);
+          }
+
+          Ext.apply(me, {
+                items : [userName, me.desktopSettings]
+              });
+        }
+
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-views-tabs-SettingsPanel-method-addUserName'>      addUserName : function(name) {
+</span>        var userName = Ext.create(&#39;Ext.form.Panel&#39;, {
+              maxWidth : 300,
+              layout : &#39;fit&#39;,
+              // bodyPadding: 10,
+              layout : {
+                type : &#39;hbox&#39;,
+                align : &#39;middle&#39;
+              },
+              items : [{
+                    xtype : &#39;label&#39;,
+                    text : &#39;UserName:&#39;
+                  }, {
+                    xtype : &#39;tbtext&#39;,
+                    text : name
+                  }]
+            });
+        return userName;
+      },
+<span id='Ext-dirac-views-tabs-SettingsPanel-method-addUserForm'>      addUserForm : function() {
+</span>        var me = this;
+
+        var form = Ext.create(&#39;Ext.form.Panel&#39;, {
+              title : &#39;Portal configuration&#39;,
+              layout : &#39;fit&#39;,
+              bodyPadding : 10,
+              width : 400,
+              layout : {
+                type : &#39;table&#39;,
+                columns : 2,
+                tdAttrs : {
+                  style : &#39;padding: 5px 10px;&#39;
+                }
+              },
+              defaults : {
+                width : 150,
+                textAlign : &#39;left&#39;
+              },
+              items : [{
+                    xtype : &#39;label&#39;,
+                    text : &#39;User:&#39;
+                  }, {
+                    xtype : &#39;label&#39;,
+                    text : GLOBAL.APP.configData.user.username
+                  }, {
+                    xtype : &#39;label&#39;,
+                    text : &#39;Group:&#39;
+                  }, me.addGroupsButton(), {
+                    xtype : &#39;label&#39;,
+                    text : &#39;Setup:&#39;
+                  }, me.addSetupButton(), {
+                    xtype : &#39;label&#39;,
+                    text : &#39;Theme:&#39;
+                  }, me.addThemeButton(), {
+                    xtype : &#39;label&#39;,
+                    text : &quot;&quot;
+                  }, me.addViewButton()]
+            });
+        return form;
+      },
+<span id='Ext-dirac-views-tabs-SettingsPanel-method-addGroupsButton'>      addGroupsButton : function() {
+</span>        var me = this;
+
+        var button_data = {
+          &quot;text&quot; : GLOBAL.APP.configData[&quot;user&quot;][&quot;group&quot;],
+          &quot;menu&quot; : []
+        };
+
+        for (var i = 0; i &lt; GLOBAL.APP.configData[&quot;validGroups&quot;].length; i++)
+          button_data.menu.push({
+                text : GLOBAL.APP.configData[&quot;validGroups&quot;][i],
+                handler : function() {
+
+                  var me = this;
+
+                  var oHref = location.href;
+
+                  var oQPosition = oHref.indexOf(&quot;?&quot;);
+
+                  if (oQPosition != -1) {
+
+                    location.href = oHref.substr(0, oQPosition) + &#39;changeGroup?to=&#39; + me.text;
+                  } else {
+
+                    location.href = oHref + &#39;changeGroup?to=&#39; + me.text;
+                  }
+
+                }
+              });
+        return new Ext.button.Button(button_data);
+      },
+<span id='Ext-dirac-views-tabs-SettingsPanel-method-addSetupButton'>      addSetupButton : function() {
+</span>        var setup_data = {
+          &quot;text&quot; : GLOBAL.APP.configData[&quot;setup&quot;],
+          &quot;menu&quot; : []
+        };
+
+        for (var i = 0; i &lt; GLOBAL.APP.configData[&quot;validSetups&quot;].length; i++)
+          setup_data.menu.push({
+                text : GLOBAL.APP.configData[&quot;validSetups&quot;][i],
+                handler : function() {
+
+                  var me = this;
+
+                  location.href = GLOBAL.BASE_URL + &#39;changeSetup?to=&#39; + me.text;
+
+                }
+              });
+
+        return new Ext.button.Button(setup_data);
+      },
+<span id='Ext-dirac-views-tabs-SettingsPanel-method-addThemeButton'>      addThemeButton : function() {
+</span>        var me = this;
+
+        var sButtonThemeText = &quot;Grey&quot;;
+
+        if (GLOBAL.WEB_THEME == &quot;ext-all-neptune&quot;)
+          sButtonThemeText = &quot;Neptune&quot;;
+
+        if (GLOBAL.WEB_THEME == &quot;ext-all&quot;)
+          sButtonThemeText = &quot;Classic&quot;;
+
+        var button_theme = {
+          &quot;text&quot; : sButtonThemeText,
+          &quot;menu&quot; : []
+        };
+
+        var oListTheme = [&quot;Grey&quot;, &quot;Neptune&quot;, &quot;Classic&quot;];
+
+        for (var i = 0; i &lt; oListTheme.length; i++) {
+          button_theme.menu.push({
+                text : oListTheme[i],
+                handler : function() {
+
+                  var me = this;
+
+                  var oHref = location.href;
+
+                  var oQPosition = oHref.indexOf(&quot;?&quot;);
+
+                  var sState_related_url = &quot;&quot;;
+                  if (GLOBAL.APP.MAIN_VIEW._state_related_url.length &gt; 0) {
+                    sState_related_url = &quot;&amp;url_state=1|&quot; + GLOBAL.APP.MAIN_VIEW._state_related_url[0];
+                    for (var i = 1; i &lt; GLOBAL.APP.MAIN_VIEW._state_related_url.length; i++) {
+                      sState_related_url += &#39;,&#39; + GLOBAL.APP.MAIN_VIEW._state_related_url[i];
+                    }
+                  }
+                  if (oQPosition != -1) {
+
+                    location.href = oHref.substr(0, oQPosition) + &#39;?theme=&#39; + me.text + &quot;&amp;view=&quot; + GLOBAL.VIEW_ID + sState_related_url;
+                  } else {
+                    location.href = oHref + &#39;?theme=&#39; + me.text + &quot;&amp;view=&quot; + GLOBAL.VIEW_ID + sState_related_url;
+                  }
+
+                }
+              });
+        }
+        return new Ext.button.Button(button_theme);
+      },
+<span id='Ext-dirac-views-tabs-SettingsPanel-method-addViewButton'>      addViewButton : function() {
+</span>        var sButtonThemeText = &quot;Grey&quot;;
+
+        if (GLOBAL.WEB_THEME == &quot;ext-all-neptune&quot;)
+          sButtonThemeText = &quot;Neptune&quot;;
+
+        if (GLOBAL.WEB_THEME == &quot;ext-all&quot;)
+          sButtonThemeText = &quot;Classic&quot;;
+
+        var button_views = {
+          &quot;text&quot; : GLOBAL.VIEW_ID,
+          &quot;menu&quot; : []
+        };
+
+        var oListViews = [&quot;desktop&quot;, &quot;tabs&quot;];
+
+        for (var i = 0; i &lt; oListViews.length; i++) {
+          button_views.menu.push({
+                text : oListViews[i],
+                handler : function() {
+
+                  var me = this;
+
+                  var oHref = location.href;
+
+                  var oQPosition = oHref.indexOf(&quot;?&quot;);
+
+                  if (oQPosition != -1) {
+                    location.href = oHref.substr(0, oQPosition) + &#39;?view=&#39; + me.text + &quot;&amp;theme=&quot; + sButtonThemeText;
+                  } else {
+                    location.href = oHref + &#39;?view=&#39; + me.text + &quot;&amp;theme=&quot; + sButtonThemeText;
+                  }
+
+                }
+              });
+        }
+        return new Ext.button.Button(button_views);
+      },
+      
+<span id='Ext-dirac-views-tabs-SettingsPanel-method-getDesktopSettingsPanel'>      getDesktopSettingsPanel : function() {
+</span>        var me = this;
+        return me.desktopSettings;
+      }
+    });
+</pre>
+</body>
+</html>

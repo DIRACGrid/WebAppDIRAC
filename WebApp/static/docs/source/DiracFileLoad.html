@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracFileLoad'>/***
+</span> * It is used to load a file from the server.
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracFileLoad&#39;, {
+
+      requires : [],
+
+<span id='Ext-dirac-utils-DiracFileLoad-method-loadFile'>      loadFile : function(fileList, callback, scope, preserveOrder) {
+</span>        var scope = scope || this, head = document.getElementsByTagName(&quot;head&quot;)[0], fragment = document.createDocumentFragment(), numFiles = fileList.length, loadedFiles = 0, me = this;
+
+        // Loads a particular file from the fileList by index. This is used when
+        // preserving order
+        var loadFileIndex = function(index) {
+          head.appendChild(me.__buildScriptTag(fileList[index], onFileLoaded));
+        };
+
+<span id='Ext-dirac-utils-DiracFileLoad-method-onFileLoaded'>        /**
+</span>         * Callback function which is called after each file has been loaded.
+         * This calls the callback passed to load once the final file in the
+         * fileList has been loaded
+         */
+        var onFileLoaded = function() {
+          loadedFiles++;
+
+          // if this was the last file, call the callback, otherwise load the
+          // next
+          // file
+          if (numFiles == loadedFiles &amp;&amp; typeof callback == &#39;function&#39;) {
+            callback.call(scope);
+          } else {
+            if (preserveOrder === true) {
+              loadFileIndex(loadedFiles);
+            }
+          }
+        };
+
+        if (preserveOrder === true) {
+          loadFileIndex.call(this, 0);
+        } else {
+          // load each file (most browsers will do this in parallel)
+          Ext.each(fileList, function(file, index) {
+                fragment.appendChild(this.__buildScriptTag(file, onFileLoaded));
+              }, this);
+
+          head.appendChild(fragment);
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracFileLoad-method-__buildScriptTag'>      __buildScriptTag : function(filename, callback) {
+</span>        var exten = filename.substr(filename.lastIndexOf(&#39;.&#39;) + 1);
+        // console.log(&#39;Loader.buildScriptTag: filename=[%s], exten=[%s]&#39;,
+        // filename,
+        // exten);
+        if (exten == &#39;js&#39;) {
+          var script = document.createElement(&#39;script&#39;);
+          script.type = &quot;text/javascript&quot;;
+          script.src = filename;
+
+          // IE has a different way of handling &lt;script&gt; loads, so we need to
+          // check
+          // for it here
+          if (script.readyState) {
+            script.onreadystatechange = function() {
+              if (script.readyState == &quot;loaded&quot; || script.readyState == &quot;complete&quot;) {
+                script.onreadystatechange = null;
+                callback();
+              }
+            };
+          } else {
+            script.onload = callback;
+          }
+          return script;
+        }
+        if (exten == &#39;css&#39;) {
+          var style = document.createElement(&#39;link&#39;);
+          style.rel = &#39;stylesheet&#39;;
+          style.type = &#39;text/css&#39;;
+          style.href = filename;
+          callback();
+          return style;
+        }
+      }
+
+    });
+</pre>
+</body>
+</html>

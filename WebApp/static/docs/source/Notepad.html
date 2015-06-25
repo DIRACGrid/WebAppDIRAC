@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * ! Ext JS Library 4.0 Copyright(c) 2006-2011 Sencha Inc. licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+
+Ext.define(&#39;DIRAC.Notepad.classes.Notepad&#39;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+
+      requires : [&#39;Ext.form.field.HtmlEditor&#39;],
+
+      initComponent : function() {
+
+        var me = this;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          me.launcher.title = &quot;Notepad&quot;;
+          me.launcher.maximized = false;
+          me.launcher.width = 400;
+          me.launcher.height = 400;
+
+        }
+
+        if (GLOBAL.VIEW_ID == &quot;tabs&quot;) {
+
+          me.launcher.title = &quot;Notepad&quot;;
+          me.launcher.maximized = false;
+          me.launcher.width = 400;
+          me.launcher.height = 400;
+
+        }
+
+        me.editor = new Ext.form.field.HtmlEditor({
+              value : [&#39;Some &lt;b&gt;rich&lt;/b&gt; &lt;font color=&quot;red&quot;&gt;text&lt;/font&gt; goes &lt;u&gt;here&lt;/u&gt;&lt;br&gt;&#39;, &#39;Give it a try!&#39;].join(&#39;&#39;)
+
+            });
+
+        Ext.apply(me, {
+              layout : &#39;fit&#39;,
+              items : [me.editor]
+            });
+
+        me.callParent(arguments);
+
+      },
+
+      loadState : function(data) {
+
+        var me = this;
+        
+        if (&quot;helptext&quot; in data){
+          me.editor.setValue(data[&quot;helptext&quot;]);
+        }
+        if (&quot;text&quot; in data){
+          me.editor.setValue(data[&quot;text&quot;]);
+        }
+
+      },
+
+      getStateData : function() {
+
+        var me = this;
+        return {
+          text : me.editor.getValue()
+        };
+
+      },
+      getValue : function() {
+        var me = this;
+        return me.editor.getValue();
+      }
+    });
+</pre>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-MenuTabs'>/**
+</span> * it contains the menu tabs. New menu can be added to this class.
+ * 
+ * @class Ext.dirac.views.tabs.MenuTabs
+ * @extends Ext.tab.Panel
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.MenuTabs&#39;, {
+      extend : &#39;Ext.tab.Panel&#39;,
+      requires : [&#39;Ext.dirac.views.tabs.SelPanel&#39;],
+<span id='Ext-dirac-views-tabs-MenuTabs-property-width'>      width : 200,
+</span><span id='Ext-dirac-views-tabs-MenuTabs-property-margin'>      margin : &#39;0 0 2 0&#39;,
+</span><span id='Ext-dirac-views-tabs-MenuTabs-property-title'>      title : &quot;Menu&quot;,
+</span><span id='Ext-dirac-views-tabs-MenuTabs-property-titleAlign'>      titleAlign : &quot;center&quot;,
+</span><span id='Ext-dirac-views-tabs-MenuTabs-property-collapsible'>      collapsible : true,
+</span><span id='Ext-dirac-views-tabs-MenuTabs-property-app'>      app : null,
+</span><span id='Ext-dirac-views-tabs-MenuTabs-property-coordinates'>      coordinates : {},
+</span><span id='Ext-dirac-views-tabs-MenuTabs-property-defaults'>      defaults : {
+</span>        bodyPadding : 10,
+        autoScroll : true,
+        listeners : {
+          activate : function(component) {
+            var me = this;
+            GLOBAL.APP.MAIN_VIEW.changeRightPanel(component.value);
+          }
+        }
+<span id='Ext-dirac-views-tabs-MenuTabs-property-listeners'>      },// if we want to hide the menu we have to look the RightContainer.js
+</span>      listeners : {
+        beforecollapse : function(p, direction, animate, eOpts) {
+          var me = this;
+          var leftCont = GLOBAL.APP.MAIN_VIEW.getLeftContainer();
+          me.coordinates.width = leftCont.getWidth();
+          me.coordinates.height = leftCont.getHeight();
+          leftCont.setWidth(0);
+          leftCont.setHeight(0);
+          leftCont.collapsed = true;
+          // leftCont.hide();
+        },
+        beforeexpand : function(p, animate, eOpts) {
+          var me = this;
+          var leftCont = GLOBAL.APP.MAIN_VIEW.getLeftContainer();
+          // me.items.each(function(comp){
+          // comp.show();
+          // });
+          leftCont.collapsed = false;
+          leftCont.setWidth(me.coordinates.width);
+          leftCont.setHeight(me.coordinates.height);
+        }
+      },
+<span id='Ext-dirac-views-tabs-MenuTabs-method-constructor'>      constructor : function(config) {
+</span>        var me = this;
+        if (GLOBAL.APP == null) {
+          alert(&#39;Application is not initialised!!!!&#39;);
+        }
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-views-tabs-MenuTabs-method-initComponent'>      initComponent : function(config) {
+</span>        var me = this;
+        Ext.apply(me, {
+              collapseDirection : &quot;left&quot;, // it is required to correctly
+                                          // collapse the menu.
+              items : [{
+                    xtype : &#39;panel&#39;,
+                    glyph : 72, // home
+                    layout : &#39;fit&#39;,
+                    bodyStyle : {
+                      background : &#39;#AAAAAA&#39;
+                    },
+                    value : &#39;welcome&#39;
+                  }, {
+                    xtype : &#39;menuselpanel&#39;,
+                    glyph : 61, // menu
+                    value : &#39;menuPanel&#39;,
+                    region : &#39;west&#39;,
+                    scope : me,
+                    collapsible : true,
+                    width : 225,
+                    split : true,
+                    minWidth : 175,
+                    treeModel : me.menu,
+                    bodyStyle : {
+                      background : &#39;#AAAAAA&#39;
+                    }
+                  }, {
+                    xtype : &#39;panel&#39;,
+                    glyph : 42,
+                    value : &#39;sharedLayouts&#39;
+                  }]
+            });
+        me.callParent(arguments);
+      }
+    });</pre>
+</body>
+</html>

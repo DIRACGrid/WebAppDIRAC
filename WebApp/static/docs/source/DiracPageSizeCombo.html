@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracPageSizeCombo'>/*******************************************************************************
+</span> * It implements the size of the Grid Panel. This class is used by
+ * {@link Ext.dirac.utils.DiracPagingToolbar}.
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracPageSizeCombo&#39;, {
+      extend : &#39;Ext.form.field.ComboBox&#39;,
+      requires : [&#39;Ext.data.ArrayStore&#39;],
+<span id='Ext-dirac-utils-DiracPageSizeCombo-property-allowBlank'>      allowBlank : false,
+</span><span id='Ext-dirac-utils-DiracPageSizeCombo-property-displayField'>      displayField : &#39;number&#39;,
+</span><span id='Ext-dirac-utils-DiracPageSizeCombo-property-editable'>      editable : false,
+</span><span id='Ext-dirac-utils-DiracPageSizeCombo-property-maxLength'>      maxLength : 4,
+</span><span id='Ext-dirac-utils-DiracPageSizeCombo-property-maxLengthText'>      maxLengthText : &#39;The maximum value for this field is 1000&#39;,
+</span><span id='Ext-dirac-utils-DiracPageSizeCombo-property-minLength'>      minLength : 1,
+</span><span id='Ext-dirac-utils-DiracPageSizeCombo-property-minLengthText'>      minLengthText : &#39;The minimum value for this field is 1&#39;,
+</span><span id='Ext-dirac-utils-DiracPageSizeCombo-property-mode'>      mode : &#39;local&#39;,
+</span><span id='Ext-dirac-utils-DiracPageSizeCombo-property-store'>      store : new Ext.data.ArrayStore({
+</span>            fields : [&#39;number&#39;],
+            data : [[25], [50], [100], [200], [500], [1000]]
+          }),
+<span id='Ext-dirac-utils-DiracPageSizeCombo-property-triggerAction'>      triggerAction : &#39;all&#39;,
+</span><span id='Ext-dirac-utils-DiracPageSizeCombo-property-value'>      value : 25,
+</span><span id='Ext-dirac-utils-DiracPageSizeCombo-property-width'>      width : 50
+</span>    });
+</pre>
+</body>
+</html>

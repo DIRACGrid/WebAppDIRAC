@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='RGBColor'>/**
+</span> * A class to parse color values
+ * @author Stoyan Stefanov &lt;sstoo@gmail.com&gt;
+ * @link   http://www.phpied.com/rgb-color-parser-in-javascript/
+ * @license Use it if you like it
+ */
+function RGBColor(color_string)
+{
+    this.ok = false;
+
+    // strip any leading #
+    if (color_string.charAt(0) == &#39;#&#39;) { // remove # if any
+        color_string = color_string.substr(1,6);
+    }
+
+    color_string = color_string.replace(/ /g,&#39;&#39;);
+    color_string = color_string.toLowerCase();
+
+    // before getting into regexps, try simple matches
+    // and overwrite the input
+    var simple_colors = {
+        aliceblue: &#39;f0f8ff&#39;,
+        antiquewhite: &#39;faebd7&#39;,
+        aqua: &#39;00ffff&#39;,
+        aquamarine: &#39;7fffd4&#39;,
+        azure: &#39;f0ffff&#39;,
+        beige: &#39;f5f5dc&#39;,
+        bisque: &#39;ffe4c4&#39;,
+        black: &#39;000000&#39;,
+        blanchedalmond: &#39;ffebcd&#39;,
+        blue: &#39;0000ff&#39;,
+        blueviolet: &#39;8a2be2&#39;,
+        brown: &#39;a52a2a&#39;,
+        burlywood: &#39;deb887&#39;,
+        cadetblue: &#39;5f9ea0&#39;,
+        chartreuse: &#39;7fff00&#39;,
+        chocolate: &#39;d2691e&#39;,
+        coral: &#39;ff7f50&#39;,
+        cornflowerblue: &#39;6495ed&#39;,
+        cornsilk: &#39;fff8dc&#39;,
+        crimson: &#39;dc143c&#39;,
+        cyan: &#39;00ffff&#39;,
+        darkblue: &#39;00008b&#39;,
+        darkcyan: &#39;008b8b&#39;,
+        darkgoldenrod: &#39;b8860b&#39;,
+        darkgray: &#39;a9a9a9&#39;,
+        darkgreen: &#39;006400&#39;,
+        darkkhaki: &#39;bdb76b&#39;,
+        darkmagenta: &#39;8b008b&#39;,
+        darkolivegreen: &#39;556b2f&#39;,
+        darkorange: &#39;ff8c00&#39;,
+        darkorchid: &#39;9932cc&#39;,
+        darkred: &#39;8b0000&#39;,
+        darksalmon: &#39;e9967a&#39;,
+        darkseagreen: &#39;8fbc8f&#39;,
+        darkslateblue: &#39;483d8b&#39;,
+        darkslategray: &#39;2f4f4f&#39;,
+        darkturquoise: &#39;00ced1&#39;,
+        darkviolet: &#39;9400d3&#39;,
+        deeppink: &#39;ff1493&#39;,
+        deepskyblue: &#39;00bfff&#39;,
+        dimgray: &#39;696969&#39;,
+        dodgerblue: &#39;1e90ff&#39;,
+        feldspar: &#39;d19275&#39;,
+        firebrick: &#39;b22222&#39;,
+        floralwhite: &#39;fffaf0&#39;,
+        forestgreen: &#39;228b22&#39;,
+        fuchsia: &#39;ff00ff&#39;,
+        gainsboro: &#39;dcdcdc&#39;,
+        ghostwhite: &#39;f8f8ff&#39;,
+        gold: &#39;ffd700&#39;,
+        goldenrod: &#39;daa520&#39;,
+        gray: &#39;808080&#39;,
+        green: &#39;008000&#39;,
+        greenyellow: &#39;adff2f&#39;,
+        honeydew: &#39;f0fff0&#39;,
+        hotpink: &#39;ff69b4&#39;,
+        indianred : &#39;cd5c5c&#39;,
+        indigo : &#39;4b0082&#39;,
+        ivory: &#39;fffff0&#39;,
+        khaki: &#39;f0e68c&#39;,
+        lavender: &#39;e6e6fa&#39;,
+        lavenderblush: &#39;fff0f5&#39;,
+        lawngreen: &#39;7cfc00&#39;,
+        lemonchiffon: &#39;fffacd&#39;,
+        lightblue: &#39;add8e6&#39;,
+        lightcoral: &#39;f08080&#39;,
+        lightcyan: &#39;e0ffff&#39;,
+        lightgoldenrodyellow: &#39;fafad2&#39;,
+        lightgrey: &#39;d3d3d3&#39;,
+        lightgreen: &#39;90ee90&#39;,
+        lightpink: &#39;ffb6c1&#39;,
+        lightsalmon: &#39;ffa07a&#39;,
+        lightseagreen: &#39;20b2aa&#39;,
+        lightskyblue: &#39;87cefa&#39;,
+        lightslateblue: &#39;8470ff&#39;,
+        lightslategray: &#39;778899&#39;,
+        lightsteelblue: &#39;b0c4de&#39;,
+        lightyellow: &#39;ffffe0&#39;,
+        lime: &#39;00ff00&#39;,
+        limegreen: &#39;32cd32&#39;,
+        linen: &#39;faf0e6&#39;,
+        magenta: &#39;ff00ff&#39;,
+        maroon: &#39;800000&#39;,
+        mediumaquamarine: &#39;66cdaa&#39;,
+        mediumblue: &#39;0000cd&#39;,
+        mediumorchid: &#39;ba55d3&#39;,
+        mediumpurple: &#39;9370d8&#39;,
+        mediumseagreen: &#39;3cb371&#39;,
+        mediumslateblue: &#39;7b68ee&#39;,
+        mediumspringgreen: &#39;00fa9a&#39;,
+        mediumturquoise: &#39;48d1cc&#39;,
+        mediumvioletred: &#39;c71585&#39;,
+        midnightblue: &#39;191970&#39;,
+        mintcream: &#39;f5fffa&#39;,
+        mistyrose: &#39;ffe4e1&#39;,
+        moccasin: &#39;ffe4b5&#39;,
+        navajowhite: &#39;ffdead&#39;,
+        navy: &#39;000080&#39;,
+        oldlace: &#39;fdf5e6&#39;,
+        olive: &#39;808000&#39;,
+        olivedrab: &#39;6b8e23&#39;,
+        orange: &#39;ffa500&#39;,
+        orangered: &#39;ff4500&#39;,
+        orchid: &#39;da70d6&#39;,
+        palegoldenrod: &#39;eee8aa&#39;,
+        palegreen: &#39;98fb98&#39;,
+        paleturquoise: &#39;afeeee&#39;,
+        palevioletred: &#39;d87093&#39;,
+        papayawhip: &#39;ffefd5&#39;,
+        peachpuff: &#39;ffdab9&#39;,
+        peru: &#39;cd853f&#39;,
+        pink: &#39;ffc0cb&#39;,
+        plum: &#39;dda0dd&#39;,
+        powderblue: &#39;b0e0e6&#39;,
+        purple: &#39;800080&#39;,
+        red: &#39;ff0000&#39;,
+        rosybrown: &#39;bc8f8f&#39;,
+        royalblue: &#39;4169e1&#39;,
+        saddlebrown: &#39;8b4513&#39;,
+        salmon: &#39;fa8072&#39;,
+        sandybrown: &#39;f4a460&#39;,
+        seagreen: &#39;2e8b57&#39;,
+        seashell: &#39;fff5ee&#39;,
+        sienna: &#39;a0522d&#39;,
+        silver: &#39;c0c0c0&#39;,
+        skyblue: &#39;87ceeb&#39;,
+        slateblue: &#39;6a5acd&#39;,
+        slategray: &#39;708090&#39;,
+        snow: &#39;fffafa&#39;,
+        springgreen: &#39;00ff7f&#39;,
+        steelblue: &#39;4682b4&#39;,
+        tan: &#39;d2b48c&#39;,
+        teal: &#39;008080&#39;,
+        thistle: &#39;d8bfd8&#39;,
+        tomato: &#39;ff6347&#39;,
+        turquoise: &#39;40e0d0&#39;,
+        violet: &#39;ee82ee&#39;,
+        violetred: &#39;d02090&#39;,
+        wheat: &#39;f5deb3&#39;,
+        white: &#39;ffffff&#39;,
+        whitesmoke: &#39;f5f5f5&#39;,
+        yellow: &#39;ffff00&#39;,
+        yellowgreen: &#39;9acd32&#39;
+    };
+    for (var key in simple_colors) {
+        if (color_string == key) {
+            color_string = simple_colors[key];
+        }
+    }
+    // emd of simple type-in colors
+
+    // array of color definition objects
+    var color_defs = [
+        {
+            re: /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/,
+            example: [&#39;rgb(123, 234, 45)&#39;, &#39;rgb(255,234,245)&#39;],
+            process: function (bits){
+                return [
+                    parseInt(bits[1]),
+                    parseInt(bits[2]),
+                    parseInt(bits[3])
+                ];
+            }
+        },
+        {
+            re: /^(\w{2})(\w{2})(\w{2})$/,
+            example: [&#39;#00ff00&#39;, &#39;336699&#39;],
+            process: function (bits){
+                return [
+                    parseInt(bits[1], 16),
+                    parseInt(bits[2], 16),
+                    parseInt(bits[3], 16)
+                ];
+            }
+        },
+        {
+            re: /^(\w{1})(\w{1})(\w{1})$/,
+            example: [&#39;#fb0&#39;, &#39;f0f&#39;],
+            process: function (bits){
+                return [
+                    parseInt(bits[1] + bits[1], 16),
+                    parseInt(bits[2] + bits[2], 16),
+                    parseInt(bits[3] + bits[3], 16)
+                ];
+            }
+        }
+    ];
+
+    // search through the definitions to find a match
+    for (var i = 0; i &lt; color_defs.length; i++) {
+        var re = color_defs[i].re;
+        var processor = color_defs[i].process;
+        var bits = re.exec(color_string);
+        if (bits) {
+            channels = processor(bits);
+            this.r = channels[0];
+            this.g = channels[1];
+            this.b = channels[2];
+            this.ok = true;
+        }
+
+    }
+
+    // validate/cleanup values
+    this.r = (this.r &lt; 0 || isNaN(this.r)) ? 0 : ((this.r &gt; 255) ? 255 : this.r);
+    this.g = (this.g &lt; 0 || isNaN(this.g)) ? 0 : ((this.g &gt; 255) ? 255 : this.g);
+    this.b = (this.b &lt; 0 || isNaN(this.b)) ? 0 : ((this.b &gt; 255) ? 255 : this.b);
+
+    // some getters
+    this.toRGB = function () {
+        return &#39;rgb(&#39; + this.r + &#39;, &#39; + this.g + &#39;, &#39; + this.b + &#39;)&#39;;
+    }
+    this.toHex = function () {
+        var r = this.r.toString(16);
+        var g = this.g.toString(16);
+        var b = this.b.toString(16);
+        if (r.length == 1) r = &#39;0&#39; + r;
+        if (g.length == 1) g = &#39;0&#39; + g;
+        if (b.length == 1) b = &#39;0&#39; + b;
+        return &#39;#&#39; + r + g + b;
+    }
+
+    // help
+    this.getHelpXML = function () {
+
+        var examples = new Array();
+        // add regexps
+        for (var i = 0; i &lt; color_defs.length; i++) {
+            var example = color_defs[i].example;
+            for (var j = 0; j &lt; example.length; j++) {
+                examples[examples.length] = example[j];
+            }
+        }
+        // add type-in colors
+        for (var sc in simple_colors) {
+            examples[examples.length] = sc;
+        }
+
+        var xml = document.createElement(&#39;ul&#39;);
+        xml.setAttribute(&#39;id&#39;, &#39;rgbcolor-examples&#39;);
+        for (var i = 0; i &lt; examples.length; i++) {
+            try {
+                var list_item = document.createElement(&#39;li&#39;);
+                var list_color = new RGBColor(examples[i]);
+                var example_div = document.createElement(&#39;div&#39;);
+                example_div.style.cssText =
+                        &#39;margin: 3px; &#39;
+                        + &#39;border: 1px solid black; &#39;
+                        + &#39;background:&#39; + list_color.toHex() + &#39;; &#39;
+                        + &#39;color:&#39; + list_color.toHex()
+                ;
+                example_div.appendChild(document.createTextNode(&#39;test&#39;));
+                var list_item_value = document.createTextNode(
+                    &#39; &#39; + examples[i] + &#39; -&gt; &#39; + list_color.toRGB() + &#39; -&gt; &#39; + list_color.toHex()
+                );
+                list_item.appendChild(example_div);
+                list_item.appendChild(list_item_value);
+                xml.appendChild(list_item);
+
+            } catch(e){}
+        }
+        return xml;
+
+    }
+
+}
+
+</pre>
+</body>
+</html>

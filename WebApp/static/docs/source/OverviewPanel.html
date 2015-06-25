@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&quot;DIRAC.ResourceSummary.classes.OverviewPanel&quot;, {
+      extend : &quot;Ext.panel.Panel&quot;,
+      requires : [&quot;DIRAC.ResourceSummary.classes.TreeModel&quot;],
+      title : &#39;Overview&#39;,
+      region : &#39;east&#39;,
+      autoScroll : true,
+      collapsible : true,
+      split : true,
+      region : &#39;east&#39;,
+      margins : &#39;2 0 2 0&#39;,
+      cmargins : &#39;2 2 2 2&#39;,
+      bodyStyle : &#39;padding: 5px&#39;,
+      width : 600,
+      labelAlign : &#39;top&#39;,
+      minWidth : 200,
+      hidden : true,
+      layout : &quot;column&quot;,
+      columnWidth : 2,
+      tools : [{
+            type : &#39;maximize&#39;,
+            tooltip : &#39;Maximize the application.&#39;,
+            handler : function(event, toolEl, panelHeader) {
+              var me = this;
+
+              var widget = me.up(&quot;panel&quot;);
+              var parent = me.up(&quot;panel&quot;).parentWidget;
+
+              parent.grid.hide();
+              parent.leftPanel.hide();
+
+              for (var i = 0; i &lt; widget.tools.length; i++) {
+                if (widget.tools[i].type == &#39;maximize&#39; || widget.tools[i].type == &#39;close&#39; || widget.tools[i].type == &quot;collapse-right&quot;) {
+                  widget.tools[i].hide();
+                } else if (widget.tools[i].type == &#39;minimize&#39;) {
+                  widget.tools[i].show();
+                }
+              }
+
+              widget.panelSize = {
+                height : widget.getHeight(),
+                width : widget.getWidth()
+              };
+
+              widget.setHeight(widget.maximizedSize.height);
+              widget.setWidth(widget.maximizedSize.width);
+            }
+          }, {
+            type : &#39;minimize&#39;,
+            tooltip : &#39;Minimize the application.&#39;,
+            hidden : true,
+            handler : function(event, toolEl, panelHeader) {
+              var me = this;
+
+              var parent = me.up(&quot;panel&quot;).parentWidget;
+              var widget = me.up(&quot;panel&quot;);
+
+              parent.grid.show();
+              parent.leftPanel.show();
+
+              for (var i = 0; i &lt; widget.tools.length; i++) {
+                if (widget.tools[i].type == &#39;maximize&#39; || widget.tools[i].type == &#39;close&#39; || widget.tools[i].type == &quot;collapse-right&quot;) {
+                  widget.tools[i].show();
+                } else if (widget.tools[i].type == &#39;minimize&#39;) {
+                  widget.tools[i].hide();
+                }
+              }
+
+              widget.setHeight(widget.panelSize.height);
+              widget.setWidth(widget.panelSize.width);
+            }
+          }],
+      listeners : {
+        collapse : function(panel, eOpts) {
+          panel.hide();
+          panel.parentWidget.grid.show();
+          panel.parentWidget.leftPanel.show();
+        }
+      },
+      initComponent : function() {
+        var me = this;
+
+        me.dataFields = [{
+              name : &#39;Name&#39;
+            }, {
+              name : &#39;StatusType&#39;
+            }, {
+              name : &#39;Status&#39;
+            }, {
+              name : &#39;ElementType&#39;
+            }, {
+              name : &#39;Reason&#39;
+            }, {
+              name : &#39;DateEffective&#39;
+            }, {
+              name : &#39;LastCheckTime&#39;
+            }, {
+              name : &#39;TokenOwner&#39;
+            }, {
+              name : &#39;TokenExpiration&#39;
+            }];
+
+        var viewStore = Ext.create(&#39;Ext.data.Store&#39;, {
+              fields : me.dataFields
+            });
+        var tpl = new Ext.XTemplate(&#39;&lt;tpl for=&quot;.&quot;&gt;&#39;, &#39;&lt;div style=&quot;margin-bottom: 10px;&quot; class=&quot;dataset-statistics&quot;&gt;&#39;, &#39;&lt;b&gt;Name:&lt;/b&gt; {Name}&lt;br/&gt;&#39;, &#39;&lt;b&gt;Status Type:&lt;/b&gt; {StatusType}&lt;br/&gt;&#39;, &#39;&lt;b&gt;Status:&lt;/b&gt; {Status}&lt;br/&gt;&#39;, &#39;&lt;b&gt;ElementType:&lt;/b&gt; {ElementType}&lt;br/&gt;&#39;,
+            &#39;&lt;b&gt;Reason:&lt;/b&gt; {Reason}&lt;br/&gt;&#39;, &#39;&lt;b&gt;DateEffective:&lt;/b&gt; {DateEffective} &lt;br&gt;&lt;b&gt;LastCheckTime:&lt;/b&gt; {LastCheckTime}&lt;br/&gt; &lt;b&gt;TokenOwner:&lt;/b&gt; {TokenOwner}&lt;br/&gt;&#39;, &#39;&lt;b&gt;TokenExpiration:&lt;/b&gt; {TokenExpiration}&lt;br/&gt;&#39;, &#39;&lt;/div&gt;&#39;, &#39;&lt;/tpl&gt;&#39;);
+
+        me.view = new Ext.view.View({
+              columnWidth : 1 / 3,
+              tpl : tpl,
+              store : viewStore,
+              itemSelector : &#39;div.dataset-statistics&#39;,
+              autoHeight : true
+            });
+
+        me.viewPanel = Ext.create(&quot;Ext.panel.Panel&quot;, {
+              &quot;title&quot; : &quot;Resource&quot;,
+              columnWidth : 1 / 3,
+              items : me.view,
+              layout : &#39;fit&#39;,
+              resizable : true
+            });
+        var historyStore = new Ext.data.ArrayStore({
+              fields : [&quot;Status&quot;, &quot;DataEffectiv&quot;, &quot;Reason&quot;],
+              data : []
+            });
+
+        me.historyGrid = Ext.create(&quot;Ext.grid.Panel&quot;, {
+              layout : &#39;fit&#39;,
+              store : historyStore,
+              columns : [{
+                    text : &#39;Status&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;Status&#39;
+                  }, {
+                    text : &#39;DataEffectiv&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;DataEffectiv&#39;
+                  }, {
+                    text : &#39;Reason&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;Reason&#39;
+                  }],
+              width : &#39;100%&#39;,
+              height : &#39;50%&#39;,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              }
+            })
+        me.historyPanel = Ext.create(&quot;Ext.panel.Panel&quot;, {
+              title : &quot;History&quot;,
+              columnWidth : 1 / 3,
+              items : [me.historyGrid],
+              height : &#39;50%&#39;,
+              resizable : true
+            });
+
+        me.downtimeGrid = Ext.create(&quot;Ext.grid.Panel&quot;, {
+              layout : &#39;fit&#39;,
+              store : Ext.create(&quot;Ext.data.ArrayStore&quot;, {
+                    fields : [&#39;StartDate&#39;, &#39;EndDare&#39;, &#39;Link&#39;, &#39;Description&#39;, &#39;Severity&#39;],
+                    data : []
+                  }),
+              columns : [{
+                    text : &#39;StartDate&#39;,
+                    sortable : true,
+                    dataIndex : &#39;StartDate&#39;,
+                    align : &#39;left&#39;,
+                    flex : 1
+                  }, {
+                    text : &#39;EndDate&#39;,
+                    sortable : true,
+                    dataIndex : &#39;EndDate&#39;,
+                    align : &#39;left&#39;,
+                    flex : 1
+                  }, {
+                    text : &#39;Description&#39;,
+                    sortable : true,
+                    dataIndex : &#39;Description&#39;,
+                    align : &#39;left&#39;,
+                    flex : 1
+                  }, {
+                    text : &#39;Severity&#39;,
+                    sortable : true,
+                    dataIndex : &#39;Severity&#39;,
+                    align : &#39;left&#39;,
+                    flex : 1
+                  }, {
+                    text : &#39;Link&#39;,
+                    dataIndex : &#39;Link&#39;,
+                    hidden : true,
+                    flex : 1
+                  }],
+              width : &#39;100%&#39;,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              },
+              listeners : {
+                itemclick : function(table, record, item, index, e, eOpts) {
+                  window.open(record.get(&#39;Link&#39;));
+                }
+              }
+            });
+        me.downTimePanel = Ext.create(&quot;Ext.panel.Panel&quot;, {
+              title : &quot;Downtimes&quot;,
+              columnWidth : 1 / 3,
+              items : [me.downtimeGrid],
+              height : &#39;50%&#39;,
+              resizable : true
+
+            });
+
+        me.policiesGrid = Ext.create(&quot;Ext.grid.Panel&quot;, {
+              layout : &#39;fit&#39;,
+              store : Ext.create(&quot;Ext.data.ArrayStore&quot;, {
+                    fields : [&quot;Status&quot;, &quot;PolicyName&quot;, &quot;DataEffectiv&quot;, &quot;LastCheckTime&quot;, &quot;Reason&quot;],
+                    data : []
+                  }),
+              columns : [{
+                    text : &#39;Status&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;Status&#39;
+                  }, {
+                    text : &#39;PolicyName&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;PolicyName&#39;
+                  }, {
+                    text : &#39;DataEffectiv&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;DataEffectiv&#39;
+                  }, {
+                    text : &#39;LastCheckTime&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;LastCheckTime&#39;
+                  }, {
+                    text : &#39;Reason&#39;,
+                    flex : 1,
+                    sortable : false,
+                    dataIndex : &#39;Reason&#39;
+                  }],
+              width : &#39;100%&#39;,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              }
+            });
+
+        me.policies = Ext.create(&quot;Ext.panel.Panel&quot;, {
+              title : &quot;Policies&quot;,
+              columnWidth : 1 / 3,
+              items : [me.policiesGrid],
+              resizable : true
+            });
+
+        me.timeline = Ext.create(&quot;Ext.panel.Panel&quot;, {
+              title : &quot;Timeline&quot;,
+              columnWidth : 1 / 3,
+              height : 300,
+              width : 200,
+              resizable : true,
+              items : [{
+                    html : &quot;&lt;div id=&#39;&quot; + me.id + &quot;-timeline-plot&#39; style=&#39;width:100%;&#39;&gt;&lt;/div&gt;&quot;,
+                    xtype : &quot;box&quot;
+                  }]
+
+            });
+
+        me.treeStore = Ext.create(&#39;Ext.data.TreeStore&#39;, {
+
+              model : &quot;DIRAC.ResourceSummary.classes.TreeModel&quot;,
+              root : {
+                expanded : true,
+                children : []
+              }
+
+            });
+        me.familymaters = Ext.create(&#39;Ext.tree.Panel&#39;, {
+              title : &quot;Family matters&quot;,
+              width : 200,
+              height : 300,
+              store : me.treeStore,
+              rootVisible : true,
+              renderTo : Ext.getBody(),
+              columnWidth : 1 / 3,
+              resizable : true,
+              listeners : {
+                itemclick : function(tree, record, item, index, e, eOpts) {
+                  if (record.get(&quot;openResource&quot;)) {
+                    me.loadData(record.get(&quot;openResource&quot;));
+                  }
+                }
+              }
+            });
+
+        me.callParent(arguments);
+        me.add([me.viewPanel, me.familymaters, me.timeline, me.policies, me.historyPanel, me.downTimePanel]);
+
+      },
+      loadData : function(selection) {
+        var me = this;
+
+        me.viewPanel.body.mask(&quot;Loading ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([&quot;Info&quot;]),
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType]),
+                element : (selection.element ? Ext.JSON.encode([selection.element]) : Ext.JSON.encode([&quot;Resource&quot;]))
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.viewPanel.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+                  me.setTitle(jsonData[&quot;result&quot;][&quot;Name&quot;]);
+                  me.view.getStore().loadData([jsonData[&quot;result&quot;]]);
+                  me.viewPanel.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+
+        me.historyGrid.body.mask(&quot;Loading ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([&quot;History&quot;]),
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.historyGrid.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+                  me.historyGrid.getStore().loadData(jsonData[&quot;result&quot;]);
+                  me.historyGrid.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+
+        me.downtimeGrid.body.mask(&quot;Loading ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([&quot;Downtime&quot;]),
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                element : Ext.JSON.encode([&quot;Resource&quot;]),
+                statusType : Ext.JSON.encode([selection.statusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.downtimeGrid.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+                  me.downtimeGrid.getStore().loadData(jsonData[&quot;result&quot;]);
+                  me.downtimeGrid.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+
+        me.policiesGrid.body.mask(&quot;Loading ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([&quot;Policies&quot;]),
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.policiesGrid.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+                  me.policiesGrid.getStore().loadData(jsonData[&quot;result&quot;]);
+                  me.policiesGrid.body.unmask();
+                } else {
+                  GLOBAL.APP.CF.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+
+        me.timeline.body.mask(&quot;Loading ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([&quot;Timeline&quot;]),
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.timeline.body.unmask();
+              },
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+                  me.timeline.body.unmask();
+
+                  var height = me.timeline.getHeight() - 20;
+                  document.getElementById(me.id + &quot;-timeline-plot&quot;).style.height = &quot;&quot; + height + &quot;px&quot;;
+
+                  var width = me.timeline.getWidth() - 20;
+                  document.getElementById(me.id + &quot;-timeline-plot&quot;).style.width = &quot;&quot; + width + &quot;px&quot;;
+                  var chart = new google.visualization.AnnotatedTimeLine(document.getElementById(me.id + &quot;-timeline-plot&quot;));
+                  var data = new google.visualization.DataTable();
+                  data.addColumn(&#39;datetime&#39;, &#39;DateTime&#39;);
+                  data.addColumn(&#39;number&#39;, &#39;Status&#39;);
+                  data.addColumn(&#39;string&#39;, &#39;title1&#39;);
+                  data.addColumn(&#39;string&#39;, &#39;text1&#39;);
+
+                  var rows = []
+
+                  for (var i = 0; i &lt; jsonData[&quot;result&quot;].length; i++) {
+                    title = jsonData[&quot;result&quot;][i][0];
+                    annotation = jsonData[&quot;result&quot;][i][2];
+
+                    if (annotation == &#39;&#39;) {
+                      annotation = null;
+                      title = null;
+                    }
+                    row = [Ext.Date.parse(jsonData[&quot;result&quot;][i][1], &quot;Y-m-d H:i:s&quot;), me.__statusValue(jsonData[&quot;result&quot;][i][0]), title, annotation];
+                    rows.push(row);
+                  }
+
+                  var lastRow = [new Date(), row[1], undefined, undefined];
+
+                  rows.push(lastRow);
+
+                  data.addRows(rows);
+                  chart.draw(data, {
+                        displayAnnotations : true
+                      });
+
+                } else {
+                  GLOBAL.APP.CF.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+
+        me.familymaters.body.mask(&quot;Loading ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([&quot;Tree&quot;]),
+                name : Ext.JSON.encode([selection.name]),
+                elementType : Ext.JSON.encode([selection.elementType]),
+                statusType : Ext.JSON.encode([selection.statusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.familymaters.body.unmask();
+              },
+              success : function(response) {
+
+                me.familymaters.body.unmask();
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+                  var json = []
+
+                  for (var i = 1; i &lt; jsonData[&quot;result&quot;].length; i++) {
+                    if (jsonData[&quot;result&quot;][i][0] == null) {
+                      json.push({
+                            &quot;text&quot; : jsonData[&quot;result&quot;][i][1],
+                            &quot;id&quot; : i,
+                            &quot;leaf&quot; : true,
+                            &quot;iconCls&quot; : jsonData[&quot;result&quot;][i][2].toLowerCase(),
+                            &quot;html&quot; : &#39;#&#39;
+                          });
+                    } else {
+                      break
+                    }
+                  }
+
+                  var ces = []
+                  var ce = []
+                  var buffer = []
+
+                  for (var j = i + 1; j &lt; jsonData[&quot;result&quot;].length; j++) {
+
+                    if (jsonData[&quot;result&quot;][j][0] == &quot;ses&quot;) {
+                      ces.push({
+                            &quot;text&quot; : ce[0],
+                            &quot;id&quot; : 2000 + j,
+                            &quot;leaf&quot; : false,
+                            &quot;children&quot; : buffer
+                          });
+                      break;
+                    }
+
+                    if (jsonData[&quot;result&quot;][j][3] == &quot;ces&quot;) {
+                      if (ce.length != 0) {
+                        ces.push({
+                              &quot;text&quot; : ce[0],
+                              &quot;id&quot; : 2000 + j,
+                              &quot;leaf&quot; : false,
+                              &quot;children&quot; : buffer
+                            });
+                        buffer = []
+                        ce = [];
+                      }
+                      ce = jsonData[&quot;result&quot;][j]
+                    } else {
+                      buffer.push({
+                            &quot;text&quot; : jsonData[&quot;result&quot;][j][1],
+                            &quot;id&quot; : j,
+                            &quot;leaf&quot; : true,
+                            &quot;iconCls&quot; : jsonData[&quot;result&quot;][j][2].toLowerCase(),
+                            &quot;openResource&quot; : {
+                              &quot;element&quot; : &quot;Resource&quot;,
+                              &quot;name&quot; : ce[0],
+                              &quot;elementType&quot; : &quot;CE&quot;,
+                              &quot;statusType&quot; : jsonData[&quot;result&quot;][j][1]
+                            }
+                          });
+                    }
+                  }
+                  json.push({
+                        &quot;text&quot; : &quot;Computing Elements&quot;,
+                        &quot;id&quot; : 1000,
+                        &quot;leaf&quot; : false,
+                        &quot;children&quot; : ces
+                      });
+
+                  var ses = []
+                  var se = []
+                  buffer = []
+
+                  for (var k = j + 1; k &lt; jsonData[&quot;result&quot;].length; k++) {
+
+                    if (jsonData[&quot;result&quot;][k][3] == &quot;ses&quot;) {
+                      if (se.length != 0) {
+                        ses.push({
+                              &quot;text&quot; : se[0],
+                              &quot;id&quot; : 3000 + k,
+                              &quot;leaf&quot; : false,
+                              &quot;children&quot; : buffer
+                            });
+                        buffer = []
+                        se = [];
+                      }
+                      se = jsonData[&quot;result&quot;][k]
+                    } else {
+                      buffer.push({
+                            &quot;text&quot; : jsonData[&quot;result&quot;][k][1],
+                            &quot;id&quot; : k,
+                            &quot;leaf&quot; : true,
+                            &quot;iconCls&quot; : jsonData[&quot;result&quot;][k][2].toLowerCase(),
+                            &quot;openResource&quot; : {
+                              &quot;element&quot; : &quot;Resource&quot;,
+                              &quot;name&quot; : se[0],
+                              &quot;elementType&quot; : &quot;StorageElement&quot;,
+                              &quot;statusType&quot; : jsonData[&quot;result&quot;][k][1]
+                            }
+
+                          });
+                    }
+                  }
+
+                  ses.push({
+                        &quot;text&quot; : se[0],
+                        &quot;id&quot; : 3000 + k,
+                        &quot;leaf&quot; : false,
+                        &quot;children&quot; : buffer
+                      });
+                  json.push({
+                        &quot;text&quot; : &quot;Storage Elements&quot;,
+                        &quot;id&quot; : 5000,
+                        &quot;leaf&quot; : false,
+                        &quot;children&quot; : ses
+                      });
+
+                  siteName = jsonData[&quot;result&quot;][0][0]
+                  var rootNode = {
+                    expanded : true,
+                    text : siteName,
+                    children : json
+                  };
+                  me.treeStore.setRootNode(rootNode);
+                } else {
+                  GLOBAL.APP.CF.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+
+      },
+      __statusValue : function(statusName) {
+        if (statusName == &#39;Error&#39;)
+          return 0;
+        else if (statusName == &#39;Banned&#39;)
+          return 1;
+        else if (statusName == &#39;Probing&#39;)
+          return 2;
+        else if (statusName == &#39;Degraded&#39;)
+          return 3;
+        else if (statusName == &#39;Active&#39;)
+          return 4;
+        else
+          return -1;
+      }
+
+    });
+</pre>
+</body>
+</html>

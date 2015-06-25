@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-core-App'>/**
+</span> * @class Ext.dirac.core.App This class manages the entire application platform
+ * @mixins Ext.util.Observable
+ * 
+ */
+
+Ext.define(&#39;Ext.dirac.core.App&#39;, {
+	mixins : {
+		observable : &#39;Ext.util.Observable&#39;,
+		fileLoader : &#39;Ext.dirac.utils.DiracFileLoad&#39;
+	},
+
+	requires : [ &#39;Ext.container.Viewport&#39;, &#39;Ext.window.MessageBox&#39;, &#39;Ext.dirac.core.CommonFunctions&#39;, &#39;Ext.dirac.core.StateManagement&#39; ],
+
+<span id='Ext-dirac-core-App-property-isReady'>	/**
+</span>	 * @property {boolean} isReady
+	 */
+	isReady : false,
+
+<span id='Ext-dirac-core-App-property-validApplications'>	validApplications : {},
+</span>
+<span id='Ext-dirac-core-App-method-constructor'>	constructor : function() {
+</span>
+		var me = this;
+
+		me.mixins.observable.constructor.call(this, undefined);
+
+		Ext.dirac.system_info = function() {
+			var msgCt;
+
+			function createBox(t, s) {
+				return &#39;&lt;div class=&quot;msg&quot;&gt;&lt;h3&gt;&#39; + t + &#39;&lt;/h3&gt;&lt;p&gt;&#39; + s + &#39;&lt;/p&gt;&lt;/div&gt;&#39;;
+			}
+			return {
+				msg : function(title, format) {
+					if (!msgCt) {
+						msgCt = Ext.DomHelper.insertFirst(document.body, {
+							id : &#39;msg-div&#39;
+						}, true);
+					}
+					var s = Ext.String.format.apply(String, Array.prototype.slice.call(arguments, 1));
+					var m = Ext.DomHelper.append(msgCt, createBox(title, s), true);
+					m.hide();
+					m.slideIn(&#39;t&#39;).ghost(&quot;t&quot;, {
+						delay : 2000,
+						remove : true
+					});
+
+				},
+
+				init : function() {
+					if (!msgCt) {
+						// It&#39;s better to create the msg-div here in order to
+						// avoid re-layouts
+						// later that could interfere with the HtmlEditor and
+						// reset its iFrame.
+						msgCt = Ext.DomHelper.insertFirst(document.body, {
+							id : &#39;msg-div&#39;
+						}, true);
+					}
+				}
+			};
+		}();
+    
+    
+		/*
+		 * Getting the configuration data from the server
+		 */
+		Ext.Ajax.request({
+			url : GLOBAL.BASE_URL + &#39;getConfigData&#39;,
+			params : {},
+			scope : me,
+			success : function(response) {
+
+				var configData = Ext.JSON.decode(response.responseText);
+
+				me.configData = configData;
+
+				/*
+				 * After the config data are being received from the server, we have to
+				 * extract the list of valid application that a user can start through
+				 * the start menu
+				 */
+
+				me.__readValidApplication();
+
+				/*
+				 * After the valid applications have been extracted, the initialization
+				 * method has to be called
+				 */
+				if (Ext.isReady) {
+					Ext.Function.defer(me.__init, 10, me);
+				} else {
+					Ext.onReady(me.__init, me);
+				}
+			},
+			failure : function(response) {
+
+				GLOBAL.APP.CF.showAjaxErrorMessage(response);
+        
+			}
+		});
+
+		/*
+		 * Creating an object providing common functions
+		 */
+		me.CF = new Ext.dirac.core.CommonFunctions();
+
+		/*
+		 * Creating an object for state management
+		 */
+		me.SM = new Ext.dirac.core.StateManagement();
+
+		GLOBAL.IS_IE = document.all ? true : false
+
+		/*
+		 * Starting capturing the X, Y coordinates of the mouse cursor
+		 */
+		// If NS -- that is, !IE -- then set up for mouse capture
+		if (!GLOBAL.IS_IE)
+			document.captureEvents(Event.MOUSEMOVE)
+
+			// Set-up to use getMouseXY function onMouseMove
+		document.onmousemove = me.__getMouseXY;
+    
+    Ext.dirac.system_info = me.CF;
+
+		me.callParent();
+
+	},
+
+<span id='Ext-dirac-core-App-method-__getMouseXY'>	/**
+</span>	 * @private Function to be called when the mouse changes its position
+	 * @param e
+	 */
+	__getMouseXY : function(e) {
+
+		if (GLOBAL.IS_IE) { // grab the x-y pos.s if browser is IE
+			GLOBAL.MOUSE_X = event.clientX + document.body.scrollLeft
+			GLOBAL.MOUSE_Y = event.clientY + document.body.scrollTop
+		} else { // grab the x-y pos.s if browser is NS
+			GLOBAL.MOUSE_X = e.pageX
+			GLOBAL.MOUSE_Y = e.pageY
+		}
+		// catch possible negative values in NS4
+		if (GLOBAL.MOUSE_X &lt; 0) {
+			GLOBAL.MOUSE_X = 0
+		}
+		if (GLOBAL.MOUSE_Y &lt; 0) {
+			GLOBAL.MOUSE_Y = 0
+		}
+
+		return true
+	},
+
+<span id='Ext-dirac-core-App-method-__readValidApplication'>	/**
+</span>	 * @private Function used to extract a list of valid applications out of the
+	 *          config data
+	 */
+	__readValidApplication : function() {
+
+		var me = this;
+
+		for ( var i = 0; i &lt; me.configData[&quot;menu&quot;].length; i++)
+			me.__getAppRecursivelyFromConfig(GLOBAL.APP.configData[&quot;menu&quot;][i]);
+
+	},
+
+<span id='Ext-dirac-core-App-method-__getAppRecursivelyFromConfig'>	/**
+</span>	 * @private Main recursive function used to extract the names of the valid
+	 *          applications
+	 */
+	__getAppRecursivelyFromConfig : function(item) {
+
+		var me = this;
+
+		if (item.length == 2) {
+
+			for ( var i = 0; i &lt; item[1].length; i++) {
+				me.__getAppRecursivelyFromConfig(item[1][i]);
+			}
+
+		} else {
+			if (item[0] == &quot;app&quot;) {
+
+				var oParts = item[2].split(&quot;.&quot;);
+
+				var sStartClass = &quot;&quot;;
+				if (oParts.length == 2)
+					sStartClass = item[2] + &quot;.classes.&quot; + oParts[1];
+				else
+					sStartClass = item[2];
+
+				me.validApplications[sStartClass] = item[1];
+
+			}
+
+		}
+
+	},
+
+<span id='Ext-dirac-core-App-method-__init'>	/**
+</span>	 * @private Initialization function setting the desktop
+	 */
+	__init : function() {
+
+		var me = this, desktopCfg;
+
+		Ext.QuickTips.init();
+
+		/*
+		 * Creating the main desktop obbject
+		 */
+
+		me.MAIN_VIEW = null;
+
+		/*
+		 * Creating the desktop object
+		 */
+
+		var oConfig = {
+			enabled : true,
+			paths : {}
+		};
+
+		oConfig[&quot;paths&quot;][&quot;Ext.dirac.views.&quot; + GLOBAL.VIEW_ID] = &quot;static/core/js/views/&quot; + GLOBAL.VIEW_ID;
+
+		Ext.Loader.setConfig(oConfig);
+		
+		
+		Ext.require(&quot;Ext.dirac.views.&quot; + GLOBAL.VIEW_ID + &quot;.Main&quot;, function() {
+			
+			me.MAIN_VIEW = Ext.create(&quot;Ext.dirac.views.&quot; + GLOBAL.VIEW_ID + &quot;.Main&quot;, {});
+			
+			me.viewport = new Ext.container.Viewport({
+				layout : &#39;fit&#39;,
+				items : [ me.MAIN_VIEW ]
+			});
+
+			Ext.EventManager.on(window, &#39;beforeunload&#39;, me.onUnload, me);
+
+			me.isReady = true;// only if there is no desktop state loaded
+			me.fireEvent(&#39;ready&#39;, me);
+			
+		});
+		
+	},
+
+<span id='Ext-dirac-core-App-method-isValidApplication'>	/**
+</span>	 * Function that is used to check whether an application is valid or not
+	 * 
+	 * @param {String}
+	 *          sAppName The class name of the application
+	 * @return {Boolean}
+	 */
+	isValidApplication : function(sAppName) {
+
+		return (sAppName in this.validApplications);
+
+	},
+
+<span id='Ext-dirac-core-App-method-getApplicationTitle'>	/**
+</span>	 * Function that is used to get the title of an application
+	 * 
+	 * @param {String}
+	 *          sAppName The class name of the application
+	 * @return {String}
+	 */
+	getApplicationTitle : function(sAppName) {
+
+		if (sAppName in this.validApplications) {
+			return this.validApplications[sAppName];
+		} else {
+			return &quot;DESKTOP&quot;;
+		}
+
+	},
+
+<span id='Ext-dirac-core-App-method-getDesktop'>	/**
+</span>	 * Function that is used to get a reference to the desktop object
+	 * 
+	 * @return {Ext.dirac.core.AppView}
+	 * 
+	 */
+	getDesktop : function() {
+		return this.MAIN_VIEW;
+	},
+
+<span id='Ext-dirac-core-App-method-onReady'>	onReady : function(fn, scope) {
+</span>		if (this.isReady) {
+			fn.call(scope, this);
+		} else {
+			this.on({
+				ready : fn,
+				scope : scope,
+				single : true
+			});
+		}
+	},
+
+<span id='Ext-dirac-core-App-method-onUnload'>	onUnload : function(e) {
+</span>		if (this.fireEvent(&#39;beforeunload&#39;, this) === false) {
+			e.stopEvent();
+		}
+	}
+
+});
+</pre>
+</body>
+</html>

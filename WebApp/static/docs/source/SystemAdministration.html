@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;DIRAC.SystemAdministration.classes.SystemAdministration&#39;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+
+      requires : [&#39;Ext.tab.Panel&#39;, &#39;Ext.ProgressBar&#39;, &#39;Ext.grid.feature.Grouping&#39;, &#39;Ext.data.ArrayStore&#39;, &#39;Ext.util.TaskRunner&#39;, &#39;Ext.dirac.utils.DiracJsonStore&#39;, &#39;Ext.dirac.utils.DiracAjaxProxy&#39;, &#39;Ext.dirac.utils.Printer&#39;, &#39;Ext.dirac.utils.DiracBaseSelector&#39;],
+
+      initComponent : function() {
+
+        var me = this;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          me.launcher.title = &quot;System Administration&quot;;
+          me.launcher.maximized = false;
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1];
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        if (GLOBAL.VIEW_ID == &quot;tabs&quot;) {
+
+          me.launcher.title = &quot;System Administration&quot;;
+          me.launcher.maximized = false;
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1];
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;border&#39;,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true,
+                bodyPadding : 5
+              }
+            });
+
+        me.callParent(arguments);
+
+      },
+
+      loadState : function(data) {
+        var me = this;
+
+        me.locationGrid.loadState(data);
+
+        me.leftPanel.loadState(data);
+
+        if (!data.leftPanelCollapsed) {
+
+          me.leftPanel.expand();
+
+        }
+
+        if (!data.locationGridCollapsed) {
+
+          me.locationGrid.expand();
+        }
+
+        if (data.systemInfoGridCollapsed) {
+          me.systemInfoGrid.collapse();
+        }
+
+      },
+
+      getStateData : function() {
+        var me = this;
+        var states = {};
+
+        states = {
+          grid : me.locationGrid.getStateData(),
+          leftMenu : me.leftPanel.getStateData()
+        };
+
+        states.leftPanelCollapsed = me.leftPanel.collapsed;
+        states.locationGridCollapsed = me.locationGrid.collapsed;
+        states.systemInfoGridCollapsed = me.systemInfoGrid.collapsed;
+
+        return states;
+      },
+
+      buildUI : function() {
+
+        var me = this;
+
+        me.systemInfoDataStore = new Ext.data.JsonStore({
+
+              proxy : {
+                type : &#39;ajax&#39;,
+                url : GLOBAL.BASE_URL + &#39;SystemAdministration/getSysInfo&#39;,
+                reader : {
+                  type : &#39;json&#39;,
+                  root : &#39;result&#39;
+                },
+                timeout : 1800000,
+                autoLoad : true
+              },
+              autoLoad : true,
+              fields : [{
+                    name : &#39;Host&#39;
+                  }, {
+                    name : &#39;Status&#39;
+                  }, {
+                    name : &#39;DIRAC&#39;
+                  }, {
+                    name : &#39;Load1&#39;
+                  }, {
+                    name : &#39;Load5&#39;
+                  }, {
+                    name : &#39;Load15&#39;
+                  }, {
+                    name : &#39;Memory&#39;
+                  }, {
+                    name : &#39;Disk&#39;
+                  }, {
+                    name : &#39;Swap&#39;
+                  }, {
+                    name : &#39;CPUClock&#39;
+                  }, {
+                    name : &#39;CPUModel&#39;
+                  }, {
+                    name : &#39;CertificateDN&#39;
+                  }, {
+                    name : &#39;CertificateIssuer&#39;
+                  }, {
+                    name : &#39;CertificateValidity&#39;
+                  }, {
+                    name : &#39;Cores&#39;
+                  }, {
+                    name : &#39;PhysicalCores&#39;
+                  }, {
+                    name : &#39;OpenFiles&#39;
+                  }, {
+                    name : &#39;OpenPipes&#39;
+                  }, {
+                    name : &#39;OpenSockets&#39;
+                  }, {
+                    name : &#39;Setup&#39;
+                  }, {
+                    name : &#39;Uptime&#39;
+                  }],
+              remoteSort : true,
+              pageSize : 100,
+              createTabsOnce : false,
+              listeners : {
+
+                load : function(oStore, records, successful, eOpts) {
+
+                  var bResponseOK = (oStore.proxy.reader.rawData[&quot;success&quot;] == &quot;true&quot;);
+
+                  if (!bResponseOK) {
+
+                    if (parseInt(oStore.proxy.reader.rawData[&quot;total&quot;]) == 0) {
+
+                      me.systemInfoDataStore.removeAll();
+
+                    }
+
+                  } else {
+
+                    if (&quot;updateStamp&quot; in oStore) {
+                      if (&quot;date&quot; in oStore.proxy.reader.rawData)
+                        oStore.updateStamp.setText(&#39;Updated: &#39; + oStore.proxy.reader.rawData[&quot;date&quot;]);
+                      else
+                        oStore.updateStamp.setText(me.getUtcDate());
+                    }
+
+                    me.systemInfoDataStore.remoteSort = false;
+                    me.systemInfoDataStore.sort();
+                    me.systemInfoDataStore.remoteSort = true;
+
+                  }
+
+                }
+
+              }
+            });
+
+        me.checkboxFunctionDefinition = &#39;&lt;input type=&quot;checkbox&quot; value=&quot;&quot; onchange=&quot;&#39;;
+        me.checkboxFunctionDefinition += &#39;var oChecked=this.checked;&#39;;
+        me.checkboxFunctionDefinition += &#39;var oElems=Ext.query(\&#39;#&#39; + me.id + &#39; input.checkrow\&#39;);&#39;;
+        me.checkboxFunctionDefinition += &#39;for(var i=0;i&lt;oElems.length;i++)oElems[i].checked = oChecked;&#39;;
+        me.checkboxFunctionDefinition += &#39;&quot; class=&quot;sa-main-check-box&quot;/&gt;&#39;;
+
+        var oGridButtonsToolbar = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+              dock : &#39;top&#39;,
+              items : [{
+                    xtype : &quot;button&quot;,
+                    text : &#39;Restart&#39;,
+                    handler : function() {
+                      me.oprHostAction(&quot;restart&quot;, 2);
+                    },
+                    iconCls : &quot;dirac-icon-restart&quot;,
+                    scope : me
+                  }, {
+                    text : &#39;Revert&#39;,
+                    handler : function() {
+                      me.oprHostAction(&quot;revert&quot;, 2);
+                    },
+                    iconCls : &quot;dirac-icon-revert&quot;,
+                    scope : me
+                  }, &#39;-&#39;]
+            });
+
+        if ((&quot;properties&quot; in GLOBAL.USER_CREDENTIALS) &amp;&amp; (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, &quot;AlarmsManagement&quot;) != -1)) {
+
+          oGridButtonsToolbar.add({
+                text : &#39;Send e-mail&#39;,
+                handler : function() {
+
+                  me.oprShowSendMessageForm(2);
+
+                },
+                scope : me,
+                iconCls : &quot;dirac-icon-mail&quot;
+              });
+
+        }
+
+        me.systemInfoGrid = Ext.create(&#39;Ext.grid.Panel&#39;, {
+              region : &#39;north&#39;,
+              title : &quot;Overall System Information&quot;,
+              store : me.systemInfoDataStore,
+              animCollapse : true,
+              height : 300,
+              minHeight : 100,
+              header : false,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              },
+              dockedItems : [oGridButtonsToolbar],
+              columns : [{
+                    header : me.checkboxFunctionDefinition,
+                    width : 26,
+                    sortable : false,
+                    dataIndex : &#39;Host&#39;,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererChkBox(value);
+                    },
+                    hideable : false,
+                    fixed : true,
+                    menuDisabled : true,
+                    align : &quot;center&quot;
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Host&#39;,
+                    header : &#39;Hostname&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Status&#39;,
+                    header : &#39;Status&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;DIRAC&#39;,
+                    header : &#39;Version&#39;,
+                    // renderer : releaseNotes,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Load1&#39;,
+                    header : &#39;Load 1 minute&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Load5&#39;,
+                    header : &#39;Load 5 minutes&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Load15&#39;,
+                    header : &#39;Load 15 minutes&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Memory&#39;,
+                    fixed : true,
+                    header : &#39;Memory&#39;,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererValueBar(value);
+                    },
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Disk&#39;,
+                    header : &#39;Disk&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Swap&#39;,
+                    fixed : true,
+                    header : &#39;Swap&#39;,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererValueBar(value);
+                    },
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;CPUClock&#39;,
+                    header : &#39;CPUClock&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;CPUModel&#39;,
+                    header : &#39;CPUModel&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;CertificateDN&#39;,
+                    header : &#39;CertificateDN&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;CertificateIssuer&#39;,
+                    header : &#39;CertificateIssuer&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;CertificateValidity&#39;,
+                    header : &#39;CertificateValidity&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Cores&#39;,
+                    header : &#39;Cores&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;PhysicalCores&#39;,
+                    header : &#39;PhysicalCores&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;OpenFiles&#39;,
+                    header : &#39;OpenFiles&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;OpenPipes&#39;,
+                    header : &#39;OpenPipes&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;OpenSockets&#39;,
+                    header : &#39;OpenSockets&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Setup&#39;,
+                    header : &#39;Setup&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Uptime&#39;,
+                    header : &#39;Uptime&#39;,
+                    sortable : true
+                  }],
+              rendererChkBox : function(val) {
+                return &#39;&lt;input value=&quot;&#39; + val + &#39;&quot; type=&quot;checkbox&quot; class=&quot;checkrow&quot; style=&quot;margin:0px;padding:0px&quot;/&gt;&#39;;
+              },
+              rendererValueBar : function(value) {
+
+                if (!value) {
+                  return;
+                }
+
+                var id = Ext.id();
+                var values = value.split(&#39;/&#39;);
+                var text = values[1];
+                var percent = values[0].replace(&#39;%&#39;, &#39;&#39;);
+
+                percent = percent.replace(&#39;.&#39;, &#39;&#39;);
+
+                if (percent.length &lt; 2) {
+                  percent = &#39;0&#39; + percent;
+                }
+
+                percent = &#39;.&#39; + percent;
+
+                var oFunc = function(id, text, percent) {
+                  new Ext.ProgressBar({
+                        height : 14,
+                        renderTo : id,
+                        text : text,
+                        value : percent,
+                        height : 18
+                      });
+                };
+
+                Ext.Function.defer(oFunc, 250, this, [id, text, percent]);
+
+                return &#39;&lt;span id=&quot;&#39; + id + &#39;&quot;&gt;&lt;/span&gt;&#39;;
+              },
+              listeners : {
+
+                beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                  e.preventDefault();
+                  me.overallContextMenu.showAt(e.xy);
+                  return false;
+                },
+
+                cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+
+                  if (cellIndex != 0) {
+                    me.hostGridStore.proxy.extraParams.hostname = record.get(&quot;Host&quot;);
+                    me.hostGridStore.load();
+                  }
+
+                }
+
+              }
+            });
+
+        me.createBottomGridToolbar(me.systemInfoGrid);
+
+        /*
+         * Creating the context menus
+         */
+
+        me.overallContextMenu = new Ext.menu.Menu({
+              items : [{
+                    handler : function() {
+                      me.oprHostAction(&quot;restart&quot;, 1);
+                    },
+                    text : &#39;Restart&#39;,
+                    iconCls : &quot;dirac-icon-restart&quot;
+                  }, {
+                    handler : function() {
+                      me.oprHostAction(&quot;revert&quot;, 1);
+                    },
+                    text : &#39;Revert&#39;,
+                    iconCls : &quot;dirac-icon-revert&quot;
+                  }, &#39;-&#39;, {
+                    handler : function() {
+                      me.oprGetHostErrors();
+                    },
+                    text : &#39;Show Errors&#39;,
+                    iconCls : &quot;dirac-icon-error&quot;
+                  }]
+            });
+
+        me.hostContextMenu = new Ext.menu.Menu({
+              items : [{
+                    handler : function() {
+                      var oRecord = this.up(&quot;menu&quot;).selected_record;
+                      me.oprGetHostLog(oRecord);
+                    },
+                    text : &#39;Log&#39;,
+                    iconCls : &quot;dirac-icon-log&quot;
+                  }, &#39;-&#39;, {
+                    handler : function() {
+                      me.oprComponentAction(&quot;restart&quot;, 1);
+                    },
+                    text : &#39;Restart&#39;,
+                    iconCls : &quot;dirac-icon-restart&quot;
+                  }, {
+                    handler : function() {
+                      me.oprComponentAction(&quot;stop&quot;, 1);
+                    },
+                    text : &#39;Stop&#39;,
+                    iconCls : &quot;dirac-icon-stop&quot;
+                  }, {
+                    handler : function() {
+                      var oGrid = this.up(&quot;menu&quot;).grid;
+                      me.oprComponentAction(&quot;start&quot;, 1);
+                    },
+                    text : &#39;Start&#39;,
+                    iconCls : &quot;dirac-icon-start&quot;
+                  }]
+            });
+
+        me.hostGridStore = new Ext.data.JsonStore({
+
+              proxy : {
+                type : &#39;ajax&#39;,
+                url : GLOBAL.BASE_URL + &#39;SystemAdministration/getHostData&#39;,
+                reader : {
+                  type : &#39;json&#39;,
+                  root : &#39;result&#39;
+                },
+                timeout : 1800000,
+                extraParams : {
+                  &quot;hostname&quot; : &quot;&quot;
+                }
+              },
+              groupField : &#39;Type&#39;,
+              fields : [{
+                    name : &#39;System&#39;
+                  }, {
+                    name : &#39;Host&#39;
+                  }, {
+                    name : &#39;Name&#39;
+                  }, {
+                    name : &#39;Setup&#39;
+                  }, {
+                    name : &#39;PID&#39;
+                  }, {
+                    name : &#39;RunitStatus&#39;
+                  }, {
+                    name : &#39;Module&#39;
+                  }, {
+                    name : &#39;Installed&#39;
+                  }, {
+                    name : &#39;Timeup&#39;
+                  }, {
+                    name : &#39;Type&#39;
+                  }],
+              remoteSort : true,
+              pageSize : 10000,
+              listeners : {
+
+                load : function(oStore, records, successful, eOpts) {
+
+                  var bResponseOK = (oStore.proxy.reader.rawData[&quot;success&quot;] == &quot;true&quot;);
+
+                  if (!bResponseOK) {
+
+                    GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData[&quot;error&quot;], &quot;error&quot;);
+
+                  } else {
+
+                    if (&quot;updateStamp&quot; in oStore) {
+                      if (&quot;date&quot; in oStore.proxy.reader.rawData)
+                        oStore.updateStamp.setText(&#39;Updated: &#39; + oStore.proxy.reader.rawData[&quot;date&quot;]);
+                      else
+                        oStore.updateStamp.setText(me.getUtcDate());
+                    }
+
+                  }
+
+                }
+
+              }
+            });
+
+        var sId = Ext.id();
+
+        var sHtml = &quot;&quot;;
+
+        sHtml += &#39;&lt;input type=&quot;checkbox&quot; value=&quot;&quot; onchange=&quot;&#39;;
+        sHtml += &#39;var oChecked=this.checked;&#39;;
+        sHtml += &#39;var oElems=Ext.query(\&#39;#&#39; + sId + &#39; input.checkrow\&#39;);&#39;;
+        sHtml += &#39;for(var i=0;i&lt;oElems.length;i++)oElems[i].checked = oChecked;&#39;;
+        sHtml += &#39;&quot; class=&quot;sa-main-check-box&quot;/&gt;&#39;;
+
+        var oGroupingFeature = Ext.create(&#39;Ext.grid.feature.Grouping&#39;, {
+              groupHeaderTpl : &#39;{columnName}: {name} ({rows.length} Item{[values.rows.length &gt; 1 ? &quot;s&quot; : &quot;&quot;]})&#39;,
+              hideGroupedHeader : true,
+              startCollapsed : false
+            });
+
+        var oGridButtonsToolbar = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+              dock : &#39;top&#39;,
+              items : [{
+                    xtype : &quot;button&quot;,
+                    text : &#39;Restart&#39;,
+                    iconCls : &quot;dirac-icon-restart&quot;,
+                    handler : function() {
+                      me.oprComponentAction(&quot;restart&quot;, 2);
+                    }
+                  }, {
+                    text : &#39;Start&#39;,
+                    iconCls : &quot;dirac-icon-start&quot;,
+                    handler : function() {
+                      me.moduleObject.oprComponentAction(&quot;start&quot;, 2);
+                    }
+                  }, {
+                    text : &#39;Stop&#39;,
+                    iconCls : &quot;dirac-icon-stop&quot;,
+                    handler : function() {
+                      me.moduleObject.oprComponentAction(&quot;stop&quot;, 2);
+                    }
+                  }]
+            });
+
+        me.hostGrid = Ext.create(&#39;Ext.grid.Panel&#39;, {
+              region : &quot;center&quot;,
+              collapsible : false,
+
+              store : me.hostGridStore,
+              header : false,
+              moduleObject : me,
+              height : 200,
+              minHeight : 120,
+              id : sId,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              },
+              features : [oGroupingFeature],
+              dockedItems : [oGridButtonsToolbar],
+              columns : [{
+                    header : sHtml,
+                    width : 26,
+                    sortable : false,
+                    dataIndex : &#39;System&#39;,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererChkBox(record.get(&quot;Name&quot;) + &quot;|||&quot; + record.get(&quot;Host&quot;) + &quot;|||&quot; + record.get(&quot;System&quot;));
+                    },
+                    hideable : false,
+                    fixed : true,
+                    menuDisabled : true,
+                    align : &quot;center&quot;
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;System&#39;,
+                    header : &#39;System&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Name&#39;,
+                    header : &#39;Name&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Module&#39;,
+                    header : &#39;Module&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Type&#39;,
+                    header : &#39;Type&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;RunitStatus&#39;,
+                    header : &#39;Status&#39;,
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;Timeup&#39;,
+                    header : &#39;Uptime&#39;,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererUptime(value, record);
+                    },
+                    sortable : true
+                  }, {
+                    align : &#39;left&#39;,
+                    dataIndex : &#39;PID&#39;,
+                    header : &#39;PID&#39;,
+                    sortable : true
+                  }],
+              rendererChkBox : function(val) {
+                return &#39;&lt;input value=&quot;&#39; + val + &#39;&quot; type=&quot;checkbox&quot; class=&quot;checkrow&quot; style=&quot;margin:0px;padding:0px&quot;/&gt;&#39;;
+              },
+              rendererUptime : function(value, record) {
+                if (record.get(&#39;RunitStatus&#39;) != &#39;Run&#39;) {
+                  return &#39;&lt;b&gt;&amp;mdash;&lt;/b&gt;&#39;;
+                }
+                if (value &lt; 30) {
+                  return &#39;&lt;b style=&quot;color:#FF3300&quot;&gt;&#39; + value + &#39;&lt;/b&gt;&#39;;
+                }
+                if (value &lt; (60 * 5)) {
+                  return &#39;&lt;b style=&quot;color:#FFCC00&quot;&gt;&#39; + value + &#39;&lt;/b&gt;&#39;;
+                }
+                if (value &lt; (60 * 10)) {
+                  return &#39;&lt;b style=&quot;color:#00CC00&quot;&gt;&#39; + value + &#39;&lt;/b&gt;&#39;;
+                }
+                return value;
+              },
+              listeners : {
+
+                beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+
+                  e.preventDefault();
+                  me.hostContextMenu.selected_record = record;
+
+                  me.hostContextMenu.showAt(e.xy);
+                  return false;
+                }
+
+              }
+            });
+
+        me.createBottomGridToolbar(me.hostGrid);
+
+        var selectors = {
+          ComponentModule : &quot;Component Module&quot;,
+          ComponentName : &quot;Component Name&quot;,
+          Hosts : &quot;Hosts&quot;
+        };
+
+        var map = [[&quot;ComponentModule&quot;, &quot;ComponentModule&quot;], [&quot;ComponentName&quot;, &quot;ComponentName&quot;], [&quot;Hosts&quot;, &quot;Hosts&quot;]];
+
+        me.leftPanel = Ext.create(&#39;Ext.dirac.utils.DiracBaseSelector&#39;, {
+              scope : me,
+              cmbSelectors : selectors,
+              datamap : map,
+              url : me.applicationName + &#39;/getSelectionData&#39;,
+              hasTimeSearchPanel : false,
+              panelButtons : false,
+              title : &#39;Search&#39;,
+              floatable : false,
+              // header : false,
+              collapsed : true,
+              margins : &#39;0&#39;,
+              width : 350,
+              minWidth : 100,
+              maxWidth : 450,
+              // bodyPadding : 5,
+              autoScroll : true
+            });
+
+        // Buttons at the top of the panel
+        var selButtons = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+              dock : &#39;bottom&#39;,
+              layout : {
+                pack : &#39;center&#39;
+              },
+              items : []
+            });
+
+        var btnapply = new Ext.Button({
+              text : &#39;Show hosts&#39;,
+              margin : 3,
+              iconCls : &quot;dirac-icon-submit&quot;,
+              handler : function() {
+                me.__getHosts();
+              },
+              scope : me
+
+            });
+
+        selButtons.add(btnapply);
+
+        me.leftPanel.addDocked(selButtons);
+
+        me.chkBoxes = Ext.create(&#39;Ext.form.Panel&#39;, {
+              bodyPadding : 10,
+              items : [{
+                    xtype : &#39;checkboxgroup&#39;,
+                    fieldLabel : &#39;Component Type&#39;,
+                    columns : 1,
+                    vertical : true,
+                    items : [{
+                          boxLabel : &#39;Services&#39;,
+                          name : &#39;Services&#39;,
+                          inputValue : &#39;1&#39;,
+                          checked : true,
+                          handler : function() {
+                            me.__loadSelectionData();
+                          }
+                        }, {
+                          boxLabel : &#39;Agents&#39;,
+                          name : &#39;Agents&#39;,
+                          inputValue : &#39;2&#39;,
+                          checked : true,
+                          handler : function() {
+                            me.__loadSelectionData();
+                          }
+                        }]
+                  }]
+            });
+
+        var hostColumns = {
+          &quot;Host&quot; : {
+            &quot;dataIndex&quot; : &quot;Host&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;ComponentModule&quot; : {
+            &quot;dataIndex&quot; : &quot;ComponentModule&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;ComponentName&quot; : {
+            &quot;dataIndex&quot; : &quot;ComponentName&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+
+          &quot;Description&quot; : {
+            &quot;dataIndex&quot; : &quot;Description&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;Setup&quot; : {
+            &quot;dataIndex&quot; : &quot;Setup&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;Port&quot; : {
+            &quot;dataIndex&quot; : &quot;Port&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;Type&quot; : {
+            &quot;dataIndex&quot; : &quot;Type&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;Status&quot; : {
+            &quot;dataIndex&quot; : &quot;Status&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;LastHeartbeat&quot; : {
+            &quot;dataIndex&quot; : &quot;LastHeartbeat&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;LoggingState&quot; : {
+            &quot;dataIndex&quot; : &quot;LoggingState&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;Version&quot; : {
+            &quot;dataIndex&quot; : &quot;Version&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;Platform&quot; : {
+            &quot;dataIndex&quot; : &quot;Platform&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;DIRACVersion&quot; : {
+            &quot;dataIndex&quot; : &quot;DIRACVersion&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;VersionTimestamp&quot; : {
+            &quot;dataIndex&quot; : &quot;VersionTimestamp&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;StartTime&quot; : {
+            &quot;dataIndex&quot; : &quot;StartTime&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;Queries&quot; : {
+            &quot;dataIndex&quot; : &quot;queries&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          },
+          &quot;Cycles&quot; : {
+            &quot;dataIndex&quot; : &quot;cycles&quot;,
+            renderer : function(value, metaData, record, row, col, store, gridView) {
+              return me.rendererGridColumn(value, record);
+            }
+          }
+
+        };
+
+        var hostProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/ComponentLocation&#39;,
+              extraParams : me.getSelectedData(),
+              autoLoad : false
+            });
+
+        me.hostsStore = Ext.create(&quot;Ext.dirac.utils.DiracJsonStore&quot;, {
+              proxy : hostProxy,
+              groupField : &#39;ComponentModule&#39;,
+              autoLoad : false,
+              fields : [{
+                    name : &#39;Host&#39;
+                  }, {
+                    name : &#39;Status&#39;
+                  }, {
+                    name : &#39;LoggingState&#39;
+                  }, {
+                    name : &#39;Version&#39;
+                  }, {
+                    name : &#39;Description&#39;
+                  }, {
+                    name : &#39;ComponentModule&#39;
+                  }, {
+                    name : &#39;ComponentName&#39;
+                  }, {
+                    name : &#39;Setup&#39;
+                  }, {
+                    name : &#39;Port&#39;
+                  }, {
+                    name : &#39;Platform&#39;
+                  }, {
+                    name : &#39;DIRACVersion&#39;
+                  }, {
+                    name : &#39;VersionTimestamp&#39;
+                  }, {
+                    name : &#39;StartTime&#39;
+                  }, {
+                    name : &#39;queries&#39;
+                  }, {
+                    name : &#39;cycles&#39;
+                  }, {
+                    name : &#39;Type&#39;
+                  }, {
+                    name : &#39;LastHeartbeat&#39;
+                  }],
+              scope : me
+            });
+
+        me.showAll = Ext.create(&#39;Ext.button.Button&#39;, {
+              text : &#39;ShowAll&#39;,
+              value : 0,
+              handler : function() {
+                me.showAll.value = 1;
+                me.showActive.show();
+                me.showAll.hide();
+                me.__getHosts(true);
+
+              }
+            });
+        me.showActive = Ext.create(&#39;Ext.button.Button&#39;, {
+              hidden : true,
+              text : &#39;Show active&#39;,
+              handler : function() {
+                me.showAll.value = 0;
+                me.showActive.hide();
+                me.showAll.show();
+                me.__getHosts(false);
+
+              }
+            });
+        me.locationGrid = Ext.create(&#39;Ext.dirac.utils.DiracGridPanel&#39;, {
+              region : &quot;south&quot;,
+              title : &#39;Reduced Overview&#39;,
+              collapsed : true,
+              store : me.hostsStore,
+              oColumns : hostColumns,
+              height : 200,
+              minHeight : 90,
+              maxHeight : 400,
+              features : [{
+                    ftype : &#39;grouping&#39;
+                  }],
+              scope : me,
+              listeners : {
+                cellclick : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+
+                  me.hostGridStore.proxy.extraParams.hostname = record.get(&quot;Host&quot;);
+                  me.hostGridStore.load();
+
+                }
+              },
+
+              tbar : [{
+                    text : &#39;Print&#39;,
+                    iconCls : &#39;dirac-icon-print&#39;,
+                    handler : function() {
+                      Ext.dirac.utils.Printer.printAutomatically = false;
+                      Ext.dirac.utils.Printer.print(me.locationGrid);
+                    }
+                  }, me.showAll, me.showActive]
+
+            });
+
+        me.locationGrid.store.sort([{
+              property : &#39;LastHeartbeat&#39;,
+              direction : &#39;DESC&#39;
+            }]);
+        me.leftPanel.setGrid(me.locationGrid);
+        me.leftPanel.add([me.chkBoxes, me.cmbModules, me.cmbSystems]);
+        me.add([me.systemInfoGrid, me.hostGrid, me.leftPanel, me.locationGrid]);
+
+      },
+
+      oprGetHostLog : function(oRecord) {
+
+        var me = this;
+        var sHostName = oRecord.get(&quot;Host&quot;);
+        var sComponent = oRecord.get(&quot;Name&quot;);
+        var sSystem = oRecord.get(&quot;System&quot;);
+        me.getContainer().body.mask(&quot;Wait ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;SystemAdministration/getHostLog&#39;,
+              params : {
+                component : sComponent,
+                host : sHostName,
+                system : sSystem
+              },
+              scope : me,
+              success : function(response) {
+
+                var me = this;
+                var response = Ext.JSON.decode(response.responseText);
+                me.getContainer().body.unmask();
+                if (response[&quot;success&quot;] == &quot;true&quot;) {
+                  response[&quot;result&quot;] = response[&quot;result&quot;].replace(new RegExp(&quot;&lt;br&gt;&quot;, &#39;g&#39;), &quot;\n&quot;);
+                  me.__oprPrepareAndShowWindowText(response[&quot;result&quot;], &quot;Log file for: &quot; + sComponent + &quot;/&quot; + sSystem + &quot;@&quot; + sHostName);
+                } else {
+
+                  GLOBAL.APP.CF.alert(response[&quot;error&quot;], &quot;error&quot;);
+
+                }
+
+              },
+              failure : function(response) {
+                me.getContainer().body.unmask();
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              }
+            });
+
+      },
+
+      oprGetHostErrors : function() {
+
+        var me = this;
+
+        var sHostName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.systemInfoGrid, &quot;Host&quot;);
+        me.getContainer().body.mask(&quot;Wait ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;SystemAdministration/getHostErrors&#39;,
+              params : {
+                host : sHostName
+              },
+              scope : me,
+              success : function(response) {
+
+                var me = this;
+                var response = Ext.JSON.decode(response.responseText);
+                me.getContainer().body.unmask();
+
+                if (response[&quot;success&quot;] == &quot;true&quot;) {
+
+                  me.__oprPrepareAndShowWindowGrid(response[&quot;result&quot;], &quot;Show errors for:&quot; + sHostName, [&quot;Name&quot;, &quot;ErrorsHour&quot;, &quot;System&quot;, &quot;ErrorsDay&quot;, &quot;Host&quot;, &quot;LastError&quot;], [{
+                            text : &#39;System&#39;,
+                            sortable : false,
+                            dataIndex : &#39;System&#39;
+                          }, {
+                            text : &#39;Component&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Name&#39;
+                          }, {
+                            text : &#39;Errors per day&#39;,
+                            sortable : false,
+                            dataIndex : &#39;ErrorsDay&#39;
+                          }, {
+                            text : &#39;Errors per hour&#39;,
+                            sortable : false,
+                            dataIndex : &#39;ErrorsHour&#39;
+                          }, {
+                            text : &#39;Last Error&#39;,
+                            sortable : false,
+                            dataIndex : &#39;LastError&#39;,
+                            flex : 1
+                          }]);
+
+                } else {
+
+                  GLOBAL.APP.CF.alert(response[&quot;error&quot;], &quot;error&quot;);
+
+                }
+
+              },
+              failure : function(response) {
+                me.getContainer().body.unmask();
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              }
+            });
+
+      },
+
+      __oprPrepareAndShowWindowText : function(sTextToShow, sTitle) {
+
+        var me = this;
+
+        var oWindow = me.getContainer().createChildWindow(sTitle, false, 800, 500);
+
+        var oTextArea = new Ext.create(&#39;Ext.form.field.TextArea&#39;, {
+              value : sTextToShow,
+              cls : &quot;sa-textbox-help-window&quot;
+            });
+
+        oWindow.add(oTextArea);
+        oWindow.show();
+
+      },
+
+      __oprPrepareAndShowWindowGrid : function(oData, sTitle, oFields, oColumns) {
+
+        var me = this;
+
+        var oStore = new Ext.data.JsonStore({
+              fields : oFields,
+              data : oData
+            });
+
+        var oWindow = me.getContainer().createChildWindow(sTitle, false, 800, 500);
+
+        var oGrid = Ext.create(&#39;Ext.grid.Panel&#39;, {
+              store : oStore,
+              columns : oColumns,
+              width : &#39;100%&#39;,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              }
+            });
+
+        oWindow.add(oGrid);
+        oWindow.show();
+
+      },
+
+      oprHostAction : function(sAction, sEventSource) {
+
+        var me = this;
+        var sHost = &quot;&quot;;
+
+        if (sEventSource == 1) {
+
+          sHost = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.systemInfoGrid, &quot;Host&quot;);
+
+        } else {
+
+          // collect all selected
+          var oItems = [];
+          var oElems = Ext.query(&quot;#&quot; + me.systemInfoGrid.id + &quot; input.checkrow&quot;);
+
+          for (var i = 0; i &lt; oElems.length; i++)
+            if (oElems[i].checked)
+              oItems.push(oElems[i].value);
+
+          if (oItems.length &lt; 1) {
+            GLOBAL.APP.CF.alert(&#39;No hosts were selected&#39;, &quot;error&quot;);
+            return;
+          }
+
+          sHost = oItems.join(&quot;,&quot;);
+
+        }
+
+        me.getContainer().body.mask(&quot;Wait ...&quot;);
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;SystemAdministration/hostAction&#39;,
+              params : {
+                action : sAction,
+                host : sHost
+              },
+              scope : me,
+              success : function(response) {
+
+                var me = this;
+                var response = Ext.JSON.decode(response.responseText);
+
+                me.getContainer().body.unmask();
+                if (response[&quot;success&quot;] == &quot;true&quot;) {
+
+                  GLOBAL.APP.CF.alert(response[&quot;result&quot;], &quot;info&quot;);
+
+                } else {
+
+                  GLOBAL.APP.CF.alert(response[&quot;error&quot;], &quot;error&quot;);
+
+                }
+
+              },
+              failure : function(response) {
+                me.getContainer().body.unmask();
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              }
+            });
+
+      },
+
+      oprComponentAction : function(sAction, sEventSource) {
+
+        var me = this;
+
+        var oParams = {
+          action : sAction
+        }
+
+        if (sEventSource == 1) {
+
+          var sHost = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.hostGrid, &quot;Host&quot;);
+          var sName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.hostGrid, &quot;Name&quot;);
+          var sSystem = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.hostGrid, &quot;System&quot;);
+
+          oParams[sName + &quot;@&quot; + sHost] = [sSystem];
+
+        } else {
+
+          var oElems = Ext.query(&quot;#&quot; + me.hostGrid.id + &quot; input.checkrow&quot;);
+          var iNumberSelected = 0;
+          for (var i = 0; i &lt; oElems.length; i++)
+            if (oElems[i].checked) {
+              iNumberSelected++;
+              var oVal = oElems[i].value.split(&quot;|||&quot;);
+              var sTarget = oVal[0] + &#39; @ &#39; + oVal[1];
+              if (!oParams[sTarget]) {
+                oParams[sTarget] = [];
+              }
+
+              oParams[sTarget].push(oVal[2]);
+            }
+
+          if (iNumberSelected == 0) {
+            GLOBAL.APP.CF.alert(&#39;No components were selected&#39;, &quot;error&quot;);
+            return;
+          }
+
+        }
+
+        me.getContainer().body.mask(&quot;Wait ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;SystemAdministration/componentAction&#39;,
+              params : oParams,
+              scope : me,
+              success : function(response) {
+
+                var me = this;
+                var response = Ext.JSON.decode(response.responseText);
+
+                me.getContainer().body.unmask();
+                if (response[&quot;success&quot;] == &quot;true&quot;) {
+
+                  GLOBAL.APP.CF.alert(response[&quot;result&quot;], &quot;info&quot;);
+
+                } else {
+
+                  GLOBAL.APP.CF.alert(response[&quot;error&quot;], &quot;error&quot;);
+
+                }
+
+              },
+              failure : function(response) {
+                me.getContainer().body.unmask();
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              }
+            });
+
+      },
+
+      createBottomGridToolbar : function(oGrid) {
+        var oToolbarItems = [&#39;-&#39;];
+
+        var oTask = {
+          run : function() {
+            oGrid.getStore().load();
+          },
+          interval : 0
+        }
+
+        var oHeartbeat = new Ext.util.TaskRunner();
+
+        var oAutoMenu = [{
+              handler : function() {
+                this.setChecked(true);
+                oHeartbeat.start(Ext.apply(oTask, {
+                      interval : 900000
+                    }));
+              },
+              group : &#39;refresh&#39;,
+              text : &#39;15 Minutes&#39;
+            }, {
+              handler : function() {
+                this.setChecked(true);
+                oHeartbeat.start(Ext.apply(oTask, {
+                      interval : 1800000
+                    }));
+              },
+              group : &#39;refresh&#39;,
+              text : &#39;30 Minutes&#39;
+            }, {
+              handler : function() {
+                this.setChecked(true);
+                oHeartbeat.start(Ext.apply(oTask, {
+                      interval : 3600000
+                    }));
+              },
+              group : &#39;refresh&#39;,
+              text : &#39;One Hour&#39;
+            }, {
+              checked : true,
+              handler : function() {
+                this.setChecked(true);
+                oHeartbeat.stopAll();
+              },
+              group : &#39;refresh&#39;,
+              text : &#39;Disabled&#39;
+            }];
+
+        for (var i = 0; i &lt; oAutoMenu.length; i++) {
+          oAutoMenu[i] = new Ext.menu.CheckItem(oAutoMenu[i]);
+        }
+
+        var btnAutorefresh = new Ext.Button({
+              menu : oAutoMenu,
+              text : &#39;Disabled&#39;,
+              tooltip : &#39;Click to set the time for autorefresh&#39;
+            });
+
+        btnAutorefresh.on(&#39;menuhide&#39;, function(button, menu) {
+              var length = menu.items.getCount();
+              for (var i = 0; i &lt; length; i++) {
+                if (menu.items.items[i].checked) {
+                  button.setText(menu.items.items[i].text);
+                }
+              }
+            });
+
+        oToolbarItems.push(&#39;Auto:&#39;);
+        oToolbarItems.push(btnAutorefresh);
+
+        var btnUpdateStamp = new Ext.Button({
+              disabled : true,
+              disabledClass : &#39;my-disabled&#39;,
+              text : &#39;Updated: -&#39;
+            });
+
+        oGrid.getStore().updateStamp = btnUpdateStamp;
+
+        oToolbarItems.push(btnUpdateStamp);
+
+        var oBbar = new Ext.PagingToolbar({
+              dock : &quot;bottom&quot;,
+              displayInfo : true,
+              items : oToolbarItems,
+              pageSize : 10000,
+              refreshText : &#39;Click to refresh current page&#39;,
+              store : oGrid.getStore()
+            });
+
+        // hiding the first ten elemnts of the items
+
+        for (var i = 0; i &lt; 10; i++)
+          oBbar.items.removeAt(0);
+
+        oGrid.addDocked(oBbar);
+
+      },
+
+      getUtcDate : function() {
+        var d = new Date();
+
+        var hh = d.getUTCHours();
+        if (hh &lt; 10) {
+          hh = &#39;0&#39; + hh;
+        }
+
+        var mm = d.getUTCMinutes();
+        if (mm &lt; 10) {
+          mm = &#39;0&#39; + mm;
+        }
+
+        var mon = d.getUTCMonth() + 1;
+        if (mon &lt; 10) {
+          mon = &#39;0&#39; + mon;
+        }
+
+        var day = d.getUTCDate();
+        if (day &lt; 10) {
+          day = &#39;0&#39; + day;
+        }
+
+        var dateText = &#39;Updated: &#39; + d.getUTCFullYear() + &#39;-&#39; + mon + &#39;-&#39; + day;
+
+        return dateText + &#39; &#39; + hh + &#39;:&#39; + mm + &#39; [UTC]&#39;;
+      },
+
+      oprShowSendMessageForm : function(iType) {
+
+        var me = this;
+
+        me.getContainer().body.mask(&quot;Wait...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;SystemAdministration/getUsersGroups&#39;,
+              params : {},
+              scope : me,
+              success : function(response) {
+
+                var response = Ext.JSON.decode(response.responseText);
+
+                me.getContainer().body.unmask();
+                if (response[&quot;success&quot;] == &quot;true&quot;) {
+
+                  me.formSendMail(response[&quot;users&quot;], response[&quot;groups&quot;], response[&quot;email&quot;], iType);
+
+                }
+
+              },
+              failure : function(response) {
+                me.getContainer().body.unmask();
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              }
+            });
+
+      },
+
+      formSendMail : function(oUsers, oGroups, sMail, iType) {
+
+        var me = this;
+
+        var oUsers = Ext.create(&#39;Ext.dirac.utils.DiracBoxSelect&#39;, {
+              fieldLabel : &quot;Send to user(s)&quot;,
+              queryMode : &#39;local&#39;,
+              labelAlign : &#39;left&#39;,
+              displayField : &quot;value&quot;,
+              valueField : &quot;value&quot;,
+              anchor : &#39;100%&#39;,
+              store : new Ext.data.ArrayStore({
+                    fields : [&#39;value&#39;],
+                    data : oUsers
+                  })
+            });
+
+        var oGroups = Ext.create(&#39;Ext.dirac.utils.DiracBoxSelect&#39;, {
+              fieldLabel : &quot;Send to group(s)&quot;,
+              queryMode : &#39;local&#39;,
+              labelAlign : &#39;left&#39;,
+              displayField : &quot;value&quot;,
+              valueField : &quot;value&quot;,
+              anchor : &#39;100%&#39;,
+              store : new Ext.data.ArrayStore({
+                    fields : [&#39;value&#39;],
+                    data : oGroups
+                  })
+            });
+
+        var oSubject = Ext.create(&#39;Ext.form.field.Text&#39;, {
+              fieldLabel : &quot;Subject&quot;,
+              labelAlign : &#39;left&#39;,
+              anchor : &#39;100%&#39;
+            });
+
+        var oMessage = Ext.create(&#39;Ext.form.field.TextArea&#39;, {
+              fieldLabel : &quot;Message&quot;,
+              labelAlign : &#39;left&#39;,
+              grow : true,
+              anchor : &#39;100%&#39;,
+              height : 150
+            });
+
+        var oResetBtn = new Ext.Button({
+
+              text : &#39;Reset&#39;,
+              margin : 3,
+              handler : function() {
+                oUsers.setValue([]);
+                oGroups.setValue([]);
+                oSubject.setValue(&quot;&quot;);
+                oMessage.setValue(&quot;&quot;);
+              },
+              scope : me
+            });
+
+        var oSendBtn = new Ext.Button({
+
+              text : ((iType == 1) ? &#39;Send message&#39; : &#39;Send e-mail&#39;),
+              margin : 3,
+              handler : function() {
+
+                var bValid = true;
+
+                if (Ext.util.Format.trim(oSubject.getValue()) == &quot;&quot;) {
+
+                  GLOBAL.APP.CF.alert(&quot;Subject field is empty !&quot;, &quot;warning&quot;);
+                  bValid = false;
+
+                }
+
+                if (Ext.util.Format.trim(oMessage.getValue()) == &quot;&quot;) {
+
+                  GLOBAL.APP.CF.alert(&quot;Subject field is empty !&quot;, &quot;warning&quot;);
+                  bValid = false;
+
+                }
+
+                var sUsers = ((oUsers.isInverseSelection()) ? oUsers.getInverseSelection() : oUsers.getValue().join(&quot;,&quot;));
+                var sGroups = ((oGroups.isInverseSelection()) ? oGroups.getInverseSelection() : oGroups.getValue().join(&quot;,&quot;));
+
+                if ((Ext.util.Format.trim(sUsers) == &quot;&quot;) &amp;&amp; (Ext.util.Format.trim(sGroups) == &quot;&quot;)) {
+
+                  GLOBAL.APP.CF.alert(&quot;No users nor groups selected !&quot;, &quot;warning&quot;);
+                  bValid = false;
+
+                }
+
+                if (bValid) {
+
+                  me.getContainer().body.mask(&quot;Sending mail ...&quot;);
+                  Ext.Ajax.request({
+                        url : GLOBAL.BASE_URL + &#39;SystemAdministration/sendMessage&#39;,
+                        params : {
+
+                          subject : oSubject.getValue(),
+                          message : oMessage.getValue(),
+                          users : sUsers,
+                          groups : sGroups
+
+                        },
+                        scope : me,
+                        success : function(response) {
+                          var response = Ext.JSON.decode(response.responseText);
+
+                          me.getContainer().body.unmask();
+                          if (response[&quot;success&quot;] == &quot;true&quot;) {
+
+                            GLOBAL.APP.CF.alert(response[&quot;result&quot;], &quot;info&quot;);
+
+                          } else {
+
+                            GLOBAL.APP.CF.alert(response[&quot;error&quot;], &quot;error&quot;);
+
+                          }
+
+                          oSendBtn.show();
+                          oResetBtn.show();
+                        }
+                      });
+
+                  oSendBtn.hide();
+                  oResetBtn.hide();
+                }
+
+              },
+              scope : me
+            });
+
+        var oToolbar = new Ext.toolbar.Toolbar({
+              border : false,
+              layout : {
+                pack : &#39;center&#39;
+              },
+              items : [oSendBtn, oResetBtn]
+            });
+
+        var oMainPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              layout : &quot;anchor&quot;,
+              border : false,
+              items : [oUsers, oGroups, oSubject, oMessage],
+              bbar : oToolbar,
+              bodyPadding : 10
+            });
+
+        var sTitle = &quot;&quot;;
+
+        if (iType == 1) {
+          sTitle = &quot;From &quot; + GLOBAL.USER_CREDENTIALS[&quot;username&quot;] + &quot;@&quot; + GLOBAL.USER_CREDENTIALS[&quot;group&quot;];
+        } else {
+          sTitle = &quot;From &quot; + sMail;
+        }
+
+        var oWindow = Ext.create(&#39;widget.window&#39;, {
+              height : 350,
+              width : 550,
+              title : sTitle,
+              layout : &#39;fit&#39;,
+              modal : true,
+              items : [oMainPanel],
+              iconCls : &quot;dirac-icon-mail&quot;
+            });
+
+        oWindow.show();
+
+      },
+      getSelectedData : function() {
+        var me = this;
+        var data = me.leftPanel.getSelectionData();
+        data[&quot;ComponentType&quot;] = [];
+        data[&quot;showAll&quot;] = (me.showAll) ? me.showAll.value : 0;
+
+        for (var i = 0; i &lt; me.chkBoxes.items.getAt(0).items.length; i++) {
+          if (me.chkBoxes.items.getAt(0).items.getAt(i).getValue()) {
+            data.ComponentType.push(me.chkBoxes.items.getAt(0).items.getAt(i).name);
+          }
+        }
+
+        return data;
+      },
+      __loadSelectionData : function() {
+        var me = this;
+        var params = me.getSelectedData();
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/getSelectionData&#39;,
+              params : params,
+              scope : me,
+              success : function(response) {
+                var response = Ext.JSON.decode(response.responseText);
+
+                me.leftPanel.__oprRefreshStoresForSelectors(response, true);
+
+              },
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              }
+            });
+
+      },
+
+      __getHosts : function() {
+        var me = this;
+
+        var params = me.getSelectedData();
+        me.locationGrid.store.proxy.extraParams = params;
+        me.locationGrid.store.removeAll();
+        me.locationGrid.store.load();
+        me.locationGrid.expand();
+        me.systemInfoGrid.collapse();
+      },
+      rendererGridColumn : function(value, record) {
+        var me = this;
+        var result = &#39;&#39;;
+        var lastHeartBeat = Ext.Date.parse(record.get(&#39;LastHeartbeat&#39;), &quot;Y-m-d H:i:s&quot;);
+        var now = new Date();
+        var diff = now - lastHeartBeat;
+        var millsecToHour = diff / 3600000.;
+        if (millsecToHour &lt;= 48) {
+          // if two days we have no activities we assume the componnet is not
+          // used
+          // #0B3B0B #122A0A #DF0101
+          result = &#39; &lt;font color=&quot;green&quot;&gt;&#39; + value + &#39;&lt;/font&gt;&#39;;
+        } else {
+          result = &#39; &lt;font color=&quot;red&quot;&gt;&#39; + value + &#39;&lt;/font&gt;&#39;;
+        }
+        return result;
+      }
+
+    });
+</pre>
+</body>
+</html>

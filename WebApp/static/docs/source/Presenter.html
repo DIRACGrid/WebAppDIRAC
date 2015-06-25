@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-Presenter'>/**
+</span> * This class show different applications in a single panel.
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.Presenter&#39;, {
+      extend : &#39;Ext.panel.Panel&#39;,
+      requires : [&#39;Ext.dirac.views.tabs.PanelDragDrop&#39;, &#39;Ext.panel.Tool&#39;],
+<span id='Ext-dirac-views-tabs-Presenter-property-autoScroll'>      autoScroll : true,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-frame'>      frame : true,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-lastClickedImage'>      lastClickedImage : null,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-columnWidth'>      columnWidth : 3,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-maxColumns'>      maxColumns : 6,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-refreshCycle'>      refreshCycle : 0,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-collapsible'>      collapsible : false,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-tabheader'>      tabheader : false,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-layout'>      layout : &#39;column&#39;,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-margins'>      /*
+</span>       * layout : { type: &#39;table&#39;, columns : 3 }, defaults: { frame:true,
+       * width:&#39;70%&#39;, height: &#39;70%&#39;, style: &#39;margin: 0 2px 2px 0&#39; },
+       */
+      margins : &#39;2 0 2 0&#39;,
+<span id='Ext-dirac-views-tabs-Presenter-property-monitorResize'>      monitorResize : true,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-multiSelect'>      multiSelect : true,
+</span><span id='Ext-dirac-views-tabs-Presenter-property-plugins'>      plugins : [&#39;paneldragdrop&#39;],
+</span><span id='Ext-dirac-views-tabs-Presenter-property-listeners'>      listeners : {
+</span>        afterlayout : function(widget, layout, eOpts) {
+          var me = this;
+          me.setApplicationsHeader(me.tabheader);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-loadState'>      loadState : function(oData) {
+</span>        var me = this;
+
+        if (oData.columnWidth) {
+          me.columnWidth = oData.columnWidth;
+        }
+        me.setColumnWidth(me.columnWidth);
+
+        if (oData.refreshCycle) {
+          me.refreshCycle = oData.refreshCycle;
+        }
+
+        me.setRefreshCycle(me.refreshCycle);
+        me.tabheader = oData.tabheader;
+
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-getStateData'>      getStateData : function() {
+</span>
+        var me = this;
+        var result = {
+          data : []
+        };
+
+        if (me.items.length &gt; 0) {
+          for (var i = 0; i &lt; me.items.length; i++) {
+            win = me.items.getAt(i);
+            /*
+             * Depends on the loadedObjectType
+             */
+            var oElem = null;
+
+            if (win.loadedObjectType == &quot;app&quot;) {
+
+              result.data.push({
+                    module : win.getAppClassName(),
+                    data : win.loadedObject.getStateData(),
+                    currentState : win.currentState,
+                    loadedObjectType : win.loadedObjectType
+                  });
+
+            } else if (win.loadedObjectType == &quot;link&quot;) {
+
+              result.data.push({
+                    link : win.linkToLoad,
+                    loadedObjectType : win.loadedObjectType
+                  });
+            }
+          }
+        }
+        result.tabheader = me.tabheader;
+        result.columnWidth = me.columnWidth;
+        result.refreshCycle = me.refreshCycle;
+
+        return result;
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+        me.menuItems = {
+          &#39;Refresh Plots&#39; : -1,
+          &#39;Disable&#39; : 0,
+          &#39;Each 15m&#39; : 60000, // 900000
+          &#39;Each hour&#39; : 3600000,
+          &#39;Each day&#39; : 86400000
+        };
+        me.autoRefresh = Ext.create(&#39;Ext.menu.Menu&#39;, {
+              listeners : {
+                click : function(menu, menuItem, e, eOpts) {
+                  me.setRefreshCycle(menuItem.value);
+                }
+              }
+            });
+
+        for (var i in me.menuItems) {
+          var item = null;
+          if (me.menuItems[i] == &#39;-1&#39;) {
+            item = Ext.create(&#39;Ext.menu.Item&#39;, {
+                  text : i,
+                  value : me.menuItems[i]
+                });
+          } else {
+            item = new Ext.menu.CheckItem({
+                  checked : (me.menuItems[i] == me.refreshCycle) ? true : false,
+                  group : &#39;column&#39;,
+                  value : me.menuItems[i],
+                  text : i
+                });
+          }
+          me.autoRefresh.add(item);
+        }
+
+        me.refreshTool = Ext.create(&quot;Ext.panel.Tool&quot;, {
+              type : &#39;refresh&#39;,
+              iconCls : Ext.baseCSSPrefix + &#39;tbar-loading&#39;,
+              tooltip : &#39;Setting the refresh period&#39;,
+              handler : function() {
+                if (!me.refreshMenu) {
+                  // when the button is not pressed very long...
+                  me.setRefreshCycle(-1);
+                }
+              }
+            });
+        me.refreshTool.on(&#39;render&#39;, function(oElem, eOpts) {
+              me.mon(oElem.el, &#39;mouseup&#39;, function(event, html, eOpts) {
+                    me.mouseup = true;
+                  }, me);
+              me.mon(oElem.el, &#39;mousedown&#39;, function(e, t, eOpts) {
+                    me.mouseup = false;
+                    Ext.defer(function() {
+                          if (me.mouseup == false) {
+                            // show menu
+                            me.autoRefresh.showBy(oElem.el);
+                            me.refreshMenu = true;
+                          } else {
+                            me.mouseup = false;
+                          }
+                        }, 1500, me);
+                  }, me);
+            });
+        me.refreshTool.on(&#39;click&#39;, function() {
+              if (me.refreshMenu) {
+                me.refreshMenu = false;
+                return false;
+              }
+            });
+
+        me.configurationTool = Ext.create(&quot;Ext.panel.Tool&quot;, {
+              &#39;type&#39; : &#39;gear&#39;,
+              tooltip : &#39;Change the column width&#39;,
+              scope : this,
+              callback : function(panel, tool) {
+                var width = 99;
+                delete panel.headerMenu;
+                panel.columnMenu = null;
+                panel.headerMenu = null;
+                panel.columnMenu = new Ext.menu.Menu();
+                for (i = 1; i &lt; panel.maxColumns; i++) {
+                  var item = new Ext.menu.CheckItem({
+                        value : i,// ??? maybe there is a way to get the
+                        // position
+                        // of the item in a container??
+                        checked : (i == panel.columnWidth) ? true : false,
+                        checkHandler : function(item, checked) {
+                          if (checked) {
+                            panel.setColumnWidth(item.value);
+                          }
+                        },
+                        group : &#39;column&#39;,
+                        text : (i &gt; 1) ? i + &#39; Columns&#39; : i + &#39; Column&#39;
+                      });
+                  panel.columnMenu.add(item);
+                }
+
+                panel.headerMenu = Ext.menu.Menu({
+                      items : [{
+                            xtype : &#39;menucheckitem&#39;,
+                            text : &quot;Disable&quot;,
+                            checked : (panel.tabheader == false ? true : false),
+                            group : &#39;columnHeader&#39;,
+                            value : &#39;menuDisable&#39;,
+                            checkHandler : function(item, checked) {
+                              if (checked) {
+                                panel.tabheader = false;
+                                panel.setApplicationsHeader(false);
+                              }
+                            }
+                          }, {
+                            xtype : &#39;menucheckitem&#39;,
+                            text : &quot;Enable&quot;,
+                            group : &#39;columnHeader&#39;,
+                            value : &#39;menuEnable&#39;,
+                            checked : (panel.tabheader == true ? true : true),
+                            checkHandler : function(item, checked) {
+                              if (checked) {
+                                panel.tabheader = true;
+                                panel.setApplicationsHeader(true);
+                              }
+                            }
+                          }]
+                    });
+                panel.menu = new Ext.menu.Menu({
+                      items : [{
+                            text : &#39;Collumns&#39;,
+                            menu : panel.columnMenu
+                          }, {
+                            text : &#39;Header&#39;,
+                            menu : panel.headerMenu
+                          }]
+                    });
+
+                panel.menu.showBy(tool.el);
+              }
+            });
+        me.tools = [me.refreshTool, me.configurationTool];
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-addImage'>      addImage : function(img) {
+</span>        var me = this;
+        var width = 99 / me.columnWidth;
+        width = &#39;.&#39; + Math.round(width);
+
+        Ext.apply(img, {
+              columnWidth : width
+            });
+        me.add(img);
+        me.addClickEvent(img);
+
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-addClickEvent'>      addClickEvent : function(img) {
+</span>        var el = img.getEl();
+        if (el) {
+          el.on(&#39;click&#39;, function(e, t, eOpts, me) {
+                var me = this;
+                isDoubleClickEvent = false;
+                var singeClickAction = function() {
+                  if (!isDoubleClickEvent) {
+                    // We have to make a difference between a click and double
+                    // click.
+                    var img = me.getImage(t.id);
+                    if (img) {
+                      me.fullSizeImage(img);
+                    }
+
+                  }
+                }
+                setTimeout(singeClickAction, 500);
+
+              }, this);
+          el.on(&#39;dblclick&#39;, function(e, t, eOpts, me) {
+                var me = this;
+                isDoubleClickEvent = true;
+                var img = me.getImage(t.id);
+                if (img) {
+                  me.selectImage(img);
+                  var oParams = img.plotParams;
+                  me.parent.__loadSelectionData(oParams);
+                }
+
+              }, this);
+          el.on(&#39;contextmenu&#39;, function(e, t, eOpts) {
+                e.stopEvent(); // we do not want to see the browser context
+                // menu!
+                contextMenu = Ext.create(&#39;Ext.menu.Menu&#39;, {
+                      scope : this,
+                      items : [{
+                            text : &quot;Open&quot;,
+                            scope : this,
+                            handler : function() {
+                              var me = this;
+                              me.fullSizeImage(img);
+                            }
+                          }, {
+                            text : &quot;Save&quot;,
+                            handler : function() {
+                              window.open(img.src);
+                            }
+                          }, {
+                            text : &quot;Delete&quot;,
+                            scope : this,
+                            handler : function() {
+                              var me = this;
+                              me.removeImage(img.id);
+                            }
+                          }]
+                    })
+                contextMenu.showAt(e.getXY());
+              }, this);
+        } else {
+          alert(&#39;Cannot add click event to the image!&#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-unselectImage'>      unselectImage : function(img) {
+</span>        if (img) {
+          img.setBorder(0);
+          img.getEl().fadeIn({
+                opacity : 100
+              });// , duration: 2000});
+          img.selected = false;
+        }
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-selectImage'>      selectImage : function(img) {
+</span>        var me = this;
+        if (img) {
+          img.el.applyStyles({
+                borderColor : &#39;red&#39;,
+                borderStyle : &#39;solid&#39;
+              });
+          img.setBorder(2);
+          if (img.selected) {
+            img.getEl().fadeIn({
+                  opacity : 100
+                });// , duration: 2000});
+            img.selected = false;
+          } else {
+            img.getEl().fadeIn({
+                  opacity : .65
+                });// , duration: 2000});
+            img.selected = true;
+          }
+        }
+        me.unselectImage(me.lastClickedImage);
+        me.lastClickedImage = img; // the last clicked always the active
+        // selection.
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-getImage'>      getImage : function(id) {
+</span>        var me = this;
+        var img = me.getComponent(id);
+        return img;
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-removeImage'>      removeImage : function(id) {
+</span>        var me = this;
+        me.remove(id);
+        me.doLayout();
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-getLastClickedImage'>      getLastClickedImage : function() {
+</span>        var me = this;
+        return me.lastClickedImage;
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-replaceImage'>      replaceImage : function(oimgid, img) {
+</span>        var me = this;
+        var oImg = me.getComponent(oimgid);
+        oImg.setSrc(img.src);
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-setColumnWidth'>      setColumnWidth : function(column) {
+</span>        var me = this;
+        if (me.layout.type == &#39;table&#39;) {
+          me.layout.columns = column;
+          me.columnWidth = column;
+        } else {
+          me.columnWidth = column;
+          width = Math.floor(99 / column);
+          width = width - 1;
+          width = &#39;.&#39; + width;
+          me.items.each(function(value, index) {
+                value.columnWidth = width;
+              });
+          me.doLayout();
+        }
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-fullSizeImage'>      fullSizeImage : function(img) {
+</span>        var html = &#39;&lt;img src=&quot;&#39; + img.src + &#39;&quot; /&gt;&#39;;
+        var win = new Ext.Window({
+              collapsible : true,
+              constrain : true,
+              constrainHeader : true,
+              html : html,
+              layout : &#39;fit&#39;,
+              minHeight : 200,
+              minWidth : 320,
+              title : img.title
+            });
+        win.show();
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-setRefreshCycle'>      setRefreshCycle : function(time) {
+</span>        var me = this;
+        var UTCTime = null;
+        if (me.updateTime) {
+          var now = new Date();
+          UTCTime = now.toUTCString();
+          UTCTime = UTCTime.replace(&#39;GMT&#39;, &quot;[UTC]&quot;);
+        }
+        if (time != -1) {
+          me.refreshCycle = time;
+        }
+        if (time == -1) {
+          if (me.updateTime) {
+            me.updateTime.setText(&quot;Updated:&quot; + UTCTime);
+          }
+          me.items.each(function(value, index) {
+                if (me.updateTime) {
+                  me.updateTime.setText(&quot;Updated:&quot; + UTCTime);
+                }
+                if (value.src) {
+
+                  if (value.src.search(&quot;&amp;nocache&quot;) != -1) {
+                    var src = value.src.split(&#39;&amp;nocache&#39;)[0];
+
+                    src += &quot;&amp;nocache=&quot; + (new Date()).getTime();
+                  } else {
+                    src = value.src;
+                  }
+                  value.setSrc(src);
+                }
+              });
+        } else if (time == 0) {
+          me.items.each(function(value, index) {
+                clearInterval(value.refreshTimeout);
+              });
+        } else {
+          me.items.each(function(value, index) {
+                clearInterval(value.refreshTimeout);
+                value.refreshTimeout = setInterval(function() {
+                      if (me.updateTime) {
+                        me.updateTime.setText(&quot;Updated:&quot; + UTCTime);
+                      }
+                      if (value.src) {
+
+                        if (value.src.search(&quot;&amp;nocache&quot;) != -1) {
+
+                          var src = value.src.split(&#39;&amp;nocache&#39;)[0];
+                          src += &quot;&amp;nocache=&quot; + (new Date()).getTime();
+                        } else {
+                          src = value.src;
+                        }
+                        value.setSrc(src);
+
+                      }
+                    }, time);
+              });
+
+        }
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-isExist'>      isExist : function(state) {
+</span>        var me = this;
+        var exist = false;
+        me.items.each(function(value, index) {
+              if (value.title == state) {
+                exist = true;
+                return;
+              }
+            });
+        return exist;
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-setApplicationsHeader'>      setApplicationsHeader : function(value) {
+</span>        var me = this;
+        for (var i = 0; i &lt; me.items.length; i++) {
+          var tab = me.items.getAt(i);
+          if (tab &amp;&amp; tab.header == null)
+            continue;
+          if (value == true) {
+            tab.header.show();
+          } else {
+            tab.header.hide();
+          }
+
+        }
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-getPanel'>      getPanel : function(name) {
+</span>        var me = this;
+        me.items.find();
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-getApplicationsState'>      getApplicationsState : function() {
+</span>        var me = this;
+        var states = [];
+        me.items.each(function(value, index) {
+              states.push({
+                    &quot;module&quot; : value.appClassName,
+                    &quot;currentState&quot; : value.currentState
+                  });
+            });
+        return states;
+      },
+<span id='Ext-dirac-views-tabs-Presenter-method-replaceImg'>      replaceImg : function(oldImg, newImg) {
+</span>        var me = this;
+        var index = me.items.findIndex(&#39;id&#39;, oldImg.id);
+        if (index != -1) {
+
+          me.remove(me.items.getAt(index));
+          delete oldImg;
+          delete me.lastClickedImage;
+
+          me.lastClickedImage = null;
+          me.items.insert(index, newImg);
+          me.doLayout();
+
+          me.addClickEvent(me.items.getAt(index));
+          me.selectImage(me.items.getAt(index));
+
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &#39;Please select again the image what you want to modify&#39;);
+        }
+
+      }
+    });</pre>
+</body>
+</html>

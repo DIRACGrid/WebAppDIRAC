@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracBaseSelector'>/*******************************************************************************
+</span> * This widget can be used to create a selector. It allows to easily configure
+ * the selector. It provides all the methods which are needed to save/restore
+ * the widget state. The following example show how to create a selector:
+ * 
+ * &lt;pre&gt;
+ * me.leftPanel = new Ext.create(&#39;Ext.dirac.utils.DiracBaseSelector&#39;, {
+ *       scope : me,
+ *       cmbSelectors : selectors,
+ *       textFields : textFields,
+ *       datamap : map,
+ *       url : &amp;quot;TransformationMonitor/getSelectionData&amp;quot;
+ *     });
+ * &lt;/pre&gt;
+ * 
+ * Parameters:
+ * 
+ * -scope: the parent widget. We have some functionalities which required access
+ * to the main class. -cmbSelectors: It is a dictionary which contains the
+ * selector values. These are the selectors which will be seen as combo box. You
+ * can define a selector as the following:
+ * 
+ * &lt;pre&gt;
+ * var selectors = {
+ *   status : &amp;quot;Status&amp;quot;,
+ *   agentType : &amp;quot;Agent Type&amp;quot;,
+ *   type : &amp;quot;Type&amp;quot;,
+ *   group : &amp;quot;Group&amp;quot;,
+ *   plugin : &amp;quot;Plugin&amp;quot;
+ * };
+ * &lt;/pre&gt;
+ * 
+ * -textFields is dictionary which contains the text field name and the text
+ * which will appears in the widget. The following example shows how to
+ * implement a text field:
+ * 
+ * &lt;pre&gt;
+ * var textFields = {
+ *   &#39;transformationId&#39; : {
+ *      name :&amp;quot;ProductionID(s)&amp;quot;,
+ *      type :&amp;quot;number&amp;quot;
+ *   }
+ *   &#39;requestId&#39; :{
+ *      name: &amp;quot;RequestID(s)&amp;amp;quot,
+ *      type : &amp;quot;number&amp;quot;
+ *   }
+ * };
+ * &lt;/pre&gt;
+ * 
+ * -timeSearchPanel in case if we want to have the time selector. -datamap is a
+ * list which contains the map, because we may have a situation when the name is
+ * different in the widget than the value which is returned by the controller.
+ * 
+ * &lt;pre&gt;
+ * var map = [[&amp;quot;agentType&amp;quot;, &amp;quot;agentType&amp;quot;], [&amp;quot;productionType&amp;quot;, &amp;quot;type&amp;quot;], [&amp;quot;transformationGroup&amp;quot;, &amp;quot;group&amp;quot;], [&amp;quot;plugin&amp;quot;, &amp;quot;plugin&amp;quot;], [&amp;quot;prodStatus&amp;quot;, &amp;quot;status&amp;quot;]];
+ * &lt;/pre&gt;
+ * 
+ * -url is a String which contains the url used to fill the selector widget.
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracBaseSelector&#39;, {
+      extend : &#39;Ext.panel.Panel&#39;,
+      requires : [&#39;Ext.dirac.utils.DiracBoxSelect&#39;, &#39;Ext.dirac.utils.DiracTextField&#39;, &#39;Ext.dirac.utils.DiracNumericField&#39;, &#39;Ext.dirac.utils.DiracTimeSearchPanel&#39;, &#39;Ext.dirac.utils.DiracToolButton&#39;, &#39;Ext.form.field.Checkbox&#39;],
+<span id='Ext-dirac-utils-DiracBaseSelector-property-title'>      title : &#39;Selectors&#39;,
+</span><span id='Ext-dirac-utils-DiracBaseSelector-property-region'>      region : &#39;west&#39;,
+</span><span id='Ext-dirac-utils-DiracBaseSelector-property-floatable'>      floatable : false,
+</span><span id='Ext-dirac-utils-DiracBaseSelector-property-margins'>      margins : &#39;0&#39;,
+</span><span id='Ext-dirac-utils-DiracBaseSelector-property-width'>      width : 250,
+</span><span id='Ext-dirac-utils-DiracBaseSelector-property-minWidth'>      minWidth : 230,
+</span><span id='Ext-dirac-utils-DiracBaseSelector-property-maxWidth'>      maxWidth : 350,
+</span><span id='Ext-dirac-utils-DiracBaseSelector-property-bodyPadding'>      bodyPadding : 5,
+</span><span id='Ext-dirac-utils-DiracBaseSelector-property-layout'>      layout : &#39;anchor&#39;,
+</span><span id='Ext-dirac-utils-DiracBaseSelector-property-autoScroll'>      autoScroll : true,
+</span><span id='Ext-dirac-utils-DiracBaseSelector-property-allowMultipleSelect'>      /**
+</span>       * @property{Boolean} allowMultipleSelect It allows to use all the textfield in the selector. By defauld only one textfield is used. 
+       */
+      disableTextFields : true,
+<span id='Ext-dirac-utils-DiracBaseSelector-cfg-cmbSelectors'>      /**
+</span>       * @cfg{Object}cmbSelectors It stores the combo box selectors.
+       */
+      cmbSelectors : {},
+<span id='Ext-dirac-utils-DiracBaseSelector-cfg-textFields'>      /**
+</span>       * @cfg{Object} textFields It stores the text field selectors.
+       */
+      textFields : {},
+<span id='Ext-dirac-utils-DiracBaseSelector-cfg-timeSearchPanel'>      /**
+</span>       * @cfg{Ext.dirac.utils.DiracTimeSearchPanel} timeSearchPanel It stores
+       *                                            the time panel.
+       */
+      timeSearchPanel : null,
+<span id='Ext-dirac-utils-DiracBaseSelector-property-hasTimeSearchPanel'>      /**
+</span>       * @property{Boolean} hasTimeSearchPanel It is used to add/remove the time
+       *                    search panel to the selector. The time selector is
+       *                    available by default.
+       */
+      hasTimeSearchPanel : true,
+<span id='Ext-dirac-utils-DiracBaseSelector-cfg-datamap'>      /**
+</span>       * @cfg{List} datamap It contains the map in case when the selector name
+       *            is different than the returned value.
+       */
+      datamap : [],
+<span id='Ext-dirac-utils-DiracBaseSelector-cfg-url'>      /**
+</span>       * @cfg{String} url This url used to fill the selectors.
+       */
+      url : &quot;&quot;,
+<span id='Ext-dirac-utils-DiracBaseSelector-cfg-selectorMenu'>      /**
+</span>       * @cfg{Ext.menu.Menu} selectorMenu This menu used to hide and show the
+       *                     selector widgets.
+       */
+      selectorMenu : null,
+<span id='Ext-dirac-utils-DiracBaseSelector-cfg-panelButtons'>      /**
+</span>       * @cfg{Boolean} panelButtons If it is false, the buttons(submmit, reset,
+       *               etc) of the panel will be not added.
+       */
+      panelButtons : true,
+<span id='Ext-dirac-utils-DiracBaseSelector-cfg-We'>      /**
+</span>       * 
+       * @cfg{Object} We can accociate a DiracGridPanel.
+       */
+      grid : null,
+
+<span id='Ext-dirac-utils-DiracBaseSelector-method-constructor'>      constructor : function(oConfig) {
+</span>        var me = this;
+        me.callParent(arguments);
+
+        if (oConfig.datamap == null) {
+          GLOBAL.APP.CF.log(&quot;error&quot;, &quot;The datamap must be given!!!&quot;);
+        }
+        if (oConfig.url == null) {
+          GLOBAL.APP.CF.log(&quot;error&quot;, &quot;You have to provide an URL used to fill the selectors!&quot;);
+        }
+        if (oConfig.cmbSelectors) {
+          for (var cmb in oConfig.cmbSelectors) {
+
+            me.cmbSelectors[cmb] = Ext.create(&#39;Ext.dirac.utils.DiracBoxSelect&#39;, {
+                  fieldLabel : oConfig.cmbSelectors[cmb],
+                  queryMode : &#39;local&#39;,
+                  labelAlign : &#39;top&#39;,
+                  displayField : &quot;text&quot;,
+                  valueField : &quot;value&quot;,
+                  anchor : &#39;100%&#39;
+                });
+
+          }
+        }
+        for (var selector in me.cmbSelectors) {
+          me.add(me.cmbSelectors[selector]);
+        }
+
+        // setting the selector menu
+        if (Object.keys(me.cmbSelectors).length &gt; 0) {
+          var menuItems = [];
+          for (var cmb in me.cmbSelectors) {
+
+            menuItems.push({
+                  xtype : &#39;menucheckitem&#39;,
+                  text : me.cmbSelectors[cmb].getFieldLabel(),
+                  relatedCmbField : cmb,
+                  checked : true,
+                  handler : function(item, e) {
+
+                    var me = this;
+
+                    if (item.checked)
+                      me.cmbSelectors[item.relatedCmbField].show();
+                    else
+                      me.cmbSelectors[item.relatedCmbField].hide();
+
+                  },
+                  scope : me
+                });
+
+          }
+
+          menuItems.push({
+                xtype : &#39;menucheckitem&#39;,
+                text : &quot;Time Span&quot;,
+                checked : true,
+                handler : function(item, e) {
+
+                  var me = this;
+
+                  if (item.checked)
+                    me.timeSearchPanel.show();
+                  else
+                    me.timeSearchPanel.hide();
+
+                },
+                scope : me
+              });
+
+          me.selectorMenu = new Ext.menu.Menu({
+                items : menuItems
+              });
+        }
+
+        if (oConfig.hasTimeSearchPanel != null) {
+          me.hasTimeSearchPanel = oConfig.hasTimeSearchPanel;
+        }
+        if (me.hasTimeSearchPanel) {
+          me.timeSearchPanel = Ext.create(&quot;Ext.dirac.utils.DiracTimeSearchPanel&quot;);
+          me.add(me.timeSearchPanel);
+        }
+
+        if (oConfig.textFields) {
+          for (field in oConfig.textFields) {
+            var textFieldWidget = null;
+            if (oConfig.textFields[field][&quot;type&quot;] == &quot;number&quot; || oConfig.textFields[field][&quot;type&quot;] == &quot;Number&quot;) {
+              textFieldWidget = Ext.create(&quot;Ext.dirac.utils.DiracNumericField&quot;, {
+                    fieldLabel : oConfig.textFields[field][&quot;name&quot;],
+                    scope : me,
+                    type : oConfig.textFields[field][&quot;type&quot;]
+                  });
+            } else if (oConfig.textFields[field][&quot;type&quot;] == &quot;Checkbox&quot; || oConfig.textFields[field][&quot;type&quot;] == &quot;checkbox&quot;) {
+              textFieldWidget = Ext.create(&quot;Ext.form.field.Checkbox&quot;, {
+                    fieldLabel : oConfig.textFields[field][&quot;fieldLabel&quot;],
+                    name : oConfig.textFields[field][&quot;name&quot;],
+                    scope : me,
+                    type : oConfig.textFields[field][&quot;type&quot;]
+                  });
+            } else {
+              textFieldWidget = Ext.create(&quot;Ext.dirac.utils.DiracTextField&quot;, {
+                    fieldLabel : oConfig.textFields[field][&quot;name&quot;],
+                    scope : me,
+                    type : oConfig.textFields[field][&quot;type&quot;]
+                  });
+            }
+            if (oConfig.textFields[field][&quot;properties&quot;]) {
+              Ext.apply(textFieldWidget, oConfig.textFields[field][&quot;properties&quot;]);
+            }
+            me.textFields[field] = textFieldWidget;
+          }
+        }
+
+        for (var field in me.textFields) {
+          me.add(me.textFields[field]);
+        }
+
+        if (me.panelButtons) {
+          // Buttons at the top of the panel
+          var oPanelButtons = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+                dock : &#39;bottom&#39;,
+                layout : {
+                  pack : &#39;center&#39;
+                },
+                items : []
+              });
+
+          me.btnSubmit = new Ext.Button({
+
+                text : &#39;Submit&#39;,
+                margin : 3,
+                iconCls : &quot;dirac-icon-submit&quot;,
+                handler : function() {
+                  me.oprLoadGridData();
+                },
+                scope : me
+
+              });
+
+          oPanelButtons.add(me.btnSubmit);
+
+          me.btnReset = new Ext.Button({
+
+                text : &#39;Reset&#39;,
+                margin : 3,
+                iconCls : &quot;dirac-icon-reset&quot;,
+                handler : function() {
+                  me.oprResetSelectionOptions();
+                },
+                scope : me
+
+              });
+
+          oPanelButtons.add(me.btnReset);
+
+          me.btnRefresh = new Ext.Button({
+
+                text : &#39;Refresh&#39;,
+                margin : 3,
+                iconCls : &quot;dirac-icon-refresh&quot;,
+                handler : function() {
+                  me.oprSelectorsRefreshWithSubmit(false);
+                },
+                scope : me
+
+              });
+
+          oPanelButtons.add(me.btnRefresh);
+
+          me.addDocked(oPanelButtons);
+        }
+
+        me.grid = oConfig.grid;
+
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+        me.bDataSelectionLoaded = false;
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-afterRender'>      afterRender : function() {
+</span>        var me = this;
+        if (me.selectorMenu) {
+          me.getHeader().addTool({
+                xtype : &quot;diracToolButton&quot;,
+                type : &quot;down&quot;,
+                menu : me.selectorMenu
+              });
+        }
+        me.__loadSelectorData();
+        me.callParent();
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-getStateData'>      /**
+</span>       * It returns the data which has to be saved in the User Profile.
+       * 
+       * @return{Object}
+       */
+      getStateData : function() {
+        var me = this;
+
+        // show/hide for selectors and their selected data (including NOT
+        // button)
+        var leftMenu = {};
+
+        if (me.timeSearchPanel) {
+          leftMenu = me.timeSearchPanel.getStateData();
+        }
+
+        leftMenu.selectors = {};
+
+        for (var cmb in me.cmbSelectors) {
+
+          leftMenu.selectors[cmb] = {
+            hidden : me.cmbSelectors[cmb].isHidden(),
+            data_selected : me.cmbSelectors[cmb].getValue(),
+            not_selected : me.cmbSelectors[cmb].isInverseSelection()
+          }
+
+        }
+
+        // the state of the selectors, text fields and time
+        for (var field in me.textFields) {
+          leftMenu[field] = me.textFields[field].getValue();
+        }
+
+        return leftMenu;
+
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-loadState'>      /**
+</span>       * This function is used to load the data which is saved in the User
+       * Profile.
+       * 
+       * @param{Object}data it contains the saved values.
+       */
+      loadState : function(data) {
+        var me = this;
+
+        var bToReload = false;
+
+        var item = null;
+        // For the time span searching sub-panel
+        if (me.selectorMenu) {
+          item = me.selectorMenu.items.getAt(me.selectorMenu.items.length - 1);
+        }
+
+        if (me.timeSearchPanel) {
+          item.setChecked(!data.leftMenu.timeSearchPanelHidden);
+          me.timeSearchPanel.loadState(data.leftMenu);
+        }
+
+        for (var field in me.textFields) {
+          me.textFields[field].setValue(data.leftMenu[field]);
+        }
+
+        if (data.leftMenu.selectors &amp;&amp; me.selectorMenu) {
+          for (var i = 0; i &lt; me.selectorMenu.items.length - 1; i++) {
+
+            var item = me.selectorMenu.items.getAt(i);
+
+            if (item.relatedCmbField in data.leftMenu.selectors) { // in case
+              // if a
+              // selector is
+              // missing in the
+              // data
+              item.setChecked(!data.leftMenu.selectors[item.relatedCmbField].hidden);
+
+              if (!data.leftMenu.selectors[item.relatedCmbField].hidden)
+                me.cmbSelectors[item.relatedCmbField].show();
+              else
+                me.cmbSelectors[item.relatedCmbField].hide();
+
+              /*
+               * this can be done only if the store is being loaded, otherwise
+               * has to be postponed
+               */
+              me.__oprPostponedValueSetUntilOptionsLoaded(me.cmbSelectors[item.relatedCmbField], data.leftMenu.selectors[item.relatedCmbField].data_selected, ((i == me.selectorMenu.items.length - 2 || Object.keys(data.leftMenu.selectors).length == 1) ? true : false));
+
+              me.cmbSelectors[item.relatedCmbField].setInverseSelection(data.leftMenu.selectors[item.relatedCmbField].not_selected);
+            }
+
+          }
+
+        } else {
+
+          bToReload = true;
+
+        }
+
+        if (bToReload) {
+
+          me.oprLoadGridData();
+
+        }
+
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-__oprPostponedValueSetUntilOptionsLoaded'>      /**
+</span>       * @private In case the selector is not loaded we have to postpone the
+       *          setting of the value.
+       * @param{Ext.dirac.utils.DiracBoxSelect} oSelectionBox the combo box
+       *                                        widget
+       * @param{Object}oValues the value which has to be set to the
+       *                       oSelectionBox
+       * @param{Boolean} it used to cancel the previous request
+       */
+      __oprPostponedValueSetUntilOptionsLoaded : function(oSelectionBox, oValues, bLastOne) {
+
+        var me = this;
+        GLOBAL.APP.CF.log(&quot;debug&quot;, &quot;pospone request&quot;, bLastOne);
+        if (me.bDataSelectionLoaded) {
+
+          oSelectionBox.setValue(oValues);
+
+          if (bLastOne) {
+            me.__cancelPreviousDataRequest();
+            me.oprLoadGridData();
+          }
+
+        } else {
+
+          Ext.Function.defer(me.__oprPostponedValueSetUntilOptionsLoaded, 1500, me, [oSelectionBox, oValues, bLastOne]);
+
+        }
+
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-__cancelPreviousDataRequest'>      /*************************************************************************
+</span>       * @private It cancel the AJAX request.
+       */
+      __cancelPreviousDataRequest : function() {
+
+        var me = this;
+
+        if (me.grid &amp;&amp; me.grid.store.loading &amp;&amp; me.grid.store.lastDataRequest) {
+          var oRequests = Ext.Ajax.requests;
+          for (id in oRequests) {
+            if (oRequests.hasOwnProperty(id) &amp;&amp; (oRequests[id].options == me.grid.store.lastDataRequest.request)) {
+              Ext.Ajax.abort(oRequests[id]);
+            }
+          }
+        }
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-getTimeSearch'>      /**
+</span>       * It return the Time search panel
+       * 
+       * @retun{Ext.dirac.utils.DiracTimeSearchPanel}
+       */
+      getTimeSearch : function() {
+        var me = this;
+        return me.timeSearchPanel;
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-__loadSelectorData'>      /*************************************************************************
+</span>       * @private It loads the Selector data using AJAX request.
+       */
+      __loadSelectorData : function() {
+        var me = this;
+
+        if (Object.keys(me.cmbSelectors).length &gt; 0) { // only load the
+          // selector
+          // data if exist!
+          Ext.Ajax.request({
+                url : GLOBAL.BASE_URL + me.url,
+                params : {
+
+          }     ,
+                scope : me,
+                success : function(response) {
+
+                  var me = this;
+                  var response = Ext.JSON.decode(response.responseText);
+
+                  if (response.success == &quot;false&quot;) {
+                    Ext.dirac.system_info.msg(&quot;Error&quot;, response.error);
+                    return;
+                  }
+
+                  me.__oprRefreshStoresForSelectors(response, false);
+
+                  if (me.properties) {
+                    if (me.scope.currentState == &quot;&quot;) {
+                      if (&quot;properties&quot; in GLOBAL.USER_CREDENTIALS) {
+                        for (var i = 0; i &lt; me.properties.length; i++) {
+                          if ((Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, me.properties[i][0]) != -1) &amp;&amp; (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, me.properties[i][1]) == -1)) {
+                            me.cmbSelectors[me.properties[i][2]].setValue([GLOBAL.USER_CREDENTIALS.username]);
+                          }
+                        }
+                      }
+                    }
+
+                  }
+
+                  me.bDataSelectionLoaded = true;
+
+                },
+                failure : function(response) {
+
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                }
+              });
+        }
+
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-__oprRefreshStoresForSelectors'>      /*************************************************************************
+</span>       * It refresh the selectors.
+       * 
+       * @param{Object}oData data used by the selectors.
+       * @param{Boolean}bRefreshStores to create new store.
+       */
+      __oprRefreshStoresForSelectors : function(oData, bRefreshStores) {
+
+        var me = this;
+
+        for (var j = 0; j &lt; me.datamap.length; j++) {
+
+          var dataOptions = [];
+          if (oData[me.datamap[j][0]] == null)
+            continue;
+          for (var i = 0; i &lt; oData[me.datamap[j][0]].length; i++)
+            dataOptions.push([oData[me.datamap[j][0]][i][0], oData[me.datamap[j][0]][i][0]]);
+
+          if (bRefreshStores) {
+
+            var oNewStore = new Ext.data.ArrayStore({
+                  fields : [&#39;value&#39;, &#39;text&#39;],
+                  data : dataOptions
+                });
+
+            me.cmbSelectors[me.datamap[j][1]].refreshStore(oNewStore);
+
+          } else {
+            me.cmbSelectors[me.datamap[j][1]].store = new Ext.data.ArrayStore({
+                  fields : [&#39;value&#39;, &#39;text&#39;],
+                  data : dataOptions
+                });
+          }
+
+        }
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-getSelectionData'>      /**
+</span>       * It returns the data which is selected by the user.
+       * 
+       * @return{Object}
+       */
+      getSelectionData : function() {
+        var me = this;
+
+        var extraParams = {}
+        var foundTextSelector = false;
+
+        for (var i in me.textFields) {
+          var param = [];
+          if (me.textFields[i].type == &quot;checkbox&quot; || me.textFields[i].type == &quot;Checkbox&quot;) {
+            var val = me.textFields[i].getValue();
+            extraParams[i] = Ext.JSON.encode([val]);
+            continue;
+          }
+          if (me.textFields[i].getValue() != &quot;&quot;) {
+            if (me.textFields[i].getValue().search(&quot;,&quot;) != -1) {
+              param = me.textFields[i].getValue().split(&#39;,&#39;);
+            } else if (me.textFields[i].getValue().search(&quot; &quot;) != -1) {
+              param = me.textFields[i].getValue().split(&quot; &quot;);
+            } else {
+              param.push(me.textFields[i].getValue());
+            }
+          }
+
+          // var param = me.textFields[i].getValue().split(&#39;,&#39;)[0] !=
+          // &quot;&quot;?me.textFields[i].getValue():&#39;&#39;;
+          // extraParams[i] = param;
+
+          if (param.length != 0 &amp;&amp; me.textFields[i].type != &quot;originalText&quot;) {
+            var interval = [];
+            for (var j = 0; j &lt; param.length; j++) {
+              if (param[j].split(&quot;-&quot;).length &gt; 1) {
+                var intervalStart = parseInt(param[j].split(&quot;-&quot;)[0]);
+                var intervalEnd = parseInt(param[j].split(&quot;-&quot;)[1]);
+                for (var k = intervalStart; k &lt; intervalEnd + 1; k++) {
+                  interval.push(k);
+                }
+              } else {
+                interval.push(param[j]);
+              }
+            }
+            foundTextSelector = true;
+            extraParams[i] = Ext.JSON.encode(interval);
+          } else {
+            extraParams[i] = Ext.JSON.encode(param);
+          }
+        }
+
+        if (!foundTextSelector) {
+          if (me.grid &amp;&amp; me.grid.pagingToolbar) {
+            extraParams[&quot;limit&quot;] = me.grid.pagingToolbar.pageSizeCombo.getValue();
+          }
+          if (me.hasTimeSearchPanel) {
+
+            var timeSearchData = me.timeSearchPanel.getSelectedData();
+            Ext.merge(extraParams, timeSearchData);
+          }
+          for (var i in me.cmbSelectors) {
+            var param = (me.cmbSelectors[i].isInverseSelection()) ? me.cmbSelectors[i].getInverseSelection().split(&quot;,&quot;) : me.cmbSelectors[i].getValue();
+            // var param = (me.cmbSelectors[i].isInverseSelection()) ?
+            // me.cmbSelectors[i].getInverseSelection() :
+            // me.cmbSelectors[i].getValue();
+            if (param.length != 0) {
+              extraParams[i] = Ext.JSON.encode(param);
+            }
+
+          }
+
+        }
+
+        return extraParams;
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-oprLoadGridData'>      /**
+</span>       * It loads data to the grid panel.
+       */
+      oprLoadGridData : function() {
+        var me = this;
+
+        if (me.grid &amp;&amp; me.__oprValidateBeforeSubmit()) {
+
+          // set those data as extraParams in
+          me.grid.store.proxy.extraParams = me.getSelectionData();
+          me.grid.store.currentPage = 1;
+          me.grid.store.load();
+
+          var oCheckbox = Ext.query(&quot;#&quot; + me.scope.id + &quot; input.dirac-table-main-check-box&quot;);
+          if (oCheckbox.length &gt; 0) {
+            oCheckbox[0].checked = false;
+          }
+
+          if (me.scope.funcOnChangeEitherCombo) {
+            me.scope.funcOnChangeEitherCombo(); // if we have statistical window
+          }
+        }
+
+        if (me.grid &amp;&amp; me.grid.expandedGridPanel) {// delete the targetId
+          me.grid.expandedGridPanel.destroy();
+          delete me.grid.expandedGridPanel;
+        }
+
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-__oprValidateBeforeSubmit'>      /**
+</span>       * It validates the selected values. It is used to make sure the values
+       * which are selected are correct.
+       */
+      __oprValidateBeforeSubmit : function() {
+
+        var me = this;
+        var bValid = true;
+
+        for (var field in me.textFields) {
+          if (!me.textFields[field].validate()) {
+            bValid = false;
+            break;
+          }
+        }
+        return bValid;
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-oprResetSelectionOptions'>      /**
+</span>       * It is used to reset the selectors.
+       */
+      oprResetSelectionOptions : function() {
+
+        var me = this;
+        for (var selector in me.cmbSelectors) {
+          me.cmbSelectors[selector].setValue([]);
+        }
+
+        for (var field in me.textFields) {
+          me.textFields[field].setValue(&quot;&quot;);
+        }
+
+        me.oprLoadGridData();
+
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-oprSelectorsRefreshWithSubmit'>      /**
+</span>       * It is used to refresh the selectors.
+       * 
+       * @param{Boolean} create a Ajax request and refresh the selectors.
+       */
+      oprSelectorsRefreshWithSubmit : function(bSubmit) {
+
+        var me = this;
+
+        if (bSubmit &amp;&amp; !me.__oprValidateBeforeSubmit())
+          return;
+
+        me.body.mask(&quot;Wait ...&quot;);
+        // this var is used to know whether the options in the select boxes have
+        // been loaded or not
+        me.bDataSelectionLoaded = false;
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.url,
+              params : {
+
+        }     ,
+              scope : me,
+              success : function(response) {
+
+                var me = this;
+                var response = Ext.JSON.decode(response.responseText);
+                me.__oprRefreshStoresForSelectors(response, true);
+                me.body.unmask();
+                if (bSubmit)
+                  me.oprLoadGridData();
+
+                me.bDataSelectionLoaded = true;
+
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+              }
+            });
+
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-addTextFieldSelector'>      /**
+</span>       * This is used to add a new textfield (selector) to the panel.
+       * 
+       * @param {Object}
+       *          data it is an object which contains the name of the textfield
+       *          and the type. For example:
+       * 
+       * &lt;pre&gt;
+       *  var textFields = {
+       *  &#39;ids&#39; :{
+       *   name : &amp;quot;JobID(s)&amp;quot;,
+       *   type : &amp;quot;number&amp;quot;
+       *  }
+       * 
+       * &lt;/pre&gt;
+       */
+      addTextFieldSelector : function(data) {
+        var me = this;
+        var textFieldWidget = null;
+        for (var field in data) {
+          if (data[field][&quot;type&quot;] == &quot;Number&quot;) {
+            textFieldWidget = Ext.create(&quot;Ext.dirac.utils.DiracNumericField&quot;, {
+                  fieldLabel : data[field][&quot;name&quot;],
+                  scope : me
+                });
+          } else {
+            textFieldWidget = Ext.create(&quot;Ext.dirac.utils.DiracTextField&quot;, {
+                  fieldLabel : data[field][&quot;name&quot;],
+                  scope : me
+                });
+          }
+          me.textFields[field] = textFieldWidget;
+
+          me.add(me.textFields[field]);
+
+        }
+
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-addComboSelector'>      /**
+</span>       * You can add a new combo box selector the the panel.
+       * 
+       * @param {Object}
+       *          data it is dictionary which contains the configuration of the
+       *          selector(s). For example:
+       * 
+       * &lt;pre&gt;
+       * var selector = {
+       *   example : &amp;quot;Exampleee&amp;quot;
+       * };
+       * &lt;/pre&gt;
+       * 
+       * @param{Object} map is used to define data maping for example:
+       * 
+       * &lt;pre&gt;
+       * varmap = [&amp;quot;Example&amp;quot;,[&amp;quot;example&amp;quot;]
+       * &lt;/pre&gt;
+       */
+      addComboSelector : function(data, map) {
+        var me = this;
+        for (var cmb in data) {
+
+          me.cmbSelectors[cmb] = Ext.create(&#39;Ext.dirac.utils.DiracBoxSelect&#39;, {
+                fieldLabel : data[cmb],
+                queryMode : &#39;local&#39;,
+                labelAlign : &#39;top&#39;,
+                displayField : &quot;text&quot;,
+                valueField : &quot;value&quot;,
+                anchor : &#39;100%&#39;
+              });
+
+          me.add(me.cmbSelectors[cmb]);
+
+          // setting the selector menu
+          me.selectorMenu.add({
+                xtype : &#39;menucheckitem&#39;,
+                text : me.cmbSelectors[cmb].getFieldLabel(),
+                relatedCmbField : cmb,
+                checked : true,
+                handler : function(item, e) {
+
+                  var me = this;
+
+                  if (item.checked)
+                    me.cmbSelectors[item.relatedCmbField].show();
+                  else
+                    me.cmbSelectors[item.relatedCmbField].hide();
+
+                },
+                scope : me
+              });
+
+        }
+        if (map) {
+          me.datamap.push(map);
+        } else {
+          for (var i in data) {
+            me.datamap.push([i, i]);
+          }
+        }
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-disableElements'>      /**
+</span>       * It disables the selectors execpt the selector which is in use.
+       * 
+       * @param {Object}
+       *          noToDisable it is the selector object which will be not
+       *          disabled...
+       */
+      disableElements : function(notToDisable) {
+        var me = this;
+
+        if (me.timeSearchPanel) {
+          me.timeSearchPanel.disable();
+        }
+
+        for (var cmb in me.cmbSelectors) {
+          me.cmbSelectors[cmb].disable();
+        }
+        if (me.disableTextFields) {
+          for (var field in me.textFields) {
+            if (me.textFields[field].canDisable &amp;&amp; me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
+              me.textFields[field].disable();
+            }
+          }
+        }
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-enableElements'>      enableElements : function() {
+</span>        var me = this;
+
+        if (me.timeSearchPanel) {
+          me.timeSearchPanel.enable();
+        }
+
+        for (var cmb in me.cmbSelectors) {
+          me.cmbSelectors[cmb].enable();
+        }
+
+        for (var field in me.textFields) {
+          me.textFields[field].enable();
+        }
+      },
+<span id='Ext-dirac-utils-DiracBaseSelector-method-setGrid'>      setGrid : function(grid) {
+</span>        var me = this;
+        me.grid = grid;
+      }
+    });
+</pre>
+</body>
+</html>

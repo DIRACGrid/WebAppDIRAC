@@ -1,0 +1,2309 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-Main'>/*******************************************************************************
+</span> * This class is a container which contains the left and right panels. The
+ * desktop split into two parts: 1. The left panel contains a menu used to
+ * manage the applications. 2. The right panel contains the opened applications
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.Main&#39;, {
+      extend : &#39;Ext.panel.Panel&#39;,
+      requires : [&#39;Ext.dirac.views.tabs.LeftContainer&#39;, &#39;Ext.dirac.views.tabs.RightContainer&#39;, &#39;Ext.dirac.views.tabs.TreeMenuModel&#39;, &#39;Ext.dirac.views.tabs.StateManagement&#39;],
+      mixins : [&quot;Ext.dirac.core.Stateful&quot;, &quot;Ext.dirac.core.AppView&quot;],
+      alias : &#39;widget.viewtabs&#39;,
+      xtype : &#39;main-container&#39;,
+<span id='Ext-dirac-views-tabs-Main-property-items'>      // title: &#39;DIRAC::TAB&#39;,
+</span>      // layout: &#39;fit&#39;,
+
+      items : [],
+
+<span id='Ext-dirac-views-tabs-Main-property-leftConatiner'>      leftConatiner : null,
+</span>
+<span id='Ext-dirac-views-tabs-Main-property-rightContainer'>      rightContainer : null,
+</span>
+<span id='Ext-dirac-views-tabs-Main-property-sharedDesktops'>      sharedDesktops : null,
+</span>
+<span id='Ext-dirac-views-tabs-Main-property-sharedApplications'>      sharedApplications : null,
+</span>
+<span id='Ext-dirac-views-tabs-Main-property-sharedObjects'>      sharedObjects : null,
+</span>
+<span id='Ext-dirac-views-tabs-Main-property-loading'>      loading : false,
+</span>
+<span id='Ext-dirac-views-tabs-Main-property-appCounter'>      appCounter : 0,
+</span>
+<span id='Ext-dirac-views-tabs-Main-property-myDesktop'>      myDesktop : null,
+</span>
+<span id='Ext-dirac-views-tabs-Main-property-applications'>      /**
+</span>       * It contains a list of module name
+       * 
+       * @type{List}
+       */
+      applications : [],
+<span id='Ext-dirac-views-tabs-Main-property-defaultDesktop'>      /*************************************************************************
+</span>       * it store the Default node
+       * 
+       * @type{Ext.dirac.views.tabs.TreeMenuMode}
+       */
+      defaultDesktop : null,
+
+<span id='Ext-dirac-views-tabs-Main-property-_state_related_url'>      _state_related_url : [],
+</span>
+<span id='Ext-dirac-views-tabs-Main-property-_default_desktop_state'>      _default_desktop_state : [],
+</span>
+<span id='Ext-dirac-views-tabs-Main-property-deleteApplications'>      /**
+</span>       * It contains the applications which can be deleted after save
+       * 
+       * @type{Object}
+       */
+      deleteApplications : [],
+
+<span id='Ext-dirac-views-tabs-Main-property-listeners'>      listeners : {
+</span>        afterrender : function() {
+          var me = this;
+          /*
+           * if (me.loadRightContainer.iCode != -4) {
+           * me.loadRightContainer.show(); me.loadleftContainer.show(); }
+           */
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-constructor'>      constructor : function(config) {
+</span>        var me = this;
+        // //////////////////////////HACK TO BE
+        // REMOVED///////////////////////////
+        me.taskbar = {};
+        me.taskbar.getHeight = function() {
+          return 0;
+        }// hack
+        // ///////////////////////////END///////////////////////////
+        me.rightContainer = Ext.create(&#39;Ext.dirac.views.tabs.RightContainer&#39;);
+        me.loadRightContainer = new Ext.LoadMask(me.rightContainer, {
+              msg : &quot;Loading ...&quot;,
+              iCode : 1
+            });
+
+        var menu = me.createTreeMenu();
+
+        me.leftConatiner = Ext.create(&#39;Ext.dirac.views.tabs.LeftContainer&#39;, {
+              menu : menu
+            });
+        me.loadleftContainer = new Ext.LoadMask(me.leftConatiner, {
+              msg : &quot;Loading ...&quot;,
+              iCode : 1
+            });
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-views-tabs-Main-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+        me.ID = &quot;tabs&quot;;
+        var leftCont = me.getLeftContainer();
+        var rightCont = me.getRightContainer();
+        Ext.apply(me, {
+              layout : {
+                type : &#39;border&#39;,
+                padding : 2
+              },
+              items : [me.leftConatiner, me.rightContainer]
+            });
+        me.SM = new Ext.dirac.views.tabs.StateManagement();
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-views-tabs-Main-method-afterRender'>      /**
+</span>       * @private method executed after the desktop has been rendered
+       */
+      afterRender : function() {
+        var me = this;
+        me.callParent();
+        me.getLeftContainer().setActiveMenu(&#39;menuPanel&#39;); // the statrting page
+        // is the menu panel
+        me.__oprLoadUrlState();
+        Ext.get(&quot;app-dirac-loading&quot;).hide();
+        if (me.loadleftContainern &amp;&amp; me.loadRightContainer) {
+          me.loadRightContainer.show();
+          me.loadleftContainer.show(); // TODO Remove this comment!!!
+        }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-__oprLoadUrlState'>      /**
+</span>       * @private Method called to load the state of the desktop described in
+       *          the URL. This method is called after the desktop has been
+       *          rendered.
+       */
+      __oprLoadUrlState : function() {
+
+        var me = this;
+
+        var oValid = true;
+
+        GLOBAL.URL_STATE = Ext.util.Format.trim(GLOBAL.URL_STATE);
+
+        // if the URL state is not empty
+        if (GLOBAL.URL_STATE.length != &quot;&quot;) {
+
+          // we get two parts of the URL state
+          var oParts = GLOBAL.URL_STATE.split(&quot;|&quot;);
+
+          // if the number of parts differ from 2, it means that it is
+          // a mistake
+          if (oParts.length != 2) {
+
+            me.refreshUrlDesktopState();
+            return;
+
+          }
+
+          // if the indicator for desktop loaded state is not valid
+          if ((parseInt(oParts[0], 10) != 0) &amp;&amp; (parseInt(oParts[0], 10) != 1)) {
+
+            oValid = false;
+
+          }
+
+          /*
+           * if the indicator for desktop loaded state is 0, it means that no
+           * desktop state has been loaded, but only particular apps
+           */
+          if (parseInt(oParts[0], 10) == 0) {
+            GLOBAL.APP.CF.alert(&#39;Tab theme can not load applications from URL&#39;, &quot;error&quot;);
+            me.loadleftContainer.hide();
+            me.loadRightContainer.hide();
+            return;
+          }
+
+          // in the case of loaded desktop state, we check whether a
+          // name of the desktop state exists
+          if (parseInt(oParts[0], 10) == 1) {
+
+            if (Ext.util.Format.trim(oParts[1]) == &quot;&quot;) {
+
+              oValid = false;
+
+            }
+
+          }
+
+        }
+
+        if (oValid) {
+
+          var oParts = GLOBAL.URL_STATE.split(&quot;|&quot;);
+
+          if ((oParts.length != 2) || (Ext.util.Format.trim(oParts[1]).length == 0)) {
+            me.loadRightContainer.hide();
+            return;
+          }
+
+          if (parseInt(oParts[0], 10) == 1) {
+            me.getLeftContainer().setActiveMenu(&#39;menuPanel&#39;);
+            // desktop state
+            me.loading = true; // it is only used by the tabchange event in
+            // order to not load the applications.
+            var afterTabCreated = function(name, tab) {
+              GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(name, tab);
+              // //TODO make
+              // sure the
+              // applications
+              // are loaded
+              // to the
+              // correct
+              // tab!
+              tab.isLoaded = true;
+              me.loading = false;
+              me.loadRightContainer.hide();
+            };
+
+            var oDesktop = oParts[1].split(&#39;,&#39;);
+            oDesktop = Ext.Array.remove(oDesktop, &quot;&quot;);
+            // we remove the empty string from the list.
+
+            var dsktops = [];
+            if (oDesktop.length &gt; 0) {
+
+              var defaultdesktop = oDesktop[0].split(&quot;*&quot;);
+              if (defaultdesktop.length &gt; 1) {
+                // LOAD applications to the default desktop....
+                var isLoaded = (oDesktop.length == 1 ? true : false);
+                var loadFinished = (oDesktop.length &gt; 1 ? true : false);
+                // if the desktop is the default desktop and we do not have any
+                // desktop,
+                // the default desktop is loaded.
+                me.loadDefaultdesktop(defaultdesktop, isLoaded, loadFinished);
+                Ext.Array.erase(oDesktop, 0, 1);
+              }
+
+              if (oDesktop.length &gt; 0) {
+                me.readLayoutFromStates(oDesktop, afterTabCreated);
+              } else {
+                me.loadRightContainer.hide();
+              }
+            }
+
+            me.refreshUrlDesktopState();
+          }
+        } else {
+
+          // if the data are not valid, we refresh the URL in the
+          // browser
+          me.refreshUrlDesktopState();
+          me.loadRightContainer.hide();
+
+        }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-readLayoutFromStates'>      /*************************************************************************
+</span>       * This function is used to read the saved desktop states from the server
+       * or the cache using SM. #param{Ext.Array} oDesktop is a list of desktop
+       * names which are in the URL. #param{Object} cbFunction is a function
+       * which will be called after the desktop states active.
+       */
+      readLayoutFromStates : function(oDesktop, cbFunction) {
+        var me = this;
+        var oStateData = null;
+        for (var i = 0; i &lt; oDesktop.length; i++) { // do not create an empty
+          // desktop...
+          if (oDesktop[i] != &quot;&quot;) {
+            var iStateLoaded = GLOBAL.APP.SM.isStateLoaded(&quot;application&quot;, &quot;desktop&quot;, oDesktop[i]);
+
+            switch (iStateLoaded) {
+              case 1 :
+                oStateData = GLOBAL.APP.SM.getStateData(&quot;application&quot;, &quot;desktop&quot;, oDesktop[i]);
+                break;
+              case -1 :
+                var isRefernceLoaded = GLOBAL.APP.SM.isStateLoaded(&#39;reference&#39;, &#39;desktop&#39;, oDesktop[i]);
+                switch (isRefernceLoaded) {
+                  case 1 :
+                    oStateData = GLOBAL.APP.SM.getStateData(&quot;reference&quot;, &quot;desktop&quot;, oDesktop[i]);
+                    break;
+                  case -1 :
+                    GLOBAL.APP.CF.alert(&quot;The &quot; + oDesktop[i] + &quot; state does not exist !&quot;, &quot;warning&quot;);
+                    Ext.Array.remove(oDesktop, oDesktop[i]);
+                    me.readLayoutFromStates(oDesktop, cbFunction);
+                    me.loadRightContainer.hide();
+                    break;
+                  return;
+                case -2 :
+                  me.funcPostponedLoading = function() {
+
+                    me.readLayoutFromStates(oDesktop, cbFunction);
+
+                  }
+
+                  setTimeout(me.funcPostponedLoading, 1000);
+                  return;
+                  break;
+              }
+              break;
+            return;
+          case -2 :
+            me.funcPostponedLoading = function() {
+
+              me.readLayoutFromStates(oDesktop, cbFunction);
+
+            }
+
+            setTimeout(me.funcPostponedLoading, 1000);
+            return;
+            break;
+        }
+
+        var view = (oStateData.view ? oStateData.view : &#39;tabView&#39;);
+        if (i == oDesktop.length - 1) {
+          GLOBAL.APP.MAIN_VIEW.createDesktopTab(oDesktop[i], view, cbFunction);
+        } else {
+          GLOBAL.APP.MAIN_VIEW.createDesktopTab(oDesktop[i], view);
+        }
+        if (!Ext.Array.contains(me._state_related_url, oDesktop[i])) {
+          me._state_related_url.push(oDesktop[i]);
+        }
+
+      }
+    }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-loadDefaultdesktop'>      loadDefaultdesktop : function(applications, isLoaded, loadFinished) {
+</span>        var me = this;
+        var afterDefaultTabCreated = function(name, tab) {
+          var setupData = {};
+          for (var i = 0; i &lt; applications.length; i++) {
+            if (applications[i] != &quot;&quot;) {
+              var application = applications[i].split(&quot;:&quot;);
+
+              if (application.length &gt; 1 &amp;&amp; Ext.util.Format.trim(application[1]) != &quot;&quot;) { // store
+                // the
+                // state
+                // of
+                // the
+                // applications
+                if (application[0] in setupData) {
+                  setupData[application[0]].push(application[1]);
+                } else {
+                  setupData[application[0]] = [];
+                  setupData[application[0]].push(application[1]);
+                }
+              }
+
+              var isStateLoaded = GLOBAL.APP.SM.isStateLoaded(&quot;application&quot;, application[1], &quot;|&quot;);// OK
+
+              if (isStateLoaded == -2) {
+
+                /*
+                 * if the application cache does not exist
+                 */
+
+                var oFunc = function(success, appName) {
+
+                  if (success == 1) {
+                    var loadState = {
+                      stateToLoad : &quot;&quot;
+                    };
+                    if (appName in setupData) {
+                      loadState.stateToLoad = setupData[appName].pop();
+                    }
+                    me.createWindow(&quot;app&quot;, appName, loadState, tab);
+                  }
+
+                }
+
+                if (GLOBAL.STATE_MANAGEMENT_ENABLED)
+                  GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(application[0], oFunc);
+
+              }
+
+              if (!Ext.Array.contains(me._default_desktop_state, application[0])) {
+                me._default_desktop_state.push(applications[i]);
+              }
+            }
+          }
+          me.loading = loadFinished;
+          tab.isLoaded = isLoaded;
+        };
+        GLOBAL.APP.MAIN_VIEW.createDesktopTab(&quot;Default&quot;, me.view, afterDefaultTabCreated);
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-getStateData'>      getStateData : function() {
+</span>
+        var me = this;
+        // TODO: Save the portal state. We can save the settings here.
+        return [];
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-loadState'>      loadState : function(oData, tab) {
+</span>
+        var me = this;
+        me.loadRightContainer.show();
+
+        if (tab) {
+          tab.loadState(oData);
+        } else {
+          tab = me.getActiveDesktop();
+        }
+
+        if (me.ID in oData[&quot;views&quot;]) {
+          if (oData[&quot;data&quot;].length &lt; 1) {
+            // we have no application in the desktop...
+            me.loadRightContainer.hide();
+          }
+          for (var i = 0, len = oData[&quot;data&quot;].length; i &lt; len; i++) {
+
+            if (&quot;module&quot; in oData[&quot;data&quot;][i]) {
+
+              var oAppStateData = {};
+
+              oAppStateData.name = oData[&quot;data&quot;][i].module;
+              oAppStateData.data = oData[&quot;data&quot;][i].data;
+              oAppStateData.currentState = oData[&quot;data&quot;][i].currentState;
+
+              if (i == oData[&quot;data&quot;].length - 1) {
+
+                var cbSetActiveTab = function(oTab) {
+
+                  if (tab &amp;&amp; tab.view == &#39;tabView&#39;) {
+                    // when the presenter view used then does not have tabs
+                    // we have to found what was the last active tab.
+                    var activeTab = oData.views.tabs.activeTab;
+                    if (activeTab) {
+                      if (tab.items.length &lt; oData[&quot;data&quot;].length) {
+                        Ext.defer(function() { // wait until all application
+                              // window have created...
+                              me.loadRightContainer.show();
+                              tab.items.each(function(win, value, length) {
+                                    if (activeTab.currentState == win.currentState &amp;&amp; activeTab.name == win.setupData.name) {
+                                      tab.setActiveTab(win);
+                                      me.loadRightContainer.hide();
+                                      return;
+                                    }
+                                  });
+                            }, 100);
+                      } else {
+                        var found = false;
+                        tab.items.each(function(win, value, length) {
+                              if (activeTab.currentState == win.currentState &amp;&amp; activeTab.name == win.setupData.name) {
+                                tab.setActiveTab(win);
+                                me.loadRightContainer.hide();
+                                found = true;
+                                return;
+                              }
+                            });
+                        if (!found) {
+                          tab.setActiveTab(0);
+                          me.loadRightContainer.hide();
+                        }
+                      }
+                    } else {
+                      me.loadRightContainer.hide();
+                      tab.setActiveTab(oTab);
+                    }
+                  }
+                };
+                me.createWindow(&quot;app&quot;, oAppStateData.name, oAppStateData, tab, cbSetActiveTab);
+                //load the one application on the desktop
+              } else {
+                //create each application
+                me.createWindow(&quot;app&quot;, oAppStateData.name, oAppStateData, tab);
+              }
+
+            } else if (&quot;link&quot; in oData[&quot;data&quot;][i]) {
+              me.loadRightContainer.hide();
+              var oAppStateData = {};
+
+              oAppStateData.name = oData[&quot;data&quot;][i].link;
+              Ext.apply(oAppStateData, oData[&quot;data&quot;][i]);
+
+              me.createWindow(&quot;link&quot;, oAppStateData.name, oAppStateData, tab);
+            }
+
+          }
+
+        } else {// desktop theme( it is saved using the desktop theme.
+
+          for (var i = 0, len = oData[&quot;data&quot;].length; i &lt; len; i++) {
+
+            if (&quot;link&quot; in oData[&quot;data&quot;][i]) {
+              var oAppStateData = {};
+
+              oAppStateData.name = oData[&quot;data&quot;][i].link;
+              Ext.apply(oAppStateData, oData[&quot;data&quot;][i]);
+
+              me.createWindow(&quot;link&quot;, oAppStateData.name, oAppStateData, tab);
+            } else if (&quot;module&quot; in oData[&quot;data&quot;][i]) {
+
+              var oAppStateData = {};
+
+              oAppStateData.name = oData[&quot;data&quot;][i].module;
+              oAppStateData.data = oData[&quot;data&quot;][i].data;
+              oAppStateData.currentState = oData[&quot;data&quot;][i].currentState;
+
+              if (i == oData[&quot;data&quot;].length - 1) {
+
+                var cbSetActiveTab = function(oTab) {
+
+                  if (tab &amp;&amp; tab.view == &#39;tabView&#39;) {
+                    // when the presenter view used then does not have tabs
+                    // we have to found what was the last active tab.
+                    var activeTab = tab._activeTab;
+                    if (activeTab) {
+                      if (tab.items.length &lt; oData[&quot;data&quot;].length) {
+                        Ext.defer(function() { // wait until all application
+                              // window have created...
+                              me.loadRightContainer.show();
+                              tab.items.each(function(win, value, length) {
+                                    if (activeTab.currentState == win.currentState &amp;&amp; activeTab.name == win.setupData.name) {
+                                      tab.setActiveTab(win);
+                                      me.loadRightContainer.hide();
+                                      return;
+                                    }
+                                  });
+                            }, 100);
+                      } else {
+                        tab.items.each(function(win, value, length) {
+                              if (activeTab.currentState == win.currentState &amp;&amp; activeTab.name == win.setupData.name) {
+                                tab.setActiveTab(win);
+                                me.loadRightContainer.hide();
+                                return;
+                              }
+                            });
+                      }
+                    } else {
+                      tab.setActiveTab(oTab);
+                    }
+                  }
+                };
+                me.createWindow(&quot;app&quot;, oAppStateData.name, oAppStateData, tab, cbSetActiveTab);
+
+              } else {
+                me.createWindow(&quot;app&quot;, oAppStateData.name, oAppStateData, tab);
+              }
+
+            }
+          }
+        }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-getLeftContainer'>      getLeftContainer : function() {
+</span>        var me = this;
+        return me.leftConatiner;
+      },
+<span id='Ext-dirac-views-tabs-Main-method-getRightContainer'>      getRightContainer : function() {
+</span>        var me = this;
+        return me.rightContainer;
+      },
+<span id='Ext-dirac-views-tabs-Main-method-createTreeMenu'>      /**
+</span>       * It creates a tree which nodes are applications. This is used as a Menu.
+       * The tree has application nodes, My desktop node and Shared desktop
+       * node.
+       */
+      createTreeMenu : function() {
+        var me = this;
+
+        Ext.data.NodeInterface.decorate(&#39;Ext.dirac.views.tabs.TreeMenuModel&#39;);
+
+        config = {
+          text : &#39;Desktops&#39;,
+          allowDrag : false,
+          allowDrop : false,
+          iconCls : &quot;core-desktop-icon&quot;,
+          expanded : true,
+          root : true
+        };
+        var rootNode = Ext.create(&#39;Ext.dirac.views.tabs.TreeMenuModel&#39;, config);
+
+        for (var j = 0; j &lt; GLOBAL.APP.configData[&quot;menu&quot;].length; j++) {
+          me.__getAppRecursivelyFromConfig(GLOBAL.APP.configData[&quot;menu&quot;][j], rootNode);
+        }
+
+        var oFunc = function(iCode, sAppName) {
+          if (me.loadRightContainer) {
+            me.loadRightContainer.hide();
+          }
+          if (me.loadleftContainer) {
+            me.loadleftContainer.hide();
+          }
+          me.createDesktopTree(rootNode);
+        };
+
+        if (GLOBAL.STATE_MANAGEMENT_ENABLED) {
+          GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(&quot;desktop&quot;, oFunc);// OK
+        }
+
+        return rootNode;
+      },
+<span id='Ext-dirac-views-tabs-Main-method-__getAppRecursivelyFromConfig'>      __getAppRecursivelyFromConfig : function(item, rootNode) {
+</span>        var me = this;
+        var expanded = null;
+        if (item.length == 2) {
+          if (item[0] == &#39;Applications&#39;) {
+            expanded = true;
+          } else {
+            expanded = false;
+          }
+          var childnode = rootNode.appendChild({
+                &#39;text&#39; : item[0],
+                expandable : true,
+                expanded : expanded,
+                allowDrag : false,
+                allowDrop : false,
+                leaf : false,
+                application : item[2]
+              });
+          for (var i = 0; i &lt; item[1].length; i++) {
+            me.__getAppRecursivelyFromConfig(item[1][i], childnode);
+          }
+        } else {
+          if (item[0] == &quot;app&quot;) {
+            var oParts = item[2].split(&quot;.&quot;);
+            var sStartClass = &quot;&quot;;
+            if (oParts.length == 2)
+              sStartClass = item[2] + &quot;.classes.&quot; + oParts[1];
+            else
+              sStartClass = item[2];
+            me.applications.push(sStartClass); // we have to save a list of
+            // applications which can
+            // used.
+            var newnode = rootNode.appendChild({
+                  &#39;text&#39; : item[1],
+                  expandable : false,
+                  application : sStartClass, // item[2],
+                  leaf : true,
+                  allowDrag : false,
+                  iconCls : &#39;core-application-icon&#39;,
+                  stateToLoad : &#39;Default&#39;,
+                  type : &#39;app&#39;,
+                  desktop : &#39;Default&#39;
+                });
+
+          } else {
+            var newnode = rootNode.appendChild({
+                  &#39;text&#39; : item[1],
+                  expandable : false,
+                  application : item[2],
+                  type : &#39;link&#39;,
+                  iconCls : &quot;system_web_window&quot;,
+                  leaf : true
+                });
+          }
+        }
+        return;
+      },
+<span id='Ext-dirac-views-tabs-Main-method-createDesktopTree'>      /*************************************************************************
+</span>       * It creates the My Desktops sub-tree.
+       * 
+       * @param {Object}
+       *          an instance of a node
+       */
+      createDesktopTree : function(node) {
+        var me = this;
+
+        var rootNode = node.appendChild({
+              text : &#39;My Desktops&#39;,
+              allowDrag : false,
+              allowDrop : false,
+              iconCls : &quot;my-desktop&quot;
+            });
+        me.myDesktop = rootNode;
+
+        me.defaultDesktop = me.myDesktop.appendChild({
+              text : &#39;Default&#39;,
+              type : &#39;Default&#39;,
+              expandable : true,
+              allowDrag : false,
+              allowDrop : false,
+              iconCls : &quot;core-desktop-icon&quot;
+            });
+
+        me.defaultDesktop.appendChild({
+              &#39;text&#39; : &#39;All&#39;,
+              expandable : false,
+              application : &#39;Default&#39;,
+              allowDrag : false,
+              allowDrop : false,
+              type : &#39;tabView&#39;,
+              leaf : true,
+              iconCls : &#39;icon-applications-states-all-default&#39;
+            });
+
+        var oStates = GLOBAL.APP.SM.getApplicationStates(&quot;application&quot;, &quot;desktop&quot;);// OK
+        for (var i = 0, len = oStates.length; i &lt; len; i++) {
+          var sStateName = oStates[i];
+          var oStateData = GLOBAL.APP.SM.getStateData(&#39;application&#39;, &#39;desktop&#39;, sStateName);
+          var childNode = rootNode.appendChild({
+                &#39;text&#39; : sStateName,
+                expandable : true,
+                application : sStateName,
+                type : &#39;desktop&#39;,
+                isShared : false,
+                leaf : false,
+                allowDrag : false,
+                allowDrop : true,
+                iconCls : &quot;core-desktop-icon&quot;,
+                icon : null,
+                view : oStateData.view
+              });
+          childNode.appendChild({
+                &#39;text&#39; : &#39;All&#39;,
+                expandable : false,
+                application : sStateName,
+                allowDrag : false,
+                allowDrop : false,
+                type : (oStateData.view != null ? oStateData.view : &quot;tabView&quot;),
+                leaf : true,
+                iconCls : &#39;icon-applications-states-all-default&#39;,
+                view : oStateData.view
+              });
+
+        }
+
+        var rootNode = node.appendChild({
+              text : &#39;Shared&#39;,
+              allowDrag : false,
+              allowDrop : false,
+              iconCls : &quot;dirac-icon-share&quot;
+            });
+
+        me.sharedObjects = rootNode;
+
+        var desktopsNode = me.sharedObjects.appendChild({
+              text : &#39;Shared Desktops&#39;,
+              allowDrag : false,
+              allowDrop : false,
+              iconCls : &quot;shared-desktop&quot;
+            });
+        me.sharedDesktops = desktopsNode;
+
+        var applicationsNode = me.sharedObjects.appendChild({
+              text : &#39;Shared Applications&#39;,
+              allowDrag : false,
+              allowDrop : false,
+              iconCls : &quot;shared-desktop&quot;
+            });
+
+        me.sharedApplications = applicationsNode;
+
+        return rootNode;
+      },
+
+<span id='Ext-dirac-views-tabs-Main-method-oprLoadSharedDesktopsAndApplications'>      oprLoadSharedDesktopsAndApplications : function() {
+</span>        var me = this;
+        // creating items for the state links
+        me.sharedDesktops.removeAll();
+        me.sharedApplications.removeAll();
+
+        var oRefs = GLOBAL.APP.SM.getApplicationStates(&quot;reference&quot;, &quot;desktop&quot;);// OK
+
+        for (var i = 0, len = oRefs.length; i &lt; len; i++) {
+
+          var sStateName = oRefs[i];
+
+          var childNode = me.sharedDesktops.appendChild({
+                &#39;text&#39; : sStateName,
+                expandable : false,
+                application : &#39;desktop&#39;,
+                stateToLoad : sStateName,
+                isShared : true,
+                allowDrag : false,
+                allowDrop : false,
+                type : &#39;tabView&#39;,
+                stateType : &#39;desktop&#39;,
+                leaf : true,
+                iconCls : &#39;icon-applications-states-all-default&#39;,
+                qtip : sStateName
+              });
+        }
+
+        // load shared applications state
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        var treePanel = null;
+        if (selPanel) {
+          treePanel = selPanel.getTreePanel();
+        }
+
+        treePanel.setLoading(true);
+        var applications = GLOBAL.APP.MAIN_VIEW.applications;
+        for (var i = 0; i &lt; applications.length; i++) {
+
+          var oFunc = function(iCode, sAppName) {
+
+            var appRefs = GLOBAL.APP.SM.getApplicationStates(&quot;reference&quot;, sAppName);
+            for (var i = 0, len = appRefs.length; i &lt; len; i++) {
+
+              var stateName = appRefs[i];
+
+              me.addToSharedApplications(sAppName, stateName, &quot;reference&quot;);
+            }
+            treePanel.setLoading(false);
+
+          };
+
+          var appRefs = GLOBAL.APP.SM.getApplicationStates(&quot;reference&quot;, applications[i]);// OK
+          if (appRefs.length &gt; 0) { // it is already loaded
+            for (var j = 0, len = appRefs.length; j &lt; len; j++) {
+
+              var stateName = appRefs[j];
+
+              me.addToSharedApplications(applications[i], stateName, &quot;reference&quot;);
+            }
+          } else {
+            GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(applications[i], oFunc);// OK
+          }
+
+        }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-changeRightPanel'>      /*************************************************************************
+</span>       * It changes the workspace in the RightContainer taking account what was
+       * selected in the LeftConatiner.
+       * 
+       * @param {String}
+       *          type can be welcome, menuPanel and sharedLayouts.
+       */
+      changeRightPanel : function(type) {
+        var me = this;
+        var rContainer = me.getRightContainer();
+        rContainer.changePanel(type);
+      },
+<span id='Ext-dirac-views-tabs-Main-method-createWindow'>      /*************************************************************************
+</span>       * it creates an application and loads its data from the UserProfile.
+       * 
+       * @param{String} loadedObjectType is the type of the object which will be
+       *                loaded
+       * @param{String} moduleName is the full package of the class for example:
+       *                DIRAC.JobMonitor.classes.JobMonitor
+       * @param{Object} setupData is the saved states of the application
+       * @param{String} tabName is the tab name which will contain the
+       *                application which being loaded.
+       */
+      createWindow : function(loadedObjectType, moduleName, setupData, oTab, cbFunction) {
+        var me = this;
+        Ext.get(&quot;app-dirac-loading&quot;).show();
+
+        if (loadedObjectType == &quot;app&quot;) {
+
+          var oParts = moduleName.split(&quot;.&quot;);
+          var sStartClass = &quot;&quot;;
+
+          if (oParts.length == 2)
+            sStartClass = moduleName + &quot;.classes.&quot; + oParts[1];
+          else
+            sStartClass = moduleName;
+
+          // if the development mod is off, we set up diffrent path to
+          // load javascript
+          if (GLOBAL.DEV == 0) {
+
+            var oConfig = {
+              enabled : true,
+              paths : {}
+            };
+
+            oConfig[&quot;paths&quot;][oParts[0] + &quot;.&quot; + oParts[1] + &quot;.classes&quot;] = &quot;static/&quot; + oParts[0] + &quot;/&quot; + oParts[1] + &quot;/build&quot;;
+
+            Ext.Loader.setConfig(oConfig);
+
+          }
+
+          Ext.require(sStartClass, function() {
+
+            var me = this;
+
+            // creating an object of the demeanded application
+            var instance = Ext.create(sStartClass, {
+                  launcherElements : {
+                    title : &#39;Module&#39;,
+                    iconCls : &#39;notepad&#39;,
+                    applicationName : oParts[1],
+                    width : 0,
+                    height : 0,
+                    maximized : true,
+                    x : null,
+                    y : null
+                  }
+                });
+
+            var config = {
+              setupData : setupData,
+              loadedObject : instance,
+              loadedObjectType : &quot;app&quot;,
+              toLoad : (cbFunction ? true : false),
+              isLoaded : false
+            };
+
+            me.getRightContainer().createWindow(config, oTab, cbFunction);
+              // initializing window
+
+            }, this);
+
+        } else if (loadedObjectType == &quot;link&quot;) {
+
+          me.getRightContainer().createWindow({
+                setupData : setupData,
+                loadedObjectType : &quot;link&quot;,
+                linkToLoad : moduleName
+              }, oTab, cbFunction);
+
+        }
+        Ext.get(&quot;app-dirac-loading&quot;).hide();
+      },
+<span id='Ext-dirac-views-tabs-Main-method-createDesktopTab'>      /*************************************************************************
+</span>       * It creates a new desktop for a given name.
+       * 
+       * @param{String} name is the tab name
+       * @param{String} view is used to know the type of the desktop. NOTE: It
+       *                can be tab or presenter like
+       * @param{Object} cbFunction It is called after the dektop has created.
+       */
+      createDesktopTab : function(name, view, cbFunction) {
+        var me = this;
+        me.getRightContainer().createDesktopTab(name, view, cbFunction);
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-getDesktopDimensions'>      /*************************************************************************
+</span>       * it returns the desktop dimension.
+       */
+      getDesktopDimensions : function() {
+        var me = this;
+
+        return [me.getWidth(), me.getHeight()];
+      },
+<span id='Ext-dirac-views-tabs-Main-method-saveActiveApplicationState'>      /**
+</span>       * It saves the state of an application. Note: It only take into account
+       * the active a application.
+       */
+      saveActiveApplicationState : function() {
+        var me = this;
+
+        var activeDesktop = me.getActiveDesktop();
+        if (activeDesktop) {
+          var appl = activeDesktop.getActiveTab();
+          if (appl) {
+            GLOBAL.APP.MAIN_VIEW.SM.saveState(activeDesktop.title, appl.loadedObject.self.getName(), appl.loadedObject.currentState, function(retCode, appName, stateType, stateName) {
+                  if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow) {
+                    GLOBAL.APP.MAIN_VIEW.SM.saveWindow.hide();
+                  }
+                });
+
+          } else {
+            Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;You do not have any active application on the desktop. Please select an application (tab) on the desktop!!!&#39;);
+          }
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &#39;Please open a dektop!!! &#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-saveAsActiveApplicationState'>      /**
+</span>       * It saves the state of an existing application with a new name. Note: It
+       * only take into account the active a application.
+       */
+      saveAsActiveApplicationState : function() {
+        var me = this;
+
+        var activeDesktop = me.getActiveDesktop();
+        if (activeDesktop) {
+
+          var appl = activeDesktop.getActiveTab();
+
+          if (appl) {
+            GLOBAL.APP.MAIN_VIEW.SM.saveAsState(activeDesktop.title, appl.loadedObject.self.getName(), appl.loadedObject.currentState, function(desktop, app, stateName) {
+                  Ext.dirac.system_info.msg(&quot;Notification&quot;, stateName + &#39; application is saved on &#39; + desktop + &#39;!&#39;);
+
+                  if ((desktop != &#39;Default&#39;) &amp;&amp; (appl.currentState != stateName)) {
+
+                    // GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName,
+                    // app);
+
+                    if (appl.currentState != &quot;&quot;)
+                      GLOBAL.APP.SM.oprRemoveActiveState(app, appl.currentState);
+
+                    appl.loadedObject.currentState = stateName;
+                    appl.currentState = stateName;
+                    GLOBAL.APP.SM.oprAddActiveState(app, stateName);
+                    appl.setTitle(appl.loadedObject.launcher.title + &quot; [&quot; + appl.loadedObject.currentState + &quot;]&quot;);
+
+                    if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+                      GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+
+                  }
+                });
+
+          } else {
+            Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;Please open an application!!! &#39;);
+          }
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;Please open a dektop!!! &#39;);
+        }
+      },
+
+<span id='Ext-dirac-views-tabs-Main-method-refreashTree'>      /**
+</span>       * It refreshes the menu
+       * 
+       * @param {string}
+       *          desktop The name of the tab(desktop) which contains the
+       *          application
+       * @param {string}
+       *          application the class name of the application.
+       */
+      refreashTree : function(desktop, application) {
+        // &lt;debug&gt;
+        Ext.log({
+              level : &#39;log&#39;,
+              stack : true
+            }, &quot;Begin method!&quot;);
+        // &lt;/debug&gt;
+
+        var me = this;
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var treePanel = selPanel.getTreePanel();
+          var rootNode = treePanel.getStore().getRootNode();
+          me.refreshNode(rootNode, desktop, application);
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;The panel which contains the menu does not exists!!!&#39;);
+        }
+        // &lt;debug&gt;
+        Ext.log({
+              level : &#39;log&#39;,
+              stack : true
+            }, &quot;End method!&quot;);
+        // &lt;/debug&gt;
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-refreshNode'>      /*************************************************************************
+</span>       * it refresh a specific node
+       * 
+       * @param{Object} rootNode
+       * @param{String} desktop
+       * @param{String}
+       */
+      refreshNode : function(rootNode, desktop, application) {
+        if (rootNode) {
+          if (rootNode.childNodes.length &gt; 0) {
+            for (var i = 0; i &lt; rootNode.childNodes.length; i++) {
+              var node = rootNode.childNodes[i];
+              if (node.data.text == desktop &amp;&amp; desktop != &#39;Default&#39;) {
+                this.refreshNode(node, desktop, application);
+              } else if (node.data.application == application) {
+                parent = node.parentNode; // the application found.
+                // the
+                // children of the parent nodes
+                // have to be deleted.
+                parent.collapse();
+                parent.expand();
+                return;
+              } else if (node.childNodes.length &gt; 0) {
+                this.refreshNode(node, desktop, application);
+              }
+            }
+          }
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-addNodeToMenu'>      /*************************************************************************
+</span>       * It adds a name state to the menu.
+       * 
+       * @param{String} stateName
+       * @param{String} appName
+       * @param{Object} stateData
+       */
+      addNodeToMenu : function(stateName, appName) {
+        var me = this;
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var treePanel = selPanel.getTreePanel();
+          var rootNode = treePanel.getStore().getRootNode();
+
+          var node = me.__findNode(rootNode, appName);
+
+          var defaultNode = node.firstChild;
+          defaultNode.data.iconCls = &#39;core-application-icon&#39;;
+          defaultNode.text = stateName;
+          defaultNode.data.text = stateName;
+          defaultNode.data.stateToLoad = stateName;
+          node.removeChild(defaultNode);
+
+          Ext.define(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;, {
+                extend : &#39;Ext.data.Model&#39;,
+                fields : [&#39;text&#39;, &#39;type&#39;, &#39;application&#39;, &#39;stateToLoad&#39;, &#39;desktop&#39;],
+                alias : &#39;widget.treenodemodel&#39;
+              });
+          nodeObj = {
+            &#39;text&#39; : &#39;Default&#39;,
+            type : &#39;app&#39;,
+            allowDrag : false,
+            expandable : false,
+            leaf : true,
+            application : appName,
+            stateToLoad : &#39;Default&#39;,
+            iconCls : &#39;icon-applications-states-all-default&#39;
+          };
+
+          Ext.data.NodeInterface.decorate(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;);
+          var newNode = Ext.create(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;, nodeObj);
+          node.insertChild(0, newNode);
+          node.appendChild(defaultNode);
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;The panel which contains the menu does not exists!!!&#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-__findNode'>      /*************************************************************************
+</span>       * It check the existance of a node for a given name.
+       * 
+       * @param{Object} rootNode
+       * @param{String} name
+       * @private
+       */
+      __findNode : function(rootNode, name) {
+        var me = this;
+        for (var i = 0; i &lt; rootNode.childNodes.length; i++) {
+          var node = rootNode.childNodes[i];
+          if (node.data.application == name) {
+            return node.parentNode;
+          } else {
+            found = me.__findNode(node, name);
+            if (found) {
+              return found;
+            }
+          }
+        }
+      },
+
+<span id='Ext-dirac-views-tabs-Main-method-removeNodeFromMenu'>      /*************************************************************************
+</span>       * It removes a given node from the menu tree.
+       * 
+       * @param{String} stateName
+       * @param{String} AppName
+       */
+      removeNodeFromMenu : function(stateName, appName) {
+        var me = this;
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var treePanel = selPanel.getTreePanel();
+          var rootNode = treePanel.getStore().getRootNode();
+          var node = me.__findNode(rootNode, appName);
+          var oDelete = node.findChild(&#39;text&#39;, stateName);
+          node.removeChild(oDelete);
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;The panel which contains the menu does not exists!!!&#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-removeFromSharedAppMenu'>      removeFromSharedAppMenu : function(stateName) {
+</span>        var me = this;
+        var node = me.sharedApplications.findChild(&#39;text&#39;, stateName);
+        me.sharedApplications.removeChild(node);
+      },
+<span id='Ext-dirac-views-tabs-Main-method-deleteApplicationStates'>      deleteApplicationStates : function() {
+</span>        var me = this;
+
+        var activeDesktop = me.getActiveDesktop();
+        if (activeDesktop) {
+          if (activeDesktop.view == &#39;presenterView&#39;) {
+            appl = activeDesktop.getOpenedApplication();
+          } else {
+            var appl = activeDesktop.getActiveTab();
+          }
+
+          if (appl) {
+            var funcAfterRemove = function(stateType, sAppName, sStateName) {
+
+              if (stateType == &quot;application&quot;) {
+                me.removeNodeFromMenu(sStateName, sAppName);
+              } else {// it is a shared app =&gt;reference
+                me.removeFromSharedAppMenu(sStateName);
+              }
+
+            }
+            GLOBAL.APP.MAIN_VIEW.SM.formManageStates(appl.loadedObject.self.getName(), funcAfterRemove);
+
+          } else {
+            Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;Please open an application!!! &#39;);
+          }
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;Please open a dektop!!! &#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-saveActiveDesktopState'>      /**
+</span>       * It saves the desktop state. If the state name is defaulf, a new must be
+       * defined.
+       */
+      saveActiveDesktopState : function() {
+        var me = this;
+        me.getRightContainer().oprSaveDesktopState();
+      },
+<span id='Ext-dirac-views-tabs-Main-method-saveDesktopState'>      /*************************************************************************
+</span>       * It is used to save the sate of a given desktop....
+       * 
+       * @param {String}
+       *          stateName the name of the desktop
+       */
+      saveDesktopState : function(stateName) {
+        var me = this;
+        me.getRightContainer().oprSaveDesktopState(stateName);
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-saveAsActiveDesktopState'>      /**
+</span>       * It save an existing desktop state with a new name.
+       */
+      saveAsActiveDesktopState : function() {
+        var me = this;
+        me.getRightContainer().oprSaveAsDesktopState();
+      },
+<span id='Ext-dirac-views-tabs-Main-method-deleteDesktopStates'>      /**
+</span>       * It deletes the desktops.
+       */
+      deleteDesktopStates : function() {
+        var me = this;
+        me.getRightContainer().oprDeleteDesktopState();
+      },
+<span id='Ext-dirac-views-tabs-Main-method-renameCurrentDesktop'>      /**
+</span>       * It renames the current desktop.
+       * 
+       * @param {string}
+       *          name the new name of the desktop.
+       * @param {boolean}
+       *          addToMenu if it is set, it means the new name has to be added
+       *          to the menu.
+       */
+      renameCurrentDesktop : function(name) {
+        var me = this;
+
+        var activeDesktop = me.getActiveDesktop();
+        if (activeDesktop) {
+          var desktopName = activeDesktop.title;
+          activeDesktop.setTitle(name);
+          if (desktopName == &#39;Default&#39;) { // if the current desktop is the
+            // remove the applications from the default desktop
+            me._default_desktop_state = [];
+            // default, we have to remove the
+            // items from the Default desktop.
+            // and we have to create a new item(desktop).
+            me.__addDesktopToMenu(name);
+            // remove the applications from the state.
+            var data = me.getRightContainer().getStateData(); // get the active
+            // desktop states.
+            var cbAfterRefresh = function(code, sAppName, sStateType, sStateName) {
+              if (code == 1) {
+                var node = me.defaultDesktop.findChild(&#39;text&#39;, sStateName);
+                me.moveDesktopmMnuItem(name, node);
+              }
+              return;
+            };
+            for (i = 0; i &lt; data.length; i++) {
+              GLOBAL.APP.SM.oprDeleteState(data[i].module, &quot;application&quot;, data[i].currentState, cbAfterRefresh);
+            }
+
+          } else {
+            me.__addDesktopToMenu(name);
+          }
+
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;Please open a dektop!!! &#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-__addDesktopToMenu'>      /**
+</span>       * It is used to add a new desktop to the menu.
+       * 
+       * @param {string}
+       *          stateName the name of the desktop.
+       * @private
+       */
+      __addDesktopToMenu : function(stateName) {
+        var me = this;
+        me.myDesktop.expand();
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var treePanel = selPanel.getTreePanel();
+          // var rootNode = treePanel.getStore().getRootNode();
+          var rootNode = me.myDesktop;
+          var oNode = null;
+          rootNode.eachChild(function(node) { // remove the node if it is
+                // exists
+                if (node &amp;&amp; node.getData().text == stateName) {
+                  oNode = node;
+                }
+              }, me);
+          if (oNode) {
+            var firstChild = oNode.firstChild;
+
+            oNode.collapse();
+
+            oNode.removeAll();
+            oNode.appendChild(firstChild);
+            // me.__addUserDesktopStatesToDesktop(oNode);
+            // oNode.expandChildren(true);
+          } else {
+
+            try {
+              nodeObj = {
+                &#39;text&#39; : stateName,
+                expandable : true,
+                application : stateName,
+                type : &#39;desktop&#39;,
+                leaf : false,
+                iconCls : &#39;core-desktop-icon&#39;,
+                allowDrag : false,
+                allowDrop : true
+              };
+              Ext.define(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;, {
+                    extend : &#39;Ext.data.Model&#39;,
+                    fields : [&#39;text&#39;, &#39;type&#39;, &#39;application&#39;, &#39;stateToLoad&#39;, &#39;desktop&#39;],
+                    alias : &#39;widget.desktopnodemodel&#39;
+                  });
+              Ext.data.NodeInterface.decorate(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;);
+              var node = Ext.create(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;, nodeObj);
+              var childNode = rootNode.appendChild(node);
+              nodeObj = {
+                &#39;text&#39; : &#39;All&#39;,
+                expandable : false,
+                application : stateName,
+                type : &#39;tabView&#39;,
+                leaf : true,
+                iconCls : &#39;icon-applications-states-all-default&#39;,
+                allowDrag : false,
+                allowDrop : false
+              };
+              Ext.define(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;, {
+                    extend : &#39;Ext.data.Model&#39;,
+                    fields : [&#39;text&#39;, &#39;type&#39;, &#39;application&#39;, &#39;stateToLoad&#39;, &#39;desktop&#39;],
+                    alias : &#39;widget.desktopnodemodel&#39;
+                  });
+              Ext.data.NodeInterface.decorate(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;);
+              var node = Ext.create(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;, nodeObj);
+              childNode.appendChild(node);
+              childNode.expand();
+
+            } catch (err) {
+              Ext.log({
+                    level : &#39;error&#39;
+                  }, &quot;Failed to create child nodes!&quot; + err);
+              Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;&quot;Failed to create desktop!!!&#39;);
+            }
+
+          }
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;The panel which contains the menu does not exists!!!&#39;);
+        }
+      },
+
+<span id='Ext-dirac-views-tabs-Main-method-deleteStateFromMenu'>      /**
+</span>       * It deletes the state from the menu.
+       * 
+       * @param {String}
+       *          stateName it is the desktop name which has to be deleted from
+       *          the menu.
+       */
+      deleteStateFromMenu : function(stateName) {
+        var me = this;
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var treePanel = selPanel.getTreePanel();
+          // var rootNode = treePanel.getStore().getRootNode();
+          var rootNode = me.myDesktop;
+          rootNode.eachChild(function(node) {
+                if (node &amp;&amp; node.getData().text == stateName) {
+                  rootNode.removeChild(node);
+                  return;
+                }
+              }, me);
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;The panel which contains the menu does not exists!!!&#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-removeFormSharedDesktop'>      /**
+</span>       * It removes a given node from the tree (Menu tree).
+       * 
+       * @param{String} stateName
+       */
+      removeFormSharedDesktop : function(stateName) {
+        var me = this;
+        var me = this;
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var treePanel = selPanel.getTreePanel();
+          // var rootNode = treePanel.getStore().getRootNode();
+          var rootNode = me.sharedDesktops;
+          rootNode.eachChild(function(node) {
+                if (node &amp;&amp; node.getData().text == stateName) {
+                  rootNode.removeChild(node);
+                  return;
+                }
+              }, me);
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;The panel which contains the menu does not exists!!!&#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-addToSharedDesktop'>      /**
+</span>       * It adds a node to the Shared Desktops node. The name of the node is the
+       * stateName.
+       * 
+       * @param{String} stateName
+       */
+      addToSharedDesktop : function(stateName, stateType) {
+        var me = this;
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var treePanel = selPanel.getTreePanel();
+          var rootNode = me.sharedDesktops;
+          try {
+            rootNode.appendChild({
+                  &#39;text&#39; : stateName,
+                  expandable : false,
+                  application : stateName,
+                  isShared : true,
+                  allowDrag : false,
+                  allowDrop : false,
+                  type : &#39;tabView&#39;,
+                  stateType : stateType,
+                  leaf : true,
+                  iconCls : &#39;icon-applications-states-all-default&#39;,
+                  qtip : stateName
+                });
+          } catch (err) {
+            Ext.log({
+                  level : &#39;error&#39;
+                }, &quot;Failed to create child nodes!&quot; + err);
+            Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;&quot;Failed to create desktop!!!&#39;);
+          }
+
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;The panel which contains the menu does not exists!!!&#39;);
+        }
+      },
+
+<span id='Ext-dirac-views-tabs-Main-method-addToSharedApplications'>      /**
+</span>       * It adds a node to the Shared applications node. The name of the node is
+       * the stateName.
+       * 
+       * @param{String} stateName
+       */
+      addToSharedApplications : function(applicationName, stateName, stateType) {
+        var me = this;
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var treePanel = selPanel.getTreePanel();
+          var rootNode = me.sharedApplications;
+          var application = applicationName.split(&quot;.&quot;);
+          var qtip = application[application.length - 1] + &quot;&lt;br&gt;State Name: &quot; + stateName;
+          try {
+            rootNode.appendChild({
+                  &#39;text&#39; : stateName,
+                  expandable : false,
+                  application : applicationName,
+                  stateToLoad : stateName,
+                  isShared : true,
+                  allowDrag : false,
+                  allowDrop : false,
+                  type : &#39;tabView&#39;,
+                  leaf : true,
+                  stateType : stateType,
+                  iconCls : &#39;icon-applications-states-all-default&#39;,
+                  qtip : qtip
+                });
+          } catch (err) {
+            Ext.log({
+                  level : &#39;error&#39;
+                }, &quot;Failed to create child nodes!&quot; + err);
+            Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;&quot;Failed to create desktop!!!&#39;);
+          }
+
+        } else {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;The panel which contains the menu does not exists!!!&#39;);
+        }
+        me.refreshUrlDesktopState();
+      },
+<span id='Ext-dirac-views-tabs-Main-method-closeTab'>      /**
+</span>       * It closes the tab which belongs to a givgen desktop.
+       * 
+       * @param desktopName
+       *          {String} the name of the desktop
+       * @param tabName
+       *          {String} the name of the tab (window) whih needs to be closed.
+       */
+      closeTab : function(desktopName, tabName) {
+        var me = this;
+        var desktops = null;
+        var appContainer = me.getRightContainer().getApplicationContainer();
+        if (appContainer) {
+          if (!desktopName) {
+            desktops = appContainer.getActiveTab();
+          } else {
+            desktops = appContainer.getTab(desktopName);
+          }
+          if (desktops) { // if the desktop is active
+            var tab = desktops.getPanel(tabName);
+            if (tab) { // if the windows is open.
+              tab.close();
+            }
+          }
+        } else {
+          alert(&#39;appContainer does not exists!&#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-refreshMyDesktop'>      /**
+</span>       * It refresh a node in the myDesktop. If teh nodeName does not exists, it
+       * adds to the myDesktop
+       * 
+       * @param{String} nodeName
+       */
+      refreshMyDesktop : function(nodeName) {
+        var me = this;
+        var selPanel = me.getLeftContainer().getSelectionPanel();
+        var treePanel = null;
+        if (selPanel) {
+          treePanel = selPanel.getTreePanel();
+        }
+
+        treePanel.setLoading(true);
+        if (nodeName) {
+          var oNode = me.myDesktop.findChild(&#39;text&#39;, nodeName);
+          if (oNode) {
+            oNode.collapse();
+            Ext.defer(function() {
+                  oNode.expand();
+                  treePanel.setLoading(false);
+                }, 1000); // wait a bit and after expand the tree.
+          } else {
+            me.__addDesktopToMenu(nodeName);
+            treePanel.setLoading(false);
+          }
+        } else {
+          me.myDesktop.collapse();
+          Ext.defer(function() {
+                me.myDesktop.expand();
+                treePanel.setLoading(false);
+              }, 1000);
+
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-property-rootNode'>      /**
+</span>       * It retrieves the desktop states from the the UserProfile making a
+       * request to the controller. It adds the applications states to the
+       * specific node.
+       * 
+       * @private
+       * @property {Ext.dirac.views.tabs.TreeMenuModel} rootNode the name of the
+       *           node which is the desktop name.
+       */
+      addDesktopStatesToDesktop : function(rootNode) {
+        var me = this;
+        if (rootNode.data.isShared) {
+          me.__addSharedDesktopStatesToDesktop(rootNode);
+        } else {
+          me.__addUserDesktopStatesToDesktop(rootNode);
+        }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-__addUserDesktopStatesToDesktop'>      __addUserDesktopStatesToDesktop : function(rootNode) {
+</span>        var me = this;
+        var sStateName = rootNode.getData().text;
+        var iStateLoaded = GLOBAL.APP.SM.isStateLoaded(&quot;application&quot;, &quot;desktop&quot;, sStateName);
+        switch (iStateLoaded) {
+          case -1 :
+            GLOBAL.APP.CF.alert(&quot;The state &quot; + sStateName + &quot; does not exist !&quot;, &quot;warning&quot;);
+            return;
+            break;
+          case -2 :
+            me.funcPostponedLoading = function() {
+              me.__addUserDesktopStatesToDesktop(rootNode);
+            }
+            setTimeout(me.funcPostponedLoading, 1000);
+            return;
+            break;
+        }
+
+        var oDesktop = GLOBAL.APP.SM.getStateData(&quot;application&quot;, &quot;desktop&quot;, sStateName);
+        var node = rootNode.firstChild;
+        try {
+          rootNode.appendChild(node);
+        } catch (err) {
+          console.log(err);
+        }
+        for (var i = 0; i &lt; oDesktop.data.length; i++) {
+          try {
+            var node = null;
+            if (oDesktop.data[i].loadedObjectType == &quot;link&quot;) {
+              node = {
+                &#39;text&#39; : oDesktop.data[i].text,
+                expandable : false,
+                application : oDesktop.data[i].link,
+                type : &#39;link&#39;,
+                iconCls : &quot;system_web_window&quot;,
+                leaf : true
+              };
+            } else {
+              var appName = oDesktop.data[i].module.split(&quot;.&quot;);
+              var qtip = appName[appName.length - 1] + &quot;&lt;br&gt;State Name: &quot; + oDesktop.data[i].currentState;
+              nodeObj = {
+                &#39;text&#39; : oDesktop.data[i].currentState,
+                expandable : false,
+                application : oDesktop.data[i].module,
+                stateToLoad : oDesktop.data[i].currentState,
+                desktop : sStateName,
+                type : &#39;app&#39;,
+                leaf : true,
+                iconCls : &#39;core-application-icon&#39;,
+                allowDrag : true,
+                allowDrop : true,
+                qtip : qtip
+              };
+
+              Ext.define(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;, {
+                    extend : &#39;Ext.data.Model&#39;,
+                    fields : [&#39;text&#39;, &#39;type&#39;, &#39;application&#39;, &#39;stateToLoad&#39;, &#39;desktop&#39;],
+                    alias : &#39;widget.desktopnodemodel&#39;
+                  });
+              Ext.data.NodeInterface.decorate(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;);
+              node = Ext.create(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;, nodeObj);
+            }
+
+            rootNode.appendChild(node);
+
+          } catch (err) {
+            Ext.log({
+                  level : &#39;error&#39;
+                }, &quot;Failed to create child nodes!&quot; + err);
+            Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;&quot;Failed to create desktop!!!&#39;);
+          }
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-__addSharedDesktopStatesToDesktop'>      __addSharedDesktopStatesToDesktop : function(rootNode) {
+</span>        var me = this;
+        me.loadleftContainer.show();
+        var sStateName = rootNode.getData().text;
+        var iStateLoaded = GLOBAL.APP.SM.isStateLoaded(&quot;application&quot;, &quot;desktop&quot;, sStateName);
+        switch (iStateLoaded) {
+          case -1 :
+            GLOBAL.APP.CF.alert(&quot;The state &quot; + sStateName + &quot; does not exist !&quot;, &quot;warning&quot;);
+            return;
+            break;
+          case -2 :
+            me.funcPostponedLoading = function() {
+              me.__addUserDesktopStatesToDesktop(rootNode);
+            }
+            setTimeout(me.funcPostponedLoading, 1000);
+            return;
+            break;
+        }
+
+        var desktops = GLOBAL.APP.SM.getStateData(&#39;application&#39;, &#39;desktop&#39;, sStateName);
+
+        var node = rootNode.firstChild;
+
+        try {
+          rootNode.appendChild(node);
+        } catch (err) {
+          console.log(err);
+        }
+
+        for (var i = 0; i &lt; desktops.data.length; i++) {
+          try {
+            var node = null;
+            if (desktops.data[i].loadedObjectType == &quot;link&quot;) {
+              node = {
+                &#39;text&#39; : desktops.data[i].text,
+                expandable : false,
+                application : desktops.data[i].link,
+                type : &#39;link&#39;,
+                iconCls : &quot;system_web_window&quot;,
+                leaf : true
+              };
+            } else {
+              nodeObj = {
+                &#39;text&#39; : desktops.data[i].currentState,
+                expandable : false,
+                application : desktops.data[i].name,
+                stateToLoad : desktops.data[i].currentState,
+                desktop : sStateName,
+                type : &#39;app&#39;,
+                leaf : true,
+                iconCls : &#39;core-application-icon&#39;,
+                allowDrag : true,
+                allowDrop : true
+              };
+              Ext.define(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;, {
+                    extend : &#39;Ext.data.Model&#39;,
+                    fields : [&#39;text&#39;, &#39;type&#39;, &#39;application&#39;, &#39;stateToLoad&#39;, &#39;desktop&#39;],
+                    alias : &#39;widget.desktopnodemodel&#39;
+                  });
+              Ext.data.NodeInterface.decorate(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;);
+              node = Ext.create(&#39;Ext.dirac.views.tabs.DesktopNodeModel&#39;, nodeObj);
+            }
+
+            rootNode.appendChild(node);
+
+          } catch (err) {
+            Ext.log({
+                  level : &#39;error&#39;
+                }, &quot;Failed to create child nodes!&quot; + err);
+            Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;&quot;Failed to create desktop!!!&#39;);
+          }
+        }
+        me.loadleftContainer.hide();
+      },
+<span id='Ext-dirac-views-tabs-Main-method-refreshUrlDesktopState'>      /**
+</span>       * Function to refresh the state of the desktop working area in the URL
+       */
+      refreshUrlDesktopState : function() {
+
+        var me = this;
+
+        var sNewUrlState = &quot;&quot;;
+
+        var sThemeText = &quot;Grey&quot;;
+
+        if (GLOBAL.WEB_THEME == &quot;ext-all-neptune&quot;)
+          sThemeText = &quot;Neptune&quot;;
+
+        if (GLOBAL.WEB_THEME == &quot;ext-all&quot;)
+          sThemeText = &quot;Classic&quot;;
+
+        var url_prefix = &quot;&amp;url_state=1|&quot;;
+        var sState_related_url = &quot;&quot;;
+        var default_State_url = &quot;&quot;;
+
+        if (me._default_desktop_state.length &gt; 0) {
+          default_State_url += &quot;*&quot; + me._default_desktop_state[0];
+          for (var i = 1; i &lt; me._default_desktop_state.length; i++) {
+            default_State_url += &#39;*&#39; + me._default_desktop_state[i];
+          }
+        }
+
+        if (me._state_related_url.length &gt; 0) {
+          sState_related_url += me._state_related_url[0];
+          for (var i = 1; i &lt; me._state_related_url.length; i++) {
+            sState_related_url += &#39;,&#39; + me._state_related_url[i];
+          }
+        }
+
+        if (me.currentState != &quot;&quot;) {
+          var stateName = &quot;&quot;;
+          if (me.currentState != &quot;Default&quot;) {
+            stateName = me.currentState;
+          } else {
+            var applications = me.getActiveDesktop();
+            var activeDesktop = applications.getActiveTab();
+            if (!activeDesktop) {
+              activeDesktop = applications.items.getAt(0); // we have only one
+              // application in
+              // the desktop
+            }
+            if (activeDesktop &amp;&amp; activeDesktop.isLoaded) {
+              var defaultDesktopStateName = activeDesktop.getUrlDescription();
+
+              // if there is an active desktop state
+              if (!Ext.Array.contains(me._default_desktop_state, defaultDesktopStateName)) {
+
+                default_State_url += &quot;*&quot; + defaultDesktopStateName;
+
+                me._default_desktop_state.push(defaultDesktopStateName);
+              }
+            } else {
+              // If we have already opened application on the default desktop,
+              // we must not add the default desktop to the url
+              default_State_url += me._default_desktop_state.length &lt; 1 ? &quot;**,&quot; : &quot;&quot;;
+            }
+
+          }
+
+          // if there is an active desktop state
+          if (stateName != &quot;&quot; &amp;&amp; !Ext.Array.contains(me._state_related_url, stateName)) {
+            if (me._state_related_url.length &gt; 0) {
+              sState_related_url += &quot;,&quot; + stateName;
+            } else {
+              sState_related_url += stateName;
+            }
+            me._state_related_url.push(stateName);
+          }
+        }
+
+        if (me._default_desktop_state.length &gt; 0) {
+          sNewUrlState = &quot;?view=&quot; + GLOBAL.VIEW_ID + &quot;&amp;theme=&quot; + sThemeText + url_prefix + default_State_url + &quot;,&quot; + sState_related_url;
+        } else {
+          sNewUrlState = &quot;?view=&quot; + GLOBAL.VIEW_ID + &quot;&amp;theme=&quot; + sThemeText + url_prefix + default_State_url + sState_related_url;
+        }
+
+        var oHref = location.href;
+        var oQPosition = oHref.indexOf(&quot;?&quot;);
+
+        if (oQPosition != -1) {
+
+          sNewUrlState = oHref.substr(0, oQPosition) + sNewUrlState;
+
+        } else {
+
+          sNewUrlState = oHref + sNewUrlState;
+
+        }
+
+        window.history.pushState(&quot;X&quot;, &quot;ExtTop - Desktop Sample App&quot;, sNewUrlState);
+
+      },
+
+<span id='Ext-dirac-views-tabs-Main-method-loadSharedStateByName'>      loadSharedStateByName : function(sAppName, sStateName) {
+</span>
+        var me = this;
+
+        var oData = GLOBAL.APP.SM.getStateData(&quot;reference&quot;, sAppName, sStateName);
+        GLOBAL.APP.SM.oprLoadSharedState(oData[&quot;link&quot;], me.cbAfterLoadSharedState, sStateName);
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-createNewModuleContainer'>      /*************************************************************************
+</span>       * @param{Object}oData It contains the information what is needed to open
+       *                     an application. -objectType -moduleName -setupData
+       */
+      createNewModuleContainer : function(oData) {
+
+        var me = this;
+
+        me.createWindow(oData.objectType, oData.moduleName, oData.setupData);
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-cbAfterLoadSharedState'>      cbAfterLoadSharedState : function(iCode, sLink, oDataReceived, stateName) {
+</span>
+        if (iCode != 1) {
+          Ext.dirac.system_info.msg(&quot;Error Notification&quot;, sLink + &#39; does not exists &#39;);
+          return;
+        }
+        var me = GLOBAL.APP.MAIN_VIEW;
+
+        var oDataItems = sLink.split(&quot;|&quot;);
+
+        if (oDataItems[0] != &quot;desktop&quot;) {
+
+          var oSetupData = {
+            &quot;data&quot; : oDataReceived,
+            &quot;currentState&quot; : stateName
+          };
+
+          me.createWindow(&quot;app&quot;, oDataItems[0], oSetupData);
+
+        } else {
+
+          var cbAfterCreate = function(name, tab) {
+
+            for (var i = 0, len = oDataReceived[&quot;data&quot;].length; i &lt; len; i++) {
+
+              var appStateData = oDataReceived[&quot;data&quot;][i];
+              var loadedObjectType = ((!appStateData.loadedObjectType) ? &quot;app&quot; : appStateData.loadedObjectType); // TODO
+              // We can remove it later.
+              var name = appStateData.module
+
+              if (name)
+                me.createWindow(loadedObjectType, name, appStateData);
+
+            }
+
+            tab.loadState(oDataReceived);
+
+            var activeTab = oDataReceived.views.tabs.activeTab;
+            if (activeTab) {
+              if (tab.items.length &lt; oDataReceived[&quot;data&quot;].length) {
+                Ext.defer(function() { // wait until all application
+                      // window have created...
+                      me.loadRightContainer.show();
+                      tab.items.each(function(win, value, length) {
+                            if (activeTab.currentState == win.currentState &amp;&amp; activeTab.name == win.setupData.name) {
+                              tab.setActiveTab(win);
+                              return;
+                            }
+                            me.loadRightContainer.hide();
+                          });
+                    }, 100);
+              } else {
+                tab.items.each(function(win, value, length) {
+                      if (activeTab.currentState == win.currentState &amp;&amp; activeTab.name == win.setupData.name) {
+                        tab.setActiveTab(win);
+                        return;
+                      }
+                      me.loadRightContainer.hide();
+                    });
+              }
+            } else {
+              me.loadRightContainer.hide();
+              if (tab.items.length == 0) {
+                Ext.defer(function() {
+                      tab.setActiveTab(0);
+                    }, 100);
+              } else {
+                tab.setActiveTab(0);
+              }
+
+            }
+
+            if (me.currentState != &quot;&quot;)
+              GLOBAL.APP.SM.oprRemoveActiveState(&quot;desktop&quot;, me.currentState);
+
+            me.currentState = stateName;
+            GLOBAL.APP.SM.oprAddActiveState(&quot;desktop&quot;, me.currentState);
+
+          };
+          me.createDesktopTab(stateName, me.ID, cbAfterCreate);
+
+        }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-cbAfterSaveSharedState'>      cbAfterSaveSharedState : function(iCode, sLinkName, sLink) {
+</span>
+        var me = GLOBAL.APP.MAIN_VIEW;
+
+        var dataItems = sLink.split(&quot;|&quot;);
+        if (dataItems[0] == &quot;desktop&quot;) {
+          me.addToSharedDesktop(sLinkName, &#39;desktop&#39;);
+        } else {
+          me.addToSharedApplications(dataItems[0], sLinkName, &quot;reference&quot;);
+        }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-oprLoadDesktopState'>      oprLoadDesktopState : function(sStateName, tab) {
+</span>        var me = this;
+        me.__loadDesktopStateData(sStateName, tab);
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-__loadDesktopStateData'>      __loadDesktopStateData : function(sStateName, tab) {
+</span>
+        var me = this;
+
+        var iStateLoaded = GLOBAL.APP.SM.isStateLoaded(&quot;application&quot;, &quot;desktop&quot;, sStateName);
+        var data = null;
+        switch (iStateLoaded) {
+          case 1 :
+            data = GLOBAL.APP.SM.getStateData(&quot;application&quot;, &quot;desktop&quot;, sStateName);
+            break
+          case -1 :
+            return me.loadSharedStateByName(&quot;desktop&quot;, sStateName);
+            break;
+          case -2 :
+            me.funcPostponedLoading = function() {
+
+              me.__loadDesktopStateData(sStateName, tab);
+
+            }
+
+            setTimeout(me.funcPostponedLoading, 1000);
+            return;
+            break;
+        }
+
+        // we have to remove the applications which are already loaded.
+        if (tab) {
+          var loadedApplications = tab.getApplicationsState();
+          for (var i = 0; i &lt; loadedApplications.length; i++) {
+            for (var j = 0; j &lt; data.data.length; j++) {
+              if (loadedApplications[i].module == data.data[j].module &amp;&amp; loadedApplications[i].currentState == data.data[j].currentState &amp;&amp; loadedApplications[i].data == data.data[j].data) {
+
+                Ext.Array.erase(data.data, j, 1);
+                break;
+
+              }
+            }
+          }
+        }
+
+        if (data.data.length == 0)
+          return;
+
+        me.loadState(data, tab);
+
+        if (me.currentState != &quot;&quot;)
+          GLOBAL.APP.SM.oprRemoveActiveState(&quot;desktop&quot;, me.currentState);// OK
+
+        me.currentState = sStateName;
+        GLOBAL.APP.SM.oprAddActiveState(&quot;desktop&quot;, sStateName);// OK
+
+        me.refreshUrlDesktopState();
+
+      },
+
+<span id='Ext-dirac-views-tabs-Main-method-createNewDesktop'>      /*************************************************************************
+</span>       * It creates a desktop for a given name
+       */
+      createNewDesktop : function() {
+        var me = this;
+        var cbfunc = function(name, tab) {
+          tab.isLoaded = true;
+          me.saveActiveDesktopState();
+        };
+
+        var afterSave = function(name) {
+          me.createDesktopTab(name, me.ID, cbfunc);
+          // add to the menu...
+          me.__addDesktopToMenu(name);
+          if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+            GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+
+        };
+        GLOBAL.APP.MAIN_VIEW.SM.formSaveDialog(&quot;application&quot;, &quot;desktop&quot;, null, afterSave, &quot;Create desktop:&quot;);
+      },
+<span id='Ext-dirac-views-tabs-Main-method-moveDesktopmMnuItem'>      /*************************************************************************
+</span>       * it is used to move the tree node to the current (active) desktop
+       * 
+       * @param {String}
+       *          desktop it is the name of the dedktop
+       * @param {}
+       *          item it is the node.
+       */
+      moveDesktopmMnuItem : function(desktop, item) {
+        var me = this;
+        if (item &amp;&amp; item.data.text != &quot;Default&quot;) { // do not move the default
+          // node
+
+          var node = me.myDesktop.findChild(&#39;text&#39;, desktop);
+          if (node) {
+            node.expand();
+            node.appendChild(item);
+          }
+        }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-getActiveDesktop'>      /*************************************************************************
+</span>       * it returns the active tab
+       * 
+       * @return {Object}
+       */
+      getActiveDesktop : function() {
+        var me = this;
+        var activeDesktop = null;
+
+        var rCont = me.getRightContainer();
+        if (rCont) {
+          var mainPanel = rCont.getApplicationContainer();
+          if (mainPanel) {
+            activeDesktop = mainPanel.getActiveTab();
+          }
+        }
+
+        return activeDesktop;
+      },
+
+<span id='Ext-dirac-views-tabs-Main-method-addToDelete'>      addToDelete : function(appName, stateType, stateName) {
+</span>        var me = this;
+        me.deleteApplications.push({
+              module : appName,
+              stateType : stateType,
+              currentState : stateName
+            });
+      },
+<span id='Ext-dirac-views-tabs-Main-method-destroyDeleteApplications'>      destroyDeleteApplications : function() {
+</span>        var me = this;
+        var cbAfterRefresh = function() {
+          return;
+        };
+        for (var i = 0; i &lt; me.deleteApplications.length; i++) {
+          GLOBAL.APP.SM.oprDeleteState(me.deleteApplications[i].module, me.deleteApplications[i].stateType, me.deleteApplications[i].currentState, cbAfterRefresh);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-addToDeafultDesktop'>      /**
+</span>       * It adds a node to the Shared Desktops node. The name of the node is the
+       * stateName.
+       * 
+       * @param{String} stateName
+       */
+      addToDeafultDesktop : function(stateName, appClassName) {
+        var me = this;
+        me.myDesktop.expand();
+        if (!me.defaultDesktop.loaded) {
+          me.defaultDesktop.expand();
+        } else {
+
+          Ext.define(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;, {
+                extend : &#39;Ext.data.Model&#39;,
+                fields : [&#39;text&#39;, &#39;type&#39;, &#39;application&#39;, &#39;stateToLoad&#39;, &#39;desktop&#39;],
+                alias : &#39;widget.treenodemodel&#39;
+              });
+          var appName = appClassName.split(&quot;.&quot;);
+          var qTip = &quot;State Name: &quot; + stateName + &quot;&lt;br&gt;Application: &quot; + appName[appName.length - 1] + &quot;&lt;br&gt;&quot;;
+
+          nodeObj = {
+            &#39;text&#39; : stateName,
+            expandable : false,
+            application : appClassName,
+            stateToLoad : stateName,
+            type : &#39;app&#39;,
+            leaf : true,
+            iconCls : &#39;core-application-icon&#39;,
+            scope : me,
+            allowDrag : true,
+            allowDrop : true,
+            qtip : qTip
+          };
+          Ext.data.NodeInterface.decorate(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;);
+          // var model =
+          // Ext.ModelManager.getModel(&#39;Ext.dirac.views.tabs.TreeMenuModel&#39;);
+          // Ext.data.NodeInterface.decorate(model);
+          var newnode = Ext.create(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;, nodeObj);
+          // n = node.createNode(nodeObj);
+          me.defaultDesktop.appendChild(newnode);
+        }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-addApplicationToDesktopMenu'>      addApplicationToDesktopMenu : function(desktopName, stateName, appClassName) {
+</span>        var me = this;
+        me.myDesktop.expand();
+        if (desktopName == &#39;Default&#39; &amp;&amp; !me.defaultDesktop.loaded) {
+          me.defaultDesktop.doNotCreateDesktop = true;
+          var cbFunc = function() {
+            var node = me.defaultDesktop.findChild(&#39;text&#39;, stateName);
+            if (node) {
+              me.moveDesktopmMnuItem(desktopName, node);
+            } else {
+              me.funcPostponedLoading = function() {
+
+                cbFunc();
+
+              };
+
+              setTimeout(me.funcPostponedLoading, 1000);
+            }
+          }
+          me.defaultDesktop.expand(false, cbFunc);
+        } else {
+
+          Ext.define(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;, {
+                extend : &#39;Ext.data.Model&#39;,
+                fields : [&#39;text&#39;, &#39;type&#39;, &#39;application&#39;, &#39;stateToLoad&#39;, &#39;desktop&#39;],
+                alias : &#39;widget.treenodemodel&#39;
+              });
+          var appName = appClassName.split(&quot;.&quot;);
+          var qTip = &quot;State Name: &quot; + stateName + &quot;&lt;br&gt;Application: &quot; + appName[appName.length - 1] + &quot;&lt;br&gt;&quot;;
+
+          nodeObj = {
+            &#39;text&#39; : stateName,
+            expandable : false,
+            application : appClassName,
+            stateToLoad : stateName,
+            desktop : desktopName,
+            type : &#39;app&#39;,
+            leaf : true,
+            iconCls : &#39;core-application-icon&#39;,
+            scope : me,
+            allowDrag : true,
+            allowDrop : true,
+            qtip : qTip
+          };
+          Ext.data.NodeInterface.decorate(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;);
+          // var model =
+          // Ext.ModelManager.getModel(&#39;Ext.dirac.views.tabs.TreeMenuModel&#39;);
+          // Ext.data.NodeInterface.decorate(model);
+          var newnode = Ext.create(&#39;Ext.dirac.views.tabs.TreeNodeModel&#39;, nodeObj);
+          // n = node.createNode(nodeObj);
+          var desktopNode = me.myDesktop.findChild(&#39;text&#39;, desktopName);
+          desktopNode.expand();
+          desktopNode.appendChild(newnode);
+
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-removeNodeFormDefaultDesktop'>      removeNodeFormDefaultDesktop : function(appState) {
+</span>        var me = this;
+        var node = me.defaultDesktop.findChild(&#39;text&#39;, appState);
+        if (node) {
+          me.defaultDesktop.removeChild(node);
+        }
+
+      },
+<span id='Ext-dirac-views-tabs-Main-method-removeApplicationFromDesktop'>      removeApplicationFromDesktop : function(desktopName, appName) {
+</span>        var me = this;
+        var node = me.myDesktop.findChild(&quot;text&quot;, desktopName);
+        if (node) {
+          var deleteNode = node.findChild(&quot;text&quot;, appName);
+          node.removeChild(deleteNode);
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-moveApplication'>      moveApplication : function(applicationName, module, oldDesktopName, newDesktopName) {
+</span>        GLOBAL.APP.MAIN_VIEW.SM.moveAppState(applicationName, module, oldDesktopName, newDesktopName);
+      },
+<span id='Ext-dirac-views-tabs-Main-method-isTabOpen'>      isTabOpen : function(desktopName, tabName) {
+</span>        var me = this;
+        var desktops = null;
+        var appContainer = me.getRightContainer().getApplicationContainer();
+        if (appContainer) {
+          if (!desktopName) {
+            desktops = appContainer.getActiveTab();
+          } else {
+            desktops = appContainer.getTab(desktopName);
+          }
+          if (desktops) { // if the desktop is active
+            var tab = desktops.getPanel(tabName);
+            if (tab) { // if the windows is open.
+              Ext.dirac.system_info.msg(&quot;Error&quot;, tabName + &quot; is in use on the &quot; + desktopName + &quot;. Please close it before move&quot;);
+              return true
+            }
+          }
+        }
+        return false;
+      },
+<span id='Ext-dirac-views-tabs-Main-method-setTabChangePeriod'>      /**
+</span>       * It use to set the automatic tab change of the active desktop
+       * 
+       * @param {Inteher}
+       *          time it is the time in millisecond to wait before change the
+       *          tab.
+       * @param {function}
+       *          cbFunction this is a callback function. The input parameter is
+       *          the desktop name.
+       */
+      setTabChangePeriod : function(time, cbFunction) {
+        var me = this;
+        var appContainer = me.getRightContainer().getApplicationContainer();
+        if (appContainer) {
+          desktop = appContainer.getActiveTab();
+          if (desktop) {
+            desktop.setTabChangeTime(time);
+            if (cbFunction) {
+              cbFunction(desktop.title);
+            }
+          }
+
+        }
+      },
+<span id='Ext-dirac-views-tabs-Main-method-openHelpWindow'>      openHelpWindow : function(app) {
+</span>        var me = this;
+        if (app.appClassName == &quot;link&quot;) {
+          Ext.dirac.system_info.msg(&quot;Error&quot;, &#39;You can not add help to an external link!&#39;);
+        } else {
+
+          var win = app.createChildWindow(app.title, false, 700, 500);
+          Ext.apply(win, {
+                type : &quot;help&quot;,
+                minimizable : false,
+                application : app.loadedObject
+              });
+          win.on(&#39;close&#39;, function() {
+                var notepad = this.items.getAt(0);
+                if (notepad) {
+                  var text = notepad.getStateData();
+                  this.application.setHelpText(text);
+                  Ext.Array.remove(app.childWindows, this);
+                }
+              });
+
+          me.createHelpWindow(&quot;app&quot;, &quot;DIRAC.Notepad.classes.Notepad&quot;, app.loadedObject.getHelpText(), win);
+          win.show();
+        }
+      },
+
+<span id='Ext-dirac-views-tabs-Main-method-createHelpWindow'>      createHelpWindow : function(loadedObjectType, moduleName, setupData, win) {
+</span>        var me = this;
+        Ext.get(&quot;app-dirac-loading&quot;).show();
+
+        var oParts = moduleName.split(&quot;.&quot;);
+        var sStartClass = &quot;&quot;;
+
+        if (oParts.length == 2)
+          sStartClass = moduleName + &quot;.classes.&quot; + oParts[1];
+        else
+          sStartClass = moduleName;
+
+        // if the development mod is off, we set up diffrent path to
+        // load javascript
+        if (GLOBAL.DEV == 0) {
+
+          var oConfig = {
+            enabled : true,
+            paths : {}
+          };
+
+          oConfig[&quot;paths&quot;][oParts[0] + &quot;.&quot; + oParts[1] + &quot;.classes&quot;] = &quot;static/&quot; + oParts[0] + &quot;/&quot; + oParts[1] + &quot;/build&quot;;
+
+          Ext.Loader.setConfig(oConfig);
+
+        }
+
+        Ext.require(sStartClass, function() {
+
+          var me = this;
+
+          // creating an object of the demeanded application
+          var instance = Ext.create(sStartClass, {
+                renderTo : Ext.getBody(),
+                layout : &#39;fit&#39;,
+                launcherElements : {
+                  title : &#39;Module&#39;,
+                  applicationName : oParts[1],
+                  width : 0,
+                  height : 0,
+                  maximized : true,
+                  x : null,
+                  y : null
+                }
+              });
+
+          instance.loadState(setupData);
+          win.add(instance);
+            // initializing window
+
+          }, this);
+
+        Ext.get(&quot;app-dirac-loading&quot;).hide();
+      }
+
+    });
+</pre>
+</body>
+</html>

@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-core-StateManagement'>/**
+</span> * @class Ext.dirac.core.StateManagement This class manages the entire
+ *        application platform
+ * @mixins Ext.util.Observable
+ * 
+ */
+
+Ext.define(&#39;Ext.dirac.core.StateManagement&#39;, {
+      requires : [&quot;Ext.dirac.core.TransformationData&quot;],
+
+<span id='Ext-dirac-core-StateManagement-property-cache'>      /*
+</span>       * Cache serves to save the application states and references
+       */
+      cache : {
+        application : {},
+        reference : {},
+        sharedDesktop : {}
+      },
+
+<span id='Ext-dirac-core-StateManagement-property-activeStates'>      /*
+</span>       * A list of active states on the desktop
+       */
+      activeStates : [],
+
+<span id='Ext-dirac-core-StateManagement-method-constructor'>      constructor : function() {
+</span>
+        var me = this;
+        me.TD = new Ext.dirac.core.TransformationData();
+        this.callParent();
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-isStateLoaded'>      /**
+</span>       * Function that checks whether a state has been loaded or not.
+       * 
+       * @param {String}
+       *          sStateType The type of the state. Possible values:
+       *          application, reference.
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {String}
+       *          sStateName The name of the state or the reference.
+       * @return {int} (1) - state exists in the cache (-1) - state does not
+       *         exist (-2) - the application cache has not been loaded yet
+       */
+      isStateLoaded : function(sStateType, sAppName, sStateName) {
+
+        var me = this;
+
+        if (sAppName in me.cache[sStateType]) {
+
+          if (sStateName in me.cache[sStateType][sAppName]) {
+
+            return 1;
+
+          } else {
+
+            return -1;
+
+          }
+
+        } else {
+          return -2;
+        }
+
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-getApplicationStates'>      /**
+</span>       * Function for getting a list of existing state names of an application.
+       * 
+       * @param {String}
+       *          sStateType The type of the state. Possible values:
+       *          application, reference.
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @return {Array} Array of strings representing the state/reference
+       *         names.
+       * 
+       */
+      getApplicationStates : function(sStateType, sAppName) {
+
+        var me = this;
+        var oAppStates = [];
+
+        for (var key in me.cache[sStateType][sAppName])
+          oAppStates.push(key);
+
+        return oAppStates;
+
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-getStateData'>      /**
+</span>       * Function for getting the data related to a state
+       * 
+       * @param {String}
+       *          sStateType The type of the state. Possible values:
+       *          application, reference.
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {String}
+       *          sStateName The name of the state or the reference.
+       * @return {Object|boolean} False is returned in case when the state is
+       *         non existing or has not been loaded yet
+       */
+      getStateData : function(sStateType, sAppName, sStateName) {
+
+        var me = this;
+        var oValidation = me.isStateLoaded(sStateType, sAppName, sStateName);
+
+        if (oValidation == 1) {
+
+          return me.cache[sStateType][sAppName][sStateName];
+
+        } else
+          return oValidation;
+
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-oprReadApplicationStatesAndReferences'>      /**
+</span>       * Function for reading the states and references of an application from
+       * the server
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {Function}
+       *          cbAfterRefresh The callback function called on success or on
+       *          failure of the request for states and references.
+       */
+      oprReadApplicationStatesAndReferences : function(sAppName, cbAfterRefresh) {
+
+        var me = this;
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;UP/listAppState&#39;,
+              params : {
+                app : sAppName,
+                obj : &quot;application&quot;
+              },
+              success : function(response) {
+
+                if (response.status == 200) {
+
+                  var oStates = Ext.JSON.decode(response.responseText);
+                  me.cache[&quot;application&quot;][sAppName] = {};
+
+                  if (sAppName == &quot;desktop&quot;) {
+                    for (var sStateName in oStates) {
+
+                      if (me.TD.oprVerifyDataStructure(oStates[sStateName])) {
+                        me.cache[&quot;application&quot;][sAppName][sStateName] = oStates[sStateName];
+                      } else {
+
+                        var oNewData = me.TD.oprTransformMainViewDataToCurrentVersion(oStates[sStateName]);
+
+                        me.cache[&quot;application&quot;][sAppName][sStateName] = oNewData;
+
+                        // sending the transformed data to the server
+
+                        Ext.Ajax.request({
+                              url : GLOBAL.BASE_URL + &#39;UP/saveAppState&#39;,
+                              params : {
+                                app : sAppName,
+                                name : sStateName,
+                                state : Ext.JSON.encode(oNewData),
+                                obj : &quot;application&quot;
+                              },
+                              scope : me,
+                              success : function(oResponse) {
+                                if (oResponse.status != 200) {
+                                  me.cache[&quot;application&quot;][sAppName][sStateName] = oStates[sStateName];
+                                }
+                              },
+                              failure : function(response) {
+                                me.cache[&quot;application&quot;][sAppName][sStateName] = oStates[sStateName];
+                                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                              }
+                            });
+
+                      }
+
+                    }
+                  } else {
+                    for (var sStateName in oStates) {
+
+                      me.cache[&quot;application&quot;][sAppName][sStateName] = oStates[sStateName];
+
+                    }
+                  }
+
+                  Ext.Ajax.request({
+                        url : GLOBAL.BASE_URL + &#39;UP/listAppState&#39;,
+                        params : {
+                          app : sAppName,
+                          obj : &quot;reference&quot;
+                        },
+                        success : function(response) {
+
+                          if (response.status == 200) {
+
+                            var oStates = Ext.JSON.decode(response.responseText);
+                            me.cache[&quot;reference&quot;][sAppName] = {};
+
+                            for (var sStateName in oStates) {
+
+                              me.cache[&quot;reference&quot;][sAppName][sStateName] = oStates[sStateName];
+
+                            }
+
+                            cbAfterRefresh(1, sAppName);
+
+                          } else {
+
+                            me.cache[&quot;reference&quot;][sAppName] = {};
+                            cbAfterRefresh(-1, sAppName);
+                            GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                          }
+
+                        },
+                        failure : function(response) {
+                          me.cache[&quot;reference&quot;][sAppName] = {};
+                          cbAfterRefresh(-2, sAppName);
+                          GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                        }
+                      });
+
+                } else {
+
+                  me.cache[&quot;application&quot;][sAppName] = {};
+                  me.cache[&quot;reference&quot;][sAppName] = {};
+                  cbAfterRefresh(-3, sAppName);
+
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                }
+
+              },
+              failure : function(response) {
+
+                me.cache[&quot;application&quot;][sAppName] = {};
+                me.cache[&quot;reference&quot;][sAppName] = {};
+                cbAfterRefresh(-4, sAppName);
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+              }
+            });
+
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-isValidStateName'>      /**
+</span>       * Function that checks whether a state name is valid or not
+       * 
+       * @param {String}
+       *          sStateName The name of the state or the reference.
+       * @return {boolean}
+       */
+      isValidStateName : function(sStateName) {
+
+        var regExpr = /^([0-9a-zA-Z\.\_\-\ ]+)+$/;
+
+        return (String(sStateName).search(regExpr) != -1);
+
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-oprSendDataForSave'>      /**
+</span>       * Function used to prepare and to send the state data of an application
+       * or a main view to the server.
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {Object}
+       *          oAppObject The application object.
+       * @param {String}
+       *          sStateType The type of the state. Possible values:
+       *          application, reference.
+       * @param {String}
+       *          sStateName The name of the state or the reference.
+       * @param {Function}
+       *          cbAfterSave The callback function called on success or on
+       *          failure of the request for saving a state or a reference.
+       */
+      oprSendDataForSave : function(sAppName, oAppObject, sStateType, sStateName, cbAfterSave) {
+
+        var me = this;
+
+        var oSendData = oAppObject.getStateData();
+
+        if (oAppObject.getHelpText &amp;&amp; oSendData) {
+
+          if (oAppObject.up(&quot;panel&quot;) &amp;&amp; oAppObject.up(&quot;panel&quot;).childWindows &amp;&amp; oAppObject.up(&quot;panel&quot;).childWindows.length &gt; 0) {
+            for (var i = 0; i &lt; oAppObject.up(&quot;panel&quot;).childWindows.length; i++) {
+              if (oAppObject.up(&quot;panel&quot;).childWindows[i].type == &quot;help&quot;) {
+                // The Notepad is open. The text has to be retrieved
+                // from the notepad...
+                var helptext = {
+                  &quot;helptext&quot; : oAppObject.up(&quot;panel&quot;).childWindows[i].items.getAt(0).getValue()
+                };
+                Ext.apply(oSendData, helptext);
+              }
+            }
+          } else {
+            Ext.apply(oSendData, oAppObject.getHelpText());
+          }
+
+        }
+
+        if (!oSendData)
+          return; // we do not have the data which has to be saved...
+
+        console.log(oSendData);
+
+        if (&quot;dirac_view&quot; in oSendData) {
+
+          // preserve the data for other views if the state already exists
+
+          if (sAppName in me.cache[sStateType]) {
+
+            if (sStateName in me.cache[sStateType][sAppName]) {
+
+              // preserving is done only if the version number is the same
+
+              var oCurrentObject = me.cache[sStateType][sAppName][sStateName];
+
+              if (&quot;version&quot; in oCurrentObject) {
+
+                if (oSendData.version === oCurrentObject.version) {
+
+                  for (var sViewType in oCurrentObject.views) {
+
+                    if (GLOBAL.VIEW_ID != sViewType) {
+
+                      oSendData.views[sViewType] = oCurrentObject.views[sViewType];
+
+                    }
+
+                  }
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+        /*
+         * We save those data in the database
+         */
+        if (!Ext.isObject(oSendData)) {
+          /*
+           * Here the data to be sent is not an object
+           */
+          return;
+        }
+
+        /*
+         * If the Ajax is not successful the state wont be saved.
+         */
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;UP/saveAppState&#39;,
+              params : {
+                app : sAppName,
+                name : sStateName,
+                state : Ext.JSON.encode(oSendData),
+                obj : sStateType
+              },
+              scope : me,
+              success : function(oResponse) {
+
+                if (oResponse.status == 200) {
+                  var me = this;
+                  Ext.dirac.system_info.msg(&quot;Notification&quot;, &#39;State saved successfully !&#39;);
+
+                  if (me.cache[sStateType][sAppName]) {
+                    me.cache[sStateType][sAppName][sStateName] = oSendData;
+                  } else {
+                    me.cache[sStateType][sAppName] = {};
+                    me.cache[sStateType][sAppName][sStateName] = oSendData;
+                  }
+
+                  cbAfterSave(1, sAppName, sStateType, sStateName);
+
+                } else if (oResponse.status == 400) {
+
+                  Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &#39;Operation failed: &#39; + oResponse.responseText + &#39;.&lt;br/&gt; Please try again later !&#39;);
+                  cbAfterSave(-1, sAppName, sStateType, sStateName);
+
+                } else {
+
+                  Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &#39;Operation failed: &#39; + oResponse.statusText + &#39;.&lt;br/&gt; Please try again later !&#39;);
+                  cbAfterSave(-2, sAppName, sStateType, sStateName);
+
+                }
+
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                if (response.status == 400) {
+                  cbAfterSave(-3, sAppName, sStateType, sStateName);
+                } else {
+                  cbAfterSave(-4, sAppName, sStateType, sStateName);
+                }
+              }
+            });
+
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-isAnyActiveState'>      /**
+</span>       * Function to check whether a state is active i.e. loaded into the
+       * application
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {String}
+       *          sStateName The name of the state
+       * 
+       */
+      isAnyActiveState : function(sAppName, sStateName) {
+
+        var me = this;
+        var oFound = false;
+
+        for (var i = 0; i &lt; me.activeStates.length; i++) {
+
+          if ((sStateName == me.activeStates[i][1]) &amp;&amp; (sAppName == me.activeStates[i][0])) {
+
+            oFound = true;
+            break;
+
+          }
+        }
+
+        return oFound;
+
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-oprAddActiveState'>      /**
+</span>       * Function to register a state as an active one
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {String}
+       *          sStateName The name of the state
+       * 
+       */
+      oprAddActiveState : function(sAppName, sStateName) {
+
+        var me = this;
+
+        me.activeStates.push([sAppName, sStateName]);
+
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-oprRemoveActiveState'>      /**
+</span>       * Function to remove a state out of the active states list
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {String}
+       *          sStateName The name of the state
+       * 
+       */
+      oprRemoveActiveState : function(sAppName, sStateName) {
+
+        var me = this;
+        var iIndex = -1;
+        for (var i = me.activeStates.length - 1; i &gt;= 0; i--) {
+          if ((sStateName == me.activeStates[i][1]) &amp;&amp; (sAppName == me.activeStates[i][0])) {
+            iIndex = i;
+            break;
+          }
+        }
+        if (iIndex != -1)
+          me.activeStates.splice(iIndex, 1);
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-oprDeleteState'>      /**
+</span>       * Function to delete a saved state or a saved reference on the server
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {String}
+       *          sStateType The type of the state. Possible values:
+       *          application, reference.
+       * @param {String}
+       *          sStateName The name of the state or the reference
+       * @param {Function}
+       *          cbAfterDelete The callback function called on success or on
+       *          failure of the request for deleting a state or a reference.
+       * 
+       */
+      oprDeleteState : function(sAppName, sStateType, sStateName, cbAfterDelete) {
+
+        var me = this;
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;UP/delAppState&#39;,
+              params : {
+                app : sAppName,
+                name : sStateName,
+                obj : sStateType
+              },
+              success : function(response) {
+
+                if (response.status == 200) {
+
+                  delete me.cache[sStateType][sAppName][sStateName];
+
+                  cbAfterDelete(1, sAppName, sStateType, sStateName);
+
+                } else {
+
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                  if (response.status == 400) {
+                    cbAfterDelete(-1, sAppName, sStateType, sStateName);
+                  } else {
+                    cbAfterDelete(-2, sAppName, sStateType, sStateName);
+                  }
+
+                }
+
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                if (response.status == 400) {
+
+                  cbAfterDelete(-3, sAppName, sStateType, sStateName);
+
+                } else {
+
+                  cbAfterDelete(-4, sAppName, sStateType, sStateName);
+
+                }
+              }
+            });
+
+      },
+
+      /*-----------------------------------------------SHARE STATE-----------------------------------------------*/
+
+<span id='Ext-dirac-core-StateManagement-method-oprShareState'>      /**
+</span>       * Function that is used to share a state with other users.
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {String}
+       *          sStateName The name of the state.
+       * @param {Function}
+       *          cbAfterShare The callback function called on success or on
+       *          failure of the request for sharing a state.
+       * 
+       */
+      oprShareState : function(sAppName, sStateName, cbAfterShare) {
+
+        var me = this;
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;UP/makePublicAppState&#39;,
+              params : {
+                obj : &quot;application&quot;,
+                app : sAppName,
+                name : sStateName,
+                access : &quot;ALL&quot;
+              },
+              scope : me,
+              success : function(response) {
+
+                if (response.status == 200) {
+
+                  var me = this;
+
+                  var sStringToShow = sAppName + &quot;|&quot; + GLOBAL.APP.configData[&quot;user&quot;][&quot;username&quot;] + &quot;|&quot; + GLOBAL.APP.configData[&quot;user&quot;][&quot;group&quot;] + &quot;|&quot; + sStateName;
+
+                  cbAfterShare(1, sAppName, sStateName, sStringToShow);
+
+                } else {
+
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                  if (response.status == 400) {
+                    cbAfterShare(-1, sAppName, sStateName, &quot;&quot;);
+                  } else
+                    cbAfterShare(-2, sAppName, sStateName, &quot;&quot;);
+
+                }
+
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                if (response.status == 400) {
+                  cbAfterShare(-3, sAppName, sStateName, &quot;&quot;);
+                } else {
+                  cbAfterShare(-4, sAppName, sStateName, &quot;&quot;);
+                }
+              }
+            });
+
+      },
+<span id='Ext-dirac-core-StateManagement-method-oprPublishState'>      /**
+</span>       * Function that is used to share a state with other users.
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {String}
+       *          sStateName The name of the state.
+       * @param {Function}
+       *          cbAfterShare The callback function called on success or on
+       *          failure of the request for sharing a state.
+       * 
+       */
+      oprPublishState : function(sAppName, sStateName) {
+
+        var me = this;
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;UP/publishAppState&#39;,
+              params : {
+                obj : &quot;application&quot;,
+                app : sAppName,
+                name : sStateName,
+                access : &quot;ALL&quot;
+              },
+              scope : me,
+              success : function(response) {
+
+                if (response.status == 200) {
+
+                  GLOBAL.APP.CF.msg(&#39;Notification&#39;, sStateName + &quot; is available to the public!&quot;);
+
+                } else {
+
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                }
+
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+              }
+
+            });
+
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-oprLoadSharedState'>      /**
+</span>       * Function that is used to take the data of a shared state from the
+       * server
+       * 
+       * @param {Object}
+       *          sLinkDescription Description of a shared state. This
+       *          description can be used to load a shared state.
+       * @param {Function}
+       *          cbAfterLoadSharedState The callback function called on success
+       *          or on failure of the request for retrieving the shared state
+       *          data.
+       * 
+       */
+      oprLoadSharedState : function(sLinkDescription, cbAfterLoadSharedState, stateName) {
+
+        var me = this;
+
+        var oDataItems = sLinkDescription.split(&quot;|&quot;);
+
+        if (oDataItems.length != 4) {
+
+          GLOBAL.APP.CF.alert(&quot;The &#39;Load&#39; data you entered is not valid !&quot;, &quot;warning&quot;);
+          return;
+
+        }
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;UP/loadUserAppState&#39;,
+              params : {
+                obj : &quot;application&quot;,
+                app : oDataItems[0],
+                user : oDataItems[1],
+                group : oDataItems[2],
+                name : oDataItems[3]
+              },
+              scope : me,
+              success : function(response) {
+
+                if (response.status == 200) {
+                  var me = this;
+                  var oDataReceived = Ext.JSON.decode(response.responseText);
+
+                  if (cbAfterLoadSharedState != null)
+                    cbAfterLoadSharedState(1, sLinkDescription, oDataReceived, stateName);
+
+                } else {
+
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                  if (response.status == 400) {
+                    if (cbAfterLoadSharedState != null)
+                      cbAfterLoadSharedState(-1, sLinkDescription, &quot;&quot;, stateName);
+                  } else {
+                    if (cbAfterLoadSharedState != null)
+                      cbAfterLoadSharedState(-2, sLinkDescription, &quot;&quot;, stateName);
+                  }
+
+                }
+
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                if (response.status == 400) {
+                  if (cbAfterLoadSharedState != null)
+                    cbAfterLoadSharedState(-3, sLinkDescription, &quot;&quot;, stateName);
+                } else {
+                  if (cbAfterLoadSharedState != null)
+                    cbAfterLoadSharedState(-4, sLinkDescription, &quot;&quot;, stateName);
+                }
+
+              }
+            });
+
+      },
+
+<span id='Ext-dirac-core-StateManagement-method-oprSaveSharedState'>      /**
+</span>       * Function executed when the shared state has to be saved on the server
+       * as a reference
+       * 
+       * @param {String}
+       *          sRefName The name of the reference.
+       * @param {String}
+       *          sRef Description of a shared state. This description can be
+       *          used to load a shared state.
+       * @param {Function}
+       *          cbAfterSaveSharedState The callback function called on success
+       *          or on failure of the request for saving shared state as a
+       *          reference.
+       */
+      oprSaveSharedState : function(sRefName, sRef, cbAfterSaveSharedState) {
+
+        var me = this;
+
+        var oDataItems = sRef.split(&quot;|&quot;);
+
+        if (me.isStateLoaded(&quot;reference&quot;, oDataItems[0], sRefName) == 1) {
+
+          GLOBAL.APP.CF.alert(&quot;The name for the link already exists !&quot;, &quot;warning&quot;);
+          return;
+        }
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;UP/saveAppState&#39;,
+              params : {
+                app : oDataItems[0],
+                name : sRefName,
+                state : Ext.JSON.encode({
+                      link : sRef
+                    }),
+                obj : &quot;reference&quot;
+              },
+              scope : me,
+              success : function(response) {
+
+                if (response.status == 200) {
+                  Ext.dirac.system_info.msg(&quot;Notification&quot;, &#39;The shared state has been saved successfully !&#39;);
+
+                  me.cache.reference[oDataItems[0]][sRefName] = {
+                    link : sRef
+                  };
+
+                  if (cbAfterSaveSharedState != null) {
+                    cbAfterSaveSharedState(1, sRefName, sRef);
+                  }
+                } else {
+
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                  if (response.status == 400) {
+                    if (cbAfterSaveSharedState != null) {
+                      cbAfterSaveSharedState(-1, sRefName, sRef);
+                    }
+                  } else {
+                    if (cbAfterSaveSharedState != null) {
+                      cbAfterSaveSharedState(-2, sRefName, sRef);
+                    }
+                  }
+
+                }
+
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                if (response.status == 400) {
+                  if (cbAfterSaveSharedState != null) {
+                    cbAfterSaveSharedState(-3, sRefName, sRef);
+                  }
+                } else {
+                  if (cbAfterSaveSharedState != null) {
+                    cbAfterSaveSharedState(-4, sRefName, sRef);
+                  }
+                }
+              }
+            });
+
+      },
+<span id='Ext-dirac-core-StateManagement-method-oprReadSharedDesktops'>      /**
+</span>       * Function for reading the states and references of an application from
+       * the server
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {Function}
+       *          cbAfterRefresh The callback function called on success or on
+       *          failure of the request for states and references.
+       */
+      oprReadSharedDesktops : function(sAppName, cbAfterRefresh) {
+
+        var me = this;
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;UP/listPublicDesktopStates&#39;,
+              params : {
+                app : sAppName,
+                obj : &quot;application&quot;
+              },
+              success : function(response) {
+
+                if (response.status == 200) {
+
+                  var oStates = Ext.JSON.decode(response.responseText);
+
+                  if (me.cache[&quot;sharedDesktop&quot;][sAppName] == null) {
+                    me.cache[&quot;sharedDesktop&quot;][sAppName] = {};
+                  }
+
+                  for (var sStateName in oStates) {
+
+                    me.cache[&quot;sharedDesktop&quot;][sAppName][sStateName] = oStates[sStateName];
+                    for (var oState in oStates[sStateName]) {
+                      if (oState != &#39;Metadata&#39;) {
+                        me.cache[&quot;application&quot;][sAppName][oState] = oStates[sStateName][oState];
+                      }
+                    }
+                  }
+
+                  cbAfterRefresh(1, sAppName);
+                } else {
+                  me.cache[&quot;sharedDesktop&quot;][sAppName] = {};
+                  cbAfterRefresh(-3, sAppName);
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                }
+
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                me.cache[&quot;sharedDesktop&quot;][sAppName] = {};
+
+              }
+            });
+
+      },
+
+      /*-----------------------------------------------END - SHARE STATE-----------------------------------------------*/
+      // make private a shared state
+<span id='Ext-dirac-core-StateManagement-method-oprChangeSharedStateToPrivate'>      /**
+</span>       * Function that is used to share a state with other users.
+       * 
+       * @param {String}
+       *          sAppName The class name of the application. The only exception
+       *          is the case of the main view: in this case the value of this
+       *          parameter is “desktop”.
+       * @param {String}
+       *          sStateName The name of the state.
+       * @param {Function}
+       *          cbAfterShare The callback function called on success or on
+       *          failure of the request for sharing a state.
+       * 
+       */
+      oprChangeSharedStateToPrivate : function(sAppName, sStateName, cbAfterShare) {
+        var me = this;
+        me.__changeAccess(sAppName, sStateName, cbAfterShare, &quot;USER&quot;);
+
+      },
+<span id='Ext-dirac-core-StateManagement-method-__changeAccess'>      /*************************************************************************
+</span>       * It used to change the access of an desktop/application
+       * 
+       * @param {String}
+       *          sAppName
+       * @param {String}
+       *          sStateName
+       * @param {Function}
+       *          cbAfterShare
+       * @param {String}
+       *          access
+       */
+      __changeAccess : function(sAppName, sStateName, cbAfterShare, access) {
+        var me = this;
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;UP/makePublicAppState&#39;,
+              params : {
+                obj : &quot;application&quot;,
+                app : sAppName,
+                name : sStateName,
+                access : access
+              },
+              scope : me,
+              success : function(response) {
+
+                if (response.status == 200) {
+
+                  var me = this;
+
+                  var sStringToShow = sAppName + &quot;|&quot; + GLOBAL.APP.configData[&quot;user&quot;][&quot;username&quot;] + &quot;|&quot; + GLOBAL.APP.configData[&quot;user&quot;][&quot;group&quot;] + &quot;|&quot; + sStateName;
+
+                  cbAfterShare(1, sAppName, sStateName, sStringToShow);
+
+                } else {
+
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                  if (response.status == 400) {
+                    cbAfterShare(-1, sAppName, sStateName, &quot;&quot;);
+                  } else
+                    cbAfterShare(-2, sAppName, sStateName, &quot;&quot;);
+
+                }
+
+              },
+              failure : function(response) {
+
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                if (response.status == 400) {
+                  cbAfterShare(-3, sAppName, sStateName, &quot;&quot;);
+                } else {
+                  cbAfterShare(-4, sAppName, sStateName, &quot;&quot;);
+                }
+              }
+            });
+      },
+<span id='Ext-dirac-core-StateManagement-method-addApplicationStates'>      addApplicationStates : function(appName, stateName, data) {
+</span>        var me = this;
+        var loaded = me.isStateLoaded(&quot;application&quot;, appName, stateName);
+        if (loaded != 1) {
+          me.cache[&quot;application&quot;][appName][stateName] = {
+            data : []
+          };
+        }
+
+        me.cache[&quot;application&quot;][appName][stateName].data.push(data);
+
+      },
+<span id='Ext-dirac-core-StateManagement-method-createDesktop'>      createDesktop : function(appName, stateName, data) {
+</span>        var me = this;
+        me.cache[&quot;application&quot;][appName][stateName] = data;
+      }
+    });</pre>
+</body>
+</html>

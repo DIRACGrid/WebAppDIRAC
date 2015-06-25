@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/*******************************************************************************
+</span> * Requets Monitor apllication
+ */
+<span id='DIRAC-RequestMonitor-classes-RequestMonitor'>/*******************************************************************************
+</span> * It is the transformation monitor class.
+ */
+
+Ext.define(&#39;DIRAC.RequestMonitor.classes.RequestMonitor&#39;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+      requires : [&#39;Ext.panel.Panel&#39;, &#39;Ext.dirac.utils.DiracBoxSelect&#39;, &#39;Ext.dirac.utils.DiracToolButton&#39;, &quot;Ext.form.field.TextArea&quot;, &quot;Ext.dirac.utils.DiracGridPanel&quot;, &#39;Ext.dirac.utils.DiracIdListButton&#39;, &#39;Ext.dirac.utils.DiracPageSizeCombo&#39;, &#39;Ext.dirac.utils.DiracPagingToolbar&#39;,
+          &#39;Ext.dirac.utils.DiracJsonStore&#39;, &#39;Ext.dirac.utils.DiracAjaxProxy&#39;, &#39;Ext.dirac.utils.DiracApplicationContextMenu&#39;, &#39;Ext.dirac.utils.DiracBaseSelector&#39;],
+
+<span id='DIRAC-RequestMonitor-classes-RequestMonitor-method-loadState'>      loadState : function(data) {
+</span>        var me = this;
+
+        me.grid.loadState(data);
+
+        me.leftPanel.loadState(data);
+      },
+<span id='DIRAC-RequestMonitor-classes-RequestMonitor-cfg-it'>      /**
+</span>       * This is used to open an application.
+       * 
+       * @cfg{Object} it contains the application name and the module name.
+       */
+      applicationsToOpen : {
+        &#39;JobMonitor&#39; : &#39;DIRAC.JobMonitor.classes.JobMonitor&#39;
+      },
+
+<span id='DIRAC-RequestMonitor-classes-RequestMonitor-method-getStateData'>      getStateData : function() {
+</span>        var me = this;
+
+        var oStates = {
+          grid : me.grid.getStateData(),
+          leftMenu : me.leftPanel.getStateData()
+        };
+
+        return oStates;
+      },
+
+<span id='DIRAC-RequestMonitor-classes-RequestMonitor-property-dataFields'>      dataFields : [{
+</span>            name : &#39;RequestIDcheckBox&#39;,
+            mapping : &#39;RequestID&#39;
+          }, {
+            name : &#39;Status&#39;
+          }, {
+            name : &#39;OwnerGroup&#39;
+          }, {
+            name : &#39;LastUpdateTime&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+
+          }, {
+            name : &#39;RequestType&#39;
+          }, {
+            name : &#39;CreationTime&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;JobID&#39;
+          }, {
+            name : &#39;OwnerDN&#39;
+          }, {
+            name : &#39;RequestID&#39;,
+            type : &#39;int&#39;
+          }, {
+            name : &#39;Error&#39;
+          }, {
+            name : &#39;Operation&#39;
+          }, {
+            name : &#39;RequestName&#39;
+          }, {
+            name : &#39;StatusIcon&#39;,
+            mapping : &#39;Status&#39;
+          }],
+
+<span id='DIRAC-RequestMonitor-classes-RequestMonitor-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+
+        me.launcher.title = &quot;Request Monitor&quot;;
+        me.launcher.maximized = false;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1];
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;border&#39;,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
+            });
+
+        me.callParent(arguments);
+
+      },
+<span id='DIRAC-RequestMonitor-classes-RequestMonitor-method-buildUI'>      buildUI : function() {
+</span>
+        var me = this;
+
+        var selectors = {
+          requestType : &quot;Request Type&quot;,
+          status : &quot;Status&quot;,
+          operation : &quot;Operation&quot;,
+          owner : &quot;Owner&quot;,
+          ownerGroup : &quot;Owner Group&quot;
+        };
+
+        var textFields = {
+          &#39;id&#39; : {
+            &quot;name&quot; : &quot;JobId(s)&quot;
+          },
+          &#39;reqId&#39; : {
+            &quot;name&quot; : &quot;RequestId(s)&quot;
+          }
+        };
+
+        var map = [[&quot;requestType&quot;, &quot;requestType&quot;], [&quot;status&quot;, &quot;status&quot;], [&quot;operation&quot;, &quot;operation&quot;], [&quot;owner&quot;, &quot;owner&quot;], [&quot;ownerGroup&quot;, &quot;ownerGroup&quot;]];
+
+        me.leftPanel = new Ext.create(&#39;Ext.dirac.utils.DiracBaseSelector&#39;, {
+              scope : me,
+              cmbSelectors : selectors,
+              textFields : textFields,
+              datamap : map,
+              url : &quot;RequestMonitor/getSelectionData&quot;
+            });
+
+        /*
+         * -----------------------------------------------------------------------------------------------------------
+         * DEFINITION OF THE GRID
+         * -----------------------------------------------------------------------------------------------------------
+         */
+        var oProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+              url : GLOBAL.BASE_URL + &#39;RequestMonitor/getRequestMonitorData&#39;
+            });
+
+        me.diffValues = {};
+        me.dataStore = Ext.create(&quot;Ext.dirac.utils.DiracJsonStore&quot;, {
+              proxy : oProxy,
+              fields : me.dataFields,
+              scope : me
+            });
+
+        var pagingToolbar = Ext.create(&quot;Ext.dirac.utils.DiracPagingToolbar&quot;, {
+              dataStore : me.dataStore,
+              scope : me
+            });
+
+        var oColumns = {
+          &quot;checkBox&quot; : {
+            &quot;dataIndex&quot; : &quot;RequestIDcheckBox&quot;
+          },
+          &quot;RequestId&quot; : {
+            &quot;dataIndex&quot; : &quot;RequestID&quot;
+          },
+          &quot;JobID&quot; : {
+            &quot;dataIndex&quot; : &quot;JobID&quot;
+          },
+          &quot;None&quot; : {
+            &quot;dataIndex&quot; : &quot;StatusIcon&quot;,
+            &quot;properties&quot; : {
+              width : 26,
+              sortable : false,
+              hideable : false,
+              fixed : true,
+              menuDisabled : true
+            },
+            &quot;renderFunction&quot; : &quot;rendererStatus&quot;
+          },
+          &quot;Status&quot; : {
+            &quot;dataIndex&quot; : &quot;Status&quot;,
+            &quot;properties&quot; : {
+              width : 60
+            }
+          },
+          &quot;OwnerDN&quot; : {
+            &quot;dataIndex&quot; : &quot;OwnerDN&quot;
+          },
+          &quot;RequestType&quot; : {
+            &quot;dataIndex&quot; : &quot;RequestType&quot;
+          },
+          &quot;Operation&quot; : {
+            &quot;dataIndex&quot; : &quot;Operation&quot;
+          },
+          &quot;OwnerGroup&quot; : {
+            &quot;dataIndex&quot; : &quot;OwnerGroup&quot;
+          },
+          &quot;RequestName&quot; : {
+            &quot;dataIndex&quot; : &quot;RequestName&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Error&quot; : {
+            &quot;dataIndex&quot; : &quot;Error&quot;
+          },
+          &quot;CreationTime [UTC]&quot; : {
+            &quot;dataIndex&quot; : &quot;CreationTime&quot;,
+            &quot;renderer&quot; : Ext.util.Format.dateRenderer(&#39;Y-m-j H:i&#39;),
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;LastUpdateTime [UTC]&quot; : {
+            &quot;dataIndex&quot; : &quot;LastUpdateTime&quot;,
+            &quot;renderer&quot; : Ext.util.Format.dateRenderer(&#39;Y-m-j H:i&#39;),
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          }
+        };
+
+        var showJobshandler = function() {
+          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;JobID&quot;); 
+          var setupdata = {};
+          setupdata.data = {};
+          setupdata.currentState = oId;
+          setupdata.data.leftMenu = {};
+          setupdata.data.leftMenu.JobID = oId;
+            
+          GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+                objectType : &quot;app&quot;,
+                moduleName : me.applicationsToOpen[&#39;JobMonitor&#39;],
+                setupData : setupdata
+              });
+        }
+
+        var menuitems = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Show Jobs&quot;,
+                &quot;handler&quot; : showJobshandler,
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the jobs which belong to the selected request.&#39;
+                }
+              }]
+        };
+
+        me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
+              menu : menuitems,
+              scope : me
+            });
+
+        me.grid = Ext.create(&#39;Ext.dirac.utils.DiracGridPanel&#39;, {
+              store : me.dataStore,
+              features : [{
+                    ftype : &#39;grouping&#39;
+                  }],
+              oColumns : oColumns,
+              tbar : pagingToolbar,
+              contextMenu : me.contextGridMenu,
+              pagingToolbar : pagingToolbar,
+              scope : me
+            });
+
+        me.leftPanel.setGrid(me.grid);
+
+        me.add([me.leftPanel, me.grid]);
+
+      }
+    });</pre>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracRowExpander'>/**
+</span> * This class used to expand a row in a Grid Panel. It allows to configure which
+ * rows can be expanded:
+ * 
+ * @example
+ * me.grid = Ext.create(&#39;Ext.dirac.utils.DiracGridPanel&#39;, {
+ *         store : me.dataStore,
+ *         columnLines : true,
+ *         enableLocking : true,
+ *         width : 600,
+ *         height : 300,
+ *         oColumns : oColumns,
+ *         tbar : pagingToolbar,
+ *         contextMenu : me.contextGridMenu,
+ *         pagingToolbar : pagingToolbar,
+ *         scope : me,
+ *         plugins : [{
+ *           ptype : &#39;diracrowexpander&#39;,
+ *           checkField : {
+ *             &#39;CE&#39; : &#39;Multiple&#39;
+ *           },
+ *           rowBodyTpl : [&#39;&lt;div id=&quot;expanded-Grid-{Site}&quot;&gt; &lt;/div&gt;&#39;]
+ *         }]
+ *       });
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracRowExpander&#39;, {
+
+      extend : &#39;Ext.grid.plugin.RowExpander&#39;,
+
+      alias : &#39;plugin.diracrowexpander&#39;,
+
+<span id='Ext-dirac-utils-DiracRowExpander-property-checkField'>      checkField : null,
+</span>
+<span id='Ext-dirac-utils-DiracRowExpander-property-containValue'>      containValue : null,
+</span>
+<span id='Ext-dirac-utils-DiracRowExpander-property-selectRowOnExpand'>      selectRowOnExpand : true,
+</span>
+<span id='Ext-dirac-utils-DiracRowExpander-method-getHeaderConfig'>      getHeaderConfig : function() {
+</span>        var me = this;
+
+        return {
+          width : 28,
+          lockable : false,
+          sortable : false,
+          resizable : false,
+          draggable : false,
+          hideable : false,
+          menuDisabled : true,
+          tdCls : Ext.baseCSSPrefix + &#39;grid-cell-special&#39;,
+          innerCls : Ext.baseCSSPrefix + &#39;grid-cell-inner-row-expander&#39;,
+          /*renderer : function(value, metadata) {
+           if (!me.grid.ownerLockable) {
+                    metadata.tdAttr += &#39; rowspan=&quot;2&quot;&#39;;
+                }
+                return &#39;&lt;div class=&quot;&#39; + Ext.baseCSSPrefix + &#39;grid-row-expander&quot;&gt;&lt;/div&gt;&#39;;
+          },*/
+          renderer : function(value, metadata) {
+            // Only has to span 2 rows if it is not in a lockable grid.
+            if (!me.grid.ownerLockable) {
+              metadata.tdAttr += &#39; rowspan=&quot;2&quot;&#39;;
+            }
+
+            if (me.checkField) {
+              var html = &#39;&#39;;
+              for (var key in me.checkField) {
+                if (metadata.record.data[key] == me.checkField[key]) {
+                  html = &#39;&lt;div class=&quot;&#39; + Ext.baseCSSPrefix + &#39;grid-row-expander&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;&#39;;
+                }
+              }
+              return html;
+            } else if (me.containValue) {
+              var html = &#39;&#39;;
+              for (var key in me.containValue) {
+                if (~metadata.record.data[key].indexOf(me.containValue[key])) {
+                  html = &#39;&lt;div class=&quot;&#39; + Ext.baseCSSPrefix + &#39;grid-row-expander&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;&#39;;
+                }
+              }
+              return html;
+            } else if (me.boolValue) {
+              for (var key in me.boolValue) {
+                if (metadata.record.data[key] == me.boolValue[key]) {
+                  html = &#39;&lt;div class=&quot;&#39; + Ext.baseCSSPrefix + &#39;grid-row-expander&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;&#39;;
+                }
+              }
+              return html;
+            } else {
+              return &#39;&lt;div class=&quot;&#39; + Ext.baseCSSPrefix + &#39;grid-row-expander&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;&#39;;
+            }
+
+          },
+          processEvent : function(type, view, cell, rowIndex, cellIndex, e, record) {
+            if (type == &quot;mousedown&quot; &amp;&amp; e.getTarget(&#39;.&#39; + Ext.baseCSSPrefix + &#39;grid-row-expander&#39;)) {
+              me.toggleRow(rowIndex, record);
+              return me.selectRowOnExpand;
+            }
+          }
+        }
+      }
+    });</pre>
+</body>
+</html>
