@@ -61,6 +61,8 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       res = self.__history()
     elif params["op"] == "showDiff":
       res = self.__showDiff( params )
+    elif params["op"] == "rollback":
+      res = self.__rollback( params )
 
     gLogger.info( "Sending back message %s" % res )
     if res:
@@ -475,6 +477,23 @@ class ConfigurationManagerHandler( WebSocketHandler ):
                                                                                                          titles = ( "From version %s" % fromDate, "To version %s" % toDate ),
                                                                                                          diffList = processedData["diff"] )} ) )
   
+  def __rollback( self, params ):
+    rollbackVersion = ""
+    if not self.__authorizeAction():
+      raise WErr( 500, "You are not authorized to get diff's!! Bad boy!" )
+    try:
+      rollbackVersion = str( params[ 'rollbackToVersion' ] )
+    except Exception, e:
+      WErr( 500, "Can't decode params: %s" % e )
+    rpcClient = RPCClient( gConfig.getValue( "/DIRAC/Configuration/MasterServer", "Configuration/Server" ) )
+    modCfg = Modificator( rpcClient )
+    retVal = modCfg.rollbackToVersion( rollbackVersion )
+    if retVal[ 'OK' ]:
+      return {"success":1, "op":"rollback", "version":rollbackVersion}
+    else:
+      return {"success":0, "op":"rollback", "message":retVal['Value']}
+      
+    
   def __setCommiter( self ):
     
     sessionData = self.getSessionData()

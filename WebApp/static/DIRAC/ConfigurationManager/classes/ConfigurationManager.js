@@ -105,11 +105,12 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         if (!me.isConnectionEstablished) {
 
           var sMessage = "There is no connection established with the server.\nDo you want to reconnect now?";
-
+          
           if (confirm(sMessage)) {
             // resetting the configuration
             me.socket = me.__createSocket("resetConfiguration");
             me.btnResetConfig.hide();
+            me.getLayout().setActiveItem(0);
           }
 
         } else {
@@ -239,6 +240,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 me.btnPasteButton.setDisabled(true);
                 me.treePanel.body.unmask();
                 me.__setChangeMade(false);
+                me.getLayout().setActiveItem(0);
+                me.history.setLoading(false);
+                me.setLoading(false);
                 break;
               case "getBulkExpandedNodeData" :
                 me.__cbGetBulkExpandedNodeData(oResponse);
@@ -299,6 +303,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 me.setLoading(false);
                 me.history.getStore().loadData(oResponse.result.versions);
                 me.history.initRadios();
+                break;
+              case "rollback" :
+                Ext.dirac.system_info.msg("Notification", "The version roll back to " + oResponse.version);
                 break;
 
             }

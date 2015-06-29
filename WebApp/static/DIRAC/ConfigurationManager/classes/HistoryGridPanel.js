@@ -52,6 +52,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.HistoryGridPanel', {
                           text : 'Show difference',
                           handler : me.__showDiff,
                           scope : me
+                        }, '->',{
+                          text : 'Rollback to "TO" version',
+                          handler : me.__rollback,
+                          scope : me
                         }],
                     defaults : {
                       margin : 3
@@ -150,6 +154,34 @@ Ext.define('DIRAC.ConfigurationManager.classes.HistoryGridPanel', {
             });
 
       },
+      __rollback : function() {
+        var me = this;
+        rollbackTime = me.getRadioValue(document.getElementsByName("toVersion"));
+        if (rollbackTime == "") {
+          alert("Select some version to rollback!");
+          return false;
+        }
+
+        Ext.Msg.show({
+              title : 'Question',
+              msg : "Are you sure you want to rollback to version " + rollbackTime + "?",
+              buttons : Ext.Msg.YESNOCANCEL,
+              fn : function(btn) {
+                if (btn == 'yes')
+                  me.__onCancel();
+                me.up().__sendSocketMessage({
+                      op : "rollback",
+                      rollbackToVersion : rollbackTime
+                    });
+                if (btn == 'no')
+                  return;
+              },
+              scope : me,
+              icon : Ext.MessageBox.QUESTION
+            });
+
+      },
+
       getRadioValue : function(radioObj) {
         var radioLength = radioObj.length;
         if (radioLength == null)
