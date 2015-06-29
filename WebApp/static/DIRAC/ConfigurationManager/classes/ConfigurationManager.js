@@ -1,7 +1,8 @@
 Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
       extend : 'Ext.dirac.core.Module',
       requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button",
-          "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array', 'Ext.data.proxy.LocalStorage'],
+          "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array', 'Ext.data.proxy.LocalStorage',
+          "DIRAC.ConfigurationManager.classes.HistoryGridPanel"],
 
       loadState : function(oData) {
 
@@ -72,17 +73,14 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
         }
 
+        /*
+         * Ext.apply(me, { layout : 'border', bodyBorder : false, defaults : {
+         * collapsible : true, split : true }, items : [], header : false });
+         */
         Ext.apply(me, {
-              layout : 'border',
-              bodyBorder : false,
-              defaults : {
-                collapsible : true,
-                split : true
-              },
-              items : [],
-              header : false
+              layout : 'card',
+              bodyBorder : false
             });
-
         me.callParent(arguments);
 
       },
@@ -293,6 +291,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 me.__cbMoveNode(oResponse);
                 me.__setChangeMade(true);
                 break;
+              case "showshowHistory" :
+                me.setLoading(false);
+                //var data = oResponse
+                me.history.getStore().loadData(oResponse.result.versions);
+                me.history.initRadios();
+                console.log(oResponse);
+                break;
 
             }
           }
@@ -452,7 +457,26 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                         op : "showCurrentDiff"
                       });
                   me.btnCommitConfiguration.hide();
-                  
+
+                },
+                scope : me,
+                hidden : false
+              });
+
+          me.btnShowHistory = new Ext.button.Button({
+
+                text : 'Show history',
+
+                // iconCls : "cm-to-browse-icon",
+                handler : function() {
+                  me.setLoading("Creating the diff.... Please be patient...");
+                  me.__sendSocketMessage({
+                        op : "showshowHistory"
+                      });
+
+                  //me.history.getStore().load();
+                  me.getLayout().setActiveItem(1);
+
                 },
                 scope : me,
                 hidden : false
@@ -461,6 +485,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
           bBarElems.push("->");
           bBarElems.push(me.btnCommitConfiguration);
           bBarElems.push(me.btnViewConfigDifference);
+          bBarElems.push(me.btnShowHistory);
           bBarElems.push(me.btnBrowseManage);
 
         }
@@ -623,7 +648,19 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
         me.valuePanel.addDocked([oValuePanelToolbar]);
 
-        me.add([me.treePanel, me.valuePanel]);
+        me.history = Ext.create("DIRAC.ConfigurationManager.classes.HistoryGridPanel");
+        me.history.on('cancelled', me.__onHistoryCancel, me);
+
+        me.browserPanel = new Ext.create('Ext.panel.Panel', {
+              layout : 'border',
+              defaults : {
+                collapsible : true,
+                split : true
+              },
+              items : [me.treePanel, me.valuePanel]
+            });
+
+        me.add([me.browserPanel, me.history]);
 
         me.leafMenu = new Ext.menu.Menu({
               width : 150,
@@ -703,9 +740,12 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
         me.__setDiracDestroyHandler();
 
-        this.callParent();
+        me.callParent();
       },
-
+      __onHistoryCancel : function() {
+        var me = this;
+        me.getLayout().setActiveItem(0);
+      },
       __setDiracDestroyHandler : function() {
 
         var me = this;
