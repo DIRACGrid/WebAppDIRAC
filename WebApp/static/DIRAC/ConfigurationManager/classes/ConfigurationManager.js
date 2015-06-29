@@ -227,6 +227,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 me.__showConfigDiffInWindow(oResponse);
                 me.setLoading(false);
                 break;
+              case "showDiff" :
+                me.__showConfigDiffInWindow(oResponse);
+                me.setLoading(false);
+                break;
               case "resetConfiguration" :
                 me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
                 me.__cbResetConfigurationTree(oResponse.text);
@@ -293,10 +297,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 break;
               case "showshowHistory" :
                 me.setLoading(false);
-                //var data = oResponse
                 me.history.getStore().loadData(oResponse.result.versions);
                 me.history.initRadios();
-                console.log(oResponse);
                 break;
 
             }
@@ -466,15 +468,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
           me.btnShowHistory = new Ext.button.Button({
 
                 text : 'Show history',
-
-                // iconCls : "cm-to-browse-icon",
                 handler : function() {
-                  me.setLoading("Creating the diff.... Please be patient...");
+                  me.setLoading("Loading server history...");
                   me.__sendSocketMessage({
                         op : "showshowHistory"
                       });
-
-                  //me.history.getStore().load();
                   me.getLayout().setActiveItem(1);
 
                 },
@@ -648,7 +646,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
         me.valuePanel.addDocked([oValuePanelToolbar]);
 
-        me.history = Ext.create("DIRAC.ConfigurationManager.classes.HistoryGridPanel");
+        me.history = Ext.create("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
+              scope : me
+            });
+
         me.history.on('cancelled', me.__onHistoryCancel, me);
 
         me.browserPanel = new Ext.create('Ext.panel.Panel', {

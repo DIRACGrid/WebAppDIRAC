@@ -59,6 +59,8 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       res = self.__showCurrentDiff()
     elif params["op"] == "showshowHistory":
       res = self.__history()
+    elif params["op"] == "showDiff":
+      res = self.__showDiff( params )
 
     gLogger.info( "Sending back message %s" % res )
     if res:
@@ -455,6 +457,24 @@ class ConfigurationManagerHandler( WebSocketHandler ):
     return self.write_message( json.dumps( {"success":1, "op":"showCurrentDiff", "lines":processedData["lines"], "totalLines": processedData["totalLines"], "html":self.render_string( "ConfigurationManager/diffConfig.tpl",
                                                                                                          titles = ( "Server's version", "User's current version" ),
                                                                                                          diffList = processedData["diff"] )} ) )
+  
+  def __showDiff( self, params ):
+    if not self.__authorizeAction():
+      raise WErr( 500, "You are not authorized to get diff's!! Bad boy!" )
+    try:
+      fromDate = str( params[ 'fromVersion' ] )
+      toDate = str( params[ 'toVersion' ] )
+    except Exception, e:
+      raise WErr( 500, "Can't decode params: %s" % e )
+    
+    rpcClient = RPCClient( gConfig.getValue( "/DIRAC/Configuration/MasterServer", "Configuration/Server" ) )
+    modCfg = Modificator( rpcClient )
+    diffGen = modCfg.getVersionDiff( fromDate, toDate )
+    processedData = self.__generateHTMLDiff( diffGen )
+    return self.write_message( json.dumps( {"success":1, "op":"showDiff", "lines":processedData["lines"], "totalLines": processedData["totalLines"], "html":self.render_string( "ConfigurationManager/diffConfig.tpl",
+                                                                                                         titles = ( "From version %s" % fromDate, "To version %s" % toDate ),
+                                                                                                         diffList = processedData["diff"] )} ) )
+  
   def __setCommiter( self ):
     
     sessionData = self.getSessionData()
@@ -473,7 +493,6 @@ class ConfigurationManagerHandler( WebSocketHandler ):
     if retVal[ 'OK' ]:
       cDict = { 'numVersions' : 0, 'versions' : [] }
       for entry in retVal[ 'Value' ]:
-        print entry
         cDict[ 'numVersions' ] += 1
         cDict[ 'versions' ].append( { 'version' : entry[1], 'commiter' : entry[0] } )
     else:

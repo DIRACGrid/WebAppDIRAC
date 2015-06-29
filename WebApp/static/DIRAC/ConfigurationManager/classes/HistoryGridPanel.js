@@ -48,6 +48,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.HistoryGridPanel', {
                           handler : me.__onCancel,
                           scope : me,
                           iconCls : "toolbar-other-close"
+                        }, {
+                          text : 'Show difference',
+                          handler : me.__showDiff,
+                          scope : me
                         }],
                     defaults : {
                       margin : 3
@@ -97,11 +101,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.HistoryGridPanel', {
          */
         me.checkEnabledDiff();
       },
-     
+
       checkEnabledDiff : function(toObj, fromObj, a, b, c) {
 
         var me = this;
-        
+
         var toObj = document.getElementsByName("toVersion");
         var selectedTo = me.getSelectedIndex(toObj);
 
@@ -131,5 +135,32 @@ Ext.define('DIRAC.ConfigurationManager.classes.HistoryGridPanel', {
             return i;
         }
         return 0;
+      },
+      __showDiff : function() {
+        var me = this;
+        me.up().setLoading("Creating the diff.... Please be patient...");
+
+        var toObj = document.getElementsByName("toVersion");
+        var fromObj = document.getElementsByName("fromVersion");
+
+        me.up().__sendSocketMessage({
+              op : "showDiff",
+              fromVersion : me.getRadioValue(fromObj),
+              toVersion : me.getRadioValue(toObj)
+            });
+
+      },
+      getRadioValue : function(radioObj) {
+        var radioLength = radioObj.length;
+        if (radioLength == null)
+          if (radioObj.checked)
+            return radioObj.value;
+          else
+            return "";
+        for (var i = 0; i < radioLength; i++) {
+          if (radioObj[i].checked)
+            return radioObj[i].value;
+        }
+        return "";
       }
     });
