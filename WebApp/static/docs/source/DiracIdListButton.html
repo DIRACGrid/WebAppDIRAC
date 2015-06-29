@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracIdListButton'>/***
+</span> * This widget is used to show the selected values in a window.You can use it when you click on the first button on the paging tool bar. This class used by {@link Ext.dirac.utils.DiracPagingToolbar}
+ *
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracIdListButton&#39;, {
+      extend : &#39;Ext.Button&#39;,
+      mixins : [&quot;Ext.dirac.core.Stateful&quot;],
+      requires : [&#39;Ext.toolbar.Toolbar&#39;, &#39;Ext.panel.Panel&#39;, &#39;Ext.data.ArrayStore&#39;],
+<span id='Ext-dirac-utils-DiracIdListButton-property-text'>      text : &#39;&#39;,
+</span><span id='Ext-dirac-utils-DiracIdListButton-property-iconCls'>      iconCls : &quot;dirac-icon-list&quot;,
+</span><span id='Ext-dirac-utils-DiracIdListButton-method-handler'>      handler : function() {
+</span>        var me = this;
+        var oItems = [];
+
+        var oElems = Ext.query(&quot;#&quot; + me.id + &quot; input.checkrow&quot;);
+
+        for (var i = 0; i &lt; oElems.length; i++)
+          if (oElems[i].checked)
+            oItems.push(oElems[i].value);
+
+        if (oItems.length &lt; 1) {
+          GLOBAL.APP.CF.alert(&#39;No jobs were selected&#39;, &quot;error&quot;);
+          return;
+        } else {
+
+          var oWindow = me.getContainer().createChildWindow(&quot;IDs of selected jobs&quot;, false, 700, 500);
+
+          var oTextArea = new Ext.create(&#39;Ext.form.field.TextArea&#39;, {
+                value : oItems.join(&quot;,&quot;),
+                cls : &quot;jm-textbox-help-window&quot;,
+                flex : 1
+              });
+
+          var oCombo = new Ext.form.field.ComboBox({
+                allowBlank : false,
+                displayField : &#39;character&#39;,
+                editable : false,
+                mode : &#39;local&#39;,
+                store : new Ext.data.ArrayStore({
+                      fields : [&#39;character&#39;],
+                      data : [[&quot;SEMI-COLON&quot;], [&quot;COMMA&quot;], [&quot;EMPTY SPACE&quot;]]
+                    }),
+                triggerAction : &#39;all&#39;,
+                value : &quot;COMMA&quot;,
+                width : 200,
+                idsItems : oItems,
+                textArea : oTextArea,
+                listeners : {
+
+                  &quot;change&quot; : function(combo, newValue, oldValue, eOpts) {
+
+                    switch (newValue) {
+
+                      case &quot;SEMI-COLON&quot; :
+                        combo.textArea.setValue(combo.idsItems.join(&quot;;&quot;));
+                        break;
+                      case &quot;COMMA&quot; :
+                        combo.textArea.setValue(combo.idsItems.join(&quot;,&quot;));
+                        break;
+                      case &quot;EMPTY SPACE&quot; :
+                        combo.textArea.setValue(combo.idsItems.join(&quot; &quot;));
+                        break;
+
+                    }
+
+                  }
+
+                }
+              });
+
+          var oToolb = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+                dock : &quot;top&quot;,
+                idsItems : oItems,
+                textArea : oTextArea,
+                items : [{
+                      xtype : &quot;button&quot;,
+                      text : &#39;COMMA&#39;,
+                      handler : function() {
+
+                        var me = this;
+                        var parent = me.up(&quot;toolbar&quot;);
+
+                        parent.textArea.setValue(parent.idsItems.join(&quot;,&quot;));
+
+                      },
+                      toggleGroup : me.id + &quot;-ids-separator&quot;,
+                      allowDepress : false
+                    }, {
+                      xtype : &quot;button&quot;,
+                      text : &#39;SEMI-COLON&#39;,
+                      handler : function() {
+
+                        var me = this;
+                        var parent = me.up(&quot;toolbar&quot;);
+
+                        parent.textArea.setValue(parent.idsItems.join(&quot;;&quot;));
+
+                      },
+                      toggleGroup : me.id + &quot;-ids-separator&quot;,
+
+                      allowDepress : false
+                    }, {
+                      xtype : &quot;button&quot;,
+                      text : &#39;EMPTY SPACE&#39;,
+                      handler : function() {
+                        var me = this;
+                        var parent = me.up(&quot;toolbar&quot;);
+
+                        parent.textArea.setValue(parent.idsItems.join(&quot; &quot;));
+                      },
+                      toggleGroup : me.id + &quot;-ids-separator&quot;,
+
+                      allowDepress : false
+                    }]
+              });
+
+          oToolb.items.getAt(0).toggle();
+
+          oWindow.add(new Ext.create(&#39;Ext.panel.Panel&#39;, {
+                floatable : false,
+                autoScroll : true,
+                autoHeight : true,
+                layout : {
+                  type : &#39;vbox&#39;,
+                  align : &#39;stretch&#39;,
+                  pack : &#39;start&#39;
+                },
+                dockedItems : [oToolb],
+                items : [oTextArea]
+              }));
+
+          oWindow.show();
+
+        }
+
+      },
+<span id='Ext-dirac-utils-DiracIdListButton-property-tooltip'>      tooltip : &quot;Get Selected IDs&quot;
+</span>    });</pre>
+</body>
+</html>

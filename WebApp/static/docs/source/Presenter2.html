@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;DIRAC.ApplicationWizard.classes.Presenter&#39;, {
+      extend : &#39;Ext.panel.Panel&#39;,
+      requires : [&#39;DIRAC.ApplicationWizard.classes.Image&#39;],
+      view : &#39;presenterView&#39;,
+      region : &#39;center&#39;,
+      minWidth : 300,
+      title : name,
+      header : false,
+      closable : true,
+      autoRender : true,
+      clickedPanel : null,
+      layout : {
+        type : &#39;border&#39;,
+        padding : 2
+      },
+
+      getStateData : function() {
+        var me = this;
+
+        var result = me.presenter.getStateData();
+        result.data = [];
+        me.presenter.items.each(function(item) {
+              if (item.loadedObjectType == &#39;image&#39;) {
+                // it is an image
+                result.data.push({
+                      src : item.src,
+                      title : item.title,
+                      loadedObjectType : item.loadedObjectType
+                    });
+
+              } else {
+                result.data.push({
+                      link : item.linkToLoad,
+                      title : item.title,
+                      loadedObjectType : item.loadedObjectType
+                    });
+              }
+
+            });
+        return result;
+
+      },
+
+      loadState : function(states) {
+        var me = this;
+        me.presenter.loadState(states);
+        for (var i = 0; i &lt; states.data.length; i++) {
+          if (states.data[i].loadedObjectType == &#39;image&#39;) {
+            var data = {
+              src : states.data[i].src,
+              title : states.data[i].title
+            };
+            me.addImages([data]);
+          } else {
+            var data = {
+              link : states.data[i].link,
+              title : states.data[i].title
+            };
+            me.addLinks([data]);
+          }
+        }
+      },
+      constructor : function(config) {
+        var me = this;
+        me.presenter = Ext.create(&#39;Ext.dirac.views.tabs.Presenter&#39;, {
+              region : &#39;center&#39;,
+              // minWidth : 300,
+              // title : name,
+              closable : false,
+              parent : me
+            });
+
+        me.presenter.updateTime = Ext.create(&quot;Ext.form.Label&quot;, {
+          xtype : &quot;label&quot;,
+          text : &quot;Updated: -&quot;,
+          style : ((GLOBAL.WEB_THEME == &#39;ext-all-neptune&#39;) ? &#39;font-weight:bold;color:#FFFFFF;&#39; : &#39;font-weight:bold;color:#666666;&#39;)
+            // #990066;&#39;, //#666666;&#39;
+            // html: &quot;&lt;span style=&#39;color:red&#39;&gt;Updated: - &lt;/span&gt;&quot;
+          });
+
+        var now = new Date();
+        var UTCTime = now.toUTCString();
+        UTCTime = UTCTime.replace(&#39;GMT&#39;, &quot;[UTC]&quot;);
+        me.presenter.updateTime.setText(&quot;Updated:&quot; + UTCTime);
+        me.presenter.tools.push(me.presenter.updateTime);
+        Ext.apply(me, {
+              items : [me.presenter]
+            });
+
+        me.callParent(arguments);
+      },
+
+<span id='global-method-addLinks'>      /**
+</span>       * It creates the widgets for a givel list
+       * 
+       * @param {Object}
+       *          links it is a list of links
+       */
+      addLinks : function(links) {
+        var me = this;
+        var activeTab = me;
+
+        for (var i = 0; i &lt; links.length; i++) {
+
+          var config = {
+            setupData : {
+              text : links[i].title
+            },
+            loadedObjectType : &quot;link&quot;,
+            plotParams : links[i],
+            linkToLoad : links[i].link,
+            listeners : {
+
+              beforeclose : function(panel, eOpts) {
+
+                activeTab.closeRemoveApplication(panel); // generate a close
+                // event again.
+
+                return false;
+              },
+
+              afterrender : function(panel) {
+                panel.header.el.on(&#39;dblclick&#39;, function(e, t, eOpts) {
+                      var panel = Ext.getCmp(t.id).up(&#39;panel&#39;);
+
+                      var data = {
+                        link : panel.linkToLoad,
+                        title : panel.title
+                      };
+                      me.clickedPanel = panel;
+                      me.__loadSelectionData(data);
+                    });
+              }
+
+            }
+          };
+          var tab = new Ext.dirac.views.tabs.Panel(config);
+          tab.activeTab = me; // this needs to stop the loading
+          // message. The event handled in the Panel class.
+          Ext.apply(tab, {
+                tools : [{
+                      type : &#39;maximize&#39;,
+                      tooltip : &#39;Maximize the application.&#39;,
+                      scope : tab,
+                      handler : function(event, toolEl, panelHeader) {
+                        var me = this;
+                        activeTab.hideComponents(); // hides all
+                        // components!
+                        me.show(); // only show the current component
+                        // we need to hide the maximize and also the close
+                        // buttons!!
+                        for (var i = 0; i &lt; me.tools.length; i++) {
+                          if (me.tools[i].type == &#39;maximize&#39; || me.tools[i].type == &#39;close&#39;) {
+                            me.tools[i].hide();
+                          } else if (me.tools[i].type == &#39;minimize&#39;) {
+                            me.tools[i].show();
+                          }
+                        }
+                        var origSize = {
+                          &#39;width&#39; : tab.getWidth(),
+                          &#39;height&#39; : tab.getHeight()
+                        }
+                        me.origiginalSize = origSize;
+                        me.setWidth(activeTab.getWidth());
+                        me.setHeight(activeTab.getHeight());
+                        me.isOpen = true;
+                        activeTab.add(me);
+
+                      }
+                    }, {
+                      type : &#39;minimize&#39;,
+                      tooltip : &#39;Minimize the application.&#39;,
+                      scope : tab,
+                      hidden : true,
+                      handler : function(event, toolEl, panelHeader) {
+                        var me = this;
+                        activeTab.showComponents();
+                        // we need to show the maximize and close
+                        // buttons and hide the minimize buttons.
+                        for (var i = 0; i &lt; me.tools.length; i++) {
+                          if (me.tools[i].type == &#39;maximize&#39; || me.tools[i].type == &#39;close&#39;) {
+                            me.tools[i].show();
+                          } else if (me.tools[i].type == &#39;minimize&#39;) {
+                            me.tools[i].hide();
+                          }
+                        }
+                        me.isOpen = false;
+                        me.setWidth(tab.origiginalSize.width);
+                        me.setHeight(tab.origiginalSize.height);
+                        activeTab.addWidget(me);
+                      }
+                    }]
+              });
+          activeTab.addWidget(tab);
+          tab.header.hide(); // we do not show the name of the application!
+          // (save space)
+          tab.loadData();
+
+          /*
+           * if (GLOBAL.APP.MAIN_VIEW.ID == &#39;tabs&#39;){
+           * GLOBAL.APP.MAIN_VIEW.createWindow(&quot;link&quot;, links[i], data, me);
+           * }else{ GLOBAL.APP.CF.msg(&quot;Error Notification&quot;, &quot;You can add
+           * external links using tab view...&quot;); }
+           */
+        }
+      },
+
+      addImages : function(images) {
+        var me = this;
+        var width = 99 / me.columnWidth;
+        width = &#39;.&#39; + Math.round(width);
+
+        for (var i = 0; i &lt; images.length; i++) {
+
+          var oImg = Ext.create(&#39;DIRAC.ApplicationWizard.classes.Image&#39;, {
+                layout : &#39;column&#39;,
+                loadedObjectType : &quot;image&quot;,
+                columnWidth : width,
+                plotParams : images[i],
+                title : images[i].title,
+                src : images[i].src,
+                listeners : {
+                  render : function() {
+                    var me = this;
+                    me.el.on({
+                          load : function(evt, ele, opts) {
+                            me.setLoading(false);
+                          }
+                        });
+                  }
+                }
+              });
+          me.presenter.addImage(oImg);
+          oImg.setLoading(true);
+        }
+      },
+
+      hideComponents : function() {
+        var me = this;
+        me.presenter.items.each(function(widget) {
+              widget.hide();
+            });
+      },
+      showComponents : function() {
+
+        var me = this;
+        me.presenter.items.each(function(widget) {
+              widget.show();
+            });
+      },
+<span id='global-method-addWidget'>      /*************************************************************************
+</span>       * it adds an application {@link Ext.dirac.views.tabs.Panel} to the
+       * presenter view.
+       * 
+       * @param{Object} widget is a object which inherited from
+       *                {@link Ext.dirac.views.tabs.Panel}
+       */
+      addWidget : function(widget) {
+        var me = this;
+
+        me.presenter.addImage(widget);
+
+      },
+      closeRemoveApplication : function(panel) {
+        var me = this;
+
+        me.presenter.remove(panel);
+
+      },
+      __loadSelectionData : function(plotParams) {
+        var me = this;
+        var data = {
+          &quot;leftMenu&quot; : {}
+        };
+
+        Ext.apply(data.leftMenu, plotParams);
+        me.parent.leftPanel.loadState(data);
+      }
+
+    });</pre>
+</body>
+</html>

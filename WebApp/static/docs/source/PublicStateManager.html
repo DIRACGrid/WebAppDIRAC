@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;DIRAC.PublicStateManager.classes.PublicStateManager&#39;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+      requires : [&#39;DIRAC.PublicStateManager.classes.MenuGrid&#39;],
+      loadState : function(data) {
+
+      },
+      getStateData : function() {
+        var me = this;
+        var states = {};
+
+        return states;
+      },
+      initComponent : function() {
+        var me = this;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          me.launcher.title = &quot;Public State Manager&quot;;
+          me.launcher.maximized = false;
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+          var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
+          me.launcher.width = 2 * iDim;
+          me.launcher.height = iDim;
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        if (GLOBAL.VIEW_ID == &quot;tabs&quot;) {
+
+          me.launcher.title = &quot;Public State Manager&quot;;
+          me.launcher.maximized = false;
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+          var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
+          me.launcher.width = 2 * iDim;
+          me.launcher.height = iDim;
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;fit&#39;,
+              defaults : {
+                collapsible : false,
+                split : true
+              }
+            });
+
+        me.callParent(arguments);
+
+      },
+
+      buildUI : function() {
+
+        var me = this;
+        
+        me.leftPanel = Ext.create(&quot;DIRAC.PublicStateManager.classes.MenuGrid&quot;, {
+              collapsible : false,
+              store : me.treeStore,
+              region : &#39;center&#39;
+            });
+        
+         var panelButtons = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+              dock : &#39;top&#39;,
+              layout : {
+                pack : &#39;left&#39;
+              },
+              items : []
+            });
+
+        var refreshButton = new Ext.Button({
+              text : &#39;refresh&#39;,
+              margin : 3,
+              iconCls : &quot;dirac-icon-refresh&quot;,
+              handler : function() {
+                var me = this;
+                me.leftPanel.store.load();
+                me.leftPanel.setLoading(true);
+              },
+              scope : me
+            });
+
+        panelButtons.add(refreshButton);
+
+        me.leftPanel.addDocked(panelButtons);
+        
+        me.add([me.leftPanel]);
+        me.leftPanel.setLoading(true);
+      }
+    });</pre>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*!
+ * Ext JS Library 4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+
+<span id='Ext-ux-desktop-Desktop'>/**
+</span> * @class Ext.ux.desktop.Desktop This is an abstract class that has to be
+ *        inherited by every module.
+ * @mixin Ext.util.Observable
+ * 
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracToolButton&#39;, {
+      extend : &#39;Ext.panel.Tool&#39;,
+      alias : &#39;widget.diracToolButton&#39;,
+      requires : [&#39;Ext.menu.Manager&#39;, &#39;Ext.util.ClickRepeater&#39;, &#39;Ext.layout.component.Button&#39;, &#39;Ext.util.TextMetrics&#39;, &#39;Ext.util.KeyMap&#39;],
+<span id='Ext-ux-desktop-Desktop-property-menuActiveCls'>      menuActiveCls : &#39;menu-active&#39;,
+</span><span id='Ext-ux-desktop-Desktop-property-menuAlign'>      menuAlign : &#39;tl-bl?&#39;,
+</span><span id='Ext-ux-desktop-Desktop-property-menu'>      menu : null,
+</span>
+<span id='Ext-ux-desktop-Desktop-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+        me.callParent(arguments);  
+        if (me.menu) {
+          // Flag that we&#39;ll have a splitCls
+          me.split = true;
+
+          // retrieve menu by id or instantiate instance if needed
+          me.menu = Ext.menu.Manager.get(me.menu);
+          me.menu.ownerButton = me;
+        }
+      },
+
+<span id='Ext-ux-desktop-Desktop-method-onRender'>      onRender : function() {
+</span>        var me = this;
+
+        me.callParent(arguments);
+        if (me.menu) {
+          me.mon(me.menu, {
+                scope : me,
+                show : me.onMenuShow,
+                hide : me.onMenuHide
+              });
+
+          me.keyMap = new Ext.util.KeyMap({
+                target : me.el,
+                key : Ext.EventObject.DOWN,
+                handler : me.onDownKey,
+                scope : me
+              });
+        }
+      },
+
+<span id='Ext-ux-desktop-Desktop-method-getRefItems'>      getRefItems : function(deep) {
+</span>        var menu = this.menu, items;
+
+        if (menu) {
+          items = menu.getRefItems(deep);
+          items.unshift(menu);
+        }
+        return items || [];
+      },
+
+<span id='Ext-ux-desktop-Desktop-method-beforeDestroy'>      beforeDestroy : function() {
+</span>        var me = this;
+
+        if (me.menu &amp;&amp; me.destroyMenu !== false) {
+          Ext.destroy(me.menu);
+        }
+
+        me.callParent();
+      },
+
+<span id='Ext-ux-desktop-Desktop-method-showMenu'>      showMenu : function() {
+</span>        var me = this;
+        if (me.rendered &amp;&amp; me.menu) {
+
+          if (me.menu.isVisible()) {
+            me.menu.hide();
+          }
+
+          me.menu.showBy(me.el, me.menuAlign, ((!Ext.isStrict &amp;&amp; Ext.isIE) || Ext.isIE6) ? [-2, -2] : undefined);
+        }
+        return me;
+      },
+<span id='Ext-ux-desktop-Desktop-method-hideMenu'>      /**
+</span>       * Hides this button&#39;s menu (if it has one)
+       */
+      hideMenu : function() {
+        if (this.hasVisibleMenu()) {
+          this.menu.hide();
+        }
+        return this;
+      },
+
+<span id='Ext-ux-desktop-Desktop-method-hasVisibleMenu'>      /**
+</span>       * Returns true if the button has a menu and it is visible
+       * 
+       * @return {Boolean}
+       */
+      hasVisibleMenu : function() {
+        var menu = this.menu;
+        return menu &amp;&amp; menu.rendered &amp;&amp; menu.isVisible();
+      },
+
+<span id='Ext-ux-desktop-Desktop-method-onMenuShow'>      // private
+</span>      onMenuShow : function(e) {
+        var me = this;
+        me.ignoreNextClick = 0;
+        me.addClsWithUI(me.menuActiveCls);
+        me.fireEvent(&#39;menushow&#39;, me, me.menu);
+      },
+
+<span id='Ext-ux-desktop-Desktop-method-onMenuHide'>      // private
+</span>      onMenuHide : function(e) {
+        var me = this;
+        me.removeClsWithUI(me.menuActiveCls);
+        me.ignoreNextClick = Ext.defer(me.restoreClick, 250, me);
+        me.fireEvent(&#39;menuhide&#39;, me, me.menu);
+      },
+<span id='Ext-ux-desktop-Desktop-method-onDownKey'>      // private
+</span>      onDownKey : function() {
+        var me = this;
+
+        if (!me.disabled) {
+          if (me.menu) {
+            me.showMenu();
+          }
+        }
+      },
+<span id='Ext-ux-desktop-Desktop-method-restoreClick'>      restoreClick : function() {
+</span>        this.ignoreNextClick = 0;
+      },
+<span id='Ext-ux-desktop-Desktop-method-onDestroy'>      onDestroy : function() {
+</span>        var me = this;
+        if (me.rendered) {
+          Ext.destroy(me.keyMap);
+          delete me.keyMap;
+        }
+        me.callParent();
+      },
+
+<span id='Ext-ux-desktop-Desktop-method-onClick'>      onClick : function(e) {
+</span>        var me = this;
+
+        if (!me.disabled) {
+          // me.doToggle();
+          me.maybeShowMenu();
+          me.fireHandler(e);
+        }
+      },
+
+<span id='Ext-ux-desktop-Desktop-method-fireHandler'>      fireHandler : function(e) {
+</span>        var me = this, handler = me.handler;
+
+        if (me.fireEvent(&#39;click&#39;, me, e) !== false) {
+          if (handler) {
+            handler.call(me.scope || me, me, e);
+          }
+          me.blur();
+        }
+      },
+
+<span id='Ext-ux-desktop-Desktop-method-maybeShowMenu'>      maybeShowMenu : function() {
+</span>        var me = this;
+        if (me.menu &amp;&amp; !me.hasVisibleMenu() &amp;&amp; !me.ignoreNextClick) {
+          me.showMenu();
+        }
+      }
+
+    });
+</pre>
+</body>
+</html>

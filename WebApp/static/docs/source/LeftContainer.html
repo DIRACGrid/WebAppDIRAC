@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-LeftContainer'>/***
+</span> * it contains the tab panels. We can have different panels such as Menu, documentation, help, etc.
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.LeftContainer&#39;, {
+  extend: &#39;Ext.container.Container&#39;,
+  requires : [&#39;Ext.dirac.views.tabs.MenuTabs&#39;],
+  xtype: &#39;icon-tabs&#39;,
+<span id='Ext-dirac-views-tabs-LeftContainer-property-floatable'>  floatable : false,
+</span><span id='Ext-dirac-views-tabs-LeftContainer-property-region'>  region : &#39;west&#39;,
+</span><span id='Ext-dirac-views-tabs-LeftContainer-property-split'>  split : true,
+</span><span id='Ext-dirac-views-tabs-LeftContainer-property-margins'>  margins : &#39;0&#39;,
+</span><span id='Ext-dirac-views-tabs-LeftContainer-property-bodyPadding'>  bodyPadding : 5,
+</span><span id='Ext-dirac-views-tabs-LeftContainer-property-layout'>  //collapsible : true,
+</span>  layout : &#39;fit&#39;,
+<span id='Ext-dirac-views-tabs-LeftContainer-property-width'>  //autoScroll : true,
+</span><span id='Ext-dirac-views-tabs-LeftContainer-property-minWidth'>  width : 275, //225
+</span>  minWidth : 35,
+<span id='Ext-dirac-views-tabs-LeftContainer-property-items'>  items : [],
+</span><span id='Ext-dirac-views-tabs-LeftContainer-property-desktop'>  desktop : null,
+</span><span id='Ext-dirac-views-tabs-LeftContainer-property-collapsed'>  collapsed : false,
+</span><span id='Ext-dirac-views-tabs-LeftContainer-method-initComponent'>  initComponent : function(){
+</span>    var me = this;
+    Ext.setGlyphFontFamily(&#39;Pictos&#39;);
+    var menu = Ext.create(&#39;Ext.dirac.views.tabs.MenuTabs&#39;,{
+      menu : me.menu
+    });
+    Ext.apply(me, {items:menu});
+    me.callParent(arguments);
+  },
+<span id='Ext-dirac-views-tabs-LeftContainer-method-setActiveMenu'>  setActiveMenu : function(name){
+</span>    var me = this;
+    var menu = me.items.getAt(0);
+    found = null;
+    menu.items.each(function(i){
+      if (i.value == name){
+        found = i;
+        return;
+      }
+    });
+    if (found){
+      menu.setActiveTab(found);
+    }
+  },
+<span id='Ext-dirac-views-tabs-LeftContainer-method-__getMenuObject'>  /***
+</span>   * It returns a panel from the container.
+   * @param{String} name is the name of the panel
+   * @return{Object} is a panel
+   */
+  __getMenuObject : function(name){
+    var me = this;
+    var menu = me.items.getAt(0);
+    found = null;
+    menu.items.each(function(i){
+      if (i.value == name){
+        found = i;
+        return;
+      }
+    });
+    return found;
+  },
+<span id='Ext-dirac-views-tabs-LeftContainer-method-getSelectionPanel'>  /***
+</span>   * It returns the menu panel
+   *@return{Ext.dirac.views.tabs.SelPanel}
+   */
+  getSelectionPanel : function() {
+    var me = this;
+    var mPanel = me.__getMenuObject(&#39;menuPanel&#39;);
+    return mPanel;
+  }
+});
+</pre>
+</body>
+</html>

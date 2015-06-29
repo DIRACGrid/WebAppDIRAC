@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracBoxSelectField'>/**
+</span> * Ensures the input element takes up the maximum amount of remaining list
+ * width, or the entirety of the list width if too little space remains. In this
+ * case, the list height will be automatically increased to accomodate the new
+ * line. This growth will not occur if
+ * {@link Ext.ux.form.field.BoxSelect#multiSelect} or
+ * {@link Ext.ux.form.field.BoxSelect#grow} is false.
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracBoxSelectField&#39;, {
+      /* Begin Definitions */
+      alias : [&#39;layout.boxselectfield&#39;],
+      extend : &#39;Ext.layout.component.field.Trigger&#39;,
+
+<span id='Ext-dirac-utils-DiracBoxSelectField-property-type'>      /* End Definitions */
+</span>
+      type : &#39;boxselectfield&#39;,
+
+<span id='Ext-dirac-utils-DiracBoxSelectField-property-waitForOuterWidthInDom'>      /* For proper calculations we need our field to be sized. */
+</span>      waitForOuterWidthInDom : true,
+
+<span id='Ext-dirac-utils-DiracBoxSelectField-method-beginLayout'>      beginLayout : function(ownerContext) {
+</span>        var me = this, owner = me.owner;
+
+        me.callParent(arguments);
+
+        ownerContext.inputElCtContext = ownerContext.getEl(&#39;inputElCt&#39;);
+        owner.inputElCt.setStyle(&#39;width&#39;, &#39;&#39;);
+
+        me.skipInputGrowth = !owner.grow || !owner.multiSelect;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelectField-method-beginLayoutFixed'>      beginLayoutFixed : function(ownerContext, width, suffix) {
+</span>        var me = this, owner = ownerContext.target;
+
+        owner.triggerEl.setStyle(&#39;height&#39;, &#39;24px&#39;);
+
+        me.callParent(arguments);
+
+        if (ownerContext.heightModel.fixed &amp;&amp; ownerContext.lastBox) {
+          owner.listWrapper.setStyle(&#39;height&#39;, ownerContext.lastBox.height + &#39;px&#39;);
+          owner.itemList.setStyle(&#39;height&#39;, &#39;100%&#39;);
+        }
+        /* No inputElCt calculations here! */
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelectField-method-publishInnerWidth'>      /* Calculate and cache value of input container. */
+</span>      publishInnerWidth : function(ownerContext) {
+        var me = this, owner = me.owner, width = owner.itemList.getWidth(true) - 10, lastEntry = owner.inputElCt.prev(null, true);
+
+        if (lastEntry &amp;&amp; !owner.stacked) {
+          lastEntry = Ext.fly(lastEntry);
+          width = width - lastEntry.getOffsetsTo(lastEntry.up(&#39;&#39;))[0] - lastEntry.getWidth();
+        }
+
+        if (!me.skipInputGrowth &amp;&amp; (width &lt; 35)) {
+          width = width - 10;
+        } else if (width &lt; 1) {
+          width = 1;
+        }
+        ownerContext.inputElCtContext.setWidth(width);
+      }
+    });
+</pre>
+</body>
+</html>

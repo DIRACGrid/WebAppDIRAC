@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;DIRAC.ApplicationWizard.classes.ApplicationWizard&#39;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+
+      requires : [&quot;Ext.grid.Panel&quot;, &quot;Ext.dirac.utils.DiracBaseSelector&quot;, &quot;DIRAC.ApplicationWizard.classes.Presenter&quot;],
+
+      loadState : function(states) {
+        var me = this;
+        me.leftPanel.loadState(states);
+        if (states.leftPanelCollapsed) {
+          me.leftPanel.collapse();
+        }
+        me.presenterView.loadState(states.pData);
+
+      },
+      getStateData : function() {
+        var me = this;
+        var data = {
+          leftMenu : me.leftPanel.getStateData(),
+          pData : me.presenterView.getStateData(),
+          leftPanelCollapsed : me.leftPanel.collapsed
+        };
+        return data;
+      },
+
+      initComponent : function() {
+
+        var me = this;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          me.launcher.title = &quot;Application Wizzard&quot;;
+          me.launcher.maximized = false;
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1];
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        if (GLOBAL.VIEW_ID == &quot;tabs&quot;) {
+
+          me.launcher.title = &quot;Application Wizzard&quot;;
+          me.launcher.maximized = false;
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;border&#39;,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
+            });
+
+        me.callParent(arguments);
+
+      },
+<span id='global-method-buildUI'>      /**
+</span>       * It build the widget.
+       */
+      buildUI : function() {
+
+        var me = this;
+
+        var textFields = {
+          &#39;link&#39; : {
+            &quot;name&quot; : &quot;Page url&quot;,
+            &quot;type&quot; : &quot;originalText&quot;
+          },
+          &#39;src&#39; : {
+            &quot;name&quot; : &quot;Image url&quot;,
+            &quot;type&quot; : &quot;originalText&quot;
+          },
+          &#39;title&#39; : {
+            &quot;name&quot; : &quot;Title&quot;,
+            &quot;type&quot; : &quot;originalText&quot;,
+            &quot;properties&quot; : {
+              &quot;canDisable&quot; : false
+            }
+          }
+        };
+
+        me.leftPanel = Ext.create(&#39;Ext.dirac.utils.DiracBaseSelector&#39;, {
+              scope : me,
+              textFields : textFields,
+              hasTimeSearchPanel : false,
+              panelButtons : false
+            });
+
+        // Buttons at the bottom of the panel
+        var leftPanelButtons = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+              dock : &#39;bottom&#39;,
+              layout : {
+                pack : &#39;center&#39;
+              },
+              items : []
+            });
+
+        var addButton = new Ext.Button({
+              text : &#39;Add&#39;,
+              margin : 3,
+              iconCls : &quot;dirac-icon-submit&quot;,
+              handler : function() {
+                var urls = me.leftPanel.getSelectionData();
+                var title = Ext.JSON.decode(urls[&#39;title&#39;]);
+                if (title.length &gt; 0) {
+                  title = title[0];
+                } else {
+                  title = &quot;&quot;;
+                }
+                var plotParams = {};
+                var link = Ext.JSON.decode(urls[&#39;link&#39;]);
+                if (link &amp;&amp; link.length &gt; 0) {
+                  plotParams = {
+                    link : link[0],
+                    title : title
+                  };
+                  me.presenterView.addLinks([plotParams]);
+                } else {
+                  plotParams = {
+                    src : Ext.JSON.decode(urls[&#39;src&#39;])[0],
+                    title : title
+                  };
+                  me.presenterView.addImages([plotParams]);
+                }
+              },
+              scope : me
+            });
+
+        leftPanelButtons.add(addButton);
+
+        var resetButton = new Ext.Button({
+              text : &#39;Reset&#39;,
+              margin : 3,
+              iconCls : &quot;dirac-icon-reset&quot;,
+              handler : function() {
+                me.leftPanel.oprResetSelectionOptions();
+              },
+              scope : me
+
+            });
+
+        leftPanelButtons.add(resetButton);
+
+        var applyButton = new Ext.Button({
+              text : &#39;Apply&#39;,
+              tooltip : &#39;It updates the selected image.&#39;,
+              margin : 3,
+              iconCls : &quot;dirac-icon-upload&quot;,
+              handler : function() {
+                var urls = me.leftPanel.getSelectionData();
+                var link = Ext.JSON.decode(urls[&#39;link&#39;]);
+                if (link.length &gt; 0) {
+                  link = link[0];
+                  title = Ext.JSON.decode(urls[&#39;title&#39;])[0];
+                  me.presenterView.clickedPanel.setTitle(title);
+                  if (me.presenterView.clickedPanel.linkToLoad != link) {
+                    me.presenterView.clickedPanel.linkToLoad = link;
+                    me.presenterView.clickedPanel.items.getAt(0).el.set({&#39;src&#39;:link})
+                    
+                  }
+
+                } else {
+                  var image = null;
+                  var image = me.presenterView.presenter.getLastClickedImage();
+                  if (image) {
+                    var src = Ext.JSON.decode(urls[&#39;src&#39;])[0];
+                    var title = Ext.JSON.decode(urls[&#39;title&#39;])[0];
+                    var newImage = Ext.create(&#39;DIRAC.ApplicationWizard.classes.Image&#39;, {
+                          layout : &#39;column&#39;,
+                          loadedObjectType : &quot;image&quot;,
+                          columnWidth : image.columnWidth,
+                          plotParams : {
+                            src : src,
+                            title : title
+                          },
+                          title : title,
+                          src : src,
+                          listeners : {
+                            render : function() {
+                              var me = this;
+                              me.el.on({
+                                    load : function(evt, ele, opts) {
+                                      me.setLoading(false);
+                                    }
+                                  });
+                            }
+                          }
+                        });
+
+                    me.presenterView.presenter.replaceImg(image, newImage);
+
+                  }
+                }
+              },
+              scope : me
+
+            });
+
+        leftPanelButtons.add(applyButton);
+
+        me.leftPanel.addDocked(leftPanelButtons);
+
+        me.presenterView = Ext.create(&quot;DIRAC.ApplicationWizard.classes.Presenter&quot;, {
+              parent : me
+            });
+
+        me.add([me.leftPanel, me.presenterView]);
+      }
+
+    });
+</pre>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&quot;Ext.dirac.views.tabs.DesktopSettings&quot;, {
+      extend : &#39;Ext.form.Panel&#39;,
+      title : &#39;Activ desktop configuration&#39;,
+      layout : &#39;fit&#39;,
+      bodyPadding : 10,
+      width : 400,
+      layout : {
+        type : &#39;table&#39;,
+        columns : 2,
+        tdAttrs : {
+          style : &#39;padding: 5px 10px;&#39;
+        }
+      },
+      defaults : {
+        width : 150,
+        textAlign : &#39;left&#39;
+      },
+      items : [{
+            xtype : &#39;label&#39;,
+            text : &#39;Name:&#39;
+          }, {
+            xtype : &#39;label&#39;,
+            text : &quot;None&quot;
+          }, {
+            xtype : &#39;label&#39;,
+            text : &quot;Automatic tab change&quot;
+          }],
+      initComponent : function() {
+        var me = this;
+        me.menuItems = {
+          &#39;Disable&#39; : 0,
+          &#39;Each 2m&#39; : 120000,
+          &#39;Each 5m&#39; :  300000, // 60000,//900000,
+          &#39;Each 10m&#39; : 600000, // 60000,//900000,
+          &#39;Each 15m&#39; : 900000, // 60000,//900000,
+          &#39;Each hour&#39; : 3600000,
+          &#39;Each day&#39; : 86400000
+        };
+        me.callParent(arguments);
+        me.autoChange = Ext.create(&#39;Ext.menu.Menu&#39;, {
+              listeners : {
+                click : function(menu, menuItem, e, eOpts) {
+                  me.setTabChange(menuItem.value, menuItem.text);
+                }
+              }
+            });
+
+        for (var i in me.menuItems) {
+          var item = null;
+
+          item = new Ext.menu.CheckItem({
+                checked : false,
+                group : &#39;column&#39;,
+                value : me.menuItems[i],
+                text : i
+              });
+          me.autoChange.add(item);
+        }
+        me.add({
+              xtype : &#39;button&#39;,
+              text : &#39;Disable&#39;,
+              menu : me.autoChange
+            });
+
+      },
+      setTabChange : function(value, text) {
+        var me = this;
+        me.items.getAt(3).setText(text);
+        var setDesktopName = function(name) {
+          me.setDesktopName(name);
+        };
+        GLOBAL.APP.MAIN_VIEW.setTabChangePeriod(value, setDesktopName)
+      },
+      setTabChangePeriod : function(value) {
+        var me = this;
+        for (i in me.menuItems) {
+          if (me.menuItems[i] == value) {
+            me.items.getAt(3).setText(i);
+            me.autoChange.items.each(function(item) {
+                  if (item.value == value) {
+                    item.checked = true;
+                  }
+                });
+          }
+        };
+      },
+      setDesktopName : function(name) {
+        var me = this;
+        me.items.getAt(1).setText(name);
+      }
+    });
+</pre>
+</body>
+</html>

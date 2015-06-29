@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;DIRAC.JobMonitor.classes.JobMonitor&#39;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+
+      requires : [&#39;Ext.util.*&#39;, &#39;Ext.panel.Panel&#39;, &quot;Ext.form.field.Text&quot;, &quot;Ext.button.Button&quot;, &quot;Ext.menu.CheckItem&quot;, &quot;Ext.menu.Menu&quot;, &quot;Ext.form.field.ComboBox&quot;, &quot;Ext.layout.*&quot;, &quot;Ext.toolbar.Paging&quot;, &quot;Ext.grid.Panel&quot;, &quot;Ext.form.field.Date&quot;, &quot;Ext.form.field.TextArea&quot;,
+          &quot;Ext.dirac.utils.DiracToolButton&quot;, &quot;Ext.dirac.utils.DiracGridPanel&quot;, &#39;Ext.dirac.utils.DiracIdListButton&#39;, &#39;Ext.dirac.utils.DiracPageSizeCombo&#39;, &quot;Ext.dirac.utils.DiracPagingToolbar&quot;, &quot;Ext.dirac.utils.DiracApplicationContextMenu&quot;, &quot;Ext.dirac.utils.DiracBaseSelector&quot;,
+          &quot;Ext.dirac.utils.DiracAjaxProxy&quot;, &quot;Ext.data.ArrayStore&quot;, &quot;Ext.dirac.utils.DiracJsonStore&quot;, &quot;Ext.dirac.utils.DiracArrayStore&quot;],
+
+      loadState : function(data) {
+
+        var me = this;
+
+        me.grid.loadState(data);
+
+        me.leftPanel.loadState(data);
+
+        if (data.leftPanelCollapsed) {
+
+          me.leftPanel.collapse();
+
+        }
+
+        if (&quot;centralGridPanelVisible&quot; in data) {
+
+          if (!data.centralGridPanelVisible) {
+
+            me.centralWorkPanel.getLayout().setActiveItem(1);
+
+          }
+
+        }
+
+        if (&quot;statisticsSelectionPanelCollapsed&quot; in data) {
+
+          if (data.statisticsSelectionPanelCollapsed) {
+
+            me.statisticsSelectionGrid.collapse();
+
+          }
+
+        }
+
+        if (&quot;statisticsSelectionValues&quot; in data) {
+
+          me.statisticsGridComboMain.suspendEvents(false);
+          me.statisticsGridCombo.suspendEvents(false);
+          me.statisticsGridComboMain.setValue(data.statisticsSelectionValues[0]);
+          me.statisticsGridCombo.setValue(data.statisticsSelectionValues[1]);
+          me.statisticsGridComboMain.resumeEvents();
+          me.statisticsGridCombo.resumeEvents();
+
+        }
+
+      },
+
+      getStateData : function() {
+
+        var me = this;
+
+        // data for grid columns
+        var oReturn = {
+          leftMenu : me.leftPanel.getStateData(),
+          grid : me.grid.getStateData()
+          // show/hide for selectors and their selected data (including NOT
+          // button)
+        };
+
+        oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
+        oReturn.centralGridPanelVisible = !me.grid.hidden;
+        oReturn.statisticsSelectionPanelCollapsed = me.statisticsSelectionGrid.collapsed;
+        oReturn.statisticsSelectionValues = [me.statisticsGridComboMain.getValue(), me.statisticsGridCombo.getValue()];
+
+        return oReturn;
+
+      },
+      dataFields : [{
+            name : &#39;SystemPriority&#39;,
+            type : &#39;float&#39;
+          }, {
+            name : &#39;ApplicationNumStatus&#39;
+          }, {
+            name : &#39;JobID&#39;,
+            type : &#39;int&#39;
+          }, {
+            name : &#39;LastSignOfLife&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;VerifiedFlag&#39;
+          }, {
+            name : &#39;RetrievedFlag&#39;
+          }, {
+            name : &#39;Status&#39;
+          }, {
+            name : &#39;StartExecTime&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;RescheduleCounter&#39;
+          }, {
+            name : &#39;JobSplitType&#39;
+          }, {
+            name : &#39;MinorStatus&#39;
+          }, {
+            name : &#39;ApplicationStatus&#39;
+          }, {
+            name : &#39;SubmissionTime&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;JobType&#39;
+          }, {
+            name : &#39;MasterJobID&#39;
+          }, {
+            name : &#39;KilledFlag&#39;
+          }, {
+            name : &#39;RescheduleTime&#39;
+          }, {
+            name : &#39;DIRACSetup&#39;
+          }, {
+            name : &#39;FailedFlag&#39;
+          }, {
+            name : &#39;CPUTime&#39;
+          }, {
+            name : &#39;OwnerDN&#39;
+          }, {
+            name : &#39;JobGroup&#39;
+          }, {
+            name : &#39;JobName&#39;
+          }, {
+            name : &#39;AccountedFlag&#39;
+          }, {
+            name : &#39;OSandboxReadyFlag&#39;
+          }, {
+            name : &#39;LastUpdateTime&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;Site&#39;
+          }, {
+            name : &#39;HeartBeatTime&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;OwnerGroup&#39;
+          }, {
+            name : &#39;ISandboxReadyFlag&#39;
+          }, {
+            name : &#39;UserPriority&#39;
+          }, {
+            name : &#39;Owner&#39;
+          }, {
+            name : &#39;DeletedFlag&#39;
+          }, {
+            name : &#39;TaskQueueID&#39;
+          }, {
+            name : &#39;JobType&#39;
+          }, {
+            name : &#39;JobIDcheckBox&#39;,
+            mapping : &#39;JobID&#39;
+          }, {
+            name : &#39;StatusIcon&#39;,
+            mapping : &#39;Status&#39;
+          }, {
+            name : &#39;OwnerGroup&#39;
+          }],
+
+      initComponent : function() {
+
+        var me = this;
+
+        me.launcher.title = &quot;Job Monitor&quot;;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          me.launcher.maximized = false;
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1];
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        if (GLOBAL.VIEW_ID == &quot;tabs&quot;) {
+
+          me.launcher.maximized = false;
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;border&#39;,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
+            });
+
+        me.callParent(arguments);
+
+      },
+
+      buildUI : function() {
+
+        var me = this;
+
+        /*
+         * -----------------------------------------------------------------------------------------------------------
+         * DEFINITION OF THE LEFT PANEL
+         * -----------------------------------------------------------------------------------------------------------
+         */
+
+        me.statisticsPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              header : false,
+              region : &#39;center&#39;,
+              floatable : false,
+              // autoScroll : true,
+              hidden : true,
+              collapsible : false,
+              layout : &quot;border&quot;,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
+            });
+
+        var selectors = {
+          site : &quot;Site&quot;,
+          status : &quot;Status&quot;,
+          minorStatus : &quot;Minor Status&quot;,
+          appStatus : &quot;Application Status&quot;,
+          owner : &quot;Owner&quot;,
+          OwnerGroup : &quot;OwnerGroup&quot;,
+          jobGroup : &quot;Job Group&quot;,
+          jobType : &quot;Job Type&quot;
+        };
+
+        var textFields = {
+          &#39;JobID&#39; : {
+            name : &quot;JobID(s)&quot;,
+            type : &quot;number&quot;
+          }
+        }
+
+        var properties = [[&quot;NormalUser&quot;, &quot;JobSharing&quot;, &quot;owner&quot;]];
+        var map = [[&quot;app&quot;, &quot;appStatus&quot;], [&quot;minorstat&quot;, &quot;minorStatus&quot;], [&quot;owner&quot;, &quot;owner&quot;], [&quot;prod&quot;, &quot;jobGroup&quot;], [&quot;site&quot;, &quot;site&quot;], [&quot;status&quot;, &quot;status&quot;], [&quot;types&quot;, &quot;jobType&quot;], [&quot;OwnerGroup&quot;, &quot;OwnerGroup&quot;]];
+
+        me.leftPanel = Ext.create(&#39;Ext.dirac.utils.DiracBaseSelector&#39;, {
+              scope : me,
+              cmbSelectors : selectors,
+              textFields : textFields,
+              datamap : map,
+              url : &quot;JobMonitor/getSelectionData&quot;,
+              properties : properties
+            });
+
+        /*
+         * -----------------------------------------------------------------------------------------------------------
+         * DEFINITION OF THE GRID
+         * -----------------------------------------------------------------------------------------------------------
+         */
+
+        var oProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/getJobData&#39;
+            });
+
+        me.dataStore = Ext.create(&quot;Ext.dirac.utils.DiracJsonStore&quot;, {
+              autoLoad : false,
+              proxy : oProxy,
+              fields : me.dataFields,
+              scope : me,
+              remoteSort : false,
+              autoLoad : true
+            });
+
+        var pagingToolbar = {};
+
+        var toolButtons = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;&quot;,
+                &quot;handler&quot; : me.__oprJobAction,
+                &quot;arguments&quot; : [&quot;reschedule&quot;, &quot;&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &quot;Reschedule&quot;,
+                  iconCls : &quot;dirac-icon-reschedule&quot;
+                }
+              }, {
+                &quot;text&quot; : &quot;&quot;,
+                &quot;handler&quot; : me.__oprJobAction,
+                &quot;arguments&quot; : [&quot;kill&quot;, &quot;&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &quot;Kill&quot;,
+                  iconCls : &quot;dirac-icon-kill&quot;
+                }
+              }, {
+                &quot;text&quot; : &quot;&quot;,
+                &quot;handler&quot; : me.__oprJobAction,
+                &quot;arguments&quot; : [&quot;delete&quot;, &quot;&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &quot;Delete&quot;,
+                  iconCls : &quot;dirac-icon-delete&quot;
+                }
+              }, {
+                &quot;text&quot; : &quot;&quot;,
+                &quot;handler&quot; : me.__setActiveItemInTheCentralWorkPanel,
+                &quot;arguments&quot; : [],
+                &quot;properties&quot; : {
+                  iconCls : &quot;dirac-icon-pie&quot;,
+                  tooltip : &quot;Go to the statistics panel&quot;
+                }
+              }],
+          &#39;Protected&#39; : [{
+                &quot;text&quot; : &quot;&quot;,
+                &quot;handler&quot; : me.__oprJobAction,
+                &quot;arguments&quot; : [&quot;reset&quot;, &quot;&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &quot;Reset&quot;,
+                  iconCls : &quot;jm-red-reset-icon&quot;
+                },
+                &quot;property&quot; : &quot;JobAdministrator&quot;
+              }]
+        };
+
+        pagingToolbar = Ext.create(&quot;Ext.dirac.utils.DiracPagingToolbar&quot;, {
+              toolButtons : toolButtons,
+              property : &quot;JobAdministrator&quot;,
+              store : me.dataStore,
+              scope : me
+            });
+
+        var oColumns = {
+          &quot;checkBox&quot; : {
+            &quot;dataIndex&quot; : &quot;JobIDcheckBox&quot;
+          },
+          &quot;JobId&quot; : {
+            &quot;dataIndex&quot; : &quot;JobID&quot;
+          },
+          &quot;None&quot; : {
+            &quot;dataIndex&quot; : &quot;StatusIcon&quot;,
+            &quot;properties&quot; : {
+              width : 26,
+              sortable : false,
+              hideable : false,
+              fixed : true,
+              menuDisabled : true
+            },
+            &quot;renderFunction&quot; : &quot;rendererStatus&quot;
+          },
+          &quot;Status&quot; : {
+            &quot;dataIndex&quot; : &quot;Status&quot;
+          },
+          &quot;MinorStatus&quot; : {
+            &quot;dataIndex&quot; : &quot;MinorStatus&quot;,
+            &quot;properties&quot; : {
+              flex : 1
+            }
+          },
+          &quot;ApplicationStatus&quot; : {
+            &quot;dataIndex&quot; : &quot;ApplicationStatus&quot;
+          },
+          &quot;Site&quot; : {
+            &quot;dataIndex&quot; : &quot;Site&quot;
+          },
+          &quot;JobName&quot; : {
+            &quot;dataIndex&quot; : &quot;JobName&quot;,
+            &quot;properties&quot; : {
+              flex : 1,
+              width : 200
+            }
+          },
+          &quot;LastUpdate[UTC]&quot; : {
+            &quot;dataIndex&quot; : &quot;LastUpdateTime&quot;,
+            &quot;renderer&quot; : Ext.util.Format.dateRenderer(&#39;Y-m-d H:i:s&#39;),
+            &quot;properties&quot; : {
+              width : 150
+            }
+          },
+          &quot;LastSignOfLife[UTC]&quot; : {
+            &quot;dataIndex&quot; : &quot;LastSignOfLife&quot;,
+            &quot;renderer&quot; : Ext.util.Format.dateRenderer(&#39;Y-m-d H:i:s&#39;),
+            &quot;properties&quot; : {
+              width : 150
+            }
+          },
+          &quot;SubmissionTime[UTC]&quot; : {
+            &quot;dataIndex&quot; : &quot;SubmissionTime&quot;,
+            &quot;renderer&quot; : Ext.util.Format.dateRenderer(&#39;Y-m-d H:i:s&#39;),
+            &quot;properties&quot; : {
+              width : 150
+            }
+          },
+          &quot;DIRACSetup&quot; : {
+            &quot;dataIndex&quot; : &quot;DIRACSetup&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;FailedFlag&quot; : {
+            &quot;dataIndex&quot; : &quot;FailedFlag&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;RescheduleCounter&quot; : {
+            &quot;dataIndex&quot; : &quot;RescheduleCounter&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;CPUTime&quot; : {
+            &quot;dataIndex&quot; : &quot;CPUTime&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;OwnerDN&quot; : {
+            &quot;dataIndex&quot; : &quot;OwnerDN&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;JobGroup&quot; : {
+            &quot;dataIndex&quot; : &quot;JobGroup&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;JobType&quot; : {
+            &quot;dataIndex&quot; : &quot;JobType&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;AccountedFlag&quot; : {
+            &quot;dataIndex&quot; : &quot;AccountedFlag&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;OSandboxReadyFlag&quot; : {
+            &quot;dataIndex&quot; : &quot;OSandboxReadyFlag&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Owner&quot; : {
+            &quot;dataIndex&quot; : &quot;Owner&quot;
+          },
+          &quot;TaskQueueID&quot; : {
+            &quot;dataIndex&quot; : &quot;TaskQueueID&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;OwnerGroup&quot; : {
+            &quot;dataIndex&quot; : &quot;OwnerGroup&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          }
+        };
+
+        var actionSubmenu = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Kill&quot;,
+                &quot;handler&quot; : me.__oprJobAction,
+                &quot;arguments&quot; : [&quot;kill&quot;, true],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to kill the selected job.&#39;,
+                  iconCls : &quot;dirac-icon-kill&quot;
+                }
+              }, {
+                &quot;text&quot; : &quot;Delete&quot;,
+                &quot;handler&quot; : me.__oprJobAction,
+                &quot;arguments&quot; : [&quot;delete&quot;, true],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to kill the selected job.&#39;,
+                  iconCls : &quot;dirac-icon-delete&quot;
+                }
+              }]
+        };
+        var pilotSubmenu = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Get StdOut&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getPilotStdOut&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to kill the selected job.&#39;,
+                  iconCls : &quot;dirac-icon-download&quot;
+                }
+              }, {
+                &quot;text&quot; : &quot;Get StdErr&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getPilotStdErr&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to kill the selected job.&#39;,
+                  iconCls : &quot;dirac-icon-download&quot;
+                }
+              }, {
+                &quot;text&quot; : &quot;LoggingInfo&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getPilotLoggingInfo&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to kill the selected job.&#39;,
+                  iconCls : &quot;dirac-icon-download&quot;
+                }
+              }]
+        };
+
+        var sandboxSubmenu = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Get input file(s)&quot;,
+                &quot;handler&quot; : me.__getSandbox,
+                &quot;arguments&quot; : [&quot;Input&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to kill the selected job.&#39;,
+                  iconCls : &quot;dirac-icon-download&quot;
+                }
+              }, {
+                &quot;text&quot; : &quot;Get output file(s)&quot;,
+                &quot;handler&quot; : me.__getSandbox,
+                &quot;arguments&quot; : [&quot;Output&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to kill the selected job.&#39;,
+                  iconCls : &quot;dirac-icon-download&quot;
+                }
+              }]
+        };
+
+        var menuitems = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;JDL&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getJDL&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the JDL of the selected job.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;-&quot;
+              },// separator
+              {
+                &quot;text&quot; : &quot;Attributes&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getBasicInfo&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the attributtes of the selected job.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Parameters&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getParams&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the Parameters of the selected job.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Logging info&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getLoggingInfo&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the log of the selected job.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;-&quot;
+              },// separator
+              {
+                &quot;text&quot; : &quot;Peek StandardOutput&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getStandardOutput&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to retrive the stdout of the selected job.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Get LogFile&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getLogURL&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to download the log file of the jobs.&#39;,
+                  iconCls : &quot;dirac-icon-download&quot;
+                }
+              }, {
+                &quot;text&quot; : &quot;Get Pending Request&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getPending&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to view the pendig request of the selected job&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Get StagerReport&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getStagerReport&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the stager log.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;-&quot;
+              },// separator
+              {
+                &quot;text&quot; : &quot;Actions&quot;,
+                &quot;subMenu&quot; : actionSubmenu,
+                &quot;properties&quot; : {
+                  iconCls : &quot;dirac-icon-action&quot;
+                }
+              }, {
+                &quot;text&quot; : &quot;Pilot&quot;,
+                &quot;subMenu&quot; : pilotSubmenu,
+                &quot;properties&quot; : {
+                  iconCls : &quot;dirac-icon-action&quot;
+                }
+              }, {
+                &quot;text&quot; : &quot;SandBox&quot;,
+                &quot;subMenu&quot; : sandboxSubmenu,
+                &quot;properties&quot; : {
+                  iconCls : &quot;jm-icon-sandbox&quot;
+                }
+              }]
+        };
+
+        me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
+              menu : menuitems,
+              scope : me
+            });
+
+        me.grid = Ext.create(&#39;Ext.dirac.utils.DiracGridPanel&#39;, {
+              store : me.dataStore,
+              // features: [{ftype:&#39;grouping&#39;}],
+              oColumns : oColumns,
+              contextMenu : me.contextGridMenu,
+              pagingToolbar : pagingToolbar,
+              scope : me
+            });
+
+        me.leftPanel.setGrid(me.grid);
+
+        me.grid.columns[1].setSortState(&quot;DESC&quot;);
+
+        /* Definition of the statistics panel */
+
+        me.statisticsGridComboMain = new Ext.form.field.ComboBox({
+              allowBlank : false,
+              displayField : &#39;set&#39;,
+              editable : false,
+              mode : &#39;local&#39;,
+              store : new Ext.data.ArrayStore({
+                    fields : [&#39;set&#39;],
+                    data : [[&quot;Selected Statistics&quot;], [&quot;Global Statistics&quot;]]
+                  }),
+              triggerAction : &#39;all&#39;,
+              value : &quot;Selected Statistics&quot;,
+              flex : 1,
+              listeners : {
+
+                &quot;change&quot; : function(combo, newValue, oldValue, eOpts) {
+
+                  var me = combo.moduleObject;
+                  me.leftPanel.oprLoadGridData();
+
+                }
+
+              },
+              moduleObject : me
+            });
+
+        me.statisticsGridCombo = new Ext.form.field.ComboBox({
+              allowBlank : false,
+              displayField : &#39;category&#39;,
+              editable : false,
+              mode : &#39;local&#39;,
+              store : new Ext.data.ArrayStore({
+                    fields : [&#39;category&#39;],
+                    data : [[&quot;Status&quot;], [&quot;Site&quot;], [&quot;Minor Status&quot;], [&quot;Application Status&quot;], [&quot;Owner&quot;], [&quot;Owner Group&quot;], [&quot;Job Group&quot;]]
+                  }),
+              triggerAction : &#39;all&#39;,
+              value : &quot;Status&quot;,
+              flex : 1,
+              listeners : {
+
+                &quot;change&quot; : function(combo, newValue, oldValue, eOpts) {
+
+                  var me = combo.moduleObject;
+                  me.leftPanel.oprLoadGridData();
+
+                }
+
+              },
+              moduleObject : me
+            });
+
+        var oButtonGoToGrid = new Ext.Button({
+
+              margin : 0,
+              iconCls : &quot;jm-grid-icon&quot;,
+              handler : function() {
+                me.centralWorkPanel.getLayout().setActiveItem(0);
+              },
+              scope : me
+
+            });
+
+        me.btnShowPlotAsPng = new Ext.Button({
+
+              margin : 0,
+              iconCls : &quot;dirac-icon-save&quot;,
+              handler : function() {
+
+                var sSvgElement = document.getElementById(me.id + &quot;-statistics-plot&quot;).getElementsByTagName(&quot;svg&quot;)[0].parentNode.innerHTML;
+
+                var iHeight = me.statisticsPlotPanel.getHeight();
+
+                var iWidth = me.statisticsPlotPanel.getWidth();
+
+                var canvas = document.createElement(&#39;canvas&#39;);
+                canvas.setAttribute(&#39;width&#39;, iWidth);
+                canvas.setAttribute(&#39;height&#39;, iHeight);
+
+                var oContext = canvas.getContext(&quot;2d&quot;);
+
+                oContext.beginPath();
+                oContext.rect(0, 0, iWidth, iHeight);
+                oContext.fillStyle = &quot;#FFFFFF&quot;;
+                oContext.fill();
+
+                var oImage = new Image();
+                oImage.src = GLOBAL.ROOT_URL + &#39;static/core/img/wallpapers/dirac_jobmonitor_background.png&#39;;
+
+                oImage.onload = function() {
+
+                  console.log([oImage.clientWidth, oImage.clientHeight]);
+
+                  oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
+
+                  oContext.drawSvg(sSvgElement, 0, 0);
+
+                  var imgData = canvas.toDataURL(&quot;image/png&quot;);
+                  window.location = imgData.replace(&quot;image/png&quot;, &quot;image/octet-stream&quot;);
+
+                }
+
+              },
+              scope : me,
+              tooltip : &quot;Save pie chart as PNG image&quot;
+            });
+
+        me.btnPlotSettings = new Ext.Button({
+
+              margin : 0,
+              iconCls : &quot;dirac-icon-pie&quot;,
+              handler : function() {
+
+                me.formPlotSettings();
+
+              },
+              scope : me,
+              tooltip : &quot;Plot settings&quot;
+            });
+
+        /*-----------AUTO REFRESH---------------*/
+        var oTask = {
+          run : function() {
+            me.leftPanel.oprLoadGridData();
+          },
+          interval : 0
+        }
+
+        var oHeartbeat = new Ext.util.TaskRunner();
+
+        var oAutoMenu = [{
+              handler : function() {
+                this.setChecked(true);
+                oHeartbeat.start(Ext.apply(oTask, {
+                      interval : 900000
+                    }));
+              },
+              group : &#39;refresh&#39;,
+              text : &#39;15 Minutes&#39;
+            }, {
+              handler : function() {
+                this.setChecked(true);
+                oHeartbeat.start(Ext.apply(oTask, {
+                      interval : 1800000
+                    }));
+              },
+              group : &#39;refresh&#39;,
+              text : &#39;30 Minutes&#39;
+            }, {
+              handler : function() {
+                this.setChecked(true);
+                oHeartbeat.start(Ext.apply(oTask, {
+                      interval : 3600000
+                    }));
+              },
+              group : &#39;refresh&#39;,
+              text : &#39;One Hour&#39;
+            }, {
+              checked : true,
+              handler : function() {
+                this.setChecked(true);
+                oHeartbeat.stopAll();
+              },
+              group : &#39;refresh&#39;,
+              text : &#39;Disabled&#39;
+            }];
+
+        for (var i = 0; i &lt; oAutoMenu.length; i++) {
+          oAutoMenu[i] = new Ext.menu.CheckItem(oAutoMenu[i]);
+        }
+
+        var btnAutorefresh = new Ext.Button({
+              menu : oAutoMenu,
+              text : &#39;Auto Refresh: Disabled&#39;,
+              tooltip : &#39;Click to set the time for autorefresh&#39;
+            });
+
+        btnAutorefresh.on(&#39;menuhide&#39;, function(button, menu) {
+              var length = menu.items.getCount();
+              for (var i = 0; i &lt; length; i++) {
+                if (menu.items.items[i].checked) {
+                  button.setText(&quot;Auto Refresh: &quot; + menu.items.items[i].text);
+                }
+              }
+            });
+        var oColumns = {
+          &quot;None&quot; : {
+            &quot;dataIndex&quot; : &quot;key&quot;,
+            &quot;properties&quot; : {
+              width : 26,
+              sortable : false,
+              hideable : false,
+              fixed : true,
+              menuDisabled : true
+            },
+            &quot;renderFunction&quot; : &quot;rendererStatus&quot;
+          },
+          &quot;Key&quot; : {
+            &quot;dataIndex&quot; : &quot;key&quot;,
+            &quot;properties&quot; : {
+              hideable : false,
+              width : 150
+            }
+          },
+          &quot;Value&quot; : {
+            &quot;dataIndex&quot; : &quot;value&quot;,
+            &quot;properties&quot; : {
+              flex : 1
+            },
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          }
+        };
+
+        var dataStore = Ext.create(&quot;Ext.dirac.utils.DiracArrayStore&quot;, {
+              fields : [&quot;key&quot;, &quot;value&quot;, &quot;code&quot;, &quot;color&quot;],
+              oDiffFields : {
+                &#39;Id&#39; : &#39;key&#39;,
+                &#39;Fields&#39; : [&quot;value&quot;]
+              },
+              scope : me
+            });
+
+        /*---------------------------------------------------*/
+        me.statisticsSelectionGrid = Ext.create(&quot;Ext.dirac.utils.DiracGridPanel&quot;, {
+              region : &#39;west&#39;,
+              store : dataStore,
+              width : 300,
+              header : false,
+              border : 0,
+              viewConfig : {
+                stripeRows : true,
+                enableTextSelection : true
+              },
+              dockedItems : [new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+                        dock : &quot;top&quot;,
+                        items : [oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, &#39;-&#39;, btnAutorefresh]
+                      }), new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+                        dock : &quot;top&quot;,
+                        items : [me.statisticsGridComboMain]
+                      }), new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+                        dock : &quot;top&quot;,
+                        items : [me.statisticsGridCombo]
+                      })],
+              oColumns : oColumns,
+              scope : me
+            })
+
+        me.statisticsPlotPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              region : &#39;center&#39;,
+              floatable : false,
+              layout : &#39;fit&#39;,
+              header : false,
+              items : [{
+                    html : &quot;&lt;div id=&#39;&quot; + me.id + &quot;-statistics-plot&#39; style=&#39;width:100%;&#39;&gt;&lt;/div&gt;&quot;,
+                    xtype : &quot;box&quot;,
+                    cls : &#39;jm-statistics-plot-background&#39;
+                  }]
+            });
+
+        me.statisticsPlotPanel.onResize = function(width, height, oldWidth, oldHeight) {
+
+          me.createPlotFromGridData(me.statisticsGridComboMain.getValue() + &quot; :: &quot; + me.statisticsGridCombo.getValue());
+
+        };
+
+        me.statisticsPanel.add([me.statisticsSelectionGrid, me.statisticsPlotPanel]);
+
+        /* END - Definition of the statistics panel */
+
+        /*
+         * -----------------------------------------------------------------------------------------------------------
+         * DEFINITION OF THE MAIN CONTAINER
+         * -----------------------------------------------------------------------------------------------------------
+         */
+
+        me.centralWorkPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              floatable : false,
+              layout : &#39;card&#39;,
+              region : &quot;center&quot;,
+              header : false,
+              border : false,
+              items : [me.grid, me.statisticsPanel]
+            });
+
+        me.add([me.leftPanel, me.centralWorkPanel]);
+
+      },
+      __setActiveItemInTheCentralWorkPanel : function() {
+        var me = this;
+        me.centralWorkPanel.getLayout().setActiveItem(1);
+      },
+
+      formPlotSettings : function() {
+
+        var me = this;
+
+        if (!&quot;plotSettings&quot; in me)
+          me.plotSettings = {};
+
+        me.plotSettings.txtPlotTitle = Ext.create(&#39;Ext.form.field.Text&#39;, {
+
+              fieldLabel : &quot;Title&quot;,
+              labelAlign : &#39;left&#39;,
+              allowBlank : false,
+              margin : 10,
+              anchor : &#39;100%&#39;,
+              value : me.plotSettings.backupSettings.title
+
+            });
+
+        me.plotSettings.cmbLegendPosition = new Ext.create(&#39;Ext.form.field.ComboBox&#39;, {
+              labelAlign : &#39;left&#39;,
+              fieldLabel : &#39;Legend position&#39;,
+              store : new Ext.data.ArrayStore({
+                    fields : [&#39;value&#39;, &#39;text&#39;],
+                    data : [[&quot;right&quot;, &quot;right&quot;], [&quot;left&quot;, &quot;left&quot;], [&quot;top&quot;, &quot;top&quot;], [&quot;bottom&quot;, &quot;bottom&quot;], [&quot;none&quot;, &quot;none&quot;]]
+                  }),
+              displayField : &quot;text&quot;,
+              valueField : &quot;value&quot;,
+              anchor : &quot;100%&quot;,
+              margin : 10,
+              value : me.plotSettings.backupSettings.legend
+            });
+
+        // button for saving the state
+        me.plotSettings.btnApplySettings = new Ext.Button({
+
+              text : &#39;Submit&#39;,
+              margin : 3,
+              iconCls : &quot;dirac-icon-submit&quot;,
+              handler : function() {
+                var me = this;
+                me.createPlotFromGridData(me.plotSettings.txtPlotTitle.getValue(), me.plotSettings.cmbLegendPosition.getValue());
+              },
+              scope : me
+
+            });
+
+        var oToolbar = new Ext.toolbar.Toolbar({
+              border : false
+            });
+
+        oToolbar.add([me.plotSettings.btnApplySettings]);
+
+        var oPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              autoHeight : true,
+              border : false,
+              layout : &quot;anchor&quot;,
+              items : [oToolbar, me.plotSettings.txtPlotTitle, me.plotSettings.cmbLegendPosition, me.txtElementConfig]
+            });
+
+        // initializing window showing the saving form
+        Ext.create(&#39;widget.window&#39;, {
+              height : 300,
+              width : 500,
+              title : &quot;Plot Settings&quot;,
+              layout : &#39;fit&#39;,
+              modal : true,
+              items : oPanel
+            }).show();
+
+      },
+
+      funcOnChangeEitherCombo : function() {
+
+        var me = this;
+
+        var sSet = me.statisticsGridComboMain.getValue();
+        var sCategory = me.statisticsGridCombo.getValue();
+
+        me.statisticsGridComboMain.setDisabled(true);
+        me.statisticsGridCombo.setDisabled(true);
+
+        if (sSet == &quot;Selected Statistics&quot;) {
+
+          var oData = me.leftPanel.getSelectionData();
+          oData.statsField = sCategory;
+
+          me.statisticsSelectionGrid.body.mask(&quot;Wait ...&quot;);
+
+          Ext.Ajax.request({
+                url : GLOBAL.BASE_URL + me.applicationName + &#39;/getStatisticsData&#39;,
+                params : oData,
+                scope : me,
+                success : function(response) {
+                  var response = Ext.JSON.decode(response.responseText);
+
+                  if (response[&quot;success&quot;] == &quot;true&quot;) {
+                    me.statisticsSelectionGrid.store.removeAll();
+
+                    me.statisticsSelectionGrid.store.add(response[&quot;result&quot;]);
+
+                    me.createPlotFromGridData(sSet + &quot; :: &quot; + sCategory);
+
+                  } else {
+                    GLOBAL.APP.CF.alert(response[&quot;error&quot;], &quot;error&quot;);
+                  }
+
+                  me.statisticsSelectionGrid.body.unmask();
+                  me.statisticsGridComboMain.setDisabled(false);
+                  me.statisticsGridCombo.setDisabled(false);
+                },
+                failure : function(response) {
+                  me.statisticsGridComboMain.setDisabled(false);
+                  me.statisticsGridCombo.setDisabled(false);
+                  me.statisticsSelectionGrid.body.unmask();
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                }
+              });
+        } else {
+
+          me.statisticsSelectionGrid.body.mask(&quot;Wait ...&quot;);
+
+          Ext.Ajax.request({
+                url : GLOBAL.BASE_URL + me.applicationName + &#39;/getStatisticsData&#39;,
+                params : {
+                  statsField : sCategory,
+                  globalStat : true
+                },
+                scope : me,
+                success : function(response) {
+                  var response = Ext.JSON.decode(response.responseText);
+
+                  if (response[&quot;success&quot;] == &quot;true&quot;) {
+                    me.statisticsSelectionGrid.store.removeAll();
+
+                    me.statisticsSelectionGrid.store.add(response[&quot;result&quot;]);
+
+                    me.createPlotFromGridData(sSet + &quot; :: &quot; + sCategory);
+
+                  } else {
+                    GLOBAL.APP.CF.alert(response[&quot;error&quot;], &quot;error&quot;);
+                  }
+                  me.statisticsSelectionGrid.body.unmask();
+                  me.statisticsGridComboMain.setDisabled(false);
+                  me.statisticsGridCombo.setDisabled(false);
+                },
+                failure : function(response) {
+                  me.statisticsSelectionGrid.body.unmask();
+                  me.statisticsGridComboMain.setDisabled(false);
+                  me.statisticsGridCombo.setDisabled(false);
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                }
+              });
+
+        }
+
+      },
+
+      createPlotFromGridData : function(sTitle, sLegendPosition) {
+
+        var me = this;
+
+        if (!sLegendPosition) {
+          if ((&quot;plotSettings&quot; in me) &amp;&amp; (&quot;backupSettings&quot; in me.plotSettings)) {
+            sLegendPosition = me.plotSettings.backupSettings.legend;
+          } else {
+            sLegendPosition = &quot;right&quot;;
+          }
+        }
+
+        var oStore = me.statisticsSelectionGrid.getStore();
+        var oData = [[&quot;Key&quot;, &quot;Value&quot;]];
+        var oColors = [];
+
+        for (var i = 0; i &lt; oStore.getCount(); i++) {
+
+          oData.push([oStore.getAt(i).get(&quot;key&quot;), oStore.getAt(i).get(&quot;value&quot;)]);
+          oColors.push(oStore.getAt(i).get(&quot;color&quot;));
+
+        }
+
+        var data = google.visualization.arrayToDataTable(oData);
+
+        var oNow = new Date();
+
+        var options = {
+          title : sTitle + &quot; (&quot; + oNow.toString() + &quot;)&quot;,
+          legend : {
+            position : sLegendPosition
+          },
+          colors : oColors,
+          backgroundColor : &quot;transparent&quot;,
+          chartArea : {
+            width : &quot;80%&quot;,
+            height : &quot;80%&quot;
+          }
+        };
+
+        if (!(&quot;plotSettings&quot; in me))
+          me.plotSettings = {};
+
+        me.plotSettings.backupSettings = {
+          &quot;title&quot; : sTitle,
+          &quot;legend&quot; : sLegendPosition
+        };
+
+        var iHeight = me.statisticsPlotPanel.getHeight() - 20;
+        document.getElementById(me.id + &quot;-statistics-plot&quot;).style.height = &quot;&quot; + iHeight + &quot;px&quot;;
+
+        var iWidth = me.statisticsPlotPanel.getWidth() - 20;
+        document.getElementById(me.id + &quot;-statistics-plot&quot;).style.width = &quot;&quot; + iWidth + &quot;px&quot;;
+
+        var chart = new google.visualization.PieChart(document.getElementById(me.id + &quot;-statistics-plot&quot;));
+        chart.draw(data, options);
+
+      },
+      __oprJobAction : function(oAction, useSelectedJobId) {
+
+        var me = this;
+        var oItems = [];
+        var oId = null;
+        if (useSelectedJobId) {
+          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;JobID&quot;);
+        }
+
+        if ((oId == null) || (oId == &#39;&#39;) || (oId == undefined)) {
+
+          var oElems = Ext.query(&quot;#&quot; + me.id + &quot; input.checkrow&quot;);
+
+          for (var i = 0; i &lt; oElems.length; i++)
+            if (oElems[i].checked)
+              oItems.push(oElems[i].value);
+
+          if (oItems.length &lt; 1) {
+            GLOBAL.APP.CF.alert(&#39;No jobs were selected&#39;, &quot;error&quot;);
+            return;
+          }
+
+        } else {
+          oItems[0] = oId;
+        }
+
+        var c = false;
+
+        if (oItems.length == 1)
+          c = confirm(&#39;Are you sure you want to &#39; + oAction + &#39; &#39; + oItems[0] + &#39;?&#39;);
+        else
+          c = confirm(&#39;Are you sure you want to &#39; + oAction + &#39; these jobs?&#39;);
+
+        if (c === false)
+          return;
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/jobAction&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : oAction,
+                JobID : oItems.join(&quot;,&quot;)
+              },
+              success : function(response) {
+                var jsonData = Ext.JSON.decode(response.responseText);
+                if (jsonData[&#39;success&#39;] == &#39;false&#39;) {
+                  GLOBAL.APP.CF.alert(&#39;Error: &#39; + jsonData[&#39;error&#39;], &quot;error&quot;);
+                  return;
+                } else {
+                  if (jsonData.showResult) {
+                    var html = &#39;&#39;;
+                    for (var i = 0; i &lt; jsonData.showResult.length; i++) {
+                      html = html + jsonData.showResult[i] + &#39;&lt;br&gt;&#39;;
+                    }
+                    Ext.Msg.alert(&#39;Result:&#39;, html);
+                  }
+
+                  me.leftPanel.oprLoadGridData();
+                }
+              }
+            });
+      },
+      __oprGetJobData : function(oDataKind) {
+
+        var me = this;
+
+        var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;JobID&quot;);
+
+        me.getContainer().body.mask(&quot;Wait ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/jobData&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                data_kind : oDataKind,
+                id : oId
+              },
+              scope : me,
+              success : function(response) {
+
+                me.getContainer().body.unmask();
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+
+                  if (oDataKind == &quot;getJDL&quot;) {
+                    // text
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData[&quot;result&quot;], &quot;JDL for JobID:&quot; + oId);
+
+                  } else if (oDataKind == &quot;getBasicInfo&quot;) {
+                    // grid
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Attributes for JobID:&quot; + oId, [&quot;name&quot;, &quot;value&quot;], [{
+                              text : &#39;Name&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;name&#39;
+                            }, {
+                              text : &#39;Value&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;value&#39;
+                            }]);
+
+                  } else if (oDataKind == &quot;getParams&quot;) {
+                    // grid
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Parameters for JobID:&quot; + oId, [&quot;name&quot;, &quot;value&quot;], [{
+                              text : &#39;Name&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;name&#39;
+                            }, {
+                              text : &#39;Value&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;value&#39;
+                            }]);
+
+                  } else if (oDataKind == &quot;getLoggingInfo&quot;) {
+                    // grid
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Attributes for JobID:&quot; + oId, [&quot;status&quot;, &quot;minor_status&quot;, &quot;app_status&quot;, &quot;date_time&quot;, &quot;source&quot;], [{
+                              text : &#39;Source&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;source&#39;
+                            }, {
+                              text : &#39;Status&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;status&#39;
+                            }, {
+                              text : &#39;Minor Status&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;minor_status&#39;
+                            }, {
+                              text : &#39;Application Status&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;app_status&#39;
+                            }, {
+                              text : &#39;Date Time&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;date_time&#39;
+                            }]);
+
+                  } else if (oDataKind == &quot;getStandardOutput&quot;) {
+                    // text
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData[&quot;result&quot;], &quot;Standard output for JobID:&quot; + oId);
+                  } else if (oDataKind == &quot;getLogURL&quot;) {
+
+                    me.getContainer().oprShowInNewTab(jsonData[&quot;result&quot;], &#39;Log file for JobId:&#39; + oId);
+                    //me.getContainer().oprPrepareAndShowWindowHTML(jsonData[&quot;result&quot;], &#39;Log file for JobId:&#39; + oId);
+
+                  } else if (oDataKind == &quot;getPending&quot;) {
+                    var data = [];
+                    if (&quot;PendingRequest&quot; in jsonData[&quot;result&quot;]) {
+                      var rows = jsonData[&quot;result&quot;][&quot;PendingRequest&quot;].split(&quot;\n&quot;);
+                      for (var i = 0; i &lt; rows.length; i++) {
+                        var row = rows[i].split(&quot;:&quot;);
+                        if (i == 0) {
+                          data.push(row);
+                        } else {
+                          row.pop();
+                          data.push(row);
+                        }
+                      }
+                    } else {
+                      GLOBAL.APP.CF.alert(&quot;Error: No pending request(s) found&quot;);
+                    }
+
+                    me.getContainer().oprPrepareAndShowWindowGrid(data, &quot;Production:&quot; + oId, [&quot;type&quot;, &quot;operation&quot;, &quot;status&quot;, &quot;order&quot;, &quot;targetSE&quot;, &quot;file&quot;], [{
+                              text : &#39;Type&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;type&#39;
+                            }, {
+                              text : &#39;Opetation&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;operation&#39;
+                            }, {
+                              text : &#39;Status&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;status&#39;
+                            }, {
+                              text : &#39;Order&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;order&#39;
+                            }, {
+                              text : &#39;Target Se&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;targetSE&#39;
+                            }, {
+                              text : &#39;File&#39;,
+                              flex : 1,
+                              sortable : true,
+                              dataIndex : &#39;file&#39;
+                            }]);
+
+                  } else if (oDataKind == &quot;getStagerReport&quot;) {
+
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData[&quot;result&quot;], &quot;Stager report for JobId:&quot; + oId);
+
+                  } else if (oDataKind == &quot;getPilotStdOut&quot;) {
+
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData[&quot;result&quot;], &quot;Pilot StdOut for JobID:&quot; + oId);
+
+                  } else if (oDataKind == &quot;getPilotStdErr&quot;) {
+
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData[&quot;result&quot;], &quot;Pilot StdErr for JobID:&quot; + oId);
+
+                  }
+
+                } else {
+
+                  GLOBAL.APP.CF.alert(jsonData[&quot;error&quot;], &quot;error&quot;);
+
+                }
+
+              }
+            });
+      },
+      __getSandbox : function(sType) {
+
+        var me = this;
+        var sId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;JobID&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/getSandbox&#39;,
+              params : {
+                jobID : sId,
+                sandbox : sType,
+                check : 1
+              },
+              scope : me,
+              success : function(response) {
+
+                var me = this;
+                var response = Ext.JSON.decode(response.responseText);
+
+                if (response[&quot;success&quot;] == &quot;true&quot;) {
+
+                  var sUrl = GLOBAL.BASE_URL + me.applicationName + &#39;/getSandbox?jobID=&#39; + sId + &#39;&amp;sandbox=&#39; + sType;
+                  window.open(sUrl, &#39;Input Sandbox file&#39;, &#39;width=400,height=200&#39;);
+
+                } else {
+
+                  GLOBAL.APP.CF.alert(response[&quot;error&quot;], &quot;error&quot;);
+
+                }
+
+              },
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              }
+            });
+
+      }
+
+    });
+</pre>
+</body>
+</html>

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&quot;DIRAC.ResourceSummary.classes.ResourceSummary&quot;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+      requires : [&quot;Ext.dirac.utils.DiracBaseSelector&quot;, &quot;Ext.dirac.utils.DiracJsonStore&quot;, &quot;Ext.dirac.utils.DiracAjaxProxy&quot;, &quot;Ext.dirac.utils.DiracPagingToolbar&quot;, &#39;Ext.dirac.utils.DiracToolButton&#39;, &quot;Ext.dirac.utils.DiracApplicationContextMenu&quot;, &quot;Ext.dirac.utils.DiracGridPanel&quot;,
+          &quot;Ext.dirac.utils.DiracRowExpander&quot;, &quot;DIRAC.ResourceSummary.classes.OverviewPanel&quot;],
+      loadState : function(data) {
+        var me = this;
+
+        me.grid.loadState(data);
+
+        me.leftPanel.loadState(data);
+      },
+      getStateData : function() {
+        var me = this;
+
+        var oStates = {
+          grid : me.grid.getStateData(),
+          leftMenu : me.leftPanel.getStateData()
+        };
+
+        return oStates;
+      },
+      dataFields : [{
+            name : &#39;Name&#39;
+          }, {
+            name : &#39;Status&#39;
+          }, {
+            name : &#39;Reason&#39;
+          }, {
+            name : &#39;DateEffective&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;TokenExpiration&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;ElementType&#39;
+          }, {
+            name : &#39;StatusType&#39;
+          }, {
+            name : &#39;LastCheckTime&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;TokenOwner&#39;
+          }],
+      initComponent : function() {
+        var me = this;
+
+        me.launcher.title = &quot;Resource Summary&quot;;
+        me.launcher.maximized = false;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1];
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;border&#39;,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
+            });
+
+        me.callParent(arguments);
+
+      },
+      buildUI : function() {
+
+        var me = this;
+
+        var selectors = {
+          name : &quot;Name&quot;,
+          elementType : &quot;ResourceType&quot;,
+          status : &quot;Status&quot;,
+          statusType : &quot;StatusType&quot;,
+          tokenOwner : &quot;TokenOwner&quot;
+        };
+
+        var map = [[&quot;name&quot;, &quot;name&quot;], [&quot;elementType&quot;, &quot;elementType&quot;], [&quot;status&quot;, &quot;status&quot;], [&quot;statusType&quot;, &quot;statusType&quot;], [&quot;tokenOwner&quot;, &quot;tokenOwner&quot;]];
+
+        me.leftPanel = new Ext.create(&#39;Ext.dirac.utils.DiracBaseSelector&#39;, {
+              scope : me,
+              cmbSelectors : selectors,
+              datamap : map,
+              hasTimeSearchPanel : false,
+              url : &quot;ResourceSummary/getSelectionData&quot;
+            });
+
+        /*
+         * -----------------------------------------------------------------------------------------------------------
+         * DEFINITION OF THE GRID
+         * -----------------------------------------------------------------------------------------------------------
+         */
+        var oProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+              url : GLOBAL.BASE_URL + &#39;ResourceSummary/getResourceSummaryData&#39;
+            });
+
+        me.dataStore = Ext.create(&quot;Ext.dirac.utils.DiracJsonStore&quot;, {
+              proxy : oProxy,
+              fields : me.dataFields,
+              scope : me
+            });
+
+        var pagingToolbar = Ext.create(&quot;Ext.dirac.utils.DiracPagingToolbar&quot;, {
+              store : me.dataStore,
+              scope : me,
+              value : 100
+            });
+
+        var oColumns = {
+          &quot;None2&quot; : {
+            &quot;dataIndex&quot; : &quot;Status&quot;,
+            &quot;properties&quot; : {
+              width : 26,
+              sortable : false,
+              hideable : false,
+              fixed : true,
+              menuDisabled : true
+            },
+            &quot;renderFunction&quot; : &quot;rendererStatus&quot;
+          },
+          &quot;Name&quot; : {
+            &quot;dataIndex&quot; : &quot;Name&quot;,
+            &quot;properties&quot; : {
+              fixed : true
+            }
+          },
+          &quot;ResourceType&quot; : {
+            &quot;dataIndex&quot; : &quot;ElementType&quot;
+          },
+          &quot;StatusType&quot; : {
+            &quot;dataIndex&quot; : &quot;StatusType&quot;,
+            &quot;properties&quot; : {
+              width : 60,
+              sortable : false
+            }
+          },
+          &quot;Status&quot; : {
+            &quot;dataIndex&quot; : &quot;Status&quot;
+          },
+          &quot;Reason&quot; : {
+            &quot;dataIndex&quot; : &quot;Reason&quot;
+          },
+          &quot;DateEffective&quot; : {
+            &quot;dataIndex&quot; : &quot;DateEffective&quot;,
+            &quot;properties&quot; : {
+              sortable : true
+            }
+          },
+          &quot;LastCheckTime&quot; : {
+            &quot;dataIndex&quot; : &quot;LastCheckTime&quot;,
+            &quot;properties&quot; : {
+              sortable : true
+            }
+          },
+          &quot;TokenOwner&quot; : {
+            &quot;dataIndex&quot; : &quot;TokenOwner&quot;,
+            &quot;properties&quot; : {
+              sortable : true
+            }
+          },
+          &quot;TokenExpiration&quot; : {
+            &quot;dataIndex&quot; : &quot;TokenExpiration&quot;,
+            &quot;properties&quot; : {
+              sortable : true
+            }
+          }
+        };
+
+        var statusSubmenu = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Active&quot;,
+                &quot;handler&quot; : me.__oprSetResources,
+                &quot;arguments&quot; : [&quot;setStatus&quot;, &quot;Active&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to activate the resource.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Degraded&quot;,
+                &quot;handler&quot; : me.__oprSetResources,
+                &quot;arguments&quot; : [&quot;setStatus&quot;, &quot;Degraded&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to set degraded the resource.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Probing&quot;,
+                &quot;handler&quot; : me.__oprSetResources,
+                &quot;arguments&quot; : [&quot;setStatus&quot;, &quot;Probing&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to set probing the resource.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Banned&quot;,
+                &quot;handler&quot; : me.__oprSetResources,
+                &quot;arguments&quot; : [&quot;setStatus&quot;, &quot;Banned&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to set banned the resource.&#39;
+                }
+              }]
+        };
+        var tokenSubmenu = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Acquire&quot;,
+                &quot;handler&quot; : me.__oprSetResources,
+                &quot;arguments&quot; : [&quot;setToken&quot;, &quot;Acquire&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to acquire the resource.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Release&quot;,
+                &quot;handler&quot; : me.__oprSetResources,
+                &quot;arguments&quot; : [&quot;setToken&quot;, &quot;Release&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to release the resource.&#39;
+                }
+              }]
+        };
+        var menuitems = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Overview&quot;,
+                &quot;handler&quot; : me.__oprShowEditor,
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the jobs which belong to the selected request.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;-&quot; // separator
+              }, {
+                &quot;text&quot; : &quot;History&quot;,
+                &quot;handler&quot; : me.__oprOnResourceSummaryData,
+                &quot;arguments&quot; : [&quot;History&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the history of the selected resource.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Policies&quot;,
+                &quot;handler&quot; : me.__oprOnResourceSummaryData,
+                &quot;arguments&quot; : [&quot;Policies&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the policies of the selected resource.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;-&quot; // separator
+              }, {
+                &quot;text&quot; : &quot;Set status&quot;,
+                &quot;subMenu&quot; : statusSubmenu
+              }, {
+                &quot;text&quot; : &quot;Set token&quot;,
+                &quot;subMenu&quot; : tokenSubmenu
+              }]
+        };
+
+        me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
+              menu : menuitems,
+              scope : me
+            });
+
+        me.grid = Ext.create(&#39;Ext.dirac.utils.DiracGridPanel&#39;, {
+              store : me.dataStore,
+              columnLines : true,
+              width : 600,
+              height : 300,
+              oColumns : oColumns,
+              contextMenu : me.contextGridMenu,
+              pagingToolbar : pagingToolbar,
+              scope : me,
+              plugins : [{
+                    ptype : &#39;diracrowexpander&#39;,
+                    containValue : {
+                      &#39;StatusType&#39; : &quot;elements&quot;
+                    },
+                    rowBodyTpl : [&#39;&lt;div id=&quot;expanded-Grid-{Name}&quot;&gt; &lt;/div&gt;&#39;]
+                  }]
+
+            });
+
+        me.leftPanel.setGrid(me.grid);
+
+        me.grid.view.on(&#39;expandbody&#39;, function(rowNode, record, expandbody) {
+              var targetId = &#39;expanded-Grid-&#39; + record.get(&#39;Name&#39;);
+              if (Ext.getCmp(targetId + &quot;_grid&quot;) == null) {
+                var params = {
+                  &quot;name&quot; : Ext.JSON.encode([record.data.Name])
+                };
+                var oProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+                      url : GLOBAL.BASE_URL + &#39;ResourceSummary/expand&#39;
+                    });
+                oProxy.extraParams = params;
+                var expandStore = Ext.create(&quot;Ext.dirac.utils.DiracJsonStore&quot;, {
+                      proxy : oProxy,
+                      fields : me.dataFields,
+                      scope : me,
+                      autoLoad : true
+                    });
+
+                me.grid.expandedGridPanel = Ext.create(&#39;Ext.grid.Panel&#39;, {
+                      forceFit : true,
+                      renderTo : targetId,
+                      isExpanded : false,
+                      id : targetId + &quot;_grid&quot;,
+                      store : expandStore,
+                      viewConfig : {
+                        stripeRows : true,
+                        enableTextSelection : true
+                      },
+                      columns : [{
+                            header : &#39;Name&#39;,
+                            sortable : true,
+                            dataIndex : &#39;Name&#39;,
+                            align : &#39;left&#39;,
+                            hideable : false,
+                            fixed : true
+                          }, {
+                            header : &#39;ResourceType&#39;,
+                            sortable : true,
+                            dataIndex : &#39;ElementType&#39;,
+                            align : &#39;left&#39;,
+                            hideable : false,
+                            fixed : true
+                          }, {
+                            header : &#39;StatusType&#39;,
+                            width : 60,
+                            sortable : true,
+                            dataIndex : &#39;StatusType&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;Status&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Status&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;Reason&#39;,
+                            sortable : true,
+                            dataIndex : &#39;Reason&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;DateEffective&#39;,
+                            sortable : false,
+                            dataIndex : &#39;DateEffective&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;LastCheckTime&#39;,
+                            sortable : true,
+                            dataIndex : &#39;LastCheckTime&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;TokenOwner&#39;,
+                            sortable : true,
+                            dataIndex : &#39;TokenOwner&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;TokenExpiration&#39;,
+                            sortable : true,
+                            dataIndex : &#39;TokenExpiration&#39;,
+                            align : &#39;left&#39;
+                          }],
+                      &quot;listeners&quot; : {
+
+                        beforecellcontextmenu : function(table, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                          e.preventDefault();
+                          me.contextGridMenu.showAt(e.xy);
+                          this.isExpanded = true;
+                          return false;
+                        }
+                      }
+                    });
+
+                rowNode.grid = me.grid.expandedGridPanel;
+                expandStore.load();
+                me.grid.expandedGridPanel.getEl().swallowEvent([&#39;mouseover&#39;, &#39;mousedown&#39;, &#39;click&#39;, &#39;dblclick&#39;, &#39;onRowFocus&#39;]);
+                me.grid.expandedGridPanel.fireEvent(&quot;bind&quot;, me.grid.expandedGridPanel, {
+                      id : record.get(&#39;Name&#39;)
+                    });
+              }
+            });
+
+        me.overviewPanel = Ext.create(&quot;DIRAC.ResourceSummary.classes.OverviewPanel&quot;, {
+              applicationName : me.applicationName,
+              parentWidget : me
+            });
+        me.add([me.leftPanel, me.grid, me.overviewPanel]);
+
+      },
+      __oprOnResourceSummaryData : function(action) {
+        var me = this;
+        var selectedValues = me.__getSelectedValues();
+
+        me.getContainer().body.mask(&quot;Wait ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([action]),
+                name : Ext.JSON.encode([selectedValues.name]),
+                elementType : Ext.JSON.encode([selectedValues.elementType]),
+                statusType : Ext.JSON.encode([selectedValues.statusType])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              },
+              success : function(response) {
+
+                me.getContainer().body.unmask();
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+
+                  if (action == &quot;History&quot;) {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;History:&quot; + selectedValues.name + &quot;(&quot; + selectedValues.statusType + &quot;)&quot;, [&quot;Status&quot;, &quot;DataEffectiv&quot;, &quot;Reason&quot;], [{
+                              text : &#39;Status&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;Status&#39;
+                            }, {
+                              text : &#39;DataEffectiv&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;DataEffectiv&#39;
+                            }, {
+                              text : &#39;Reason&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;Reason&#39;
+                            }]);
+
+                  } else if (action == &quot;Policies&quot;) {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Policies:&quot; + selectedValues.name + &quot;(&quot; + selectedValues.statusType + &quot;)&quot;, [&quot;Status&quot;, &quot;PolicyName&quot;, &quot;DataEffectiv&quot;, &quot;LastCheckTime&quot;, &quot;Reason&quot;], [{
+                              text : &#39;Status&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;Status&#39;
+                            }, {
+                              text : &#39;PolicyName&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;PolicyName&#39;
+                            }, {
+                              text : &#39;DataEffectiv&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;DataEffectiv&#39;
+                            }, {
+                              text : &#39;LastCheckTime&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;LastCheckTime&#39;
+                            }, {
+                              text : &#39;Reason&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;Reason&#39;
+                            }]);
+
+                  } else {
+                    me.getContainer().body.unmask();
+                    Ext.dirac.system_info.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+
+                  }
+
+                }
+              }
+            });
+
+      },
+      __getSelectedValues : function() {
+        var me = this;
+
+        var values = {};
+
+        if (me.grid.expandedGridPanel) {
+          if (!me.grid.expandedGridPanel.isExpanded) {
+            values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;Name&quot;);
+            values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;ElementType&quot;);
+            values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;StatusType&quot;);
+            values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;LastCheckTime&quot;), &quot;Y-m-d H:i:s&quot;);
+          } else {
+            me.grid.expandedGridPanel.isExpanded = false;
+            values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, &quot;Name&quot;);
+            values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, &quot;ElementType&quot;);
+            values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, &quot;StatusType&quot;);
+            values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, &quot;LastCheckTime&quot;), &quot;Y-m-d H:i:s&quot;);
+          }
+        } else {
+          values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;Name&quot;);
+          values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;ElementType&quot;);
+          values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;StatusType&quot;);
+          values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;LastCheckTime&quot;), &quot;Y-m-d H:i:s&quot;);
+        }
+        return values;
+      },
+      __oprSetResources : function(action, newStatus) {
+        var me = this;
+        var selectedValues = me.__getSelectedValues();
+        me.getContainer().body.mask(&quot;Wait ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &#39;/action&#39;,
+              method : &#39;POST&#39;,
+              params : {
+                action : Ext.JSON.encode([action]),
+                name : Ext.JSON.encode([selectedValues.name]),
+                elementType : Ext.JSON.encode([selectedValues.elementType]),
+                statusType : Ext.JSON.encode([selectedValues.statusType]),
+                status : Ext.JSON.encode([newStatus]),
+                lastCheckTime : Ext.JSON.encode([selectedValues.lastCheckTime])
+              },
+              scope : me,
+              failure : function(response) {
+                GLOBAL.APP.CF.showAjaxErrorMessage(response);
+              },
+              success : function(response) {
+
+                me.getContainer().body.unmask();
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+                  var rowid = null;
+                  Ext.dirac.system_info.msg(&quot;info&quot;, jsonData[&quot;result&quot;]);
+                  var selectedRows = me.grid.getSelectionModel().getSelection();
+                  // we assume that we only select one row...
+                  me.grid.getStore().load();
+                  me.grid.expandedGridPanel.destroy();
+                  delete me.grid.expandedGridPanel;
+
+                  Ext.defer(function() {
+                        var records = me.grid.getStore().getRange();
+                        var record = null;
+                        for (var i = 0; i &lt; records.length; i++) {
+                          if (records[i].get(&quot;Name&quot;) == selectedRows[0].get(&quot;Name&quot;)) {
+                            var record = me.grid.getView().getRecord(records[i]);
+                            rowid = record.index;
+                            me.grid.getSelectionModel().select(record);
+                            break;
+                          }
+                        }
+
+                        me.grid.getPlugin().toggleRow(rowid, record);
+                      }, 400);
+
+                } else {
+                  me.getContainer().body.unmask();
+                  Ext.dirac.system_info.msg(&quot;error&quot;, jsonData[&quot;error&quot;]);
+                }
+              }
+            });
+
+      },
+      __oprShowEditor : function() {
+        var me = this;
+        var values = me.__getSelectedValues();
+        me.overviewPanel.maximizedSize = {
+          height : me.grid.getHeight() + me.leftPanel.getHeight(),
+          width : me.grid.getWidth() + me.leftPanel.getWidth()
+        };
+        me.overviewPanel.loadData(values);
+        me.overviewPanel.expand();
+        me.overviewPanel.show();
+      }
+
+    });</pre>
+</body>
+</html>

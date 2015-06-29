@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;DIRAC.PublicStateManager.classes.MenuGrid&#39;, {
+      extend : &#39;Ext.tree.Panel&#39;,
+
+      requires : [&#39;Ext.data.*&#39;, &#39;Ext.grid.*&#39;, &#39;Ext.tree.*&#39;,
+          // &#39;Ext.ux.CheckColumn&#39;,
+          &#39;DIRAC.PublicStateManager.classes.MenuModel&#39;, &#39;Ext.data.TreeStore&#39;],
+      xtype : &#39;tree-grid&#39;,
+
+      title : &#39;Desktops&amp;Applications&#39;,
+      height : 300,
+      width : 600,
+      useArrows : false,
+      rootVisible : false,
+      multiSelect : true,
+      singleExpand : false,
+      listeners : {
+        afterrender : function(component, eOpts) {
+          var me = this;
+          me.setLoading(true);
+        }
+      },
+      initComponent : function() {
+        var me = this;
+
+        me.store = Ext.create(&quot;Ext.data.TreeStore&quot;, {
+              model : DIRAC.PublicStateManager.classes.MenuModel,
+              proxy : {
+                type : &#39;ajax&#39;,
+                url : GLOBAL.BASE_URL + &#39;UP/listPublicStates&#39;,
+                extraParams : {
+                  app : &#39;desktop&#39;,
+                  obj : &#39;application&#39;
+                }
+              },
+              autoLoad : true,
+              listeners : {
+                load : function(oStore, oOperation, eOpts) {
+                  me.setLoading(false);
+                }
+              }
+
+            });
+
+        Ext.apply(me, {
+              columns : [{
+                    xtype : &#39;treecolumn&#39;,
+                    text : &#39;Name&#39;,
+                    flex : 2,
+                    sortable : true,
+                    dataIndex : &#39;name&#39;
+                  }, {
+                    xtype : &#39;templatecolumn&#39;,
+                    text : &#39;Type&#39;,
+                    flex : 1,
+                    sortable : true,
+                    dataIndex : &#39;type&#39;,
+                    align : &#39;center&#39;,
+                    tpl : Ext.create(&#39;Ext.XTemplate&#39;, &#39;{type:this.formatApplicationType}&#39;, {
+                          formatApplicationType : function(v) {
+                            if (v == &#39;desktop&#39;) {
+                              return &#39; &lt;font color=&quot;#00CC00&quot;&gt;&#39; + v + &#39;&lt;/font&gt;&#39;;
+                            } else {
+                              return &#39; &lt;font color=&quot;#FF3300&quot;&gt;&#39; + v + &#39;&lt;/font&gt;&#39;;
+                            }
+                          }
+                        })
+                  }, {
+                    text : &#39;UserName&#39;,
+                    flex : 1,
+                    dataIndex : &#39;user&#39;,
+                    sortable : true
+                  }, {
+                    text : &#39;Group&#39;,
+                    flex : 1,
+                    dataIndex : &#39;group&#39;,
+                    sortable : true
+                  }, {
+                    text : &#39;VO&#39;,
+                    flex : 1,
+                    dataIndex : &#39;vo&#39;,
+                    sortable : true
+                  }, {
+                    text : &#39;Load&#39;,
+                    width : 55,
+                    menuDisabled : true,
+                    xtype : &#39;actioncolumn&#39;,
+                    tooltip : &#39;Load a state...&#39;,
+                    align : &#39;center&#39;,
+                    iconCls : &#39;dirac-icon-state&#39;,
+                    handler : function(grid, rowIndex, colIndex, actionItem, event, record, row) {
+                      GLOBAL.APP.MAIN_VIEW.SM.formStateLoader(GLOBAL.APP.MAIN_VIEW.cbAfterLoadSharedState, GLOBAL.APP.MAIN_VIEW.cbAfterSaveSharedState);
+
+                      var prefix = &quot;&quot;;
+                      if (record.get(&#39;type&#39;) == &#39;desktop&#39;) {
+                        prefix = &quot;desktop|&quot;;
+                      } else {
+                        prefix = record.get(&#39;app&#39;) + &#39;|&#39;;
+                      }
+
+                      var fullState = prefix + record.get(&#39;user&#39;) + &#39;|&#39; + record.get(&#39;group&#39;) + &#39;|&#39; + record.get(&#39;name&#39;);
+
+                      GLOBAL.APP.MAIN_VIEW.SM.txtLoadText.setRawValue(fullState);
+                      GLOBAL.APP.MAIN_VIEW.SM.txtRefName.setRawValue(record.get(&#39;name&#39;));
+                      GLOBAL.APP.MAIN_VIEW.SM.txtLoadText.disable();
+
+                    },
+                    // Only leaf level tasks may be edited
+                    isDisabled : function(view, rowIdx, colIdx, item, record) {
+                      return !record.data.leaf || (record.get(&#39;user&#39;) == GLOBAL.USER_CREDENTIALS.username &amp;&amp; 
+                      record.get(&#39;group&#39;) == GLOBAL.USER_CREDENTIALS.group);
+                    }
+                  }, {
+                    text : &#39;Module&#39;,
+                    flex : 1,
+                    dataIndex : &#39;app&#39;,
+                    sortable : true,
+                    hidden : true
+                  }]
+            });
+
+        me.callParent();
+
+      }
+    });</pre>
+</body>
+</html>

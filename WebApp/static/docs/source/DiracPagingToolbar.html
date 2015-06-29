@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracPagingToolbar'>/**
+</span> * This widget contains different tool bar buttons. We have to provide the tool
+ * buttons using a dictionary. The tool buttons have to be defined same way as
+ * {@link Ext.dirac.utils.DiracApplicationContextMenu} The format of the
+ * dictionary is {&#39;Visible&#39;:[],&#39;Protected&#39;:[]} The Visible buttons are available
+ * to all users, while the Protected buttons are available only users which are
+ * in a certain group(They have a certain role).
+ * 
+ * The Visible and Protected lists contains dictionaries which have the
+ * following format: {&quot;text&quot;:&quot;a&quot;,&quot;handler&quot;:func,&quot;arguments&quot;:[a,b,c],
+ * properties:{}} -text: the menu item name (this text will appears in the menu)
+ * -handler: this function handle the event. -arguments: we can pass parameters
+ * to the func method. -properties: We can provide properties which are
+ * properties of the {@link Ext.menu.Menu}. -property: It is used when the menu
+ * item is protected. (We allow to use the functionalities to a certain users).
+ * 
+ * 
+ * For example:
+ * 
+ * &lt;pre&gt;
+ * pagingToolbar = Ext.create(&amp;quot;Ext.dirac.utils.DiracPagingToolbar&amp;quot;, {
+ *       toolButtons : toolButtons,
+ *       store : me.dataStore,
+ *       scope : me
+ *     });
+ * &lt;/pre&gt;
+ * 
+ * -toolButons: It is the dictionary which describe the buttons. In the
+ * following example we can see how to defined protected tool buttons.
+ * 
+ * &lt;pre&gt;
+ * var toolButtons = {
+ *   &#39;Visible&#39; : [{
+ *         &amp;quot;text&amp;quot; : &amp;quot;&amp;quot;,
+ *         &amp;quot;handler&amp;quot; : me.__oprJobAction,
+ *         &amp;quot;arguments&amp;quot; : [&amp;quot;reschedule&amp;quot;, &amp;quot;&amp;quot;],
+ *         &amp;quot;properties&amp;quot; : {
+ *           tooltip : &amp;quot;Reschedule&amp;quot;,
+ *           iconCls : &amp;quot;dirac-icon-reschedule&amp;quot;
+ *         }
+ *       }, {
+ *         &amp;quot;text&amp;quot; : &amp;quot;&amp;quot;,
+ *         &amp;quot;handler&amp;quot; : me.__oprJobAction,
+ *         &amp;quot;arguments&amp;quot; : [&amp;quot;kill&amp;quot;, &amp;quot;&amp;quot;],
+ *         &amp;quot;properties&amp;quot; : {
+ *           tooltip : &amp;quot;Kill&amp;quot;,
+ *           iconCls : &amp;quot;dirac-icon-kill&amp;quot;
+ *         }
+ *       }, {
+ *         &amp;quot;text&amp;quot; : &amp;quot;&amp;quot;,
+ *         &amp;quot;handler&amp;quot; : me.__oprJobAction,
+ *         &amp;quot;arguments&amp;quot; : [&amp;quot;delete&amp;quot;, &amp;quot;&amp;quot;],
+ *         &amp;quot;properties&amp;quot; : {
+ *           tooltip : &amp;quot;Delete&amp;quot;,
+ *           iconCls : &amp;quot;dirac-icon-delete&amp;quot;
+ *         }
+ *       }, {
+ *         &amp;quot;text&amp;quot; : &amp;quot;&amp;quot;,
+ *         &amp;quot;handler&amp;quot; : me.__setActiveItemInTheCentralWorkPanel,
+ *         &amp;quot;arguments&amp;quot; : [],
+ *         &amp;quot;properties&amp;quot; : {
+ *           iconCls : &amp;quot;dirac-icon-pie&amp;quot;,
+ *           tooltip : &amp;quot;Go to the statistics panel&amp;quot;
+ *         }
+ *       }],
+ *   &#39;Protected&#39; : [{
+ *         &amp;quot;text&amp;quot; : &amp;quot;&amp;quot;,
+ *         &amp;quot;handler&amp;quot; : me.__oprJobAction,
+ *         &amp;quot;arguments&amp;quot; : [&amp;quot;reset&amp;quot;, &amp;quot;&amp;quot;],
+ *         &amp;quot;properties&amp;quot; : {
+ *           tooltip : &amp;quot;Reset&amp;quot;,
+ *           iconCls : &amp;quot;jm-red-reset-icon&amp;quot;
+ *         },
+ *         &amp;quot;property&amp;quot; : &amp;quot;JobAdministrator&amp;quot;
+ *       }]
+ * };
+ * &lt;/pre&gt;
+ * 
+ * -store: It is the {@link Ext.dirac.utils.DiracJsonStore} object. -scope: It
+ * is used to have access to the main widget.
+ * 
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracPagingToolbar&#39;, {
+      extend : &#39;Ext.toolbar.Paging&#39;,
+      requires : [&#39;Ext.dirac.utils.DiracIdListButton&#39;, &#39;Ext.dirac.utils.DiracPageSizeCombo&#39;],
+<span id='Ext-dirac-utils-DiracPagingToolbar-property-displayInfo'>      displayInfo : true,
+</span><span id='Ext-dirac-utils-DiracPagingToolbar-property-displayMsg'>      displayMsg : &#39;Displaying topics {0} - {1} of {2}&#39;,
+</span><span id='Ext-dirac-utils-DiracPagingToolbar-property-items'>      items : [],
+</span><span id='Ext-dirac-utils-DiracPagingToolbar-property-emptyMsg'>      emptyMsg : &quot;No topics to display&quot;,
+</span><span id='Ext-dirac-utils-DiracPagingToolbar-property-prependButtons'>      prependButtons : true,
+</span>      /*
+       * layout : { overflowHandler : &#39;Scroller&#39; },
+       */
+<span id='Ext-dirac-utils-DiracPagingToolbar-cfg-pagingToolbarItems'>      /**
+</span>       * @cfg{List} pagingToolbarItems It contains the tool bar items such as
+       *            buttons, size combo, etc.
+       */
+      pagingToolbarItems : [],
+<span id='Ext-dirac-utils-DiracPagingToolbar-cfg-pagingToolbarButtons'>      /**
+</span>       * @cfg{List} pagingToolbarButtons It contains the tool bar buttons.
+       */
+      pagingToolbarButtons : [],
+<span id='Ext-dirac-utils-DiracPagingToolbar-cfg-pageSizeCombo'>      /**
+</span>       * @cfg{Ext.dirac.utils.DiracPageSizeCombo}pageSizeCombo This widget is
+       *                                                       the page size
+       *                                                       combo.
+       */
+      pageSizeCombo : null,
+<span id='Ext-dirac-utils-DiracPagingToolbar-cfg-store'>      /**
+</span>       * @cfg{Ext.dirac.utils.DiracJsonStore}store The associated data store
+       *                                           object.
+       */
+      store : null,
+<span id='Ext-dirac-utils-DiracPagingToolbar-method-constructor'>      constructor : function(config) {
+</span>        var me = this;
+        
+        me.pagingToolbarItems = []; // make sure there is no element in the list
+        me.pagingToolbarButtons = [];
+        var idBtn = Ext.create(&#39;Ext.dirac.utils.DiracIdListButton&#39;, {
+              scope : config.scope
+            });
+        me.pagingToolbarItems.push(idBtn);
+        me.pagingToolbarItems.push(&quot;-&quot;);
+
+        if (config.toolButtons) {
+          var nbOfButtons = 0;
+          if (&quot;Visible&quot; in config.toolButtons &amp;&amp; config.toolButtons.Visible.length &gt; 0) {
+            for (var i = 0; i &lt; config.toolButtons.Visible.length; i++) {
+              me.pagingToolbarButtons[nbOfButtons] = Ext.create(&#39;Ext.Button&#39;, {
+                    text : config.toolButtons.Visible[i].text,
+                    handler : Ext.bind(config.toolButtons.Visible[i].handler, config.scope, config.toolButtons.Visible[i].arguments, false)
+                  });
+              if (&quot;properties&quot; in config.toolButtons.Visible[i]) {
+                Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Visible[i].properties);
+              }
+              nbOfButtons++;
+            }
+          }
+          if (&quot;Protected&quot; in config.toolButtons &amp;&amp; config.toolButtons.Protected.length &gt; 0) {
+            for (var i = 0; i &lt; config.toolButtons.Protected.length; i++) {
+              if ((&quot;properties&quot; in GLOBAL.USER_CREDENTIALS) &amp;&amp; (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, config.toolButtons.Protected[i].property) != -1)) {
+                me.pagingToolbarButtons[nbOfButtons] = Ext.create(&#39;Ext.Button&#39;, {
+                      text : config.toolButtons.Protected[i].text,
+                      handler : Ext.bind(config.toolButtons.Protected[i].handler, config.scope, config.toolButtons.Protected[i].arguments, false)
+                    });
+                if (&quot;properties&quot; in config.toolButtons.Protected[i]) {
+                  Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Protected[i].properties);
+                }
+              }
+              nbOfButtons++;
+            }
+          }
+        }
+
+        for (var i in me.pagingToolbarButtons) {
+          me.pagingToolbarItems.push(me.pagingToolbarButtons[i]);
+        }
+
+        me.pagingToolbarItems.push(&#39;-&#39;);
+        me.pagingToolbarItems.push(&#39;-&gt;&#39;);
+
+        me.pagingToolbarItems.push(&#39;Items per page: &#39;);
+
+        me.pageSizeCombo = Ext.create(&quot;Ext.dirac.utils.DiracPageSizeCombo&quot;, {
+              scope : config.scope,
+              value : ((config.value) ? config.value : 25)
+            });
+
+        me.pageSizeCombo.on(&quot;change&quot;, function(combo, newValue, oldValue, eOpts) {
+              var me = this;
+              me.grid.store.pageSize = newValue;
+              me.leftPanel.oprLoadGridData();
+            }, config.scope);
+
+        me.pagingToolbarItems.push(me.pageSizeCombo);
+        me.updateStamp = new Ext.Button({
+              disabled : true,
+              // disabledClass:&#39;my-disabled&#39;,
+              text : &#39;Updated: -&#39;
+            });
+
+        me.pagingToolbarItems.push(me.updateStamp);
+
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-utils-DiracPagingToolbar-method-initComponent'>      initComponent : function(config) {
+</span>        var me = this;
+        Ext.apply(me, {
+              items : me.pagingToolbarItems
+            })
+        me.callParent(arguments);
+
+        var refreshButton = me.getComponent(&#39;refresh&#39;);
+        var index = me.items.indexOf(refreshButton);
+        var updateindex = me.items.indexOf(me.updateStamp);
+        me.items.insert(index + 1, me.items.items[updateindex]);
+
+        refreshButton.handler = function() {
+          var parent = me.scope;
+          parent.leftPanel.oprLoadGridData();
+        };
+
+        // /change the refresh button
+        me.autoRefresh = new Ext.menu.Menu({
+              items : [{
+                    text : &#39;Disabled&#39;,
+                    group : &#39;column&#39;,
+                    name : &quot;0&quot;,
+                    checked : true,
+                    handler : function() {
+                      me.__setRefreshCycle(0);
+                      this.cehcked = true;
+                    }
+                  }, {
+                    text : &#39;Each 15m&#39;,
+                    group : &#39;column&#39;,
+                    checked : false,
+                    name : &quot;900000&quot;,
+                    handler : function() {
+                      me.__setRefreshCycle(900000);
+                    }
+                  }, {
+                    text : &#39;Each 30m&#39;,
+                    group : &#39;column&#39;,
+                    checked : false,
+                    name : &quot;1800000&quot;,
+                    handler : function() {
+                      me.__setRefreshCycle(1800000);
+                    }
+                  }, {
+                    text : &#39;Every hour&#39;,
+                    group : &#39;column&#39;,
+                    checked : false,
+                    name : &quot;3600000&quot;,
+                    handler : function() {
+                      me.__setRefreshCycle(3600000);
+                    }
+                  }]
+            });
+
+        me.mouseup = false;
+        me.refreshMenu = false;
+        refreshButton.on(&#39;render&#39;, function(oElem, eOpts) {
+              me.mon(oElem.el, &#39;mouseup&#39;, function(event, html, eOpts) {
+                    me.mouseup = true;
+                  }, me);
+              me.mon(oElem.el, &#39;mousedown&#39;, function(e, t, eOpts) {
+                    me.mouseup = false;
+                    Ext.defer(function() {
+                          if (me.mouseup == false) {
+                            me.autoRefresh.showBy(oElem.el);
+                            me.refreshMenu = true;
+                          } else {
+                            me.mouseup = false;
+                          }
+                        }, 1500, me);
+                  }, me);
+            });
+        refreshButton.on(&#39;click&#39;, function() {
+              if (me.refreshMenu) {
+                me.refreshMenu = false;
+                return false;
+              }
+            });
+      },
+<span id='Ext-dirac-utils-DiracPagingToolbar-method-loadState'>      /**
+</span>       * This function is used to load the data which is saved in the User
+       * Profile.
+       * 
+       * @param{Object}data it contains the saved values.
+       */
+      loadState : function(data) {
+        var me = this;
+
+        if (data &amp;&amp; data.grid &amp;&amp; data.grid.pagingToolbar) {
+          var toolbar = data.grid.pagingToolbar;
+          if (toolbar.pageSize) {
+
+            me.pageSizeCombo.suspendEvents(false);
+            //we have to set correctly the page size of the store
+            me.store.pageSize = toolbar.pageSize;
+            me.pageSizeCombo.setValue(toolbar.pageSize);
+            me.pageSizeCombo.resumeEvents();
+          }
+          if (toolbar.refreshCycle) {
+            var refreshCycle = (toolbar.refreshCycle == 60000 ? 900000 : toolbar.refreshCycle);
+            var index = me.autoRefresh.items.findIndex(&quot;name&quot;, refreshCycle);
+            me.autoRefresh.items.getAt(index).setChecked(true);
+            me.__setRefreshCycle(refreshCycle);
+          }
+        }
+      },
+<span id='Ext-dirac-utils-DiracPagingToolbar-method-getStateData'>      /**
+</span>       * It returns the data which has to be saved in the User Profile.
+       * 
+       * @return{Object}
+       */
+      getStateData : function() {
+        var me = this;
+        var returnValues = {
+          pageSize : me.pageSizeCombo.getValue(),
+          refreshCycle : me.refreshCycle
+        }
+
+        return returnValues;
+      },
+<span id='Ext-dirac-utils-DiracPagingToolbar-method-__setRefreshCycle'>      /**
+</span>       * @private
+       * @param{Object} It is the time when the next refresh will occur. It is
+       *                used to set how often refresh the widgets.
+       */
+      __setRefreshCycle : function(time) {
+        var me = this;
+        if (!time)
+          return;
+        me.refreshCycle = time; // it is used if we want to save the state!!!
+        if (time != 0) {
+          clearInterval(me.store.refreshTimeout);
+          me.store.refreshTimeout = setInterval(function() {
+                me.store.load();
+              }, time);
+        } else {
+          clearInterval(me.store.refreshTimeout);
+        }
+      }
+    });
+</pre>
+</body>
+</html>

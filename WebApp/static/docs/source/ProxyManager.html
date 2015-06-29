@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='DIRAC-ProxyManager-classes-ProxyManager'>/*******************************************************************************
+</span> * It is the transformation monitor class.
+ */
+Ext.define(&#39;DIRAC.ProxyManager.classes.ProxyManager&#39;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+      requires : [&#39;Ext.panel.Panel&#39;, &#39;Ext.panel.Panel&#39;, &#39;Ext.dirac.utils.DiracBoxSelect&#39;, &#39;Ext.dirac.utils.DiracToolButton&#39;, &quot;Ext.form.field.TextArea&quot;, &quot;Ext.dirac.utils.DiracGridPanel&quot;, &#39;Ext.dirac.utils.DiracIdListButton&#39;,
+          &#39;Ext.dirac.utils.DiracPageSizeCombo&#39;, &#39;Ext.dirac.utils.DiracPagingToolbar&#39;, &#39;Ext.dirac.utils.DiracJsonStore&#39;, &#39;Ext.dirac.utils.DiracAjaxProxy&#39;, &#39;Ext.dirac.utils.DiracApplicationContextMenu&#39;, &#39;Ext.dirac.utils.DiracBaseSelector&#39;],
+
+<span id='DIRAC-ProxyManager-classes-ProxyManager-method-loadState'>      loadState : function(data) {
+</span>        var me = this;
+
+        me.grid.loadState(data);
+
+        me.leftPanel.loadState(data);
+
+        if (data.leftPanelCollapsed) {
+
+          me.leftPanel.collapse();
+
+        }
+
+      },
+
+<span id='DIRAC-ProxyManager-classes-ProxyManager-method-getStateData'>      getStateData : function() {
+</span>        var me = this;
+        var oStates = {};
+
+        oStates = {
+          grid : me.grid.getStateData(),
+          leftMenu : me.leftPanel.getStateData()
+        };
+
+        oStates.leftPanelCollapsed = me.leftPanel.collapsed;
+
+        return oStates;
+      },
+<span id='DIRAC-ProxyManager-classes-ProxyManager-property-dataFields'>      dataFields : [{
+</span>            name : &#39;proxyid&#39;
+          }, {
+            name : &#39;UserName&#39;
+          }, {
+            name : &#39;UserDN&#39;
+          }, {
+            name : &#39;UserGroup&#39;
+          }, {
+            name : &#39;ExpirationTime&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;PersistentFlag&#39;
+          }],
+
+<span id='DIRAC-ProxyManager-classes-ProxyManager-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+
+        GLOBAL.APP.CF.log(&quot;debug&quot;, &quot;create the widget(initComponent)...&quot;);
+
+        me.launcher.title = &quot;Proxy Manager&quot;;
+        me.launcher.maximized = false;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1];
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;border&#39;,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
+            });
+
+        me.callParent(arguments);
+
+      },
+<span id='DIRAC-ProxyManager-classes-ProxyManager-method-buildUI'>      buildUI : function() {
+</span>
+        var me = this;
+
+        GLOBAL.APP.CF.log(&quot;debug&quot;, &quot;create the widget...(buildUI)&quot;);
+
+        var selectors = {
+          username : &quot;User&quot;,
+          usergroup : &quot;Group&quot;
+        };
+
+        var map = [[&quot;username&quot;, &quot;username&quot;], [&quot;usergroup&quot;, &quot;usergroup&quot;]];
+
+        me.leftPanel = new Ext.create(&#39;Ext.dirac.utils.DiracBaseSelector&#39;, {
+              scope : me,
+              cmbSelectors : selectors,
+              datamap : map,
+              hasTimeSearchPanel : false,
+              url : &quot;ProxyManager/getSelectionData&quot;
+            });
+
+        /*
+         * -----------------------------------------------------------------------------------------------------------
+         * DEFINITION OF THE GRID
+         * -----------------------------------------------------------------------------------------------------------
+         */
+        var oProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+              url : GLOBAL.BASE_URL + me.applicationName + &quot;/getProxyManagerData&quot;
+            });
+
+        me.diffValues = {};
+        me.dataStore = Ext.create(&quot;Ext.dirac.utils.DiracJsonStore&quot;, {
+              proxy : oProxy,
+              fields : me.dataFields,
+              groupField : &#39;UserName&#39;,
+              scope : me
+            });
+
+        var pagingToolbar = null;
+
+        var toolButtons = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Delete&quot;,
+                &quot;handler&quot; : me.__deleteProxyes,
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to delete the selected proxies!&#39;,
+                  iconCls : &quot;dirac-icon-delete&quot;
+                }
+              }]
+        };
+
+        pagingToolbar = Ext.create(&quot;Ext.dirac.utils.DiracPagingToolbar&quot;, {
+              toolButtons : toolButtons,
+              store : me.dataStore,
+              scope : me
+            });
+
+        var oColumns = {
+          &quot;checkBox&quot; : {
+            &quot;dataIndex&quot; : &quot;proxyid&quot;
+          },
+          &quot;User&quot; : {
+            &quot;dataIndex&quot; : &quot;UserName&quot;,
+            &quot;properties&quot; : {
+              width : 100,
+              sortable : true
+            }
+          },
+          &quot;DN&quot; : {
+            &quot;dataIndex&quot; : &quot;UserDN&quot;,
+            &quot;properties&quot; : {
+              width : 350,
+              sortable : true
+            }
+          },
+          &quot;Group&quot; : {
+            &quot;dataIndex&quot; : &quot;UserGroup&quot;,
+            &quot;properties&quot; : {
+              width : 100,
+              sortable : true
+            }
+          },
+          &quot;Expiration date (UTC)&quot; : {
+            &quot;dataIndex&quot; : &quot;ExpirationTime&quot;,
+            &quot;properties&quot; : {
+              width : 150,
+              sortable : true
+            },
+            &quot;renderer&quot; : function(value, metadata, record, rowIndex, colIndex, store) {
+              var expEpoch = record.data.ExpirationTime.getTime();
+              var nowEpoch = Ext.Date.now();
+              var secsLeft = expEpoch - nowEpoch;
+
+              var msDay = 60 * 60 * 24 * 1000;
+              var secsLeft = Math.floor((expEpoch - nowEpoch) / msDay);
+
+              var timeLimit = 30; // 30 days before expiration
+
+              if (secsLeft &lt; timeLimit) {
+                return &#39;&lt;span style=&quot;color:red&quot;&gt;&#39; + Ext.Date.format(record.data.ExpirationTime, &quot;Y-m-d H:i:s&quot;) + &#39; (&#39; + secsLeft + &#39;)&#39; + &#39;&lt;/span&gt;&#39;;
+              } else {
+                return &#39;&lt;span style=&quot;color:green&quot;&gt;&#39; + Ext.Date.format(record.data.ExpirationTime, &quot;Y-m-d H:i:s&quot;) + &#39;&lt;/span&gt;&#39;;
+              }
+
+            }
+          },
+          &quot;Persistent&quot; : {
+            &quot;dataIndex&quot; : &quot;PersistentFlag&quot;,
+            &quot;properties&quot; : {
+              width : 100,
+              sortable : true
+            }
+          }
+        };
+
+        me.grid = Ext.create(&#39;Ext.dirac.utils.DiracGridPanel&#39;, {
+              store : me.dataStore,
+              features : [{
+                    ftype : &#39;grouping&#39;
+                  }],
+              oColumns : oColumns,
+              pagingToolbar : pagingToolbar,
+              scope : me
+            });
+
+        me.leftPanel.setGrid(me.grid);
+
+        me.add([me.leftPanel, me.grid]);
+
+      },
+<span id='DIRAC-ProxyManager-classes-ProxyManager-method-__deleteProxyes'>      __deleteProxyes : function() {
+</span>        var me = this;
+        var items = [];
+        var elememts = Ext.query(&quot;#&quot; + me.id + &quot; input.checkrow&quot;);
+
+        for (var i = 0; i &lt; elememts.length; i++)
+          if (elememts[i].checked)
+            items.push(elememts[i].value);
+
+        if (items &amp;&amp; items.length &gt; 0) {
+          msg = &#39;proxies&#39;;
+
+          if (window.confirm(&quot;Are you sure you want to delete selected proxies?&quot;))
+            Ext.Ajax.request({
+                  url : GLOBAL.BASE_URL + me.applicationName + &quot;/deleteProxies&quot;,
+                  params : {
+                    idList : Ext.JSON.encode(items)
+                  },
+                  success : function(oResponse) {
+
+                    if (oResponse.status == 200) {
+
+                      response = Ext.JSON.decode(oResponse.responseText);
+                      if (response.success == &quot;false&quot;) {
+                        Ext.dirac.system_info.msg(&quot;Error&quot;, response.error);
+                      } else {
+                        Ext.dirac.system_info.msg(&quot;Notification&quot;, &#39;Deleted &#39; + response.result + &#39; proxies&#39;);
+                      }
+
+                    } else {
+
+                      GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                    }
+
+                  },
+                  failure : function(response) {
+
+                    GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                  }
+
+                });
+        }
+
+      }
+
+    });</pre>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-PresenterView'>/*******************************************************************************
+</span> * Without this panel the tools(I mean the Presenter tools) are not visible in
+ * the tab panel....
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.PresenterView&#39;, {
+      extend : &#39;Ext.panel.Panel&#39;,
+      requires : [&#39;Ext.dirac.views.tabs.Presenter&#39;],
+<span id='Ext-dirac-views-tabs-PresenterView-property-region'>      region : &#39;center&#39;,
+</span><span id='Ext-dirac-views-tabs-PresenterView-property-minWidth'>      minWidth : 300,
+</span><span id='Ext-dirac-views-tabs-PresenterView-property-title'>      title : name,
+</span><span id='Ext-dirac-views-tabs-PresenterView-property-closable'>      closable : true,
+</span><span id='Ext-dirac-views-tabs-PresenterView-property-autoRender'>      autoRender : true,
+</span><span id='Ext-dirac-views-tabs-PresenterView-property-layout'>      layout : {
+</span>        type : &#39;border&#39;,
+        padding : 2
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-property-view'>      view : &#39;presenterView&#39;,
+</span><span id='Ext-dirac-views-tabs-PresenterView-property-presenter'>      /**
+</span>       * @property{@link Ext.dirac.views.tabs.Presenter} presenter is contains
+       *           all applications.
+       */
+      presenter : null,
+<span id='Ext-dirac-views-tabs-PresenterView-property-isLoaded'>      isLoaded : false,
+</span><span id='Ext-dirac-views-tabs-PresenterView-property-listeners'>      listeners : {
+</span>        &#39;resize&#39; : function(view, width, height, oldWidth, oldHeight, eOpts) {
+          var me = this;
+          var panel = me.getOpenedApplication()
+          if (panel) {
+            panel.setWidth(view.getWidth());
+            panel.setHeight(view.getHeight());
+          }
+        },
+        &#39;beforeclose&#39; : function() {
+          var me = this;
+          var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer(); // we
+          // have
+          // to
+          // set
+          // the
+          // active
+          // tab
+          // to
+          // this
+          // widget.
+          if (appContainer) {
+            appContainer.setActiveTab(me);
+          }
+          Ext.MessageBox.confirm(&#39;Confirm&#39;, &#39;There is an active desktop state. Do you want to save the current state?&#39;, function(button) {
+                var me = this;
+                if (button === &#39;yes&#39;) {
+                  GLOBAL.APP.MAIN_VIEW.saveActiveDesktopState();
+                } else {
+                  me.doClose(); // generate a close event again.
+                }
+
+              }, me);
+          return false; // it cancel the close of the tab. it wait until the
+          // state is saved.
+        },
+        &#39;close&#39; : function() {
+          var me = this;
+          Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, me.title); // we
+          // have
+          // to
+          // remove
+          // the
+          // desktop
+          // from
+          // the
+          // list.
+          GLOBAL.APP.SM.oprRemoveActiveState(&quot;desktop&quot;, me.title); // We have
+          // to remove
+          // the
+          // desktop
+          // state
+          // from the
+          // list.
+          GLOBAL.APP.MAIN_VIEW.currentState = &quot;&quot;; // the current state has to be
+          // null;
+          GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+        }
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-constructor'>      constructor : function(config) {
+</span>        var me = this;
+        me.presenter = Ext.create(&#39;Ext.dirac.views.tabs.Presenter&#39;, {
+              region : &#39;center&#39;,
+              // minWidth : 300,
+              // title : name,
+              closable : false,
+              app : config.app,
+              desktop : config.desktop
+            });
+        Ext.apply(me, {
+              items : [me.presenter]
+            });
+
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-getPresenter'>      /**
+</span>       * It return the widget which contains the applications.
+       * 
+       * @return{@link Ext.dirac.views.tabs.Presenter}
+       */
+      getPresenter : function() {
+        var me = this;
+        return me.presenter;
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-closeRemoveApplication'>      /*************************************************************************
+</span>       * It removes the {@link Ext.dirac.views.tabs.Panel} widget from the
+       * {@link Ext.dirac.views.tabs.Presenter}
+       * 
+       * @param{Object} panel is an {@link Ext.dirac.views.tabs.Panel}
+       * 
+       */
+      closeRemoveApplication : function(panel) {
+        var me = this;
+        var presenter = me.getPresenter();
+        if (presenter) {
+          presenter.remove(panel);
+        }
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-addWidget'>      /*************************************************************************
+</span>       * it adds an application {@link Ext.dirac.views.tabs.Panel} to the
+       * presenter view.
+       * 
+       * @param{Object} widget is a object which inherited from
+       *                {@link Ext.dirac.views.tabs.Panel}
+       */
+      addWidget : function(widget) {
+        var me = this;
+        var presenter = me.getPresenter();
+        if (presenter) {
+          presenter.addImage(widget);
+        }
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-getOpenedApplication'>      getOpenedApplication : function() {
+</span>        var me = this;
+        var app = null;
+        for (var i = 0; i &lt; me.items.length; i++) {
+          var panel = me.items.getAt(i);
+          if (panel.self.getName() == &quot;Ext.dirac.views.tabs.Panel&quot;) {
+            app = panel;
+            break;
+          }
+        }
+        return app;
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-isExist'>      isExist : function(name) {
+</span>        var me = this;
+        return me.items.getAt(0).isExist(name);
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-hideComponents'>      hideComponents : function() {
+</span>        var me = this;
+        var widgetsContainer = me.items.getAt(0);
+        widgetsContainer.items.each(function(widget) {
+              widget.hide();
+            });
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-showComponents'>      showComponents : function() {
+</span>        var me = this;
+        var widgetsContainer = me.items.getAt(0);
+        widgetsContainer.items.each(function(widget) {
+              widget.show();
+            });
+      },
+
+<span id='Ext-dirac-views-tabs-PresenterView-method-loadState'>      loadState : function(data) {
+</span>        var me = this;
+        me.getPresenter().loadState(data);
+      },
+
+<span id='Ext-dirac-views-tabs-PresenterView-method-getStateData'>      getStateData : function() {
+</span>        var me = this;
+
+        var desktop = {
+          &quot;dirac_view&quot; : 1,
+          &quot;version&quot; : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
+          &quot;data&quot; : [],
+          &quot;view&quot; : &#39;presenterView&#39;,
+          &#39;type&#39; : &#39;presenterView&#39;,
+          &quot;views&quot; : {
+            &quot;tabs&quot; : {
+              &quot;version&quot; : 1,
+              &quot;desktopGranularity&quot; : me.desktopGranularity,
+              &quot;positions&quot; : []
+            }
+          }
+        };
+
+        Ext.apply(desktop, me.getPresenter().getStateData());
+        return desktop;
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-setActiveTab'>      setActiveTab : function(panel) {
+</span>        var me = this;
+        //we have nothing to do...
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-getPanel'>      getPanel : function(name) {
+</span>        var me = this;
+        return me.items.getAt(0).getPanel(name);
+      },
+<span id='Ext-dirac-views-tabs-PresenterView-method-getApplicationsState'>      getApplicationsState : function() {
+</span>        var me = this;
+        return me.items.getAt(0).getApplicationsState();
+      }
+    });</pre>
+</body>
+</html>

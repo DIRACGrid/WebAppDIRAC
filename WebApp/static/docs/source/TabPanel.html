@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-TabPanel'>/**
+</span> * To be defined
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.TabPanel&#39;, {
+      extend : &#39;Ext.tab.Panel&#39;,
+      requires : [&quot;Ext.ux.TabReorderer&quot;],
+      xtype : &#39;diractabcontainer&#39;,
+      alias : &#39;widget.tabPanel&#39;,
+<span id='Ext-dirac-views-tabs-TabPanel-property-resizeTabs'>      resizeTabs : true,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-dragable'>      dragable : true,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-isLoaded'>      isLoaded : false,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-enableTabScroll'>      enableTabScroll : true,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-hasClose'>      hasClose : false,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-activeTab'>      activeTab : 0,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-layout'>      layout : &#39;fit&#39;,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-tabChangeTimeout'>      tabChangeTimeout : null,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-tabChangeCycle'>      tabChangeCycle : 0,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-tabCounter'>      tabCounter : 0,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-view'>      view : &#39;tabView&#39;,
+</span>      // renderTo:Ext.getBody(),
+<span id='Ext-dirac-views-tabs-TabPanel-property-bodyStyle'>      /*
+</span>       * defaults : { autoScroll : true, bodyPadding : 10, bodyStyle: {
+       * background: &#39;#AAAAAA&#39; }, },
+       */
+      bodyStyle : {
+        background : &#39;#AAAAAA&#39;
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-property-workspace'>      workspace : null,
+</span><span id='Ext-dirac-views-tabs-TabPanel-property-plugins'>      plugins : [Ext.create(&#39;Ext.ux.TabReorderer&#39;)],
+</span><span id='Ext-dirac-views-tabs-TabPanel-method-setWorkspace'>      setWorkspace : function(wsk) {
+</span>        this.workspace = wsk;
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-method-getWorkspace'>      getWorkspace : function() {
+</span>        return this.workspace;
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+        me.callParent(arguments);
+        /*
+         * me.loadMask = new Ext.LoadMask(me, { msg : &quot;Loading ...&quot; });
+         */
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-method-loadState'>      loadState : function(data) {
+</span>        var me = this;
+        if (data &amp;&amp; data.views &amp;&amp; data.views.tabs &amp;&amp; data.views.tabs.tabChangeCycle) {
+          me.tabChangeCycle = data.views.tabs.tabChangeCycle;
+          me.autoTabChange();
+        }
+        if (data.views.tabs &amp;&amp; data.views.tabs.activeTab) {
+          me._activeTab = data.views.tabs.activeTab;
+        }
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-method-getStateData'>      /**
+</span>       * it returns the states of the applications
+       * 
+       * @return {Object}
+       */
+      getStateData : function() {
+        var me = this;
+
+        var activeTab = &quot;&quot;;
+        var state = &quot;&quot;;
+        if (me.getActiveTab() != null){
+            activeTab = me.getActiveTab().getAppClassName();
+            state = me.getActiveTab().currentState
+        }
+       
+        var desktop = {
+          &quot;dirac_view&quot; : 1,
+          &quot;version&quot; : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
+          &quot;data&quot; : [],
+          &quot;views&quot; : {
+            &quot;tabs&quot; : {
+              &quot;activeTab&quot; : {
+                name : activeTab,
+                currentState : state
+              },
+              &quot;version&quot; : 1,
+              &quot;desktopGranularity&quot; : me.desktopGranularity,
+              &quot;positions&quot; : [],
+              &quot;tabChangeCycle&quot; : me.tabChangeCycle
+            }
+          }
+        };
+
+        var apps = {};
+        var toLoadApps = {};
+        var lengthApplicationsonDesktop = me.items.length;
+        var lenghtNotOpenApplications = 0;
+        var desktopName = me.title;
+        var desktopData = null;
+        if (desktopName &amp;&amp; desktopName != &#39;Default&#39;) {
+          if (GLOBAL.APP.SM.isStateLoaded(&quot;application&quot;, &quot;desktop&quot;, desktopName) &gt; -1) {
+            desktopData = GLOBAL.APP.SM.getStateData(&quot;application&quot;, &quot;desktop&quot;, desktopName);
+            lenghtNotOpenApplications = desktopData.data.length;
+          }
+        }
+
+        if (GLOBAL.APP.SM.isStateLoaded(&quot;reference&quot;, &quot;desktop&quot;, desktopName) &gt; -1) {
+          me.items.each(function(win, value, length) {
+                if (!win.Loaded) {
+                  win.loadData();
+                }
+              });
+        }
+        var notLoadedStates = new Array(lenghtNotOpenApplications);
+        for (var i = 0; i &lt; lenghtNotOpenApplications; i++) {
+          notLoadedStates[i] = 0;
+          // The applications are not loaded by default...
+        }
+        try {
+
+          me.items.each(function(win, value, length) {
+                // we have to select all the applications which are not loaded
+                // and they have the same state.
+                if (!win.isLoaded) {
+                  if (Object.keys(apps) &amp;&amp; (Ext.Array.contains(Object.keys(apps), win.getAppClassName())) &amp;&amp; apps[win.getAppClassName()] == win.currentState) {
+                    toLoadApps[win.getAppClassName()] = win.currentState;
+                  } else {
+                    apps[win.getAppClassName()] = win.currentState;
+                  }
+                }
+              });
+
+          me.items.each(function(win, value, length) {
+                // load the applications which have the same name.
+                // In this case we avoid to overwrite applications with wrong
+                // state.
+                if (!win.isLoaded) {
+                  if (Object.keys(toLoadApps) &amp;&amp; (Ext.Array.contains(Object.keys(toLoadApps), win.getAppClassName()))) {
+                    if (toLoadApps[win.getAppClassName()] == win.currentState) {
+                      win.loadData();
+                    }
+                  }
+                }
+
+                if (win.loadedObjectType == &quot;link&quot;) {
+                  return;
+                }
+
+                if (!desktopData) {
+                  // the desktop is new. The state is not saved in the UP.
+                  notLoadedStates = [];
+                  return;
+                }
+                var state = win.setupData.data; // the application which is
+                // loaded it still have the
+                // original state
+
+                if (!state) {
+                  notLoadedStates = [];
+                  return;
+                }
+
+                for (var i = 0; i &lt; desktopData.data.length; i++) {
+                  if (desktopData.data[i].module == win.getAppClassName() &amp;&amp; (desktopData.data[i].currentState == win.currentState) &amp;&amp; (desktopData.data[i].data == state)) {
+                    if (notLoadedStates[i] != 0) {
+                      // we may have a situation when we have two state which
+                      // are identical... This can happen when we do not provide
+                      // a title of a state.
+                      continue;
+                    } else {
+                      notLoadedStates[i] = 1;
+                      break;
+                    }
+                  }
+
+                }
+
+              });
+
+          var oData = [];
+
+          for (var i = 0; i &lt; notLoadedStates.length; i++) {
+            // we save the application which is not open in the desktop....
+            if (notLoadedStates[i] == 0) {
+              oData.push(desktopData.data[i]);
+            }
+          }
+
+          me.items.each(function(win, value, length) {
+
+                /*
+                 * Depends on the loadedObjectType
+                 */
+                var oElem = null;
+                // We only save the applications which are loaded
+
+                if (win.isLoaded) {
+
+                  if (win.loadedObjectType == &quot;app&quot;) {
+
+                    var item = {
+                      module : win.getAppClassName(),
+                      data : win.loadedObject.getStateData(),
+                      currentState : win.currentState,
+                      loadedObjectType : win.loadedObjectType
+                    };
+                    // if we have some help text, it will be automatically
+                    // saved.
+                    if (win.childWindows.length &gt; 0) {
+                      for (var i = 0; i &lt; win.childWindows.length; i++) {
+                        if (win.childWindows[i].type == &quot;help&quot;) {
+                          // The Notepad is open. The text has to be retrieved
+                          // from the notepad...
+                          var helptext = {
+                            &quot;helptext&quot; : win.childWindows[i].items.getAt(0).getValue()
+                          }
+                          Ext.apply(item.data, helptext);
+                        }
+                      }
+                    } else {
+                      Ext.apply(item.data, win.loadedObject.getHelpText());
+                    }
+
+                    oData.push(item);
+
+                  } else if (win.loadedObjectType == &quot;link&quot;) {
+
+                    var item = {
+                      link : win.linkToLoad,
+                      loadedObjectType : win.loadedObjectType,
+                      text : win.title
+                    };
+
+                    oData.push(item);
+
+                  }
+                  // we save the latest application state.
+                  win.setupData.data = item.data;
+
+                } else {
+                  // We may have applications which are not opened. We have to
+                  // save
+                  // the status of this applications as well. These
+                  // application
+                  // states is retrieved from the SM.
+                  if (desktopName) { // &amp;&amp; desktopName != &#39;Default&#39;
+                    if (desktopData) {
+                      var notLoadedDesktopState = win.setupData.data;
+                      for (var i = 0; i &lt; desktopData.data.length; i++) {
+                        if ((desktopData.data[i].module == win.getAppClassName()) &amp;&amp; (desktopData.data[i].currentState == win.currentState) &amp;&amp; desktopData.data[i].data == notLoadedDesktopState) {
+                          oData.push(desktopData.data[i]);
+                          break;
+                        }
+                      }
+                    } else if (desktopName == &#39;Default&#39;) {
+                      var data = GLOBAL.APP.SM.getStateData(&quot;application&quot;, win.getAppClassName(), win.currentState);
+                      // check if the application states is saved and not
+                      // loaded, get the application state from the
+                      // profile
+                      // this can not happen....
+                      if (data != -1) {
+                        oData.push(data);
+                      } else {
+
+                        var item = {
+                          currentState : win.currentState,
+                          module : win.getAppClassName(),
+                          data : win.loadedObject.getStateData()
+                        };
+                        if (win.childWindows.length &gt; 0) {
+                          for (var i = 0; i &lt; win.childWindows.length; i++) {
+                            if (win.childWindows[i].type == &quot;help&quot;) {
+                              var helptext = {
+                                &quot;helptext&quot; : win.childWindows[i].items.getAt(0).getValue()
+                              }
+                              Ext.apply(item.data, helptext);
+                            }
+                          }
+                        } else {
+                          Ext.apply(item.data, win.loadedObject.getHelpText());
+                        }
+                        oData.push(item);
+                      }
+                    } else {
+                      Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &#39;The following desktop can not be saved:&#39; + desktopName);
+                    }
+                  }
+                }
+
+              });
+          desktop.data = oData;
+        } catch (err) {
+          Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &#39;The following desktop can not be saved:&#39; + me.title);
+          Ext.dirac.system_info.msg(&quot;Error Notification&quot;, &quot;Error: &quot; + err);
+          desktop = null;
+        }
+        notLoadedStates = [];
+        delete notLoadedStates;
+        return desktop;
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-property-listeners'>      listeners : {
+</span>        beforeclose : function() {
+          var me = this;
+          var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer(); // we
+          // have
+          // to
+          // set
+          // the
+          // active
+          // tab
+          // to
+          // this
+          // widget.
+          if (appContainer) {
+            appContainer.setActiveTab(me);
+          }
+          Ext.MessageBox.confirm(&#39;Confirm&#39;, &#39;There is an active desktop state. Do you want to save the current state?&#39;, function(button) {
+                var me = this;
+                if (button === &#39;yes&#39;) {
+                  GLOBAL.APP.MAIN_VIEW.saveActiveDesktopState();
+                } else {
+                  me.doClose(); // generate a close event again.
+                }
+
+              }, me);
+          return false; // it cancel the close of the tab. it wait until the
+          // state
+          // is saved.
+        },
+        close : function() {
+          var me = this;
+          Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, me.title); // we
+          // have
+          // to
+          // remove
+          // the
+          // desktop
+          // from
+          // the
+          // list.
+          if (me.title == &#39;Default&#39;) {
+            GLOBAL.APP.MAIN_VIEW._default_desktop_state = []; // we closed the
+            // default desktop!
+          }
+          GLOBAL.APP.SM.oprRemoveActiveState(&quot;desktop&quot;, me.title); // We have
+          // to
+          // remove the
+          // desktop state
+          // from the
+          // list.
+          GLOBAL.APP.MAIN_VIEW.currentState = &quot;&quot;; // the current state has to be
+          // null;
+          GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+        },
+        tabchange : function(tabPanel, newCard, oldCard, eOpts) {
+          var me = this;
+          /*
+           * if (oldCard != null) {
+           * GLOBAL.APP.SM.oprRemoveActiveState(&quot;desktop&quot;, oldCard.title);// OK }
+           */
+          if (newCard.type == &#39;desktop&#39;) { // Ignore the change of the
+            // applications
+
+            GLOBAL.APP.MAIN_VIEW.currentState = newCard.title; // as we work
+            // more
+            // than one desktop,
+            // we need to set
+            // the current state
+            // each time when a
+            // tab has changed.
+            // newCard.loadMask.show();
+            if (!GLOBAL.APP.MAIN_VIEW.loading &amp;&amp; !newCard.isLoaded &amp;&amp; newCard.title != &#39;Default&#39;) {
+              GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(newCard.title, newCard);
+              newCard.isLoaded = true;
+            } else if (newCard.title == &#39;Default&#39;) {
+              // it is the default desktop. It is activated it means it is
+              // loaded
+              newCard.isLoaded = true;
+            }
+            if (oldCard) {
+              GLOBAL.APP.SM.oprRemoveActiveState(&quot;desktop&quot;, oldCard.title);
+              // we remove the old state. It is not active any more...
+              me.syncronizeWithSettings(newCard); // we have to refresh the
+              // Settings panel...
+              if (newCard.plugins &amp;&amp; newCard.plugins.length &gt; 0) {
+                for (var i = 0; i &lt; newCard.plugins.length; i++) {
+                  if (newCard.plugins[i].self.getName() == &quot;Ext.ux.TabReorderer&quot;) {
+                    newCard.initPlugin(newCard.plugins[i]);
+                    break;
+                  }
+                }
+              }
+            }
+
+          } else {// it is an application
+            if (oldCard) {
+              GLOBAL.APP.SM.oprRemoveActiveState(oldCard.getClassName(), oldCard.currentState);
+              // remove the state form the active state list...
+            }
+
+            if (newCard.toLoad &amp;&amp; !newCard.isLoaded) {
+              newCard.loadData();
+              newCard.isLoaded = true;
+            }
+          }
+        },
+        afterlayout : function() { // it has to be fired to initialize the
+          // plugin.
+          this.tabBar.fireEvent(&quot;afterLayout&quot;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-property-tabName'>      /**
+</span>       * It is used to return a given tab.
+       * 
+       * @property tabName {String} tabName it returns the tab from the
+       *           container.
+       * @return tab {Ext.dirac.views.tabs.TabPanel}
+       */
+      getTab : function(tabName) {
+        var tab = null;
+        var me = this;
+        me.items.each(function(tabObj, value, length) {
+              console.log(tabObj);
+              if (tabObj.title == tabName) {
+                tab = tabObj;
+                return;
+              }
+            });
+        return tab;
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-property-state'>      /**
+</span>       * 
+       * @property state
+       * @return
+       */
+      getPanel : function(state) {
+        var panel = null;
+        var me = this;
+        me.items.each(function(panelObj, value, length) {
+              if (panelObj.currentState == state) {
+                panel = panelObj;
+                return;
+              }
+            });
+        return panel;
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-method-getDesktop'>      getDesktop : function(desktop) {
+</span>        var panel = null;
+        var me = this;
+        me.items.each(function(panelObj, value, length) {
+              if (panelObj.title == desktop) {
+                panel = panelObj;
+                return;
+              }
+            });
+        return panel;
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-method-getApplicationsState'>      getApplicationsState : function() {
+</span>        var me = this;
+        var states = [];
+        me.items.each(function(panelObj, value, length) {
+              states.push({
+                    &quot;module&quot; : panelObj.appClassName,
+                    &quot;currentState&quot; : panelObj.currentState,
+                    &quot;data&quot; : panelObj.setupData.data
+                  });
+            });
+        return states;
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-method-getApplicationTab'>      getApplicationTab : function(appClassName, stateName) {
+</span>        var me = this;
+        var panel = null;
+        me.items.each(function(panelObj, value, length) {
+              if (panelObj.appClassName == appClassName &amp;&amp; panelObj.currentState == stateName) {
+                panel = panelObj;
+                return;
+              }
+            });
+        return panel;
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-method-setTabChangeTime'>      setTabChangeTime : function(time) {
+</span>        var me = this;
+        me.tabChangeCycle = time;
+        clearInterval(me.tabChangeTimeout);
+        if (me.tabChangeCycle &gt; 0) {
+          me.tabChangeTimeout = setInterval(function() {
+                if (me.tabCounter &lt; me.items.length) {
+                  me.setActiveTab(me.tabCounter);
+                  me.tabCounter += 1;
+                } else {
+                  me.tabCounter = 0;
+                }
+
+              }, me.tabChangeCycle);
+        }
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-method-autoTabChange'>      autoTabChange : function() {
+</span>        var me = this;
+        var selPanel = GLOBAL.APP.MAIN_VIEW.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var settingPanel = selPanel.getSettimgsPanel().getDesktopSettingsPanel();
+        }
+
+        settingPanel.setDesktopName(me.title);
+        if (settingPanel &amp;&amp; me.tabChangeCycle &gt; 0) {
+          me.setTabChangeTime(me.tabChangeCycle);
+          settingPanel.setTabChangePeriod(me.tabChangeCycle);
+
+        } else {
+          if (me.tabChangeTimeout) {
+            clearInterval(me.tabChangeTimeout);
+          }
+          settingPanel.setTabChangePeriod(me.tabChangeCycle);
+        }
+      },
+<span id='Ext-dirac-views-tabs-TabPanel-method-syncronizeWithSettings'>      syncronizeWithSettings : function(tab) {
+</span>        var selPanel = GLOBAL.APP.MAIN_VIEW.getLeftContainer().getSelectionPanel();
+        if (selPanel) {
+          var settingPanel = selPanel.getSettimgsPanel().getDesktopSettingsPanel();
+        }
+        settingPanel.setDesktopName(tab.title);
+        if (settingPanel &amp;&amp; tab.tabChangeCycle) {
+          settingPanel.setTabChangePeriod(tab.tabChangeCycle);
+        } else {
+          settingPanel.setTabChangePeriod(0);
+        }
+      }
+    });
+</pre>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*!
+* Ext JS Library 4.0
+* Copyright(c) 2006-2011 Sencha Inc.
+* licensing@sencha.com
+* http://www.sencha.com/license
+*/
+
+/*----------------------------------------------------
+    Application and module loading message
+*/
+
+#app-dirac-loading{
+    height:auto;
+    position:absolute;
+    left:45%;
+    top:40%;
+    padding:2px;
+    z-index:20001;
+}
+#app-dirac-loading a {
+    color:#225588;
+}
+#app-dirac-loading .app-dirac-loading-indicator{
+    background:none;
+    color:#444;
+    font:bold 13px Helvetica, Arial, sans-serif;
+    height:auto;
+    margin:0;
+    padding:10px;
+    width:300px;
+    
+}
+#app-dirac-loading-msg {
+    font-size: 12px;
+    font-weight: normal;
+}
+
+/*----------------------------------------------------
+    Style for notification message
+*/
+
+#msg-div {
+    position:absolute;
+    left:10px;
+    top:10px;
+    width:300px;
+    z-index:400000;
+}
+#msg-div .msg {
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    background: #F6F6F6;
+    border: 1px solid #ccc;
+    margin-top: 2px;
+    padding: 10px 15px;
+    color: #555;
+    opacity:0.95;
+	filter:alpha(opacity=95);
+}
+#msg-div .msg h3 {
+    margin: 0 0 8px;
+    font-weight: bold;
+    font-size: 15px;
+}
+#msg-div .msg p {
+    margin: 0;
+}
+
+
+/*----------------------------------------------------
+    Start Button
+*/
+
+.ux-start-button-icon {
+    background-image: url(../img/icons/system/favicon.ico) !important;
+    background-color: transparent;
+}
+
+.ux-start-button .x-btn-arrow {
+    background-image: none;
+}
+
+.ux-start-button .x-btn-arrow-right {
+    padding-left: 10px;
+}
+
+.ux-taskbar {
+    padding-left: 4px !important;
+}
+
+/*----------------------------------------------------
+    Start Menu
+*/
+
+.ux-start-menu-toolbar .x-btn-inner {
+    text-align: left;
+}
+
+.ux-start-menu-toolbar {
+    padding: 4px !important;
+}
+
+/*----------------------------------------------------
+    TaskBar
+*/
+
+.ux-taskbar .x-toolbar {
+    background: transparent none;
+    border-color: transparent;
+}
+
+.x-ie6 .ux-taskbar .x-toolbar {
+    border-color: #d3e1f1;
+}
+
+.ux-desktop-windowbar .x-btn-inner,
+.x-nbr .ux-desktop-windowbar .x-btn-icon-text-left button {
+    text-align: left !important;
+}
+
+.ux-taskbar .x-toolbar {
+    height: 28px;
+}
+
+.ux-taskbar {
+    height: 28px;
+    padding: 0;
+}
+
+.x-toolbar .x-toolbar {
+    padding: 0;
+}
+
+/*----------------------------------------------------
+    Desktop DataViewdisplay:none
+*/
+
+.ux-wallpaper {
+    background-color: #AAAAAA;
+    background-position:bottom right;
+}
+
+.ux-wallpaper-tiled {
+    background-repeat:no-repeat;
+}
+
+.ux-desktop-shortcut {
+    cursor: pointer;
+    text-align: center;
+    padding: 8px;
+    margin: 8px;
+    width: 64px;
+}
+
+.ux-desktop-shortcut-icon {
+    width: 48px;
+    height: 48px;
+    background-color: transparent;
+    background-repeat: no-repeat;
+}
+
+.ux-desktop-shortcut-text {
+    font: normal 10px tahoma,arial,verdana,sans-serif;
+    text-decoration: none;
+    padding-top: 5px;
+    color: white;
+}
+
+.x-view-over .ux-desktop-shortcut-text {
+    text-decoration: underline;
+}
+
+
+/*----------------------------------------------------
+    Various icon classes
+*/
+
+.notepad {
+    background-image: url( ../img/icons/system/bogus.png ) !important;
+}
+
+.add {
+    background-image:url(../img/icons/fam/add.gif) !important;
+}
+.option {
+    background-image:url(../img/icons/fam/plugin.gif) !important;
+}
+.remove {
+    background-image:url(../img/icons/fam/delete.gif) !important;
+}
+.save {
+    background-image:url(../img/icons/save.gif) !important;
+}
+.accordion {
+    background-image:url(../img/icons/system/accordian.gif) !important;
+}
+.tabs {
+    background-image:url(../img/icons/system/tabs.gif) !important;
+}
+
+/*----------------------------------------------------
+    IM window icons
+*/
+
+.user {
+    background-image:url( ../img/icons/fam/user.gif ) !important;
+}
+
+.user-add {
+    background-image:url(../img/icons/fam/user_add.gif) !important;
+}
+
+.user-delete {
+    background-image:url(../img/icons/fam/user_delete.gif) !important;
+}
+
+.connect {
+    background-image:url(../img/icons/fam/connect.gif) !important;
+}
+
+.user-suit {
+    background-image:url(../img/icons/fam/user_suit.gif) !important;
+}
+
+.toolbar-other-load {
+    background-image:url(../img/icons/system/_tool_load.png) !important;
+    background-size:16px 16px;
+}
+
+.toolbar-other-manage {
+    background-image:url(../img/icons/system/_tool_manage.png) !important;
+    background-size:16px 16px;
+}
+
+.toolbar-other-refresh {
+    background-image:url(../img/icons/system/_tool_refresh.png) !important;
+    background-size:16px 16px;
+}
+
+.toolbar-other-tile {
+    background-image:url(../img/icons/system/_tool_tile.png) !important;
+    background-size:16px 16px;
+}
+
+.toolbar-other-cascade {
+    background-image:url(../img/icons/system/_tool_cascade.png) !important;
+    background-size:16px 16px;
+}
+
+.toolbar-other-close {
+    background-image:url(../img/icons/system/close.gif) !important;
+    background-size:16px 16px;
+}
+
+.x-hidden-loading-message{
+	
+	visibility:hidden;
+	
+}
+
+.system_link_icon {
+    background-image:url(../img/icons/system/_link.png) !important;
+    background-size:16px 16px;
+}
+
+.system_web_window{
+	
+	background-image:url(../img/icons/system/_web.png) !important;
+    background-size:16px 16px;
+	
+}
+
+.system_folder{
+	
+	background-image:url(../img/icons/system/_folder.png) !important;
+    background-size:16px 16px;
+	
+}
+
+.system_child_window{
+	
+	background-image:url(../img/icons/system/_child_window.png) !important;
+    background-size:16px 16px;
+	
+}
+
+.system_pin_window{
+	
+	background-image:url(../img/icons/system/_pin.png) !important;
+    background-size:16px 16px;
+	
+}
+
+.loading_item {
+    background-image: url( ../img/icons/system/loading.gif ) !important;
+}
+
+.dirac-table-main-check-box {
+  margin: 3px 0px 3px 0px !important;
+}
+</pre>
+</body>
+</html>

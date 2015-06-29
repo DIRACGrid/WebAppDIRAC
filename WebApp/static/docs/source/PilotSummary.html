@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Pilot Monitor page
+ */
+Ext.define(&quot;DIRAC.PilotSummary.classes.PilotSummary&quot;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+      requires : [&quot;Ext.dirac.utils.DiracBaseSelector&quot;, &quot;Ext.dirac.utils.DiracJsonStore&quot;, &quot;Ext.dirac.utils.DiracAjaxProxy&quot;, &quot;Ext.dirac.utils.DiracPagingToolbar&quot;, &#39;Ext.dirac.utils.DiracToolButton&#39;, &quot;Ext.dirac.utils.DiracApplicationContextMenu&quot;, &quot;Ext.dirac.utils.DiracGridPanel&quot;,
+          &quot;Ext.dirac.utils.DiracRowExpander&quot;],
+      applicationsToOpen : {
+        &#39;PilotMonitor&#39; : &#39;DIRAC.PilotMonitor.classes.PilotMonitor&#39;
+      },
+      loadState : function(data) {
+        var me = this;
+
+        me.grid.loadState(data);
+
+        me.leftPanel.loadState(data);
+      },
+      getStateData : function() {
+        var me = this;
+
+        var oStates = {
+          grid : me.grid.getStateData(),
+          leftMenu : me.leftPanel.getStateData()
+        };
+
+        return oStates;
+      },
+
+      dataFields : [{
+            name : &#39;Scheduled&#39;
+          }, {
+            name : &#39;Status&#39;
+          }, {
+            name : &#39;Aborted_Hour&#39;
+          }, {
+            name : &#39;PilotsPerJob&#39;,
+            type : &#39;float&#39;
+          }, {
+            name : &#39;Site&#39;
+          }, {
+            name : &#39;Submitted&#39;
+          }, {
+            name : &#39;Done_Empty&#39;
+          }, {
+            name : &#39;Waiting&#39;
+          }, {
+            name : &#39;PilotJobEff&#39;,
+            type : &#39;float&#39;
+          }, {
+            name : &#39;Done&#39;
+          }, {
+            name : &#39;CE&#39;
+          }, {
+            name : &#39;Aborted&#39;
+          }, {
+            name : &#39;Ready&#39;
+          }, {
+            name : &#39;Total&#39;
+          }, {
+            name : &#39;Running&#39;
+          }, {
+            name : &#39;StatusIcon&#39;,
+            mapping : &#39;Status&#39;
+          }],
+
+      initComponent : function() {
+        var me = this;
+
+        me.launcher.title = &quot;Pilot Summary&quot;;
+        me.launcher.maximized = false;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1];
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;border&#39;,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
+            });
+
+        me.callParent(arguments);
+
+      },
+      buildUI : function() {
+
+        var me = this;
+
+        var selectors = {
+          site : &quot;Site&quot;,
+          Status : &quot;Status&quot;
+        };
+
+        var map = [[&quot;site&quot;, &quot;site&quot;], [&quot;Status&quot;,&quot;Status&quot;]];
+
+        me.leftPanel = new Ext.create(&#39;Ext.dirac.utils.DiracBaseSelector&#39;, {
+              scope : me,
+              cmbSelectors : selectors,
+              datamap : map,
+              hasTimeSearchPanel : false,
+              url : &quot;PilotSummary/getSelectionData&quot;
+            });
+
+        /*
+         * -----------------------------------------------------------------------------------------------------------
+         * DEFINITION OF THE GRID
+         * -----------------------------------------------------------------------------------------------------------
+         */
+        var oProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+              url : GLOBAL.BASE_URL + &#39;PilotSummary/getPilotSummaryData&#39;
+            });
+
+        me.diffValues = {};
+        me.dataStore = Ext.create(&quot;Ext.dirac.utils.DiracJsonStore&quot;, {
+              proxy : oProxy,
+              fields : me.dataFields,
+              scope : me
+            });
+
+        var pagingToolbar = Ext.create(&quot;Ext.dirac.utils.DiracPagingToolbar&quot;, {
+              store : me.dataStore,
+              scope : me,
+              value : 100
+            });
+
+        var oColumns = {
+          &quot;None2&quot; : {
+            &quot;dataIndex&quot; : &quot;StatusIcon&quot;,
+            &quot;properties&quot; : {
+              width : 26,
+              sortable : false,
+              hideable : false,
+              fixed : true,
+              menuDisabled : true
+            },
+            &quot;renderFunction&quot; : &quot;rendererStatus&quot;
+          },
+          &quot;Site&quot; : {
+            &quot;dataIndex&quot; : &quot;Site&quot;,
+            &quot;properties&quot; : {
+              fixed : true
+            }
+          },
+          &quot;CE&quot; : {
+            &quot;dataIndex&quot; : &quot;CE&quot;
+          },
+          &quot;Status&quot; : {
+            &quot;dataIndex&quot; : &quot;Status&quot;,
+            &quot;properties&quot; : {
+              width : 60,
+              sortable : false
+            }
+          },
+          &quot;PilotJobEff (%)&quot; : {
+            &quot;dataIndex&quot; : &quot;PilotJobEff&quot;
+          },
+          &quot;PilotsPerJob&quot; : {
+            &quot;dataIndex&quot; : &quot;PilotsPerJob&quot;
+          },
+          &quot;Submitted&quot; : {
+            &quot;dataIndex&quot; : &quot;Submitted&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Ready&quot; : {
+            &quot;dataIndex&quot; : &quot;Ready&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Waiting&quot; : {
+            &quot;dataIndex&quot; : &quot;Waiting&quot;
+          },
+          &quot;Scheduled&quot; : {
+            &quot;dataIndex&quot; : &quot;Scheduled&quot;
+          },
+          &quot;Running&quot; : {
+            &quot;dataIndex&quot; : &quot;Running&quot;
+          },
+          &quot;Done&quot; : {
+            &quot;dataIndex&quot; : &quot;Done&quot;
+          },
+          &quot;Aborted&quot; : {
+            &quot;dataIndex&quot; : &quot;Aborted&quot;
+          },
+          &quot;Aborted_Hour&quot; : {
+            &quot;dataIndex&quot; : &quot;Aborted_Hour&quot;
+          },
+          &quot;Done_Empty&quot; : {
+            &quot;dataIndex&quot; : &quot;Done_Empty&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Total&quot; : {
+            &quot;dataIndex&quot; : &quot;Total&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          }
+        };
+
+        var showPilothandler = function() {
+          var oSite = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;Site&quot;);
+          var setupdata = {};
+          setupdata.data = {};
+          setupdata.currentState = oSite;
+          setupdata.data.leftMenu = {};
+          setupdata.data.leftMenu.selectors = {};
+          setupdata.data.leftMenu.selectors.site = {
+            data_selected : [oSite],
+            hidden : false,
+            not_selected : false
+          };
+
+          GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+                objectType : &quot;app&quot;,
+                moduleName : me.applicationsToOpen[&#39;PilotMonitor&#39;],
+                setupData : setupdata
+              });
+        }
+
+        var menuitems = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Show Pilots&quot;,
+                &quot;handler&quot; : showPilothandler,
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the jobs which belong to the selected request.&#39;
+                }
+              }]
+        };
+
+        me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
+              menu : menuitems,
+              scope : me
+            });
+
+        me.grid = Ext.create(&#39;Ext.dirac.utils.DiracGridPanel&#39;, {
+              store : me.dataStore,
+              columnLines : true,
+              width : 600,
+              height : 300,
+              oColumns : oColumns,
+              contextMenu : me.contextGridMenu,
+              pagingToolbar : pagingToolbar,
+              scope : me,
+              columnLines : true,
+              plugins : [{
+                    ptype : &#39;diracrowexpander&#39;,
+                    checkField : {
+                      &#39;CE&#39; : &#39;Multiple&#39;
+                    },
+                    rowBodyTpl : [&#39;&lt;div id=&quot;expanded-Grid-{Site}&quot;&gt; &lt;/div&gt;&#39;]
+                  }]
+            });
+
+        me.leftPanel.setGrid(me.grid);
+
+        me.grid.view.on(&#39;expandbody&#39;, function(rowNode, record, expandbody) {
+              var targetId = &#39;expanded-Grid-&#39; + record.get(&#39;Site&#39;);
+              if (Ext.getCmp(targetId + &quot;_grid&quot;) == null) {
+                var params = {
+                  &quot;expand&quot; : Ext.JSON.encode([record.data.Site])
+                };
+                var oProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+                      url : GLOBAL.BASE_URL + &#39;PilotSummary/getPilotSummaryData&#39;
+                    });
+                oProxy.extraParams = params;
+                var expandStore = Ext.create(&quot;Ext.dirac.utils.DiracJsonStore&quot;, {
+                      proxy : oProxy,
+                      fields : me.dataFields,
+                      scope : me,
+                      autoLoad : true
+                    });
+
+                var expandedGridPanel = Ext.create(&#39;Ext.grid.Panel&#39;, {
+                      forceFit : true,
+                      renderTo : targetId,
+                      id : targetId + &quot;_grid&quot;,
+                      store : expandStore,
+                      columns : [{
+                            header : &#39;Site&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Site&#39;,
+                            align : &#39;left&#39;,
+                            hideable : false,
+                            fixed : true
+                          }, {
+                            header : &#39;CE&#39;,
+                            sortable : false,
+                            dataIndex : &#39;CE&#39;,
+                            align : &#39;left&#39;,
+                            hideable : false,
+                            fixed : true
+                          }, {
+                            header : &#39;Status&#39;,
+                            width : 60,
+                            sortable : false,
+                            dataIndex : &#39;Status&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;PilotJobEff (%)&#39;,
+                            sortable : false,
+                            dataIndex : &#39;PilotJobEff&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;PilotsPerJob&#39;,
+                            sortable : false,
+                            dataIndex : &#39;PilotsPerJob&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;Submitted&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Submitted&#39;,
+                            align : &#39;left&#39;,
+                            hidden : true
+                          }, {
+                            header : &#39;Ready&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Ready&#39;,
+                            align : &#39;left&#39;,
+                            hidden : true
+                          }, {
+                            header : &#39;Waiting&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Waiting&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;Scheduled&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Scheduled&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;Running&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Running&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;Done&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Done&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;Aborted&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Aborted&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;Aborted_Hour&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Aborted_Hour&#39;,
+                            align : &#39;left&#39;
+                          }, {
+                            header : &#39;Done_Empty&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Done_Empty&#39;,
+                            align : &#39;left&#39;,
+                            hidden : true
+                          }, {
+                            header : &#39;Total&#39;,
+                            sortable : false,
+                            dataIndex : &#39;Total&#39;,
+                            align : &#39;left&#39;,
+                            hidden : true
+                          }]
+                    });
+
+                rowNode.grid = expandedGridPanel;
+                expandStore.load();
+                expandedGridPanel.getEl().swallowEvent([&#39;mouseover&#39;, &#39;mousedown&#39;, &#39;click&#39;, &#39;dblclick&#39;, &#39;onRowFocus&#39;]);
+                expandedGridPanel.fireEvent(&quot;bind&quot;, expandedGridPanel, {
+                      id : record.get(&#39;id&#39;)
+                    });
+              }
+            });
+
+        me.add([me.leftPanel, me.grid]);
+
+      }
+    });</pre>
+</body>
+</html>

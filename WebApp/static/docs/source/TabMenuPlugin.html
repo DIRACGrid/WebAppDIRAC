@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">
+<span id='Ext-dirac-views-tabs-TabMenuPlugin-method-constructor'><span id='Ext-dirac-views-tabs-TabMenuPlugin'>/**
+</span></span> * @class Ext.dirac.views.tabs.TabMenuPlugin
+ * @extends Object Plugin (ptype = &#39;tabtoolbar&#39;) for adding a toolbar to a
+ *          TabBar.
+ * @constructor
+ * @param {Object}
+ *          config Configuration options
+ * @ptype tabtoolbar
+ * 
+ * This plugin is an improvement version of Ext.ux.tab.Toolbar.
+ * 
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.TabMenuPlugin&#39;, {
+      alias : &#39;plugin.tabtoolbar&#39;,
+
+      constructor : function(config) {
+        Ext.apply(this, config || {});
+      },
+
+<span id='Ext-dirac-views-tabs-TabMenuPlugin-cfg-position'>      /**
+</span>       * @cfg {String} position The position where the toolbar will appear
+       *      inside the tabbar. Supported values are &#39;left&#39; and &#39;right&#39;
+       *      (defaults to right).
+       */
+      position : &#39;right&#39;,
+
+<span id='Ext-dirac-views-tabs-TabMenuPlugin-method-init'>      // private
+</span>      init : function(tabPanel) {
+        var me = this;
+        var toolbarId = me.id;
+        delete me.id;
+
+        Ext.apply(tabPanel, me.parentOverrides);
+        me.tabPanel = tabPanel;
+        me.tabBar = tabPanel.tabBar;
+
+        // ensure we have a valid position
+        if (this.position !== &#39;left&#39;) {
+          this.position = &#39;right&#39;;
+        }
+
+        tabPanel.on({
+              render : function() {
+                me.layout = me.tabBar.layout;
+                me.layout.overflowHandler.handleOverflow = Ext.Function.bind(me.overflowMenu, me);
+              },
+              single : true
+            }); // When we have lot of tabs which can not fit one scree, then we
+                // have to move the help to different position.
+        me.tabBar.on({
+              afterlayout : function() {
+                me.layout = me.tabBar.layout;
+                if (me.toolbar)
+                  return;
+
+                // we need to subtract the toolbar width from this function
+                // result
+                me.layout.availableSpaceOffset += this.width;
+
+                var scrollerEl = me.tabBar.body.child(&#39;.&#39; + Ext.baseCSSPrefix + &#39;box-scroller-&#39; + this.position), contentEl = me.tabBar.body.createChild({
+                      style : &#39;width:&#39; + this.width + &#39;px;&#39;,
+                      cls : Ext.baseCSSPrefix + &#39;tab-toolbar-&#39; + this.position
+                    }, scrollerEl);
+
+                // if scroller is not created (only one tab)
+                // we need to add the floating style to the tab bar
+                if (scrollerEl == undefined) {
+                  me.tabBar.body.child(&#39;.&#39; + Ext.baseCSSPrefix + &#39;box-inner&#39;).setStyle({
+                        &#39;float&#39; : this.position == &#39;left&#39; ? &#39;right&#39; : &#39;left&#39;
+                      })
+                }
+
+                me.toolbar = new Ext.toolbar.Toolbar({
+                      cls : &#39;x-tab-toolbar&#39;,
+                      renderTo : contentEl,
+                      items : Ext.Array.from(this.items),
+                      id : toolbarId
+                    });
+                me.tabPanel.doLayout();
+
+              },
+              beforedestroy : function() {
+                me.toolbar.destroy();
+              },
+              scope : this,
+              single : true
+            });
+      },
+<span id='Ext-dirac-views-tabs-TabMenuPlugin-method-overflowMenu'>      overflowMenu : function() {
+</span>        var me = this;
+        if (me.toolbar)
+          me.toolbar.destroy();
+        var toolbarId = me.id;
+        me.layout = me.tabBar.layout;
+
+        // we need to subtract the toolbar width from this function result
+        me.layout.availableSpaceOffset += this.width;
+        result = Ext.getClass(me.layout.overflowHandler).prototype.handleOverflow.apply(me.layout.overflowHandler, arguments);
+
+        var scrollerEl = me.tabBar.body.child(&#39;.&#39; + Ext.baseCSSPrefix + &#39;box-scroller-&#39; + this.position), contentEl = me.tabBar.body.createChild({
+              style : &#39;width:&#39; + this.width + &#39;px;&#39;,
+              cls : Ext.baseCSSPrefix + &#39;tab-toolbar-&#39; + this.position
+            }, scrollerEl);
+
+        // if scroller is not created (only one tab)
+        // we need to add the floating style to the tab bar
+        if (scrollerEl == undefined) {
+          me.tabBar.body.child(&#39;.&#39; + Ext.baseCSSPrefix + &#39;box-inner&#39;).setStyle({
+                &#39;float&#39; : this.position == &#39;left&#39; ? &#39;right&#39; : &#39;left&#39;
+              })
+        }
+
+        me.toolbar = new Ext.toolbar.Toolbar({
+              cls : &#39;x-tab-toolbar&#39;,
+              renderTo : contentEl,
+              items : Ext.Array.from(this.items),
+              id : toolbarId
+            });
+
+        result.reservedSpace += contentEl.getWidth();
+        return result;
+      }
+
+    });
+</pre>
+</body>
+</html>

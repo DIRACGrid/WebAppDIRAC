@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-ux-core-Stateful'>/**
+</span> * @class Ext.ux.core.Stateful This is an abstract class that has to be
+ *        inherited by every module.
+ * @mixin Ext.container.Container
+ * 
+ */
+Ext.define(&#39;Ext.dirac.core.Stateful&#39;, {
+
+<span id='Ext-ux-core-Stateful-property-currentState'>	currentState : &quot;&quot;,
+</span>
+<span id='Ext-ux-core-Stateful-method-getStateData'>	/**
+</span>	 * Function that can be overriden by a module and it is used to get the data
+	 * defining the current state of a module instance
+	 * 
+	 * @return {Object}
+	 */
+	getStateData : function() {
+		return {};
+	},
+<span id='Ext-ux-core-Stateful-method-loadState'>	/**
+</span>	 * Function that can be overriden by a module and it is used to load saved
+	 * state of a module
+	 * 
+	 * @param {Object}
+	 *          data Data used to set up the state
+	 */
+	loadState : function(oData) {
+	},
+<span id='Ext-ux-core-Stateful-method-getHelpText'>  getHelpText : function(){
+</span>    return {};
+  },
+<span id='Ext-ux-core-Stateful-method-setHelpText'>  setHelpText : function(text){
+</span>    
+  }
+
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='DIRAC-TransformationMonitor-classes-TransformationMonitor'>/*******************************************************************************
+</span> * It is the transformation monitor class.
+ */
+Ext.define(&#39;DIRAC.TransformationMonitor.classes.TransformationMonitor&#39;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+      requires : [&#39;Ext.panel.Panel&#39;, &#39;Ext.panel.Panel&#39;, &#39;Ext.dirac.utils.DiracBoxSelect&#39;, &#39;Ext.dirac.utils.DiracToolButton&#39;, &#39;DIRAC.TransformationMonitor.classes.GridPanel&#39;, &quot;Ext.form.field.TextArea&quot;, &quot;Ext.dirac.utils.DiracGridPanel&quot;, &#39;Ext.dirac.utils.DiracIdListButton&#39;,
+          &#39;Ext.dirac.utils.DiracPageSizeCombo&#39;, &#39;Ext.dirac.utils.DiracPagingToolbar&#39;, &#39;Ext.dirac.utils.DiracJsonStore&#39;, &#39;Ext.dirac.utils.DiracAjaxProxy&#39;, &#39;Ext.dirac.utils.DiracApplicationContextMenu&#39;, &#39;Ext.dirac.utils.DiracBaseSelector&#39;,
+          &#39;DIRAC.TransformationMonitor.classes.GridPanel&#39;],
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-property-applicationsToOpen'>      applicationsToOpen : {
+</span>        &#39;JobMonitor&#39; : &#39;DIRAC.JobMonitor.classes.JobMonitor&#39;
+      },
+
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-loadState'>      loadState : function(data) {
+</span>        var me = this;
+
+        me.grid.loadState(data);
+
+        me.leftPanel.loadState(data);
+
+        if (data.leftPanelCollapsed) {
+
+          me.leftPanel.collapse();
+
+        }
+
+      },
+
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-getStateData'>      getStateData : function() {
+</span>        var me = this;
+        var oStates = {};
+
+        oStates = {
+          grid : me.grid.getStateData(),
+          leftMenu : me.leftPanel.getStateData()
+        };
+
+        oStates.leftPanelCollapsed = me.leftPanel.collapsed;
+
+        return oStates;
+      },
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-property-dataFields'>      dataFields : [{
+</span>            name : &#39;TransformationIDcheckBox&#39;,
+            mapping : &#39;TransformationID&#39;
+          }, {
+            name : &#39;TransformationID&#39;
+          }, {
+            name : &#39;StatusIcon&#39;,
+            mapping : &#39;Status&#39;
+          }, {
+            name : &#39;Status&#39;
+          }, {
+            name : &#39;TransformationName&#39;
+          }, {
+            name : &#39;TransformationGroup&#39;
+          }, {
+            name : &#39;GroupSize&#39;
+          }, {
+            name : &#39;InheritedFrom&#39;
+          }, {
+            name : &#39;MaxNumberOfJobs&#39;
+          }, {
+            name : &#39;EventsPerJob&#39;
+          }, {
+            name : &#39;AuthorDN&#39;
+          }, {
+            name : &#39;AuthorGroup&#39;
+          }, {
+            name : &#39;Type&#39;
+          }, {
+            name : &#39;Plugin&#39;
+          }, {
+            name : &#39;AgentType&#39;
+          }, {
+            name : &#39;FileMask&#39;
+          }, {
+            name : &#39;Description&#39;
+          }, {
+            name : &#39;LongDescription&#39;
+          }, {
+            name : &#39;CreationDate&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;LastUpdate&#39;,
+            type : &#39;date&#39;,
+            dateFormat : &#39;Y-m-d H:i:s&#39;
+          }, {
+            name : &#39;Files_Total&#39;
+          }, {
+            name : &#39;Files_PercentProcessed&#39;
+          }, {
+            name : &#39;Files_Unused&#39;
+          }, {
+            name : &#39;Files_Assigned&#39;
+          }, {
+            name : &#39;Files_Processed&#39;
+          }, {
+            name : &#39;Files_Problematic&#39;
+          }, {
+            name : &#39;Files_MaxReset&#39;
+          }, {
+            name : &#39;Jobs_Created&#39;
+          }, {
+            name : &#39;Jobs_TotalCreated&#39;
+          }, {
+            name : &#39;Jobs_Submitted&#39;
+          }, {
+            name : &#39;Jobs_Waiting&#39;
+          }, {
+            name : &#39;Jobs_Running&#39;
+          }, {
+            name : &#39;Jobs_Done&#39;
+          }, {
+            name : &#39;Jobs_Failed&#39;
+          }, {
+            name : &#39;Jobs_Stalled&#39;
+          }, {
+            name : &#39;Jobs_Completed&#39;
+          }, {
+            name : &#39;TransformationFamily&#39;,
+            type : &#39;float&#39;
+          }, {
+            name : &#39;Jobs_Matched&#39;
+          }, {
+            name : &#39;Jobs_Killed&#39;
+          }, {
+            name : &#39;Jobs_Staging&#39;
+          }, {
+            name : &#39;Jobs_Checking&#39;
+          }, {
+            name : &#39;Jobs_Rescheduled&#39;
+          }, {
+            name : &#39;Jobs_Scheduled&#39;
+          }],
+
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+
+        GLOBAL.APP.CF.log(&quot;debug&quot;, &quot;create the widget(initComponent)...&quot;);
+
+        me.launcher.title = &quot;Transformation Monitor&quot;;
+        me.launcher.maximized = false;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.width = oDimensions[0];
+          me.launcher.height = oDimensions[1];
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;border&#39;,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
+            });
+
+        me.callParent(arguments);
+
+      },
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-buildUI'>      buildUI : function() {
+</span>
+        var me = this;
+
+        GLOBAL.APP.CF.log(&quot;debug&quot;, &quot;create the widget...(buildUI)&quot;);
+
+        var selectors = {
+          status : &quot;Status&quot;,
+          agentType : &quot;Agent Type&quot;,
+          type : &quot;Type&quot;,
+          transformationGroup : &quot;Group&quot;,
+          plugin : &quot;Plugin&quot;
+        };
+
+        var textFields = {
+          &#39;transformationId&#39; : {
+            name : &quot;ProductionID(s)&quot;,
+            type : &quot;number&quot;
+          },
+          &#39;requestId&#39; : {
+            name : &quot;RequestID(s)&quot;,
+            type : &quot;number&quot;
+          }
+        };
+
+        var map = [[&quot;agentType&quot;, &quot;agentType&quot;], [&quot;productionType&quot;, &quot;type&quot;], [&quot;transformationGroup&quot;, &quot;transformationGroup&quot;], [&quot;plugin&quot;, &quot;plugin&quot;], [&quot;prodStatus&quot;, &quot;status&quot;]];
+
+        me.leftPanel = new Ext.create(&#39;Ext.dirac.utils.DiracBaseSelector&#39;, {
+              scope : me,
+              cmbSelectors : selectors,
+              textFields : textFields,
+              datamap : map,
+              url : &quot;TransformationMonitor/getSelectionData&quot;
+            });
+
+        /*
+         * -----------------------------------------------------------------------------------------------------------
+         * DEFINITION OF THE GRID
+         * -----------------------------------------------------------------------------------------------------------
+         */
+        var oProxy = Ext.create(&#39;Ext.dirac.utils.DiracAjaxProxy&#39;, {
+              url : GLOBAL.BASE_URL + me.applicationName + &quot;/getTransformationData&quot;
+            });
+
+        me.diffValues = {};
+        me.dataStore = Ext.create(&quot;Ext.dirac.utils.DiracJsonStore&quot;, {
+              proxy : oProxy,
+              fields : me.dataFields,
+              groupField : &#39;TransformationFamily&#39;,
+              oDiffFields : {
+                &#39;Id&#39; : &#39;TransformationID&#39;,
+                &#39;Fields&#39; : [&#39;Jobs_Created&#39;, &#39;Jobs_TotalCreated&#39;, &#39;Jobs_Done&#39;, &#39;Jobs_Failed&#39;, &#39;Jobs_Running&#39;, &#39;Jobs_Stalled&#39;, &#39;Jobs_Submitted&#39;, &#39;Jobs_Waiting&#39;, &#39;Jobs_Completed&#39;, &#39;Files_PercentProcessed&#39;, &#39;Files_Total&#39;, &#39;Files_Unused&#39;, &#39;Files_Assigned&#39;, &#39;Files_Processed&#39;,
+                    &#39;Files_Problematic&#39;, &#39;Files_MaxReset&#39;, &#39;Jobs_Matched&#39;, &#39;Jobs_Killed&#39;, &#39;Jobs_Staging&#39;, &#39;Jobs_Checking&#39;, &#39;Jobs_Rescheduled&#39;, &#39;Jobs_Scheduled&#39;]
+              },
+              scope : me
+            });
+
+        var pagingToolbar = null;
+
+        var toolButtons = {
+          &#39;Protected&#39; : [{
+                &quot;text&quot; : &quot;Start&quot;,
+                &quot;handler&quot; : me.__oprTransformationAction,
+                &quot;arguments&quot; : [&quot;start&quot;, &quot;&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to start the selected transformation(s)&#39;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }, {
+                &quot;text&quot; : &quot;Stop&quot;,
+                &quot;handler&quot; : me.__oprTransformationAction,
+                &quot;arguments&quot; : [&quot;stop&quot;, &quot;&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to stop the selected transformation(s)&#39;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }, {
+                &quot;text&quot; : &quot;Flush&quot;,
+                &quot;handler&quot; : me.__oprTransformationAction,
+                &quot;arguments&quot; : [&quot;flush&quot;, &quot;&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to flush the selected transformation(s)&#39;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }, {
+                &quot;text&quot; : &quot;Complete&quot;,
+                &quot;handler&quot; : me.__oprTransformationAction,
+                &quot;arguments&quot; : [&quot;complete&quot;, &quot;&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to complete the selected transformation(s)&#39;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }, {
+                &quot;text&quot; : &quot;Clean&quot;,
+                &quot;handler&quot; : me.__oprTransformationAction,
+                &quot;arguments&quot; : [&quot;clean&quot;, &quot;&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to clean the selected transformation(s)&#39;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }]
+        };
+
+        pagingToolbar = Ext.create(&quot;Ext.dirac.utils.DiracPagingToolbar&quot;, {
+              toolButtons : toolButtons,
+              store : me.dataStore,
+              scope : me
+            });
+
+        var oColumns = {
+          &quot;checkBox&quot; : {
+            &quot;dataIndex&quot; : &quot;TransformationIDcheckBox&quot;
+          },
+          &quot;ID&quot; : {
+            &quot;dataIndex&quot; : &quot;TransformationID&quot;,
+            &quot;properties&quot; : {
+              width : 60,
+              align : &#39;left&#39;,
+              hideable : false
+            }
+          },
+          &quot;Request&quot; : {
+            &quot;dataIndex&quot; : &quot;TransformationFamily&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;None&quot; : {
+            &quot;dataIndex&quot; : &quot;StatusIcon&quot;,
+            &quot;properties&quot; : {
+              width : 26,
+              sortable : false,
+              hideable : false,
+              fixed : true,
+              menuDisabled : true
+            },
+            &quot;renderFunction&quot; : &quot;rendererStatus&quot;
+          },
+          &quot;Status&quot; : {
+            &quot;dataIndex&quot; : &quot;Status&quot;,
+            &quot;properties&quot; : {
+              width : 60
+            }
+          },
+          &quot;AgentType&quot; : {
+            &quot;dataIndex&quot; : &quot;AgentType&quot;,
+            &quot;properties&quot; : {
+              width : 60
+            }
+          },
+          &quot;Type&quot; : {
+            &quot;dataIndex&quot; : &quot;Type&quot;
+          },
+          &quot;Group&quot; : {
+            &quot;dataIndex&quot; : &quot;TransformationGroup&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Name&quot; : {
+            &quot;dataIndex&quot; : &quot;TransformationName&quot;
+          },
+          &quot;Files&quot; : {
+            &quot;dataIndex&quot; : &quot;Files_Total&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Processed (%)&quot; : {
+            &quot;dataIndex&quot; : &quot;Files_PercentProcessed&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Files Processed&quot; : {
+            &quot;dataIndex&quot; : &quot;Files_Processed&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Files Assigned&quot; : {
+            &quot;dataIndex&quot; : &quot;Files_Assigned&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Files Problematic&quot; : {
+            &quot;dataIndex&quot; : &quot;Files_Problematic&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Files Unused&quot; : {
+            &quot;dataIndex&quot; : &quot;Files_Unused&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Files MaxReset&quot; : {
+            &quot;dataIndex&quot; : &quot;Files_MaxReset&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Created&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Created&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Total Created&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_TotalCreated&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Submitted&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Submitted&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Matched&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Matched&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Checking&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Checking&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Waiting&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Waiting&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Staging&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Staging&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Rescheduled&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Rescheduled&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Killed&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Killed&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Running&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Running&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Scheduled&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Scheduled&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+
+          &quot;Done&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Done&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Completed&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Completed&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Failed&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Failed&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;Stalled&quot; : {
+            &quot;dataIndex&quot; : &quot;Jobs_Stalled&quot;,
+            &quot;renderFunction&quot; : &quot;diffValues&quot;
+          },
+          &quot;InheritedFrom&quot; : {
+            &quot;dataIndex&quot; : &quot;InheritedFrom&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;GroupSize&quot; : {
+            &quot;dataIndex&quot; : &quot;GroupSize&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;FileMask&quot; : {
+            &quot;dataIndex&quot; : &quot;FileMask&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Plugin&quot; : {
+            &quot;dataIndex&quot; : &quot;Plugin&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;EventsPerJob&quot; : {
+            &quot;dataIndex&quot; : &quot;EventsPerJob&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;MaxNumberOfJobs&quot; : {
+            &quot;dataIndex&quot; : &quot;MaxNumberOfJobs&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;AuthorDN&quot; : {
+            &quot;dataIndex&quot; : &quot;AuthorDN&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;AuthorGroup&quot; : {
+            &quot;dataIndex&quot; : &quot;AuthorGroup&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;Description&quot; : {
+            &quot;dataIndex&quot; : &quot;Description&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;LongDescription&quot; : {
+            &quot;dataIndex&quot; : &quot;LongDescription&quot;,
+            &quot;properties&quot; : {
+              hidden : true
+            }
+          },
+          &quot;CreationDate [UTC]&quot; : {
+            &quot;dataIndex&quot; : &quot;CreationDate&quot;,
+            &quot;renderer&quot; : Ext.util.Format.dateRenderer(&#39;Y-m-j H:i&#39;)
+          },
+          &quot;LastUpdate [UTC]&quot; : {
+            &quot;dataIndex&quot; : &quot;LastUpdate&quot;,
+            &quot;renderer&quot; : Ext.util.Format.dateRenderer(&#39;Y-m-j H:i&#39;)
+          }
+        };
+
+        var showJobshandler = function() {
+          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;TransformationID&quot;);
+          var sId = GLOBAL.APP.CF.zfill(oId, 8);
+
+          var setupdata = {
+            data : {
+              leftMenu : {
+                selectors : {
+                  jobGroup : {
+                    data_selected : [sId],
+                    hidden : false,
+                    not_selected : false
+                  }
+                }
+              }
+            }
+          };
+
+          GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+                objectType : &quot;app&quot;,
+                moduleName : me.applicationsToOpen[&quot;JobMonitor&quot;],
+                setupData : setupdata
+              });
+        }
+        var fileRetrySubMenu = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Processed&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;fileProcessed&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show processed files.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Not Processed&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;fileNotProcessed&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show non-processed files.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;All&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;fileAllProcessed&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show all files.&#39;
+                }
+              }]
+        };
+        var actionSubMenu = {
+          &#39;Protected&#39; : [{
+                &quot;text&quot; : &quot;Start&quot;,
+                handler : me.__oprTransformationAction,
+                &quot;arguments&quot; : [&quot;start&quot;, true],
+                &quot;properties&quot; : {
+                  tooltip : &quot;Click to start the selected transformations(s)&quot;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }, {
+                &quot;text&quot; : &quot;Stop&quot;,
+                handler : me.__oprTransformationAction,
+                &quot;arguments&quot; : [&quot;stop&quot;, true],
+                &quot;properties&quot; : {
+                  tooltip : &quot;Click to stop the selected transformations(s)&quot;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }, {
+                &quot;text&quot; : &quot;Extend&quot;,
+                handler : me.__extendTransformation,
+                &quot;properties&quot; : {
+                  tooltip : &quot;Click to extend the selected transformations(s)&quot;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }, {
+                &quot;text&quot; : &quot;Flush&quot;,
+                handler : me.__oprTransformationAction,
+                &quot;arguments&quot; : [&quot;flush&quot;, true],
+                &quot;properties&quot; : {
+                  tooltip : &quot;Click to flush the selected transformations(s)&quot;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }, {
+                &quot;text&quot; : &quot;Complete&quot;,
+                handler : me.__oprTransformationAction,
+                &quot;arguments&quot; : [&quot;complete&quot;, true],
+                &quot;properties&quot; : {
+                  tooltip : &quot;Click to complete the selected transformations(s)&quot;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }, {
+                &quot;text&quot; : &quot;Clean&quot;,
+                handler : me.__oprTransformationAction,
+                &quot;arguments&quot; : [&quot;clean&quot;, true],
+                &quot;properties&quot; : {
+                  tooltip : &quot;Click to clean the selected transformations(s)&quot;
+                },
+                &quot;property&quot; : &quot;ProductionManagement&quot;
+              }]
+        };
+
+        var menuitems = {
+          &#39;Visible&#39; : [{
+                &quot;text&quot; : &quot;Show Jobs&quot;,
+                &quot;handler&quot; : showJobshandler,
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the jobs which belong to the selected transformation(s).&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;-&quot;
+              }, {
+                &quot;text&quot; : &quot;Logging Info&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;getLoggingInfo&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the logging information of the selected transformation.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;File Status&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;fileStatus&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show the file status of the selected transformation.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;-&quot;
+              }, // menu separator
+              {
+                &quot;text&quot; : &quot;File Retries&quot;,
+                &quot;subMenu&quot; : fileRetrySubMenu
+              }, {
+                &quot;text&quot; : &quot;InputData Query&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;dataQuery&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Clisck to show the input data query.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Additional Params&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;additionalParams&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Clisck to show the parameters of the production.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;Show Details&quot;,
+                &quot;handler&quot; : me.__oprGetJobData,
+                &quot;arguments&quot; : [&quot;transformationDetail&quot;],
+                &quot;properties&quot; : {
+                  tooltip : &#39;Click to show a detailed description of the selected transformation.&#39;
+                }
+              }, {
+                &quot;text&quot; : &quot;-&quot;
+              }, // menu separator
+              {
+                &quot;text&quot; : &quot;Actions&quot;,
+                &quot;subMenu&quot; : actionSubMenu
+              }]
+        };
+
+        me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
+              menu : menuitems,
+              scope : me
+            });
+
+        me.grid = Ext.create(&#39;Ext.dirac.utils.DiracGridPanel&#39;, {
+              store : me.dataStore,
+              features : [{
+                    ftype : &#39;grouping&#39;
+                  }],
+              oColumns : oColumns,
+              contextMenu : me.contextGridMenu,
+              pagingToolbar : pagingToolbar,
+              scope : me
+            });
+
+        me.leftPanel.setGrid(me.grid);
+
+        me.add([me.leftPanel, me.grid]);
+
+      },
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-__oprGetJobData'>      __oprGetJobData : function(oDataKind) {
+</span>
+        var me = this;
+        var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;TransformationID&quot;);
+        if (!oId) {
+          return;
+        }
+        me.getContainer().body.mask(&quot;Wait ...&quot;);
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &quot;/action&quot;,
+              method : &#39;POST&#39;,
+              params : {
+                data_kind : oDataKind,
+                id : oId
+              },
+              scope : me,
+              success : function(response) {
+                me.getContainer().body.unmask();
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&quot;success&quot;] == &quot;true&quot;) {
+
+                  if (oDataKind == &quot;getLoggingInfo&quot;) {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Production:&quot; + oId, [&quot;message&quot;, &quot;date&quot;, &quot;author&quot;], [{
+                              text : &#39;Message&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;message&#39;
+                            }, {
+                              text : &#39;Date(UTC)&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;date&#39;
+                            }, {
+                              text : &#39;Author&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;author&#39;
+                            }]);
+
+                  } else if (oDataKind == &#39;fileStatus&#39;) {
+                    var menu = [{
+                          text : &#39;Show Files&#39;,
+                          handler : me.__showFileStatus,
+                          arguments : [me]
+                        }];
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Production:&quot; + oId, [&quot;status&quot;, &quot;count&quot;, &quot;precentage&quot;], [{
+                              text : &#39;Status&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;status&#39;
+                            }, {
+                              text : &#39;Count&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;count&#39;
+                            }, {
+                              text : &#39;Precentage&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;precentage&#39;
+                            }], menu);
+                  } else if (oDataKind == &#39;fileProcessed&#39;) {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Production:&quot; + oId, [&quot;retries&quot;, &quot;count&quot;, &quot;precentage&quot;], [{
+                              text : &#39;Retries&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;retries&#39;
+                            }, {
+                              text : &#39;Count&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;count&#39;
+                            }, {
+                              text : &#39;Precentage&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;precentage&#39;
+                            }]);
+                  } else if (oDataKind == &#39;fileNotProcessed&#39;) {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Production:&quot; + oId, [&quot;retries&quot;, &quot;count&quot;, &quot;precentage&quot;], [{
+                              text : &#39;Retries&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;retries&#39;
+                            }, {
+                              text : &#39;Count&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;count&#39;
+                            }, {
+                              text : &#39;Precentage&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;precentage&#39;
+                            }]);
+                  } else if (oDataKind == &#39;fileAllProcessed&#39;) {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Production:&quot; + oId, [&quot;retries&quot;, &quot;count&quot;, &quot;precentage&quot;], [{
+                              text : &#39;Retries&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;retries&#39;
+                            }, {
+                              text : &#39;Count&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;count&#39;
+                            }, {
+                              text : &#39;Precentage&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;precentage&#39;
+                            }]);
+                  } else if (oDataKind == &#39;dataQuery&#39;) {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Production:&quot; + oId, [&quot;name&quot;, &quot;value&quot;], [{
+                              text : &#39;Name&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;name&#39;
+                            }, {
+                              text : &#39;Value&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;value&#39;
+                            }]);
+                  } else if (oDataKind == &#39;additionalParams&#39;) {
+                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData[&quot;result&quot;], &quot;Production:&quot; + oId, [&quot;name&quot;, &quot;value&quot;], [{
+                              text : &#39;Name&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;name&#39;
+                            }, {
+                              text : &#39;Value&#39;,
+                              flex : 1,
+                              sortable : false,
+                              dataIndex : &#39;value&#39;
+                            }]);
+                  } else if (oDataKind == &#39;transformationDetail&#39;) {
+                    me.getContainer().oprPrepareAndShowWindowText(jsonData[&quot;result&quot;], &quot;Production:&quot; + oId);
+                  }// else if()
+                } else {
+                  alert(jsonData[&#39;error&#39;]);
+                }
+              }
+            });
+      },
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-__showFileStatus'>      __showFileStatus : function(parent) {
+</span>        var me = this;
+        oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(parent.grid, &quot;TransformationID&quot;);
+        var oStatus = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me, &quot;status&quot;);
+        parent.grid.body.mask(&quot;Wait ...&quot;);
+
+        var url = GLOBAL.BASE_URL + &#39;TransformationMonitor/showFileStatus&#39;;
+        var params = {
+          status : oStatus,
+          transformationId : oId
+        };
+
+        var oFields = [&quot;LFN&quot;, &quot;TransformationID&quot;, &quot;FileID&quot;, &quot;Status&quot;, &quot;TaskID&quot;, &quot;TargetSE&quot;, &quot;UsedSE&quot;, &quot;ErrorCount&quot;, &quot;LastUpdate&quot;, &quot;InsertedTime&quot;];
+
+        var oColumns = [{
+              text : &#39;LFN&#39;,
+              flex : 1,
+              sortable : false,
+              dataIndex : oFields[0]
+            }, {
+              text : &#39;TransformationId&#39;,
+              flex : 1,
+              sortable : false,
+              dataIndex : oFields[1],
+              hidden : true
+            }, {
+              text : &#39;FileId&#39;,
+              flex : 1,
+              sortable : false,
+              dataIndex : oFields[2],
+              hidden : true
+            }, {
+              text : &#39;Status&#39;,
+              flex : 1,
+              sortable : false,
+              dataIndex : oFields[3]
+            }, {
+              text : &#39;TaskId&#39;,
+              flex : 1,
+              sortable : false,
+              dataIndex : oFields[4]
+            }, {
+              text : &#39;TargetSE&#39;,
+              flex : 1,
+              sortable : false,
+              dataIndex : oFields[5]
+            }, {
+              text : &#39;UsedSE&#39;,
+              flex : 1,
+              sortable : false,
+              dataIndex : oFields[6]
+            }, {
+              text : &#39;ErrorCount&#39;,
+              flex : 1,
+              sortable : false,
+              dataIndex : oFields[7]
+            }, {
+              text : &#39;LastUpdate&#39;,
+              flex : 1,
+              sortable : false,
+              dataIndex : oFields[8]
+            }, {
+              text : &#39;InsertedTime&#39;,
+              flex : 1,
+              sortable : false,
+              dataIndex : oFields[9]
+            }];
+
+        var oGrid = parent.__createStatusGridPanel(oFields, oColumns, url, params);
+        /*
+         * var oMenu = new Ext.menu.Menu({ items : [{ text : &#39;Show value&#39;,
+         * handler : Ext.bind(parent.getContainer().showValue, oGrid, [oGrid],
+         * false) }] }); oGrid.menu = oMenu;
+         */
+        parent.getContainer().showInWindow(&quot;Files with status &quot; + oStatus + &quot; for production:&quot; + oId, oGrid)
+        parent.grid.body.unmask();
+      },
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-__flushRun'>      __flushRun : function(parentGrid) {
+</span>        var me = this;
+        var oRunNumberId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me, &quot;RunNumber&quot;);
+        var oTransFormationId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(parentGrid, &quot;TransformationID&quot;);
+
+        var title = &#39;Flush &#39; + oRunNumberId;
+        var msg = &#39;Are you sure you want to flush this run: &#39; + oRunNumberId + &#39; ?&#39;;
+        Ext.Msg.confirm(title, msg, function(btn) {
+              if (btn == &#39;yes&#39;) {
+                var params = {
+                  &#39;RunNumber&#39; : oRunNumberId,
+                  &#39;TransformationId&#39; : oTransFormationId,
+                  &#39;Status&#39; : &#39;Flush&#39;
+                };
+                Ext.Ajax.request({
+                      method : &#39;POST&#39;,
+                      params : params,
+                      failure : function(responseText) {
+                        alert(responseText.statusText);
+                      },
+                      success : function(response) {
+                        var response = Ext.JSON.decode(response.responseText);
+                        if (response.success == true) {
+                          me.oprLoadGridData();
+                        } else {
+                          alert(response[&quot;error&quot;]);
+                        }
+                      },
+                      url : GLOBAL.BASE_URL + me.applicationName + &quot;/setRunStatus&quot;
+                    });
+              }
+            });
+      },
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-__setSite'>      __setSite : function(parentGrid, site) {
+</span>        var me = this;
+        var oRunNumberId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me, &quot;RunNumber&quot;);
+        var oTransFormationId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(parentGrid, &quot;TransformationID&quot;);
+
+        var title = &#39;Set Site &#39; + site;
+        var msg = &#39;Are you sure you want to set site &#39; + site + &#39; for the run &#39; + oRunNumberId + &#39; in production &#39; + oTransFormationId + &#39; ?&#39;;
+        Ext.Msg.confirm(title, msg, function(btn) {
+              if (btn == &#39;yes&#39;) {
+                var params = {
+                  &#39;RunNumber&#39; : oRunNumberId,
+                  &#39;TransformationId&#39; : oTransFormationId,
+                  &#39;Site&#39; : site
+                };
+                Ext.Ajax.request({
+                      method : &#39;POST&#39;,
+                      params : params,
+                      failure : function(responseText) {
+                        alert(responseText.statusText);
+                      },
+                      success : function(response) {
+                        var response = Ext.JSON.decode(response.responseText);
+                        if (response.success == true) {
+                          me.oprLoadGridData();
+                        } else {
+                          alert(response[&quot;error&quot;]);
+                        }
+                      },
+                      url : GLOBAL.BASE_URL + me.applicationName + &quot;/setSite&quot;
+                    });
+              }
+            });
+      },
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-__extendTransformation'>      __extendTransformation : function() {
+</span>        var me = this;
+        var id = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;TransformationID&quot;);
+        Ext.Msg.prompt(&#39;Extend transformation&#39;, &#39;Please enter the number of tasks&#39;, function(btn, tasks) {
+              if (btn == &#39;ok&#39;) {
+                if (tasks) {
+                  Ext.Ajax.request({
+                        success : function(response) {
+                          var jsonData = Ext.JSON.decode(response.responseText);
+                          if (jsonData[&#39;success&#39;] == &#39;false&#39;) {
+                            alert(&#39;Error: &#39; + jsonData[&#39;error&#39;]);
+                            return;
+                          } else {
+                            if (jsonData.showResult) {
+                              var html = &#39;&#39;;
+                              for (var i = 0; i &lt; jsonData.showResult.length; i++) {
+                                html = html + jsonData.showResult[i] + &#39;&lt;br&gt;&#39;;
+                              }
+                              Ext.Msg.alert(&#39;Result:&#39;, html);
+                            }
+                            me.grid.store.load();
+                          }
+                        },
+                        method : &#39;POST&#39;,
+                        params : {
+                          &#39;data_kind&#39; : &#39;extend&#39;,
+                          &#39;id&#39; : id,
+                          &#39;tasks&#39; : tasks
+                        },
+                        url : GLOBAL.BASE_URL + me.applicationName + &quot;/action&quot;,
+                        failure : function(response) {
+                          GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                        }
+                      })
+                }
+              }
+            });
+      },
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-__setRefreshCycle'>      __setRefreshCycle : function(time) {
+</span>        var me = this;
+        me.refreshCycle = time; // it is used if we want to save the state!!!
+        if (time != 0) {
+          clearInterval(me.grid.refreshTimeout);
+          me.grid.refreshTimeout = setInterval(function() {
+                me.grid.store.load();
+              }, time);
+        } else {
+          clearInterval(me.grid.refreshTimeout);
+        }
+      },
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-__createStatusGridPanel'>      __createStatusGridPanel : function(oFields, oColumns, url, params) {
+</span>
+        var me = this;
+        var oGrid = null;
+
+        var oGrid = Ext.create(&quot;DIRAC.TransformationMonitor.classes.GridPanel&quot;, {
+              oFields : oFields,
+              oColumns : oColumns,
+              url : url,
+              params : params,
+              menu : null,
+              selType : &#39;cellmodel&#39;
+            });
+
+        return oGrid;
+
+      },
+<span id='DIRAC-TransformationMonitor-classes-TransformationMonitor-method-__oprTransformationAction'>      __oprTransformationAction : function(oAction, useGridTransformationId) {
+</span>
+        var me = this;
+        var oItems = [];
+        var oId = null;
+
+        if (useGridTransformationId) {
+          oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, &quot;TransformationID&quot;);
+        };
+
+        if ((oId == null) || (oId == &#39;&#39;) || (oId == undefined)) {
+
+          var oElems = Ext.query(&quot;#&quot; + me.id + &quot; input.checkrow&quot;);
+
+          for (var i = 0; i &lt; oElems.length; i++)
+            if (oElems[i].checked)
+              oItems.push(oElems[i].value);
+
+          if (oItems.length &lt; 1) {
+            alert(&#39;No transformations were selected&#39;);
+            return;
+          }
+
+        } else {
+          oItems[0] = oId;
+        }
+
+        var c = false;
+
+        if (oItems.length == 1)
+          c = confirm(&#39;Are you sure you want to &#39; + oAction + &#39; &#39; + oItems[0] + &#39;?&#39;);
+        else
+          c = confirm(&#39;Are you sure you want to &#39; + oAction + &#39; these transformations?&#39;);
+
+        if (c === false)
+          return;
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + me.applicationName + &quot;/executeOperation&quot;,
+              method : &#39;POST&#39;,
+              params : {
+                action : oAction,
+                ids : oItems.join(&quot;,&quot;)
+              },
+              success : function(response) {
+                var jsonData = Ext.JSON.decode(response.responseText);
+                if (jsonData[&#39;success&#39;] == &#39;false&#39;) {
+                  alert(&#39;Error: &#39; + jsonData[&#39;error&#39;]);
+                  return;
+                } else {
+                  if (jsonData.showResult) {
+                    var html = &#39;&#39;;
+                    for (var i = 0; i &lt; jsonData.showResult.length; i++) {
+                      html = html + jsonData.showResult[i] + &#39;&lt;br&gt;&#39;;
+                    }
+                    Ext.Msg.alert(&#39;Result:&#39;, html);
+                  }
+                  me.grid.store.load();
+                }
+              }
+            });
+      }
+    });</pre>
+</body>
+</html>

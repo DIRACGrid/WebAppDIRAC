@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracGridPanel'>/*******************************************************************************
+</span> * It is a predefined grid widget. It allows to easily create a Grid widget. You
+ * can provide the following values:
+ * 
+ * 
+ * -store: which is the data store object {@link Ext.dirac.utils.DiracJsonStore}.
+ * 
+ * -features: We can allow a list of futures: such as grouping etc.
+ * 
+ * -oClolumns: dictionary with the column names:
+ * {&quot;a&quot;:{&quot;dataIndex&quot;:&quot;b&quot;},&quot;properties&quot;:{},renderFunction:&quot;c&quot;} There are
+ * different render functions provided by this widget. We can configure the grid
+ * panel to how render the data.
+ * 
+ * For example:
+ * 
+ * &lt;pre&gt;
+ * var oColumns = {
+ *   &amp;quot;checkBox&amp;quot; : {
+ *     &amp;quot;dataIndex&amp;quot; : &amp;quot;TransformationIDcheckBox&amp;quot;
+ *   },
+ *   &amp;quot;ID&amp;quot; : {
+ *     &amp;quot;dataIndex&amp;quot; : &amp;quot;TransformationID&amp;quot;,
+ *     &amp;quot;properties&amp;quot; : {
+ *       width : 60,
+ *       align : &#39;left&#39;,
+ *       hideable : false
+ *     }
+ *   },
+ *   &amp;quot;Request&amp;quot; : {
+ *     &amp;quot;dataIndex&amp;quot; : &amp;quot;TransformationFamily&amp;quot;,
+ *     &amp;quot;properties&amp;quot; : {
+ *       hidden : true
+ *     }
+ *   },
+ *   &amp;quot;None&amp;quot; : {
+ *     &amp;quot;dataIndex&amp;quot; : &amp;quot;StatusIcon&amp;quot;,
+ *     &amp;quot;properties&amp;quot; : {
+ *       width : 26,
+ *       sortable : false,
+ *       hideable : false,
+ *       fixed : true,
+ *       menuDisabled : true
+ *     },
+ *     &amp;quot;renderFunction&amp;quot; : &amp;quot;rendererStatus&amp;quot;
+ *   },
+ *   &amp;quot;Status&amp;quot; : {
+ *     &amp;quot;dataIndex&amp;quot; : &amp;quot;Status&amp;quot;,
+ *     &amp;quot;properties&amp;quot; : {
+ *       width : 60
+ *     }
+ *   },
+ *   &amp;quot;AgentType&amp;quot; : {
+ *     &amp;quot;dataIndex&amp;quot; : &amp;quot;AgentType&amp;quot;,
+ *     &amp;quot;properties&amp;quot; : {
+ *       width : 60
+ *     }
+ *   },
+ *   &amp;quot;Type&amp;quot; : {
+ *     &amp;quot;dataIndex&amp;quot; : &amp;quot;Type&amp;quot;
+ *   }
+ * }
+ * &lt;/pre&gt;
+ * 
+ * -tbar : it is a paging tool bar object. DIRAC provides the following widget:
+ * {@link Ext.dirac.utils.DiracPagingToolbar}.
+ * 
+ * -contextMenu: you can add a menu to the Grid. DIRAC provides the following
+ * menu: {@link Ext.dirac.utils.DiracApplicationContextMenu}.
+ * 
+ * -pagingToolbar: it keeps the paging tool bar.
+ * 
+ * -scope: it has to be provided, because the grid panel has to accessed to
+ * other widgets.
+ * 
+ * For example:
+ * 
+ * &lt;pre&gt;
+ * me.grid = Ext.create(&#39;Ext.dirac.utils.DiracGridPanel&#39;, {
+ *       store : me.dataStore,
+ *       features : [{
+ *             ftype : &#39;grouping&#39;
+ *           }],
+ *       oColumns : oColumns,
+ *       contextMenu : me.contextGridMenu,
+ *       pagingToolbar : pagingToolbar,
+ *       scope : me
+ *     });
+ * &lt;/pre&gt;
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracGridPanel&#39;, {
+      extend : &#39;Ext.grid.Panel&#39;,
+      mixins : [&quot;Ext.dirac.core.Stateful&quot;],
+<span id='Ext-dirac-utils-DiracGridPanel-property-region'>      region : &#39;center&#39;,
+</span><span id='Ext-dirac-utils-DiracGridPanel-property-height'>      height : &#39;600&#39;,
+</span><span id='Ext-dirac-utils-DiracGridPanel-property-header'>      header : false,
+</span><span id='Ext-dirac-utils-DiracGridPanel-property-viewConfig'>      viewConfig : {
+</span>        stripeRows : true,
+        enableTextSelection : true,
+        listeners : {
+          refresh : function(dataview) {
+            var nodes = dataview.getNodes();
+            for (var i = 0; i &lt; nodes.length; i++) {
+              row = Ext.fly(nodes[i], &#39;_rowExpander&#39;);
+              row.setHeight(26);
+            }
+          },
+          groupcollapse : function(view, node, group, eOpts) {
+            var selectedRow = view.getSelectionModel().getSelection();
+            view.deselect(selectedRow);
+          },
+          groupexpand : function(view, node, group, eOpts) {
+            var selectedRow = view.getSelectionModel().getSelection();
+            view.deselect(selectedRow);
+          }
+        }
+      },
+<span id='Ext-dirac-utils-DiracGridPanel-property-defaultColumnsProperties'>      /**
+</span>       * @property{Object} defaultColumnsProperties it contains the default
+       *                   properties of the columns. The default value is
+       *                   {sortable:true,align:&#39;left&#39;,hidden:true}
+       * 
+       */
+      defaultColumnsProperties : {
+        sortable : true,
+        align : &#39;left&#39;,
+        hidden : true
+      },
+<span id='Ext-dirac-utils-DiracGridPanel-cfg-columns'>      /**
+</span>       * @cfg{List} columns it contains the grid columns
+       */
+      columns : [],
+<span id='Ext-dirac-utils-DiracGridPanel-cfg-renderers'>      /**
+</span>       * @cfg{List} renderers it contains a list of available renderer:
+       *            [&quot;rendererChkBox&quot;, &quot;rendererStatus&quot;,&quot;diffValues&quot;] NOTE: You
+       *            can implement new renderer.
+       */
+      renderers : [&quot;rendererChkBox&quot;, &quot;rendererStatus&quot;, &quot;diffValues&quot;],
+<span id='Ext-dirac-utils-DiracGridPanel-method-loadState'>      /**
+</span>       * This function is used to load the data which is saved in the User
+       * Profile.
+       * 
+       * @param{Object}data it contains the saved values.
+       */
+      loadState : function(data) {
+
+        var me = this;
+        var grid = null;
+        if (data.columns) {// I have changed the data structure
+          if (&quot;columns&quot; in data.columns) {
+            grid = data.columns;
+          } else {
+            grid = data;
+          }
+        } else {
+          grid = data.grid;
+        }
+        if (grid) {
+          for (var i = 0; i &lt; me.columns.length; i++) {
+
+            var col = me.columns[i];
+            if (Ext.Array.contains(grid.columns, col.getSortParam()) || (col.getSortParam() in grid.columns)) {
+              col.setWidth(grid.columns[col.getSortParam()].width);
+              if (grid.columns[col.getSortParam()].hidden)
+                col.hide();
+              else
+                col.show();
+
+              var sortState = grid.columns[col.getSortParam()].sortState;
+
+              if (sortState != null)
+                col.setSortState(sortState);
+            }
+          }
+        }
+        if (grid &amp;&amp; grid.groupers) {
+          me.store.groupers.clear();
+          me.store.groupers.addAll(me.store.decodeGroupers(grid.groupers));
+        }
+        if (grid &amp;&amp; grid.sorters) {
+          me.store.sorters.clear();
+          me.store.sorters.addAll(me.store.decodeSorters(grid.sorters));
+        }
+
+        if (me.pagingToolbar) {
+          me.pagingToolbar.loadState(data);
+        }
+
+      },
+<span id='Ext-dirac-utils-DiracGridPanel-method-getRenderers'>      /**
+</span>       * It returns the available renderer.
+       * 
+       * @return{List}
+       */
+      getRenderers : function() {
+        var me = this;
+        return me.renderers;
+      },
+<span id='Ext-dirac-utils-DiracGridPanel-method-getStateData'>      /**
+</span>       * It returns the data which has to be saved in the User Profile.
+       * 
+       * @return{Object}
+       */
+      getStateData : function() {
+
+        var me = this;
+
+        // data for grid columns
+        var oReturn = {
+          columns : {}
+        };
+
+        for (var i = 0; i &lt; me.columns.length; i++) {
+
+          var col = me.columns[i];
+          var oName = col.getSortParam();
+          oReturn.columns[oName] = {
+            &quot;width&quot; : col.width,
+            &quot;hidden&quot; : col.isHidden(),
+            &quot;sortState&quot; : col.sortState
+          };
+
+        }
+
+        oReturn.sorters = [];
+        oReturn.groupers = [];
+
+        me.store.sorters.each(function(key, value) {
+              GLOBAL.APP.CF.log(&#39;debug&#39;, &quot;:&quot;, key);
+              GLOBAL.APP.CF.log(&#39;debug&#39;, &quot;:&quot;, value);
+              oReturn.sorters.push({
+                    &quot;property&quot; : key.property,
+                    &quot;direction&quot; : key.direction
+                  });
+            });
+
+        me.store.groupers.each(function(key, value) {
+              GLOBAL.APP.CF.log(&#39;debug&#39;, &quot;:&quot;, key);
+              GLOBAL.APP.CF.log(&#39;debug&#39;, &quot;:&quot;, value);
+              oReturn.groupers.push({
+                    &quot;property&quot; : key.property,
+                    &quot;direction&quot; : key.direction
+                  });
+            });
+
+        if (me.pagingToolbar) {
+          oReturn.pagingToolbar = me.pagingToolbar.getStateData();
+        }
+
+        return oReturn;
+
+      },
+<span id='Ext-dirac-utils-DiracGridPanel-method-initComponent'>      initComponent : function(arguments) {
+</span>        var me = this;
+        GLOBAL.APP.CF.log(&quot;debug&quot;, &quot;init function&quot;, me.columns);
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-utils-DiracGridPanel-method-constructor'>      constructor : function(config) {
+</span>        var me = this;
+
+        GLOBAL.APP.CF.log(&quot;debug&quot;, &quot;Create panel...&quot;);
+        me.checkboxFunctionDefinition = &#39;&lt;input type=&quot;checkbox&quot; value=&quot;&quot; onchange=&quot;&#39;;
+        me.checkboxFunctionDefinition += &#39;var oChecked=this.checked;&#39;;
+        me.checkboxFunctionDefinition += &#39;var oElems=Ext.query(\&#39;#&#39; + config.scope.id + &#39; input.checkrow\&#39;);&#39;;
+        me.checkboxFunctionDefinition += &#39;for(var i=0;i&lt;oElems.length;i++)oElems[i].checked = oChecked;&#39;;
+        me.checkboxFunctionDefinition += &#39;&quot; class=&quot;dirac-table-main-check-box&quot;/&gt;&#39;;
+
+        var oColumn = {};
+        for (i in config.oColumns) {
+          oColumn = {};
+          if (i == &quot;checkBox&quot;) {
+            oColumn = {
+              header : me.checkboxFunctionDefinition,
+              name : &quot;checkBox&quot;,
+              width : 26,
+              sortable : false,
+              dataIndex : config.oColumns[i][&quot;dataIndex&quot;],
+              renderer : function(value, metaData, record, row, col, store, gridView) {
+                return me.rendererChkBox(value);
+              },
+              hideable : false,
+              fixed : true,
+              menuDisabled : true,
+              align : &quot;center&quot;
+            };
+          } else {
+            oColumn = {
+              sortable : true,
+              align : &#39;left&#39;,
+              hidden : false
+            };
+            if (Ext.String.startsWith(i, &quot;None&quot;) == true) {
+              Ext.apply(oColumn, {
+                    header : &quot;&quot;,
+                    dataIndex : config.oColumns[i][&quot;dataIndex&quot;]
+                  });
+            } else {
+              Ext.apply(oColumn, {
+                    header : i,
+                    dataIndex : config.oColumns[i][&quot;dataIndex&quot;]
+                  });
+            }
+
+            if (&quot;properties&quot; in config.oColumns[i]) {
+              Ext.apply(oColumn, config.oColumns[i][&quot;properties&quot;]);
+            }
+
+            if (&quot;renderFunction&quot; in config.oColumns[i]) {
+              var func = null;
+              if (config.oColumns[i][&quot;renderFunction&quot;] == &quot;rendererStatus&quot;) {
+                func = function(value, metaData, record, rowIndex, colIndex, store) {
+                  return me.rendererStatus(value, metaData, record, rowIndex, colIndex, store);
+                };
+              } else if (config.oColumns[i][&quot;renderFunction&quot;] == &quot;diffValues&quot;) {
+                func = function(value, metaData, record, rowIndex, colIndex, store) {
+                  return me.diffValues(value, metaData, record, rowIndex, colIndex, store);
+                };
+              } else {
+                var message = config.oColumns[i][&quot;renderFunction&quot;] + &quot; render function does not exists!!!&quot;
+              }
+              Ext.apply(oColumn, {
+                    &quot;renderer&quot; : func
+                  });
+            }
+            if (&quot;renderer&quot; in config.oColumns[i]) {
+              Ext.apply(oColumn, {
+                    &quot;renderer&quot; : config.oColumns[i][&quot;renderer&quot;]
+                  });
+            }
+          }
+          if (config.columns) {// Only when the oColumns are provided: we may
+            // have a case when we need to provide all
+            // columns.
+            Ext.Array.push(config.columns, oColumn);
+          } else {
+            config.columns = [];
+            Ext.Array.push(config.columns, oColumn);
+          }
+
+        }
+        GLOBAL.APP.CF.log(&quot;debug&quot;, &quot;Grid columns:&quot;, me.columns);
+        if (config.contextMenu) {
+          Ext.apply(me, {
+                &quot;listeners&quot; : {
+
+                  beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                    e.preventDefault();
+                    if (config.contextMenu.dynamicShow){
+                      config.contextMenu.doSow(record);
+                    }
+                    config.contextMenu.showAt(e.xy);
+                    return false;
+                  }
+                }
+              });
+        }
+
+        me.callParent(arguments);
+
+        if (config.pagingToolbar) {
+          me.pagingToolbar = config.pagingToolbar;
+          me.addDocked(me.pagingToolbar, &quot;top&quot;);
+        }
+
+      },
+<span id='Ext-dirac-utils-DiracGridPanel-method-rendererChkBox'>      /**
+</span>       * It render the Grid columns
+       * 
+       * @param{Number} val it is the column value
+       */
+      rendererChkBox : function(val) {
+        return &#39;&lt;input value=&quot;&#39; + val + &#39;&quot; type=&quot;checkbox&quot; class=&quot;checkrow&quot; style=&quot;margin:0px;padding:0px&quot;/&gt;&#39;;
+      },
+<span id='Ext-dirac-utils-DiracGridPanel-method-rendererStatus'>      /*************************************************************************
+</span>       * It render the Status
+       * 
+       * @param{String} value It render the status.
+       */
+      rendererStatus : function(value) {
+        if ((value == &#39;Done&#39;) || (value == &#39;Good&#39;) || (value == &#39;Active&#39;) || (value == &#39;Cleared&#39;)) {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/done.gif&quot;/&gt;&#39;;
+        } else if (value == &#39;Bad&#39;) {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/bad.gif&quot;/&gt;&#39;;
+        } else if ((value == &#39;Failed&#39;) || (value == &#39;Bad&#39;) || (value == &#39;Banned&#39;) || (value == &#39;Aborted&#39;)) {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/failed.gif&quot;/&gt;&#39;;
+        } else if ((value == &#39;Waiting&#39;) || (value == &#39;Stopped&#39;) || (value == &#39;Poor&#39;) || (value == &#39;Probing&#39;)) {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/waiting.gif&quot;/&gt;&#39;;
+        } else if (value == &#39;Deleted&#39;) {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/deleted.gif&quot;/&gt;&#39;;
+        } else if (value == &#39;Matched&#39;) {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/matched.gif&quot;/&gt;&#39;;
+        } else if ((value == &#39;Running&#39;) || (value == &#39;Active&#39;) || (value == &#39;Fair&#39;)) {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/running.gif&quot;/&gt;&#39;;
+        } else if (value == &#39;NoMask&#39;) {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/unknown.gif&quot;/&gt;&#39;;
+        } else if ((value == &#39;Completed&#39;) || value == (value == &#39;Completing&#39;)) {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/completed.gif&quot;/&gt;&#39;;
+        } else if (value == &#39;Idle&#39;) {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/idle.gif&quot;/&gt;&#39;;
+        } else {
+          return &#39;&lt;img src=&quot;static/core/img/statusIcons/unknown.gif&quot;/&gt;&#39;;
+        }
+      },
+<span id='Ext-dirac-utils-DiracGridPanel-method-diffValues'>      /**
+</span>       * It render the columns in case we want to see the difference before load
+       * and after the load. More info {@link Ext.dirac.utils.DiracJsonStore}
+       */
+      diffValues : function(value, metaData, record, rowIndex, colIndex, store) {
+        var me = this;
+        var id = record.data[me.store.getDiffId()];
+        var diffValues = me.store.getDiffValues();
+        if (diffValues) {
+          if (id &amp;&amp; diffValues[id]) {
+            var field = metaData.column.dataIndex;
+            try {
+              var diff = value - diffValues[id][field];
+              var test = diff + &#39;&#39;;
+              if (test.indexOf(&quot;.&quot;) &gt; 0) {
+                diff = diff.toFixed(1);
+              }
+              if (diff &gt; 0) {
+                return value + &#39; &lt;font color=&quot;#00CC00&quot;&gt;(+&#39; + diff + &#39;)&lt;/font&gt;&#39;;
+              } else if (diff &lt; 0) {
+                return value + &#39; &lt;font color=&quot;#FF3300&quot;&gt;(&#39; + diff + &#39;)&lt;/font&gt;&#39;;
+              } else {
+                return value;
+              }
+            } catch (e) {
+              return value;
+            }
+          } else {
+            return value;
+          }
+
+        }
+      }
+    });
+</pre>
+</body>
+</html>

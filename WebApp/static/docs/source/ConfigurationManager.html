@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;DIRAC.ConfigurationManager.classes.ConfigurationManager&#39;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+      requires : [&#39;Ext.util.*&#39;, &#39;Ext.panel.Panel&#39;, &quot;Ext.form.field.Text&quot;, &quot;Ext.button.Button&quot;, &quot;Ext.menu.Menu&quot;, &quot;Ext.form.field.ComboBox&quot;, &quot;Ext.layout.*&quot;, &quot;Ext.form.field.Date&quot;, &quot;Ext.form.field.TextArea&quot;, &quot;Ext.form.field.Checkbox&quot;, &quot;Ext.form.FieldSet&quot;, &quot;Ext.Button&quot;,
+          &quot;Ext.dirac.utils.DiracMultiSelect&quot;, &quot;Ext.util.*&quot;, &quot;Ext.toolbar.Toolbar&quot;, &quot;Ext.data.Record&quot;, &quot;Ext.tree.Panel&quot;, &quot;Ext.data.TreeStore&quot;, &quot;Ext.data.NodeInterface&quot;, &#39;Ext.form.field.TextArea&#39;, &#39;Ext.Array&#39;, &#39;Ext.data.proxy.LocalStorage&#39;],
+
+      loadState : function(oData) {
+
+        var me = this;
+
+        me.__postponedLoadState(oData);
+
+      },
+
+      __postponedLoadState : function(oData) {
+
+        var me = this;
+
+        if (!me.isConnectionEstablished) {
+          setTimeout(function() {
+                me.__postponedLoadState(oData);
+              }, 1000);
+        } else {
+
+          me.__sendSocketMessage({
+                op : &quot;getBulkExpandedNodeData&quot;,
+                nodes : oData.expandedNodes.join(&quot;&lt;&lt;||&gt;&gt;&quot;)
+              });
+
+        }
+
+      },
+
+      getStateData : function() {
+
+        var me = this;
+        var oReturn = {};
+
+        var oSerializedActions = [];
+
+        if (&quot;&quot; in me.expansionState)
+          me.__serializeExpansionAction(&quot;&quot;, me.expansionState[&quot;&quot;], oSerializedActions);
+
+        oReturn.expandedNodes = oSerializedActions;
+
+        return oReturn;
+
+      },
+
+      initComponent : function() {
+
+        var me = this;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          me.launcher.title = &quot;Configuration Manager&quot;;
+          me.launcher.maximized = false;
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.height = oDimensions[1] / 2;
+          me.launcher.width = oDimensions[0] / 2;
+
+        }
+
+        if (GLOBAL.VIEW_ID == &quot;tabs&quot;) {
+
+          me.launcher.title = &quot;Configuration Manager&quot;;
+          me.launcher.maximized = false;
+          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+          me.launcher.height = oDimensions[1] / 2;
+          me.launcher.width = oDimensions[0] / 2;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;border&#39;,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              },
+              items : [],
+              header : false
+            });
+
+        me.callParent(arguments);
+
+      },
+
+      /*
+       * This function is used only for ExtJS version 4.1.3
+       */
+
+      setNodeText : function(oNode, sNewText) {
+
+        oNode.set(&#39;text&#39;, sNewText);
+
+        oNode.data.text = sNewText;
+
+      },
+      __sendSocketMessage : function(oData) {
+
+        var me = this;
+
+        console.log(oData);
+
+        if (!me.isConnectionEstablished) {
+
+          var sMessage = &quot;There is no connection established with the server.\nDo you want to reconnect now?&quot;;
+
+          if (confirm(sMessage)) {
+            // resetting the configuration
+            me.socket = me.__createSocket(&quot;resetConfiguration&quot;);
+            me.btnResetConfig.hide();
+          }
+
+        } else {
+
+          me.socket.send(JSON.stringify(oData));
+
+        }
+
+      },
+      __setChangeMade : function(bChange) {
+
+        var me = this;
+
+        if (bChange) {
+
+          if (me.btnCommitConfiguration)
+            me.btnCommitConfiguration.show();
+
+          if (me.btnViewConfigDifference)
+            me.btnViewConfigDifference.show();
+
+        } else {
+          if (me.btnCommitConfiguration)
+            me.btnCommitConfiguration.hide();
+
+          if (me.btnViewConfigDifference)
+            me.btnViewConfigDifference.hide();
+
+        }
+
+        me.changeMade = bChange;
+
+      },
+      __createSocket : function(sOnOpenFuncName) {
+
+        var me = this;
+
+        var sLoc = window.location;
+        var sWsuri;
+
+        if (sLoc.protocol === &quot;https:&quot;) {
+          sWsuri = &quot;wss:&quot;;
+        } else {
+          sWsuri = &quot;ws:&quot;;
+        }
+        sWsuri += &quot;//&quot; + sLoc.host + GLOBAL.BASE_URL + &#39;ConfigurationManager&#39;;
+
+        var socket = new WebSocket(sWsuri);
+
+        socket.onopen = function(e) {
+          console.log(&quot;CONNECTED&quot;);
+          me.isConnectionEstablished = true;
+          socket.send(JSON.stringify({
+                op : sOnOpenFuncName
+              }));
+
+        };
+
+        socket.onerror = function(e) {
+          console.log(&quot;ERR &quot; + e.data);
+          me.isConnectionEstablished = false;
+        };
+
+        socket.onclose = function(e) {
+          me.isConnectionEstablished = false;
+          var sMessage = &quot;CONNECTION CLOSED&quot;;
+
+          if (me.changeMade)
+            sMessage += &quot; - UNCOMMITED CHANGES ARE LOST&quot;;
+
+          console.log(&quot;CLOSE&quot;);
+          sMessage += &quot;\nDo you want to reconnect now?&quot;;
+
+          if (me.changeMade &amp;&amp; me.dontShowMessageBeforeClose) {
+            // only show the message when the CS modified.
+            // we do not need to reconnect, because it will reconnect when we
+            // click on a item in the CS.
+            if (confirm(sMessage)) {
+              // resetting the configuration
+              me.socket = me.__createSocket(&quot;resetConfiguration&quot;);
+              me.btnResetConfig.hide();
+            }
+          }
+        };
+
+        socket.onmessage = function(e) {
+
+          var oResponse = JSON.parse(e.data);
+
+          if (parseInt(oResponse.success, 10) == 0) {
+
+            GLOBAL.APP.CF.alert(oResponse.message, &quot;error&quot;);
+
+            switch (oResponse.op) {
+
+              case &quot;moveNode&quot; :
+                me.waitForMoveResponse = false;
+                break;
+              case &quot;commitConfiguration&quot; :
+                me.btnCommitConfiguration.show();
+                me.btnViewConfigDifference.show();
+                me.treePanel.body.unmask();
+                break;
+            }
+
+          } else {
+
+            switch (oResponse.op) {
+
+              case &quot;init&quot; :
+                me.setNodeText(me.treeStore.getRootNode(), oResponse.name + &quot; [&quot; + oResponse.version + &quot;]&quot;);
+                me.btnResetConfig.show();
+                me.treePanel.getRootNode().expand();
+                break;
+              case &quot;getSubnodes&quot; :
+                me.__oprCreateSubnodes(oResponse);
+                break;
+              case &quot;showConfigurationAsText&quot; :
+                me.__showConfigTextInWindow(oResponse.text);
+                break;
+              case &quot;showCurrentDiff&quot; :
+                me.__showConfigDiffInWindow(oResponse);
+                me.btnCommitConfiguration.show();
+                me.btnViewConfigDifference.show();
+                break;
+              case &quot;resetConfiguration&quot; :
+                me.setNodeText(me.treeStore.getRootNode(), oResponse.name + &quot; [&quot; + oResponse.version + &quot;]&quot;);
+                me.__cbResetConfigurationTree(oResponse.text);
+                me.__clearValuePanel();
+                me.copyNode = null;
+                me.btnPasteButton.setDisabled(true);
+                me.treePanel.body.unmask();
+                me.__setChangeMade(false);
+                break;
+              case &quot;getBulkExpandedNodeData&quot; :
+                me.__cbGetBulkExpandedNodeData(oResponse);
+                break;
+
+              case &quot;setOptionValue&quot; :
+                var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
+                oNode.raw.csValue = oResponse.value;
+                me.valuePanel.csValue = oResponse.value;
+                me.txtOptionValuePanelTextArea.setValue(me.__stringToList(oNode.raw.csValue).join(&quot;\n&quot;));
+                me.setNodeText(oNode, oNode.raw.csName + &quot; = &quot; + oNode.raw.csValue);
+                me.__setChangeMade(true);
+                break;
+              case &quot;setComment&quot; :
+                var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
+                oNode.raw.csComment = oResponse.comment;
+                me.valuePanel.csComment = me.__commentToList(oNode.raw.csComment).join(&quot;\n&quot;);
+
+                me.__setChangeMade(true);
+                break;
+              case &quot;copyKey&quot; :
+                me.__cbMenuCopyNode(oResponse);
+
+                me.__setChangeMade(true);
+                break;
+              case &quot;renameKey&quot; :
+                me.__cbMenuRenameNode(oResponse);
+
+                me.__setChangeMade(true);
+                break;
+              case &quot;deleteKey&quot; :
+                me.__cbMenuDeleteNode(oResponse);
+                me.__clearValuePanel();
+                me.__setChangeMade(true);
+                break;
+              case &quot;createSection&quot; :
+                me.__cbMenuCreateSubsection(oResponse);
+                me.__setChangeMade(true);
+                break;
+              case &quot;createOption&quot; :
+                me.__cbMenuCreateOption(oResponse);
+                me.__setChangeMade(true);
+                break;
+              case &quot;commitConfiguration&quot; :
+                GLOBAL.APP.CF.alert(&quot;The changes in the configuration have been successfuly commited !&quot;, &quot;info&quot;);
+                me.btnCommitConfiguration.show();
+                me.btnViewConfigDifference.show();
+                me.__setChangeMade(false);
+                me.__sendSocketMessage({
+                      op : &quot;resetConfiguration&quot;
+                    });
+                me.btnResetConfig.hide();
+                break;
+              case &quot;moveNode&quot; :
+                me.__cbMoveNode(oResponse);
+                me.__setChangeMade(true);
+                break;
+
+            }
+          }
+
+        };
+
+        return socket;
+      },
+
+      buildUI : function() {
+
+        var me = this;
+
+        me.isConnectionEstablished = false;
+
+        me.socket = me.__createSocket(&quot;init&quot;);
+
+        me.btnViewConfigAsText = new Ext.Button({
+
+              text : &#39;View as Text&#39;,
+
+              iconCls : &quot;dirac-icon-text&quot;,
+              handler : function() {
+
+                me.__sendSocketMessage({
+                      op : &quot;showConfigurationAsText&quot;
+                    });
+
+                me.btnViewConfigAsText.hide();
+
+              },
+              scope : me
+
+            });
+
+        me.btnResetConfig = new Ext.Button({
+
+              text : &#39;Reload&#39;,
+
+              iconCls : &quot;dirac-icon-reset&quot;,
+              handler : function() {
+                if (me.changeMade) {
+                  if (confirm(&quot;If you reload you might loose the changes you&#39;ve might made.\nDo you want to reload?&quot;)) {
+                    me.__sendSocketMessage({
+                          op : &quot;resetConfiguration&quot;
+                        });
+                    me.btnResetConfig.hide();
+                    me.treePanel.body.mask(&quot;Loading ...&quot;);
+                  }
+                } else {
+
+                  me.__sendSocketMessage({
+                        op : &quot;resetConfiguration&quot;
+                      });
+                  me.btnResetConfig.hide();
+                  me.treePanel.body.mask(&quot;Loading ...&quot;);
+
+                }
+              },
+              scope : me
+
+            });
+
+        me.treeStore = Ext.create(&#39;Ext.data.TreeStore&#39;, {
+              proxy : {
+                type : &#39;localstorage&#39;,
+                id : &#39;localstorage&#39; + me.id
+              },
+              root : {
+                text : &#39;Configuration&#39;
+              },
+              listeners : {
+                beforeexpand : function(oNode, eOpts) {
+
+                  if (!me.flagReset) {
+
+                    var oNodePath = me.__getNodePath(oNode);
+
+                    me.__sendSocketMessage({
+                          op : &quot;getSubnodes&quot;,
+                          nodePath : oNodePath,
+                          node : oNode.getId()
+                        });
+
+                  }
+                },
+                collapse : function(oNode, eOpts) {
+
+                  // remove the path from the
+                  var oNodePath = me.__getNodePath(oNode);
+                  oNode.removeAll();
+                  oNode.appendChild({});
+                  me.__oprUnsetPathAsExpanded(oNodePath);
+
+                }
+              }
+            });
+
+        var bBarElems = [me.btnViewConfigAsText, me.btnResetConfig];
+
+        if ((&quot;properties&quot; in GLOBAL.USER_CREDENTIALS) &amp;&amp; (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, &quot;CSAdministrator&quot;) != -1)) {
+
+          me.btnBrowseManage = new Ext.Button({
+
+                text : &#39;Manage&#39;,
+
+                iconCls : &quot;cm-to-manage-icon&quot;,
+                handler : function() {
+                  if (me.editMode) {
+                    me.btnBrowseManage.setText(&quot;Manage&quot;);
+                    me.btnBrowseManage.setIconCls(&quot;cm-to-manage-icon&quot;);
+                    me.leafMenu.hide();
+                    me.sectionMenu.hide();
+                    me.valuePanel.hide();
+                    me.btnCommitConfiguration.hide();
+                    me.btnViewConfigDifference.hide();
+                  } else {
+                    me.btnBrowseManage.setText(&quot;Browse&quot;);
+                    me.btnBrowseManage.setIconCls(&quot;cm-to-browse-icon&quot;);
+                    me.valuePanel.show();
+                    me.valuePanel.expand(false);
+                  }
+                  me.editMode = !me.editMode;
+                },
+                scope : me
+
+              });
+
+          me.btnCommitConfiguration = new Ext.Button({
+
+                text : &#39;Commit&#39;,
+
+                iconCls : &quot;dirac-icon-submit&quot;,
+                handler : function() {
+                  if (confirm(&quot;Do you want to apply the configuration changes you&#39;ve done till now?&quot;)) {
+                    me.treePanel.body.mask(&quot;Wait ...&quot;);
+                    me.__sendSocketMessage({
+                          op : &quot;commitConfiguration&quot;
+                        });
+                    me.btnCommitConfiguration.hide();
+                    me.btnViewConfigDifference.hide();
+                  }
+                },
+                scope : me,
+                hidden : true
+
+              });
+
+          me.btnViewConfigDifference = new Ext.Button({
+
+                text : &#39;Show diff.&#39;,
+
+                iconCls : &quot;cm-to-browse-icon&quot;,
+                handler : function() {
+
+                  me.__sendSocketMessage({
+                        op : &quot;showCurrentDiff&quot;
+                      });
+                  me.btnCommitConfiguration.hide();
+                  me.btnViewConfigDifference.hide();
+
+                },
+                scope : me,
+                hidden : true
+              });
+
+          bBarElems.push(&quot;-&gt;&quot;);
+          bBarElems.push(me.btnCommitConfiguration);
+          bBarElems.push(me.btnViewConfigDifference);
+          bBarElems.push(me.btnBrowseManage);
+
+        }
+
+        me.treePanel = new Ext.create(&#39;Ext.tree.Panel&#39;, {
+              region : &#39;center&#39;,
+              store : me.treeStore,
+              header : false,
+              viewConfig : {
+                plugins : {
+                  ptype : &#39;treeviewdragdrop&#39;,
+                  containerScroll : true
+                }
+              },
+              tbar : bBarElems,
+              listeners : {
+
+                beforeitemcontextmenu : function(oView, oNode, item, index, e, eOpts) {
+
+                  if (me.editMode) {
+
+                    e.preventDefault();
+                    if (oNode.isLeaf()) {
+                      me.leafMenu.node = oNode;
+                      me.leafMenu.showAt(e.xy);
+                    } else {
+                      me.sectionMenu.node = oNode;
+                      me.sectionMenu.showAt(e.xy);
+                    }
+
+                    if (me.editMode) {
+
+                      if (oNode.getId() != &quot;root&quot;) {
+
+                        me.__oprSetValuesForValuePanel(me, oNode);
+
+                      }
+                    }
+
+                    return false;
+                  } else {
+
+                    return true;
+                  }
+
+                },
+
+                beforecontainercontextmenu : function(oView, e, eOpts) {
+                  if (me.editMode) {
+                    return false;
+                  } else {
+                    return true;
+                  }
+                },
+
+                itemclick : function(oView, oNode, item, index, e, eOpts) {
+
+                  if (oNode.getId() != &quot;root&quot;) {
+
+                    me.__oprSetValuesForValuePanel(me, oNode);
+
+                  }
+
+                },
+                beforeitemmove : function(oNode, oOldParent, oNewParent, iIndex, eOpts) {
+
+                  if (me.editMode) {
+                    if (!me.waitForMoveResponse) {
+                      me.__oprMoveNode(oNode, oOldParent, oNewParent, iIndex);
+                      return false;
+                    }
+                  } else {
+                    return false;
+                  }
+
+                }
+              }
+            });
+
+        me.btnValuePanelSubmit = new Ext.Button({
+
+              text : &#39;Submit&#39;,
+              margin : 1,
+              iconCls : &quot;dirac-icon-submit&quot;,
+              handler : me.__oprActionValuePanel,
+              scope : me
+
+            });
+
+        me.btnValuePanelReset = new Ext.Button({
+
+              text : &#39;Reset&#39;,
+              margin : 1,
+              iconCls : &quot;dirac-icon-reset&quot;,
+              handler : function() {
+                if (me.valuePanel.csNode == null)
+                  return;
+
+                me.txtOptionValuePanelTextArea.setValue(me.valuePanel.csValue);
+                me.txtCommentValuePanelTextArea.setValue(me.valuePanel.csComment);
+              },
+              scope : me
+
+            });
+
+        var oValuePanelToolbar = new Ext.toolbar.Toolbar({
+              dock : &#39;bottom&#39;,
+              layout : {
+                pack : &#39;center&#39;
+              },
+              items : [me.btnValuePanelSubmit, me.btnValuePanelReset]
+            });
+
+        me.txtOptionValuePanelTextArea = new Ext.create(&#39;Ext.form.field.TextArea&#39;, {
+              fieldLabel : &quot;Value&quot;,
+              labelAlign : &quot;top&quot;,
+              flex : 1
+            });
+
+        me.txtCommentValuePanelTextArea = new Ext.create(&#39;Ext.form.field.TextArea&#39;, {
+              fieldLabel : &quot;Comment&quot;,
+              labelAlign : &quot;top&quot;,
+              flex : 1
+            });
+
+        me.valuePanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              title : &#39;Path&#39;,
+              region : &#39;east&#39;,
+              floatable : false,
+              margins : &#39;0&#39;,
+              width : 250,
+              minWidth : 230,
+              maxWidth : 350,
+              bodyPadding : 5,
+              layout : {
+                type : &#39;vbox&#39;,
+                align : &#39;stretch&#39;,
+                pack : &#39;start&#39;
+              },
+              autoScroll : true,
+              collapsed : true,
+
+              csNode : null,
+              csPath : &quot;&quot;,
+              csValue : &quot;&quot;,
+              csComment : &quot;&quot;,
+
+              items : [me.txtOptionValuePanelTextArea, me.txtCommentValuePanelTextArea],
+
+              listeners : {
+
+                render : function(oPanel, eOpts) {
+
+                  oPanel.hide();
+
+                }
+
+              }
+            });
+
+        me.valuePanel.addDocked([oValuePanelToolbar]);
+
+        me.add([me.treePanel, me.valuePanel]);
+
+        me.leafMenu = new Ext.menu.Menu({
+              width : 150,
+              items : [{
+                    text : &#39;Copy&#39;,
+                    listeners : {
+                      click : me.__oprMenuCopyNode
+                    }
+                  }, {
+                    text : &#39;Rename&#39;,
+                    listeners : {
+                      click : me.__oprMenuRenameNode
+                    }
+                  }, {
+                    text : &#39;Delete&#39;,
+                    listeners : {
+                      click : me.__oprMenuDeleteNode
+                    }
+                  }],
+              moduleObject : me
+            });
+
+        me.btnPasteButton = new Ext.menu.Item({
+
+              text : &#39;Paste&#39;,
+              disabled : false,
+              listeners : {
+                click : me.__oprMenuPasteNode
+              }
+
+            });
+
+        me.sectionMenu = new Ext.menu.Menu({
+              width : 150,
+              items : [{
+                    text : &#39;Create a subsection&#39;,
+                    listeners : {
+                      click : me.__oprMenuCreateSubsection
+                    }
+                  }, {
+                    text : &#39;Create an option&#39;,
+                    listeners : {
+                      click : me.__oprMenuCreateOption
+                    }
+                  }, &#39;-&#39;, {
+                    text : &#39;Copy&#39;,
+                    listeners : {
+                      click : me.__oprMenuCopyNode
+                    }
+                  }, me.btnPasteButton, {
+                    text : &#39;Rename&#39;,
+                    listeners : {
+                      click : me.__oprMenuRenameNode
+                    }
+                  }, {
+                    text : &#39;Delete&#39;,
+                    listeners : {
+                      click : me.__oprMenuDeleteNode
+                    }
+                  }],
+              moduleObject : me
+            });
+
+        me.expansionState = {};
+        me.counterNodes = 0;
+        me.flagReset = false;
+        me.waitForMoveResponse = false;
+        me.editMode = false;
+        me.copyNode = null;
+        me.changeMade = false;
+        me.dontShowMessageBeforeClose = true;
+
+      },
+
+      afterRender : function() {
+        var me = this;
+
+        me.__setDiracDestroyHandler();
+
+        this.callParent();
+      },
+
+      __setDiracDestroyHandler : function() {
+
+        var me = this;
+
+        me.on(&quot;destroy&quot;, function(oComp, eOpts) {
+
+              var oThisContainer = this;
+
+              oThisContainer.dontShowMessageBeforeClose = false;
+              oThisContainer.socket.close();
+
+            }, me);
+
+      },
+
+      __clearValuePanel : function() {
+
+        var me = this;
+        me.txtCommentValuePanelTextArea.setValue(&quot;&quot;);
+        me.txtOptionValuePanelTextArea.setValue(&quot;&quot;);
+        me.valuePanel.csValue = &quot;&quot;;
+        me.valuePanel.csComment = &quot;&quot;;
+        me.valuePanel.csNode = null;
+        me.valuePanel.csPath = &quot;&quot;;
+        me.valuePanel.setTitle(&quot;[No node selected]&quot;);
+
+      },
+
+      __oprUnsetPathAsExpanded : function(sPath) {
+
+        var me = this;
+        var oParts = sPath.split(&quot;/&quot;);
+
+        // The first element is always empty
+        var oTemp = me.expansionState;
+        var oStartIndex = 0;
+
+        if (sPath == &quot;/&quot;)
+          oStartIndex = 1;
+
+        for (var i = oStartIndex; i &lt; oParts.length; i++) {
+
+          if (oParts[i] in oTemp) {
+
+            if (i == oParts.length - 1) {
+
+              delete oTemp[oParts[i]];
+
+            } else {
+
+              oTemp = oTemp[oParts[i]];
+
+            }
+
+          }
+        }
+
+      },
+
+      __oprPathAsExpanded : function(sPath, bInsertIntoStructure) {
+
+        var me = this;
+        var oParts = sPath.split(&quot;/&quot;);
+
+        // The first element is always empty
+        var oTemp = me.expansionState;
+        var oFound = true;
+
+        var oStartIndex = 0;
+
+        if (sPath == &quot;/&quot;)
+          oStartIndex = 1;
+
+        for (var i = oStartIndex; i &lt; oParts.length; i++) {
+
+          if (oParts[i] in oTemp) {
+
+            oTemp = oTemp[oParts[i]];
+
+          } else {
+
+            oFound = false;
+
+            if (bInsertIntoStructure) {
+              oTemp[oParts[i]] = {};
+            }
+
+            break;
+
+          }
+
+        }
+
+        return oFound;
+
+      },
+      __getNodePath : function(oNode) {
+        var sPath = &quot;&quot;
+        var oCopyRefNode = oNode;
+        while (oCopyRefNode) {
+          if (oCopyRefNode.raw.csName)
+            sPath = &quot;/&quot; + oCopyRefNode.raw.csName + sPath;
+          else
+            break;
+          oCopyRefNode = oCopyRefNode.parentNode;
+        }
+        if (!sPath)
+          return &quot;/&quot;;
+        return sPath;
+      },
+
+      __generateNewNodeId : function() {
+
+        var me = this;
+        var sId = me.id + &quot;-ynode-&quot; + me.counterNodes;
+        me.counterNodes++;
+        return sId;
+
+      },
+      __oprCreateSubnodes : function(oResponse) {
+
+        var me = this;
+
+        var oParentNode = me.treeStore.getNodeById(oResponse.parentNodeId);
+
+        if (!me.__oprPathAsExpanded(me.__getNodePath(oParentNode), true)) {
+
+          /*
+           * HACK for representation the plus/minus sign for none expanded node
+           */
+          oParentNode.removeAll();
+          /*
+           * END - HACK
+           */
+
+          for (var i = 0; i &lt; oResponse.nodes.length; i++) {
+
+            var oNodeData = oResponse.nodes[i];
+
+            oNodeData.id = me.__generateNewNodeId();
+
+            if (&quot;qtipCfg&quot; in oNodeData)
+              oNodeData.qtip = oNodeData.qtipCfg.text;
+
+            var oNewNode = oParentNode.createNode(oNodeData);
+
+            /*
+             * HACK for representation the plus/minus sign for none expanded
+             * node
+             */
+            if (!oNodeData.leaf)
+              oNewNode.appendChild({});
+            /*
+             * END - HACK
+             */
+
+            oParentNode.appendChild(oNewNode);
+
+          }
+
+        }
+
+      },
+
+      __showConfigTextInWindow : function(sTextToShow) {
+
+        var me = this;
+
+        var oWindow = me.getContainer().createChildWindow(&quot;Configuration As Text&quot;, false, 700, 500);
+        // TODO: use the commented lines when it works
+        /*
+         * var oTextArea = new Ext.create(&#39;Ext.form.field.TextArea&#39;, { value :
+         * sTextToShow, cls : &quot;cm-textbox-help-window&quot;, height : 700, width :
+         * 500, readOnly : true
+         * 
+         * });
+         */
+
+        var oTextArea = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              html : &quot;&lt;textarea rows=&#39;600&#39; cols=&#39;400&#39;&gt;&quot; + sTextToShow + &quot;&lt;/textarea&gt;&quot;,
+              cls : &quot;cm-textbox-help-window&quot;,
+              height : 700,
+              width : 500,
+              readOnly : true,
+              autoScroll : true
+
+            });
+
+        oWindow.add(oTextArea);
+
+        me.btnViewConfigAsText.show();
+
+        oWindow.show();
+
+      },
+
+      __showConfigDiffInWindow : function(oResponse) {
+
+        var me = this;
+
+        var iWinHeight = 500;
+
+        var oWindow = me.getContainer().createChildWindow(&quot;Current Configuration Difference&quot;, false, 700, iWinHeight);
+
+        /*------------------------TEST------------------------*/
+        /*
+         * var sTestHtml = &#39;&#39;; var oTestLines = [];
+         * 
+         * sTestHtml += &#39;&lt;table class=&quot;cm-config-diff&quot;&gt;&#39;; sTestHtml += &#39;&lt;tr&gt;&#39;;
+         * sTestHtml += &quot;&lt;th&gt;Server&#39;s version&lt;/th&gt;&quot;; sTestHtml += &quot;&lt;th&gt;User&#39;s
+         * current version&lt;/th&gt;&quot;; sTestHtml += &#39;&lt;/tr&gt;&#39;;
+         * 
+         * oResponse.totalLines = 300;
+         * 
+         * for ( var i = 0; i &lt; oResponse.totalLines; i++) {
+         * 
+         * var cClass = &quot;&quot;; var fRandom = Math.random();
+         * 
+         * if (fRandom &lt; 0.5) cClass = &quot;&quot;; else if (fRandom &lt; 0.6) cClass =
+         * &quot;del&quot;; else if (fRandom &lt; 0.7) cClass = &quot;conflict&quot;; else if (fRandom &lt;
+         * 0.8) cClass = &quot;add&quot;; else if (fRandom &lt;= 1.0) cClass = &quot;mod&quot;;
+         * 
+         * if (cClass != &quot;&quot;) oTestLines.push([ cClass, i ]);
+         * 
+         * var sRow = Math.random().toString(36).substring(7);
+         * 
+         * sTestHtml += &#39;&lt;tr &#39; + ((cClass != &quot;&quot;) ? &quot; id=&#39;diff-line-&quot; + i + &quot;&#39; class=&#39;&quot; + cClass + &quot;&#39;&quot; : &quot;&quot;) + &#39;&gt;&#39;;
+         * sTestHtml += &quot;&lt;th&gt;&quot; + sRow + &quot;&lt;/th&gt;&quot;; sTestHtml += &quot;&lt;th&gt;&quot; +
+         * sRow + &quot;&lt;/th&gt;&quot;; sTestHtml += &#39;&lt;/tr&gt;&#39;; }
+         * 
+         * sTestHtml += &#39;&lt;/table&gt;&#39;;
+         * 
+         * oResponse.html = sTestHtml; oResponse.lines = oTestLines;
+         */
+
+        /*------------------------ END TEST------------------------*/
+
+        oResponse.html = oResponse.html.replace(new RegExp(&quot;&amp;amp;nbsp;&quot;, &#39;g&#39;), &quot;&amp;nbsp;&quot;);
+
+        oResponse.html = oResponse.html.replace(new RegExp(&quot;id=&#39;&quot;, &#39;g&#39;), &quot;id=&#39;&quot; + me.id + &quot;-&quot;);
+
+        var oCodePanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              region : &quot;center&quot;,
+              html : oResponse.html,
+              layout : &quot;fit&quot;,
+              autoScroll : true,
+              bodyPadding : 5
+            });
+
+        var oBlocksPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              region : &quot;east&quot;,
+              layout : &quot;absolute&quot;,
+              codePanel : oCodePanel,
+              width : 50,
+              totalLines : oResponse.totalLines,
+              listeners : {
+
+                resize : function(oComp, width, height, oldWidth, oldHeight, eOpts) {
+
+                  var delta_pos = 1.0 * (height - 10) / parseFloat(oComp.totalLines);
+
+                  for (var i = 0; i &lt; oComp.items.length; i++) {
+
+                    var oItem = oComp.getComponent(i);
+
+                    oItem.setPosition(0, Math.ceil(delta_pos * parseFloat(oItem.lineNumber)));
+
+                  }
+
+                }
+
+              }
+            });
+
+        var oPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              layout : &quot;border&quot;,
+              autoScroll : false,
+              bodyPadding : 0,
+              items : [oCodePanel, oBlocksPanel]
+            });
+
+        oWindow.add(oPanel);
+        oWindow.show();
+        oWindow.maximize();
+        oWindow.getHeader().show();
+
+        var delta_pos = 1.0 * (oBlocksPanel.getHeight() - 10) / parseFloat(oResponse.totalLines);
+
+        var oElem = Ext.query(&quot;table.cm-config-diff tr&quot;)[0];
+        var iHeight = oElem.offsetHeight;
+
+        var oBlocksToAdd = [];
+
+        for (var i = 0; i &lt; oResponse.lines.length; i++) {
+
+          var sColor = &quot;#ffffff&quot;;
+
+          switch (oResponse.lines[i][0]) {
+
+            case &quot;del&quot; :
+              sColor = &quot;#FAA&quot;;
+              break;
+            case &quot;mod&quot; :
+              sColor = &quot;#FFA&quot;;
+              break;
+            case &quot;add&quot; :
+              sColor = &quot;#AFA&quot;;
+              break;
+            case &quot;conflict&quot; :
+              sColor = &quot;#EEEEEE&quot;;
+              break;
+
+          }
+
+          oBlocksToAdd.push({
+                xtype : &quot;panel&quot;,
+                header : false,
+                border : false,
+                bodyStyle : {
+                  background : sColor
+                },
+                width : 50,
+                lineNumber : oResponse.lines[i][1],
+                height : 1 + ((delta_pos &lt; 1.0) ? 1 : Math.ceil(delta_pos)),
+                x : 0,
+                y : Math.ceil(delta_pos * parseFloat(oResponse.lines[i][1])),
+                layout : &quot;fit&quot;,
+                html : &#39;&lt;a href=&quot;#&#39; + me.id + &#39;-diff-line-&#39; + oResponse.lines[i][1] + &#39;&quot; style=&quot;display:block;width:100%&quot;&gt;&amp;nbsp;&lt;/a&gt;&#39;
+              });
+
+        }
+
+        oBlocksPanel.add(oBlocksToAdd);
+
+      },
+
+      __cbResetConfigurationTree : function() {
+
+        var me = this;
+
+        var oSerializedActions = [];
+
+        if (&quot;&quot; in me.expansionState)
+          me.__serializeExpansionAction(&quot;&quot;, me.expansionState[&quot;&quot;], oSerializedActions);
+
+        me.__sendSocketMessage({
+              op : &quot;getBulkExpandedNodeData&quot;,
+              nodes : oSerializedActions.join(&quot;&lt;&lt;||&gt;&gt;&quot;)
+            });
+
+        me.btnResetConfig.show();
+
+      },
+
+      __findNodeByPath : function(sPathToNode) {
+
+        var me = this;
+
+        var oRoot = me.treeStore.getRootNode();
+
+        var oParts = sPathToNode.split(&quot;/&quot;);
+
+        if ((oParts.length == 2) &amp;&amp; (oParts[1] == &quot;&quot;)) {
+
+          return oRoot;
+
+        } else {
+
+          var oStartNode = oRoot;
+
+          for (var i = 1; i &lt; oParts.length; i++) {
+
+            var oChildNodes = oStartNode.childNodes;
+
+            for (var j = 0; j &lt; oChildNodes.length; j++) {
+
+              if (oChildNodes[j].raw.csName == oParts[i]) {
+
+                oStartNode = oChildNodes[j];
+                break;
+
+              }
+
+            }
+
+          }
+
+          return oStartNode;
+
+        }
+
+      },
+
+      __serializeExpansionAction : function(sPathToLevel, oLevel, oColector) {
+
+        var me = this;
+        oColector.push(((sPathToLevel.length == 0) ? &quot;/&quot; : sPathToLevel));
+
+        for (sChild in oLevel) {
+          me.__serializeExpansionAction(sPathToLevel + &quot;/&quot; + sChild, oLevel[sChild], oColector);
+        }
+
+      },
+      __cbGetBulkExpandedNodeData : function(oResponse) {
+
+        var me = this;
+
+        me.treeStore.getRootNode().removeAll();
+
+        // clean the expansionState
+        if (&quot;&quot; in me.expansionState) {
+          delete me.expansionState[&quot;&quot;];
+        }
+
+        var oRetData = oResponse.data;
+        me.flagReset = true;
+
+        for (var i = 0; i &lt; oRetData.length; i++) {
+
+          var oPath = oRetData[i][0];
+          var oData = oRetData[i][1];
+
+          var oParentNode = me.__findNodeByPath(oPath);
+
+          if (!me.__oprPathAsExpanded(me.__getNodePath(oParentNode), true)) {
+
+            /*
+             * HACK for representation the plus/minus sign for none expanded
+             * node
+             */
+            oParentNode.removeAll();
+            /*
+             * END - HACK
+             */
+
+            for (var j = 0; j &lt; oData.length; j++) {
+
+              var oNodeData = oData[j];
+
+              oNodeData.id = me.__generateNewNodeId();
+
+              if (&quot;qtipCfg&quot; in oNodeData)
+                oNodeData.qtip = oNodeData.qtipCfg.text;
+
+              var oNewNode = oParentNode.createNode(oNodeData);
+
+              /*
+               * HACK for representation the plus/minus sign for none expanded
+               * node
+               */
+              if (!oNodeData.leaf)
+                oNewNode.appendChild({});
+              /*
+               * END - HACK
+               */
+
+              oParentNode.appendChild(oNewNode);
+
+            }
+
+            oParentNode.expand();
+
+          }
+
+        }
+
+        me.flagReset = false;
+
+      },
+
+      __stringToList : function(stringValue, sep) {
+
+        if (!sep) {
+          sep = &quot;,&quot;;
+        } else {
+          stringValue = stringValue.replace(new RegExp(&quot;,&quot;, &#39;g&#39;), sep);
+        }
+
+        var vList = stringValue.split(sep);
+        var strippedList = [];
+        for (var i = 0; i &lt; vList.length; i++) {
+          var trimmed = Ext.util.Format.trim(vList[i]);
+          if (trimmed.length &gt; 0) {
+            strippedList.push(trimmed);
+          }
+        }
+        return strippedList;
+      },
+
+      __commentToList : function(stringValue) {
+        var vList = stringValue.trim().split(&quot;\n&quot;);
+        var cList = [];
+        for (var i = 0; i &lt; vList.length; i++) {
+          var trimmed = Ext.util.Format.trim(vList[i]);
+          if (trimmed.length == 0)
+            continue;
+          if (i == vList.length - 1 &amp;&amp; trimmed.indexOf(&quot;@@-&quot;) == 0)
+            break;
+          cList.push(trimmed);
+        }
+        return cList;
+      },
+
+      __oprSetValuesForValuePanel : function(oModule, oNode) {
+
+        oModule.valuePanel.csNode = oNode;
+        oModule.valuePanel.csComment = oModule.__commentToList(oNode.raw.csComment).join(&quot;\n&quot;);
+        oModule.valuePanel.csPath = oModule.__getNodePath(oNode);
+        oModule.valuePanel.setTitle(&quot;Node &lt;br/&gt;&quot; + oModule.valuePanel.csPath);
+
+        if (oNode.isLeaf()) {
+
+          oModule.valuePanel.csValue = oModule.__stringToList(oNode.raw.csValue).join(&quot;\n&quot;);
+          oModule.txtOptionValuePanelTextArea.setValue(oModule.valuePanel.csValue);
+          oModule.txtCommentValuePanelTextArea.setValue(oModule.valuePanel.csComment);
+          oModule.txtOptionValuePanelTextArea.show();
+
+        } else {
+
+          oModule.txtCommentValuePanelTextArea.setValue(oModule.valuePanel.csComment);
+          oModule.txtOptionValuePanelTextArea.hide();
+        }
+
+      },
+
+      __oprActionValuePanel : function(oButton, eOpts) {
+
+        var oValuePanel = oButton.scope.valuePanel;
+        var oModule = oButton.scope;
+        var oNode = oValuePanel.csNode;
+
+        if (oNode == null)
+          return;
+
+        if (oNode.isLeaf()) {
+
+          var sNewValue = oModule.__stringToList(oModule.txtOptionValuePanelTextArea.getValue(), &quot;\n&quot;).join(&quot;,&quot;);
+
+          oModule.__sendSocketMessage({
+                op : &quot;setOptionValue&quot;,
+                path : oModule.__getNodePath(oNode),
+                value : sNewValue,
+                parentNodeId : oNode.getId()
+
+              });
+        }
+
+        oModule.__sendSocketMessage({
+              op : &quot;setComment&quot;,
+              path : oModule.__getNodePath(oNode),
+              value : oModule.txtCommentValuePanelTextArea.getValue(),
+              parentNodeId : oNode.getId()
+            });
+
+      },
+
+      __oprMenuCopyNode : function(oItem, e, eOpts) {
+
+        var oModule = oItem.parentMenu.moduleObject;
+        var oNode = oItem.parentMenu.node;
+
+        // when press COPY
+        oModule.copyNode = oNode;
+        oModule.btnPasteButton.setDisabled(false);
+
+      },
+
+      __oprMenuPasteNode : function(oItem, e, eOpts) {
+
+        var oModule = oItem.parentMenu.moduleObject;
+        var oNode = oItem.parentMenu.node;
+
+        if (oModule.copyNode != null) {
+          // when press PASTE, if only the name repeats itself
+          // First we have to check if there is a node with that name
+
+          var sNewName = oModule.copyNode.raw.csName;
+
+          var bNameExists = oModule.__nameExists(oNode, sNewName);
+
+          while (bNameExists) {
+
+            sNewName = sNewName + &quot;(copy)&quot;;
+            sNewName = window.prompt(&quot;The name already exists. What&#39;s the name for the copy?&quot;, sNewName);
+
+            if (sNewName == null)
+              return;
+
+            bNameExists = oModule.__nameExists(oNode, sNewName);
+          }
+
+          oModule.__sendSocketMessage({
+                op : &quot;copyKey&quot;,
+                newName : sNewName,
+                copyFromPath : oModule.__getNodePath(oModule.copyNode),
+                copyToPath : oModule.__getNodePath(oNode),
+                nodeId : oModule.copyNode.getId(),
+                parentNodeToId : oNode.getId()
+              });
+
+        }
+
+      },
+
+      __nameExists : function(oNode, sName) {
+
+        var oChildNodes = oNode.childNodes;
+
+        var bNameExists = false;
+
+        for (var i = 0; i &lt; oChildNodes.length; i++) {
+
+          if (oChildNodes[i].raw.csName == sName) {
+
+            bNameExists = true;
+            break;
+
+          }
+
+        }
+
+        return bNameExists;
+
+      },
+
+      __cbMenuCopyNode : function(oResponse) {
+
+        var me = this;
+
+        var newName = oResponse.newName;
+        var oNode = me.treeStore.getNodeById(oResponse.nodeId);
+        var oDestinationNode = me.treeStore.getNodeById(oResponse.parentNodeToId);
+
+        var newCfg = {
+          text : oNode.data.text,
+          csName : newName,
+          csComment : oNode.raw.csComment
+        };
+
+        if (oNode.isLeaf()) {
+
+          newCfg.leaf = true;
+          newCfg.csValue = oNode.raw.csValue;
+          newCfg.csName = newName;
+          newCfg.text = newName + &quot; = &quot; + oNode.raw.csValue;
+          newCfg.id = me.__generateNewNodeId();
+          var oNewNode = oNode.createNode(newCfg);
+          oDestinationNode.appendChild(oNewNode);
+        } else {
+
+          newCfg.text = newName;
+          newCfg.csName = newName;
+          newCfg.leaf = false;
+          newCfg.id = me.__generateNewNodeId();
+          var oNewNode = oNode.createNode(newCfg);
+          oNewNode.appendChild({});
+          oDestinationNode.appendChild(oNewNode);
+        }
+
+      },
+
+      __oprMenuRenameNode : function(oItem, e, eOpts) {
+        var oNode = oItem.parentMenu.node;
+        var oModule = oItem.parentMenu.moduleObject;
+        var sNewName = window.prompt(&quot;What&#39;s the new name for &quot; + oNode.raw.csName + &quot; ?&quot;);
+        if (sNewName == null)
+          return;
+
+        oModule.__sendSocketMessage({
+              op : &quot;renameKey&quot;,
+              path : oModule.__getNodePath(oNode),
+              newName : sNewName,
+              parentNodeId : oNode.getId()
+            });
+
+      },
+
+      __cbMenuRenameNode : function(oResponse) {
+
+        var me = this;
+        var newName = oResponse.newName;
+        var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
+
+        oNode.raw.csName = newName;
+
+        if (oNode.isLeaf()) {
+
+          me.setNodeText(oNode, oNode.raw.csName + &quot; = &quot; + oNode.raw.csValue);
+
+        } else {
+
+          me.setNodeText(oNode, newName);
+
+        }
+
+      },
+
+      __oprMenuDeleteNode : function(oItem, e, eOpts) {
+        var oNode = oItem.parentMenu.node;
+        var oModule = oItem.parentMenu.moduleObject;
+        if (!window.confirm(&quot;Are you sure you want to delete &quot; + oModule.__getNodePath(oNode) + &quot;?&quot;))
+          return;
+        oModule.__sendSocketMessage({
+              op : &quot;deleteKey&quot;,
+              path : oModule.__getNodePath(oNode),
+              parentNodeId : oNode.getId()
+            });
+
+      },
+
+      __cbMenuDeleteNode : function(oResponse) {
+
+        var me = this;
+
+        var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
+        var oParentNode = oNode.parentNode;
+        oParentNode.removeChild(oNode);
+
+      },
+
+      __oprMenuCreateSubsection : function(oItem, e, eOpts) {
+
+        var oFunc = function(oModule, oNode) {
+
+          oModule.__sendSocketMessage({
+                op : &quot;createSection&quot;,
+                path : oModule.__getNodePath(oNode),
+                name : oModule.txtElementName.getValue(),
+                config : oModule.txtElementConfig.getValue(),
+                parentNodeId : oNode.getId()
+              });
+
+        };
+
+        var oNode = oItem.parentMenu.node;
+        var oModule = oItem.parentMenu.moduleObject;
+
+        oModule.formCreateElement(&quot;subsection&quot;, oFunc, oNode);
+
+      },
+
+      __cbMenuCreateSubsection : function(oResponse) {
+
+        var me = this;
+
+        var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
+
+        var csData = oResponse.node;
+
+        var newCfg = {
+          text : csData.csName,
+          csName : csData.csName,
+          csComment : csData.csComment,
+          leaf : false
+        };
+
+        if (oNode.isLoaded()) {
+
+          newCfg.id = me.__generateNewNodeId();
+
+          var oNewNode = oNode.createNode(newCfg);
+          oNewNode.appendChild({});
+          oNode.appendChild(oNewNode);
+
+        }
+
+        oNode.expand();
+
+      },
+
+      __oprMenuCreateOption : function(oItem, e, eOpts) {
+
+        var oFunc = function(oModule, oNode) {
+
+          var sValue = oModule.__stringToList(oModule.txtElementValue.getValue(), &quot;\n&quot;).join(&quot;,&quot;)
+
+          oModule.__sendSocketMessage({
+                op : &quot;createOption&quot;,
+                path : oModule.__getNodePath(oNode),
+                name : oModule.txtElementName.getValue(),
+                value : sValue,
+                parentNodeId : oNode.getId()
+              });
+        }
+
+        var oNode = oItem.parentMenu.node;
+        var oModule = oItem.parentMenu.moduleObject;
+
+        oModule.formCreateElement(&quot;option&quot;, oFunc, oNode);
+
+      },
+
+      __cbMenuCreateOption : function(oResponse) {
+
+        var me = this;
+        var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
+        var newCfg = {
+          text : oResponse.optionName + &quot; = &quot; + oResponse.value,
+          csName : oResponse.optionName,
+          csValue : oResponse.value,
+          csComment : oResponse.comment,
+          leaf : true
+        };
+
+        if (oNode.isLoaded()) {
+
+          newCfg.id = me.__generateNewNodeId();
+
+          var oNewNode = oNode.createNode(newCfg);
+          oNode.appendChild(oNewNode);
+
+        }
+
+        oNode.expand();
+
+      },
+
+      __oprMoveNode : function(oNode, oOldParent, oNewParent, iIndex) {
+
+        var me = this;
+
+        me.__sendSocketMessage({
+              op : &quot;moveNode&quot;,
+
+              nodePath : me.__getNodePath(oNode),
+              newParentPath : me.__getNodePath(oNewParent),
+              beforeOfIndex : iIndex,
+
+              oldIndex : oOldParent.indexOf(oNode),
+              nodeId : oNode.getId(),
+              parentOldId : oOldParent.getId(),
+              parentNewId : oNewParent.getId()
+            });
+
+        me.waitForMoveResponse = true;
+
+      },
+
+      __cbMoveNode : function(oResponse) {
+
+        var me = this;
+        var oNode = me.treeStore.getNodeById(oResponse.nodeId);
+        var oNewParent = me.treeStore.getNodeById(oResponse.parentNewId);
+
+        oNewParent.insertChild(parseInt(oResponse.beforeOfIndex, 10), oNode);
+        me.waitForMoveResponse = false;
+
+      },
+
+      formCreateElement : function(sType, funcCreateElement, oNode) {
+
+        var me = this;
+
+        me.txtElementName = Ext.create(&#39;Ext.form.field.Text&#39;, {
+
+              fieldLabel : &quot;Name&quot;,
+              labelAlign : &#39;left&#39;,
+              allowBlank : false,
+              margin : 10,
+              anchor : &#39;100%&#39;
+
+            });
+
+        me.txtElementValue = Ext.create(&#39;Ext.form.field.Text&#39;, {
+              fieldLabel : &quot;Value&quot;,
+              labelAlign : &#39;left&#39;,
+              margin : 10,
+              width : 400,
+              allowBlank : false,
+              hidden : ((sType == &quot;subsection&quot;) ? true : false),
+              anchor : &#39;100%&#39;
+            });
+
+        me.txtElementConfig = Ext.create(&#39;Ext.form.field.TextArea&#39;, {
+              fieldLabel : &quot;Config&quot;,
+              labelAlign : &#39;left&#39;,
+              margin : 10,
+              width : 400,
+              hidden : ((sType == &quot;subsection&quot;) ? false : true),
+              anchor : &#39;100%&#39;,
+              rows : 10
+            });
+
+        // button for saving the state
+        me.btnCreateElement = new Ext.Button({
+
+              text : &#39;Submit&#39;,
+              margin : 3,
+              iconCls : &quot;dirac-icon-submit&quot;,
+              handler : function() {
+
+                var bValid = me.txtElementName.validate();
+
+                if (sType == &quot;option&quot;)
+                  bValid = bValid &amp;&amp; me.txtElementValue.validate();
+
+                if (bValid) {
+                  funcCreateElement(me, oNode);
+                  me.createElementWindow.close();
+                }
+
+              },
+              scope : me
+
+            });
+
+        // button to close the save form
+        me.btnCancelCreateElement = new Ext.Button({
+
+              text : &#39;Cancel&#39;,
+              margin : 3,
+              iconCls : &quot;toolbar-other-close&quot;,
+              handler : function() {
+
+                me.createElementWindow.close();
+
+              },
+              scope : me
+
+            });
+
+        var oToolbar = new Ext.toolbar.Toolbar({
+              border : false
+            });
+
+        oToolbar.add([me.btnCreateElement, me.btnCancelCreateElement]);
+
+        var oPanel = new Ext.create(&#39;Ext.panel.Panel&#39;, {
+              autoHeight : true,
+              border : false,
+              layout : &quot;anchor&quot;,
+              items : [oToolbar, me.txtElementName, me.txtElementValue, me.txtElementConfig]
+            });
+
+        var sTitle = &quot;Create an option&quot;;
+        var iHeight = 200;
+
+        if (sType == &quot;subsection&quot;) {
+          sTitle = &quot;Create a subsection&quot;;
+          iHeight = 280;
+        }
+
+        // initializing window showing the saving form
+        me.createElementWindow = Ext.create(&#39;widget.window&#39;, {
+              height : iHeight,
+              width : 500,
+              title : sTitle,
+              layout : &#39;fit&#39;,
+              modal : true,
+              items : oPanel
+            });
+
+        me.createElementWindow.show();
+        me.txtElementName.focus();
+
+      }
+
+    });
+</pre>
+</body>
+</html>

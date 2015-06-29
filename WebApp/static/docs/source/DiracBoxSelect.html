@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracBoxSelect'>/**
+</span> * BoxSelect for ExtJS 4.1, a combo box improved for multiple value querying,
+ * selection and management.
+ * 
+ * A friendlier combo box for multiple selections that creates easily
+ * individually removable labels for each selection, as seen on facebook and
+ * other sites. Querying and type-ahead support are also improved for multiple
+ * selections.
+ * 
+ * Options and usage mostly remain consistent with the standard
+ * [ComboBox](http://docs.sencha.com/ext-js/4-1/#!/api/Ext.form.field.ComboBox)
+ * control. Some default configuration options have changed, but most should
+ * still work properly if overridden unless otherwise noted.
+ * 
+ * Please note, this component does not support versions of ExtJS earlier than
+ * 4.1.
+ * 
+ * Inspired by the [SuperBoxSelect component for ExtJS
+ * 3](http://technomedia.co.uk/SuperBoxSelect/examples3.html), which in turn was
+ * inspired by the [BoxSelect component for ExtJS
+ * 2](http://efattal.fr/en/extjs/extuxboxselect/).
+ * 
+ * Various contributions and suggestions made by many members of the ExtJS
+ * community which can be seen in the [official user extension forum
+ * post](http://www.sencha.com/forum/showthread.php?134751-Ext.ux.form.field.BoxSelect).
+ * 
+ * Many thanks go out to all of those who have contributed, this extension would
+ * not be possible without your help.
+ * 
+ * See [AUTHORS.txt](../AUTHORS.TXT) for a list of major contributors
+ * 
+ * @author kvee_iv http://www.sencha.com/forum/member.php?29437-kveeiv
+ * @version 2.0.3
+ * @requires BoxSelect.css
+ * @xtype boxselect
+ * 
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracBoxSelect&#39;, {
+      extend : &#39;Ext.form.field.ComboBox&#39;,
+      alias : [&#39;widget.comboboxselect&#39;, &#39;widget.boxselect&#39;],
+      requires : [&#39;Ext.selection.Model&#39;, &#39;Ext.data.Store&#39;, &#39;Ext.selection.DataViewModel&#39;, &#39;Ext.form.field.Checkbox&#39;, &#39;Ext.dirac.utils.DiracBoxSelectField&#39;],
+      mixins : [&#39;Ext.dirac.utils.DiracFileLoad&#39;],
+
+      //
+      // Begin configuration options related to selected values
+      //
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-If'>      /**
+</span>       * @cfg {Boolean} If set to `true`, allows the combo field to hold more
+       *      than one value at a time, and allows selecting multiple items from
+       *      the dropdown list. The combo&#39;s text field will show all selected
+       *      values using the template defined by {@link #labelTpl}.
+       * 
+       * 
+       */
+      multiSelect : true,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-labelTpl'>      /**
+</span>       * @cfg {String/Ext.XTemplate} labelTpl The
+       *      [XTemplate](http://docs.sencha.com/ext-js/4-1/#!/api/Ext.XTemplate)
+       *      to use for the inner markup of the labelled items. Defaults to the
+       *      configured {@link #displayField}
+       */
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-forceSelection'>      /**
+</span>       * @cfg
+       * @inheritdoc
+       * 
+       * When {@link #forceSelection} is `false`, new records can be created by
+       * the user as they are typed. These records are **not** added to the
+       * combo&#39;s store. This creation is triggered by typing the configured
+       * &#39;delimiter&#39;, and can be further configured using the
+       * {@link #createNewOnEnter} and {@link #createNewOnBlur} configuration
+       * options.
+       * 
+       * This functionality is primarily useful with BoxSelect components for
+       * things such as an email address.
+       */
+      forceSelection : true,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-Has'>      /**
+</span>       * @cfg {Boolean} Has no effect if {@link #forceSelection} is `true`.
+       * 
+       * With {@link #createNewOnEnter} set to `true`, the creation described in
+       * {@link #forceSelection} will also be triggered by the &#39;enter&#39; key.
+       */
+      createNewOnEnter : false,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-Has'>      /**
+</span>       * @cfg {Boolean} Has no effect if {@link #forceSelection} is `true`.
+       * 
+       * With {@link #createNewOnBlur} set to `true`, the creation described in
+       * {@link #forceSelection} will also be triggered when the field loses
+       * focus.
+       * 
+       * Please note that this behavior is also affected by the configuration
+       * options {@link #autoSelect} and {@link #selectOnTab}. If those are
+       * true and an existing item would have been selected as a result, the
+       * partial text the user has entered will be discarded and the existing
+       * item will be added to the selection.
+       */
+      createNewOnBlur : false,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-Has'>      /**
+</span>       * @cfg {Boolean} Has no effect if {@link #multiSelect} is `false`.
+       * 
+       * Controls the formatting of the form submit value of the field as
+       * returned by {@link #getSubmitValue} - `true` for the field value to
+       * submit as a json encoded array in a single GET/POST variable - `false`
+       * for the field to submit as an array of GET/POST variables
+       */
+      encodeSubmitValue : false,
+
+      //
+      // End of configuration options related to selected values
+      //
+
+      //
+      // Configuration options related to pick list behavior
+      //
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-triggerOnClick'>      /**
+</span>       * @cfg {Boolean} `true` to activate the trigger when clicking in empty
+       *      space in the field. Note that the subsequent behavior of this is
+       *      controlled by the field&#39;s {@link #triggerAction}. This behavior
+       *      is similar to that of a basic ComboBox with {@link #editable}
+       *      `false`.
+       */
+      triggerOnClick : true,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg--'>      /**
+</span>       * @cfg {Boolean} - `true` to have each selected value fill to the width
+       *      of the form field - `false to have each selected value size to its
+       *      displayed contents
+       */
+      stacked : false,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-Has'>      /**
+</span>       * @cfg {Boolean} Has no effect if {@link #multiSelect} is `false`
+       * 
+       * `true` to keep the pick list expanded after each selection from the
+       * pick list `false` to automatically collapse the pick list after a
+       * selection is made
+       */
+      pinList : true,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-True'>      /**
+</span>       * @cfg {Boolean} True to hide the currently selected values from the drop
+       *      down list. These items are hidden via css to maintain simplicity
+       *      in store and filter management. - `true` to hide currently
+       *      selected values from the drop down pick list - `false` to keep the
+       *      item in the pick list as a selected item
+       */
+      filterPickList : false,
+
+      //
+      // End of configuration options related to pick list
+      // behavior
+      //
+
+      //
+      // Configuration options related to text field behavior
+      //
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-selectOnFocus'>      /**
+</span>       * @cfg
+       * @inheritdoc
+       */
+      selectOnFocus : true,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-grow'>      /**
+</span>       * @cfg {Boolean}
+       * 
+       * `true` if this field should automatically grow and shrink vertically to
+       * its content. Note that this overrides the natural trigger grow
+       * functionality, which is used to size the field horizontally.
+       */
+      grow : true,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-Has'>      /**
+</span>       * @cfg {Number/Boolean} Has no effect if {@link #grow} is `false`
+       * 
+       * The minimum height to allow when {@link #grow} is `true`, or `false` to
+       * allow for natural vertical growth based on the current selected values.
+       * See also {@link #growMax}.
+       */
+      growMin : false,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-Has'>      /**
+</span>       * @cfg {Number/Boolean} Has no effect if {@link #grow} is `false`
+       * 
+       * The maximum height to allow when {@link #grow} is `true`, or `false` to
+       * allow for natural vertical growth based on the current selected values.
+       * See also {@link #growMin}.
+       */
+      growMax : false,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-growAppend'>      /**
+</span>       * @cfg growAppend
+       * @hide Currently unsupported by BoxSelect since this is used for
+       *       horizontal growth and BoxSelect only supports vertical growth.
+       */
+<span id='Ext-dirac-utils-DiracBoxSelect-cfg-growToLongestValue'>      /**
+</span>       * @cfg growToLongestValue
+       * @hide Currently unsupported by BoxSelect since this is used for
+       *       horizontal growth and BoxSelect only supports vertical growth.
+       */
+
+      //
+      // End of configuration options related to text field
+      // behavior
+      //
+      //
+      // Event signatures
+      //
+<span id='Ext-dirac-utils-DiracBoxSelect-event-autosize'>      /**
+</span>       * @event autosize Fires when the **{@link #autoSize}** function is
+       *        triggered and the field is resized according to the
+       *        {@link #grow}/{@link #growMin}/{@link #growMax} configs as a
+       *        result. This event provides a hook for the developer to apply
+       *        additional logic at runtime to resize the field if needed.
+       * @param {Ext.ux.form.field.BoxSelect}
+       *          this This BoxSelect field
+       * @param {Number}
+       *          height The new field height
+       */
+
+      //
+      // End of event signatures
+      //
+      //
+      // Configuration options that will break things if messed
+      // with
+      //
+<span id='Ext-dirac-utils-DiracBoxSelect-property-fieldSubTpl'>      /**
+</span>       * @private
+       */
+      fieldSubTpl : [&#39;&lt;div id=&quot;{cmpId}-listWrapper&quot; class=&quot;x-boxselect {fieldCls} {typeCls}&quot;&gt;&#39;, &#39;&lt;ul id=&quot;{cmpId}-itemList&quot; class=&quot;x-boxselect-list&quot;&gt;&#39;, &#39;&lt;li id=&quot;{cmpId}-inputElCt&quot; class=&quot;x-boxselect-input&quot;&gt;&#39;, &#39;&lt;input id=&quot;{cmpId}-inputEl&quot; type=&quot;{type}&quot; &#39;,
+          &#39;&lt;tpl if=&quot;name&quot;&gt;name=&quot;{name}&quot; &lt;/tpl&gt;&#39;, &#39;&lt;tpl if=&quot;value&quot;&gt; value=&quot;{[Ext.util.Format.htmlEncode(values.value)]}&quot;&lt;/tpl&gt;&#39;, &#39;&lt;tpl if=&quot;size&quot;&gt;size=&quot;{size}&quot; &lt;/tpl&gt;&#39;, &#39;&lt;tpl if=&quot;tabIdx&quot;&gt;tabIndex=&quot;{tabIdx}&quot; &lt;/tpl&gt;&#39;, &#39;&lt;tpl if=&quot;disabled&quot;&gt; disabled=&quot;disabled&quot;&lt;/tpl&gt;&#39;,
+          &#39;class=&quot;x-boxselect-input-field {inputElCls}&quot; autocomplete=&quot;off&quot;&gt;&#39;, &#39;&lt;/li&gt;&#39;, &#39;&lt;/ul&gt;&#39;, &#39;&lt;/div&gt;&#39;, {
+            compiled : true,
+            disableFormats : true
+          }],
+
+<span id='Ext-dirac-utils-DiracBoxSelect-property-childEls'>      /**
+</span>       * @private
+       */
+      childEls : [&#39;listWrapper&#39;, &#39;itemList&#39;, &#39;inputEl&#39;, &#39;inputElCt&#39;],
+
+<span id='Ext-dirac-utils-DiracBoxSelect-property-componentLayout'>      /**
+</span>       * @private
+       */
+      componentLayout : &#39;boxselectfield&#39;,
+<span id='Ext-dirac-utils-DiracBoxSelect-property-inverseNotSelection'>      inverseNotSelection : false,
+</span><span id='Ext-dirac-utils-DiracBoxSelect-property-trigger1Cls'>      trigger1Cls : Ext.baseCSSPrefix + &#39;form-clear-trigger&#39;,
+</span><span id='Ext-dirac-utils-DiracBoxSelect-property-trigger2Cls'>      trigger2Cls : Ext.baseCSSPrefix + &#39;form-not-trigger&#39;,
+</span><span id='Ext-dirac-utils-DiracBoxSelect-property-trigger3Cls'>      trigger3Cls : Ext.baseCSSPrefix + &#39;form-combo-trigger&#39;,
+</span><span id='Ext-dirac-utils-DiracBoxSelect-property-clsNot'>      clsNot : Ext.baseCSSPrefix + &#39;form-not-trigger&#39;,
+</span><span id='Ext-dirac-utils-DiracBoxSelect-property-clsNotsel'>      clsNotsel : Ext.baseCSSPrefix + &#39;form-notsel-trigger&#39;,
+</span>
+<span id='Ext-dirac-utils-DiracBoxSelect-property-onClearButtonAfterClick'>      onClearButtonAfterClick : null,
+</span><span id='Ext-dirac-utils-DiracBoxSelect-property-onNotButtonAfterClick'>      onNotButtonAfterClick : null,
+</span>
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onTrigger1Click'>      onTrigger1Click : function() {
+</span>
+        var me = this;
+
+        me.getPicker().getSelectionModel().deselectAll();
+        me.setValue([]);
+
+        if (me.onClearButtonAfterClick != null) {
+          me.onClearButtonAfterClick(me);
+        }
+
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onTrigger2Click'>      onTrigger2Click : function() {
+</span>
+        var me = this;
+
+        me.inverseNotSelection = !me.inverseNotSelection;
+
+        if (!me.inverseNotSelection) {
+
+          me.trigger2Cls = me.clsNot;
+          var oElems = Ext.query(&quot;#&quot; + me.id + &#39; .&#39; + me.clsNotsel);
+
+          for (var i in oElems) {
+
+            Ext.get(oElems[i]).removeCls(me.clsNotsel);
+            Ext.get(oElems[i]).addCls(me.clsNot);
+
+          }
+
+        } else {
+
+          me.trigger2Cls = me.clsNotsel;
+
+          var oElems = Ext.query(&quot;#&quot; + me.id + &#39; .&#39; + me.clsNot);
+
+          for (var i in oElems) {
+
+            Ext.get(oElems[i]).removeCls(me.clsNot);
+            Ext.get(oElems[i]).addCls(me.clsNotsel);
+
+          }
+
+        }
+
+        if (me.onNotButtonAfterClick != null)
+          me.onNotButtonAfterClick(me);
+
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-isInverseSelection'>      isInverseSelection : function() {
+</span>
+        return this.inverseNotSelection;
+
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-setInverseSelection'>      setInverseSelection : function(bInverseSelection) {
+</span>
+        var me = this;
+
+        me.inverseNotSelection = bInverseSelection;
+
+        if (!me.inverseNotSelection) {
+
+          me.trigger2Cls = me.clsNot;
+          var oElems = Ext.query(&quot;#&quot; + me.id + &#39; .&#39; + me.clsNotsel);
+
+          for (var i in oElems) {
+
+            Ext.get(oElems[i]).removeCls(me.clsNotsel);
+            Ext.get(oElems[i]).addCls(me.clsNot);
+
+          }
+
+        } else {
+
+          me.trigger2Cls = me.clsNotsel;
+
+          var oElems = Ext.query(&quot;#&quot; + me.id + &#39; .&#39; + me.clsNot);
+
+          for (var i in oElems) {
+
+            Ext.get(oElems[i]).removeCls(me.clsNot);
+            Ext.get(oElems[i]).addCls(me.clsNotsel);
+
+          }
+
+        }
+
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-getInverseSelection'>      getInverseSelection : function(sSeparator) {
+</span>
+        var s = &quot;&quot;;
+
+        if (!sSeparator)
+          s = &quot;,&quot;;
+        else
+          s = sSeparator;
+
+        var me = this;
+
+        var oSelectionModel = me.getPicker().getSelectionModel();
+        var oStore = me.getStore();
+        var oCount = oStore.getCount();
+        var oInverseValues = [];
+
+        for (var i = 0; i &lt; oCount; i++)
+          if (!oSelectionModel.isSelected(oStore.getAt(i)))
+            oInverseValues.push(oStore.getAt(i).get(me.valueField));
+
+        return oInverseValues.join(s);
+
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-loadData'>      /**
+</span>       * It loads the data to the store. If we have lot of data, this method
+       * must be used.
+       * 
+       * @param {Ext.Array}
+       *          data it contains the data which can be loaded to the store.
+       *          The format is the following: [[2,22],[3,5],...]
+       */
+      loadData : function(data) {
+        var me = this;
+        var store = me.getStore();
+        store.loadData(data);
+      },
+<span id='Ext-dirac-utils-DiracBoxSelect-method-refreshStore'>      refreshStore : function(oNewStore) {
+</span>
+        var me = this;
+
+        var oStore = me.getStore();
+        var oCount = oStore.getCount();
+
+        var oCountNewStore = oNewStore.getCount();
+
+        me.suspendEvents(false);
+
+        var oValue = me.getValue();
+        oStore.removeAll();
+
+        for (var i = 0; i &lt; oCountNewStore; i++) {
+          oStore.add(oNewStore.getAt(i));
+        }
+
+        me.resumeEvents();
+
+        // this is needed because we have to render check-boxes
+        // inside the new items added
+        me.getPicker().refresh();
+
+      },
+<span id='Ext-dirac-utils-DiracBoxSelect-method-initComponent'>      /**
+</span>       * @inheritdoc
+       * 
+       * Initialize additional settings and enable simultaneous typeAhead and
+       * multiSelect support
+       * @protected
+       */
+
+      initComponent : function() {
+
+        var me = this;
+
+        me.loadFile([&quot;static/core/js/utils/css/DiracBoxSelect.css&quot;], function() {
+            }, me);
+        // -------------------------------------------------------------------------------------------------------------
+        var me = this, typeAhead = me.typeAhead;
+
+        if (typeAhead &amp;&amp; !me.editable) {
+          Ext.Error.raise(&#39;If typeAhead is enabled the combo must be editable: true -- please change one of those settings.&#39;);
+        }
+
+        Ext.apply(me, {
+              typeAhead : false
+            });
+
+        var selModel = {
+          selModel : {
+            mode : &quot;MULTI&quot;,
+            selectWithEvent : function(record, e, keepExisting) {
+              var me = this;
+
+              switch (me.selectionMode) {
+                case &#39;MULTI&#39; :
+                  if (e.ctrlKey &amp;&amp; me.isSelected(record)) {
+                    me.doDeselect(record, false);
+                  } else if (e.shiftKey &amp;&amp; me.lastFocused) {
+                    me.selectRange(me.lastFocused, record, e.ctrlKey);
+                  } else if (e.ctrlKey) {
+                    me.doSelect(record, true, false);
+                  } else if (me.isSelected(record) &amp;&amp; !e.shiftKey &amp;&amp; !e.ctrlKey) {
+                    me.doDeselect(record, false);
+                  } else {
+                    me.doSelect(record, false);
+                  }
+                  break;
+                case &#39;SIMPLE&#39; :
+                  if (me.isSelected(record)) {
+                    me.doDeselect(record);
+                  } else {
+                    me.doSelect(record, true);
+                  }
+                  break;
+                case &#39;SINGLE&#39; :
+                  // if allowDeselect is on and this
+                  // record isSelected, deselect it
+                  if (me.allowDeselect &amp;&amp; me.isSelected(record)) {
+                    me.doDeselect(record);
+                    // select the record and do NOT
+                    // maintain existing selections
+                  } else {
+                    me.doSelect(record, false);
+                  }
+                  break;
+              }
+            },
+
+            selectRange : function(startRow, endRow, keepExisting, dir) {
+              var me = this, store = me.store, selectedCount = 0, i, tmp, dontDeselect, records = [];
+
+              if (me.isLocked()) {
+                return;
+              }
+
+              if (!keepExisting) {
+                me.deselectAll(false);
+              }
+
+              if (!Ext.isNumber(startRow)) {
+                startRow = store.indexOf(startRow);
+              }
+              if (!Ext.isNumber(endRow)) {
+                endRow = store.indexOf(endRow);
+              }
+
+              // swap values
+              if (startRow &gt; endRow) {
+                tmp = endRow;
+                endRow = startRow;
+                startRow = tmp;
+              }
+
+              for (i = startRow; i &lt;= endRow; i++) {
+                if (me.isSelected(store.getAt(i))) {
+                  selectedCount++;
+                }
+              }
+
+              if (!dir) {
+                dontDeselect = -1;
+              } else {
+                dontDeselect = (dir == &#39;up&#39;) ? startRow : endRow;
+              }
+
+              for (i = startRow; i &lt;= endRow; i++) {
+                if (selectedCount == (endRow - startRow + 1)) {
+                  if (i != dontDeselect) {
+                    me.doDeselect(i, true);
+                  }
+                } else {
+                  records.push(store.getAt(i));
+                }
+              }
+
+              me.doMultiSelect(records, true);
+
+            },
+            enableKeyNav : false
+          }
+        };
+
+        me.listConfig = Ext.apply(me.listConfig || {}, selModel);
+
+        Ext.apply(me.listConfig, {
+              getInnerTpl : function(displayField) {
+                return &#39;&lt;table style=&quot;padding:0;margin:0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;multselector-checkbox&quot; style=&quot;padding:0px 5px 0px 0px;vertical-align:middle&quot;&gt;&lt;/td&gt;&lt;td style=&quot;padding:3px 0px 0px 0px;vertical-align:middle&quot;&gt;{&#39; + displayField + &#39;}&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&#39;;
+              },
+              afterComponentLayout : function() {
+
+                var iNewValue = 0;
+
+                if (me.store.getCount() &gt; 7)
+                  iNewValue = document.getElementById(me.getPicker().id + &quot;-listEl&quot;).clientHeight - 25;
+                else
+                  iNewValue = document.getElementById(me.getPicker().id + &quot;-listEl&quot;).clientHeight;
+
+                document.getElementById(me.getPicker().id + &quot;-listEl&quot;).style.height = &quot;&quot; + iNewValue + &quot;px&quot;;
+
+              },
+              listeners : {
+                refresh : function() {
+
+                  var me = this;
+                  var renderSelector = Ext.query(&quot;#&quot; + me.id + &#39; td.multselector-checkbox&#39;);
+                  for (var i in renderSelector) {
+                    Ext.create(&#39;Ext.form.field.Checkbox&#39;, {
+                          renderTo : renderSelector[i],
+                          margin : 0,
+                          padding : 0
+                        });
+                  }
+
+                },
+
+                select : function(r, record, eOpts) {
+
+                  var node = this.getNode(record);
+
+                  if (node) {
+                    var oPomElemId = Ext.fly(node).down(&quot;table table&quot;).id;
+                    var oCheckBox = Ext.getCmp(oPomElemId);
+                    oCheckBox.setValue(true);
+
+                  }
+
+                },
+
+                deselect : function(r, record, eOpts) {
+
+                  var node = this.getNode(record);
+
+                  if (node) {
+                    var oPomElemId = Ext.fly(node).down(&quot;table table&quot;).id;
+                    var oCheckBox = Ext.getCmp(oPomElemId);
+
+                    oCheckBox.setValue(false);
+
+                  }
+
+                },
+
+                itemclick : function(viewObject, record, item, index, e, eOpts) {
+
+                  if (e.target.nodeName == &quot;INPUT&quot;)
+                    e.ctrlKey = true;
+
+                }
+
+              }
+            });
+
+        me.callParent();
+
+        me.typeAhead = typeAhead;
+
+        me.selectionModel = new Ext.selection.Model({
+              store : me.valueStore,
+              mode : &#39;MULTI&#39;,
+              lastFocused : null,
+              onSelectChange : function(record, isSelected, suppressEvent, commitFn) {
+                commitFn();
+              }
+            });
+
+        if (!Ext.isEmpty(me.delimiter) &amp;&amp; me.multiSelect) {
+          me.delimiterRegexp = new RegExp(String(me.delimiter).replace(/[$%()*+.?\[\\\]{|}]/g, &quot;\\$&amp;&quot;));
+        }
+        // -------------------------------------------------------------------------------------------------------------
+
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-initEvents'>      /**
+</span>       * Register events for management controls of labelled items
+       * 
+       * @protected
+       */
+      initEvents : function() {
+        var me = this;
+
+        me.callParent(arguments);
+
+        if (!me.enableKeyEvents) {
+          me.mon(me.inputEl, &#39;keydown&#39;, me.onKeyDown, me);
+        }
+        me.mon(me.inputEl, &#39;paste&#39;, me.onPaste, me);
+        me.mon(me.listWrapper, &#39;click&#39;, me.onItemListClick, me);
+
+        // I would prefer to use relayEvents here to forward
+        // these events on, but I want
+        // to pass the field instead of exposing the underlying
+        // selection model
+        me.mon(me.selectionModel, {
+              &#39;selectionchange&#39; : function(selModel, selectedRecs) {
+                me.applyMultiselectItemMarkup();
+                me.fireEvent(&#39;valueselectionchange&#39;, me, selectedRecs);
+              },
+              &#39;focuschange&#39; : function(selectionModel, oldFocused, newFocused) {
+                me.fireEvent(&#39;valuefocuschange&#39;, me, oldFocused, newFocused);
+              },
+              scope : me
+            });
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onBindStore'>      /**
+</span>       * @inheritdoc
+       * 
+       * Create a store for the records of our current value based on the main
+       * store&#39;s model
+       * @protected
+       */
+      onBindStore : function(store, initial) {
+        var me = this;
+
+        if (store) {
+          me.valueStore = new Ext.data.Store({
+                model : store.model,
+                proxy : {
+                  type : &#39;memory&#39;
+                }
+              });
+          me.mon(me.valueStore, &#39;datachanged&#39;, me.applyMultiselectItemMarkup, me);
+          if (me.selectionModel) {
+            me.selectionModel.bindStore(me.valueStore);
+          }
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onUnbindStore'>      /**
+</span>       * @inheritdoc
+       * 
+       * Remove the selected value store and associated listeners
+       * @protected
+       */
+      onUnbindStore : function(store) {
+        var me = this, valueStore = me.valueStore;
+
+        if (valueStore) {
+          if (me.selectionModel) {
+            me.selectionModel.setLastFocused(null);
+            me.selectionModel.deselectAll();
+            me.selectionModel.bindStore(null);
+          }
+          me.mun(valueStore, &#39;datachanged&#39;, me.applyMultiselectItemMarkup, me);
+          valueStore.destroy();
+          me.valueStore = null;
+        }
+
+        me.callParent(arguments);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-createPicker'>      /**
+</span>       * @inheritdoc
+       * 
+       * Add refresh tracking to the picker for selection management
+       * @protected
+       */
+      createPicker : function() {
+        var me = this, picker = me.callParent(arguments);
+
+        me.mon(picker, {
+              &#39;beforerefresh&#39; : me.onBeforeListRefresh,
+              scope : me
+            });
+
+        if (me.filterPickList) {
+          picker.addCls(&#39;x-boxselect-hideselections&#39;);
+        }
+
+        return picker;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onDestroy'>      /**
+</span>       * @inheritdoc
+       * 
+       * Clean up selected values management controls
+       * @protected
+       */
+      onDestroy : function() {
+        var me = this;
+
+        Ext.destroyMembers(me, &#39;valueStore&#39;, &#39;selectionModel&#39;);
+
+        me.callParent(arguments);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-getSubTplData'>      /**
+</span>       * Add empty text support to initial render.
+       * 
+       * @protected
+       */
+      getSubTplData : function() {
+        var me = this, data = me.callParent(), isEmpty = me.emptyText &amp;&amp; data.value.length &lt; 1;
+
+        if (isEmpty) {
+          data.value = me.emptyText;
+        } else {
+          data.value = &#39;&#39;;
+        }
+        data.inputElCls = data.fieldCls.match(me.emptyCls) ? me.emptyCls : &#39;&#39;;
+
+        return data;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-afterRender'>      /**
+</span>       * @inheritdoc
+       * 
+       * Overridden to avoid use of placeholder, as our main input field is
+       * often empty
+       * @protected
+       */
+      afterRender : function() {
+        var me = this;
+
+        if (Ext.supports.Placeholder &amp;&amp; me.inputEl &amp;&amp; me.emptyText) {
+          delete me.inputEl.dom.placeholder;
+        }
+
+        me.bodyEl.applyStyles(&#39;vertical-align:top&#39;);
+
+        if (me.grow) {
+          if (Ext.isNumber(me.growMin) &amp;&amp; (me.growMin &gt; 0)) {
+            me.listWrapper.applyStyles(&#39;min-height:&#39; + me.growMin + &#39;px&#39;);
+          }
+          if (Ext.isNumber(me.growMax) &amp;&amp; (me.growMax &gt; 0)) {
+            me.listWrapper.applyStyles(&#39;max-height:&#39; + me.growMax + &#39;px&#39;);
+          }
+        }
+
+        if (me.stacked === true) {
+          me.itemList.addCls(&#39;x-boxselect-stacked&#39;);
+        }
+
+        if (!me.multiSelect) {
+          me.itemList.addCls(&#39;x-boxselect-singleselect&#39;);
+        }
+
+        me.applyMultiselectItemMarkup();
+        me.initialHeight = me.getHeight();
+
+        me.callParent(arguments);
+
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-findRecord'>      /**
+</span>       * Overridden to search entire unfiltered store since already selected
+       * values can span across multiple store page loads and other filtering.
+       * Overlaps some with {@link #isFilteredRecord}, but findRecord is used
+       * by the base component for various logic so this logic is applied here
+       * as well.
+       * 
+       * @protected
+       */
+      findRecord : function(field, value) {
+        var ds = this.store, matches;
+
+        if (!ds) {
+          return false;
+        }
+
+        matches = ds.queryBy(function(rec, id) {
+              return rec.isEqual(rec.get(field), value);
+            });
+
+        return (matches.getCount() &gt; 0) ? matches.first() : false;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onLoad'>      /**
+</span>       * Overridden to map previously selected records to the &quot;new&quot; versions of
+       * the records based on value field, if they are part of the new store
+       * load
+       * 
+       * @protected
+       */
+      onLoad : function() {
+        var me = this, valueField = me.valueField, valueStore = me.valueStore, changed = false;
+
+        if (valueStore) {
+          if (!Ext.isEmpty(me.value) &amp;&amp; (valueStore.getCount() == 0)) {
+            me.setValue(me.value, false, true);
+          }
+
+          valueStore.suspendEvents();
+          valueStore.each(function(rec) {
+                var r = me.findRecord(valueField, rec.get(valueField)), i = r ? valueStore.indexOf(rec) : -1;
+                if (i &gt;= 0) {
+                  valueStore.removeAt(i);
+                  valueStore.insert(i, r);
+                  changed = true;
+                }
+              });
+          valueStore.resumeEvents();
+          if (changed) {
+            valueStore.fireEvent(&#39;datachanged&#39;, valueStore);
+          }
+        }
+
+        me.callParent(arguments);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-isFilteredRecord'>      /**
+</span>       * Used to determine if a record is filtered out of the current store&#39;s
+       * data set, for determining if a currently selected value should be
+       * retained.
+       * 
+       * Slightly complicated logic. A record is considered filtered and should
+       * be retained if: - It is not in the combo store and the store has no
+       * filter or it is in the filtered data set (Happens when our selected
+       * value is just part of a different load, page or query) - It is not in
+       * the combo store and forceSelection is false and it is in the value
+       * store (Happens when our selected value was created manually)
+       * 
+       * @private
+       */
+      isFilteredRecord : function(record) {
+        var me = this, store = me.store, valueField = me.valueField, storeRecord, filtered = false;
+
+        storeRecord = store.findExact(valueField, record.get(valueField));
+
+        filtered = ((storeRecord === -1) &amp;&amp; (!store.snapshot || (me.findRecord(valueField, record.get(valueField)) !== false)));
+
+        filtered = filtered || (!filtered &amp;&amp; (storeRecord === -1) &amp;&amp; (me.forceSelection !== true) &amp;&amp; (me.valueStore.findExact(valueField, record.get(valueField)) &gt;= 0));
+
+        return filtered;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-doRawQuery'>      /**
+</span>       * @inheritdoc
+       * 
+       * Overridden to allow for continued querying with multiSelect selections
+       * already made
+       * @protected
+       */
+      doRawQuery : function() {
+        var me = this, rawValue = me.inputEl.dom.value;
+
+        if (me.multiSelect) {
+          rawValue = rawValue.split(me.delimiter).pop();
+        }
+
+        this.doQuery(rawValue, false, true);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onBeforeListRefresh'>      /**
+</span>       * When the picker is refreshing, we should ignore selection changes.
+       * Otherwise the value of our field will be changing just because our view
+       * of the choices is.
+       * 
+       * @protected
+       */
+      onBeforeListRefresh : function() {
+        this.ignoreSelection++;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onListRefresh'>      /**
+</span>       * When the picker is refreshing, we should ignore selection changes.
+       * Otherwise the value of our field will be changing just because our view
+       * of the choices is.
+       * 
+       * @protected
+       */
+      onListRefresh : function() {
+        this.callParent(arguments);
+        if (this.ignoreSelection &gt; 0) {
+          --this.ignoreSelection;
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onListSelectionChange'>      /**
+</span>       * Overridden to preserve current labelled items when list is
+       * filtered/paged/loaded and does not include our current value. See
+       * {@link #isFilteredRecord}
+       * 
+       * @private
+       */
+      onListSelectionChange : function(list, selectedRecords) {
+        var me = this, valueStore = me.valueStore, mergedRecords = [], i;
+
+        // Only react to selection if it is not called from
+        // setValue, and if our list is
+        // expanded (ignores changes to the selection model
+        // triggered elsewhere)
+        if ((me.ignoreSelection &lt;= 0) &amp;&amp; me.isExpanded) {
+          // Pull forward records that were already selected
+          // or are now filtered out of the store
+          valueStore.each(function(rec) {
+                if (Ext.Array.contains(selectedRecords, rec) || me.isFilteredRecord(rec)) {
+                  mergedRecords.push(rec);
+                }
+              });
+          mergedRecords = Ext.Array.merge(mergedRecords, selectedRecords);
+
+          i = Ext.Array.intersect(mergedRecords, valueStore.getRange()).length;
+          if ((i != mergedRecords.length) || (i != me.valueStore.getCount())) {
+            me.setValue(mergedRecords, false);
+            if (!me.multiSelect || !me.pinList) {
+              Ext.defer(me.collapse, 1, me);
+            }
+            if (valueStore.getCount() &gt; 0) {
+              me.fireEvent(&#39;select&#39;, me, valueStore.getRange());
+            }
+          }
+          me.inputEl.focus();
+          if (!me.pinList) {
+            me.inputEl.dom.value = &#39;&#39;;
+          }
+          if (me.selectOnFocus) {
+            me.inputEl.dom.select();
+          }
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-syncSelection'>      /**
+</span>       * Overridden to use valueStore instead of valueModels, for inclusion of
+       * filtered records. See {@link #isFilteredRecord}
+       * 
+       * @private
+       */
+      syncSelection : function() {
+        var me = this, picker = me.picker, valueField = me.valueField, pickStore, selection, selModel;
+
+        if (picker) {
+          pickStore = picker.store;
+
+          // From the value, find the Models that are in the
+          // store&#39;s current data
+          selection = [];
+          if (me.valueStore) {
+            me.valueStore.each(function(rec) {
+                  var i = pickStore.findExact(valueField, rec.get(valueField));
+                  if (i &gt;= 0) {
+                    selection.push(pickStore.getAt(i));
+                  }
+                });
+          }
+
+          // Update the selection to match
+          me.ignoreSelection++;
+          selModel = picker.getSelectionModel();
+          selModel.deselectAll();
+          if (selection.length &gt; 0) {
+            selModel.select(selection);
+          }
+          if (me.ignoreSelection &gt; 0) {
+            --me.ignoreSelection;
+          }
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-doAlign'>      /**
+</span>       * Overridden to align to itemList size instead of inputEl
+       */
+      doAlign : function() {
+        var me = this, picker = me.picker, aboveSfx = &#39;-above&#39;, isAbove;
+
+        me.picker.alignTo(me.listWrapper, me.pickerAlign, me.pickerOffset);
+        // add the {openCls}-above class if the picker was
+        // aligned above
+        // the field due to hitting the bottom of the viewport
+        isAbove = picker.el.getY() &lt; me.inputEl.getY();
+        me.bodyEl[isAbove ? &#39;addCls&#39; : &#39;removeCls&#39;](me.openCls + aboveSfx);
+        picker[isAbove ? &#39;addCls&#39; : &#39;removeCls&#39;](picker.baseCls + aboveSfx);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-alignPicker'>      /**
+</span>       * Overridden to preserve scroll position of pick list when list is
+       * realigned
+       */
+      alignPicker : function() {
+        var me = this, picker = me.picker, pickerScrollPos = picker.getTargetEl().dom.scrollTop;
+        me.callParent(arguments);
+
+        if (me.isExpanded) {
+          if (me.matchFieldWidth) {
+            // Auto the height (it will be constrained by
+            // min and max width) unless there are no
+            // records to display.
+            picker.setWidth(me.listWrapper.getWidth());
+          }
+
+          picker.getTargetEl().dom.scrollTop = pickerScrollPos;
+        }
+
+        var me = this;
+
+        var oPicker = me.getPicker();
+
+        oPicker.getEl().setStyle(&quot;border-top&quot;, &quot;solid 1px #B8DBFF&quot;);
+        var oPos = me.getPosition();
+
+        oPicker.suspendEvents(false);
+        oPicker.setLocalXY(oPos[0] + me.getWidth() - 51, oPos[1] + me.initialHeight);
+        oPicker.resumeEvents();
+
+        var para = document.getElementById(me.getPicker().id);
+        if (!document.getElementById(me.getPicker().id + &quot;-search-input&quot;)) {
+          var inputField = document.createElement(&quot;input&quot;);
+          inputField.type = &quot;text&quot;;
+          inputField.id = me.getPicker().id + &quot;-search-input&quot;;
+          inputField.style.padding = &#39;3px&#39;;
+          inputField.style.border = &#39;none&#39;;
+          inputField.style.borderBottom = &#39;solid 1px #DDDDDD&#39;;
+          inputField.style.width = &#39;100%&#39;;
+          inputField.onkeyup = function() {
+            document.getElementById(me.id + &quot;-inputEl&quot;).value = inputField.value;
+            me.doRawQuery();
+          };
+          para.insertBefore(inputField, para.firstChild);
+          document.getElementById(me.id + &quot;-inputEl&quot;).style.width = &quot;1px&quot;;
+          document.getElementById(me.id + &quot;-inputEl&quot;).style.visibility = &quot;hidden&quot;;
+
+        }
+
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-getCursorPosition'>      /**
+</span>       * Get the current cursor position in the input field, for key-based
+       * navigation
+       * 
+       * @private
+       */
+      getCursorPosition : function() {
+        var cursorPos;
+        if (Ext.isIE) {
+          cursorPos = document.selection.createRange();
+          cursorPos.collapse(true);
+          cursorPos.moveStart(&quot;character&quot;, -this.inputEl.dom.value.length);
+          cursorPos = cursorPos.text.length;
+        } else {
+          cursorPos = this.inputEl.dom.selectionStart;
+        }
+        return cursorPos;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-hasSelectedText'>      /**
+</span>       * Check to see if the input field has selected text, for key-based
+       * navigation
+       * 
+       * @private
+       */
+      hasSelectedText : function() {
+        var sel, range;
+        if (Ext.isIE) {
+          sel = document.selection;
+          range = sel.createRange();
+          return (range.parentElement() == this.inputEl.dom);
+        } else {
+          return this.inputEl.dom.selectionStart != this.inputEl.dom.selectionEnd;
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onKeyDown'>      /**
+</span>       * Handles keyDown processing of key-based selection of labelled items.
+       * Supported keyboard controls: - If pick list is expanded - `CTRL-A` will
+       * select all the items in the pick list - If the cursor is at the
+       * beginning of the input field and there are values present - `CTRL-A`
+       * will highlight all the currently selected values - `BACKSPACE` and
+       * `DELETE` will remove any currently highlighted selected values -
+       * `RIGHT` and `LEFT` will move the current highlight in the appropriate
+       * direction - `SHIFT-RIGHT` and `SHIFT-LEFT` will add to the current
+       * highlight in the appropriate direction
+       * 
+       * @protected
+       */
+      onKeyDown : function(e, t) {
+        var me = this, key = e.getKey(), rawValue = me.inputEl.dom.value, valueStore = me.valueStore, selModel = me.selectionModel, stopEvent = false;
+
+        if (me.readOnly || me.disabled || !me.editable) {
+          return;
+        }
+
+        if (me.isExpanded &amp;&amp; (key == e.A &amp;&amp; e.ctrlKey)) {
+          // CTRL-A when picker is expanded - add all items in
+          // current picker store page to current value
+          me.select(me.getStore().getRange());
+          selModel.setLastFocused(null);
+          selModel.deselectAll();
+          me.collapse();
+          me.inputEl.focus();
+          stopEvent = true;
+        } else if ((valueStore.getCount() &gt; 0) &amp;&amp; ((rawValue == &#39;&#39;) || ((me.getCursorPosition() === 0) &amp;&amp; !me.hasSelectedText()))) {
+          // Keyboard navigation of current values
+          var lastSelectionIndex = (selModel.getCount() &gt; 0) ? valueStore.indexOf(selModel.getLastSelected() || selModel.getLastFocused()) : -1;
+
+          if ((key == e.BACKSPACE) || (key == e.DELETE)) {
+            if (lastSelectionIndex &gt; -1) {
+              if (selModel.getCount() &gt; 1) {
+                lastSelectionIndex = -1;
+              }
+              me.valueStore.remove(selModel.getSelection());
+            } else {
+              me.valueStore.remove(me.valueStore.last());
+            }
+            selModel.clearSelections();
+            me.setValue(me.valueStore.getRange());
+            if (lastSelectionIndex &gt; 0) {
+              selModel.select(lastSelectionIndex - 1);
+            }
+            stopEvent = true;
+          } else if ((key == e.RIGHT) || (key == e.LEFT)) {
+            if ((lastSelectionIndex == -1) &amp;&amp; (key == e.LEFT)) {
+              selModel.select(valueStore.last());
+              stopEvent = true;
+            } else if (lastSelectionIndex &gt; -1) {
+              if (key == e.RIGHT) {
+                if (lastSelectionIndex &lt; (valueStore.getCount() - 1)) {
+                  selModel.select(lastSelectionIndex + 1, e.shiftKey);
+                  stopEvent = true;
+                } else if (!e.shiftKey) {
+                  selModel.setLastFocused(null);
+                  selModel.deselectAll();
+                  stopEvent = true;
+                }
+              } else if ((key == e.LEFT) &amp;&amp; (lastSelectionIndex &gt; 0)) {
+                selModel.select(lastSelectionIndex - 1, e.shiftKey);
+                stopEvent = true;
+              }
+            }
+          } else if (key == e.A &amp;&amp; e.ctrlKey) {
+            selModel.selectAll();
+            stopEvent = e.A;
+          }
+          me.inputEl.focus();
+        }
+
+        if (stopEvent) {
+          me.preventKeyUpEvent = stopEvent;
+          e.stopEvent();
+          return;
+        }
+
+        // Prevent key up processing for enter if it is being
+        // handled by the picker
+        if (me.isExpanded &amp;&amp; (key == e.ENTER) &amp;&amp; me.picker.highlightedItem) {
+          me.preventKeyUpEvent = true;
+        }
+
+        if (me.enableKeyEvents) {
+          me.callParent(arguments);
+        }
+
+        if (!e.isSpecialKey() &amp;&amp; !e.hasModifier()) {
+          me.selectionModel.setLastFocused(null);
+          me.selectionModel.deselectAll();
+          me.inputEl.focus();
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onKeyUp'>      /**
+</span>       * Handles auto-selection and creation of labelled items based on this
+       * field&#39;s delimiter, as well as the keyUp processing of key-based
+       * selection of labelled items.
+       * 
+       * @protected
+       */
+      onKeyUp : function(e, t) {
+        var me = this, rawValue = me.inputEl.dom.value;
+
+        if (me.preventKeyUpEvent) {
+          e.stopEvent();
+          if ((me.preventKeyUpEvent === true) || (e.getKey() === me.preventKeyUpEvent)) {
+            delete me.preventKeyUpEvent;
+          }
+          return;
+        }
+
+        if (me.multiSelect &amp;&amp; (me.delimiterRegexp &amp;&amp; me.delimiterRegexp.test(rawValue)) || ((me.createNewOnEnter === true) &amp;&amp; e.getKey() == e.ENTER)) {
+          rawValue = Ext.Array.clean(rawValue.split(me.delimiterRegexp));
+          me.inputEl.dom.value = &#39;&#39;;
+          me.setValue(me.valueStore.getRange().concat(rawValue));
+          me.inputEl.focus();
+        }
+
+        me.callParent([e, t]);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onPaste'>      /**
+</span>       * Handles auto-selection of labelled items based on this field&#39;s
+       * delimiter when pasting a list of values in to the field (e.g., for
+       * email addresses)
+       * 
+       * @protected
+       */
+      onPaste : function(e, t) {
+        var me = this, rawValue = me.inputEl.dom.value, clipboard = (e &amp;&amp; e.browserEvent &amp;&amp; e.browserEvent.clipboardData) ? e.browserEvent.clipboardData : false;
+
+        if (me.multiSelect &amp;&amp; (me.delimiterRegexp &amp;&amp; me.delimiterRegexp.test(rawValue))) {
+          if (clipboard &amp;&amp; clipboard.getData) {
+            if (/text\/plain/.test(clipboard.types)) {
+              rawValue = clipboard.getData(&#39;text/plain&#39;);
+            } else if (/text\/html/.test(clipboard.types)) {
+              rawValue = clipboard.getData(&#39;text/html&#39;);
+            }
+          }
+
+          rawValue = Ext.Array.clean(rawValue.split(me.delimiterRegexp));
+          me.inputEl.dom.value = &#39;&#39;;
+          me.setValue(me.valueStore.getRange().concat(rawValue));
+          me.inputEl.focus();
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onExpand'>      /**
+</span>       * Overridden to handle key navigation of pick list when list is filtered.
+       * Because we want to avoid complexity that could be introduced by
+       * modifying the store&#39;s contents, (e.g., always having to search back
+       * through and remove values when they might be re-sent by the server,
+       * adding the values back in their previous position when they are removed
+       * from the current selection, etc.), we handle this filtering via a
+       * simple css rule. However, for the moment since those DOM nodes still
+       * exist in the list we have to hijack the highlighting methods for the
+       * picker&#39;s BoundListKeyNav to appropriately skip over these hidden nodes.
+       * This is a less than ideal solution, but it centralizes all of the
+       * complexity of this problem in to this one method.
+       * 
+       * @protected
+       */
+      onExpand : function() {
+
+        var me = this, keyNav = me.listKeyNav;
+
+        me.callParent(arguments);
+
+        if (keyNav || !me.filterPickList) {
+          return;
+        }
+        keyNav = me.listKeyNav;
+        keyNav.highlightAt = function(index) {
+          var boundList = this.boundList, item = boundList.all.item(index), len = boundList.all.getCount(), direction;
+
+          if (item &amp;&amp; item.hasCls(&#39;x-boundlist-selected&#39;)) {
+            if ((index == 0) || !boundList.highlightedItem || (boundList.indexOf(boundList.highlightedItem) &lt; index)) {
+              direction = 1;
+            } else {
+              direction = -1;
+            }
+            do {
+              index = index + direction;
+              item = boundList.all.item(index);
+            } while ((index &gt; 0) &amp;&amp; (index &lt; len) &amp;&amp; item.hasCls(&#39;x-boundlist-selected&#39;));
+
+            if (item.hasCls(&#39;x-boundlist-selected&#39;)) {
+              return;
+            }
+          }
+
+          if (item) {
+            item = item.dom;
+            boundList.highlightItem(item);
+            boundList.getTargetEl().scrollChildIntoView(item, false);
+          }
+        };
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onTypeAhead'>      /**
+</span>       * Overridden to get and set the DOM value directly for type-ahead
+       * suggestion (bypassing get/setRawValue)
+       * 
+       * @protected
+       */
+      onTypeAhead : function() {
+        var me = this, displayField = me.displayField, inputElDom = me.inputEl.dom, valueStore = me.valueStore, boundList = me.getPicker(), record, newValue, len, selStart;
+
+        if (me.filterPickList) {
+          var fn = this.createFilterFn(displayField, inputElDom.value);
+          record = me.store.findBy(function(rec) {
+                return ((valueStore.indexOfId(rec.getId()) === -1) &amp;&amp; fn(rec));
+              });
+          record = (record === -1) ? false : me.store.getAt(record);
+        } else {
+          record = me.store.findRecord(displayField, inputElDom.value);
+        }
+
+        if (record) {
+          newValue = record.get(displayField);
+          len = newValue.length;
+          selStart = inputElDom.value.length;
+          boundList.highlightItem(boundList.getNode(record));
+          if (selStart !== 0 &amp;&amp; selStart !== len) {
+            inputElDom.value = newValue;
+            me.selectText(selStart, newValue.length);
+          }
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onItemListClick'>      /**
+</span>       * Delegation control for selecting and removing labelled items or
+       * triggering list collapse/expansion
+       * 
+       * @protected
+       */
+      onItemListClick : function(evt, el, o) {
+        var me = this, itemEl = evt.getTarget(&#39;.x-boxselect-item&#39;), closeEl = itemEl ? evt.getTarget(&#39;.x-boxselect-item-close&#39;) : false;
+
+        if (me.readOnly || me.disabled) {
+          return;
+        }
+
+        evt.stopPropagation();
+
+        if (itemEl) {
+          if (closeEl) {
+            me.removeByListItemNode(itemEl);
+            if (me.valueStore.getCount() &gt; 0) {
+              me.fireEvent(&#39;select&#39;, me, me.valueStore.getRange());
+            }
+          } else {
+            me.toggleSelectionByListItemNode(itemEl, evt.shiftKey);
+          }
+          me.inputEl.focus();
+        } else {
+          if (me.selectionModel.getCount() &gt; 0) {
+            me.selectionModel.setLastFocused(null);
+            me.selectionModel.deselectAll();
+          }
+          if (me.triggerOnClick) {
+            me.onTriggerClick();
+          }
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-getMultiSelectItemMarkup'>      /**
+</span>       * Build the markup for the labelled items. Template must be built on
+       * demand due to ComboBox initComponent lifecycle for the creation of
+       * on-demand stores (to account for automatic valueField/displayField
+       * setting)
+       * 
+       * @private
+       */
+      getMultiSelectItemMarkup : function() {
+        var me = this;
+
+        if (!me.multiSelectItemTpl) {
+          if (!me.labelTpl) {
+            me.labelTpl = Ext.create(&#39;Ext.XTemplate&#39;, &#39;{[values.&#39; + me.displayField + &#39;]}&#39;);
+          } else if (Ext.isString(me.labelTpl) || Ext.isArray(me.labelTpl)) {
+            me.labelTpl = Ext.create(&#39;Ext.XTemplate&#39;, me.labelTpl);
+          }
+
+          me.multiSelectItemTpl = [&#39;&lt;tpl for=&quot;.&quot;&gt;&#39;, &#39;&lt;li class=&quot;x-boxselect-item &#39;, &#39;&lt;tpl if=&quot;this.isSelected(values.&#39; + me.valueField + &#39;)&quot;&gt;&#39;, &#39; selected&#39;, &#39;&lt;/tpl&gt;&#39;, &#39;&quot; qtip=&quot;{[typeof values === &quot;string&quot; ? values : values.&#39; + me.displayField + &#39;]}&quot;&gt;&#39;,
+              &#39;&lt;div class=&quot;x-boxselect-item-text&quot;&gt;{[typeof values === &quot;string&quot; ? values : this.getItemLabel(values)]}&lt;/div&gt;&#39;, &#39;&lt;div class=&quot;x-tab-close-btn x-boxselect-item-close&quot;&gt;&lt;/div&gt;&#39;, &#39;&lt;/li&gt;&#39;, &#39;&lt;/tpl&gt;&#39;, {
+                compile : true,
+                disableFormats : true,
+                isSelected : function(value) {
+                  var i = me.valueStore.findExact(me.valueField, value);
+                  if (i &gt;= 0) {
+                    return me.selectionModel.isSelected(me.valueStore.getAt(i));
+                  }
+                  return false;
+                },
+                getItemLabel : function(values) {
+                  return me.getTpl(&#39;labelTpl&#39;).apply(values);
+                }
+              }];
+        }
+
+        return this.getTpl(&#39;multiSelectItemTpl&#39;).apply(Ext.Array.pluck(this.valueStore.getRange(), &#39;data&#39;));
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-applyMultiselectItemMarkup'>      /**
+</span>       * Update the labelled items rendering
+       * 
+       * @private
+       */
+      applyMultiselectItemMarkup : function() {
+        var me = this, itemList = me.itemList, item;
+
+        if (itemList) {
+          while ((item = me.inputElCt.prev()) != null) {
+            item.remove();
+          }
+          me.inputElCt.insertHtml(&#39;beforeBegin&#39;, me.getMultiSelectItemMarkup());
+        }
+
+        Ext.Function.defer(function() {
+              if (me.picker &amp;&amp; me.isExpanded) {
+                me.alignPicker();
+              }
+              if (me.hasFocus) {
+                me.inputElCt.scrollIntoView(me.listWrapper);
+              }
+            }, 15);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-getRecordByListItemNode'>      /**
+</span>       * Returns the record from valueStore for the labelled item node
+       */
+      getRecordByListItemNode : function(itemEl) {
+        var me = this, itemIdx = 0, searchEl = me.itemList.dom.firstChild;
+
+        while (searchEl &amp;&amp; searchEl.nextSibling) {
+          if (searchEl == itemEl) {
+            break;
+          }
+          itemIdx++;
+          searchEl = searchEl.nextSibling;
+        }
+        itemIdx = (searchEl == itemEl) ? itemIdx : false;
+
+        if (itemIdx === false) {
+          return false;
+        }
+
+        return me.valueStore.getAt(itemIdx);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-toggleSelectionByListItemNode'>      /**
+</span>       * Toggle of labelled item selection by node reference
+       */
+      toggleSelectionByListItemNode : function(itemEl, keepExisting) {
+        var me = this, rec = me.getRecordByListItemNode(itemEl), selModel = me.selectionModel;
+
+        if (rec) {
+          if (selModel.isSelected(rec)) {
+            if (selModel.isFocused(rec)) {
+              selModel.setLastFocused(null);
+            }
+            selModel.deselect(rec);
+          } else {
+            selModel.select(rec, keepExisting);
+          }
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-property-onItemRemovedClick'>      /**
+</span>       * Removal of labelled item by node reference
+       */
+      onItemRemovedClick : null,
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-removeByListItemNode'>      removeByListItemNode : function(itemEl) {
+</span>        var me = this, rec = me.getRecordByListItemNode(itemEl);
+
+        if (rec) {
+          me.valueStore.remove(rec);
+          me.setValue(me.valueStore.getRange());
+        }
+
+        if (me.onItemRemovedClick != null)
+          me.onItemRemovedClick(me);
+
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-getRawValue'>      /**
+</span>       * @inheritdoc Intercept calls to getRawValue to pretend there is no
+       *             inputEl for rawValue handling, so that we can use inputEl
+       *             for user input of just the current value.
+       */
+      getRawValue : function() {
+        var me = this, inputEl = me.inputEl, result;
+        me.inputEl = false;
+        result = me.callParent(arguments);
+        me.inputEl = inputEl;
+        return result;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-setRawValue'>      /**
+</span>       * @inheritdoc Intercept calls to setRawValue to pretend there is no
+       *             inputEl for rawValue handling, so that we can use inputEl
+       *             for user input of just the current value.
+       */
+      setRawValue : function(value) {
+        var me = this, inputEl = me.inputEl, result;
+
+        me.inputEl = false;
+        result = me.callParent([value]);
+        me.inputEl = inputEl;
+
+        return result;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-addValue'>      /**
+</span>       * Adds a value or values to the current value of the field
+       * 
+       * @param {Mixed}
+       *          value The value or values to add to the current value, see
+       *          {@link #setValue}
+       */
+      addValue : function(value) {
+        var me = this;
+        if (value) {
+          me.setValue(Ext.Array.merge(me.value, Ext.Array.from(value)));
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-removeValue'>      /**
+</span>       * Removes a value or values from the current value of the field
+       * 
+       * @param {Mixed}
+       *          value The value or values to remove from the current value,
+       *          see {@link #setValue}
+       */
+      removeValue : function(value) {
+        var me = this;
+
+        if (value) {
+          me.setValue(Ext.Array.difference(me.value, Ext.Array.from(value)));
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-setValue'>      /**
+</span>       * Sets the specified value(s) into the field. The following value formats
+       * are recognised: - Single Values - A string associated to this field&#39;s
+       * configured {@link #valueField} - A record containing at least this
+       * field&#39;s configured {@link #valueField} and {@link #displayField} -
+       * Multiple Values - If {@link #multiSelect} is `true`, a string
+       * containing multiple strings as specified in the Single Values section
+       * above, concatenated in to one string with each entry separated by this
+       * field&#39;s configured {@link #delimiter} - An array of strings as
+       * specified in the Single Values section above - An array of records as
+       * specified in the Single Values section above
+       * 
+       * In any of the string formats above, the following occurs if an
+       * associated record cannot be found:
+       * 
+       * 1. If {@link #forceSelection} is `false`, a new record of the
+       * {@link #store}&#39;s configured model type will be created using the given
+       * value as the {@link #displayField} and {@link #valueField}. This
+       * record will be added to the current value, but it will **not** be added
+       * to the store. 2. If {@link #forceSelection} is `true` and
+       * {@link #queryMode} is `remote`, the list of unknown values will be
+       * submitted as a call to the {@link #store}&#39;s load as a parameter named
+       * by the {@link #valueField} with values separated by the configured
+       * {@link #delimiter}. ** This process will cause setValue to
+       * asynchronously process. ** This will only be attempted once. Any
+       * unknown values that the server does not return records for will be
+       * removed. 3. Otherwise, unknown values will be removed.
+       * 
+       * @param {Mixed}
+       *          value The value(s) to be set, see method documentation for
+       *          details
+       * @return {Ext.form.field.Field/Boolean} this, or `false` if
+       *         asynchronously querying for unknown values
+       */
+      setValue : function(value, doSelect, skipLoad) {
+        var me = this, valueStore = me.valueStore, valueField = me.valueField, record, len, i, valueRecord, h, unknownValues = [];
+
+        if (Ext.isEmpty(value)) {
+          value = null;
+        }
+        if (Ext.isString(value) &amp;&amp; me.multiSelect) {
+          value = value.split(me.delimiter);
+        }
+        value = Ext.Array.from(value, true);
+
+        for (i = 0, len = value.length; i &lt; len; i++) {
+          record = value[i];
+          if (!record || !record.isModel) {
+            valueRecord = valueStore.findExact(valueField, record);
+            if (valueRecord &gt;= 0) {
+              value[i] = valueStore.getAt(valueRecord);
+            } else {
+              valueRecord = me.findRecord(valueField, record);
+              if (!valueRecord) {
+                if (me.forceSelection) {
+                  unknownValues.push(record);
+                } else {
+                  valueRecord = {};
+                  valueRecord[me.valueField] = record;
+                  valueRecord[me.displayField] = record;
+                  valueRecord = new me.valueStore.model(valueRecord);
+                }
+              }
+              if (valueRecord) {
+                value[i] = valueRecord;
+              }
+            }
+          }
+        }
+
+        if ((skipLoad !== true) &amp;&amp; (unknownValues.length &gt; 0) &amp;&amp; (me.queryMode === &#39;remote&#39;)) {
+          var params = {};
+          params[me.valueField] = unknownValues.join(me.delimiter);
+          me.store.load({
+                params : params,
+                callback : function() {
+                  if (me.itemList) {
+                    me.itemList.unmask();
+                  }
+                  me.setValue(value, doSelect, true);
+                  me.autoSize();
+                }
+              });
+          return false;
+        }
+
+        // For single-select boxes, use the last good (formal
+        // record) value if possible
+        if (!me.multiSelect &amp;&amp; (value.length &gt; 0)) {
+          for (i = value.length - 1; i &gt;= 0; i--) {
+            if (value[i].isModel) {
+              value = value[i];
+              break;
+            }
+          }
+          if (Ext.isArray(value)) {
+            value = value[value.length - 1];
+          }
+        }
+
+        return me.callParent([value, doSelect]);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-getValueRecords'>      /**
+</span>       * Returns the records for the field&#39;s current value
+       * 
+       * @return {Array} The records for the field&#39;s current value
+       */
+      getValueRecords : function() {
+        return this.valueStore.getRange();
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-getSubmitData'>      /**
+</span>       * @inheritdoc Overridden to optionally allow for submitting the field as
+       *             a json encoded array.
+       */
+      getSubmitData : function() {
+        var me = this, val = me.callParent(arguments);
+
+        if (me.multiSelect &amp;&amp; me.encodeSubmitValue &amp;&amp; val &amp;&amp; val[me.name]) {
+          val[me.name] = Ext.encode(val[me.name]);
+        }
+
+        return val;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-mimicBlur'>      /**
+</span>       * Overridden to clear the input field if we are auto-setting a value as
+       * we blur.
+       * 
+       * @protected
+       */
+      mimicBlur : function() {
+        var me = this;
+
+        if (me.selectOnTab &amp;&amp; me.picker &amp;&amp; me.picker.highlightedItem) {
+          me.inputEl.dom.value = &#39;&#39;;
+        }
+
+        me.callParent(arguments);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-assertValue'>      /**
+</span>       * Overridden to handle partial-input selections more directly
+       */
+      assertValue : function() {
+        var me = this, rawValue = me.inputEl.dom.value, rec = !Ext.isEmpty(rawValue) ? me.findRecordByDisplay(rawValue) : false, value = false;
+
+        if (!rec &amp;&amp; !me.forceSelection &amp;&amp; me.createNewOnBlur &amp;&amp; !Ext.isEmpty(rawValue)) {
+          value = rawValue;
+        } else if (rec) {
+          value = rec;
+        }
+
+        if (value) {
+          me.addValue(value);
+        }
+
+        me.inputEl.dom.value = &#39;&#39;;
+
+        me.collapse();
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-checkChange'>      /**
+</span>       * Expand record values for evaluating change and fire change events for
+       * UI to respond to
+       */
+      checkChange : function() {
+        if (!this.suspendCheckChange &amp;&amp; !this.isDestroyed) {
+          var me = this, valueStore = me.valueStore, lastValue = me.lastValue, valueField = me.valueField, newValue = Ext.Array.map(Ext.Array.from(me.value), function(val) {
+                if (val.isModel) {
+                  return val.get(valueField);
+                }
+                return val;
+              }, this).join(this.delimiter), isEqual = me.isEqual(newValue, lastValue);
+
+          if (!isEqual || ((newValue.length &gt; 0 &amp;&amp; valueStore.getCount() &lt; newValue.length))) {
+            valueStore.suspendEvents();
+            valueStore.removeAll();
+            if (Ext.isArray(me.valueModels)) {
+              valueStore.add(me.valueModels);
+            }
+            valueStore.resumeEvents();
+            valueStore.fireEvent(&#39;datachanged&#39;, valueStore);
+
+            if (!isEqual) {
+              me.lastValue = newValue;
+              me.fireEvent(&#39;change&#39;, me, newValue, lastValue);
+              me.onChange(newValue, lastValue);
+            }
+          }
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-isEqual'>      /**
+</span>       * Overridden to be more accepting of varied value types
+       */
+      isEqual : function(v1, v2) {
+        var fromArray = Ext.Array.from, valueField = this.valueField, i, len, t1, t2;
+
+        v1 = fromArray(v1);
+        v2 = fromArray(v2);
+        len = v1.length;
+
+        if (len !== v2.length) {
+          return false;
+        }
+
+        for (i = 0; i &lt; len; i++) {
+          t1 = v1[i].isModel ? v1[i].get(valueField) : v1[i];
+          t2 = v2[i].isModel ? v2[i].get(valueField) : v2[i];
+          if (t1 !== t2) {
+            return false;
+          }
+        }
+
+        return true;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-applyEmptyText'>      /**
+</span>       * Overridden to use value (selection) instead of raw value and to avoid
+       * the use of placeholder
+       */
+      applyEmptyText : function() {
+        var me = this, emptyText = me.emptyText, inputEl, isEmpty;
+
+        if (me.rendered &amp;&amp; emptyText) {
+          isEmpty = Ext.isEmpty(me.value) &amp;&amp; !me.hasFocus;
+          inputEl = me.inputEl;
+          if (isEmpty) {
+            inputEl.dom.value = emptyText;
+            inputEl.addCls(me.emptyCls);
+            me.listWrapper.addCls(me.emptyCls);
+          } else {
+            if (inputEl.dom.value === emptyText) {
+              inputEl.dom.value = &#39;&#39;;
+            }
+            me.listWrapper.removeCls(me.emptyCls);
+            inputEl.removeCls(me.emptyCls);
+          }
+          me.autoSize();
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-preFocus'>      /**
+</span>       * Overridden to use inputEl instead of raw value and to avoid the use of
+       * placeholder
+       */
+      preFocus : function() {
+        var me = this, inputEl = me.inputEl, emptyText = me.emptyText, isEmpty;
+
+        if (emptyText &amp;&amp; inputEl.dom.value === emptyText) {
+          inputEl.dom.value = &#39;&#39;;
+          isEmpty = true;
+          inputEl.removeCls(me.emptyCls);
+          me.listWrapper.removeCls(me.emptyCls);
+        }
+        if (me.selectOnFocus || isEmpty) {
+          inputEl.dom.select();
+        }
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onFocus'>      /**
+</span>       * Intercept calls to onFocus to add focusCls, because the base field
+       * classes assume this should be applied to inputEl
+       */
+      onFocus : function() {
+        var me = this, focusCls = me.focusCls, itemList = me.itemList;
+
+        if (focusCls &amp;&amp; itemList) {
+          itemList.addCls(focusCls);
+        }
+
+        me.callParent(arguments);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-onBlur'>      /**
+</span>       * Intercept calls to onBlur to remove focusCls, because the base field
+       * classes assume this should be applied to inputEl
+       */
+      onBlur : function() {
+        var me = this, focusCls = me.focusCls, itemList = me.itemList;
+
+        if (focusCls &amp;&amp; itemList) {
+          itemList.removeCls(focusCls);
+        }
+
+        me.callParent(arguments);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-renderActiveError'>      /**
+</span>       * Intercept calls to renderActiveError to add invalidCls, because the
+       * base field classes assume this should be applied to inputEl
+       */
+      renderActiveError : function() {
+        var me = this, invalidCls = me.invalidCls, itemList = me.itemList, hasError = me.hasActiveError();
+
+        if (invalidCls &amp;&amp; itemList) {
+          itemList[hasError ? &#39;addCls&#39; : &#39;removeCls&#39;](me.invalidCls + &#39;-field&#39;);
+        }
+
+        me.callParent(arguments);
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-autoSize'>      /**
+</span>       * Initiate auto-sizing for height based on {@link #grow}, if applicable.
+       */
+      autoSize : function() {
+        var me = this, height;
+
+        if (me.grow &amp;&amp; me.rendered) {
+          me.autoSizing = true;
+          me.updateLayout();
+        }
+
+        return me;
+      },
+
+<span id='Ext-dirac-utils-DiracBoxSelect-method-afterComponentLayout'>      /**
+</span>       * Track height change to fire {@link #event-autosize} event, when
+       * applicable.
+       */
+      afterComponentLayout : function() {
+        var me = this, width;
+
+        if (me.autoSizing) {
+          height = me.getHeight();
+          if (height !== me.lastInputHeight) {
+            if (me.isExpanded) {
+              me.alignPicker();
+            }
+            me.fireEvent(&#39;autosize&#39;, me, height);
+            me.lastInputHeight = height;
+            delete me.autoSizing;
+          }
+        }
+      }
+    });</pre>
+</body>
+</html>

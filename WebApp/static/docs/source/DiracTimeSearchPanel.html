@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracTimeSearchPanel'>/*******************************************************************************
+</span> * This widget is used by the Ext.dirac.utils.DiracBaseSelector widget. It
+ * allows to select time in the selector.
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracTimeSearchPanel&#39;, {
+      extend : &#39;Ext.panel.Panel&#39;,
+      requires : [&#39;Ext.data.ArrayStore&#39;],
+<span id='Ext-dirac-utils-DiracTimeSearchPanel-property-width'>      width : 200,
+</span><span id='Ext-dirac-utils-DiracTimeSearchPanel-property-autoHeight'>      autoHeight : true,
+</span><span id='Ext-dirac-utils-DiracTimeSearchPanel-property-border'>      border : true,
+</span><span id='Ext-dirac-utils-DiracTimeSearchPanel-property-bodyPadding'>      bodyPadding : 5,
+</span><span id='Ext-dirac-utils-DiracTimeSearchPanel-property-layout'>      layout : &quot;anchor&quot;,
+</span><span id='Ext-dirac-utils-DiracTimeSearchPanel-property-anchor'>      anchor : &quot;100%&quot;,
+</span><span id='Ext-dirac-utils-DiracTimeSearchPanel-property-cmbTimeSpan'>      /*************************************************************************
+</span>       * @property{It is the time stamp widget which contains a list with Last
+       *              hour, Last Day...}
+       */
+      cmbTimeSpan : null,
+<span id='Ext-dirac-utils-DiracTimeSearchPanel-property-it'>      /**
+</span>       * 
+       * @property{calenFrom} it is a calendar used to select the date.
+       */
+      calenFrom : null,
+<span id='Ext-dirac-utils-DiracTimeSearchPanel-property-is'>      /**
+</span>       * 
+       * @property{cmbTimeFrom} is is a combo box which contains the hours.
+       */
+      cmbTimeFrom : null,
+<span id='Ext-dirac-utils-DiracTimeSearchPanel-property-is'>      /**
+</span>       * 
+       * @property{calenTo} is a calendar used to select the dat.
+       */
+      calenTo : null,
+<span id='Ext-dirac-utils-DiracTimeSearchPanel-property-is'>      /**
+</span>       * 
+       * @property{cmbTimeTo} is a combo box used to select the time in a given
+       *                      day.
+       */
+      cmbTimeTo : null,
+<span id='Ext-dirac-utils-DiracTimeSearchPanel-property-is'>      /**
+</span>       * 
+       * @property{timeSearchPanelHidden} is a boolean which is true when the
+       *                                  time search panel is hidden...
+       */
+      timeSearchPanelHidden : null,
+<span id='Ext-dirac-utils-DiracTimeSearchPanel-method-getStateData'>      getStateData : function() {
+</span>        var me = this;
+        var data = {
+          cmbTimeSpan : me.cmbTimeSpan.getValue(),
+          calenFrom : me.calenFrom.getValue(),
+          cmbTimeFrom : me.cmbTimeFrom.getValue(),
+          calenTo : me.calenTo.getValue(),
+          cmbTimeTo : me.cmbTimeTo.getValue(),
+          timeSearchPanelHidden : me.hidden
+        };
+        return data;
+      },
+<span id='Ext-dirac-utils-DiracTimeSearchPanel-method-loadState'>      loadState : function(data) {
+</span>        var me = this;
+        if (data.timeSearchPanelHidden) {
+          if (!data.timeSearchPanelHidden)
+            me.show();
+          else
+            me.hide();
+        }
+        // END - For the time span searching sub-panel
+
+        if (data.cmbTimeSpan) {
+          me.cmbTimeSpan.setValue(data.cmbTimeSpan);
+        }
+
+        if (data.calenFrom) {
+          me.calenFrom.setValue(data.calenFrom);
+        }
+        if (data.cmbTimeFrom) {
+          me.cmbTimeFrom.setValue(data.cmbTimeFrom);
+        }
+
+        if (data.calenTo) {
+          me.calenTo.setValue(data.calenTo);
+        }
+        if (data.cmbTimeTo) {
+          me.cmbTimeTo.setValue(data.cmbTimeTo);
+        }
+
+      },
+<span id='Ext-dirac-utils-DiracTimeSearchPanel-method-constructor'>      constructor : function() {
+</span>        var me = this;
+        me.cmbTimeSpan = new Ext.create(&#39;Ext.form.field.ComboBox&#39;, {
+              labelAlign : &#39;top&#39;,
+              fieldLabel : &#39;Time Span&#39;,
+              store : new Ext.data.ArrayStore({
+                    fields : [&#39;value&#39;, &#39;text&#39;],
+                    data : [[1, &quot;Last Hour&quot;], [2, &quot;Last Day&quot;], [3, &quot;Last Week&quot;], [4, &quot;Last Month&quot;], [5, &quot;Manual Selection&quot;]]
+                  }),
+              displayField : &quot;text&quot;,
+              valueField : &quot;value&quot;,
+              anchor : &quot;100%&quot;
+            });
+
+        var oTimeData = [];
+        for (var i = 0; i &lt; 24; i++) {
+          oTimeData.push([((i.toString().length == 1) ? &quot;0&quot; + i.toString() : i.toString()) + &quot;:00&quot;]);
+          oTimeData.push([((i.toString().length == 1) ? &quot;0&quot; + i.toString() : i.toString()) + &quot;:30&quot;]);
+        }
+
+        me.calenFrom = new Ext.create(&#39;Ext.form.field.Date&#39;, {
+              width : 100,
+              format : &#39;Y-m-d&#39;
+            });
+
+        me.cmbTimeFrom = new Ext.create(&#39;Ext.form.field.ComboBox&#39;, {
+              width : 70,
+              store : new Ext.data.ArrayStore({
+                    fields : [&#39;value&#39;],
+                    data : oTimeData
+                  }),
+              margin : &quot;0 0 0 10&quot;,
+              displayField : &#39;value&#39;
+            });
+
+        me.calenTo = new Ext.create(&#39;Ext.form.field.Date&#39;, {
+              width : 100,
+              format : &#39;Y-m-d&#39;
+            });
+
+        me.cmbTimeTo = new Ext.create(&#39;Ext.form.field.ComboBox&#39;, {
+              width : 70,
+              store : new Ext.data.ArrayStore({
+                    fields : [&#39;value&#39;],
+                    data : oTimeData
+                  }),
+              margin : &quot;0 0 0 10&quot;,
+              displayField : &#39;value&#39;
+            });
+
+        me.btnResetTimePanel = new Ext.Button({
+
+              text : &#39;Reset Time Panel&#39;,
+              margin : 3,
+              iconCls : &quot;dirac-icon-reset&quot;,
+              handler : function() {
+
+                me.cmbTimeTo.setValue(null);
+                me.cmbTimeFrom.setValue(null);
+                me.calenTo.setRawValue(&quot;&quot;);
+                me.calenFrom.setRawValue(&quot;&quot;);
+                me.cmbTimeSpan.setValue(null);
+              },
+              scope : me,
+              defaultAlign : &quot;c&quot;
+            });
+        Ext.apply(me, {
+              dockedItems : [{
+                    xtype : &#39;toolbar&#39;,
+                    dock : &#39;bottom&#39;,
+                    items : [me.btnResetTimePanel],
+                    layout : {
+                      type : &#39;hbox&#39;,
+                      pack : &#39;center&#39;
+                    }
+                  }],
+              items : [me.cmbTimeSpan, {
+                    xtype : &#39;tbtext&#39;,
+                    text : &quot;From:&quot;,
+                    padding : &quot;3 0 3 0&quot;
+                  }, {
+                    xtype : &quot;panel&quot;,
+                    layout : &quot;column&quot;,
+                    border : false,
+                    items : [me.calenFrom, me.cmbTimeFrom]
+                  }, {
+                    xtype : &#39;tbtext&#39;,
+                    text : &quot;To:&quot;,
+                    padding : &quot;3 0 3 0&quot;
+                  }, {
+                    xtype : &quot;panel&quot;,
+                    layout : &quot;column&quot;,
+                    border : false,
+                    items : [me.calenTo, me.cmbTimeTo]
+                  }]
+            });
+        me.callParent(arguments);
+      },
+<span id='Ext-dirac-utils-DiracTimeSearchPanel-method-getSelectedData'>      /*************************************************************************
+</span>       * This function returns the selected timestamp.
+       * 
+       * @return {Object}
+       */
+      getSelectedData : function() {
+        var me = this;
+        var data = {};
+        // if a value in time span has been selected
+        var sStartDate = me.calenFrom.getRawValue();
+        var sStartTime = me.cmbTimeFrom.getValue();
+        var sEndDate = me.calenTo.getRawValue();
+        var sEndTime = me.cmbTimeTo.getValue();
+
+        var iSpanValue = me.cmbTimeSpan.getValue();
+
+        if ((iSpanValue != null) &amp;&amp; (iSpanValue != 5)) {
+
+          var oNowJs = new Date();
+          var oBegin = null;
+
+          switch (iSpanValue) {
+            case 1 :
+              var utcHours = oNowJs.getUTCHours();
+              oNowJs.setHours(utcHours);
+              oBegin = Ext.Date.add(oNowJs, Ext.Date.HOUR, -1);
+              break;
+            case 2 :
+              oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -1);
+              break;
+            case 3 :
+              oBegin = Ext.Date.add(oNowJs, Ext.Date.DAY, -7);
+              break;
+            case 4 :
+              oBegin = Ext.Date.add(oNowJs, Ext.Date.MONTH, -1);
+              break;
+          }
+
+          sStartDate = Ext.Date.format(oBegin, &quot;Y-m-d&quot;);
+          sEndDate = Ext.Date.format(oNowJs, &quot;Y-m-d&quot;);
+          sStartTime = Ext.Date.format(oBegin, &quot;H:i&quot;);
+          sEndTime = Ext.Date.format(oNowJs, &quot;H:i&quot;);
+
+        }
+
+        // Collect data for filtration
+        data[&quot;startDate&quot;] = sStartDate;
+        data[&quot;startTime&quot;] = sStartTime;
+        data[&quot;endDate&quot;] = sEndDate;
+        data[&quot;endTime&quot;] = sEndTime;
+        return data;
+      }
+    });</pre>
+</body>
+</html>

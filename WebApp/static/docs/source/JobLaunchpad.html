@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;DIRAC.JobLaunchpad.classes.JobLaunchpad&#39;, {
+      extend : &#39;Ext.dirac.core.Module&#39;,
+
+      requires : [&#39;Ext.panel.Panel&#39;, &#39;Ext.form.FieldSet&#39;, &quot;Ext.menu.CheckItem&quot;, &#39;Ext.button.Button&#39;, &#39;Ext.toolbar.Toolbar&#39;, &#39;Ext.form.Panel&#39;, &#39;Ext.tree.Panel&#39;, &#39;Ext.data.TreeStore&#39;, &#39;Ext.menu.Menu&#39;],
+
+      initComponent : function() {
+
+        var me = this;
+
+        if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+          me.launcher.title = &quot;Job Launchpad&quot;;
+          me.launcher.maximized = false;
+
+          var viewDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+          var width = Math.floor(viewDimensions[0] / 2.5);
+          var height = Math.floor(viewDimensions[1] / 1.5);
+          me.launcher.width = width;
+          me.launcher.height = height;
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        if (GLOBAL.VIEW_ID == &quot;tabs&quot;) {
+
+          me.launcher.title = &quot;Job Launchpad&quot;;
+          me.launcher.maximized = false;
+
+          me.launcher.width = 600;
+          me.launcher.height = 600;
+
+          me.launcher.x = 0;
+          me.launcher.y = 0;
+
+        }
+
+        Ext.apply(me, {
+              layout : &#39;border&#39;,
+              bodyBorder : false,
+              defaults : {
+                collapsible : true,
+                split : true
+              }
+            });
+
+        me.callParent(arguments);
+
+      },
+
+      buildUI : function() {
+
+        var me = this;
+
+        me.fsetPredefinedSetsSection = Ext.create(&#39;Ext.form.FieldSet&#39;, {
+              title : &#39;Predefined Sets of Launchpad Values&#39;,
+              collapsible : true,
+              layout : &#39;anchor&#39;,
+              padding : 5
+            });
+
+        me.fsetJdlSection = Ext.create(&#39;Ext.form.FieldSet&#39;, {
+              title : &#39;JDL&#39;,
+              collapsible : true,
+              layout : &#39;anchor&#39;,
+              padding : 5
+            });
+
+        me.fsetInputSandboxSection = Ext.create(&#39;Ext.form.FieldSet&#39;, {
+              title : &#39;Input Sandbox&#39;,
+              collapsible : true,
+              layout : &#39;anchor&#39;,
+              padding : 5
+            });
+
+        me.fsetInputSandboxSection.add(me.uploadField);
+
+        me.textualFields = {};
+
+        me.btnAddParameters = new Ext.Button({
+
+              text : &#39;Add Parameters&#39;,
+              iconCls : &quot;dirac-icon-plus&quot;,
+              scope : me,
+              menu : [],
+              tooltip : &#39;Click to add more parameters to the JDL&#39;
+
+            });
+
+        me.btnProxyStatus = new Ext.Button({
+
+              text : &#39;Proxy Status&#39;,
+              handler : function() {
+                me.proxyCheckerFunction();
+              },
+              scope : me,
+              tooltip : &#39;Proxy status updates automatically once per day&#39;
+
+            });
+
+        var oTopToolbar = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+              dock : &#39;top&#39;,
+              items : [me.btnProxyStatus, &#39;-&gt;&#39;, me.btnAddParameters]
+            });
+
+        me.btnSubmit = new Ext.Button({
+
+              text : &#39;Submit&#39;,
+              margin : 1,
+              iconCls : &quot;dirac-icon-submit&quot;,
+              handler : function() {
+                me.getContainer().body.mask(&quot;Wait ...&quot;);
+                me.mainFormPanel.submit({
+                      url : GLOBAL.BASE_URL + &#39;JobLaunchpad/jobSubmit&#39;,
+                      success : function(form, action) {
+
+                        me.getContainer().body.unmask();
+                        if (action.result.success == &#39;false&#39;) {
+                          GLOBAL.APP.CF.alert(&#39;Error: &#39; + action.result.error, &#39;error&#39;);
+                        } else {
+                          var sIds = &quot;&quot;;
+
+                          var bPlural = true;
+
+                          if (action.result.result instanceof Array) {
+                            sIds = action.result.result.join(&quot;, &quot;);
+                          } else {
+                            sIds = action.result.result;
+                            bPlural = false;
+                          }
+
+                          var bMultiIds = false;
+                          if (action.result.result.length &gt; 1)
+                            bMultiIds = true;
+
+                          var oWarn = Ext.MessageBox.show({
+                                title : &#39;Success&#39;,
+                                msg : &#39;Your Job ID&#39; + (bPlural ? &quot;s are &quot; : &quot; is &quot;) + sIds,
+                                buttons : Ext.MessageBox.OKYES,
+                                buttonText : {
+                                  ok : &quot;OK&quot;,
+                                  no : &quot;Show Job&quot;
+                                },
+                                fn : function(oButton) {
+
+                                  oWarn.hide();
+
+                                  if (oButton == &quot;no&quot;) {
+
+                                    if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+                                      var oSetupData = {};
+
+                                      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+                                      oSetupData.x = 0;
+                                      oSetupData.y = 0;
+                                      oSetupData.width = oDimensions[0];
+                                      oSetupData.height = oDimensions[1];
+                                      oSetupData.currentState = &quot;&quot;;
+
+                                      oSetupData.desktopStickMode = 0;
+                                      oSetupData.hiddenHeader = 1;
+                                      oSetupData.i_x = 0;
+                                      oSetupData.i_y = 0;
+                                      oSetupData.ic_x = 0;
+                                      oSetupData.ic_y = 0;
+
+                                      oSetupData.data = {
+                                        leftMenu : {
+                                          JobID : action.result.result
+                                        }
+                                      };
+
+                                      GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+                                            objectType : &quot;app&quot;,
+                                            moduleName : &quot;DIRAC.JobMonitor.classes.JobMonitor&quot;,
+                                            setupData : oSetupData
+                                          });
+                                    }
+
+                                  }
+
+                                },
+                                animateTarget : &#39;mb4&#39;,
+                                icon : Ext.MessageBox.QUESTION
+                              });
+
+                        }
+                      },
+                      failure : function(form, action) {
+                        GLOBAL.APP.CF.alert(&quot;Error&quot;, &quot;error&quot;);
+                      }
+
+                    });
+              },
+              scope : me
+
+            });
+
+        me.btnReset = new Ext.Button({
+
+              text : &#39;Reset&#39;,
+              margin : 1,
+              iconCls : &quot;dirac-icon-reset&quot;,
+              handler : function() {
+
+                // first go through all optional fields and see if they are
+                // checked,
+                // remove and unchecked
+                for (var i = 0; i &lt; me.btnAddParameters.menu.items.length; i++) {
+
+                  var oItem = me.btnAddParameters.menu.items.getAt(i);
+
+                  if (oItem.checked) {
+                    oItem.setChecked(false);
+                    me.__destroyJdlField(oItem.text);
+                  }
+
+                }
+
+                // go through the text fields and set the default values of the
+                // mandatory fields
+                for (var sKey in me.textualFields) {
+
+                  if (me.textualFields[sKey].mandatory) {
+
+                    me.textualFields[sKey].object.setValue(me.textualFields[sKey].value);
+
+                  }
+
+                }
+
+                // second remove all items from input sandbox container
+                me.fsetInputSandboxSection.removeAll();
+                me.oprAddNewFileField();
+                me.oprAddNewLfnTextField();
+                me.proxyCheckerFunction();
+
+              },
+              scope : me
+
+            });
+
+        var oBottomToolbar = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+              dock : &#39;bottom&#39;,
+              layout : {
+                pack : &#39;center&#39;
+              }
+            });
+
+        if (&quot;properties&quot; in GLOBAL.USER_CREDENTIALS) {
+          if (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, &quot;NormalUser&quot;) != -1) {
+
+            oBottomToolbar.add([me.btnSubmit, me.btnReset]);
+
+          } else {
+
+            oBottomToolbar.add([{
+                  xtype : &#39;tbtext&#39;,
+                  text : &quot;&lt;b style=&#39;color:red&#39;&gt;The selected group is not allowed to submit new jobs !&lt;/b&gt;&quot;
+                }]);
+
+          }
+
+        } else {
+
+          oBottomToolbar.add([{
+                xtype : &#39;tbtext&#39;,
+                text : &quot;&lt;b style=&#39;color:red&#39;&gt;The selected group is not allowed to submit new jobs !&lt;/b&gt;&quot;
+              }]);
+
+        }
+
+        me.mainFormPanel = new Ext.create(&#39;Ext.form.Panel&#39;, {
+              floatable : false,
+              region : &quot;center&quot;,
+              layout : &quot;anchor&quot;,
+              header : false,
+              bodyPadding : 5,
+              autoScroll : true,
+              dockedItems : [oTopToolbar, oBottomToolbar],
+              items : [me.fsetPredefinedSetsSection, me.fsetJdlSection, me.fsetInputSandboxSection]
+            });
+
+        me.predefinedSetsMenu = new Ext.menu.Menu({
+              width : 250,
+              items : [{
+                    text : &#39;Apply to the selected parameters&#39;,
+                    moduleObject : me,
+                    listeners : {
+                      click : me.__oprApplyToJdl
+                    }
+                  }]
+            });
+
+        me.oprAddNewFileField();
+        me.oprAddNewLfnTextField();
+
+        me.add([me.mainFormPanel]);
+
+        me.setUpParametersAndPredefinedConfig();
+        me.proxyCheckerFunction();
+
+      },
+
+      __oprApplyToJdl : function() {
+
+        var me = this.moduleObject;
+
+        var sPredefinedSet = me.predefinedSetsMenu.node.raw.text;
+
+        for (var sKey in me.predefinedSets[sPredefinedSet]) {
+
+          if (sKey != &quot;InputSandbox&quot;) {
+
+            if (sKey in me.textualFields) {
+              if (me.textualFields[sKey].object != null) {
+
+                me.textualFields[sKey].object.setValue(me.predefinedSets[sPredefinedSet][sKey]);
+
+              } else {
+
+                me.__createJdlField(sKey, me.predefinedSets[sPredefinedSet][sKey], true);
+
+              }
+            }
+
+          } else {
+
+            // remove all text fields and create new ones from the value to be
+            // applied
+
+            for (var i = me.fsetInputSandboxSection.items.length - 1; i &gt;= 0; i--) {
+
+              var oItem = me.fsetInputSandboxSection.getComponent(i);
+
+              if (oItem.self.getName() == &#39;Ext.form.field.Text&#39;) {
+
+                me.fsetInputSandboxSection.remove(oItem);
+                Ext.destroy(oItem);
+
+              }
+
+            }
+
+            // now create new ones
+            var oLfns = me.predefinedSets[sPredefinedSet][sKey].split(&quot;,&quot;);
+
+            for (var i = 0; i &lt; oLfns.length; i++) {
+              me.oprAddNewLfnTextField(oLfns[i].substr(4));
+            }
+
+          }
+
+        }
+
+      },
+
+      oprAddNewFileField : function() {
+
+        var me = this;
+
+        var sFileFieldName = &quot;fileField&quot; + me.fsetInputSandboxSection.items.getCount();
+
+        var oFileField = new Ext.create(&#39;Ext.form.field.File&#39;, {
+              anchor : &#39;100%&#39;,
+              buttonText : &#39;Browse&#39;,
+              moduleObject : me,
+              name : sFileFieldName,
+              listeners : {
+
+                change : function(oComp, sValue, eOpts) {
+
+                  /*
+                   * First we check wheather there are empty file fields. If
+                   * there is an empty field, new field is not added to the
+                   * list.
+                   */
+
+                  var iLength = oComp.moduleObject.fsetInputSandboxSection.items.getCount();
+                  var bAddFile = true;
+                  var iIndex = 0;
+
+                  for (var i = 0; i &lt; iLength; i++) {
+                    var oItem = oComp.moduleObject.fsetInputSandboxSection.getComponent(i);
+
+                    if (oItem.self.getName() != &quot;Ext.form.field.Text&quot;) {
+
+                      if (!oItem.getValue()) {
+                        bAddFile = false;
+                      }
+
+                      iIndex++;
+
+                    }
+
+                  }
+
+                  if (bAddFile) {
+
+                    oComp.moduleObject.oprAddNewFileField();
+
+                  }
+
+                  /*
+                   * Then we calculate the size of the files. the function
+                   * bytesToSize is used here.
+                   */
+
+                  var iSize = 0;
+
+                  for (var i = 0; i &lt; iLength; i++) {
+                    var oItem = oComp.moduleObject.fsetInputSandboxSection.getComponent(i);
+
+                    if (oItem.self.getName() != &quot;Ext.form.field.Text&quot;) {
+                      var iFileSize = oComp.moduleObject.getFileSize(oItem.fileInputEl.dom);
+
+                      if (iFileSize &gt;= 0) {
+                        iSize = iSize + iFileSize;
+                      }
+                    }
+                  }
+
+                  // console.log(&quot;Number of files &quot; + iLength);
+                  // console.log(&quot;The size of all files: &quot; +
+                  // oComp.moduleObject.bytesToSize(iSize, 2));
+
+                }
+
+              }
+            });
+
+        var iLength = me.fsetInputSandboxSection.items.getCount();
+        var iWhereInsert = 0;
+
+        for (var i = 0; i &lt; iLength; i++) {
+          var oItem = me.fsetInputSandboxSection.getComponent(i);
+          if (oItem.self.getName() == &quot;Ext.form.field.Text&quot;) {
+
+            break;
+
+          } else {
+
+            iWhereInsert++;
+
+          }
+
+        }
+
+        me.fsetInputSandboxSection.insert(iWhereInsert, oFileField);
+
+      },
+
+      oprAddNewLfnTextField : function(sValue) {
+
+        var me = this;
+
+        var sLfnTextFieldName = &quot;lfnField&quot; + me.fsetInputSandboxSection.items.getCount();
+
+        var oLfnTextField = new Ext.create(&#39;Ext.form.field.Text&#39;, {
+              fieldLabel : &quot;LFN&quot;,
+              anchor : &#39;100%&#39;,
+              labelAlign : &#39;left&#39;,
+              labelWidth : 30,
+              name : sLfnTextFieldName,
+              value : ((sValue) ? sValue : &quot;&quot;),
+              enableKeyEvents : true,
+              listeners : {
+
+                keypress : function(oTextField, e, eOpts) {
+
+                  if (e.getCharCode() == 13) {
+
+                    if (oTextField.getValue() != &quot;&quot;) {
+
+                      var oItem = me.oprAddNewLfnTextField();
+                      oItem.focus();
+
+                    }
+
+                  }
+
+                }
+
+              }
+
+            });
+
+        me.fsetInputSandboxSection.add(oLfnTextField);
+
+        return oLfnTextField;
+
+      },
+
+      bytesToSize : function(bytes, precision) {
+        var kilobyte = 1024;
+        var megabyte = kilobyte * 1024;
+        var gigabyte = megabyte * 1024;
+        var terabyte = gigabyte * 1024;
+        if ((bytes &gt;= 0) &amp;&amp; (bytes &lt; kilobyte)) {
+          return bytes + &#39; B&#39;;
+        } else if ((bytes &gt;= kilobyte) &amp;&amp; (bytes &lt; megabyte)) {
+          return (bytes / kilobyte).toFixed(precision) + &#39; KB&#39;;
+        } else if ((bytes &gt;= megabyte) &amp;&amp; (bytes &lt; gigabyte)) {
+          return (bytes / megabyte).toFixed(precision) + &#39; MB&#39;;
+        } else if ((bytes &gt;= gigabyte) &amp;&amp; (bytes &lt; terabyte)) {
+          return (bytes / gigabyte).toFixed(precision) + &#39; GB&#39;;
+        } else if (bytes &gt;= terabyte) {
+          return (bytes / terabyte).toFixed(precision) + &#39; TB&#39;;
+        } else {
+          return bytes + &#39; B&#39;;
+        }
+      },
+
+      getFileSize : function(oInputFile) {
+
+        /*
+         * Can&#39;t use `typeof FileReader === &quot;function&quot;` because apparently it
+         * comes back as &quot;object&quot; on some browsers. So just see if it&#39;s there at
+         * all
+         */
+
+        if (!window.FileReader) {
+          // The file API isn&#39;t supported on this browser yet
+          return -5;
+        }
+
+        if (!oInputFile) {
+          return -4;
+        } else if (!oInputFile.files) {
+          return -3;
+        } else if (!oInputFile.files[0]) {
+          return -2;
+        } else {
+          var oFile = oInputFile.files[0];
+          return oFile.size;
+        }
+      },
+
+      setUpParametersAndPredefinedConfig : function() {
+
+        var me = this;
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;JobLaunchpad/getLaunchpadOpts&#39;,
+              method : &#39;POST&#39;,
+              success : function(response) {
+
+                var response = Ext.JSON.decode(response.responseText);
+
+                for (var sKey in response[&quot;result&quot;]) {
+
+                  me.textualFields[sKey] = {};
+                  me.textualFields[sKey].value = response[&quot;result&quot;][sKey][1];
+
+                  // special treatment of the case JobName
+                  if (sKey == &quot;JobName&quot;) {
+
+                    me.textualFields[sKey].value = me.textualFields[sKey].value + &#39;_&#39; + GLOBAL.USER_CREDENTIALS.username + &#39;_&#39; + Math.floor(Math.random() * 1000001);
+
+                  }
+
+                  if (parseInt(response[&quot;result&quot;][sKey][0], 10) == 1) {
+
+                    me.textualFields[sKey].mandatory = true;
+
+                    me.textualFields[sKey].object = new Ext.create(&#39;Ext.form.field.Text&#39;, {
+                          fieldLabel : sKey,
+                          anchor : &#39;100%&#39;,
+                          labelAlign : &#39;left&#39;,
+                          value : me.textualFields[sKey].value,
+                          name : sKey
+                        });
+
+                  } else {
+
+                    me.textualFields[sKey].mandatory = false;
+
+                    me.btnAddParameters.menu.add({
+                          xtype : &#39;menucheckitem&#39;,
+                          text : sKey,
+                          relatedCmbField : sKey,
+                          checked : false,
+                          handler : function(item, e) {
+
+                            var me = this;
+
+                            if (item.checked)
+                              me.__createJdlField(item.relatedCmbField);
+                            else
+                              me.__destroyJdlField(item.relatedCmbField);
+
+                          },
+                          scope : me
+                        });
+
+                  }
+
+                  me.fsetJdlSection.add(me.textualFields[sKey].object);
+
+                }
+
+                me.__createPrededinedSetsTree(response[&quot;predefinedSets&quot;]);
+
+              },
+              failure : function(response) {
+                me.showProxyStatus(&#39;neutral&#39;);
+              }
+            });
+      },
+
+      __createPrededinedSetsTree : function(oPredefinedSets) {
+
+        var me = this;
+
+        me.predefinedSets = oPredefinedSets;
+
+        var iNumberOfSets = 0;
+
+        for (var sKey in me.predefinedSets)
+          iNumberOfSets++;
+
+        // if there are predefined sets we show those within a section
+        // if not, the section is not shown
+        if (iNumberOfSets &gt; 0) {
+
+          me.predefinedSetsTreeStore = Ext.create(&#39;Ext.data.TreeStore&#39;, {
+                proxy : {
+                  type : &#39;localstorage&#39;
+                },
+                root : {
+                  text : &#39;Available Sets&#39;
+                }
+              });
+
+          var oRoot = me.predefinedSetsTreeStore.getRootNode();
+
+          for (var sKeySet in me.predefinedSets) {
+
+            var oNewSetNode = oRoot.createNode({
+                  text : sKeySet,
+                  leaf : false,
+                  predefinedSets : true
+                });
+
+            oRoot.appendChild(oNewSetNode);
+
+            for (var sKeyOption in me.predefinedSets[sKeySet]) {
+
+              var oNewOptionNode = oRoot.createNode({
+                    text : sKeyOption + &quot; = &quot; + me.predefinedSets[sKeySet][sKeyOption],
+                    leaf : true
+                  });
+
+              oNewSetNode.appendChild(oNewOptionNode);
+
+            }
+
+          }
+
+          oRoot.expand();
+
+          me.predefinedSetsTreePanel = new Ext.create(&#39;Ext.tree.Panel&#39;, {
+                store : me.predefinedSetsTreeStore,
+                header : false,
+                bodyBorder : false,
+                border : false,
+                listeners : {
+
+                  beforeitemcontextmenu : function(oView, oNode, item, index, e, eOpts) {
+
+                    if (oNode.raw.predefinedSets) {
+
+                      e.preventDefault();
+
+                      me.predefinedSetsMenu.node = oNode;
+                      me.predefinedSetsMenu.showAt(e.xy);
+
+                      return false;
+
+                    } else {
+
+                      return true;
+
+                    }
+
+                  },
+
+                  beforecontainercontextmenu : function(oView, e, eOpts) {
+
+                    return false;
+
+                  }
+
+                }
+              });
+
+          me.fsetPredefinedSetsSection.add(me.predefinedSetsTreePanel);
+
+        } else {
+
+          me.fsetPredefinedSetsSection.hide();
+
+        }
+
+      },
+
+      proxyCheckerFunction : function() {
+
+        var me = this;
+
+        me.showProxyStatus(&#39;check&#39;);
+
+        Ext.Ajax.request({
+              url : GLOBAL.BASE_URL + &#39;JobLaunchpad/getProxyStatus&#39;,
+              method : &#39;POST&#39;,
+              success : function(response) {
+
+                var jsonData = Ext.JSON.decode(response.responseText);
+
+                if (jsonData[&#39;success&#39;] == &#39;false&#39;) {
+
+                  me.showProxyStatus(&#39;false&#39;);
+
+                } else {
+
+                  if (jsonData[&#39;result&#39;] == &#39;false&#39;) {
+
+                    me.showProxyStatus(&#39;false&#39;);
+
+                  } else {
+
+                    me.showProxyStatus(&#39;true&#39;);
+
+                  }
+                }
+              },
+              failure : function(response) {
+                me.showProxyStatus(&#39;neutral&#39;);
+              }
+            });
+      },
+
+      showProxyStatus : function(sMode) {
+
+        var me = this, sBtnText = &#39;Proxy Status: &#39;;
+
+        if (sMode == &#39;true&#39;) {
+          sBtnText = sBtnText + &#39;&lt;span style=&quot;color:#009900; font-weight:bold&quot;&gt;Valid&lt;/span&gt;&#39;;
+        } else if (sMode == &#39;false&#39;) {
+          sBtnText = sBtnText + &#39;&lt;span style=&quot;color:#FF0000; font-weight:bold&quot;&gt;Not Valid&lt;/span&gt;&#39;;
+        } else if (sMode == &#39;check&#39;) {
+          sBtnText = sBtnText + &#39;&lt;span style=&quot;color:#FF9900; font-weight:bold&quot;&gt;Checking&lt;/span&gt;&#39;;
+        } else {
+          sBtnText = sBtnText + &#39;&lt;span style=&quot;font-weight:bold&quot;&gt;Unknown&lt;/span&gt;&#39;;
+        }
+
+        me.btnProxyStatus.setText(sBtnText);
+
+      },
+
+      __createJdlField : function(sFieldName, sValue, bSetCheckbox) {
+
+        var me = this;
+
+        var sCalValue = &quot;&quot;;
+
+        if (sValue) {
+
+          sCalValue = sValue;
+
+        } else {
+
+          sCalValue = me.textualFields[sFieldName].value;
+
+        }
+
+        if (!bSetCheckbox)
+          bSetCheckbox = false;
+
+        me.textualFields[sFieldName].object = new Ext.create(&#39;Ext.form.field.Text&#39;, {
+              fieldLabel : sFieldName,
+              anchor : &#39;100%&#39;,
+              labelAlign : &#39;left&#39;,
+              value : sCalValue,
+              name : sFieldName
+            });
+
+        me.fsetJdlSection.add(me.textualFields[sFieldName].object);
+
+        if (bSetCheckbox) {
+
+          for (var i = 0; i &lt; me.btnAddParameters.menu.items.length; i++) {
+
+            var oItem = me.btnAddParameters.menu.items.getAt(i);
+
+            if (oItem.text == sFieldName) {
+              oItem.setChecked(true);
+              break;
+            }
+
+          }
+
+        }
+
+      },
+
+      __destroyJdlField : function(sFieldName) {
+
+        var me = this;
+
+        me.fsetJdlSection.remove(me.textualFields[sFieldName].object);
+        Ext.destroy(me.textualFields[sFieldName].object);
+        me.textualFields[sFieldName].object = null;
+
+      }
+
+    });
+</pre>
+</body>
+</html>

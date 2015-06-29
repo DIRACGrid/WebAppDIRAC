@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-views-tabs-RightContainer'>/*******************************************************************************
+</span> * This class contains all the widgets which are used to visualise the
+ * applications. Each tab in the left container corresponds a widget in the
+ * right container.
+ */
+Ext.define(&#39;Ext.dirac.views.tabs.RightContainer&#39;, {
+      extend : &#39;Ext.container.Container&#39;,
+      requires : [&#39;Ext.dirac.views.tabs.TabPanel&#39;, &#39;Ext.dirac.views.tabs.Wallpaper&#39;, &#39;Ext.dirac.views.tabs.PresenterView&#39;, &#39;Ext.dirac.views.tabs.Panel&#39;, &#39;Ext.dirac.views.tabs.TabMenuPlugin&#39;, &#39;Ext.dirac.views.tabs.TabScrollerButton&#39;],
+      xtype : &#39;diractabs&#39;,
+<span id='Ext-dirac-views-tabs-RightContainer-property-layout'><span id='Ext-dirac-views-tabs-RightContainer-property-taskbar'>      taskbar : null, // this is used by the desktop layout
+</span></span>      layout : &#39;fit&#39;,
+<span id='Ext-dirac-views-tabs-RightContainer-property-region'>      // layout : {
+</span>      // type : &#39;border&#39;,
+      // padding : 2
+      // },
+      region : &#39;center&#39;,
+<span id='Ext-dirac-views-tabs-RightContainer-property-collapsible'>      collapsible : false,
+</span><span id='Ext-dirac-views-tabs-RightContainer-property-autoScroll'>      autoScroll : true,
+</span><span id='Ext-dirac-views-tabs-RightContainer-property-frame'>      frame : true,
+</span><span id='Ext-dirac-views-tabs-RightContainer-property-defaults'>      defaults : {
+</span>        xtype : &#39;tabpanel&#39;,
+        width : 400,
+        height : 200,
+        // defaults: {
+        // bodyPadding: 10,
+        // autoScroll: true
+        // },
+        layout : {
+          type : &#39;border&#39;,
+          padding : 2
+        },
+        bodyStyle : {
+          background : &#39;#AAAAAA&#39;
+        }
+      },
+      // this is used to hide the MenuTabs.js
+      /*
+       * listeners : { render: function (cmp, eOpts) { var me = this;
+       * me.mon(cmp.el, &#39;mouseover&#39;, function (event, html, eOpts) { var
+       * leftCont = GLOBAL.APP.MAIN_VIEW.getLeftContainer(); if
+       * (leftCont.collapsed){ //hide if the container collapsed
+       * leftCont.hide(); } }, me); me.mon(cmp.el, &#39;mouseout&#39;, function (event,
+       * html, eOpts) { var leftCont = GLOBAL.APP.MAIN_VIEW.getLeftContainer();
+       * if (leftCont.collapsed &amp;&amp; (event.getX()&gt;=0 &amp;&amp; event.getX() &lt;100)){
+       * leftCont.show(); } }, me); } },
+       */
+<span id='Ext-dirac-views-tabs-RightContainer-method-currentOpenedApp'>      /*************************************************************************
+</span>       * @param {String}
+       *          it stores the current open component identifier.
+       */
+      currentOpenedApp : null,
+<span id='Ext-dirac-views-tabs-RightContainer-property-appLicationContainer'>      appLicationContainer : null,
+</span><span id='Ext-dirac-views-tabs-RightContainer-method-initComponent'>      initComponent : function() {
+</span>        var me = this;
+        me.callParent(arguments);
+        me.createMenuWidgets();
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-createMenuWidgets'>      /*************************************************************************
+</span>       * It creates the widgets corresponds to the Menu in the LeftContainer.
+       */
+      createMenuWidgets : function() {
+        var me = this;
+
+        me.appLicationContainer = Ext.create(&#39;widget.tabPanel&#39;, {
+              region : &#39;center&#39;,
+              minWidth : 300,
+              // layout:&#39;fit&#39;,
+              layout : {
+                type : &#39;border&#39;,
+                padding : 2
+              },
+              collapsed : false,
+              margin : &#39;0 0 2 0&#39;,
+              tabPosition : &#39;bottom&#39;,
+              value : &#39;menuPanel&#39;
+            });
+        me.add(me.appLicationContainer);
+        var wallpaper = Ext.create(&#39;widget.wallpaper&#39;, {
+              layout : &#39;fit&#39;,
+              margin : &#39;0 0 2 0&#39;,
+              value : &#39;welcome&#39;
+            });
+        wallpaper.setWallpaper(&#39;/DIRAC/static/core/img/wallpapers/dirac_background_6.png&#39;, false);
+        me.add(wallpaper);
+        me.add({
+              // xtype : &#39;panel&#39;,
+              // margin: &#39;0 0 2 0&#39;,
+              value : &#39;sharedLayouts&#39;,
+              layout : &#39;fit&#39;,
+              closable : false,
+              xtype : &quot;component&quot;,
+              autoEl : {
+                tag : &quot;iframe&quot;,
+                src : &quot;http://diracgrid.org&quot;
+              }
+            });
+
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-getStateData'>      getStateData : function() {
+</span>        var me = this;
+        var oData = [];
+        return oData;
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-__isStateFound'>      /*************************************************************************
+</span>       * This function is used to check that the currentState is in the array.
+       * 
+       * @param {Ext.Array}
+       *          Array is an array which contains the application state
+       *          objects.
+       * @param {String}
+       *          item is the state name.
+       * @return {Boolean}
+       */
+      __isStateFound : function(Array, item, module) {
+        var found = false;
+        for (var i = 0; i &lt; Array.length; i++) {
+          if (Array[i].currentState == item &amp;&amp; Array[i].module == module) {
+            found = true;
+            break;
+          }
+        }
+        return found;
+      },
+
+<span id='Ext-dirac-views-tabs-RightContainer-method-setOpenedApp'>      /*************************************************************************
+</span>       * It keeps the current opened application.
+       * 
+       * @param {Object}
+       *          oApp the current application which is opened
+       */
+      setOpenedApp : function(appId) {
+        var me = this;
+        me.currentOpenedApp = appId;
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-getOpenedApp'>      /*************************************************************************
+</span>       * It returns the id of the current application.
+       */
+      getOpenedApp : function() {
+        var me = this;
+        return me.currentOpenedApp;
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-getApplicationContainer'>      getApplicationContainer : function() {
+</span>        var me = this;
+        return me.appLicationContainer;
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-changePanel'>      /**
+</span>       * It changes the tab to a specific tab.
+       * 
+       * @param{String} type is a string the name of the
+       *                menu:welcome,menuPanel,sharedLayouts
+       */
+      changePanel : function(type) {
+        var me = this;
+        if (me.exists(type)) {
+          me.makeVisible(type);
+        } else {
+          GLOBAL.APP.CF.alert(&quot;This menu is not implemented!&quot;, &quot;error&quot;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-exists'>      exists : function(type) {
+</span>        var me = this;
+        found = false;
+        me.items.each(function(i, key) {
+              if (i.value == type) {
+                found = true;
+                return;
+              }
+            });
+        return found;
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-makeVisible'>      makeVisible : function(type) {
+</span>        var me = this;
+        me.items.each(function(i, key) {
+              if (i.value == type) {
+                i.show();
+              } else {
+                i.hide();
+              }
+            });
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-createWindow'>      /**
+</span>       * It created an application. The new application belongs to the a
+       * specific tab. If this tab is not specified, it will created into the
+       * active tab.
+       * 
+       * @param {Object}
+       *          config the configuration of the window used by the
+       *          application.
+       * @param {String}
+       *          tab the name of the tab where the applications will be
+       *          created.
+       */
+      createWindow : function(config, oTab, cbFunction) {
+        var me = this;
+        var tab = new Ext.dirac.views.tabs.Panel(config);
+        var activeTab = me.getApplicationContainer().getActiveTab();
+        if (activeTab == null &amp;&amp; oTab == null) {
+          me.createDesktopTab(&#39;Default&#39;);
+          activeTab = me.getApplicationContainer().getActiveTab(); // we
+          // need to get the new active tab
+        } else if (oTab != null) {
+          activeTab = oTab;
+        }
+        if (activeTab.view == &#39;presenterView&#39;) {
+          tab.activeTab = activeTab; // this needs to stop the loading
+          // message. The event handled in the Panel class.
+          Ext.apply(tab, {
+                tools : [{
+                      type : &#39;maximize&#39;,
+                      tooltip : &#39;Maximize the application.&#39;,
+                      scope : tab,
+                      handler : function(event, toolEl, panelHeader) {
+                        var me = this;
+                        activeTab.hideComponents(); // hides all
+                        // components!
+                        me.show(); // only show the current component
+                        // we need to hide the maximize and also the close
+                        // buttons!!
+                        for (var i = 0; i &lt; me.tools.length; i++) {
+                          if (me.tools[i].type == &#39;maximize&#39; || me.tools[i].type == &#39;close&#39;) {
+                            me.tools[i].hide();
+                          } else if (me.tools[i].type == &#39;minimize&#39;) {
+                            me.tools[i].show();
+                          }
+                        }
+                        var origSize = {
+                          &#39;width&#39; : tab.getWidth(),
+                          &#39;height&#39; : tab.getHeight()
+                        }
+                        me.origiginalSize = origSize;
+                        me.setWidth(activeTab.getWidth());
+                        me.setHeight(activeTab.getHeight());
+                        me.isOpen = true;
+                        activeTab.add(me);
+
+                      }
+                    }, {
+                      type : &#39;minimize&#39;,
+                      tooltip : &#39;Minimize the application.&#39;,
+                      scope : tab,
+                      hidden : true,
+                      handler : function(event, toolEl, panelHeader) {
+                        var me = this;
+                        activeTab.showComponents();
+                        // we need to show the maximize and close
+                        // buttons and hide the minimize buttons.
+                        for (var i = 0; i &lt; me.tools.length; i++) {
+                          if (me.tools[i].type == &#39;maximize&#39; || me.tools[i].type == &#39;close&#39;) {
+                            me.tools[i].show();
+                          } else if (me.tools[i].type == &#39;minimize&#39;) {
+                            me.tools[i].hide();
+                          }
+                        }
+                        me.isOpen = false;
+                        me.setWidth(tab.origiginalSize.width);
+                        me.setHeight(tab.origiginalSize.height);
+                        activeTab.addWidget(me);
+                      }
+                    }, {
+                      scope : tab,
+                      type : &#39;save&#39;,
+                      tooltip : &#39;Save application state.&#39;,
+                      // hidden:true,
+                      handler : function(event, toolEl, panelHeader) {
+                        var me = this;
+                        Ext.MessageBox.confirm(&#39;Confirm&#39;, &#39;Do you want to save the current application state?&#39;, function(button) {
+                              var me = this;
+                              if (button == &#39;yes&#39;) {
+                                var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+
+                                  if ((iCode == 1) &amp;&amp; (GLOBAL.APP.MAIN_VIEW.currentState != sStateName)) {
+
+                                    GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
+
+                                    if (GLOBAL.APP.MAIN_VIEW.currentState != &quot;&quot;)
+                                      GLOBAL.APP.SM.oprRemoveActiveState(sAppName, GLOBAL.APP.MAIN_VIEW.currentState);
+
+                                    me.loadedObject.currentState = sStateName;
+                                    GLOBAL.APP.MAIN_VIEW.currentState = sStateName;
+                                    GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);
+                                    me.setTitle(me.loadedObject.launcher.title + &quot; [&quot; + me.loadedObject.currentState + &quot;]&quot;);
+
+                                    GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+
+                                    if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+                                      GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+                                  }
+
+                                };
+                                GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState(&quot;application&quot;, me.loadedObject.self.getName(), me.loadedObject, funcAfterSave);
+                              }
+                            }, me);
+                      }
+                    }, {
+                      scope : tab,
+                      type : &quot;help&quot;,
+                      tooltip : &quot;It provides description of the active application.&quot;,
+                      handler : function() {
+                        var me = this;
+
+                        GLOBAL.APP.MAIN_VIEW.openHelpWindow(me);
+
+                      }
+                    }]
+              });
+          activeTab.addWidget(tab);
+          tab.header.hide(); // we do not show the name of the application!
+          // (save space)
+          tab.loadData();
+        } else {
+          tab.activeTab = activeTab; // this needs to stop the loading
+          // message. The event handled in the Panel class.
+          activeTab.add(tab);
+        }
+        if (cbFunction) {
+          cbFunction(tab);
+        } else {
+          tab.toLoad = true;
+        }
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-createPresenterWindow'>      createPresenterWindow : function(config) {
+</span>        var me = this, win, cfg = Ext.applyIf(config || {}, {
+              stateful : false,
+              isWindow : true,
+              constrainHeader : true,
+              minimizable : true,
+              maximizable : true,
+              animCollapse : false,
+              closable : false,
+              border : false,
+              hideMode : &#39;offsets&#39;,
+              layout : &#39;fit&#39;,
+              maximized : true
+            });
+        var win = Ext.create(&#39;Ext.window.Window&#39;, cfg);
+        return win;
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-createModalWindow'>      /**
+</span>       * It is used to create a window.
+       * 
+       * @param {Object }
+       *          config the window configuration.
+       * @return {Ext.window.Window} win the created window.
+       */
+      createModalWindow : function(config) {
+        var me = this, win, cfg = Ext.applyIf(config || {}, {
+              stateful : false,
+              isWindow : true,
+              constrainHeader : true,
+              minimizable : true,
+              maximizable : true,
+              animCollapse : false,
+              border : false,
+              hideMode : &#39;offsets&#39;,
+              layout : &#39;fit&#39;
+            });
+        var win = Ext.create(&#39;Ext.window.Window&#39;, cfg);
+        return win;
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-getTabFromApplicationContainer'>      /*************************************************************************
+</span>       * It returns the tab object for a given name.
+       * 
+       * @param {String}
+       *          name The name of the tab widget.
+       * @return {Object}
+       */
+      getTabFromApplicationContainer : function(name) {
+        var me = this;
+        var tab = null;
+        var container = me.getApplicationContainer();
+        if (container) {
+          var tabs = container.items;
+          tabs.each(function(key, value, length) {
+                if (key.title == name) {
+                  tab = key;
+                  return;
+                }
+              });
+        }
+        return tab;
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-createDesktopTab'>      /**
+</span>       * It creates an empty desktop. If the load is true, the applications will
+       * be not loaded by the
+       * {@link Ext.dirac.views.tabs.TabPanel TabPanel class}.
+       * 
+       * @param{String} name is the name of the desktop.
+       * @param{String} view is used to decide which type of desktop will be
+       *                used. We have two different views: presenter and tab
+       *                view.
+       * @param{Boolean} load is used to decide what we want to do with the
+       *                 desktop. If it is true, we do not load the applications
+       *                 to the desktop.
+       */
+      createDesktopTab : function(name, view, cbLoadDesktop) {
+        var me = this;
+        var isLoaded = (GLOBAL.APP.MAIN_VIEW.loading ? false : true);
+        var tab = me.getTabFromApplicationContainer(name);
+        if (tab != null) {
+          me.getApplicationContainer().setActiveTab(tab);
+        } else {
+          if (view == &#39;presenterView&#39;) { // we have to add the presenter page
+            tab = Ext.create(&#39;Ext.dirac.views.tabs.PresenterView&#39;, {
+                  title : name,
+                  desktop : me,
+                  type : &#39;desktop&#39;,
+                  isLoaded : isLoaded
+                });
+          } else {
+            tab = Ext.create(&#39;widget.tabPanel&#39;, {
+                  region : &#39;center&#39;,
+                  minWidth : 300,
+                  title : name,
+                  closable : true,
+                  type : &#39;desktop&#39;,
+                  isLoaded : isLoaded
+                });
+            tab.addPlugin(Ext.create(&#39;Ext.dirac.views.tabs.TabMenuPlugin&#39;, {
+                  width : 60, // 30
+                  position : &#39;right&#39;,
+                  items : [{
+                        xtype : &quot;tabscrollerbutton&quot;,
+                        tabPanel : tab,
+                        menuPrefixText : &quot;Applications&quot;,
+                        maxText : 100,
+                        pageSize : 5,
+                        tooltip : &quot;Jump to the selected application.&quot;
+                      }, {
+                        xtype : &quot;button&quot;,
+                        glyph : &#39;63&#39;,
+                        tooltip : &quot;It provides description of the active application.&quot;,
+                        handler : function() {
+                          var desktop = me.getApplicationContainer().getActiveTab();
+                          if (desktop) {
+                            var app = desktop.getActiveTab();
+                            if (app) {
+                              GLOBAL.APP.MAIN_VIEW.openHelpWindow(app);
+                            }
+                          }
+
+                        }
+                      }]
+                }));
+            tab.initPlugin(tab.plugins[0]);
+          }
+
+          me.getApplicationContainer().add(tab);
+          me.getApplicationContainer().setActiveTab(tab);
+        }
+        if (cbLoadDesktop) {
+          cbLoadDesktop(name, tab);
+        }
+        if (name == &#39;Default&#39;) {
+          GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+        }
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-addStateToExistingWindows'>      /**
+</span>       * Function to add new state to the instances of the same module
+       * 
+       * @param {String}
+       *          stateName This is the name od the state
+       * @param {String}
+       *          appName Name of the module
+       * @param {Object}
+       *          stateData Data of the module that define its state
+       */
+      addStateToExistingWindows : function(stateName, appName) {
+
+        var me = this;
+        var activeTab = me.getApplicationContainer().getActiveTab();
+        var desktopName = activeTab.title;
+        if (desktopName != &#39;Default&#39;) {
+          GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktopName, stateName, appName);
+          GLOBAL.APP.MAIN_VIEW.addToDelete(appName, &quot;application&quot;, stateName);
+        } else {
+          GLOBAL.APP.MAIN_VIEW.addToDeafultDesktop(stateName, appName);
+        }
+
+      },
+
+<span id='Ext-dirac-views-tabs-RightContainer-method-oprSaveDesktopState'>      /**
+</span>       * Function called when the Save button from the desktop context menu is
+       * clicked
+       */
+      oprSaveDesktopState : function(desktopName) {
+
+        var me = this;
+
+        var desktop = null;
+        if (desktopName) {
+          desktop = me.getApplicationContainer().getDesktop(desktopName);
+        } else {
+          desktop = me.getApplicationContainer().getActiveTab();
+        }
+
+        if (desktop) {
+          /*
+           * Function that is executed after a state has been saved
+           */
+          var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+
+            if (iCode == 1) {
+
+              if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+                GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+
+              if ((GLOBAL.APP.MAIN_VIEW.currentState == &#39;&#39;) &amp;&amp; (desktopName != sStateName)) {
+                // if the desktop is the default desktop, we have to add the new
+                // states and remove the old state from
+                // the activeStates.
+
+                // if there is an active desktop state, we have to remove it
+
+                GLOBAL.APP.SM.oprRemoveActiveState(&quot;desktop&quot;, GLOBAL.APP.MAIN_VIEW.currentState);// OK
+
+                // if there is a state, we set it as an active state
+                GLOBAL.APP.MAIN_VIEW.currentState = sStateName;
+                GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);// OK
+
+                GLOBAL.APP.MAIN_VIEW.renameCurrentDesktop(sStateName);
+
+              } else {
+                GLOBAL.APP.MAIN_VIEW.refreshMyDesktop(sStateName);
+              }
+
+            }
+            if (!Ext.Array.contains(GLOBAL.APP.MAIN_VIEW._state_related_url, sStateName)) {
+              GLOBAL.APP.MAIN_VIEW._state_related_url.push(sStateName);
+            }
+            GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+
+          };
+
+          GLOBAL.APP.MAIN_VIEW.currentState = ((GLOBAL.APP.MAIN_VIEW.currentState == &#39;Default&#39;) ? &quot;&quot; : GLOBAL.APP.MAIN_VIEW.currentState);
+
+          GLOBAL.APP.MAIN_VIEW.destroyDeleteApplications();
+
+          // we do not want to save the default desktop as Default
+          GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState(&quot;application&quot;, &quot;desktop&quot;, desktop, funcAfterSave)
+
+        } else {
+          Ext.dirac.system_info.msg(&quot;Notification&quot;, &#39;The desktop is not active!&#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-oprSaveAsDesktopState'>      oprSaveAsDesktopState : function(desktopName) {
+</span>
+        var me = this;
+        me.hasClose = close;
+        var desktop = null;
+        if (desktopName) {
+          desktop = me.getApplicationContainer().getDesktop(desktopName);
+        } else {
+          desktop = me.getApplicationContainer().getActiveTab();
+        }
+
+        if (desktop) {
+          /*
+           * Function that is executed after a state has been saved
+           */
+          var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+
+            if ((iCode == 1) &amp;&amp; (GLOBAL.APP.MAIN_VIEW.currentState != sStateName)) {
+
+              // if there is an active desktop state, we have to remove it
+              if (GLOBAL.APP.MAIN_VIEW.currentState != &quot;&quot;)
+                GLOBAL.APP.SM.oprRemoveActiveState(&quot;desktop&quot;, GLOBAL.APP.MAIN_VIEW.currentState);// OK
+
+              // if there is a state, we set it as an active state
+              GLOBAL.APP.MAIN_VIEW.currentState = sStateName;
+              GLOBAL.APP.SM.oprAddActiveState(sAppName, sStateName);// OK
+              GLOBAL.APP.MAIN_VIEW._state_related_url.push(sStateName); // it is
+              // required for refreshing the url.
+
+              GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+              GLOBAL.APP.MAIN_VIEW.renameCurrentDesktop(sStateName, true);
+
+              if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow)
+                GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
+
+            }
+
+          };
+          GLOBAL.APP.MAIN_VIEW.SM.formSaveState(&quot;application&quot;, &quot;desktop&quot;, desktop, funcAfterSave);
+          GLOBAL.APP.MAIN_VIEW.destroyDeleteApplications();
+
+        } else {
+          Ext.dirac.system_info.msg(&quot;Notification&quot;, &#39;No desktop found!&#39;);
+        }
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-oprDeleteDesktopState'>      oprDeleteDesktopState : function() {
+</span>        var me = this;
+        /*
+         * Function that is executed after a state has been removed
+         */
+        var funcAfterRemove = function(stateType, sAppName, sStateName) {
+
+          if (stateType == &#39;application&#39;) {
+            GLOBAL.APP.MAIN_VIEW.deleteStateFromMenu(sStateName);
+          } else {// it is a reference =&gt;shared desktop....
+            GLOBAL.APP.MAIN_VIEW.removeFormSharedDesktop(sStateName);
+          }
+
+          Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, sStateName); // it
+          // is required for refreshing the url.
+
+          GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
+
+        };
+        GLOBAL.APP.MAIN_VIEW.SM.formManageStates(&quot;desktop&quot;, funcAfterRemove);
+      },
+<span id='Ext-dirac-views-tabs-RightContainer-method-setActiveTab'>      setActiveTab : function(tab) {
+</span>        var me = this;
+        var container = me.getApplicationContainer();
+        if (container) {
+          container.setActiveTab(tab);
+        }
+      }
+
+    });
+</pre>
+</body>
+</html>

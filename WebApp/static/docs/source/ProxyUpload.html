@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;DIRAC.ProxyUpload.classes.ProxyUpload&#39;, {
+	extend : &#39;Ext.dirac.core.Module&#39;,
+
+	requires : [ &#39;Ext.toolbar.Toolbar&#39;, &#39;Ext.button.Button&#39;, &#39;Ext.form.field.File&#39;, &#39;Ext.form.field.Text&#39;, &#39;Ext.panel.Panel&#39;, &#39;Ext.form.Panel&#39; ],
+
+	initComponent : function() {
+
+		var me = this;
+
+		if (GLOBAL.VIEW_ID == &quot;desktop&quot;) {
+
+			me.launcher.title = &quot;Proxy Upload&quot;;
+			me.launcher.maximized = false;
+
+			me.launcher.width = 400;
+			me.launcher.height = 350;
+
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+			me.launcher.x = oDimensions[0] / 2 - me.launcher.width / 2;
+			me.launcher.y = oDimensions[1] / 2 - me.launcher.height / 2;
+
+		}
+
+		if (GLOBAL.VIEW_ID == &quot;tabs&quot;) {
+
+			me.launcher.title = &quot;Proxy Upload&quot;;
+			me.launcher.maximized = false;
+
+			me.launcher.width = 400;
+			me.launcher.height = 350;
+
+			var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+
+			me.launcher.x = oDimensions[0] / 2 - me.launcher.width / 2;
+			me.launcher.y = oDimensions[1] / 2 - me.launcher.height / 2;
+
+		}
+
+		Ext.apply(me, {
+			layout : &#39;border&#39;,
+			bodyBorder : false,
+			defaults : {
+				collapsible : true,
+				split : true
+			}
+		});
+
+		me.callParent(arguments);
+
+	},
+
+	buildUI : function() {
+
+		var me = this;
+
+		me.btnUpload = new Ext.Button({
+
+			text : &#39;Upload&#39;,
+			margin : 1,
+			iconCls : &quot;dirac-icon-upload&quot;,
+			handler : function() {
+
+				me.__oprUploadFile();
+
+			},
+			scope : me
+
+		});
+
+		me.btnReset = new Ext.Button({
+
+			text : &#39;Reset&#39;,
+			margin : 1,
+			iconCls : &quot;dirac-icon-reset&quot;,
+			handler : function() {
+				me.uploadField.reset();// fileInputEl.dom.value = &quot;&quot;;
+				me.passwordField.setValue(&quot;&quot;);
+			},
+			scope : me
+
+		});
+
+		var oPanelButtons = new Ext.create(&#39;Ext.toolbar.Toolbar&#39;, {
+			dock : &#39;bottom&#39;,
+			layout : {
+				pack : &#39;center&#39;
+			},
+			items : [ me.btnUpload, me.btnReset ]
+		});
+
+		me.uploadField = new Ext.create(&#39;Ext.form.field.File&#39;, {
+			fieldLabel : &#39;Certificate&#39;,
+			anchor : &#39;100%&#39;,
+			buttonText : &#39;Browse&#39;,
+			labelAlign : &#39;left&#39;
+		});
+
+		me.passwordField = new Ext.create(&#39;Ext.form.field.Text&#39;, {
+			fieldLabel : &#39;p12 Password&#39;,
+			inputType : &quot;password&quot;,
+			anchor : &#39;100%&#39;,
+			labelAlign : &#39;left&#39;,
+			name : &quot;pass_p12&quot;,
+			enableKeyEvents : true,
+			listeners : {
+
+				keypress : function(oTextField, e, eOpts) {
+
+					if (e.getCharCode() == 13) {
+
+						me.__oprUploadFile();
+
+					}
+
+				}
+
+			}
+		});
+
+		me.mainFormPanel = new Ext.create(&#39;Ext.form.Panel&#39;, {
+			floatable : false,
+			region : &quot;center&quot;,
+			layout : &quot;anchor&quot;,
+			header : false,
+			bodyPadding : 5,
+			autoScroll : true,
+			dockedItems : [ oPanelButtons ],
+			items : [
+					{
+						html : &quot;&lt;div style=&#39;padding:5px 5px 10px 5px;background-color:#FFFF94;margin-bottom:20px;&#39;&gt;&quot;
+								+ &quot;&lt;h2&gt;Important !&lt;/h2&gt;&lt;div style=&#39;text-align:justify&#39;&gt;We are not keeping neither your private key nor password for p12 file on our service. While we try to make this &quot;
+								+ &quot;process as secure as possible by using &quot; + &quot;SSL to encrypt the p12 file with your credentials when it is sent to the server, &quot;
+								+ &quot;for maximum security, we recommend that you manually convert and upload the proxy using DIRAC client commands:&lt;/div&gt;&quot; + &quot;&lt;br/&gt;&lt;b&gt;dirac-cert-convert.sh YOUR_P12_FILE_NAME.p12&lt;/b&gt;&quot;
+								+ &quot;&lt;br/&gt;&lt;b&gt;dirac-proxy-init -U -g GROUP_NAME&lt;/b&gt;&lt;/div&gt;&quot;,
+						xtype : &quot;box&quot;,
+						anchor : &#39;100%&#39;
+					}, me.uploadField, me.passwordField ]
+		});
+
+		me.add([ me.mainFormPanel ]);
+
+	},
+
+	__oprUploadFile : function() {
+
+		var me = this;
+
+		var sFileName = me.uploadField.getValue();
+		var sPassword = me.passwordField.getValue();
+
+		if ((sFileName != &quot;&quot;) &amp;&amp; (sPassword != &quot;&quot;)) {
+
+			if (sFileName.substr(-4) != &#39;.p12&#39;) {
+				GLOBAL.APP.CF.alert(&#39;You have to choose the *.p12 file with you credentials&#39;, &quot;warning&quot;);
+				return;
+			}
+
+			me.getContainer().body.mask(&quot;Wait ...&quot;);
+
+			me.mainFormPanel.submit({
+
+				url : GLOBAL.BASE_URL + &#39;ProxyUpload/proxyUpload&#39;,
+				success : function(form, action) {
+					me.getContainer().body.unmask();
+
+					if (action.result.success == &quot;false&quot;) {
+
+						GLOBAL.APP.CF.alert(action.result.error, &quot;error&quot;);
+
+					} else {
+						var resultText = action.result.result;
+						resultText = resultText.replace(new RegExp(&quot;\n&quot;, &#39;g&#39;), &quot;&lt;br/&gt;&quot;);
+						GLOBAL.APP.CF.alert(resultText, &quot;info&quot;);
+
+					}
+
+					me.passwordField.setValue(&quot;&quot;);
+				},
+				failure : function(form, action) {
+					me.uploadField.reset();
+					me.passwordField.setValue(&quot;&quot;);
+					me.getContainer().body.unmask();
+				}
+			});
+
+		} else {
+			GLOBAL.APP.CF.alert(&quot;Both fields are mandatory !&quot;, &quot;warning&quot;);
+		}
+
+	}
+
+});
+</pre>
+</body>
+</html>

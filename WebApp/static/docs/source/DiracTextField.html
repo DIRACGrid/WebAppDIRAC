@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dirac-utils-DiracTextField'>/*******************************************************************************
+</span> * It is a text filed which is used by the selector.
+ */
+Ext.define(&#39;Ext.dirac.utils.DiracTextField&#39;, {
+      extend : &#39;Ext.form.field.Text&#39;,
+<span id='Ext-dirac-utils-DiracTextField-property-fieldLabel'>      fieldLabel : &quot;&quot;,
+</span><span id='Ext-dirac-utils-DiracTextField-property-labelAlign'>      labelAlign : &#39;top&#39;,
+</span><span id='Ext-dirac-utils-DiracTextField-property-anchor'>      anchor : &quot;100%&quot;,
+</span><span id='Ext-dirac-utils-DiracTextField-property-canDisable'>      canDisable : true,
+</span>
+<span id='Ext-dirac-utils-DiracTextField-method-validator'>      validator : function(value) {
+</span>        var me = this;
+
+        if (!me.canDisable)
+          return true;
+        if (Ext.util.Format.trim(value) != &quot;&quot;) {
+          me.scope.disableElements(me);
+          return true;
+
+        } else {
+          me.scope.enableElements();
+          return true;
+        }
+      },
+<span id='Ext-dirac-utils-DiracTextField-property-enableKeyEvents'>      enableKeyEvents : true,
+</span><span id='Ext-dirac-utils-DiracTextField-property-listeners'>      listeners : {
+</span>
+        keypress : function(oTextField, e, eOpts) {
+          var me = this;
+
+          //it disables all the widgets except this.
+          if (e.getCharCode() == 13) {
+
+            me.scope.oprLoadGridData();
+
+          }
+
+        }
+      }
+    });</pre>
+</body>
+</html>
