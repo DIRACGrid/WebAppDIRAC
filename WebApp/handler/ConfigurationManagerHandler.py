@@ -387,8 +387,12 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       for key in ( 'comment', 'beforeKey', 'key' ):
         if key in nodeDict:
           addArgs[ key ] = nodeDict[ key ]
-      addArgs["value"] = nodeDict["value"].clone()
-      newParentDict[ 'value' ].addKey( **addArgs )
+   
+      if isinstance(nodeDict["value"], str):
+        newParentDict[ 'value' ].addKey(nodeDict.get("key",""),nodeDict.get("value",""),nodeDict.get("comment",""), nodeDict.get("beforeKey",""))
+      else:
+        addArgs["value"] = nodeDict["value"].clone()
+        newParentDict[ 'value' ].addKey( **addArgs )
     except Exception, e:
       return {"success":0, "op":"copyKey", "message":"Can't move node: %s" % str( e )}
     return {"success":1, "op":"copyKey", "newName":nodeDict['key'], "nodeId":params["nodeId"], "parentNodeToId":params["parentNodeToId"]}
