@@ -63,6 +63,8 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       res = self.__showDiff( params )
     elif params["op"] == "rollback":
       res = self.__rollback( params )
+    elif params["op"] == "download":
+      res = self.__download( )
 
     gLogger.info( "Sending back message %s" % res )
     if res:
@@ -521,3 +523,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
     else:
       WErr.fromSERROR( retVal )
     return {"success":1, "op":"showshowHistory", "result":cDict}
+  
+  def __download(self):
+    return {"success":1, "op":"download", "result":self.__configData[ 'strCfgData' ]}
+   

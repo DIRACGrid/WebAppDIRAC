@@ -105,7 +105,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         if (!me.isConnectionEstablished) {
 
           var sMessage = "There is no connection established with the server.\nDo you want to reconnect now?";
-          
+
           if (confirm(sMessage)) {
             // resetting the configuration
             me.socket = me.__createSocket("resetConfiguration");
@@ -307,6 +307,16 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
               case "rollback" :
                 Ext.dirac.system_info.msg("Notification", "The version roll back to " + oResponse.version);
                 break;
+              case "download" :
+                try {
+                  var blob = new Blob([oResponse.result], {
+                        type : "text/plain;charset=utf-8"
+                      });
+                  saveAs(blob, "test.cfg");
+                } catch (ex) {
+                  Ext.dirac.system_info.msg("Error Notification", "Download is not suported..." + ex);
+                }
+                break;
 
             }
           }
@@ -336,6 +346,22 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                     });
 
                 me.btnViewConfigAsText.hide();
+
+              },
+              scope : me
+
+            });
+
+        me.btnDownloadConfigAsText = new Ext.Button({
+
+              text : 'Download',
+
+              // iconCls : "dirac-icon-text",
+              handler : function() {
+
+                me.__sendSocketMessage({
+                      op : "download"
+                    });
 
               },
               scope : me
@@ -405,7 +431,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
               }
             });
 
-        var bBarElems = [me.btnViewConfigAsText, me.btnResetConfig];
+        var bBarElems = [me.btnViewConfigAsText, me.btnDownloadConfigAsText, me.btnResetConfig];
 
         if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "CSAdministrator") != -1)) {
 
