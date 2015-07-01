@@ -355,8 +355,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         me.btnDownloadConfigAsText = new Ext.Button({
 
               text : 'Download',
+              
+              iconCls : "dirac-icon-download",
 
-              // iconCls : "dirac-icon-text",
               handler : function() {
 
                 me.__sendSocketMessage({
