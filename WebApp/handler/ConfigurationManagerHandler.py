@@ -525,5 +525,10 @@ class ConfigurationManagerHandler( WebSocketHandler ):
     return {"success":1, "op":"showshowHistory", "result":cDict}
   
   def __download(self):
-    return {"success":1, "op":"download", "result":self.__configData[ 'strCfgData' ]}
+    
+    version = str( self.__configData['cfgData'].getCFG()["DIRAC"]["Configuration"]["Version"] )
+    configName = str( self.__configData['cfgData'].getCFG()["DIRAC"]["Configuration"]["Name"] )
+    fileName = "cs.%s.%s" % ( configName, version.replace( ":", "" ).replace( "-", "" ).replace( " ", "" ) )
+    
+    return {"success":1, "op":"download", "result":self.__configData[ 'strCfgData' ],"fileName":fileName}
    
