@@ -10,7 +10,7 @@ class ComponentHistoryHandler( WebHandler ):
   AUTH_PROPS = 'authenticated'
 
   @asyncGen
-  def web_getJobData( self ):
+  def web_getInstallationData( self ):
 
     req = self.__request()
 

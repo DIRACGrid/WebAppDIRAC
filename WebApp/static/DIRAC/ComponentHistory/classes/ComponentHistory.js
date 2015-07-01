@@ -133,7 +133,7 @@ Ext.define('DIRAC.ComponentHistory.classes.ComponentHistory', {
         */
 
        var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy',{
-         url : GLOBAL.BASE_URL + 'ComponentHistory/getJobData'
+         url : GLOBAL.BASE_URL + 'ComponentHistory/getInstallationData'
        });
 
        me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore",{
