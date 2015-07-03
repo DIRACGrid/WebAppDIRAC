@@ -129,24 +129,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
           if (me.btnCommitConfiguration)
             me.btnCommitConfiguration.show();
 
-<<<<<<< Updated upstream
-=======
-          //if (me.btnViewConfigDifference)
-          //  me.btnViewConfigDifference.show();
-
->>>>>>> Stashed changes
-        } else {
+         } else {
+          
           if (me.btnCommitConfiguration)
             me.btnCommitConfiguration.hide();
-
-<<<<<<< Updated upstream
-=======
-         // if (me.btnViewConfigDifference)
-          //  me.btnViewConfigDifference.hide();
-
->>>>>>> Stashed changes
+            
         }
-
+      
         me.changeMade = bChange;
 
       },
@@ -463,7 +452,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                     me.btnCommitConfiguration.hide();
 <<<<<<< Updated upstream
 =======
-                    //me.btnViewConfigDifference.hide();
+                    // me.btnViewConfigDifference.hide();
 >>>>>>> Stashed changes
                   } else {
                     me.btnBrowseManage.setText("Browse");
@@ -492,7 +481,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 <<<<<<< Updated upstream
 
 =======
-                    //me.btnViewConfigDifference.hide();
+                    // me.btnViewConfigDifference.hide();
 >>>>>>> Stashed changes
                   }
                 },
@@ -534,7 +523,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 scope : me,
                 hidden : false
 =======
-                  //me.btnViewConfigDifference.hide();
+                  // me.btnViewConfigDifference.hide();
 
                 },
                 scope : me
