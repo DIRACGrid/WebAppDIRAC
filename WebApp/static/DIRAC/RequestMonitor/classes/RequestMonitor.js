@@ -50,7 +50,7 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
             dateFormat : 'Y-m-d H:i:s'
 
           }, {
-            name : 'RequestType'
+            name : 'OperationType'
           }, {
             name : 'CreationTime',
             type : 'date',
@@ -64,8 +64,6 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
             type : 'int'
           }, {
             name : 'Error'
-          }, {
-            name : 'Operation'
           }, {
             name : 'RequestName'
           }, {
@@ -108,9 +106,8 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
         var me = this;
 
         var selectors = {
-          requestType : "Request Type",
+          operationType : "Operation Type",
           status : "Status",
-          operation : "Operation",
           owner : "Owner",
           ownerGroup : "Owner Group"
         };
@@ -124,7 +121,7 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
           }
         };
 
-        var map = [["requestType", "requestType"], ["status", "status"], ["operation", "operation"], ["owner", "owner"], ["ownerGroup", "ownerGroup"]];
+        var map = [["operationType", "operationType"], ["status", "status"], ["owner", "owner"], ["ownerGroup", "ownerGroup"]];
 
         me.leftPanel = new Ext.create('Ext.dirac.utils.DiracBaseSelector', {
               scope : me,
@@ -185,11 +182,8 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
           "OwnerDN" : {
             "dataIndex" : "OwnerDN"
           },
-          "RequestType" : {
-            "dataIndex" : "RequestType"
-          },
-          "Operation" : {
-            "dataIndex" : "Operation"
+          "OperationType" : {
+            "dataIndex" : "OperationType"
           },
           "OwnerGroup" : {
             "dataIndex" : "OwnerGroup"
