@@ -119,6 +119,9 @@ class App( object ):
     port = Conf.HTTPPort()
     srv.listen( port )
     self.__servers[ ( 'http', port ) ] = srv
+    
+    Conf.generateRevokedCertsFile() #it is used by nginx....
+  
     if Conf.HTTPS():
       self.log.notice( "Configuring HTTPS on port %s" % Conf.HTTPSPort() )
       sslops = dict( certfile = Conf.HTTPSCert(),
@@ -140,6 +143,8 @@ class App( object ):
       port = Conf.HTTPSPort()
       srv.listen( port )
       self.__servers[ ( 'https', port ) ] = srv
+    else:
+      Conf.generateCAFile() #if we use Nginx we have to generate the cas as well...
     return result
 
   def run( self ):
