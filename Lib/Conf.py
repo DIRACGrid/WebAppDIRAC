@@ -4,7 +4,7 @@ import uuid
 import tempfile
 import tornado.process
 from DIRAC import S_OK, S_ERROR, gConfig
-from DIRAC.Core.Security import Locations, X509Chain
+from DIRAC.Core.Security import Locations, X509Chain, X509CRL
 
 BASECS = "/WebApp"
 
@@ -92,6 +92,31 @@ def generateCAFile():
       expired = chain.hasExpired()
       if not expired[ 'OK' ] or expired[ 'Value' ]:
         continue
+      fd.write( chain.dumpAllToString()[ 'Value' ] )
+    fd.close()
+    return fn
+  return False
+
+def generateRevokedCertsFile():
+  """
+  Generate a single CA file with all the PEMs
+  """
+  caDir = Locations.getCAsLocation()
+  for fn in ( os.path.join( os.path.dirname( caDir ), "allRevokedCerts.pem" ),
+              os.path.join( os.path.dirname( HTTPSCert() ), "allRevokedCerts.pem" ),
+              False ):
+    if not fn:
+      fn = tempfile.mkstemp( prefix = "allRevokedCerts", suffix = ".pem" )[1]
+    try:
+      fd = open( fn, "w" )
+    except IOError:
+      continue
+    for caFile in os.listdir( caDir ):
+      caFile = os.path.join( caDir, caFile )
+      result = X509CRL.X509CRL.instanceFromFile( caFile )
+      if not result[ 'OK' ]:
+        continue
+      chain = result[ 'Value' ]    
       fd.write( chain.dumpAllToString()[ 'Value' ] )
     fd.close()
     return fn
