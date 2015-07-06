@@ -104,7 +104,7 @@ class TransformationMonitorHandler( WebHandler ):
       callback = {"success":"false", "error":"You are not authorised"}
     else:
       result = self.__request()
-      
+      print "DDDDD", self.globalSort
       result = yield self.threadTask( tsClient.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs )
       if not result["OK"]:
         self.finish( json.dumps( {"success":"false", "error":result["Message"]} ) )
