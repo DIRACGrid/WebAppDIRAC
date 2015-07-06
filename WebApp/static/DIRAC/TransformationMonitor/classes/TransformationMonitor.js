@@ -212,8 +212,11 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         me.diffValues = {};
         me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
               proxy : oProxy,
+              autoLoad : false,
+              groupDir : 'DESC',
               fields : me.dataFields,
               groupField : 'TransformationFamily',
+              multiSortLimit : 1,
               oDiffFields : {
                 'Id' : 'TransformationID',
                 'Fields' : ['Jobs_Created', 'Jobs_TotalCreated', 'Jobs_Done', 'Jobs_Failed', 'Jobs_Running', 'Jobs_Stalled', 'Jobs_Submitted', 'Jobs_Waiting', 'Jobs_Completed', 'Files_PercentProcessed', 'Files_Total', 'Files_Unused', 'Files_Assigned', 'Files_Processed',
@@ -221,7 +224,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               },
               scope : me
             });
-
+        me.dataStore.sort('TransformationGroup','DESC');
         var pagingToolbar = null;
 
         var toolButtons = {

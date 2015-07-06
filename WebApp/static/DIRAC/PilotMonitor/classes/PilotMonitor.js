@@ -2,7 +2,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
       extend : 'Ext.dirac.core.Module',
 
       requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging", "Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea",
-          "Ext.dirac.utils.DiracToolButton", "Ext.dirac.utils.DiracApplicationContextMenu"],
+          "Ext.dirac.utils.DiracToolButton", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracBaseSelector"],
 
       applicationsToOpen : {
         'JobMonitor' : 'DIRAC.JobMonitor.classes.JobMonitor'
@@ -205,7 +205,8 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
             type : "number"
           },
           'pilotId' : {
-            name : "Pilot Job Reference"
+            name : "Pilot Job Reference",
+            type : "originalText"
           }
         };
 
@@ -233,8 +234,14 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
               autoLoad : false,
               proxy : oProxy,
               fields : me.dataFields,
+              sorters : [{
+                    property : 'SubmissionTime',
+                    direction : 'DESC'
+                  }],
               scope : me
             });
+
+        me.dataStore.sort('SubmissionTime', 'DESC');
 
         var pagingToolbar = {};
 
@@ -440,8 +447,6 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
             });
 
         me.leftPanel.setGrid(me.grid);
-
-        me.grid.columns[1].setSortState("DESC");
 
         me.statisticsGridComboMain = new Ext.form.field.ComboBox({
               allowBlank : false,
@@ -782,7 +787,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
               failure : function(response) {
 
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                
+
               }
             });
       },

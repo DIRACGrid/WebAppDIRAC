@@ -1,7 +1,8 @@
 Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
       extend : 'Ext.dirac.core.Module',
       requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button",
-          "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array', 'Ext.data.proxy.LocalStorage'],
+          "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array', 'Ext.data.proxy.LocalStorage',
+          "DIRAC.ConfigurationManager.classes.HistoryGridPanel"],
 
       loadState : function(oData) {
 
@@ -72,17 +73,14 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
         }
 
+        /*
+         * Ext.apply(me, { layout : 'border', bodyBorder : false, defaults : {
+         * collapsible : true, split : true }, items : [], header : false });
+         */
         Ext.apply(me, {
-              layout : 'border',
-              bodyBorder : false,
-              defaults : {
-                collapsible : true,
-                split : true
-              },
-              items : [],
-              header : false
+              layout : 'card',
+              bodyBorder : false
             });
-
         me.callParent(arguments);
 
       },
@@ -112,6 +110,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
             // resetting the configuration
             me.socket = me.__createSocket("resetConfiguration");
             me.btnResetConfig.hide();
+            me.getLayout().setActiveItem(0);
           }
 
         } else {
@@ -130,18 +129,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
           if (me.btnCommitConfiguration)
             me.btnCommitConfiguration.show();
 
-          if (me.btnViewConfigDifference)
-            me.btnViewConfigDifference.show();
-
-        } else {
+         } else {
+          
           if (me.btnCommitConfiguration)
             me.btnCommitConfiguration.hide();
-
-          if (me.btnViewConfigDifference)
-            me.btnViewConfigDifference.hide();
-
+            
         }
-
+      
         me.changeMade = bChange;
 
       },
@@ -212,7 +206,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 break;
               case "commitConfiguration" :
                 me.btnCommitConfiguration.show();
-                me.btnViewConfigDifference.show();
                 me.treePanel.body.unmask();
                 break;
             }
@@ -234,8 +227,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 break;
               case "showCurrentDiff" :
                 me.__showConfigDiffInWindow(oResponse);
-                me.btnCommitConfiguration.show();
-                me.btnViewConfigDifference.show();
+                me.setLoading(false);
+                break;
+              case "showDiff" :
+                me.__showConfigDiffInWindow(oResponse);
+                me.setLoading(false);
                 break;
               case "resetConfiguration" :
                 me.setNodeText(me.treeStore.getRootNode(), oResponse.name + " [" + oResponse.version + "]");
@@ -245,6 +241,9 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 me.btnPasteButton.setDisabled(true);
                 me.treePanel.body.unmask();
                 me.__setChangeMade(false);
+                me.getLayout().setActiveItem(0);
+                me.history.setLoading(false);
+                me.setLoading(false);
                 break;
               case "getBulkExpandedNodeData" :
                 me.__cbGetBulkExpandedNodeData(oResponse);
@@ -291,7 +290,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
               case "commitConfiguration" :
                 GLOBAL.APP.CF.alert("The changes in the configuration have been successfuly commited !", "info");
                 me.btnCommitConfiguration.show();
-                me.btnViewConfigDifference.show();
                 me.__setChangeMade(false);
                 me.__sendSocketMessage({
                       op : "resetConfiguration"
@@ -301,6 +299,24 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
               case "moveNode" :
                 me.__cbMoveNode(oResponse);
                 me.__setChangeMade(true);
+                break;
+              case "showshowHistory" :
+                me.setLoading(false);
+                me.history.getStore().loadData(oResponse.result.versions);
+                me.history.initRadios();
+                break;
+              case "rollback" :
+                Ext.dirac.system_info.msg("Notification", "The version roll back to " + oResponse.version);
+                break;
+              case "download" :
+                try {
+                  var blob = new Blob([oResponse.result], {
+                        type : "text/plain;charset=utf-8"
+                      });
+                  saveAs(blob, oResponse.fileName);
+                } catch (ex) {
+                  Ext.dirac.system_info.msg("Error Notification", "Download is not suported..." + ex);
+                }
                 break;
 
             }
@@ -331,6 +347,23 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                     });
 
                 me.btnViewConfigAsText.hide();
+
+              },
+              scope : me
+
+            });
+
+        me.btnDownloadConfigAsText = new Ext.Button({
+
+              text : 'Download',
+              
+              iconCls : "dirac-icon-download",
+
+              handler : function() {
+
+                me.__sendSocketMessage({
+                      op : "download"
+                    });
 
               },
               scope : me
@@ -400,7 +433,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
               }
             });
 
-        var bBarElems = [me.btnViewConfigAsText, me.btnResetConfig];
+        var bBarElems = [me.btnViewConfigAsText, me.btnDownloadConfigAsText, me.btnResetConfig];
 
         if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "CSAdministrator") != -1)) {
 
@@ -417,7 +450,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                     me.sectionMenu.hide();
                     me.valuePanel.hide();
                     me.btnCommitConfiguration.hide();
-                    me.btnViewConfigDifference.hide();
+<<<<<<< Updated upstream
+=======
+                    // me.btnViewConfigDifference.hide();
+>>>>>>> Stashed changes
                   } else {
                     me.btnBrowseManage.setText("Browse");
                     me.btnBrowseManage.setIconCls("cm-to-browse-icon");
@@ -442,7 +478,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                           op : "commitConfiguration"
                         });
                     me.btnCommitConfiguration.hide();
-                    me.btnViewConfigDifference.hide();
+<<<<<<< Updated upstream
+
+=======
+                    // me.btnViewConfigDifference.hide();
+>>>>>>> Stashed changes
                   }
                 },
                 scope : me,
@@ -457,20 +497,43 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 iconCls : "cm-to-browse-icon",
                 handler : function() {
 
+                  me.setLoading("Creating the diff.... Please be patient...");
                   me.__sendSocketMessage({
                         op : "showCurrentDiff"
                       });
                   me.btnCommitConfiguration.hide();
-                  me.btnViewConfigDifference.hide();
+<<<<<<< Updated upstream
 
                 },
                 scope : me,
-                hidden : true
+                hidden : false
+              });
+
+          me.btnShowHistory = new Ext.button.Button({
+
+                text : 'Show history',
+                handler : function() {
+                  me.setLoading("Loading server history...");
+                  me.__sendSocketMessage({
+                        op : "showshowHistory"
+                      });
+                  me.getLayout().setActiveItem(1);
+
+                },
+                scope : me,
+                hidden : false
+=======
+                  // me.btnViewConfigDifference.hide();
+
+                },
+                scope : me
+>>>>>>> Stashed changes
               });
 
           bBarElems.push("->");
           bBarElems.push(me.btnCommitConfiguration);
           bBarElems.push(me.btnViewConfigDifference);
+          bBarElems.push(me.btnShowHistory);
           bBarElems.push(me.btnBrowseManage);
 
         }
@@ -633,7 +696,22 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
         me.valuePanel.addDocked([oValuePanelToolbar]);
 
-        me.add([me.treePanel, me.valuePanel]);
+        me.history = Ext.create("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
+              scope : me
+            });
+
+        me.history.on('cancelled', me.__onHistoryCancel, me);
+
+        me.browserPanel = new Ext.create('Ext.panel.Panel', {
+              layout : 'border',
+              defaults : {
+                collapsible : true,
+                split : true
+              },
+              items : [me.treePanel, me.valuePanel]
+            });
+
+        me.add([me.browserPanel, me.history]);
 
         me.leafMenu = new Ext.menu.Menu({
               width : 150,
@@ -713,9 +791,12 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
         me.__setDiracDestroyHandler();
 
-        this.callParent();
+        me.callParent();
       },
-
+      __onHistoryCancel : function() {
+        var me = this;
+        me.getLayout().setActiveItem(0);
+      },
       __setDiracDestroyHandler : function() {
 
         var me = this;
