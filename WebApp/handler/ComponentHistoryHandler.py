@@ -8,7 +8,7 @@ import datetime
 
 class ComponentHistoryHandler( WebHandler ):
 
-  AUTH_PROPS = 'all'
+  AUTH_PROPS = 'authenticated'
 
   @asyncGen
   def web_getInstallationData( self ):
