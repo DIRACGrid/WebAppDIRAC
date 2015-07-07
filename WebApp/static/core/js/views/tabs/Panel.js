@@ -18,6 +18,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
       desktopName : "Default",
       hasClose : false,
       layout : 'fit',
+      beforeChange : null,
       activeTab : null,
       defaults : {
         layout : 'fit'
@@ -33,7 +34,9 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
       listeners : {
         beforeclose : function(panel, eOpts) {
           var me = this;
-          Ext.MessageBox.confirm('Confirm', 'There is an active application state. Do you want to save the current state?', function(button) {
+          if (!panel.hasChanged())
+            return;
+          Ext.MessageBox.confirm('Confirm', 'The application has changed. Do you want to save the application?', function(button) {
                 var me = this;
                 if (button == 'yes') {
 
@@ -62,7 +65,11 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                   GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave);
 
                 } else {
+
                   Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, me.getUrlDescription());
+
+                  if (me.currentState != "")
+                    GLOBAL.APP.SM.oprRemoveActiveState(me.loadedObject.self.getName(), me.currentState);
 
                   panel.removeAndclose(panel); // generate a close event again.
                 }
@@ -134,7 +141,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
         me.oneTimeAfterShow = false;
 
         me.childWindows = [];
-        this.callParent();
+        me.callParent();
       },
       /**
        * It returns the class name of the application
@@ -215,7 +222,6 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
         // making relation between the application and the window container
         me.loadedObject.setContainer(me);
-        
 
       },
       oprLoadAppStateFromCache : function(stateName, loadState, desktopName) {
@@ -260,9 +266,9 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
           me.loadedObject.loadState(oState);// OK
           me.loadedObject.setHelpText(oState);
-          
-          me.setupData.data = oState; //save the state of the application!
-          //you can see the same in the Main.js
+
+          me.setupData.data = oState; // save the state of the application!
+          // you can see the same in the Main.js
 
           if (me.currentState != "")
             GLOBAL.APP.SM.oprRemoveActiveState(me.appClassName, me.currentState);// OK
@@ -334,5 +340,25 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
         return urlState;
 
+      },
+      hasChanged : function() {
+        var me = this, data = null;
+        var changed = false;
+        if (me.isLoaded) {
+          data = me.loadedObject.getStateData();
+          changed = !(Ext.encode(data) == Ext.encode(me.beforeChange));
+        }
+        return changed;
+      },
+      afterShow : function() {
+        var me = this;
+        Ext.defer(me.storeState, 2000, me);
+      },
+      storeState : function() {
+        var me = this;
+        if (Ext.Ajax.isLoading())
+          me.afterShow();
+        else if (!me.beforeChange)
+          me.beforeChange = me.loadedObject.getStateData();
       }
     });
