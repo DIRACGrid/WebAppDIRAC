@@ -60,7 +60,7 @@ Ext.define('DIRAC.ComponentHistory.classes.ComponentHistory', {
          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
          me.launcher.width = oDimensions[0];
-         me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+         me.launcher.height = oDimensions[1];
 
          me.launcher.x = 0;
          me.launcher.y = 0;
@@ -146,12 +146,6 @@ Ext.define('DIRAC.ComponentHistory.classes.ComponentHistory', {
 
        var pagingToolbar = {};
 
-       var toolButtons = {
-           'Visible':[
-                      {"text":"", "handler":me.__executeAction, "arguments":["example", ""],"properties":{tooltip : "Example", iconCls : "dirac-icon-reschedule"}}
-                      ]
-       };
-
        pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar",{
          store : me.dataStore,
          scope : me
@@ -177,9 +171,5 @@ Ext.define('DIRAC.ComponentHistory.classes.ComponentHistory', {
        me.leftPanel.setGrid(me.grid);
 
        me.add([ me.leftPanel, me.grid ]);
-     },
-     __executeAction : function(action){
-       var me = this;
-       GLOBAL.APP.CF.alert(action+" button pressed","info");
      }
 });

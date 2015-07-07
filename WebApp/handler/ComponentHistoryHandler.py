@@ -2,20 +2,21 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import Time
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
+from DIRAC.Core.DISET.RPCClient import RPCClient
 import json
 import datetime
 
 class ComponentHistoryHandler( WebHandler ):
 
-  AUTH_PROPS = 'authenticated'
+  AUTH_PROPS = 'all'
 
   @asyncGen
   def web_getInstallationData( self ):
 
     req = self.__request()
 
-    client = ComponentMonitoringClient()
-    result = client.getInstallations( req[ 'installation' ], req[ 'component' ], req[ 'host' ], True )
+    client = RPCClient( 'Framework/ComponentMonitoring' )
+    result = yield self.threadTask( client.getInstallations, req[ 'installation' ], req[ 'component' ], req[ 'host' ], True )
     if result[ 'OK' ]:
       values = []
       installations = result[ 'Value' ]
@@ -39,7 +40,7 @@ class ComponentHistoryHandler( WebHandler ):
       callback = { 'success' : 'true', 'result' : values,
                 'total' : total, 'date' : timestamp }
     else:
-      callback = { 'success' : 'false' , 'error' : result[ 'Message' ] }
+      raise WErr.fromSERROR( result )
     self.finish( callback )
 
   @asyncGen
@@ -56,8 +57,8 @@ class ComponentHistoryHandler( WebHandler ):
 
     fields = [ 'name', 'host', 'module', 'system', 'type' ]
 
-    client = ComponentMonitoringClient()
-    result = client.getInstallations( {}, {}, {}, True )
+    client = RPCClient( 'Framework/ComponentMonitoring' )
+    result = yield self.threadTask( client.getInstallations, {}, {}, {}, True )
     if result[ 'OK' ]:
       for field in fields:
         data[ field ] = set()
@@ -73,7 +74,7 @@ class ComponentHistoryHandler( WebHandler ):
         data[ field ].sort()
         data[ field ] = map( lambda x : [x] , data[ field ] )
     else:
-      data = { 'success' : 'false' , 'error' : result[ 'Message' ] }
+      raise WErr.fromSERROR( result )
 
     self.finish( data )
 
@@ -94,23 +95,18 @@ class ComponentHistoryHandler( WebHandler ):
     # Check every possible selector
 
     if 'name' in self.request.arguments:
-      print self.request.arguments[ 'name' ][-1]
       req[ 'installation' ][ 'Instance' ] = list( json.loads( self.request.arguments[ 'name' ][-1] ) )
 
     if 'host' in self.request.arguments:
-      print self.request.arguments[ 'host' ][-1]
       req[ 'host' ][ 'HostName' ] = list( json.loads( self.request.arguments[ 'host' ][-1] ) )
 
     if 'system' in self.request.arguments:
-      print self.request.arguments[ 'system' ][-1]
       req[ 'component' ][ 'System' ] = list( json.loads( self.request.arguments[ 'system' ][-1] ) )
 
     if 'module' in self.request.arguments:
-      print self.request.arguments[ 'module' ][-1]
       req[ 'component' ][ 'Module' ] = list( json.loads( self.request.arguments[ 'module' ][-1] ) )
 
     if 'type' in self.request.arguments:
-      print self.request.arguments[ 'type' ][-1]
       req[ 'component' ][ 'Type' ] = list( json.loads( self.request.arguments[ 'type' ][-1] ) )
 
     if 'startDate' in self.request.arguments and len( self.request.arguments[ 'startDate' ][0] ) > 0:
