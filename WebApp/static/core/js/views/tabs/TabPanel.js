@@ -60,11 +60,11 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
 
         var activeTab = "";
         var state = "";
-        if (me.getActiveTab() != null){
-            activeTab = me.getActiveTab().getAppClassName();
-            state = me.getActiveTab().currentState
+        if (me.getActiveTab() != null) {
+          activeTab = me.getActiveTab().getAppClassName();
+          state = me.getActiveTab().currentState
         }
-       
+
         var desktop = {
           "dirac_view" : 1,
           "version" : GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION,
@@ -294,19 +294,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         beforeclose : function() {
           var me = this;
           var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer(); // we
-          // have
-          // to
-          // set
-          // the
-          // active
-          // tab
-          // to
-          // this
-          // widget.
+          // have to set the active tab to this widget.
           if (appContainer) {
             appContainer.setActiveTab(me);
           }
-          Ext.MessageBox.confirm('Confirm', 'There is an active desktop state. Do you want to save the current state?', function(button) {
+          if (!me.hasDesktopChanged())
+            return;
+          Ext.MessageBox.confirm('Confirm', 'The current desktop has changed. Do you want to save?', function(button) {
                 var me = this;
                 if (button === 'yes') {
                   GLOBAL.APP.MAIN_VIEW.saveActiveDesktopState();
@@ -316,30 +310,18 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
 
               }, me);
           return false; // it cancel the close of the tab. it wait until the
-          // state
-          // is saved.
+          // state is saved.
         },
         close : function() {
           var me = this;
           Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, me.title); // we
-          // have
-          // to
-          // remove
-          // the
-          // desktop
-          // from
-          // the
-          // list.
+          // have to remove the desktop from the list.
           if (me.title == 'Default') {
             GLOBAL.APP.MAIN_VIEW._default_desktop_state = []; // we closed the
             // default desktop!
           }
           GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.title); // We have
-          // to
-          // remove the
-          // desktop state
-          // from the
-          // list.
+          // to remove the desktop state from the list.
           GLOBAL.APP.MAIN_VIEW.currentState = ""; // the current state has to be
           // null;
           GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
@@ -354,12 +336,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
             // applications
 
             GLOBAL.APP.MAIN_VIEW.currentState = newCard.title; // as we work
-            // more
-            // than one desktop,
-            // we need to set
-            // the current state
-            // each time when a
-            // tab has changed.
+            // more than one desktop, we need to set the current state each time
+            // when a tab has changed.
             // newCard.loadMask.show();
             if (!GLOBAL.APP.MAIN_VIEW.loading && !newCard.isLoaded && newCard.title != 'Default') {
               GLOBAL.APP.MAIN_VIEW.oprLoadDesktopState(newCard.title, newCard);
@@ -516,5 +494,16 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         } else {
           settingPanel.setTabChangePeriod(0);
         }
+      },
+      hasDesktopChanged : function() {
+        var me = this;
+        var changed = false;
+        me.items.each(function(tabObj, value, length) {
+              if (tabObj.hasChanged()) {
+                changed = true;
+                return;
+              }
+            });
+        return changed;
       }
     });
