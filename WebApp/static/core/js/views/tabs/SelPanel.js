@@ -76,10 +76,6 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                   if (node.data.type == "desktop") {
                     if (node.data.application != 'Default') { // trick: When the
                       // Default node expanded we should not modify it.
-
-                      GLOBAL.APP.MAIN_VIEW.createDesktopTab(node.data.application, node.data.view); // an
-                      // empty tab is created the application states must be
-                      // listed.
                       me.removeChildNodes(node); // it is used to refresh the
                       // tree. may new applications opened and saved.
                       GLOBAL.APP.MAIN_VIEW.addDesktopStatesToDesktop(node);
@@ -258,7 +254,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                   } else {// check the existence of teh desktops
 
                     // we have to get the parent node.
-                    var parentNodeName = (item.data.text == 'Default' || item.data.type == 'app') ? 'Default' : item.parentNode.data.text;
+                    var parentNodeName = item.parentNode.data.text;
 
                     // we have to know the type of the desktop: presenterView or
                     // tabView
