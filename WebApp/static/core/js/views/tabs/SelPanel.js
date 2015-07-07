@@ -96,10 +96,6 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     desktop.views[GLOBAL.APP.MAIN_VIEW.ID] = {};
                     GLOBAL.APP.SM.createDesktop("desktop", 'Default', desktop);
 
-                    if (!node.doNotCreateDesktop) {// when wo have another
-                      // desktop opened
-                      GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", node.data.view);
-                    }
                     var node = GLOBAL.APP.MAIN_VIEW.defaultDesktop;
                     me.removeChildNodes(node);
                     me.tree.setLoading(true);
@@ -259,14 +255,8 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     // we have to know the type of the desktop: presenterView or
                     // tabView
                     var view = item.parentNode.data.view;
-                    var activeDesktop = null;
-
-                    if (parentNodeName == 'Default') {
-                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
-                    } else {
-                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
-                    }
-
+                    var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
+                    
                     if (activeDesktop) {
                       GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
                       var panel = activeDesktop.getPanel(item.data.stateToLoad);
