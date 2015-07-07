@@ -97,7 +97,7 @@ class RequestMonitorHandler(WebHandler):
     else:
       RPC = RPCClient("RequestManagement/ReqManager")
   ### R E Q U E S T T Y P E
-      result = yield self.threadTask(RPC.getDistinctValues,"Type")
+      result = yield self.threadTask( RPC.getDistinctValuesWeb, "Type" )
       if result["OK"]:
         reqtype = list()
         if len(result["Value"])>0:
@@ -107,41 +107,23 @@ class RequestMonitorHandler(WebHandler):
           reqtype = [["Nothing to display"]]
       else:
         reqtype = [["Error during RPC call"]]
-      callback["requestType"] = reqtype
-  ### O P E R A T I O N
-      result = yield self.threadTask(RPC.getDistinctValues,"Operation")
-
-      if result["OK"]:
-        operation = list()
-        if len(result["Value"])>0:
-          for i in result["Value"]:
-            operation.append([str(i)])
-        else:
-          operation = [["Nothing to display"]]
-      else:
-        operation = [["Error during RPC call"]]
-      callback["operation"] = operation
+      callback["operationType"] = reqtype
   ### U S E R
-      result = yield self.threadTask(RPC.getDistinctValues,"OwnerDN")
+      result = yield self.threadTask( RPC.getDistinctValuesWeb, "OwnerDN" )
 
       if result["OK"]:
         owner = []
-        for i in result["Value"]:
-          returnValue = CS.getUsernameForDN(i)
-          if not returnValue["OK"]:
-            gLogger.info("Error CS.getUsernameForDN(%s): %s" % (i,returnValue["Message"]) )
-            nick = i
-          else:
-            nick = returnValue["Value"]
-          owner.append([str(nick)])
+        for dn in result["Value"]:
+
+          owner.append( [dn] )
         if len(owner) < 2:
           owner = [["Nothing to display"]]
       else:
         owner = [["Error during RPC call"]]
       callback["owner"] = owner
   ### G R O U P
-      result = yield self.threadTask(RPC.getDistinctValues, "OwnerGroup")
-      gLogger.info("getDistinctValues(OwnerGroup)",result)
+      result = yield self.threadTask( RPC.getDistinctValuesWeb, "OwnerGroup" )
+      gLogger.info( "getDistinctValuesWeb(OwnerGroup)", result )
       if result["OK"]:
         ownerGroup = list()
         if len(result["Value"])>0:
@@ -153,7 +135,7 @@ class RequestMonitorHandler(WebHandler):
         ownerGroup = [["Error during RPC call"]]
       callback["ownerGroup"] = ownerGroup
   ### S T A T U S
-      result = yield self.threadTask(RPC.getDistinctValues,"Status")
+      result = yield self.threadTask( RPC.getDistinctValuesWeb, "Status" )
 
       if result["OK"]:
         status = list()
@@ -194,7 +176,7 @@ class RequestMonitorHandler(WebHandler):
         req['JobID'] = jobids
         found = True
 
-    elif 'reqId' in self.request.arguments:
+    if 'reqId' in self.request.arguments and not found:
       reqids = list(json.loads(self.request.arguments[ 'reqId' ][-1]))
       if len(reqids) > 0:
         req['RequestID'] = reqids
@@ -202,15 +184,11 @@ class RequestMonitorHandler(WebHandler):
 
     if not found:
 
-      if 'RequestType' in self.request.arguments:
-        value = list(json.loads(self.request.arguments["requestType"][-1]))
+      if 'operationType' in self.request.arguments:
+        value = list( json.loads( self.request.arguments["operationType"][-1] ) )
         if len(value) > 0:
-          req["RequestType"] = value
+          req["Type"] = value
 
-      if 'operation' in self.request.arguments:
-        value = list(json.loads(self.request.arguments["operation"][-1]))
-        if len(value) > 0:
-          req["Operation"] = value
 
       if 'ownerGroup' in self.request.arguments:
         value = list(json.loads(self.request.arguments["ownerGroup"][-1]))
