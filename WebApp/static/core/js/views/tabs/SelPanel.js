@@ -249,14 +249,20 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     }
                   } else {// check the existence of teh desktops
 
+                    var activeDesktop = null;
                     // we have to get the parent node.
-                    var parentNodeName = item.parentNode.data.text;
+                    if (item.data.desktop == "Default") {
+                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop();
+                    } else {
 
-                    // we have to know the type of the desktop: presenterView or
-                    // tabView
-                    var view = item.parentNode.data.view;
-                    var activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
-                    
+                      parentNodeName = item.parentNode.data.text;
+
+                      // we have to know the type of the desktop: presenterView or
+                      // tabView
+                      var view = item.parentNode.data.view;
+                      activeDesktop = GLOBAL.APP.MAIN_VIEW.getRightContainer().getTabFromApplicationContainer(parentNodeName);
+                    }
+
                     if (activeDesktop) {
                       GLOBAL.APP.MAIN_VIEW.getRightContainer().setActiveTab(activeDesktop);
                       var panel = activeDesktop.getPanel(item.data.stateToLoad);
@@ -377,7 +383,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
         me.settings = Ext.create('Ext.dirac.views.tabs.SettingsPanel');
         return me.settings;
       },
-      getSettimgsPanel : function(){
+      getSettimgsPanel : function() {
         var me = this;
         return me.settings;
       },
