@@ -452,9 +452,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   }
                 };
                 me.createWindow("app", oAppStateData.name, oAppStateData, tab, cbSetActiveTab);
-                //load the one application on the desktop
+                // load the one application on the desktop
               } else {
-                //create each application
+                // create each application
                 me.createWindow("app", oAppStateData.name, oAppStateData, tab);
               }
 
@@ -1917,7 +1917,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var data = null;
         switch (iStateLoaded) {
           case 1 :
-            data = GLOBAL.APP.SM.getStateData("application", "desktop", sStateName);
+            var state = GLOBAL.APP.SM.getStateData("application", "desktop", sStateName);
+            data = Ext.Array.clone(state.data);
             break
           case -1 :
             return me.loadSharedStateByName("desktop", sStateName);
@@ -1938,10 +1939,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         if (tab) {
           var loadedApplications = tab.getApplicationsState();
           for (var i = 0; i < loadedApplications.length; i++) {
-            for (var j = 0; j < data.data.length; j++) {
-              if (loadedApplications[i].module == data.data[j].module && loadedApplications[i].currentState == data.data[j].currentState && loadedApplications[i].data == data.data[j].data) {
-
-                Ext.Array.erase(data.data, j, 1);
+            for (var j = 0; j < data.length; j++) {
+              if (loadedApplications[i].module == data[j].module && loadedApplications[i].currentState == data[j].currentState && loadedApplications[i].data == data[j].data) {
+                Ext.Array.erase(data, j, 1);
                 break;
 
               }
@@ -1949,10 +1949,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
         }
 
-        if (data.data.length == 0)
+        if (data.length == 0)
           return;
-
-        me.loadState(data, tab);
+        var newState = Ext.Object.chain(state);
+        newState.data = data;
+        me.loadState(newState, tab);
 
         if (me.currentState != "")
           GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);// OK
