@@ -279,11 +279,13 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                           // desktop.
                           GLOBAL.APP.MAIN_VIEW.SM.deleteState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
                                 GLOBAL.APP.MAIN_VIEW.removeNodeFormDefaultDesktop(me.oSelectedMenuItem.data.text);
+                                GLOBAL.APP.MAIN_VIEW.closeApplication(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.text); //close the application
 
                               });
                         } else {
                           GLOBAL.APP.MAIN_VIEW.SM.deleteStateFromDesktop(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
                                 GLOBAL.APP.MAIN_VIEW.removeApplicationFromDesktop(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.text);
+                                GLOBAL.APP.MAIN_VIEW.closeApplication(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.text); //close the application
                               });
 
                         }

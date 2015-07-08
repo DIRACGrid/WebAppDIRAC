@@ -2285,6 +2285,29 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }, this);
 
         Ext.get("app-dirac-loading").hide();
+      },
+      closeApplication : function(desktopName, applicationName) {
+        var me = this;
+
+        var desktops = null;
+
+        if (desktopName == "") { // it is the default desktop
+          desktopName = "Default";
+        }
+
+        var appContainer = me.getRightContainer().getApplicationContainer();
+        if (appContainer) {
+
+          desktops = appContainer.getTab(desktopName);
+
+          if (desktops) { // if the desktop is active
+            var tab = desktops.getPanel(applicationName);
+            if (tab) {
+              tab.close();
+            }
+          }
+        }
+
       }
 
     });
