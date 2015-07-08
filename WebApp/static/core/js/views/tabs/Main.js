@@ -74,7 +74,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         // ///////////////////////////END///////////////////////////
         me.rightContainer = Ext.create('Ext.dirac.views.tabs.RightContainer');
         me.loadRightContainer = new Ext.LoadMask(me.rightContainer, {
-              msg : "Loading ...",
+              msg : "Loading desktops and applications...",
               iCode : 1
             });
 
@@ -114,7 +114,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         // is the menu panel
         me.__oprLoadUrlState();
         Ext.get("app-dirac-loading").hide();
-        if (me.loadleftContainern && me.loadRightContainer) {
+        if (me.loadleftContainer && me.loadRightContainer) {
           me.loadRightContainer.show();
           me.loadleftContainer.show(); // TODO Remove this comment!!!
         }
@@ -417,8 +417,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                     // when the presenter view used then does not have tabs
                     // we have to found what was the last active tab.
                     var activeTab = oData.views.tabs.activeTab;
+
                     if (activeTab) {
-                      if (tab.items.length < oData["data"].length) {
+                      if (activeTab.currentState == "") {
+                        tab.setActiveTab(0);
+                        me.loadRightContainer.hide();
+                      } else if (tab.items.length < oData["data"].length) {
                         Ext.defer(function() { // wait until all application
                               // window have created...
                               me.loadRightContainer.show();
@@ -452,9 +456,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   }
                 };
                 me.createWindow("app", oAppStateData.name, oAppStateData, tab, cbSetActiveTab);
-                //load the one application on the desktop
+                // load the one application on the desktop
               } else {
-                //create each application
+                // create each application
                 me.createWindow("app", oAppStateData.name, oAppStateData, tab);
               }
 
@@ -1819,6 +1823,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var oDataItems = sLink.split("|");
 
         if (oDataItems[0] != "desktop") {
+          // this is an application
 
           var oSetupData = {
             "data" : oDataReceived,
@@ -1828,6 +1833,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           me.createWindow("app", oDataItems[0], oSetupData);
 
         } else {
+          // this is a desctop....
 
           var cbAfterCreate = function(name, tab) {
 
@@ -1845,23 +1851,19 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
             tab.loadState(oDataReceived);
 
-            var activeTab = oDataReceived.views.tabs.activeTab;
+            var activeTab = null;
+            if (oDataReceived.views.tabs) {
+              activeTab = oDataReceived.views.tabs.activeTab;
+            }
             if (activeTab) {
               if (tab.items.length < oDataReceived["data"].length) {
-                Ext.defer(function() { // wait until all application
-                      // window have created...
-                      me.loadRightContainer.show();
-                      tab.items.each(function(win, value, length) {
-                            if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
-                              tab.setActiveTab(win);
-                              return;
-                            }
-                            me.loadRightContainer.hide();
-                          });
-                    }, 100);
+                me.__defferOpenApplication(activeTab, tab);
               } else {
                 tab.items.each(function(win, value, length) {
-                      if (activeTab.currentState == win.currentState && activeTab.name == win.setupData.name) {
+                      var name = win.setupData.name;
+                      if (!name)
+                        name = win.setupData.module;
+                      if (activeTab.currentState == win.currentState && activeTab.name == name) {
                         tab.setActiveTab(win);
                         return;
                       }
@@ -1892,6 +1894,32 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
 
       },
+      __defferOpenApplication : function(activeTab, tab) {
+        var me = this;
+        Ext.defer(function() { // wait until all application
+              // window have created...
+              me.__openApplication(activeTab, tab);
+            }, 100);
+
+      },
+      __openApplication : function(activeTab, tab) {
+        var me = this;
+        me.loadRightContainer.show();
+        if (tab.items.length == 0) { // no application is loaded
+          me.__defferOpenApplication(activeTab, tab);
+        } else {
+          tab.items.each(function(win, value, length) {
+                var name = win.setupData.name;
+                if (!name)
+                  name = win.setupData.module;
+                if (activeTab.currentState == win.currentState && activeTab.name == name) {
+                  tab.setActiveTab(win);
+                  return;
+                }
+                me.loadRightContainer.hide();
+              });
+        }
+      },
       cbAfterSaveSharedState : function(iCode, sLinkName, sLink) {
 
         var me = GLOBAL.APP.MAIN_VIEW;
@@ -1917,7 +1945,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var data = null;
         switch (iStateLoaded) {
           case 1 :
-            data = GLOBAL.APP.SM.getStateData("application", "desktop", sStateName);
+            var state = GLOBAL.APP.SM.getStateData("application", "desktop", sStateName);
+            data = Ext.Array.clone(state.data);
             break
           case -1 :
             return me.loadSharedStateByName("desktop", sStateName);
@@ -1938,10 +1967,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         if (tab) {
           var loadedApplications = tab.getApplicationsState();
           for (var i = 0; i < loadedApplications.length; i++) {
-            for (var j = 0; j < data.data.length; j++) {
-              if (loadedApplications[i].module == data.data[j].module && loadedApplications[i].currentState == data.data[j].currentState && loadedApplications[i].data == data.data[j].data) {
-
-                Ext.Array.erase(data.data, j, 1);
+            for (var j = 0; j < data.length; j++) {
+              if (loadedApplications[i].module == data[j].module && loadedApplications[i].currentState == data[j].currentState && loadedApplications[i].data == data[j].data) {
+                Ext.Array.erase(data, j, 1);
                 break;
 
               }
@@ -1949,10 +1977,11 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
         }
 
-        if (data.data.length == 0)
+        if (data.length == 0)
           return;
-
-        me.loadState(data, tab);
+        var newState = Ext.Object.chain(state);
+        newState.data = data;
+        me.loadState(newState, tab);
 
         if (me.currentState != "")
           GLOBAL.APP.SM.oprRemoveActiveState("desktop", me.currentState);// OK
@@ -2284,6 +2313,29 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }, this);
 
         Ext.get("app-dirac-loading").hide();
+      },
+      closeApplication : function(desktopName, applicationName) {
+        var me = this;
+
+        var desktops = null;
+
+        if (desktopName == "") { // it is the default desktop
+          desktopName = "Default";
+        }
+
+        var appContainer = me.getRightContainer().getApplicationContainer();
+        if (appContainer) {
+
+          desktops = appContainer.getTab(desktopName);
+
+          if (desktops) { // if the desktop is active
+            var tab = desktops.getPanel(applicationName);
+            if (tab) {
+              tab.close();
+            }
+          }
+        }
+
       }
 
     });
