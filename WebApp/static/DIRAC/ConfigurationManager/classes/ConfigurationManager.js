@@ -450,10 +450,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                     me.sectionMenu.hide();
                     me.valuePanel.hide();
                     me.btnCommitConfiguration.hide();
-<<<<<<< Updated upstream
-=======
-                    // me.btnViewConfigDifference.hide();
->>>>>>> Stashed changes
                   } else {
                     me.btnBrowseManage.setText("Browse");
                     me.btnBrowseManage.setIconCls("cm-to-browse-icon");
@@ -478,11 +474,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                           op : "commitConfiguration"
                         });
                     me.btnCommitConfiguration.hide();
-<<<<<<< Updated upstream
-
-=======
-                    // me.btnViewConfigDifference.hide();
->>>>>>> Stashed changes
                   }
                 },
                 scope : me,
@@ -502,8 +493,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                         op : "showCurrentDiff"
                       });
                   me.btnCommitConfiguration.hide();
-<<<<<<< Updated upstream
-
                 },
                 scope : me,
                 hidden : false
@@ -522,12 +511,6 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 },
                 scope : me,
                 hidden : false
-=======
-                  // me.btnViewConfigDifference.hide();
-
-                },
-                scope : me
->>>>>>> Stashed changes
               });
 
           bBarElems.push("->");
