@@ -206,9 +206,9 @@ class AccountingPlotHandler( WebHandler ):
     self.set_header( 'Content-Disposition', 'attachment; filename="%s.png"' % md5( plotImageFile ).hexdigest() )
     self.set_header( 'Content-Length', len( data ) )
     self.set_header( 'Content-Transfer-Encoding', 'Binary' )
-    self.set_header( 'Cache-Control', "no-cache, no-store, must-revalidate, max-age=0" )
-    self.set_header( 'Pragma', "no-cache" )
-    self.set_header( 'Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ) )
+    #self.set_header( 'Cache-Control', "no-cache, no-store, must-revalidate, max-age=0" )
+    #self.set_header( 'Pragma', "no-cache" )
+    #self.set_header( 'Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ) )
     self.finish( data )
 
   @asyncGen
