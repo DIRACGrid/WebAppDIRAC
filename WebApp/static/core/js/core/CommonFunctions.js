@@ -43,7 +43,9 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
         if (sMessage == null)
           return;
         sMessage = sMessage.replace(new RegExp("\n", 'g'), "<br/>");
-
+        
+        sMessage = me.chunkString(sMessage, 150).join("<br/>");
+        
         switch (sType) {
 
           case "error" :
@@ -194,7 +196,9 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
           return;
 
         message = message.replace(new RegExp("\n", 'g'), "<br/>");
-
+        
+        message = me.chunkString(message, 150).join("<br/>");
+                
         if (Ext.Array.contains(me.messages, message)) {
           return;
         } else {
@@ -309,5 +313,8 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
         }
 
+      },
+      chunkString : function(str, chunksize){
+        return str.match(new RegExp('[\\s\\S]{1,' + +chunksize+ '}', 'g'));
       }
     });
