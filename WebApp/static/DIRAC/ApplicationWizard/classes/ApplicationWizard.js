@@ -101,7 +101,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
               textFields : textFields,
               hasTimeSearchPanel : false,
               panelButtons : false,
-              flex : 1
+              collapseDirection : 'left'
             });
 
         // Buttons at the bottom of the panel
