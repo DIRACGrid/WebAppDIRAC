@@ -1,6 +1,6 @@
 Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
       extend : 'Ext.panel.Panel',
-      requires : ['DIRAC.ApplicationWizard.classes.Image'],
+      requires : ['DIRAC.ApplicationWizard.classes.Image', 'Ext.dirac.views.tabs.Panel'],
       view : 'presenterView',
       region : 'center',
       minWidth : 300,
@@ -60,7 +60,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
       constructor : function(config) {
         var me = this;
         me.presenter = Ext.create('Ext.dirac.views.tabs.Presenter', {
-              region : 'center',
+              //region : 'center',
               // minWidth : 300,
               // title : name,
               closable : false,
