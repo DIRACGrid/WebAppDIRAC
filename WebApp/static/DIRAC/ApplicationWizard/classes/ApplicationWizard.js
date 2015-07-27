@@ -59,9 +59,9 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
         Ext.apply(me, {
               layout : 'border',
               bodyBorder : false,
-              defaults : {
-                collapsible : true,
-                split : true
+                defaults : {
+                  collapsible : true,
+                 split : true
               }
             });
 

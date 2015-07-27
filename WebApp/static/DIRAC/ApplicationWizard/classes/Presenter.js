@@ -9,11 +9,8 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
       closable : true,
       autoRender : true,
       clickedPanel : null,
-      layout : {
-        type : 'border',
-        padding : 2
-      },
-
+      layout : 'fit',
+    
       getStateData : function() {
         var me = this;
 
