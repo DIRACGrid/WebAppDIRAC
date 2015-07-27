@@ -12,7 +12,10 @@ class ComponentHistoryHandler( WebHandler ):
 
   @asyncGen
   def web_getInstallationData( self ):
-
+    """
+    Retrieves a list of dictionaries containing components to be displayed by the Component History page
+    """
+    # Get the selectors values
     req = self.__request()
 
     client = RPCClient( 'Framework/ComponentMonitoring' )
@@ -45,6 +48,9 @@ class ComponentHistoryHandler( WebHandler ):
 
   @asyncGen
   def web_getSelectionData( self ):
+    """
+    Returns a list of possible values for each different selector to choose from
+    """
 
     req = self.__request()
 
@@ -69,6 +75,7 @@ class ComponentHistoryHandler( WebHandler ):
         data[ 'system' ].add( installation[ 'Component' ][ 'System' ] )
         data[ 'type' ].add( installation[ 'Component' ][ 'Type' ] )
 
+      # Order and format the results
       for field in fields:
         data[ field ] = list( data[ field ] )
         data[ field ].sort()
@@ -79,6 +86,12 @@ class ComponentHistoryHandler( WebHandler ):
     self.finish( data )
 
   def __request( self ):
+    """
+    Returns a dictionary with the fields 'installation', 'component' and 'host'
+    to be used by the getInstallations call in ComponentMonitoring service.
+    The data inserted into the fields is retrieved from the values in the
+    selectors
+    """
     req = { 'installation': {}, 'component': {}, 'host': {} }
 
     # Figure out what page we are at and how many results we are displaying
@@ -92,8 +105,7 @@ class ComponentHistoryHandler( WebHandler ):
       self.numberOfInstallations = 25
       self.pageNumber = 0
 
-    # Check every possible selector
-
+    # Check every possible selector and get its value ( if any )
     if 'name' in self.request.arguments:
       req[ 'installation' ][ 'Instance' ] = list( json.loads( self.request.arguments[ 'name' ][-1] ) )
 
