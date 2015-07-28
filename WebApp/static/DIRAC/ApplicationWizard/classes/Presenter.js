@@ -1,6 +1,6 @@
 Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
       extend : 'Ext.panel.Panel',
-      requires : ['DIRAC.ApplicationWizard.classes.Image', 'Ext.dirac.views.tabs.Panel'],
+      requires : ['DIRAC.ApplicationWizard.classes.Image'],
       view : 'presenterView',
       region : 'center',
       minWidth : 300,
