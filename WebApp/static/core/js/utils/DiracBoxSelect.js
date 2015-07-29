@@ -364,14 +364,15 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
 
         var me = this;
 
-        var oSelectionModel = me.getPicker().getSelectionModel();
         var oStore = me.getStore();
-        var oCount = oStore.getCount();
         var oInverseValues = [];
+        
+        var records = oStore.queryBy(function(rec, id) {
+            return !Ext.Array.contains(me.getValue(),rec.get(me.valueField))
+         }, me);
 
-        for (var i = 0; i < oCount; i++)
-          if (!oSelectionModel.isSelected(oStore.getAt(i)))
-            oInverseValues.push(oStore.getAt(i).get(me.valueField));
+        for (var i = 0; i < records.getCount(); i++)
+            oInverseValues.push(records.getAt(i).get(me.valueField));
 
         return oInverseValues.join(s);
 
