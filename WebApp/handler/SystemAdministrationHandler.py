@@ -3,6 +3,7 @@ from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStor
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorIntegrator import SystemAdministratorIntegrator
+from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
@@ -45,25 +46,27 @@ class SystemAdministrationHandler( WebHandler ):
     else:
       self.finish( { "success" : "false" , "error" :  resultHosts['Message']} )
     """
-    result = gConfig.getSections("/Registry/Hosts")
-    if not result[ "Value" ]:
-      self.finish({ "success" : "false" , "error" : result[ "Message" ] })
-      return
-    hosts = result[ "Value" ]
     
     callback = []
     import pprint
   
-    for host in hosts:
-      client = SystemAdministratorClient(host , None , delegatedDN=DN ,
-                                          delegatedGroup=group)
-      resultHost = yield self.threadTask(client.getHostInfo)
-      if resultHost[ "OK" ]:
-        rec = resultHost["Value"]
-        rec["Host"] = host
-        callback.append(resultHost["Value"])
-      else:
-        callback.append({"Host":host})
+    client = ComponentMonitoringClient()
+    result = client.getHosts( {}, False, False )
+    if result[ 'OK' ]:
+      hosts = result[ 'Value' ]
+
+      for obj in hosts:
+        host = obj[ 'HostName' ]
+        client = SystemAdministratorClient( host , None , delegatedDN = DN ,
+                                            delegatedGroup = group )
+        resultHost = yield self.threadTask( client.getHostInfo )
+        if resultHost[ "OK" ]:
+          rec = resultHost[ "Value" ]
+          rec[ "Host" ] = host
+          callback.append( resultHost[ "Value" ] )
+        else:
+          callback.append( { "Host":host } )
+
     total = len( callback )
     if not total > 0:
       self.finish( { "success" : "false" , "error" : "No system information found" } )
@@ -222,6 +225,7 @@ class SystemAdministrationHandler( WebHandler ):
     
     action = str( self.request.arguments[ "action" ][0] )
     hosts = self.request.arguments[ "host" ][0].split( "," )
+    version = self.request.arguments[ "version" ][0]
 
     userData = self.getSessionData()
     
@@ -238,6 +242,8 @@ class SystemAdministrationHandler( WebHandler ):
         result = yield self.threadTask( client.restartComponent, str( "*" ) , str( "*" ) )
       elif action == "revert":
         result = yield self.threadTask( client.revertSoftware )
+      elif action == "updat":
+        result = yield self.threadTask( client.updateSoftware( version, '', '', timeout = 300 ) )
       else:
         error = i + ": Action %s is not defined" % action
         actionFailed.append( error )
