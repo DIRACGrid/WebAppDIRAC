@@ -57,10 +57,12 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       listeners : {
         afterrender : function() {
           var me = this;
-          /*
-           * if (me.loadRightContainer.iCode != -4) {
-           * me.loadRightContainer.show(); me.loadleftContainer.show(); }
-           */
+
+          if (me.loadRightContainer.iCode != -4) {
+            me.loadRightContainer.hide();
+            me.loadleftContainer.hide();
+          }
+
         }
       },
       constructor : function(config) {
@@ -84,7 +86,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               menu : menu
             });
         me.loadleftContainer = new Ext.LoadMask(me.leftConatiner, {
-              msg : "Loading ...",
+              msg : "Loading menu ...",
               iCode : 1
             });
         me.callParent(arguments);
@@ -115,8 +117,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.__oprLoadUrlState();
         Ext.get("app-dirac-loading").hide();
         if (me.loadleftContainer && me.loadRightContainer) {
-          me.loadRightContainer.show();
-          me.loadleftContainer.show(); // TODO Remove this comment!!!
+            me.loadRightContainer.show();
+            me.loadleftContainer.show(); // TODO Remove this comment!!!
         }
 
       },
