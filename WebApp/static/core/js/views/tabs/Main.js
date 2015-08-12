@@ -2338,6 +2338,10 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
         }
 
+      },
+      createDefaultDesktop : function(){
+        var me = this;
+        GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", me.view);
       }
 
     });
