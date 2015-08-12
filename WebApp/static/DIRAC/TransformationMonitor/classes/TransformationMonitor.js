@@ -215,6 +215,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               autoLoad : false,
               groupDir : 'DESC',
               fields : me.dataFields,
+              remoteSort : false,
               groupField : 'TransformationFamily',
               multiSortLimit : 1,
               oDiffFields : {
