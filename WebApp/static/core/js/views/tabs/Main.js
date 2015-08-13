@@ -225,7 +225,22 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 // if the desktop is the default desktop and we do not have any
                 // desktop,
                 // the default desktop is loaded.
-                me.loadDefaultdesktop(defaultdesktop, isLoaded, loadFinished);
+                var loadlast = null;
+                if (oDesktop.length == 1) {
+                  // we have another desktop
+                  loadlast = function(tab, appnb) {
+                    me.countloadedonDegault = 1;
+                    tab.on("add", function(widget, component, index, eOpts) {
+                          if (appnb == me.countloadedonDegault) {
+                            // only load the latest application
+                            widget.setActiveTab(component);
+                            component.loadData();
+                          }
+                          me.countloadedonDegault += 1;
+                        }, me);
+                  }
+                }
+                me.loadDefaultdesktop(defaultdesktop, isLoaded, loadFinished, loadlast);
                 Ext.Array.erase(oDesktop, 0, 1);
               }
 
@@ -318,7 +333,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
     }
 
       },
-      loadDefaultdesktop : function(applications, isLoaded, loadFinished) {
+      loadDefaultdesktop : function(applications, isLoaded, loadFinished, cbLoad) {
         var me = this;
         var afterDefaultTabCreated = function(name, tab) {
           var setupData = {};
@@ -327,11 +342,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               var application = applications[i].split(":");
 
               if (application.length > 1 && Ext.util.Format.trim(application[1]) != "") { // store
-                // the
-                // state
-                // of
-                // the
-                // applications
+                // the state of the applications
                 if (application[0] in setupData) {
                   setupData[application[0]].push(application[1]);
                 } else {
@@ -374,6 +385,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           }
           me.loading = loadFinished;
           tab.isLoaded = isLoaded;
+          if (cbLoad) {
+            cbLoad(tab, applications.length - 1);
+          }
         };
         GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", me.view, afterDefaultTabCreated);
 
@@ -1587,7 +1601,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 leaf : true
               };
             } else {
-              if (!oDesktop.data[i].module) //when the desktop contains wrong data
+              if (!oDesktop.data[i].module) // when the desktop contains wrong
+                // data
                 continue;
               var appName = oDesktop.data[i].module.split(".");
               var qtip = appName[appName.length - 1] + "<br>State Name: " + oDesktop.data[i].currentState;
