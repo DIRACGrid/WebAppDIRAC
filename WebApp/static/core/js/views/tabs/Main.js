@@ -117,8 +117,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.__oprLoadUrlState();
         Ext.get("app-dirac-loading").hide();
         if (me.loadleftContainer && me.loadRightContainer) {
-            me.loadRightContainer.show();
-            me.loadleftContainer.show(); // TODO Remove this comment!!!
+          me.loadRightContainer.show();
+          me.loadleftContainer.show(); // TODO Remove this comment!!!
         }
 
       },
@@ -1587,6 +1587,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 leaf : true
               };
             } else {
+              if (!oDesktop.data[i].module) //when the desktop contains wrong data
+                continue;
               var appName = oDesktop.data[i].module.split(".");
               var qtip = appName[appName.length - 1] + "<br>State Name: " + oDesktop.data[i].currentState;
               nodeObj = {
@@ -2339,7 +2341,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }
 
       },
-      createDefaultDesktop : function(){
+      createDefaultDesktop : function() {
         var me = this;
         GLOBAL.APP.MAIN_VIEW.createDesktopTab("Default", me.view);
       }
