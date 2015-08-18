@@ -57,7 +57,10 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
         }
 
         Ext.apply(me, {
-              layout : 'border',
+              layout : {
+                type : 'hbox',
+                align : 'stretch'
+              },
               bodyBorder : false,
               defaults : {
                 collapsible : true,
@@ -97,7 +100,8 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
               scope : me,
               textFields : textFields,
               hasTimeSearchPanel : false,
-              panelButtons : false
+              panelButtons : false,
+              collapseDirection : 'left'
             });
 
         // Buttons at the bottom of the panel
@@ -169,8 +173,10 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
                   me.presenterView.clickedPanel.setTitle(title);
                   if (me.presenterView.clickedPanel.linkToLoad != link) {
                     me.presenterView.clickedPanel.linkToLoad = link;
-                    me.presenterView.clickedPanel.items.getAt(0).el.set({'src':link})
-                    
+                    me.presenterView.clickedPanel.items.getAt(0).el.set({
+                          'src' : link
+                        })
+
                   }
 
                 } else {
@@ -215,7 +221,8 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
         me.leftPanel.addDocked(leftPanelButtons);
 
         me.presenterView = Ext.create("DIRAC.ApplicationWizard.classes.Presenter", {
-              parent : me
+              parent : me,
+              flex : 2
             });
 
         me.add([me.leftPanel, me.presenterView]);

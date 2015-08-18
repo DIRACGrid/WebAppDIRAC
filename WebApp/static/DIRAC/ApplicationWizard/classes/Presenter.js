@@ -9,11 +9,8 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
       closable : true,
       autoRender : true,
       clickedPanel : null,
-      layout : {
-        type : 'border',
-        padding : 2
-      },
-
+      layout : 'fit',
+    
       getStateData : function() {
         var me = this;
 
@@ -63,7 +60,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
       constructor : function(config) {
         var me = this;
         me.presenter = Ext.create('Ext.dirac.views.tabs.Presenter', {
-              region : 'center',
+              //region : 'center',
               // minWidth : 300,
               // title : name,
               closable : false,

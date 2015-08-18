@@ -752,6 +752,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
        * 
        * </pre>
        */
+
       addTextFieldSelector : function(data) {
         var me = this;
         var textFieldWidget = null;
@@ -760,6 +761,13 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
                   fieldLabel : data[field]["name"],
                   scope : me
+                });
+          } else if (data[field]["type"] == "Checkbox" || data[field]["type"] == "checkbox") {
+            textFieldWidget = Ext.create("Ext.form.field.Checkbox", {
+                  fieldLabel : data[field]["fieldLabel"],
+                  name : data[field]["name"],
+                  scope : me,
+                  type : data[field]["type"]
                 });
           } else {
             textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {

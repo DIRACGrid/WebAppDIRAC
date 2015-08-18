@@ -153,7 +153,7 @@ Ext.define('DIRAC.AccountingPlot.classes.AccountingPlot', {
         me.descPlotType = {
           DataOperation : {
             title : "Data Operation",
-            selectionConditions : [["OperationType", "Operation Type"], ["User", "User"], ["ExecutionSite", "Execution Site"], ["Source", "Source Site"], ["Destination", "Destination Site"], ["Protocol", "Protocol"], ["FinalStatus", "Final Transfer Status"]]
+            selectionConditions : [["OperationType", "Operation Type"], ["User", "User"], ["ExecutionSite", "Execution Site"], ["Source", "Source SE"], ["Destination", "Destination SE"], ["Protocol", "Protocol"], ["FinalStatus", "Final Transfer Status"]]
 
           },
           Job : {
