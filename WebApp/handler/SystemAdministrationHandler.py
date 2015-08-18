@@ -253,7 +253,7 @@ class SystemAdministrationHandler( WebHandler ):
 
       if not result[ "OK" ]:
         if result[ "Message" ].find( "Unexpected EOF" ) > 0:
-          msg = "Signal 'Unexpected EOF' received. Most likely DIRAC components"
+          msg = "Signal 'Unexpected EOF' received: %s. Most likely DIRAC components" % result['Message']
           msg = i + ": " + msg + " were successfully restarted."
           actionSuccess.append( msg )
           continue
