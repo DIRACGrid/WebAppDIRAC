@@ -307,8 +307,8 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
               shortMessage = response.responseText;
             }
 
-            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/> Please try again later !');
-            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + shortMessage + '.<br/> Please try again later !');
+            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/>');
+            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + shortMessage + '.<br/>');
           } else {
             Ext.dirac.system_info.msg("Error Notification", "The reson of the failure is unknown!");
           }

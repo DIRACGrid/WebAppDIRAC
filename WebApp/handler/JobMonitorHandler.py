@@ -472,6 +472,8 @@ class JobMonitorHandler( WebHandler ):
       selector = "JobGroup"
     elif selector == "Owner Group":
       selector = "OwnerGroup"
+    elif selector == "Job Type":
+      selector = "JobType"
     
     result = yield self.threadTask( RPC.getJobStats, selector, req )
 

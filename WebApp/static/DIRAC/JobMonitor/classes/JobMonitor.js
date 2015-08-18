@@ -678,7 +678,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               mode : 'local',
               store : new Ext.data.ArrayStore({
                     fields : ['category'],
-                    data : [["Status"], ["Site"], ["Minor Status"], ["Application Status"], ["Owner"], ["Owner Group"], ["Job Group"]]
+                    data : [["Status"], ["Site"], ["Minor Status"], ["Application Status"], ["Owner"], ["Owner Group"], ["Job Group"], ["Job Type"]]
                   }),
               triggerAction : 'all',
               value : "Status",

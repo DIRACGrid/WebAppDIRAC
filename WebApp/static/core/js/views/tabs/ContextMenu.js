@@ -14,6 +14,13 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
         var me = this;
         Ext.apply(me, {
               items : [{
+                    text : "Create Default desktop",
+                    iconCls : "core-desktop-icon",
+                    handler : function() {
+                      GLOBAL.APP.MAIN_VIEW.createDefaultDesktop();
+                    }
+
+                  },{
                     text : "New Desktop",
                     iconCls : "dirac-icon-new-folder",
                     handler : function() {
