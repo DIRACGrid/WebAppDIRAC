@@ -2,12 +2,14 @@
 import os
 from tornado.web import StaticFileHandler, HTTPError
 
+from DIRAC import rootPath
+
 class StaticHandler( StaticFileHandler ):
 
   def initialize( self, pathList, default_filename = None ):
     self.pathList = [ os.path.abspath( path ) + os.path.sep for path in pathList ]
     self.default_filename = default_filename
-    self.root = "/"
+    self.root = rootPath
 
   def parse_url_path( self, url_path ):
     if os.path.sep != "/":
