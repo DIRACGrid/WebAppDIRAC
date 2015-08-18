@@ -94,7 +94,7 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
             return;
 
           }
-          var bResponseOK = (oStore.proxy.reader.rawData["success"] == "true");
+          var bResponseOK = (oStore.proxy.reader.rawData["success"] == "true" || oStore.proxy.reader.rawData["OK"] == true);
           if (!bResponseOK) {
 
             GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "info");
