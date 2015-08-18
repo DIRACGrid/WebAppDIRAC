@@ -194,6 +194,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
         me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
         me.checkboxFunctionDefinition += '" class="sa-main-check-box"/>';
 
+        me.versionText = new Ext.form.TextField( { 'emptyText': "version" } );
+        
         var oGridButtonsToolbar = new Ext.create('Ext.toolbar.Toolbar', {
               dock : 'top',
               items : [{
@@ -210,6 +212,13 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                       me.oprHostAction("revert", 2);
                     },
                     iconCls : "dirac-icon-revert",
+                    scope : me
+                  }, '-', me.versionText, {
+                    text : 'Update',
+                    handler : function() {
+                      me.oprHostAction( "updat", 2 );
+                    },
+                    iconCls : "dirac-icon-update",
                     scope : me
                   }, '-']
             });
@@ -1158,7 +1167,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               url : GLOBAL.BASE_URL + 'SystemAdministration/hostAction',
               params : {
                 action : sAction,
-                host : sHost
+                host : sHost,
+                version : me.versionText.getValue()
               },
               scope : me,
               success : function(response) {
