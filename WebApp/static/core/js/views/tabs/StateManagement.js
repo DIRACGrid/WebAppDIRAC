@@ -1393,7 +1393,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
             }
           }
           me.addStateToDesktop(toDesktopName, data, function() {
-                me.deleteStateFromDesktop(fromDsktop, moduleName, stateName, function() {
+                me.deleteStateFromDesktop(fromDesktopName, moduleName, stateName, function() {
                     });
               });
         }
