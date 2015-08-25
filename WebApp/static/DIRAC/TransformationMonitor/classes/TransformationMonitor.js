@@ -212,7 +212,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         me.diffValues = {};
         me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
               proxy : oProxy,
-              autoLoad : false,
+              autoLoad : true,
               groupDir : 'DESC',
               fields : me.dataFields,
               remoteSort : false,
