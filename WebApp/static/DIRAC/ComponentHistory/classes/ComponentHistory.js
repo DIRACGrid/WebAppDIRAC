@@ -44,7 +44,9 @@ Ext.define('DIRAC.ComponentHistory.classes.ComponentHistory', {
        { name : 'System' },
        { name : 'Type' },
        { name : 'Installed' },
-       { name : 'Uninstalled' }
+       { name : 'Uninstalled' },
+       { name : 'InstalledBy' },
+       { name : 'UninstalledBy' }
      ],
 
 
@@ -158,7 +160,9 @@ Ext.define('DIRAC.ComponentHistory.classes.ComponentHistory', {
            "System" : { "dataIndex" : "System", "properties" : { "width" : 180, "align" : "center" } },
            "Type" : { "dataIndex" : "Type", "properties" : { "width" : 100, "align" : "center" } },
            "Installed" : { "dataIndex" : "Installed", "properties" : { "width" : 120, "align" : "center" } },
-           "Uninstalled" : { "dataIndex" : "Uninstalled", "properties" : { "width" : 120, "align" : "center" } }
+           "Uninstalled" : { "dataIndex" : "Uninstalled", "properties" : { "width" : 120, "align" : "center" } },
+           "Installed by" : { "dataIndex" : "InstalledBy", "properties" : { "width" : 120, "align" : "center" } },
+           "Uninstalled by" : { "dataIndex" : "UninstalledBy", "properties" : { "width" : 120, "align" : "center" } }
        };
 
        me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {

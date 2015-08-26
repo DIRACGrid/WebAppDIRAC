@@ -29,15 +29,23 @@ class ComponentHistoryHandler( WebHandler ):
         else:
           break
         uninstalled = '-'
+        installedBy = '-'
+        uninstalledBy = '-'
         if installation[ 'UnInstallationTime' ]:
           uninstalled = installation[ 'UnInstallationTime' ].strftime( '%Y-%m-%d %H:%M' )
+        if installation[ 'InstalledBy' ]:
+          installedBy = installation[ 'InstalledBy' ]
+        if installation[ 'UnInstalledBy' ]:
+          uninstalledBy = installation[ 'UnInstalledBy' ]
         values.append( { 'Name': installation[ 'Instance' ], \
                          'Module': installation[ 'Component' ][ 'Module' ], \
                          'Host': installation[ 'Host' ][ 'HostName' ], \
                          'System': installation[ 'Component' ][ 'System' ], \
                          'Type': installation[ 'Component' ][ 'Type' ], \
                          'Installed': installation[ 'InstallationTime' ].strftime( '%Y-%m-%d %H:%M' ), \
-                         'Uninstalled': uninstalled } )
+                         'Uninstalled': uninstalled, \
+                         'InstalledBy': installedBy, \
+                         'UninstalledBy': uninstalledBy } )
       timestamp = Time.dateTime().strftime( '%Y-%m-%d %H:%M [UTC]' )
       total = len( installations )
       callback = { 'success' : 'true', 'result' : values,
@@ -135,6 +143,6 @@ class ComponentHistoryHandler( WebHandler ):
       else:
         time = '00:00'
       date = datetime.datetime.strptime( '%s-%s' % ( self.request.arguments[ 'endDate' ][0], time ), '%Y-%m-%d-%H:%M' )
-      req[ 'installation' ][ 'UnInstallationTime.bigger' ] = date
+      req[ 'installation' ][ 'UnInstallationTime.smaller' ] = date
 
     return req
