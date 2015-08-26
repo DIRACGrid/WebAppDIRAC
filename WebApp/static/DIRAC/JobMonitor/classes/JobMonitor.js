@@ -1327,7 +1327,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                               sortable : true,
                               dataIndex : 'type'
                             }, {
-                              text : 'Opetation',
+                              text : 'Operation',
                               flex : 1,
                               sortable : true,
                               dataIndex : 'operation'
