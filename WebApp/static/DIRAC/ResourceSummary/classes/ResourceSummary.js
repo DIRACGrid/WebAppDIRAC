@@ -286,7 +286,12 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
         me.leftPanel.setGrid(me.grid);
 
         me.grid.view.on('expandbody', function(rowNode, record, expandbody) {
+              
               var targetId = 'expanded-Grid-' + record.get('Name');
+              if (Ext.getCmp(targetId + "_grid") != null){
+                Ext.destroy(Ext.getCmp(targetId + "_grid"));
+              }
+              
               if (Ext.getCmp(targetId + "_grid") == null) {
                 var params = {
                   "name" : Ext.JSON.encode([record.data.Name])
