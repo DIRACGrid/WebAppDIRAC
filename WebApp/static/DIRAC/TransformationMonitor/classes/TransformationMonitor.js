@@ -911,6 +911,8 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         var me = this;
         var oRunNumberId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me, "RunNumber");
         var oTransFormationId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(parentGrid, "TransformationID");
+        
+        var appName = me.parent.applicationName;
 
         var title = 'Flush ' + oRunNumberId;
         var msg = 'Are you sure you want to flush this run: ' + oRunNumberId + ' ?';
@@ -935,7 +937,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                           alert(response["error"]);
                         }
                       },
-                      url : GLOBAL.BASE_URL + me.applicationName + "/setRunStatus"
+                      url : GLOBAL.BASE_URL + appName + "/setRunStatus"
                     });
               }
             });
@@ -945,6 +947,8 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         var oRunNumberId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me, "RunNumber");
         var oTransFormationId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(parentGrid, "TransformationID");
 
+        var appName = me.parent.applicationName;
+        
         var title = 'Set Site ' + site;
         var msg = 'Are you sure you want to set site ' + site + ' for the run ' + oRunNumberId + ' in production ' + oTransFormationId + ' ?';
         Ext.Msg.confirm(title, msg, function(btn) {
@@ -968,7 +972,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                           alert(response["error"]);
                         }
                       },
-                      url : GLOBAL.BASE_URL + me.applicationName + "/setSite"
+                      url : GLOBAL.BASE_URL + appName + "/setSite"
                     });
               }
             });
@@ -1034,6 +1038,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               url : url,
               params : params,
               menu : null,
+              parent : me,
               selType : 'cellmodel'
             });
 
