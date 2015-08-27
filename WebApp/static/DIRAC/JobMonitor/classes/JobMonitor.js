@@ -1313,7 +1313,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                         if (i == 0) {
                           data.push(row);
                         } else {
-                          row.pop();
                           data.push(row);
                         }
                       }
