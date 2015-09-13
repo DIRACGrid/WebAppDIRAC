@@ -88,7 +88,9 @@ class Compiler(object):
     classPath.append( os.path.join( extPath, appName, "classes" ) )
     
     cmd = [ 'sencha', '-sdk', self.__sdkPath, 'compile', '-classpath=%s' % ",".join( classPath ),
-           '-debug=%s' % self.__debugFlag, 'page', '-name=page','-in',inFile, '-out', outFile,'and','restore','page','and','exclude','-not','-namespace','Ext.dirac.*%s' % excludePackage,'and','concat','-yui',compressedJsFile]
+           '-debug=%s' % self.__debugFlag, 'page', '-name=page','-in',inFile, '-out', outFile,'and',
+            'restore','page','and','exclude','-not','-namespace','Ext.dirac.*%s' % excludePackage,'and',
+            'concat','-yui',compressedJsFile]
 
     if self.__cmd( cmd ):
       return S_ERROR( "Error compiling %s.%s" % ( extName, appName ) )
