@@ -143,8 +143,8 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
           if ("Protected" in config.toolButtons && config.toolButtons.Protected.length > 0) {
             for (var i = 0; i < config.toolButtons.Protected.length; i++) {
               if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, config.toolButtons.Protected[i].property) != -1)) {
-                if (config.toolButtons.Visible[i].menu) {
-                  me.pagingToolbarButtons[nbOfButtons] = config.toolButtons.Visible[i];
+                if (config.toolButtons.Protected[i].menu) {
+                  me.pagingToolbarButtons[nbOfButtons] = config.toolButtons.Protected[i];
                 } else {
                   me.pagingToolbarButtons[nbOfButtons] = Ext.create('Ext.Button', {
                         text : config.toolButtons.Protected[i].text,
