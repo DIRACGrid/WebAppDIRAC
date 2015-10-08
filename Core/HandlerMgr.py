@@ -36,9 +36,11 @@ class HandlerMgr( object ):
         continue
       try:
         modFile, modPath, desc = imp.find_module( extName )
+	#to match in the real root path to enabling module web extensions (static, templates...)
+	realModPath = os.path.realpath( modPath )
       except ImportError:
         continue
-      staticPath = os.path.join( modPath, "WebApp", dirName )
+      staticPath = os.path.join( realModPath, "WebApp", dirName )
       if os.path.isdir( staticPath ):
         pathList.append( staticPath )
     #Add WebAppDirac to the end
