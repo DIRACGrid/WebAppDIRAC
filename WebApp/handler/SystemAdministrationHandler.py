@@ -376,7 +376,7 @@ class SystemAdministrationHandler( WebHandler ):
       fText = prefix
 
     if len( success ) > 0 and len( failure ) > 0:
-      sMessage = "%s %sed successfully: " % ( sText , action , success )
+      sMessage = "%s %sed successfully: %s" % ( sText , action , success )
       fMessage = "Failed to %s %s:\n%s" % ( action , fText , failure )
       result = sMessage + "\n\n" + fMessage
       return { "success" : "true" , "result" : result }
