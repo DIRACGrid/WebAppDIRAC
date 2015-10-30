@@ -36,8 +36,8 @@ class HandlerMgr( object ):
         continue
       try:
         modFile, modPath, desc = imp.find_module( extName )
-	#to match in the real root path to enabling module web extensions (static, templates...)
-	realModPath = os.path.realpath( modPath )
+        #to match in the real root path to enabling module web extensions (static, templates...)
+        realModPath = os.path.realpath( modPath )
       except ImportError:
         continue
       staticPath = os.path.join( realModPath, "WebApp", dirName )
@@ -60,6 +60,13 @@ class HandlerMgr( object ):
     staticPaths = self.getPaths( "static" )
     self.log.verbose( "Static paths found:\n - %s" % "\n - ".join( staticPaths ) )
     self.__routes = []
+
+    # Add some standard paths for static files
+    for stdir in [ 'defaults', 'demo' ]:
+      pattern = '/%s/(.*)' % stdir
+      self.__routes.append( ( pattern, StaticHandler, dict( pathList = ['%s/webRoot/www/%s' % rootPath] ) ) )
+      self.log.debug( " - Static route: %s" % pattern  )
+
     for pattern in ( ( r"/static/(.*)", r"/(favicon\.ico)", r"/(robots\.txt)" ) ):
       pattern = r"%s%s" % ( self.__shySetupGroupRE, pattern )
       if self.__baseURL:
