@@ -64,7 +64,7 @@ class HandlerMgr( object ):
     # Add some standard paths for static files
     for stdir in [ 'defaults', 'demo' ]:
       pattern = '/%s/(.*)' % stdir
-      self.__routes.append( ( pattern, StaticHandler, dict( pathList = ['%s/webRoot/www/%s' % rootPath] ) ) )
+      self.__routes.append( ( pattern, StaticHandler, dict( pathList = ['%s/webRoot/www/%s' % ( rootPath, stdir ) ] ) ) )
       self.log.debug( " - Static route: %s" % pattern  )
 
     for pattern in ( ( r"/static/(.*)", r"/(favicon\.ico)", r"/(robots\.txt)" ) ):
