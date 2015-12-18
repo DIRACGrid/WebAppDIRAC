@@ -683,13 +683,19 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   }, {
                     align : 'left',
                     dataIndex : 'RSS',
-                    header : 'RSS(KB)',
-                    sortable : true
+                    header : 'RSS(MB)',
+                    sortable : true,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererMB(value);
+                    }
                   }, {
                     align : 'left',
                     dataIndex : 'VSZ',
-                    header : 'VSZ(KB)',
-                    sortable : true
+                    header : 'VSZ(MB)',
+                    sortable : true,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererMB(value);
+                    }
                   }],
               rendererChkBox : function(val) {
                 return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
@@ -708,6 +714,9 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   return '<b style="color:#00CC00">' + value + '</b>';
                 }
                 return value;
+              },
+              rendererMB : function(value){
+                return value/1024; //convert to MB
               },
               listeners : {
 
