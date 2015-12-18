@@ -527,6 +527,14 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     name : 'Timeup'
                   }, {
                     name : 'Type'
+                  },{
+                    name : 'CPU'
+                  },{
+                    name : 'MEM'
+                  },{
+                    name : 'RSS'
+                  },{
+                    name : 'VSZ'
                   }],
               remoteSort : true,
               pageSize : 10000,
@@ -661,6 +669,26 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     align : 'left',
                     dataIndex : 'PID',
                     header : 'PID',
+                    sortable : true
+                  }, {
+                    align : 'left',
+                    dataIndex : 'CPU',
+                    header : 'CPU(%)',
+                    sortable : true
+                  }, {
+                    align : 'left',
+                    dataIndex : 'MEM',
+                    header : 'MEM(%)',
+                    sortable : true
+                  }, {
+                    align : 'left',
+                    dataIndex : 'RSS',
+                    header : 'RSS(KB)',
+                    sortable : true
+                  }, {
+                    align : 'left',
+                    dataIndex : 'VSZ',
+                    header : 'VSZ(KB)',
                     sortable : true
                   }],
               rendererChkBox : function(val) {
