@@ -527,6 +527,14 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     name : 'Timeup'
                   }, {
                     name : 'Type'
+                  },{
+                    name : 'CPU'
+                  },{
+                    name : 'MEM'
+                  },{
+                    name : 'RSS'
+                  },{
+                    name : 'VSZ'
                   }],
               remoteSort : true,
               pageSize : 10000,
@@ -662,6 +670,32 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     dataIndex : 'PID',
                     header : 'PID',
                     sortable : true
+                  }, {
+                    align : 'left',
+                    dataIndex : 'CPU',
+                    header : 'CPU(%)',
+                    sortable : true
+                  }, {
+                    align : 'left',
+                    dataIndex : 'MEM',
+                    header : 'MEM(%)',
+                    sortable : true
+                  }, {
+                    align : 'left',
+                    dataIndex : 'RSS',
+                    header : 'RSS(MB)',
+                    sortable : true,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererMB(value);
+                    }
+                  }, {
+                    align : 'left',
+                    dataIndex : 'VSZ',
+                    header : 'VSZ(MB)',
+                    sortable : true,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererMB(value);
+                    }
                   }],
               rendererChkBox : function(val) {
                 return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
@@ -680,6 +714,9 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   return '<b style="color:#00CC00">' + value + '</b>';
                 }
                 return value;
+              },
+              rendererMB : function(value){
+                return value/1024; //convert to MB
               },
               listeners : {
 
