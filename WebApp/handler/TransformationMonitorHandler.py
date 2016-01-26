@@ -1,11 +1,8 @@
 from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from WebAppDIRAC.Lib.SessionData import SessionData
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-from DIRAC.Core.Utilities.List import sortList
 import json
-import ast
 
 class TransformationMonitorHandler( WebHandler ):
 
@@ -249,8 +246,7 @@ class TransformationMonitorHandler( WebHandler ):
       res = tsClient.getTransformationFilesCount( prodid, "ErrorCount", {'Status':['Unused', 'Assigned', 'Failed']} )
     elif mode == "all":
       res = tsClient.getTransformationFilesCount( prodid, "ErrorCount" )
-    else:
-      return {"success":"false", "error":res["Message"]}
+
     if not res['OK']:
       callback = {"success":"false", "error":res["Message"]}
     else:
@@ -259,7 +255,7 @@ class TransformationMonitorHandler( WebHandler ):
       if total == 0:
         callback = {"success":"false", "error":"No files found"}
       else:
-        for status in sortList( res['Value'].keys() ):
+        for status in sorted( res['Value'].keys() ):
           count = res['Value'][status]
           percent = "%.1f" % ( ( count * 100.0 ) / total )
           resList.append( ( status, str( count ), percent ) )
@@ -279,7 +275,7 @@ class TransformationMonitorHandler( WebHandler ):
     else:
       result = res["Value"]
       back = []
-      for i in sortList( result.keys() ):
+      for i in sorted( result.keys() ):
         back.append( [i, result[i]] )
       callback = {"success":"true", "result":back}
     return callback
@@ -295,7 +291,7 @@ class TransformationMonitorHandler( WebHandler ):
     else:
       result = res["Value"]
       back = []
-      for i in sortList( result.keys() ):
+      for i in sorted( result.keys() ):
         back.append( [i, result[i]] )
       callback = {"success":"true", "result":back}
     return callback
@@ -347,7 +343,7 @@ class TransformationMonitorHandler( WebHandler ):
       if total == 0:
         callback = {"success":"false", "error":"No files found"}
       else:
-        for status in sortList( res['Value'].keys() ):
+        for status in sorted( res['Value'].keys() ):
           count = res['Value'][status]
           percent = "%.1f" % ( ( count * 100.0 ) / total )
           resList.append( ( status, str( count ), percent ) )
@@ -429,9 +425,9 @@ class TransformationMonitorHandler( WebHandler ):
                   tmp[head[j]] = i[j]
                 callback.append( tmp )
               total = result["TotalRecords"]
+              timestamp = Time.dateTime().strftime( "%Y-%m-%d %H:%M [UTC]" )
               if result.has_key( "Extras" ):
                 extra = result["Extras"]
-                timestamp = Time.dateTime().strftime( "%Y-%m-%d %H:%M [UTC]" )
                 callback = {"success":"true", "result":callback, "total":total, "extra":extra, "date":timestamp}
               else:
                 callback = {"success":"true", "result":callback, "total":total, "date":timestamp}
