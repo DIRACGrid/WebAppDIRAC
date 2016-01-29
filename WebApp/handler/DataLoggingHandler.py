@@ -1,4 +1,4 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
 class DataLoggingHandler(WebHandler):
@@ -24,6 +24,6 @@ class DataLoggingHandler(WebHandler):
           result = {"success":"true","result":data}
         else:
           result = {"success":"false","error":result["Message"]}
-    self.finish(result)  
-      
+    self.finish(result)
+
   ################################################################################

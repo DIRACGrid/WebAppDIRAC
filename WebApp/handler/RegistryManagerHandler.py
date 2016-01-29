@@ -1,14 +1,11 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import Time, List, DictCache
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
 import json
-import types
-import time
 
 class RegistryManagerHandler(WebSocketHandler):
 
@@ -51,7 +48,7 @@ class RegistryManagerHandler(WebSocketHandler):
       res = self.__getVomsMapping()
     elif params["op"] == "saveVomsMapping":
       res = self.__saveVomsMapping(params)
-    
+
     if res:
       self.write_message(res)
 
@@ -65,125 +62,125 @@ class RegistryManagerHandler(WebSocketHandler):
 
     self.__configData[ 'cfgData' ] = modCfg
     self.__configData[ 'strCfgData' ] = str(modCfg)
-    
+
     version = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Version"])
     configName = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Name"])
     return {"success":1, "op":funcName, "version":version, "name":configName}
-  
+
   def __getData(self, params):
     data = []
     if params["type"] == "users":
-      
+
       sectionPath = "/Registry/Users"
       sectionCfg = self.getSectionCfg(sectionPath)
-      
+
       for username in sectionCfg.listAll():
-        
+
         item = {}
         item["name"] = username
         props = sectionCfg[username]
-        
+
         item["dn"] = self.getIfExists("DN", props)
         item["ca"] = self.getIfExists("CA", props)
         item["email"] = self.getIfExists("Email", props)
-        
+
         data.append(item)
-      
+
     elif params["type"] == "groups":
       sectionPath = "/Registry/Groups"
       sectionCfg = self.getSectionCfg(sectionPath)
-      
+
       for group in sectionCfg.listAll():
         item = {}
         item["name"] = group
         props = sectionCfg[group]
-        
+
         item["users"] = self.getIfExists("Users", props)
         item["properties"] = self.getIfExists("Properties", props)
         item["vomsrole"] = self.getIfExists("VOMSRole", props)
-        
+
         item["autouploadproxy"] = self.getIfExists("AutoUploadProxy", props)
         item["autouploadpilotproxy"] = self.getIfExists("AutoUploadPilotProxy", props)
         item["autoaddvoms"] = self.getIfExists("AutoAddVOMS", props)
         item["jobshare"] = self.getIfExists("JobShare", props)
-        
+
         data.append(item)
-        
+
     elif params["type"] == "hosts":
       sectionPath = "/Registry/Hosts"
       sectionCfg = self.getSectionCfg(sectionPath)
-      
+
       for host in sectionCfg.listAll():
         item = {}
         item["name"] = host
         props = sectionCfg[host]
-        
+
         item["dn"] = self.getIfExists("DN", props)
         item["properties"] = self.getIfExists("Properties", props)
-        
+
         data.append(item)
-        
+
     elif params["type"] == "voms":
       sectionPath = "/Registry/VOMS/Servers"
       sectionCfg = self.getSectionCfg(sectionPath)
-      
+
       for host in sectionCfg.listAll():
         item = {}
         item["name"] = host
-        
+
         data.append(item)
-        
+
     elif params["type"] == "servers":
       sectionPath = "/Registry/VOMS/Servers/" + params["vom"]
       sectionCfg = self.getSectionCfg(sectionPath)
-      
+
       for serv in sectionCfg.listAll():
         item = {}
         item["name"] = serv
         props = sectionCfg[serv]
-        
+
         item["dn"] = self.getIfExists("DN", props)
         item["ca"] = self.getIfExists("CA", props)
         item["port"] = self.getIfExists("Port", props)
-        
-        data.append(item)    
-    
-    
+
+        data.append(item)
+
+
     return {"op":"getData", "success":1, "type": params["type"], "data": data}
-  
+
   def __getGroupList(self):
     data = []
-    
+
     sectionPath = "/Registry/Groups"
     sectionCfg = self.getSectionCfg(sectionPath)
-    
+
     for group in sectionCfg.listAll():
       data.append([group])
-      
+
     return {"op":"getGroupList", "success":1, "data": data}
-  
+
   def __getVomsMapping(self):
     data = []
-    
+
     sectionPath = "/Registry/VOMS/Mapping"
     sectionCfg = self.getSectionCfg(sectionPath)
-    
+
     for mapping in sectionCfg.listAll():
       data.append({"name": mapping, "value": sectionCfg[mapping]})
-      
+
     return {"op":"getVomsMapping", "success":1, "data": data}
-  
+
   def __getRegistryProperties(self):
     sectionPath = "/Registry"
     sectionCfg = self.getSectionCfg(sectionPath)
-   
+
     data = {}
     for entryName in sectionCfg.listAll():
       if not sectionCfg.isSection(entryName):
-         data[entryName] = sectionCfg[ entryName ]
-     
+        data[entryName] = sectionCfg[ entryName ]
+
     return {"op":"getRegistryProperties", "success":1, "data": data}
-  
+
   def getSectionCfg(self, sectionPath):
     sectionCfg = None
     try:
@@ -193,77 +190,77 @@ class RegistryManagerHandler(WebSocketHandler):
     except Exception, v:
       return False
     return sectionCfg
-  
+
   def getIfExists(self, elem, propsList):
     if elem in propsList.listAll():
       return propsList[elem]
     else:
       return ""
-    
+
   def __addItem(self, params):
-   
+
     sectionPath = "/Registry/"
     configText = ""
     if params["type"] == "users":
-      
+
       sectionPath = sectionPath + "Users"
       if params["dn"].strip() != "":
         configText = "DN = " + params["dn"].strip() + "\n"
-        
+
       if params["ca"].strip() != "":
         configText = configText + "CA = " + params["ca"].strip() + "\n"
-        
+
       if params["email"].strip() != "":
         configText = configText + "Email = " + params["email"].strip()
-        
+
     elif params["type"] == "groups":
-        
+
       sectionPath = sectionPath + "Groups"
       if params["users"].strip() != "":
         configText = "Users = " + params["users"].strip() + "\n"
-        
+
       if params["properties"].strip() != "":
         configText = configText + "Properties = " + params["properties"].strip() + "\n"
-      
+
       if str(params["jobshare"]).strip() != "":
         configText = configText + "JobShare = " + str(params["jobshare"]) + "\n"
-      
+
       if params["autouploadproxy"].strip() != "":
         configText = configText + "AutoUploadProxy = " + params["autouploadproxy"].strip() + "\n"
-      
+
       if params["autouploadpilotproxy"].strip() != "":
         configText = configText + "AutoUploadPilotProxy = " + params["autouploadpilotproxy"].strip() + "\n"
-      
+
       if params["autoaddvoms"].strip() != "":
         configText = configText + "AutoAddVOMS = " + params["autoaddvoms"].strip()
-      
+
     elif params["type"] == "hosts":
-      
+
       sectionPath = sectionPath + "Hosts"
       if params["dn"].strip() != "":
         configText = "DN = " + params["dn"].strip() + "\n"
-        
+
       if params["properties"].strip() != "":
         configText = configText + "Properties = " + params["properties"].strip()
-    
+
     elif params["type"] == "voms":
-      
+
       sectionPath = sectionPath + "VOMS/Servers"
-        
+
     elif params["type"] == "servers":
-      
+
       sectionPath = sectionPath + "VOMS/Servers/" + params["vom"]
       if params["dn"].strip() != "":
         configText = "DN = " + params["dn"].strip() + "\n"
-        
+
       if params["port"].strip() != "":
         configText = configText + "Port = " + params["port"].strip() + "\n"
-      
+
       if params["ca"].strip() != "":
         configText = configText + "CA = " + params["ca"].strip()
-    
+
     sectionPath = sectionPath + "/" + params["name"]
-    
+
     if self.__configData[ 'cfgData' ].createSection(sectionPath):
       cfgData = self.__configData[ 'cfgData' ].getCFG()
       newCFG = CFG()
@@ -272,9 +269,9 @@ class RegistryManagerHandler(WebSocketHandler):
       return {"success":1, "op": "addItem"}
     else:
       return {"success":0, "op":"addItem", "message":"Section can't be created. It already exists?"}
-      
+
   def __editItem(self, params):
-    
+
     ret = self.__deleteItem(params)
     if ret["success"] == 1:
       ret = self.__addItem(params)
@@ -282,68 +279,68 @@ class RegistryManagerHandler(WebSocketHandler):
       return ret
     ret["op"] = "editItem"
     return ret
-    
+
     sectionPath = "/Registry/"
     configText = ""
     if params["type"] == "users":
-      
+
       sectionPath = sectionPath + "Users"
       if params["dn"].strip() != "":
         configText = "DN = " + params["dn"].strip() + "\n"
-        
+
       if params["ca"].strip() != "":
         configText = configText + "CA = " + params["ca"].strip() + "\n"
-        
+
       if params["email"].strip() != "":
         configText = configText + "Email = " + params["email"].strip()
-        
+
     elif params["type"] == "groups":
-        
+
       sectionPath = sectionPath + "Groups"
       if params["users"].strip() != "":
         configText = "Users = " + params["users"].strip() + "\n"
-        
+
       if params["properties"].strip() != "":
         configText = configText + "Properties = " + params["properties"].strip() + "\n"
-      
+
       if str(params["jobshare"]).strip() != "":
         configText = configText + "JobShare = " + str(params["jobshare"]) + "\n"
-      
+
       if params["autouploadproxy"].strip() != "":
         configText = configText + "AutoUploadProxy = " + params["autouploadproxy"].strip() + "\n"
-      
+
       if params["autouploadpilotproxy"].strip() != "":
         configText = configText + "AutoUploadPilotProxy = " + params["autouploadpilotproxy"].strip() + "\n"
-      
+
       if params["autoaddvoms"].strip() != "":
         configText = configText + "AutoAddVOMS = " + params["autoaddvoms"].strip()
-      
+
     elif params["type"] == "hosts":
-      
+
       sectionPath = sectionPath + "Hosts"
       if params["dn"].strip() != "":
         configText = "DN = " + params["dn"].strip() + "\n"
-        
+
       if params["properties"].strip() != "":
         configText = configText + "Properties = " + params["properties"].strip()
-    
+
     sectionPath = sectionPath + "/" + params["name"]
-    
-#   deleting the options underneath 
+
+#   deleting the options underneath
     sectionCfg = self.getSectionCfg(sectionPath)
-      
+
     for opt in sectionCfg.listAll():
       print "deleting " + opt + "\n"
       self.__configData[ 'cfgData' ].removeOption(sectionPath + "/" + opt)
-    
+
     newCFG = CFG()
     newCFG.loadFromBuffer(configText)
     self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
-    return {"success":1, "op": "editItem"}  
-        
+    return {"success":1, "op": "editItem"}
+
   def __deleteItem(self, params):
     sectionPath = "/Registry/"
-    
+
     if params["type"] == "users":
       sectionPath = sectionPath + "Users"
     elif params["type"] == "groups":
@@ -354,13 +351,13 @@ class RegistryManagerHandler(WebSocketHandler):
       sectionPath = sectionPath + "VOMS/Servers"
     elif params["type"] == "servers":
       sectionPath = sectionPath + "VOMS/Servers/" + params["vom"]
-    
+
     sectionPath = sectionPath + "/" + params["name"]
     if self.__configData[ 'cfgData' ].removeOption(sectionPath) or self.__configData[ 'cfgData' ].removeSection(sectionPath):
       return {"success":1, "op":"deleteItem"}
     else:
       return {"success":0, "op":"deleteItem", "message":"Entity doesn't exist"}
-  
+
   def __commitChanges(self):
     data = self.getSessionData()
     isAuth = False
@@ -374,51 +371,49 @@ class RegistryManagerHandler(WebSocketHandler):
     if not retDict[ 'OK' ]:
       return {"success":0, "op":"commitChanges", "message":retDict[ 'Message' ]}
     return {"success":1, "op":"commitChanges"}
-  
+
   def __saveRegistryProperties(self, params):
     sectionPath = "/Registry"
     sectionCfg = self.getSectionCfg(sectionPath)
-      
+
     for opt in sectionCfg.listAll():
       if not sectionCfg.isSection(opt):
         self.__configData[ 'cfgData' ].removeOption(sectionPath + "/" + opt)
-    
+
     configText = ""
-    
+
     for newOpt in params:
       if newOpt != "op":
         if configText == "":
           configText = newOpt + "=" + params[newOpt] + "\n"
         else:
           configText = configText + newOpt + "=" + params[newOpt] + "\n"
-    
+
     newCFG = CFG()
     newCFG.loadFromBuffer(configText)
     self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
-    
+
     return {"op":"saveRegistryProperties", "success": 1}
-  
+
   def __saveVomsMapping(self, params):
     sectionPath = "/Registry/VOMS/Mapping"
     sectionCfg = self.getSectionCfg(sectionPath)
-      
+
     for opt in sectionCfg.listAll():
       if not sectionCfg.isSection(opt):
         self.__configData[ 'cfgData' ].removeOption(sectionPath + "/" + opt)
-    
+
     configText = ""
-    
+
     for newOpt in params:
       if newOpt != "op":
         if configText == "":
           configText = newOpt + "=" + params[newOpt] + "\n"
         else:
           configText = configText + newOpt + "=" + params[newOpt] + "\n"
-    
+
     newCFG = CFG()
     newCFG.loadFromBuffer(configText)
     self.__configData[ 'cfgData' ].mergeSectionFromCFG(sectionPath, newCFG)
-    
+
     return {"op":"saveVomsMapping", "success": 1}
-    
-    

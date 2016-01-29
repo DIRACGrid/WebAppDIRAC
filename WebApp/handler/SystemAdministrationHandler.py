@@ -1,13 +1,10 @@
 
-from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-from DIRAC.FrameworkSystem.Client.SystemAdministratorIntegrator import SystemAdministratorIntegrator
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import Time
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities.List import uniqueElements
 import json
 import datetime
@@ -16,18 +13,18 @@ import DIRAC.ConfigurationSystem.Client.Helpers.Registry as Registry
 class SystemAdministrationHandler( WebHandler ):
 
   AUTH_PROPS = "authenticated"
-  
+
   @asyncGen
   def web_getSysInfo( self ):
-    
+
     userData = self.getSessionData()
-    
+
     DN = str( userData["user"]["DN"] )
     group = str( userData["user"]["group"] )
 
     callback = []
-    import pprint
-  
+
+
     # self.finish( { "success" : "false" , "error" : "No system information found" } )
     # return
     """
@@ -46,10 +43,9 @@ class SystemAdministrationHandler( WebHandler ):
     else:
       self.finish( { "success" : "false" , "error" :  resultHosts['Message']} )
     """
-    
+
     callback = []
-    import pprint
-  
+
     client = ComponentMonitoringClient()
     result = client.getHosts( {}, False, False )
     if result[ 'OK' ]:
@@ -71,11 +67,11 @@ class SystemAdministrationHandler( WebHandler ):
     if not total > 0:
       self.finish( { "success" : "false" , "error" : "No system information found" } )
       return
-    
+
     callback = sorted(callback, key=lambda i: i['Host'])
     self.finish( { "success" : "true" , "result" : callback , "total" : total } )
-  
-  @asyncGen  
+
+  @asyncGen
   def web_getHostData( self ):
     """
     Returns flatten list of components (services, agents) installed on hosts
@@ -84,16 +80,16 @@ class SystemAdministrationHandler( WebHandler ):
 
     # checkUserCredentials()
     userData = self.getSessionData()
-    
+
     DN = str( userData["user"]["DN"] )
     group = str( userData["user"]["group"] )
 
     callback = list()
-    
+
     if not ( self.request.arguments.has_key( "hostname" ) and len( self.request.arguments["hostname"][0] ) > 0 ):
       self.finish( { "success" : "false" , "error" : "Name of the host is absent" } )
       return
-    
+
     host = self.request.arguments["hostname"][0]
     client = SystemAdministratorClient( host , None , delegatedDN = DN ,
                                           delegatedGroup = group )
@@ -103,16 +99,16 @@ class SystemAdministrationHandler( WebHandler ):
     if not result[ "OK" ]:
       self.finish( { "success" : "false" , "error" : result[ "Message" ] } )
       return
-    
+
     overall = result[ "Value" ]
-   
+
     for record in self.flatten( overall ):
       record[ "Host" ] = host
       callback.append( record )
 
     self.finish( { "success" : "true" , "result" : callback } )
-    
-    
+
+
   def flatten( self , dataDict ):
 
     """
@@ -128,31 +124,31 @@ class SystemAdministrationHandler( WebHandler ):
             c[ "System" ] = system
             c[ "Name" ] = name
             yield c
-  
-  @asyncGen  
+
+  @asyncGen
   def web_getHostErrors( self ):
 
     userData = self.getSessionData()
-    
+
     DN = str( userData["user"]["DN"] )
     group = str( userData["user"]["group"] )
-    
+
     if not "host" in self.request.arguments:
       self.finish( { "success" : "false" , "error" : "Name of the host is missing or not defined" } )
       return
-    
+
     host = str( self.request.arguments[ "host" ][0] )
 
     client = SystemAdministratorClient( host , None , delegatedDN = DN , delegatedGroup = group )
 
     result = yield self.threadTask( client.checkComponentLog, "*" )
-    
+
     gLogger.debug( result )
     if not result[ "OK" ]:
       self.finish( { "success" : "false" , "error" : result[ "Message" ] } )
       return
     result = result[ "Value" ]
-    
+
     callback = list()
     for key, value in result.items():
       system, component = key.split( "/" )
@@ -168,10 +164,10 @@ class SystemAdministrationHandler( WebHandler ):
   def web_getHostLog( self ):
 
     userData = self.getSessionData()
-    
+
     DN = str( userData["user"]["DN"] )
     group = str( userData["user"]["group"] )
-    
+
     if not "host" in self.request.arguments:
       self.finish( { "success" : "false" , "error":"Name of the host is missing or not defined"} )
       return
@@ -185,50 +181,50 @@ class SystemAdministrationHandler( WebHandler ):
     if not "component" in self.request.arguments:
       self.finish( { "success" : "false" , "error":"Name of component is missing or not defined"} )
       return
-    
+
     name = str( self.request.arguments[ "component" ][0] )
 
     client = SystemAdministratorClient( host , None , delegatedDN = DN , delegatedGroup = group )
 
     result = yield self.threadTask( client.getLogTail, system , name )
     gLogger.debug( result )
-    
+
     if not result[ "OK" ]:
       self.finish( { "success" : "false" , "error":result[ "Message" ]} )
       return
-    
+
     result = result[ "Value" ]
 
     key = system + "_" + name
     if not key in result:
       self.finish( { "success" : "false" , "error":"%s key is absent in service response" % key} )
       return
-    
+
     log = result[ key ]
 
     self.finish( { "success" : "true" , "result":log.replace( "\n" , "<br>" )} )
-  
-  @asyncGen  
+
+  @asyncGen
   def web_hostAction( self ):
 
     """
     Restart all DIRAC components on a given host
     """
-    
+
     if not "host" in self.request.arguments:
       self.finish( { "success" : "false" , "error" : "No hostname defined" } )
       return
-    
+
     if not "action" in self.request.arguments:
       self.finish( { "success" : "false" , "error" : "No action defined" } )
       return
-    
+
     action = str( self.request.arguments[ "action" ][0] )
     hosts = self.request.arguments[ "host" ][0].split( "," )
     version = self.request.arguments[ "version" ][0]
 
     userData = self.getSessionData()
-    
+
     DN = str( userData["user"]["DN"] )
     group = str( userData["user"]["group"] )
 
@@ -263,9 +259,9 @@ class SystemAdministrationHandler( WebHandler ):
       else:
         gLogger.info( result[ "Value" ] )
         actionSuccess.append( i )
-      
+
     self.finish( self.aftermath( actionSuccess, actionFailed, action, "Host" ) )
-  
+
   @asyncGen
   def web_componentAction( self ):
 
@@ -277,14 +273,14 @@ class SystemAdministrationHandler( WebHandler ):
     """
 
     userData = self.getSessionData()
-    
+
     DN = str( userData["user"]["DN"] )
     group = str( userData["user"]["group"] )
-    
+
     if not ( ( "action" in self.request.arguments ) and ( len( self.request.arguments[ "action" ][0] ) > 0 ) ):
       self.finish( { "success" : "false" , "error" : "No action defined" } )
       return
-    
+
     action = str( self.request.arguments[ "action" ][0] )
 
     if action not in [ "restart" , "start" , "stop" ]:
@@ -316,7 +312,7 @@ class SystemAdministrationHandler( WebHandler ):
       error = "Failed to get component(s) for %s" % action
       gLogger.debug( error )
       self.finish( { "success" : "false" , "error" : error } )
-      
+
     gLogger.always( result )
     actionSuccess = list()
     actionFailed = list()
@@ -358,8 +354,8 @@ class SystemAdministrationHandler( WebHandler ):
           actionSuccess.append( component )
 
     self.finish( self.aftermath( actionSuccess, actionFailed, action, "Component" ) )
-  
-  
+
+
   def aftermath( self, actionSuccess, actionFailed, action, prefix ):
 
     success = ", ".join( actionSuccess )
@@ -369,7 +365,7 @@ class SystemAdministrationHandler( WebHandler ):
       sText = prefix + "s"
     else:
       sText = prefix
-      
+
     if len( actionFailed ) > 1:
       fText = prefix + "s"
     else:
@@ -391,32 +387,32 @@ class SystemAdministrationHandler( WebHandler ):
       result = "No action has performed due technical failure. Check the logs please"
       gLogger.debug( result )
       return { "success" : "false" , "error" : result }
-  
+
   def web_getUsersGroups( self ):
-    
+
     result = gConfig.getSections( "/Registry/Users" )
     if not result[ "OK" ]:
       self.write( { "success" : "false" , "error" : result[ "Message" ] } )
       return
     result = result[ "Value" ]
-   
+
     users = map( lambda x : [x] , result )
-    
+
     result = gConfig.getSections( "/Registry/Groups" )
     if not result[ "OK" ]:
       self.write( { "success" : "false" , "error" : result[ "Message" ] } )
       return
     result = result[ "Value" ]
-   
+
     groups = map( lambda x : [x] , result )
-    
+
     self.write( { "success" : "true" , "users" : users, "groups" : groups, "email": self.getUserEmail()  } )
 
   def getUserEmail( self ):
 
     userData = self.getSessionData()
     user = userData["user"]["username"]
-    
+
     if not user:
       gLogger.debug( "user value is empty" )
       return None
@@ -424,15 +420,15 @@ class SystemAdministrationHandler( WebHandler ):
     if user == "anonymous":
       gLogger.debug( "user is anonymous" )
       return None
-    
+
     email = gConfig.getValue( "/Registry/Users/%s/Email" % user , "" )
     gLogger.debug( "/Registry/Users/%s/Email - '%s'" % ( user , email ) )
     emil = email.strip()
-      
+
     if not email:
       return None
     return email
-  
+
   def web_sendMessage( self ):
 
     """
@@ -440,13 +436,13 @@ class SystemAdministrationHandler( WebHandler ):
     """
 
     email = self.getUserEmail()
-    
+
     if not "subject" in self.request.arguments:
       result = "subject parameter is not in request... aborting"
       gLogger.debug( result )
       self.write( { "success" : "false" , "error" : result } )
       return
-    
+
     subject = self.checkUnicode( self.request.arguments[ "subject" ][0] )
     if not len( subject ) > 0:
       subject = "Message from %s" % email
@@ -456,7 +452,7 @@ class SystemAdministrationHandler( WebHandler ):
       gLogger.debug( result )
       self.write( { "success" : "false" , "error" : result } )
       return
-    
+
     body = self.checkUnicode( self.request.arguments[ "message" ][0] )
     if not len( body ) > 0:
       result = "Message body has zero length... aborting"
@@ -467,7 +463,7 @@ class SystemAdministrationHandler( WebHandler ):
     users = self.request.arguments[ "users" ][0].split( "," )
 
     groups = self.request.arguments[ "groups" ][0].split( "," )
-    
+
     gLogger.info( "List of groups from request: %s" % groups )
     if groups:
       for g in groups:
@@ -475,7 +471,7 @@ class SystemAdministrationHandler( WebHandler ):
         gLogger.info( "Get users: %s from group %s" % ( userList , g ) )
         if userList:
           users.extend( userList )
-          
+
     gLogger.info( "Merged list of users from users and group %s" % users )
 
     if not len( users ) > 0:
@@ -483,14 +479,14 @@ class SystemAdministrationHandler( WebHandler ):
       gLogger.info( error )
       self.write( { "success" : "false" , "error" : error } )
       return
-      
+
     users = uniqueElements( users )
     gLogger.info( "Final list of users to send message/mail: %s" % users )
-    
+
     sendDict = self.getMailDict( users )
     self.write( self.sendMail( sendDict , subject , body , email ) )
-    
-  
+
+
   def checkUnicode( self , text = None ):
 
     """
@@ -503,9 +499,9 @@ class SystemAdministrationHandler( WebHandler ):
       pass
     text = text.encode( "utf-8" )
     gLogger.debug( text )
-    
+
     return text
-  
+
   def getUsersFromGroup( self , groupname = None ):
 
     if not groupname:
@@ -518,9 +514,9 @@ class SystemAdministrationHandler( WebHandler ):
       gLogger.debug( "No users for group %s found" % groupname )
       return None
     return users
-  
+
   def getMailDict( self , names = None ):
-  
+
     """
     Convert list of usernames to dict like { e-mail : full name }
     Argument is a list. Return value is a dict
@@ -529,12 +525,12 @@ class SystemAdministrationHandler( WebHandler ):
     resultDict = dict()
     if not names:
       return resultDict
-    
+
     for user in names:
       email = gConfig.getValue( "/Registry/Users/%s/Email" % user , "" )
       gLogger.debug( "/Registry/Users/%s/Email - '%s'" % ( user , email ) )
       emil = email.strip()
-      
+
       if not email:
         gLogger.error( "Can't find value for option /Registry/Users/%s/Email" % user )
         continue
@@ -550,7 +546,7 @@ class SystemAdministrationHandler( WebHandler ):
       resultDict[ email ] = fname
 
     return resultDict
-  
+
   def sendMail( self , sendDict = None , title = None , body = None , fromAddress = None ):
 
     """
@@ -569,7 +565,7 @@ class SystemAdministrationHandler( WebHandler ):
       result = "title argument is missing"
       gLogger.debug( result )
       return { "success" : "false" , "error" : result }
-      
+
     if not body:
       result = "body argument is missing"
       gLogger.debug( result )
@@ -615,27 +611,27 @@ class SystemAdministrationHandler( WebHandler ):
       result = "No messages were sent due technical failure"
       gLogger.debug( result )
       return { "success" : "false" , "error" : result }
-  
+
   @asyncGen
   def web_getComponentNames( self ):
-        
+
     result = None
-    
+
     userData = self.getSessionData()
-   
+
     setup = userData['setup'].split( '-' )[-1]
     systemList = []
     system = None
-    
+
     if "system" in self.request.arguments:
-      system = self.request.arguments[ 'system' ][-1] 
-    
+      system = self.request.arguments[ 'system' ][-1]
+
     componentTypes = ['Services', 'Agents']
     if "ComponentType" in self.request.arguments:
       componentTypes = self.request.arguments['ComponentType']
-            
+
     retVal = gConfig.getSections( '/Systems' )
-        
+
     if retVal['OK']:
       systems = retVal['Value']
       for i in systems:
@@ -645,39 +641,39 @@ class SystemAdministrationHandler( WebHandler ):
           if retVal['OK']:
             components = retVal['Value']
             systemList += [ {"Name":j} for j in components ]
-        
+
       result = { "success" : "true" , "result" : systemList }
     else:
       result = { "success" : "false" , "error" : result['Message'] }
-    
+
     self.finish( result )
-  
+
   @asyncGen
   def web_getSelectionData( self ):
-        
+
     data = {}
-    
+
     userData = self.getSessionData()
-   
+
     setup = userData['setup'].split( '-' )[-1]
     systemList = []
     system = None
-    
+
     hosts = []
     result = Registry.getHosts()
     if result['OK']:
       hosts = [ [i] for i in result['Value'] ]
     data['Hosts'] = hosts
-    
+
     if "system" in self.request.arguments:
-      system = self.request.arguments[ 'system' ][-1] 
-    
+      system = self.request.arguments[ 'system' ][-1]
+
     componentTypes = ['Services', 'Agents']
     if "ComponentType" in self.request.arguments:
       componentTypes = self.request.arguments['ComponentType']
-            
+
     retVal = gConfig.getSections( '/Systems' )
-        
+
     components = []
     componentNames = []
     data['ComponentModule'] = []
@@ -700,53 +696,53 @@ class SystemAdministrationHandler( WebHandler ):
               elif record not in components and module == '':
                 data['ComponentModule'].append( [record] )
                 components += [record]
-           
+
       data['ComponentName'] = componentNames
       data['ComponentName'].sort()
       data['ComponentModule'].sort()
-      
+
     else:
       data = { "success" : "false" , "error" : result['Message'] }
-    
+
     self.finish( data )
-    
+
   @asyncGen
   def web_ComponentLocation( self ):
-    
+
     rpcClient = RPCClient( "Framework/Monitoring" )
-    
+
     userData = self.getSessionData()
-   
+
     setup = userData['setup'].split( '-' )[-1]
-    
+
     hosts = []
     result = Registry.getHosts()
     if result['OK']:
       hosts = result['Value']
-    
-    
+
+
     componentTypes = ['Services', 'Agents']
     if "ComponentType" in self.request.arguments:
       componentTypes = self.request.arguments['ComponentType']
-    
+
     componentNames = []
     if "ComponentName" in self.request.arguments:
       componentNames = list( json.loads( self.request.arguments[ 'ComponentName' ][-1] ) )
-    
+
     componentModules = []
     if "ComponentModule" in self.request.arguments:
       componentModules = list( json.loads( self.request.arguments[ 'ComponentModule' ][-1] ) )
-    
+
     showAll = 0
     if "showAll" in self.request.arguments:
       showAll = int( self.request.arguments[ 'showAll' ][-1] )
-    
+
     selectedHosts = []
     if "Hosts" in self.request.arguments:  # we only use the selected host(s)
       selectedHosts = list( json.loads( self.request.arguments[ 'Hosts' ][-1] ) )
     retVal = gConfig.getSections( '/Systems' )
-    
-    compMatching = {}    
+
+    compMatching = {}
     fullNames = []
     if retVal['OK']:
       systems = retVal['Value']
@@ -761,28 +757,28 @@ class SystemAdministrationHandler( WebHandler ):
               if j in componentNames:
                 fullNames += [path]
                 compMatching[path] = path
-              modulepath = "%s/%s/Module" % ( compPath, j )   
+              modulepath = "%s/%s/Module" % ( compPath, j )
               module = gConfig.getValue( modulepath, '' )
               if module != '' and module in componentModules:
                 fullNames += [path]
               elif module == '' and j in componentModules:
                 fullNames += [path]
-              
+
               compMatching[path] = module if module != '' else path
-                               
+
     records = []
     if len( fullNames ) > 0:
       condDict = {'Setup':userData['setup'], 'ComponentName':fullNames}
     else:
       if len( componentTypes ) < 2:
-        type = 'agent' if componentTypes[-1] == 'Agents' else 'service' 
+        type = 'agent' if componentTypes[-1] == 'Agents' else 'service'
         condDict = {'Setup':userData['setup'], 'Type':type}
       else:
         condDict = {'Setup':userData['setup']}
-    
+
     gLogger.debug( "condDict" + str( condDict ) )
     retVal = rpcClient.getComponentsStatus( condDict )
-    
+
     today = datetime.datetime.today()
     if retVal['OK']:
       components = retVal['Value'][0]
@@ -793,25 +789,22 @@ class SystemAdministrationHandler( WebHandler ):
               if len( selectedHosts ) > 0 and 'Host' in component and component['Host'] not in selectedHosts:
                 continue
               elif 'Host' in component and component['Host'] not in hosts:
-                 continue 
+                continue
               if 'LastHeartbeat' in component:
                 dateDiff = today - component['LastHeartbeat']
               else:
-                dateDiff = today - today             
-              
-              if showAll == 0 and dateDiff.days >= 2 and 'Host' in component:  
+                dateDiff = today - today
+
+              if showAll == 0 and dateDiff.days >= 2 and 'Host' in component:
                 continue
-              
+
               for conv in component:
                 component[conv] = str( component[conv] )
-              component['ComponentModule'] = compMatching[component['ComponentName']] if component['ComponentName'] in compMatching else component['ComponentName'] 
+              component['ComponentModule'] = compMatching[component['ComponentName']] if component['ComponentName'] in compMatching else component['ComponentName']
               records += [component]
-      
+
       result = { "success" : "true" , "result" : records }
     else:
-      result = { "success" : "false" , "error" : result['Message'] } 
-  
+      result = { "success" : "false" , "error" : result['Message'] }
+
     self.finish( result )
-    
-    
-    

@@ -1,10 +1,8 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-from DIRAC.Core.Security import CS
 import json
-import ast
 
 class PilotSummaryHandler(WebHandler):
 
@@ -15,9 +13,9 @@ class PilotSummaryHandler(WebHandler):
     RPC = RPCClient("WorkloadManagement/WMSAdministrator", timeout = 600 )
     callback = {}
     req = self.__request()
-    
+
     result = yield self.threadTask(RPC.getPilotSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
-    
+
     if not result["OK"]:
       self.finish({"success":"false", "result":[], "total":0, "error":result["Message"]})
       return
@@ -109,13 +107,13 @@ class PilotSummaryHandler(WebHandler):
               site.append([str(i)])
         else:
           site = [["Nothing to display"]]
-        
+
       else:
         site = [["Error during RPC call"]]
-       
+
       callback["site"] = site
       callback['Status'] = [['Good'],['Bad'],['Idle'],['Poor'],['Fair']]
-       
+
       self.finish(callback)
 
 
@@ -169,12 +167,12 @@ class PilotSummaryHandler(WebHandler):
             req["ExpandSite"] = value[0]
           else:
             req["GridSite"] = value
-      
+
       if 'Status' in self.request.arguments:
         value = list(json.loads(self.request.arguments["Status"][-1]))
         if len(value) > 0:
           req['Status'] = value
-          
+
       if 'sort' in self.request.arguments:
         sort = json.loads(self.request.arguments['sort'][-1])
         if len(sort) > 0:

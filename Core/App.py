@@ -6,13 +6,12 @@ import tornado.web
 import tornado.httpserver
 import tornado.autoreload
 import tornado.process
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import gLogger, gConfig
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
 from DIRAC.Core.Utilities.CFG import CFG
-from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 import DIRAC
 
@@ -100,8 +99,8 @@ class App( object ):
       except Exception, excp:
         isLoaded = False
         gLogger.error( "Could not load %s: %s" % ( cfgPath, excp ) )
-    
-    if modCFG:  
+
+    if modCFG:
       if modCFG.isSection( "/Website" ):
         gLogger.warn( "%s configuration file is not correct. It is used by the old portal!" % ( cfgPath ) )
         isLoaded = False
@@ -109,15 +108,15 @@ class App( object ):
         gConfig.loadCFG( modCFG )
     else:
       isLoaded = False
-              
-    return isLoaded 
-  
+
+    return isLoaded
+
   def bootstrap( self ):
     """
     Configure and create web app
     """
     self.log.always( "\n ====== Starting DIRAC web app ====== \n" )
-    
+
     # Load required CFG files
     if not self._loadDefaultWebCFG():  # if we have a web.cfg under etc directory we use it, otherwise we use the configuration file defined by the developer
       self._loadWebAppCFGFiles()
@@ -147,17 +146,17 @@ class App( object ):
     port = Conf.HTTPPort()
     srv.listen( port )
     self.__servers[ ( 'http', port ) ] = srv
-    
+
     Conf.generateRevokedCertsFile()  # it is used by nginx....
-  
+
     if Conf.HTTPS():
       self.log.notice( "Configuring HTTPS on port %s" % Conf.HTTPSPort() )
       sslops = dict( certfile = Conf.HTTPSCert(),
                      keyfile = Conf.HTTPSKey(),
                      cert_reqs = ssl.CERT_OPTIONAL,
                      ca_certs = Conf.generateCAFile() )
-      
-      sslprotocol = str( Conf.SSLProrocol() ) 
+
+      sslprotocol = str( Conf.SSLProrocol() )
       aviableProtocols = [ i for i in dir( ssl ) if  i.find( 'PROTOCOL' ) == 0]
       if  sslprotocol and sslprotocol != "":
         if ( sslprotocol in aviableProtocols ):
@@ -165,7 +164,7 @@ class App( object ):
         else:
           message = "%s protocol is not provided. The following protocols are provided: %s" % ( sslprotocol, str( aviableProtocols ) )
           gLogger.warn( message )
-      
+
       self.log.debug( " - %s" % "\n - ".join( [ "%s = %s" % ( k, sslops[k] ) for k in sslops ] ) )
       srv = tornado.httpserver.HTTPServer( self.__app, ssl_options = sslops )
       port = Conf.HTTPSPort()
@@ -186,4 +185,3 @@ class App( object ):
     self.log.always( "Listening on %s" % " and ".join( urls ) )
     tornado.autoreload.add_reload_hook( self.__reloadAppCB )
     tornado.ioloop.IOLoop.instance().start()
-
