@@ -1,13 +1,8 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from WebAppDIRAC.Lib.SessionData import SessionData
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import Time
-from DIRAC.Core.Utilities.List import uniqueElements
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 import tempfile
-import json
-import ast
 
 class JobLaunchpadHandler(WebHandler):
 
@@ -265,6 +260,3 @@ class JobLaunchpadHandler(WebHandler):
     if clearFS:
       shutil.rmtree(storePath)
     self.finish(callback)
-
-
-

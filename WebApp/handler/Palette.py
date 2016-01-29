@@ -1,12 +1,9 @@
-try:
-  import hashlib as md5
-except:
-  import md5
+import hashlib as md5
 
 class Palette:
 
   def __init__(self, palette={}, colors=[]):
-    
+
     self.job_status_palette = {
        'Received': '#D9E7F8',
        'Checking': '#FAFAFA',
@@ -21,7 +18,7 @@ class Palette:
        'failed': '#FF0000',
        'Killed': '#111111'
     }
-    
+
     self.job_minor_status_palette = {
        "AncestorDepth Not Found" : '#BAA312',
        'Application Finished With Errors' : '#BC2133',
@@ -58,14 +55,14 @@ class Palette:
        'Uploading Job Outputs' : '#FE8420',
        'Watchdog identified this job as stalled' : '#FFCC99'
     }
-    
+
     self.miscelaneous_pallette = {
        'Others': '#666666',
        'NoLabels': '#0025AD',
        'Total': '#00FFDC',
        'Default': '#FDEE65'
     }
-    
+
     self.country_palette = {
       'France':'#73C6BC',
       'UK':'#DCAF8A',
@@ -80,7 +77,7 @@ class Palette:
       'Portugal':'#009182',
       'Turkey':'#B85D00'
     }
-    
+
     self.palette = self.country_palette
     self.palette.update(self.job_status_palette)
     self.palette.update(self.miscelaneous_pallette)
@@ -103,9 +100,9 @@ class Palette:
       return self.generateColor(label)
 
   def generateColor(self, label):
-    
+
     if label == None: label = str(label)
-  
+
     myMD5 = md5.md5()
     myMD5.update(str(label))
     hexstring = myMD5.hexdigest()

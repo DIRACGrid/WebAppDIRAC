@@ -1,27 +1,25 @@
-import base64
-import zlib
 import json
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import uniqueElements
-from DIRAC import gConfig, gLogger, S_ERROR
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 
 class ProxyManagerHandler( WebHandler ):
 
   AUTH_PROPS = "authenticated"
-  
+
   @asyncGen
   def web_getSelectionData( self ):
-    
+
     sData = self.getSessionData()
-    
+
     callback = {}
 
     user = sData["user"]["username"]
     if user == "Anonymous":
       self.finish( {"success":"false", "error":"You are not authorize to access these data"} )
-      
+
     if len( self.request.arguments ) > 0:
       tmp = {}
       for i in self.request.arguments:
@@ -43,7 +41,7 @@ class ProxyManagerHandler( WebHandler ):
     groups.sort()
     users = map( lambda x: [x], users )
     groups = map( lambda x: [x], groups )
-    
+
     callback["username"] = users
     callback["usergroup"] = groups
     result = gConfig.getOption( "/Website/ProxyManagementMonitoring/TimeSpan" )
@@ -62,11 +60,11 @@ class ProxyManagerHandler( WebHandler ):
     callback["expiredBefore"] = timespan
     callback["expiredAfter"] = timespan
     self.finish( callback )
-  
+
   @asyncGen
   def web_getProxyManagerData( self ):
     sData = self.getSessionData()
-    
+
     callback = {}
 
     user = sData["user"]["username"]
@@ -91,10 +89,10 @@ class ProxyManagerHandler( WebHandler ):
     timestamp = Time.dateTime().strftime( "%Y-%m-%d %H:%M [UTC]" )
     data = {"success":"true", "result":proxies, "total":svcData[ 'TotalRecords' ], "date":timestamp}
     self.finish( data )
-  
+
   @asyncGen
   def web_deleteProxies( self ):
-        
+
     try:
       webIds = list( json.loads( self.request.arguments[ 'idList' ][-1] ) )
     except Exception, e:
@@ -113,10 +111,10 @@ class ProxyManagerHandler( WebHandler ):
     else:
       callback = {"success":"false", "error": retVal['Message']}
     self.finish( callback )
-  
+
   def __humanize_time( self, sec = False ):
     """
-    Converts number of seconds to human readble values. Max return value is 
+    Converts number of seconds to human readble values. Max return value is
     "More then a year" year and min value is "One day"
     """
     if not sec:
@@ -145,20 +143,20 @@ class ProxyManagerHandler( WebHandler ):
         return "One day"
       else:
         return str( day ) + " days"
-  
+
   def __request( self ):
     gLogger.info( "!!!  PARAMS: ", str( self.request.arguments ) )
     req = {}
-    
+
     start = 0
     limit = 25
-    
+
     if self.request.arguments.has_key( "limit" ) and len( self.request.arguments["limit"][0] ) > 0:
       limit = int( self.request.arguments["limit"][0] )
-    
+
     if self.request.arguments.has_key( "start" ) and len( self.request.arguments["start"][0] ) > 0:
-        start = int( self.request.arguments["start"][0] )
-        
+      start = int( self.request.arguments["start"][0] )
+
     try:
       sortDirection = str( self.request.arguments[ 'sortDirection' ] ).strip()
     except:
@@ -169,17 +167,17 @@ class ProxyManagerHandler( WebHandler ):
       sortField = "UserName"
     sort = [[sortField, sortDirection]]
     gLogger.info( "!!!  S O R T : ", sort )
-    
+
     if "username" in self.request.arguments:
       users = list( json.loads( self.request.arguments[ 'username' ][-1] ) )
       if len( users ) > 0:
         req['UserName'] = users
-        
+
     if "usergroup" in self.request.arguments:
       usersgroup = list( json.loads( self.request.arguments[ 'usergroup' ][-1] ) )
       if len( usersgroup ) > 0:
         req['UserGroup'] = usersgroup
-    
+
     if "usersgroup" in self.request.arguments and len( self.request.arguments["persistent"] ) > 0:
       if str( self.request.arguments["persistent"] ) in ["True", "False"]:
         req["PersistentFlag"] = str( self.request.arguments["persistent"] )
@@ -197,7 +195,7 @@ class ProxyManagerHandler( WebHandler ):
         pass
     if before and after:
       if before > after:
-        req["beforeDate"] = before      
+        req["beforeDate"] = before
         req["afterDate"] = after
     else:
       if before:

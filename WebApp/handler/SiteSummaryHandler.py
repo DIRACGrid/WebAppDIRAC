@@ -1,12 +1,10 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping    import getGOCSiteName, getDIRACSiteName
 from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSiteComputingElements, getSiteStorageElements
 from DIRAC.AccountingSystem.private.FileCoding      import codeRequestInFileId
 
 from DIRAC import gLogger
-import collections
 import json
 
 class SiteSummaryHandler( WebHandler ):
@@ -44,10 +42,10 @@ class SiteSummaryHandler( WebHandler ):
 
       callback[ key ] = [ [ item ] for item in list( value ) ]
       callback[ key ].sort()
-      
+
 
     return self.finish( callback )
-  
+
   @asyncGen
   def web_getSiteSummaryData( self ):
     '''This method returns the data required to fill the grid.'''
@@ -64,7 +62,7 @@ class SiteSummaryHandler( WebHandler ):
                                               requestParams[ 'tokenOwner' ] )
     if not elementStatuses[ 'OK' ]:
       self.finish( { 'success' : 'false', 'error' : elementStatuses[ 'Message' ] } )
-      
+
     elementList = [ dict( zip( elementStatuses[ 'Columns' ], site ) ) for site in elementStatuses[ 'Value' ] ]
 
     for elementStatus in elementList :
@@ -78,40 +76,40 @@ class SiteSummaryHandler( WebHandler ):
 
     self.finish( result )
 
-  
-   
+
+
   @asyncGen
   def web_action( self ):
-    
+
     requestParams = self.__requestParams()
     if 'action' in requestParams and requestParams[ 'action' ]:
-      
+
       actionName = requestParams[ 'action' ][ 0 ]
-      
+
       methodName = actionName
       if not actionName.startswith( 'set' ):
         methodName = '_get%s' % actionName
-      
+
       try:
         result = yield self.threadTask( getattr( self, methodName ), requestParams )
       except AttributeError:
-        result = { 'success' : 'false', 'error' : 'bad action %s' % actionName }  
-    
+        result = { 'success' : 'false', 'error' : 'bad action %s' % actionName }
+
     else:
-      
+
       result = { 'success' : 'false', 'error' : 'Missing action' }
-    
+
     self.finish( result )
-  
+
   def _getHistory( self, requestParams ):
 
     # Sanitize
     if not 'name' in requestParams or not requestParams[ 'name' ]:
-      return { 'success' : 'false', 'error' : 'Missing name' } 
+      return { 'success' : 'false', 'error' : 'Missing name' }
     if not 'elementType' in requestParams or not requestParams[ 'elementType' ]:
-      return { 'success' : 'false', 'error' : 'Missing elementType' } 
+      return { 'success' : 'false', 'error' : 'Missing elementType' }
     if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
-      return { 'success' : 'false', 'error' : 'Missing statusType' } 
+      return { 'success' : 'false', 'error' : 'Missing statusType' }
 
     pub = RPCClient( 'ResourceStatus/Publisher' )
     res = pub.getElementHistory( 'Site', requestParams[ 'name' ],
@@ -120,17 +118,17 @@ class SiteSummaryHandler( WebHandler ):
 
     if not res[ 'OK' ]:
       gLogger.error( res[ 'Message' ] )
-      return { 'success' : 'false', 'error' : 'error getting history' } 
+      return { 'success' : 'false', 'error' : 'error getting history' }
 
     history = [ [ r[0], str( r[1] ), r[2] ] for r in res[ 'Value' ] ]
 
-    return { 'success' : 'true', 'result' : history, 'total' : len( history ) } 
+    return { 'success' : 'true', 'result' : history, 'total' : len( history ) }
 
   def _getPolicies( self, requestParams ):
 
     # Sanitize
     if not 'name' in requestParams or not requestParams[ 'name' ]:
-      return { 'success' : 'false', 'error' : 'Missing name' } 
+      return { 'success' : 'false', 'error' : 'Missing name' }
     if not 'statusType' in requestParams or not requestParams[ 'statusType' ]:
       self.finish( { 'success' : 'false', 'error' : 'Missing statusType' } )
 
@@ -140,20 +138,20 @@ class SiteSummaryHandler( WebHandler ):
 
     if not res[ 'OK' ]:
       gLogger.error( res[ 'Message' ] )
-      return { 'success' : 'false', 'error' : 'error getting policies' } 
+      return { 'success' : 'false', 'error' : 'error getting policies' }
 
     policies = [ [ r[0], r[1], str( r[2] ), str( r[3] ), r[4] ] for r in res[ 'Value' ] ]
 
-    return { 'success' : 'true', 'result' : policies, 'total' : len( policies ) } 
-  
+    return { 'success' : 'true', 'result' : policies, 'total' : len( policies ) }
+
   def _getInfo( self, requestParams ):
-    
+
     gLogger.info( requestParams )
 
     if not requestParams[ 'name' ]:
       gLogger.warn( 'No name given' )
       self.finish( { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' } )
-      
+
     elementName = requestParams[ 'name' ][ 0 ]
 
     pub = RPCClient( 'ResourceStatus/Publisher' )
@@ -165,21 +163,21 @@ class SiteSummaryHandler( WebHandler ):
                                               None,
                                               None )
 
-    
+
     if not elementStatuses[ 'OK' ]:
       gLogger.error( elementStatuses[ 'Message' ] )
       self.finish( { 'success': 'false', 'error': 'Error getting ElementStatus information' } )
-      
-    
+
+
     if not elementStatuses[ 'Value' ]:
       gLogger.error( 'element "%s" not found' % elementName )
       self.finish( { 'success' : 'false', 'error' : 'element "%s" not found' % elementName } )
-      
+
     elementStatus = [ dict( zip( elementStatuses[ 'Columns' ], element ) ) for element in elementStatuses[ 'Value' ] ][ 0 ]
     elementStatus[ 'DateEffective' ] = str( elementStatus[ 'DateEffective' ] )
     elementStatus[ 'LastCheckTime' ] = str( elementStatus[ 'LastCheckTime' ] )
     elementStatus[ 'TokenExpiration' ] = str( elementStatus[ 'TokenExpiration' ] )
-    
+
     gocdb_name = getGOCSiteName( elementName )
     if not gocdb_name[ 'OK' ]:
       gLogger.error( gocdb_name[ 'Message' ] )
@@ -188,7 +186,7 @@ class SiteSummaryHandler( WebHandler ):
     else:
       gocdb_name = gocdb_name[ 'Value' ]
       elementStatus[ 'GOCDB' ] = '<a href="https://goc.egi.eu/portal/index.php?Page_Type=Submit_Search&SearchString=%s" target="_blank">%s</a>' % ( gocdb_name, gocdb_name )
-    
+
     dirac_names = getDIRACSiteName( gocdb_name )
     if not dirac_names[ 'OK' ]:
       gLogger.error( dirac_names[ 'Message' ] )
@@ -198,14 +196,14 @@ class SiteSummaryHandler( WebHandler ):
       for i in dirac_names['Value']:
         elementStatus[ 'GOCDB' ] += "%s " % i
       elementStatus[ 'GOCDB' ] += ")"
-      
+
     elementStatus["GGUS"] = '<a href="https://ggus.eu/ws/ticket_search.php?show_columns_check[]=REQUEST_ID&show_columns_check[]=TICKET_TYPE&show_columns_check[]=AFFECTED_VO&'
     elementStatus["GGUS"] += 'show_columns_check[]=AFFECTED_SITE&show_columns_check[]=PRIORITY&show_columns_check[]=RESPONSIBLE_UNIT&show_columns_check[]=STATUS&show_columns_check[]=DATE_OF_CREATION&'
-    
+
     elementStatus["GGUS"] += 'show_columns_check[]=LAST_UPDATE&show_columns_check[]=TYPE_OF_PROBLEM&show_columns_check[]=SUBJECT&ticket=&supportunit=all&su_hierarchy=all&vo=all&user=&keyword=&involvedsupporter=&assignto=&'
     elementStatus["GGUS"] += 'affectedsite=%s&specattrib=0&status=open&priority=all&typeofproblem=all&ticketcategory=&mouarea=&technology_provider=&date_type=creation+date&radiotf=1&timeframe=any&from_date=&to_date=&' % gocdb_name
-    elementStatus["GGUS"] += 'untouched_date=&orderticketsby=GHD_INT_REQUEST_ID&orderhow=descending" target="_blank"> %s tickets</a>' % gocdb_name 
-    
+    elementStatus["GGUS"] += 'untouched_date=&orderticketsby=GHD_INT_REQUEST_ID&orderhow=descending" target="_blank"> %s tickets</a>' % gocdb_name
+
     convertName = {'CERN-PROD':'CERN',
                    'INFN-T1':'CNAF',
                    'FZK-LCG2':'GridKa',
@@ -217,19 +215,19 @@ class SiteSummaryHandler( WebHandler ):
 
 
     elog = convertName.get( gocdb_name, "" );
-    
+
     elementStatus['Elog'] = '<a href="https://lblogbook.cern.ch/Operations/?Site=^' + elog + '%24&mode=summary" target="_blank">' + elog + '</a>'
-    
-    return { 'success' : 'true', 'result' : elementStatus, 'total' : len( elementStatus ) } 
-  
+
+    return { 'success' : 'true', 'result' : elementStatus, 'total' : len( elementStatus ) }
+
   def _getStorages( self, requestParams ):
-    
+
     if not requestParams[ 'name' ]:
       gLogger.warn( 'No name given' )
-      return { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' } 
-    
+      return { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' }
+
     pub = RPCClient( 'ResourceStatus/Publisher' )
-      
+
     elementName = requestParams[ 'name' ][ 0 ]
     storage_elements = getSiteStorageElements( elementName )
     storage_elements_status = []
@@ -244,22 +242,22 @@ class SiteSummaryHandler( WebHandler ):
                                             None,
                                             None )
 
-      
+
       for sestatus in sestatuses[ 'Value' ]:
         storage_elements_status.append( [  sestatus[0], sestatus[2], sestatus[6]] )
-    
-    return { 'success' : 'true', 'result' : storage_elements_status, 'total' : len( storage_elements_status ) }  
-  
+
+    return { 'success' : 'true', 'result' : storage_elements_status, 'total' : len( storage_elements_status ) }
+
   def _getComputingElements( self, requestParams ):
-    
+
     if not requestParams[ 'name' ]:
       gLogger.warn( 'No name given' )
-      return { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' } 
-    
+      return { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' }
+
     pub = RPCClient( 'ResourceStatus/Publisher' )
-    
+
     elementName = requestParams[ 'name' ][ 0 ]
-    
+
     computing_elements = getSiteComputingElements( elementName )
     computing_elements_status = []
     gLogger.info( 'computing_elements = ' + str( computing_elements ) )
@@ -273,18 +271,18 @@ class SiteSummaryHandler( WebHandler ):
                                             None )
       gLogger.info( 'cestatus = ' + str( cestatuses ) )
 
-      
+
       for cestatus in cestatuses[ 'Value' ]:
         computing_elements_status.append( [  cestatus[0], cestatus[2], cestatus[6]] )
 
     return { 'success' : 'true', 'result' : computing_elements_status, 'total' : len( computing_elements_status ) }
-      
+
   def _getImages( self, requestParams ):
-    
+
     if not requestParams[ 'name' ]:
       gLogger.warn( 'No name given' )
-      return { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' } 
-        
+      return { 'success': 'false', 'error': 'We need a Site Name to generate an Overview' }
+
     elementName = requestParams[ 'name' ][ 0 ]
     pub = RPCClient( 'ResourceStatus/Publisher' )
 
@@ -299,7 +297,7 @@ class SiteSummaryHandler( WebHandler ):
     if not elementStatuses[ 'Value' ]:
       gLogger.error( 'element "%s" not found' % elementName )
       return { 'success' : 'false', 'error' : 'element "%s" not found' % elementName }
-      
+
 
     elementStatus = [ dict( zip( elementStatuses[ 'Columns' ], element ) ) for element in elementStatuses[ 'Value' ] ][ 0 ]
 
@@ -326,7 +324,7 @@ class SiteSummaryHandler( WebHandler ):
     plotDict6 = self.getPlotDict( elementStatus[ 'Name' ], 'FinalStatus',
                                   'FailedTransfers', 'DataOperation' )
     image6 = codeRequestInFileId( plotDict6 )[ 'Value' ][ 'plot' ]
-    
+
     return { 'success' : 'true', 'result' : [image1, image2, image3, image4, image5, image6], 'total' :  6  }
   def getPlotDict( self, siteName, grouping, reportName, typeName, plotTitle = None,
                    status = None ):
@@ -349,16 +347,16 @@ class SiteSummaryHandler( WebHandler ):
       plotDict[ 'condDict' ][ 'Status' ] = status
 
     return plotDict
-  
+
   def __requestParams( self ):
     '''
       We receive the request and we parse it, in this case, we are doing nothing,
       but it can be certainly more complex.
     '''
 
-    gLogger.always( "!!!  PARAMS: ", str( self.request.arguments ) ) 
-    
-    responseParams = { 
+    gLogger.always( "!!!  PARAMS: ", str( self.request.arguments ) )
+
+    responseParams = {
                       'name'          : None,
                       'elementType'   : None,
                       'statusType'    : None,
@@ -366,10 +364,9 @@ class SiteSummaryHandler( WebHandler ):
                       'action'        : None,
                       'tokenOwner'    : None
                   }
-    
+
     for key in responseParams:
       if key in self.request.arguments and str( self.request.arguments[ key ][-1] ):
-        responseParams[ key ] = list( json.loads( self.request.arguments[ key ][-1] ) )   
-  
-    return responseParams    
+        responseParams[ key ] = list( json.loads( self.request.arguments[ key ][-1] ) )
 
+    return responseParams
