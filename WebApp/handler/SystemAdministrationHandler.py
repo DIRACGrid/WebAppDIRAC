@@ -73,6 +73,12 @@ class SystemAdministrationHandler( WebHandler ):
       return
     
     callback = sorted(callback, key=lambda i: i['Host'])
+
+    # Add the information about the extensions' versions, if available, to display along with the DIRAC version
+    for i in range( 0, len( callback ) ):
+      if 'Extension' in callback[ i ]:
+        callback[ i ][ 'DIRAC' ] = '%s,%s' % ( callback[ i ][ 'DIRAC' ], callback[ i ][ 'Extension' ] )
+
     self.finish( { "success" : "true" , "result" : callback , "total" : total } )
   
   @asyncGen  
