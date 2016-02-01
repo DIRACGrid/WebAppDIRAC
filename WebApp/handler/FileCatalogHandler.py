@@ -1,23 +1,27 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from WebAppDIRAC.Lib.SessionData import SessionData
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-
-import operator
-import json
-import ast
 
 try:
   from hashlib import md5
 except:
   from md5 import md5
 
-class FileCatalogHandler(WebHandler):
+class FileCatalogHandler( WebHandler ):
 
   AUTH_PROPS = "authenticated"
-  
+
+  def __init__(self, *args, **kwargs ):
+    super( FileCatalogHandler, self ).__init__( *args, **kwargs )
+    sessionData = self.getSessionData()
+    self.user = sessionData['user'].get( 'username', '' )
+    self.group = sessionData['user'].get( 'group', '' )
+    self.vo = getVOForGroup( self.group )
+    self.fc = FileCatalog( vo = self.vo )
+
   '''
     Method to read all the available fields possible for defining a query
   '''   
@@ -26,8 +30,7 @@ class FileCatalogHandler(WebHandler):
     
     self.L_NUMBER = 0
     self.S_NUMBER = 0
-    RPC = RPCClient( "DataManagement/FileCatalog" )
-    result = yield self.threadTask(RPC.getMetadataFields)
+    result = yield self.threadTask( self.fc.getMetadataFields )
     gLogger.debug( "request: %s" % result )
     if not result[ "OK" ] :
       gLogger.error( "getSelectorGrid: %s" % result[ "Message" ] )
@@ -107,10 +110,8 @@ class FileCatalogHandler(WebHandler):
       path = self.request.arguments["path"][0]
     
     gLogger.always( compat )
-    
-    RPC = RPCClient( "DataManagement/FileCatalog" )
-    
-    result = yield self.threadTask(RPC.getCompatibleMetadata, compat, path )
+
+    result = yield self.threadTask( self.fc.getCompatibleMetadata, compat, path )
     gLogger.always( result )
 
     if not result[ "OK" ]:
@@ -121,11 +122,10 @@ class FileCatalogHandler(WebHandler):
   
   @asyncGen   
   def web_getFilesData( self ) :
-    RPC = RPCClient( "DataManagement/FileCatalog", timeout=3600 )
     req = self.__request()
     gLogger.always(req)
     gLogger.debug( "submit: incoming request %s" % req )
-    result = yield self.threadTask(RPC.findFilesByMetadataWeb, req["selection"] , req["path"] , self.S_NUMBER , self.L_NUMBER)
+    result = yield self.threadTask( self.fc.findFilesByMetadataWeb, req["selection"] , req["path"] , self.S_NUMBER , self.L_NUMBER)
     gLogger.debug( "submit: result of findFilesByMetadataDetailed %s" % result )
     if not result[ "OK" ] :
       gLogger.error( "submit: %s" % result[ "Message" ] )
@@ -183,8 +183,7 @@ class FileCatalogHandler(WebHandler):
     else:
       separator = ":::"
       
-    RPC = RPCClient("DataManagement/FileCatalog")
-    result = RPC.getMetadataFields()
+    result = self.fc.getMetadataFields()
     gLogger.debug( "request: %s" % result )
     
     if not result["OK"]:
@@ -252,8 +251,7 @@ class FileCatalogHandler(WebHandler):
    
     separator = ":::"
       
-    RPC = RPCClient("DataManagement/FileCatalog")
-    result = RPC.getMetadataFields()
+    result = self.fc.getMetadataFields()
     gLogger.debug( "request: %s" % result )
     
     if not result["OK"]:
@@ -323,11 +321,10 @@ class FileCatalogHandler(WebHandler):
   def web_getMetadataFilesInFile( self ):
     self.set_header('Content-type','text/plain')
     self.set_header('Content-Disposition', 'attachment; filename="error.txt"')
-    RPC = RPCClient( "DataManagement/FileCatalog" )
     req = self.__request_file()
     gLogger.always(req)
     gLogger.debug( "submit: incoming request %s" % req )
-    result = yield self.threadTask(RPC.findFilesByMetadata, req["selection"] , req["path"])
+    result = yield self.threadTask( self.fc.findFilesByMetadata, req["selection"] , req["path"])
     
     if not result[ "OK" ] :
       gLogger.error( "submit: %s" % result[ "Message" ] )
@@ -351,11 +348,10 @@ class FileCatalogHandler(WebHandler):
     
   @asyncGen  
   def web_getSubnodeFiles( self ):
-    RPC = RPCClient( "DataManagement/FileCatalog" )
     path = self.request.arguments["path"][0]
 #     print path
 #     path = "/vo.cta.in2p3.fr"
-    result = yield self.threadTask(RPC.listDirectory, path, False)
+    result = yield self.threadTask( self.fc.listDirectory, path, False)
     if not result[ "OK" ] :
       gLogger.error( "submit: %s" % result[ "Message" ] )
       self.finish({ "success" : "false" , "error" : result[ "Message" ] })
