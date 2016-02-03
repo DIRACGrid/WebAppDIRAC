@@ -1,5 +1,5 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -11,10 +11,7 @@ import tempfile
 import datetime
 import json
 
-try:
-  from hashlib import md5
-except:
-  from md5 import md5
+from hashlib import md5
 
 class AccountingPlotOldHandler(WebHandler):
 

@@ -1,14 +1,13 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import Time, List, DictCache
+from DIRAC import gConfig, gLogger
+from DIRAC.Core.Utilities import Time, List
 from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
 import json
 import types
-import time
 
 class ConfigurationManagerHandler( WebSocketHandler ):
 
@@ -113,9 +112,9 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       nodeDef[ 'leaf' ] = False
       nodeDef[ 'expanded' ] = False
       if not sectionCfg.isSection( entryName ):
-         nodeDef[ 'leaf' ] = True
-         nodeDef[ 'csValue' ] = sectionCfg[ entryName ]
-         nodeDef[ 'text' ] = nodeDef[ 'text' ] + " = " + nodeDef[ 'csValue' ]
+        nodeDef[ 'leaf' ] = True
+        nodeDef[ 'csValue' ] = sectionCfg[ entryName ]
+        nodeDef[ 'text' ] = nodeDef[ 'text' ] + " = " + nodeDef[ 'csValue' ]
 
       # Comment magic
       htmlC = self.__htmlComment( comment )
@@ -164,7 +163,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       return {"success":0, "op":"setOptionValue", "message":"Can't decode path or value: %s" % str( e )}
 
     self.__setCommiter()
-    
+
     self.__configData[ 'cfgData' ].setOptionValue( optionPath, optionValue )
 
     if self.__configData[ 'cfgData' ].getValue( optionPath ) == optionValue:
@@ -178,9 +177,9 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       value = str( params[ 'value' ] )
     except Exception, e:
       return {"success":0, "op":"setComment", "message":"Can't decode path or value: %s" % str( e )}
-    
+
     self.__setCommiter()
-    
+
     self.__configData[ 'cfgData' ].setComment( path, value )
     gLogger.info( "Set comment", "%s = %s" % ( path, value ) )
     return {"success":1, "op":"setComment", "parentNodeId":params["parentNodeId"], "comment":self.__configData[ 'cfgData' ].getComment( path )}
@@ -263,9 +262,9 @@ class ConfigurationManagerHandler( WebSocketHandler ):
         return {"success":0, "op":"createSection", "message":"Put any name for the section!"}
       sectionPath = "%s/%s" % ( parentPath, sectionName )
       gLogger.info( "Creating section", "%s" % sectionPath )
-      
+
       self.__setCommiter()
-      
+
       if self.__configData[ 'cfgData' ].createSection( sectionPath ):
         nD = { 'text' : sectionName, 'csName' : sectionName, 'csComment' : self.__configData[ 'cfgData' ].getComment( sectionPath ) }
         htmlC = self.__htmlComment( nD[ 'csComment' ] )
@@ -308,7 +307,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       if not self.__configData[ 'cfgData' ].existsOption( optionPath ):
         self.__setCommiter()
         self.__configData[ 'cfgData' ].setOptionValue( optionPath, optionValue )
-        
+
         return {"success":1, "op":"createOption", "parentNodeId":params["parentNodeId"], "optionName":optionName, "value":self.__configData[ 'cfgData' ].getValue( optionPath ), "comment":self.__configData[ 'cfgData' ].getComment( optionPath )}
       else:
         return {"success":0, "op":"createOption", "message":"Option can't be created. It already exists?"}
@@ -364,9 +363,9 @@ class ConfigurationManagerHandler( WebSocketHandler ):
 
 #     gLogger.info( "Moving %s under %s before pos %s" % ( nodePath, destinationParentPath, beforeOfIndex ) )
     cfgData = self.__configData[ 'cfgData' ].getCFG()
-    
+
     self.__setCommiter()
-    
+
     nodeDict = cfgData.getRecursive( nodePath )
 
     if not nodeDict:
@@ -389,7 +388,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       for key in ( 'comment', 'beforeKey', 'key' ):
         if key in nodeDict:
           addArgs[ key ] = nodeDict[ key ]
-   
+
       if isinstance(nodeDict["value"], str):
         newParentDict[ 'value' ].addKey(nodeDict.get("key",""),nodeDict.get("value",""),nodeDict.get("comment",""), nodeDict.get("beforeKey",""))
       else:
@@ -465,7 +464,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
     return self.write_message( json.dumps( {"success":1, "op":"showCurrentDiff", "lines":processedData["lines"], "totalLines": processedData["totalLines"], "html":self.render_string( "ConfigurationManager/diffConfig.tpl",
                                                                                                          titles = ( "Server's version", "User's current version" ),
                                                                                                          diffList = processedData["diff"] )} ) )
-  
+
   def __showDiff( self, params ):
     if not self.__authorizeAction():
       raise WErr( 500, "You are not authorized to get diff's!! Bad boy!" )
@@ -474,7 +473,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       toDate = str( params[ 'toVersion' ] )
     except Exception, e:
       raise WErr( 500, "Can't decode params: %s" % e )
-    
+
     rpcClient = RPCClient( gConfig.getValue( "/DIRAC/Configuration/MasterServer", "Configuration/Server" ) )
     modCfg = Modificator( rpcClient )
     diffGen = modCfg.getVersionDiff( fromDate, toDate )
@@ -482,7 +481,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
     return self.write_message( json.dumps( {"success":1, "op":"showDiff", "lines":processedData["lines"], "totalLines": processedData["totalLines"], "html":self.render_string( "ConfigurationManager/diffConfig.tpl",
                                                                                                          titles = ( "From version %s" % fromDate, "To version %s" % toDate ),
                                                                                                          diffList = processedData["diff"] )} ) )
-  
+
   def __rollback( self, params ):
     rollbackVersion = ""
     if not self.__authorizeAction():
@@ -498,18 +497,18 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       return {"success":1, "op":"rollback", "version":rollbackVersion}
     else:
       return {"success":0, "op":"rollback", "message":retVal['Value']}
-      
-    
+
+
   def __setCommiter( self ):
-    
+
     sessionData = self.getSessionData()
-    
+
     commiter = "%s@%s - %s" % ( sessionData["user"]["username"],
                                 sessionData["user"]["group"],
                                 Time.dateTime().strftime( "%Y-%m-%d %H:%M:%S" ) )
     self.__configData[ 'cfgData' ].commiterId = commiter
-   
-      
+
+
   def __history( self ):
     if not self.__authorizeAction():
       raise WErr( 500, "You are not authorized to commit configurations!! Bad boy!" )
@@ -523,12 +522,11 @@ class ConfigurationManagerHandler( WebSocketHandler ):
     else:
       WErr.fromSERROR( retVal )
     return {"success":1, "op":"showshowHistory", "result":cDict}
-  
+
   def __download(self):
-    
+
     version = str( self.__configData['cfgData'].getCFG()["DIRAC"]["Configuration"]["Version"] )
     configName = str( self.__configData['cfgData'].getCFG()["DIRAC"]["Configuration"]["Name"] )
     fileName = "cs.%s.%s" % ( configName, version.replace( ":", "" ).replace( "-", "" ).replace( " ", "" ) )
-    
+
     return {"success":1, "op":"download", "result":self.__configData[ 'strCfgData' ],"fileName":fileName}
-   
