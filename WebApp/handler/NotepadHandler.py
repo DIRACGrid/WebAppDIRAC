@@ -1,7 +1,5 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
-import json
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 class NotepadHandler(WebHandler):
 

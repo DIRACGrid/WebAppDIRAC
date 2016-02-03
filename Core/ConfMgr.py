@@ -1,9 +1,8 @@
 
 import imp
 import os
-from DIRAC import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities.CFG import CFG
-from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 
 BASECS = "WebApp"
@@ -87,5 +86,3 @@ def getRawSchema():
       else:
         parentData.append( ( "app", opName, opVal ) )
   return schema
-
-
