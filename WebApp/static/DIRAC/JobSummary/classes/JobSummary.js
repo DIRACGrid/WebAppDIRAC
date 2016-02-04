@@ -133,11 +133,13 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
          * -----------------------------------------------------------------------------------------------------------
          */
         var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy', {
-              url : GLOBAL.BASE_URL + 'SiteSummary/getSiteSummaryData'
+              url : GLOBAL.BASE_URL + 'JobSummary/getData'
             });
 
         me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
               proxy : oProxy,
+              groupDir : 'DESC',
+              groupField : 'FullCountry',
               fields : me.dataFields,
               scope : me
             });
@@ -161,15 +163,23 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
           "GridType" : {
             "dataIndex" : "GridType"
           },
-          "Country" : {
+          "Flag" : {
             "dataIndex" : "Country",
             "properties" : {
               hideable : true,
-              ortable : true,
-              align : 'left'
+              sortable : true,
+              align : 'left',
+              width:26,
+              fixed : true
             },
             renderer : function flag(code) {
               return '<img src="' + GLOBAL.BASE_URL + 'static/core/img/flags/' + code + '.gif">';
+            }
+          },
+          "Country" : {
+            "dataIndex" : "FullCountry",
+            "properties" :{
+              hidden : true
             }
           },
           "None" : {
@@ -250,6 +260,9 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
         var sm = Ext.create('Ext.selection.CheckboxModel');
         me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
               selModel : sm,
+              features : [{
+                    ftype : 'grouping'
+                  }],
               store : me.dataStore,
               columnLines : true,
               width : 600,

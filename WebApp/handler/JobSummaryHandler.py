@@ -1,7 +1,11 @@
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
+
 from DIRAC import gLogger, gConfig
+from time import time
+
+import json 
 
 class JobSummaryHandler( WebHandler ):
 
@@ -84,8 +88,8 @@ class JobSummaryHandler( WebHandler ):
     RPC = RPCClient("WorkloadManagement/WMSAdministrator")
     gLogger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     result = self.__request()
-    gLogger.always( "getSiteSummaryWeb(%s,%s,%s,%s)" % (result,globalSort,pageNumber,numberOfJobs) )
-    retVal = yield self.threadtask (RPC.getSiteSummaryWeb, result,globalSort,pageNumber,numberOfJobs)
+    gLogger.always( "getSiteSummaryWeb(%s,%s,%s,%s)" % (result,self.globalSort,self.pageNumber,self.numberOfJobs) )
+    retVal = yield self.threadTask (RPC.getSiteSummaryWeb, result,[],self.pageNumber,self.numberOfJobs)
     gLogger.always("\033[0;31m YO: \033[0m",result)
     if retVal["OK"]:
       if retVal["Value"].get("TotalRecords", 0 ) > 0:
@@ -109,20 +113,21 @@ class JobSummaryHandler( WebHandler ):
               total = retVal["Value"]["TotalRecords"]
               if "Extras" in retVal["Value"]:
                 extra = retVal["Value"]["Extras"]
-                result = {"success":True,"result":result,"total":total,"extra":extra}
+                result = {"success":"true","result":result,"total":total,"extra":extra}
               else:
-                result = {"success":True,"result":result,"total":total}
+                result = {"success":"true","result":result,"total":total}
             else:
-              result = {"success":False,"result":"","error":"There are no data to display"}
+              result = {"success":"false","result":"","error":"There are no data to display"}
           else:
-            result = {"success":False,"result":"","error":"ParameterNames field is undefined"}
+            result = {"success":"false","result":"","error":"ParameterNames field is undefined"}
         else:
-          result = {"success":False,"result":"","error":"Data structure is corrupted"}
+          result = {"success":"false","result":"","error":"Data structure is corrupted"}
       else:
-        result = {"success":False,"result":"","error":"There were no data matching your selection"}
+        result = {"success":"false","result":"","error":"There were no data matching your selection"}
     else:
       gLogger.always("- E R R O R -")
-      result = {"success":False,"error":result["Message"]}
+      print retVal
+      result = {"success":"false","error":retVal["Message"]}
     gLogger.info("\033[0;31m SITESUMMARY INDEX REQUEST: \033[0m %s" % (time() - pagestart))
     self.finish(result)
   
@@ -168,7 +173,7 @@ class JobSummaryHandler( WebHandler ):
           req['MaskStatus'] = maskstatus
       
       if "gridtype" in self.request.arguments:
-        maskstatus = list( json.loads( self.request.arguments[ 'gridtype' ][-1] ) )
+        gridtype = list( json.loads( self.request.arguments[ 'gridtype' ][-1] ) )
         if len( gridtype ) > 0:
           req['GridType'] = gridtype
       else:
