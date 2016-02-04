@@ -1,6 +1,11 @@
 Ext.define("DIRAC.JobSummary.classes.JobSummary", {
       extend : 'Ext.dirac.core.Module',
       requires : ["Ext.dirac.utils.DiracBaseSelector", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracAjaxProxy", "Ext.dirac.utils.DiracPagingToolbar", 'Ext.dirac.utils.DiracToolButton', "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracGridPanel"],
+
+      applicationsToOpen : {
+        'JobMonitor' : 'DIRAC.JobMonitor.classes.JobMonitor'
+      },
+
       loadState : function(data) {
         var me = this;
 
@@ -144,8 +149,19 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
               scope : me
             });
 
+        var toolButtons = {
+          'Visible' : [{
+                "text" : "Show jobs",
+                "handler" : me.__showalljobs,
+                "properties" : {
+                  tooltip : "Show jobs at the selected sites..."
+                }
+              }]
+        };
+
         var pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
               store : me.dataStore,
+              toolButtons : toolButtons,
               scope : me,
               value : 100
             });
@@ -169,7 +185,7 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
               hideable : true,
               sortable : true,
               align : 'left',
-              width:26,
+              width : 26,
               fixed : true
             },
             renderer : function flag(code) {
@@ -178,7 +194,7 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
           },
           "Country" : {
             "dataIndex" : "FullCountry",
-            "properties" :{
+            "properties" : {
               hidden : true
             }
           },
@@ -257,6 +273,44 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
           }
         };
 
+        var showJobshandler = function() {
+          var site = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Site");
+
+          var setupdata = {
+            data : {
+              leftMenu : {
+                selectors : {
+                  site : {
+                    data_selected : [site],
+                    hidden : false,
+                    not_selected : false
+                  }
+                }
+              }
+            }
+          };
+
+          GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+                objectType : "app",
+                moduleName : me.applicationsToOpen["JobMonitor"],
+                setupData : setupdata
+              });
+        }
+
+        var menuitems = {
+          'Visible' : [{
+                "text" : "Show Jobs",
+                "handler" : showJobshandler,
+                "properties" : {
+                  tooltip : 'Click to show the jobs which belong to the selected site.'
+                }
+              }]
+        };
+        me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
+              menu : menuitems,
+              scope : me
+            });
+
         var sm = Ext.create('Ext.selection.CheckboxModel');
         me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
               selModel : sm,
@@ -269,6 +323,7 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
               height : 300,
               oColumns : oColumns,
               pagingToolbar : pagingToolbar,
+              contextMenu : me.contextGridMenu,
               scope : me
             });
 
@@ -276,5 +331,32 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
 
         me.add([me.leftPanel, me.grid]);
 
+      },
+      __showalljobs : function() {
+        var me = this;
+        var values = GLOBAL.APP.CF.getSelectedRecords(me.grid);
+        var sites = [];
+        for (var i = 0; i < values.length; i++) {
+          sites.push(values[i].get("Site"));
+        }
+        var setupdata = {
+          data : {
+            leftMenu : {
+              selectors : {
+                site : {
+                  data_selected : sites,
+                  hidden : false,
+                  not_selected : false
+                }
+              }
+            }
+          }
+        };
+
+        GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+              objectType : "app",
+              moduleName : me.applicationsToOpen["JobMonitor"],
+              setupData : setupdata
+            });
       }
     });
