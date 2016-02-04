@@ -18,33 +18,59 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
 
         return oStates;
       },
-            
+
       dataFields : [{
-            name : 'Name'
+            name : 'GridType'
+          }, {
+            name : 'Site'
           }, {
             name : 'Country'
           }, {
+            name : 'MaskStatus'
+          }, {
+            name : 'Received',
+            type : 'int'
+          }, {
+            name : 'Checking',
+            type : 'int'
+          }, {
+            name : 'Staging',
+            type : 'int'
+          }, {
+            name : 'Waiting',
+            type : 'int'
+          }, {
+            name : 'Matched',
+            type : 'int'
+          }, {
+            name : 'Running',
+            type : 'int'
+          }, {
+            name : 'Stalled',
+            type : 'int'
+          }, {
+            name : 'Done',
+            type : 'int'
+          }, {
+            name : 'Completed',
+            type : 'int'
+          }, {
+            name : 'Failed',
+            type : 'int'
+          }, {
+            name : 'Efficiency'
+          }, {
             name : 'Status'
           }, {
-            name : 'Reason'
+            name : 'Tier'
           }, {
-            name : 'DateEffective',
-            type : 'date',
-            dateFormat : 'Y-m-d H:i:s'
+            name : 'FullCountry'
           }, {
-            name : 'TokenExpiration',
-            type : 'date',
-            dateFormat : 'Y-m-d H:i:s'
+            name : 'MaskStatusIcon',
+            mapping : 'MaskStatus'
           }, {
-            name : 'ElementType'
-          }, {
-            name : 'StatusType'
-          }, {
-            name : 'LastCheckTime',
-            type : 'date',
-            dateFormat : 'Y-m-d H:i:s'
-          }, {
-            name : 'TokenOwner'
+            name : 'SiteCheckbox',
+            mapping : 'Site'
           }, {
             name : 'StatusIcon',
             mapping : 'Status'
@@ -123,22 +149,17 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
             });
 
         var oColumns = {
-          "None" : {
-            "dataIndex" : "StatusIcon",
-            "properties" : {
-              width : 26,
-              sortable : false,
-              hideable : false,
-              fixed : true,
-              menuDisabled : true
-            },
-            "renderFunction" : "rendererStatus"
-          },
           "Name" : {
-            "dataIndex" : "Name",
+            "dataIndex" : "Site",
             "properties" : {
-              fixed : true
+              hidable : false
             }
+          },
+          "Tier" : {
+            "dataIndex" : "Tier"
+          },
+          "GridType" : {
+            "dataIndex" : "GridType"
           },
           "Country" : {
             "dataIndex" : "Country",
@@ -151,261 +172,96 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
               return '<img src="' + GLOBAL.BASE_URL + 'static/core/img/flags/' + code + '.gif">';
             }
           },
-          "SiteType" : {
-            "dataIndex" : "ElementType"
-          },
-          "StatusType" : {
-            "dataIndex" : "StatusType",
+          "None" : {
+            "dataIndex" : "MaskStatusIcon",
             "properties" : {
-              width : 60,
-              sortable : false
-            }
+              width : 26,
+              sortable : false,
+              hideable : false,
+              fixed : true,
+              menuDisabled : true
+            },
+            "renderFunction" : "rendererStatus"
+          },
+          "MaskStatus" : {
+            "dataIndex" : "MaskStatus"
+          },
+          "None" : {
+            "dataIndex" : "StatusIcon",
+            "properties" : {
+              width : 26,
+              sortable : false,
+              hideable : false,
+              fixed : true,
+              menuDisabled : true
+            },
+            "renderFunction" : "rendererStatus"
           },
           "Status" : {
             "dataIndex" : "Status"
           },
-          "Reason" : {
-            "dataIndex" : "Reason"
+          "Efficiency (%)" : {
+            "dataIndex" : "Efficiency"
           },
-          "DateEffective" : {
-            "dataIndex" : "DateEffective",
+          "Received" : {
+            "dataIndex" : "Received",
             "properties" : {
-              sortable : true
+              hidden : true
             }
           },
-          "LastCheckTime" : {
-            "dataIndex" : "LastCheckTime",
+          "Checking" : {
+            "dataIndex" : "Checking",
             "properties" : {
-              sortable : true
+              hidden : true
             }
           },
-          "TokenOwner" : {
-            "dataIndex" : "TokenOwner",
+          "Staging" : {
+            "dataIndex" : "Staging"
+          },
+          "Waiting" : {
+            "dataIndex" : "Waiting",
             "properties" : {
-              sortable : true
+              hidden : true
             }
           },
-          "TokenExpiration" : {
-            "dataIndex" : "TokenExpiration",
+          "Matched" : {
+            "dataIndex" : "Matched",
             "properties" : {
-              sortable : true
+              hidden : true
             }
+          },
+          "Running" : {
+            "dataIndex" : "Running"
+          },
+          "Completed" : {
+            "dataIndex" : "Completed"
+          },
+          "Done" : {
+            "dataIndex" : "Done"
+          },
+          "Stalled" : {
+            "dataIndex" : "Stalled"
+          },
+          "Failed" : {
+            "dataIndex" : "Failed"
           }
         };
 
-        var statusSubmenu = {
-          'Visible' : [{
-                "text" : "Active",
-                "handler" : me.__oprSetSite,
-                "arguments" : ["setStatus", "Active"],
-                "properties" : {
-                  tooltip : 'Click to activate the resource.'
-                }
-              }, {
-                "text" : "Degraded",
-                "handler" : me.__oprSetSite,
-                "arguments" : ["setStatus", "Degraded"],
-                "properties" : {
-                  tooltip : 'Click to set degraded the resource.'
-                }
-              }, {
-                "text" : "Probing",
-                "handler" : me.__oprSetSite,
-                "arguments" : ["setStatus", "Probing"],
-                "properties" : {
-                  tooltip : 'Click to set probing the resource.'
-                }
-              }, {
-                "text" : "Banned",
-                "handler" : me.__oprSetSite,
-                "arguments" : ["setStatus", "Banned"],
-                "properties" : {
-                  tooltip : 'Click to set banned the resource.'
-                }
-              }]
-        };
-        var tokenSubmenu = {
-          'Visible' : [{
-                "text" : "Acquire",
-                "handler" : me.__oprSetSite,
-                "arguments" : ["setToken", "Acquire"],
-                "properties" : {
-                  tooltip : 'Click to acquire the resource.'
-                }
-              }, {
-                "text" : "Release",
-                "handler" : me.__oprSetSite,
-                "arguments" : ["setToken", "Release"],
-                "properties" : {
-                  tooltip : 'Click to release the resource.'
-                }
-              }]
-        };
-        var menuitems = {
-          'Visible' : [{
-                "text" : "Overview",
-                "handler" : me.__oprShowEditor,
-                "properties" : {
-                  tooltip : 'Click to show the jobs which belong to the selected request.'
-                }
-              }, {
-                "text" : "-" // separator
-              }, {
-                "text" : "History",
-                "handler" : me.__oprOnSiteSummaryData,
-                "arguments" : ["History"],
-                "properties" : {
-                  tooltip : 'Click to show the history of the selected resource.'
-                }
-              }, {
-                "text" : "Policies",
-                "handler" : me.__oprOnSiteSummaryData,
-                "arguments" : ["Policies"],
-                "properties" : {
-                  tooltip : 'Click to show the policies of the selected resource.'
-                }
-              }, {
-                "text" : "-" // separator
-              }, {
-                "text" : "Set status",
-                "subMenu" : statusSubmenu
-              }, {
-                "text" : "Set token",
-                "subMenu" : tokenSubmenu
-              }]
-        };
-
-        me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
-              menu : menuitems,
-              scope : me
-            });
-
+        var sm = Ext.create('Ext.selection.CheckboxModel');
         me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
+              selModel : sm,
               store : me.dataStore,
               columnLines : true,
               width : 600,
               height : 300,
               oColumns : oColumns,
-              contextMenu : me.contextGridMenu,
               pagingToolbar : pagingToolbar,
               scope : me
             });
 
         me.leftPanel.setGrid(me.grid);
 
-        me.overviewPanel = Ext.create("DIRAC.SiteSummary.classes.OverviewPanel", {
-              applicationName : me.applicationName,
-              parentWidget : me
-            });
+        me.add([me.leftPanel, me.grid]);
 
-        me.add([me.leftPanel, me.grid, me.overviewPanel]);
-
-      },
-      __oprOnSiteSummaryData : function(action) {
-        var me = this;
-        var selectedValues = me.__getSelectedValues();
-        me.getContainer().body.mask("Wait ...");
-        Ext.Ajax.request({
-              url : GLOBAL.BASE_URL + me.applicationName + '/action',
-              method : 'POST',
-              params : {
-                action : Ext.JSON.encode([action]),
-                name : Ext.JSON.encode([selectedValues.name]),
-                elementType : Ext.JSON.encode([selectedValues.elementType]),
-                statusType : Ext.JSON.encode([selectedValues.statusType])
-              },
-              scope : me,
-              failure : function(response) {
-                GLOBAL.APP.CF.showAjaxErrorMessage(response);
-              },
-              success : function(response) {
-
-                me.getContainer().body.unmask();
-                var jsonData = Ext.JSON.decode(response.responseText);
-
-                if (jsonData["success"] == "true") {
-
-                  if (action == "History") {
-                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "History:" + selectedValues.name + "(" + selectedValues.statusType + ")", ["Status", "DataEffectiv", "Reason"], [{
-                              text : 'Status',
-                              flex : 1,
-                              sortable : false,
-                              dataIndex : 'Status'
-                            }, {
-                              text : 'DataEffectiv',
-                              flex : 1,
-                              sortable : false,
-                              dataIndex : 'DataEffectiv'
-                            }, {
-                              text : 'Reason',
-                              flex : 1,
-                              sortable : false,
-                              dataIndex : 'Reason'
-                            }]);
-
-                  } else if (action == "Policies") {
-                    me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Policies:" + selectedValues.name + "(" + selectedValues.statusType + ")", ["Status", "PolicyName", "DataEffectiv", "LastCheckTime", "Reason"], [{
-                              text : 'Status',
-                              flex : 1,
-                              sortable : false,
-                              dataIndex : 'Status'
-                            }, {
-                              text : 'PolicyName',
-                              flex : 1,
-                              sortable : false,
-                              dataIndex : 'PolicyName'
-                            }, {
-                              text : 'DataEffectiv',
-                              flex : 1,
-                              sortable : false,
-                              dataIndex : 'DataEffectiv'
-                            }, {
-                              text : 'LastCheckTime',
-                              flex : 1,
-                              sortable : false,
-                              dataIndex : 'LastCheckTime'
-                            }, {
-                              text : 'Reason',
-                              flex : 1,
-                              sortable : false,
-                              dataIndex : 'Reason'
-                            }]);
-
-                  } else {
-                    me.getContainer().body.unmask();
-                    Ext.dirac.system_info.msg("error", jsonData["error"]);
-
-                  }
-
-                }
-              }
-            });
-      },
-      __getSelectedValues : function() {
-        var me = this;
-
-        var values = {};
-
-        values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
-        values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
-        values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
-
-        return values;
-      },
-      __oprSetSite : function(action, newStatus) {
-        var me = this;
-        var selectedValues = me.__getSelectedValues();
-      },
-      __oprShowEditor : function() {
-        var me = this;
-        var values = me.__getSelectedValues();
-        me.overviewPanel.maximizedSize = {
-          height : me.grid.getHeight() + me.leftPanel.getHeight(),
-          width : me.grid.getWidth() + me.leftPanel.getWidth()
-        };
-        me.overviewPanel.loadData(values);
-        me.overviewPanel.expand();
-        me.overviewPanel.show();
       }
-
     });
