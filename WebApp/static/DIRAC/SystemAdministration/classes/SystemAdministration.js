@@ -194,8 +194,10 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
         me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
         me.checkboxFunctionDefinition += '" class="sa-main-check-box"/>';
 
-        me.versionText = new Ext.form.TextField( { 'emptyText': "version" } );
-        
+        me.versionText = new Ext.form.TextField({
+              'emptyText' : "version"
+            });
+
         var oGridButtonsToolbar = new Ext.create('Ext.toolbar.Toolbar', {
               dock : 'top',
               items : [{
@@ -216,7 +218,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   }, '-', me.versionText, {
                     text : 'Update',
                     handler : function() {
-                      me.oprHostAction( "updat", 2 );
+                      me.oprHostAction("updat", 2);
                     },
                     iconCls : "dirac-icon-update",
                     scope : me
@@ -527,13 +529,13 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     name : 'Timeup'
                   }, {
                     name : 'Type'
-                  },{
+                  }, {
                     name : 'CPU'
-                  },{
+                  }, {
                     name : 'MEM'
-                  },{
+                  }, {
                     name : 'RSS'
-                  },{
+                  }, {
                     name : 'VSZ'
                   }],
               remoteSort : true,
@@ -715,8 +717,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 }
                 return value;
               },
-              rendererMB : function(value){
-                return value/1024; //convert to MB
+              rendererMB : function(value) {
+                return value / 1024; // convert to MB
               },
               listeners : {
 
@@ -1170,8 +1172,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
       },
 
-      oprHostAction : function(sAction, sEventSource) {
-
+      __executeAction : function(sAction, sEventSource) {
         var me = this;
         var sHost = "";
 
@@ -1230,13 +1231,26 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
               }
             });
-
       },
-
-      oprComponentAction : function(sAction, sEventSource) {
+      oprHostAction : function(sAction, sEventSource) {
 
         var me = this;
 
+        message = "Do you want to " + sAction + "?";
+        Ext.MessageBox.confirm('Confirm', message, function(button) {
+
+              var me = this;
+              if (button === 'yes') {
+                me.__executeAction(sAction, sEventSource);
+
+              }
+
+            }, me);
+
+      },
+      
+      __executeComponentAction : function(sAction, sEventSource) {
+        var me = this;
         var oParams = {
           action : sAction
         }
@@ -1299,7 +1313,22 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
               }
             });
+      },
+      oprComponentAction : function(sAction, sEventSource) {
 
+        var me = this;
+        
+        message = "Do you want to " + sAction + "?";
+        Ext.MessageBox.confirm('Confirm', message, function(button) {
+
+              var me = this;
+              if (button === 'yes') {
+                me.__executeComponentAction(sAction, sEventSource);
+
+              }
+
+            }, me);
+        
       },
 
       createBottomGridToolbar : function(oGrid) {
