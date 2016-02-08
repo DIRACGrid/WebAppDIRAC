@@ -127,15 +127,21 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           me.setLoadedObject(me.setupData, false);
 
         } else if (me.loadedObjectType == "link") {
-          me.setTitle(me.setupData.text); // TODO Add the link to the URL
-          me.items = [{
-                xtype : "component",
-                autoEl : {
-                  tag : "iframe",
-                  src : me.linkToLoad
-                }
-              }];
-          me.appClassName = "link";
+          if (window.location.protocol.startsWith("https") && !me.linkToLoad.startsWith("https")) {
+            alert('http');
+            me.oprShowInNewTab(me.linkToLoad, me.linkToLoad);
+          } else {
+
+            me.setTitle(me.setupData.text); // TODO Add the link to the URL
+            me.items = [{
+                  xtype : "component",
+                  autoEl : {
+                    tag : "iframe",
+                    src : me.linkToLoad
+                  }
+                }];
+            me.appClassName = "link";
+          }
         }
         // a list of the child windows
         me.oneTimeAfterShow = false;
