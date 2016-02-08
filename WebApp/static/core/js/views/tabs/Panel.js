@@ -128,7 +128,6 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
 
         } else if (me.loadedObjectType == "link") {
           if (window.location.protocol.startsWith("https") && !me.linkToLoad.startsWith("https")) {
-            alert('http');
             me.oprShowInNewTab(me.linkToLoad, me.linkToLoad);
           } else {
 
