@@ -140,13 +140,14 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
                   }
                 }];
             me.appClassName = "link";
+            // a list of the child windows
+            me.oneTimeAfterShow = false;
+
+            me.childWindows = [];
+            me.callParent();
           }
         }
-        // a list of the child windows
-        me.oneTimeAfterShow = false;
 
-        me.childWindows = [];
-        me.callParent();
       },
       /**
        * It returns the class name of the application
