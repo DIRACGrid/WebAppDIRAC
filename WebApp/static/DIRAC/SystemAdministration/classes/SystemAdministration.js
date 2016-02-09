@@ -202,7 +202,15 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     xtype : "button",
                     text : 'Restart',
                     handler : function() {
-                      me.oprHostAction("restart", 2);
+                      Ext.MessageBox.confirm('Confirm', 'Do you want to restart?', function(button) {
+                        var me = this;
+                        if (button == 'yes') {
+                          me.oprHostAction("restart", 2);
+                        }
+                        else {
+                          Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, me.getUrlDescription());
+                        }
+                      }, me);
                     },
                     iconCls : "dirac-icon-restart",
                     scope : me
