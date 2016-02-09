@@ -203,12 +203,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     text : 'Restart',
                     handler : function() {
                       Ext.MessageBox.confirm('Confirm', 'Do you want to restart?', function(button) {
-                        var me = this;
                         if (button == 'yes') {
                           me.oprHostAction("restart", 2);
-                        }
-                        else {
-                          Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, me.getUrlDescription());
                         }
                       }, me);
                     },
