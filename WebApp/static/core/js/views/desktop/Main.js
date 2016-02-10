@@ -1822,25 +1822,29 @@ Ext.define('Ext.dirac.views.desktop.Main', {
             };
 
             // initializing window
-            var window = me.initWindow(config);
+            var win = me.initWindow(config);
 
             // showing window
-            window.show();
+            win.show();
 
           }, this);
 
     } else if (loadedObjectType == "link") {
       var me = this;
+      if (window.location.protocol.startsWith("https") && !moduleName.startsWith("https")) {
+        var win = Ext.create("Ext.dirac.views.desktop.Window");
+        win.oprShowInNewTab(moduleName, moduleName);
+        delete win;
+      } else {
+        var win = me.initWindow({
+              setupData : setupData,
+              loadedObjectType : "link",
+              linkToLoad : moduleName
+            });
 
-      var window = me.initWindow({
-            setupData : setupData,
-            loadedObjectType : "link",
-            linkToLoad : moduleName
-          });
-
-      // showing window
-      window.show();
-
+        // showing window
+        win.show();
+      }
     }
 
   },
