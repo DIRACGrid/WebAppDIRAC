@@ -116,6 +116,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
       },
       initComponent : function() {
         var me = this;
+
         me.loadMask = new Ext.LoadMask(me, {
               msg : "Loading ..."
             });
@@ -127,6 +128,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           me.setLoadedObject(me.setupData, false);
 
         } else if (me.loadedObjectType == "link") {
+
           me.setTitle(me.setupData.text); // TODO Add the link to the URL
           me.items = [{
                 xtype : "component",
@@ -137,11 +139,13 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
               }];
           me.appClassName = "link";
         }
+
         // a list of the child windows
         me.oneTimeAfterShow = false;
 
         me.childWindows = [];
         me.callParent();
+
       },
       /**
        * It returns the class name of the application

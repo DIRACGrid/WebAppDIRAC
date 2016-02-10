@@ -98,6 +98,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
           me.items = [me.loadedObject];
           me.appClassName = me.loadedObject.self.getName();
         } else if (me.loadedObjectType == "link") {
+
           me.items = [{
                 xtype : "component",
                 autoEl : {
@@ -112,6 +113,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
         me.oneTimeAfterShow = false;
 
         me.childWindows = [];
+
         me.callParent();
 
       },

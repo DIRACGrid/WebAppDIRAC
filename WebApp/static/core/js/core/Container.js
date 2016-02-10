@@ -126,7 +126,7 @@ Ext.define('Ext.dirac.core.Container', {
         } else {
           var win = window.open(url, "_blank");
           if (win == null || typeof(win) == 'undefined') {
-            Ext.dirac.system_info.msg("Error Notification", 'Please disable your pop-up blocker and click the "Get Log file" menu item again.');
+            Ext.dirac.system_info.msg("Error Notification", 'Please disable your pop-up blocker and click the "same component" again.');
           } else {
             win.focus();
           }
