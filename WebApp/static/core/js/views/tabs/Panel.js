@@ -116,7 +116,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
       },
       initComponent : function() {
         var me = this;
-        var createwidget = true;
+
         me.loadMask = new Ext.LoadMask(me, {
               msg : "Loading ..."
             });
@@ -128,29 +128,23 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
           me.setLoadedObject(me.setupData, false);
 
         } else if (me.loadedObjectType == "link") {
-          if (window.location.protocol.startsWith("https") && !me.linkToLoad.startsWith("https")) {
-            createwidget = false;
-            me.oprShowInNewTab(me.linkToLoad, me.linkToLoad);
-          } else {
 
-            me.setTitle(me.setupData.text); // TODO Add the link to the URL
-            me.items = [{
-                  xtype : "component",
-                  autoEl : {
-                    tag : "iframe",
-                    src : me.linkToLoad
-                  }
-                }];
-            me.appClassName = "link";
-          }
+          me.setTitle(me.setupData.text); // TODO Add the link to the URL
+          me.items = [{
+                xtype : "component",
+                autoEl : {
+                  tag : "iframe",
+                  src : me.linkToLoad
+                }
+              }];
+          me.appClassName = "link";
         }
-        if (createwidget) {
-          // a list of the child windows
-          me.oneTimeAfterShow = false;
 
-          me.childWindows = [];
-          me.callParent();
-        }
+        // a list of the child windows
+        me.oneTimeAfterShow = false;
+
+        me.childWindows = [];
+        me.callParent();
 
       },
       /**

@@ -1835,6 +1835,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
         var win = Ext.create("Ext.dirac.views.desktop.Window");
         win.oprShowInNewTab(moduleName, moduleName);
         delete win;
+        Ext.get("app-dirac-loading").hide();
       } else {
         var win = me.initWindow({
               setupData : setupData,

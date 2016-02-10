@@ -908,12 +908,18 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             }, this);
 
         } else if (loadedObjectType == "link") {
-
-          me.getRightContainer().createWindow({
-                setupData : setupData,
-                loadedObjectType : "link",
-                linkToLoad : moduleName
-              }, oTab, cbFunction);
+          if (window.location.protocol.startsWith("https") && !moduleName.startsWith("https")) {
+            var tab = new Ext.dirac.views.tabs.Panel();
+            tab.oprShowInNewTab(moduleName, moduleName);
+            delete tab;
+            Ext.get("app-dirac-loading").hide();
+          } else {
+            me.getRightContainer().createWindow({
+                  setupData : setupData,
+                  loadedObjectType : "link",
+                  linkToLoad : moduleName
+                }, oTab, cbFunction);
+          }
 
         }
         Ext.get("app-dirac-loading").hide();
