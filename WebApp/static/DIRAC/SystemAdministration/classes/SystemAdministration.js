@@ -595,13 +595,13 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     text : 'Start',
                     iconCls : "dirac-icon-start",
                     handler : function() {
-                      me.moduleObject.oprComponentAction("start", 2);
+                      me.oprComponentAction("start", 2);
                     }
                   }, {
                     text : 'Stop',
                     iconCls : "dirac-icon-stop",
                     handler : function() {
-                      me.moduleObject.oprComponentAction("stop", 2);
+                      me.oprComponentAction("stop", 2);
                     }
                   }]
             });
