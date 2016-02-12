@@ -80,8 +80,7 @@ class RootHandler(WebHandler):
     
     filepath = "%s/webRoot/www/pilot/%s" % ( rootPath, filename )
     try:
-      out_file = open( filepath, 'w' )
-      print data
+      out_file = open( filepath, 'w' )      
       out_file.write( data )
       out_file.close()
     except Exception as e:
