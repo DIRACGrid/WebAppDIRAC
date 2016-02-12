@@ -1,9 +1,8 @@
-import json
 import urlparse
 from DIRAC import gConfig, gLogger, rootPath
+from DIRAC import gLogger
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
-from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 
 
 class RootHandler(WebHandler):
@@ -49,22 +48,22 @@ class RootHandler(WebHandler):
       url_state = self.request.arguments["url_state"][0]
 
     view_name = Conf.getTheme()
-    if self.request.arguments.has_key("view") and len(self.request.arguments["view"][0]) > 0:  
+    if self.request.arguments.has_key("view") and len(self.request.arguments["view"][0]) > 0:
       view_name = self.request.arguments["view"][0]
-      
+
     theme_name = "ext-all-gray"
     if self.request.arguments.has_key("theme") and len(self.request.arguments["theme"][0]) > 0:
       if self.request.arguments["theme"][0]=="Neptune":
         theme_name = "ext-all-neptune"
       if self.request.arguments["theme"][0]=="Classic":
         theme_name = "ext-all"
-        
+
     open_app = ""
     if self.request.arguments.has_key("open_app") and len(self.request.arguments["open_app"][0]) > 0:
       open_app = self.request.arguments["open_app"][0].strip()
-    
+
     icon = data[ 'baseURL' ] + Conf.getIcon()
-    
+
     level = str(gLogger.getLevel()).lower()
     self.render( "root.tpl", iconUrl=icon, base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
                  ext_version = data[ 'extVersion' ], url_state = url_state,

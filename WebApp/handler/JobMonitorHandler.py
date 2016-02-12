@@ -1,8 +1,8 @@
 
 from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 from WebAppDIRAC.WebApp.handler.Palette import Palette
 from DIRAC.RequestManagementSystem.Client.Request       import Request
@@ -82,7 +82,7 @@ class JobMonitorHandler( WebHandler ):
   @asyncGen
   def web_getSelectionData( self ):
     sData = self.getSessionData()
-    
+
     callback = {}
 
     user = sData["user"]["username"]
@@ -194,11 +194,11 @@ class JobMonitorHandler( WebHandler ):
           gLogger.error( "RPC.getOwners() return error: %s" % result["Message"] )
           owner = [["Error happened on service side"]]
       callback["owner"] = owner
-    
+
     result = yield self.threadTask( RPC.getOwnerGroup )
     if result['OK']:
-      callback['OwnerGroup'] = [ [group] for group in result['Value']]  
-    
+      callback['OwnerGroup'] = [ [group] for group in result['Value']]
+
     self.finish( callback )
 
   def _request( self ):
@@ -207,7 +207,7 @@ class JobMonitorHandler( WebHandler ):
     self.globalSort = [["JobID", "DESC"]]
 
     req = {}
-    
+
     if self.request.arguments.has_key( "limit" ) and len( self.request.arguments["limit"][0] ) > 0:
       self.numberOfJobs = int( self.request.arguments["limit"][0] )
       if self.request.arguments.has_key( "start" ) and len( self.request.arguments["start"][0] ) > 0:
@@ -255,12 +255,12 @@ class JobMonitorHandler( WebHandler ):
       owner = list( json.loads( self.request.arguments[ 'owner' ][-1] ) )
       if len( owner ) > 0:
         req["Owner"] = owner
-    
+
     if "OwnerGroup" in self.request.arguments:
       ownerGroup = list( json.loads( self.request.arguments[ 'OwnerGroup' ][-1] ) )
       if len( ownerGroup ) > 0:
         req["OwnerGroup"] = ownerGroup
-        
+
     if 'startDate' in self.request.arguments and len( self.request.arguments["startDate"][0] ) > 0:
       if 'startTime' in self.request.arguments and len( self.request.arguments["startTime"][0] ) > 0:
         req["FromDate"] = str( self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0] )
@@ -351,7 +351,7 @@ class JobMonitorHandler( WebHandler ):
             items.append( [i[0], i[1].replace( '>', ' target="_blank">' )] )
           elif i[0] != "StandardOutput":
             items.append( [i[0], i[1]] )
-          
+
         callback = {"success":"true", "result":items}
       else:
         callback = {"success":"false", "error":result["Message"]}
@@ -378,11 +378,11 @@ class JobMonitorHandler( WebHandler ):
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getPending":
       RPC = RPCClient( "RequestManagement/ReqManager" )
-      
+
       result = yield self.threadTask( RPC.readRequestsForJobs, [jobId] )
-      
+
       if result["OK"]:
-        items = {} 
+        items = {}
         if jobId in result['Value']['Successful']:
           req = Request( result['Value']['Successful'][jobId] ).getDigest()['Value']
           items["PendingRequest"] = req
@@ -390,10 +390,10 @@ class JobMonitorHandler( WebHandler ):
         elif jobId in result['Value']['Failed']:  # when no request associated to the job
           callback = {"success":"false", "error":result['Value']["Failed"][jobId]}
         else:
-          callback = {"success":"false", "error":"No request found with unknown reason"}    
+          callback = {"success":"false", "error":"No request found with unknown reason"}
       else:
         callback = {"success":"false", "error":result["Message"]}
-        
+
     #--------------------------------------------------------------------------------
     elif self.request.arguments["data_kind"][0] == "getLogURL":
       RPC = RPCClient( "WorkloadManagement/JobMonitoring" )
@@ -474,7 +474,7 @@ class JobMonitorHandler( WebHandler ):
       selector = "OwnerGroup"
     elif selector == "Job Type":
       selector = "JobType"
-    
+
     result = yield self.threadTask( RPC.getJobStats, selector, req )
 
     if result["OK"]:
@@ -514,7 +514,7 @@ class JobMonitorHandler( WebHandler ):
   @asyncGen
   def web_getSandbox( self ):
     if 'jobID' not in self.request.arguments:
-      self.finish( {"success":"false", "error":"Maybe you forgot the jobID ?"} );
+      self.finish( {"success":"false", "error":"Maybe you forgot the jobID ?"} )
       return
     jobID = int( self.request.arguments['jobID'][0] )
     sbType = 'Output'
@@ -546,4 +546,3 @@ class JobMonitorHandler( WebHandler ):
     self.set_header( 'Cache-Control', "no-cache, no-store, must-revalidate, max-age=0" )
     self.set_header( 'Pragma', "no-cache" )
     self.finish( data )
-

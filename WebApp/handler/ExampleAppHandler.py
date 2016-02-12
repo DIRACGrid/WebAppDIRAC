@@ -1,7 +1,5 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.Utilities import Time
-import json
 
 class ExampleAppHandler(WebHandler):
 
@@ -16,7 +14,7 @@ class ExampleAppHandler(WebHandler):
               {"ExampleId":3,"ExampleValue":'aaaa'},
               {"ExampleId":4,"ExampleValue":'bbbb'},
               {"ExampleId":5,"ExampleValue":'adsd'}]
-    callback = {"success":"true", "result":values, 
+    callback = {"success":"true", "result":values,
                 "total":total, "date":timestamp }
     self.finish(callback)
 
@@ -25,6 +23,3 @@ class ExampleAppHandler(WebHandler):
     callback = {"firstName":["A","C","D"],
                 "lastName":["wwww","dsds","sads"]}
     self.finish(callback)
-
-
-

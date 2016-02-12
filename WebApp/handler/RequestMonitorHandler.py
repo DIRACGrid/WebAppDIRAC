@@ -1,10 +1,8 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from DIRAC import gLogger
 from DIRAC.Core.Utilities import Time
-from DIRAC.Core.Security import CS
 import json
-import ast
 
 class RequestMonitorHandler(WebHandler):
 
@@ -15,7 +13,7 @@ class RequestMonitorHandler(WebHandler):
     RPC = RPCClient("RequestManagement/ReqManager", timeout = 600 )
     callback = {}
     req = self.__request()
-   
+
     result = yield self.threadTask(RPC.getRequestSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:

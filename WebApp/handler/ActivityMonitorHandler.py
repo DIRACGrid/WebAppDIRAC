@@ -1,12 +1,10 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
-from DIRAC.Core.Utilities import List, Time, DEncode
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities import Time, DEncode
+from DIRAC import gConfig
 import tempfile
 import json
-import ast
 import tornado
 
 class ActivityMonitorHandler( WebHandler ):
@@ -231,20 +229,20 @@ class ActivityMonitorHandler( WebHandler ):
       del( result[ 'rpcStub' ] )
 
     self.finish( {"success":"true"} )
-  
+
   def __getSections( self, path ):
-    
+
     result = []
-    
+
     userData = self.getSessionData()
-    
+
     retVal = gConfig.getSections( '/DIRAC/Setups' )
     if retVal['OK']:
       setups = [ i.split( '-' )[-1] for i in retVal['Value']]
     setup = userData['setup'].split( '-' )[-1]
     leaf = True if path.find( 'Agents' ) != -1 or path.find( 'Services' ) != -1 else False
     retVal = gConfig.getSections( path )
-    
+
     if retVal['OK']:
       records = retVal['Value']
       for i in records:
@@ -253,9 +251,9 @@ class ActivityMonitorHandler( WebHandler ):
         if i == setup:
           path = "%s/%s" % ( path, i )
           result = self.__getSections( path )
-                  
+
         if i not in [setup, 'Databases', 'URLs']:
-          
+
           id = "%s/%s" % ( path, i )
           components = path.split( '/' )
           if len( components ) > 2:
@@ -264,23 +262,22 @@ class ActivityMonitorHandler( WebHandler ):
             componentName = i
           result += [{'text':i, 'qtip': "Systems", "leaf" : leaf, 'component' : componentName, 'id':id}]
     else:
-       result = []
-    
+      result = []
+
     return result
-      
+
   @asyncGen
   def web_getDynamicPlotViews( self ):
     """
     It retrieves the systems from the CS.
     """
     nodes = []
-    path = self.request.arguments['node'][0] 
-    
-    result = self.__getSections( path )  
+    path = self.request.arguments['node'][0]
+
+    result = self.__getSections( path )
     print result
     for i in result:
       nodes += [i]
-      
+
     result = tornado.escape.json_encode( nodes )
     self.finish( result )
-

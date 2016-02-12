@@ -1,7 +1,6 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC import gConfig, S_OK
 from DIRAC.Core.Utilities import Time
-from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
 from DIRAC.Core.DISET.RPCClient import RPCClient
 import json
 import datetime

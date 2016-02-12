@@ -1,20 +1,15 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
 from DIRAC.AccountingSystem.private.FileCoding import extractRequestFromFileId, codeRequestInFileId
 import tempfile
 import datetime
-import json
 
-try:
-  from hashlib import md5
-except:
-  from md5 import md5
+from hashlib import md5
 
 class AccountingPlotHandler( WebHandler ):
 
@@ -62,10 +57,10 @@ class AccountingPlotHandler( WebHandler ):
     if not retVal[ 'OK' ]:
       self.finish( {"success" : "false", "result" : "", "error" : retVal[ 'Message' ] } )
       return
-    
+
     records = {}
-    for record in retVal['Value']:  # may have more than 1000 of records. 
-      # do not show all of them in the web portal      
+    for record in retVal['Value']:  # may have more than 1000 of records.
+      # do not show all of them in the web portal
       length = len( retVal['Value'][record] )
       if  length > 10000:
         records[record] = retVal['Value'][record][length - 5000:]
@@ -74,7 +69,7 @@ class AccountingPlotHandler( WebHandler ):
       else:
         records[record] = retVal['Value'][record]
     callback["selectionValues"] = records
-    
+
     # Cache for plotsList?
     data = AccountingPlotHandler.__keysCache.get( "reportsList:%s" % typeName )
     if not data:
@@ -90,7 +85,7 @@ class AccountingPlotHandler( WebHandler ):
 
   def __parseFormParams( self ):
     params = self.request.arguments
-    
+
     pD = {}
     extraParams = {}
     pinDates = False
@@ -147,14 +142,14 @@ class AccountingPlotHandler( WebHandler ):
         start = Time.fromString( pD[ 'startTime' ] )
         del( pD[ 'startTime' ] )
     del( pD[ 'timeSelector' ] )
-        
+
     for k in pD:
       if k.find( "ex_" ) == 0:
         extraParams[ k[3:] ] = pD[ k ]
     # Listify the rest
     for selName in pD:
       pD[ selName ] = List.fromChar( pD[ selName ], "," )
-    
+
     return S_OK( ( typeName, reportName, start, end, pD, grouping, extraParams ) )
 
   @asyncGen
@@ -187,12 +182,12 @@ class AccountingPlotHandler( WebHandler ):
       self.finish( callback )
       return
     plotImageFile = str( self.request.arguments[ 'file' ][0] )
-    
+
     if plotImageFile.find( ".png" ) < -1:
       callback = {"success":"false", "error":"Not a valid image!"}
       self.finish( callback )
       return
-    
+
     transferClient = TransferClient( "Accounting/ReportGenerator" )
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask( transferClient.receiveFile, tempFile, plotImageFile )
@@ -222,7 +217,7 @@ class AccountingPlotHandler( WebHandler ):
       self.finish( callback )
       return
     plotImageFile = str( self.request.arguments[ 'file' ][0] )
-    
+
     retVal = extractRequestFromFileId( plotImageFile )
     if not retVal['OK']:
       callback = {"success":"false", "error":retVal['Value']}
@@ -237,14 +232,14 @@ class AccountingPlotHandler( WebHandler ):
         fields["extraArgs"]["plotTitle"] = plotTitle
       else:
         fields["extraArgs"] = {}
-            
+
     retVal = codeRequestInFileId( fields )
     if not retVal['OK']:
       callback = {"success":"false", "error":retVal['Value']}
       self.finish( callback )
       return
     plotImageFile = retVal['Value']['plot']
-    
+
     transferClient = TransferClient( "Accounting/ReportGenerator" )
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask( transferClient.receiveFile, tempFile, plotImageFile )
@@ -262,7 +257,7 @@ class AccountingPlotHandler( WebHandler ):
     self.set_header( 'Pragma', "no-cache" )
     self.set_header( 'Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ) )
     self.finish( data )
-      
+
   @asyncGen
   def web_getCsvPlotData( self ):
     callback = {}

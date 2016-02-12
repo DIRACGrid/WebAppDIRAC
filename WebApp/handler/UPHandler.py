@@ -2,7 +2,7 @@
 import base64
 import zlib
 import json
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
 from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
@@ -52,7 +52,7 @@ class UPHandler( WebHandler ):
     result = yield self.threadTask( up.setVarPermissions, name, access )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
-    
+
     self.set_status( 200 )
     self.finish()
 
@@ -69,12 +69,12 @@ class UPHandler( WebHandler ):
       access = 'ALL'
     if access not in ( 'ALL', 'VO', 'GROUP', 'USER' ):
       raise WErr( 400, "Invalid access" )
-    
+
     revokeAccess = { 'ReadAccess': access }
-    if access == 'USER':  # if we make private a state, 
-      # we have to revoke from the public as well 
+    if access == 'USER':  # if we make private a state,
+      # we have to revoke from the public as well
       revokeAccess['PublishAccess'] = 'USER'
-      
+
     # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
     result = yield self.threadTask( up.setVarPermissions, name, revokeAccess )
     if not result[ 'OK' ]:
@@ -208,27 +208,27 @@ class UPHandler( WebHandler ):
       raise WErr.fromSERROR( result )
     self.set_status( 200 )
     self.finish()
-  
+
   @asyncGen
   def web_listPublicStates( self ):
-    
+
     session = self.getSessionData()
-    
+
     user = session["user"]["username"]
-    
+
     up = self.__getUP()
     retVal = yield self.threadTask( up.getUserProfileNames, {'PublishAccess':'ALL'} )
-       
+
     if not retVal[ 'OK' ]:
       raise WErr.fromSERROR( retVal )
-    
+
     data = retVal['Value']
-    
+
     if data == None:
       raise WErr(404, "There are no public states!" )
-      
+
     paramNames = ['user', 'group', 'vo', 'name']
-    
+
     mydesktops = {'name':'My Desktops',
                   'group':'',
                   'vo':'',
@@ -244,7 +244,7 @@ class UPHandler( WebHandler ):
                       'iconCls' : 'shared-desktop',
                       'children' :[]
                       }
-    
+
     myapplications = {'name':'My Applications',
                       'group':'',
                       'vo':'',
@@ -259,7 +259,7 @@ class UPHandler( WebHandler ):
                           'iconCls' : 'shared-desktop',
                           'children' :[]
                           }
-    
+
     desktopsApplications = {
        'text':'.', 'children': [{'name':'Desktops',
                                  'group':'',
@@ -277,7 +277,7 @@ class UPHandler( WebHandler ):
                                 ]
                             }
     type = ''
-    for i in data:      
+    for i in data:
       application = i.replace( 'Web/application/', '' )
       up = UserProfileClient( i )
       retVal = up.listAvailableVars()
@@ -285,7 +285,7 @@ class UPHandler( WebHandler ):
         raise WErr.fromSERROR( retVal )
       else:
         states = retVal['Value']
-                
+
         for state in states:
           record = dict( zip( paramNames, state ) )
           record['app'] = application
@@ -311,10 +311,10 @@ class UPHandler( WebHandler ):
                   myapplications['children'].append( record )
                 else:
                   sharedapplications['children'].append( record )
-                
-    
+
+
     self.finish( desktopsApplications )
-  
+
   @asyncGen
   def web_publishAppState( self ):
     up = self.__getUP()
@@ -326,10 +326,10 @@ class UPHandler( WebHandler ):
       access = self.request.arguments[ 'access' ][-1].upper()
     except KeyError as excp:
       access = 'ALL'
-    
+
     if access not in ( 'ALL', 'VO', 'GROUP', 'USER' ):
       raise WErr( 400, "Invalid access" )
-    
+
     result = yield self.threadTask( up.setVarPermissions, name, { 'PublishAccess': access, 'ReadAccess': access } )
     if not result[ 'OK' ]:
       raise WErr.fromSERROR( result )
