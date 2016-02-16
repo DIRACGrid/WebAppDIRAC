@@ -298,3 +298,10 @@
 .dirac-table-main-check-box {
   margin: 3px 0px 3px 0px !important;
 }
+
+.dirac_background {
+  background : '#AAAAAA';
+  background-repeat:no-repeat;
+  background-image: url(../img/wallpapers/dirac_background_6.png) !important;
+  background-position:bottom right;
+}

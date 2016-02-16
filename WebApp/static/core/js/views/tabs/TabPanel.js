@@ -18,13 +18,11 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       tabCounter : 0,
       view : 'tabView',
       // renderTo:Ext.getBody(),
-      /*
-       * defaults : { autoScroll : true, bodyPadding : 10, bodyStyle: {
-       * background: '#AAAAAA' }, },
-       */      
-      bodyStyle : {
+      /*bodyStyle : {
         background : '#AAAAAA'
-      },
+      },*/
+      cls : 'ux-wallpaper',
+      bodyCls : "dirac_background",
       workspace : null,
       plugins : [Ext.create('Ext.ux.TabReorderer')],
       setWorkspace : function(wsk) {
@@ -38,13 +36,6 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         
        
         me.callParent(arguments);
-         var wallpaper = Ext.create('widget.wallpaper', {
-              layout : 'fit',
-              margin : '0 0 2 0',
-              value : 'welcome'
-            });
-        wallpaper.setWallpaper('/DIRAC/static/core/img/wallpapers/dirac_background_6.png', false);
-        me.add(wallpaper);
         /*
          * me.loadMask = new Ext.LoadMask(me, { msg : "Loading ..." });
          */
