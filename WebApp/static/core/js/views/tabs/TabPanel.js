@@ -21,7 +21,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       /*
        * defaults : { autoScroll : true, bodyPadding : 10, bodyStyle: {
        * background: '#AAAAAA' }, },
-       */
+       */      
       bodyStyle : {
         background : '#AAAAAA'
       },
@@ -35,7 +35,16 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       },
       initComponent : function() {
         var me = this;
+        
+       
         me.callParent(arguments);
+         var wallpaper = Ext.create('widget.wallpaper', {
+              layout : 'fit',
+              margin : '0 0 2 0',
+              value : 'welcome'
+            });
+        wallpaper.setWallpaper('/DIRAC/static/core/img/wallpapers/dirac_background_6.png', false);
+        me.add(wallpaper);
         /*
          * me.loadMask = new Ext.LoadMask(me, { msg : "Loading ..." });
          */
