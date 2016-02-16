@@ -18,11 +18,13 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       tabCounter : 0,
       view : 'tabView',
       // renderTo:Ext.getBody(),
-      /*bodyStyle : {
-        background : '#AAAAAA'
-      },*/
-      cls : 'ux-wallpaper',
-      bodyCls : "dirac_background",
+      bodyStyle : {
+        background : '#AAAAAA',
+        backgroundImage: 'url(/DIRAC/static/core/img/wallpapers/dirac_background_6.png)',
+        backgroundPosition: 'bottom right',
+        backgroundRepeat: 'no-repeat'
+      },
+
       workspace : null,
       plugins : [Ext.create('Ext.ux.TabReorderer')],
       setWorkspace : function(wsk) {
