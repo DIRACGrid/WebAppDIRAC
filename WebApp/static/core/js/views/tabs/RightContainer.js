@@ -413,7 +413,13 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                   title : name,
                   closable : true,
                   type : 'desktop',
-                  isLoaded : isLoaded
+                  isLoaded : isLoaded,
+                  bodyStyle : {
+                    background : '#AAAAAA',
+                    backgroundImage : 'url(/DIRAC/static/core/img/wallpapers/dirac_background_6.png)',
+                    backgroundPosition : 'bottom right',
+                    backgroundRepeat : 'no-repeat'
+                  }
                 });
             tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
                   width : 60, // 30

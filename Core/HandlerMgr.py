@@ -11,6 +11,7 @@ import WebAppDIRAC
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
+from WebAppDIRAC.Lib import Conf
 
 class HandlerMgr( object ):
   __metaclass__ = DIRACSingleton
@@ -61,7 +62,9 @@ class HandlerMgr( object ):
     self.__routes = []
 
     # Add some standard paths for static files
-    for stdir in [ 'defaults', 'demo' ]:
+    statDirectories = [ 'defaults', 'demo' ] + Conf.getStaticDirs() 
+    self.log.info( "The following static directories are used:%s" % str( statDirectories ) )
+    for stdir in statDirectories:
       pattern = '/%s/(.*)' % stdir
       self.__routes.append( ( pattern, StaticHandler, dict( pathList = ['%s/webRoot/www/%s' % ( rootPath, stdir ) ] ) ) )
       self.log.debug( " - Static route: %s" % pattern  )

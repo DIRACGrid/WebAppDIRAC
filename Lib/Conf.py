@@ -133,3 +133,6 @@ def getIcon():
 
 def SSLProrocol():
   return getCSValue( "SSLProtcol", "" )
+
+def getStaticDirs():
+  return getCSValue( "StaticDirs", "" ).split( ',' )

@@ -1,7 +1,9 @@
 import urlparse
+from DIRAC import gConfig, gLogger, rootPath
 from DIRAC import gLogger
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
+
 
 class RootHandler(WebHandler):
 
@@ -68,3 +70,20 @@ class RootHandler(WebHandler):
                  extensions = data[ 'extensions' ],
                  credentials = data[ 'user' ], title = Conf.getTitle(),
                  theme = theme_name, root_url = Conf.rootURL(), view = view_name, open_app = open_app, debug_level= level)
+    
+  def web_upload( self ):
+    
+    if 'filename' not in self.request.arguments:
+      raise WErr( 400, "Please provide a file name!" )
+    data = self.request.arguments.get( "data", "" )[0]
+    filename = self.request.arguments.get( "filename", "" )[0]
+    
+    filepath = "%s/webRoot/www/pilot/%s" % ( rootPath, filename )
+    try:
+      out_file = open( filepath, 'w' )      
+      out_file.write( data )
+      out_file.close()
+    except Exception as e:
+      raise WErr( 400, "Cannot create the file: %s" % e )
+    self.finish( 'File has created' )
+    
