@@ -2,7 +2,7 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping    import getGOCSiteName, getDIRACSiteName
 from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSiteComputingElements, getSiteStorageElements
-from DIRAC.AccountingSystem.private.FileCoding      import codeRequestInFileId
+from DIRAC.Core.Utilities.Plotting.FileCoding       import codeRequestInFileId
 
 from DIRAC import gLogger
 import json

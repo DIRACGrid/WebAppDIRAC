@@ -1,11 +1,11 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.DISET.TransferClient import TransferClient
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import Time, List, DictCache
-from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
-from DIRAC.AccountingSystem.private.FileCoding import extractRequestFromFileId, codeRequestInFileId
+from WebAppDIRAC.Lib.WebHandler                    import WebHandler, asyncGen
+from DIRAC.Core.DISET.RPCClient                    import RPCClient
+from DIRAC.Core.DISET.TransferClient               import TransferClient
+from DIRAC                                         import gConfig, S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities                          import Time, List, DictCache
+from DIRAC.AccountingSystem.Client.ReportsClient   import ReportsClient
+from DIRAC.Core.Utilities.Plotting.FileCoding      import extractRequestFromFileId, codeRequestInFileId
 import tempfile
 import datetime
 
