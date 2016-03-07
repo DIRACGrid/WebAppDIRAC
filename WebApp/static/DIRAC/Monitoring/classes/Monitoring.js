@@ -231,7 +231,7 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
               value : 86400,
               store : new Ext.data.ArrayStore({
                     fields : ['value', 'text'],
-                    data : [[86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]]
+                    data : [[3600, "Last Hour"], [86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]]
                   }),
               listeners : {
                 change : function(field, newValue, oldValue, eOpts) {
