@@ -62,13 +62,14 @@ class JobMonitorHandler( WebHandler ):
         tmp[head[j]] = i[j]
       callback.append( tmp )
     total = result["TotalRecords"]
+    extra = None
     if result.has_key( "Extras" ):
       st = self.__dict2string( {} )
       extra = result["Extras"]
       timestamp = Time.dateTime().strftime( "%Y-%m-%d %H:%M [UTC]" )
-      callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":timestamp }
-    else:
-      callback = {"success":"true", "result":callback, "total":total, "date":None}
+      extra['date'] = timestamp
+      
+    callback = {"success":"true", "result":callback, "total":total, "extra":extra }
     self.finish( callback )
 
   def __dict2string( self, req ):

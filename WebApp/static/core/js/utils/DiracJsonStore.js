@@ -91,14 +91,22 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
           var me = this;
 
           if (oStore.data.length < 1) {
+             me.removeAll();
+             //in case of failure we remove the existing data
             return;
           }
-          var bResponseOK = (oStore.data.getAt(0).get("success") == "true" || oStore.data.getAt(0).get("OK") == true);
-          if (!bResponseOK) {
 
-            GLOBAL.APP.CF.alert(oStore.data.getAt(0).get("error"), "info");
-            
-            me.removeAll();
+          if (oStore.data.length > 0 && me.scope.grid && me.scope.grid.pagingToolbar) {
+            var utcTime = null;
+            if (oStore.getProxy().getReader().metaData["date"]) {
+              var newDate = Ext.Date.parse(Ext.String.trim(oStore.getProxy().getReader().metaData["date"].split("[UTC")[0]), "Y-m-d H:i");
+              if (newDate) {
+                var currentTimestamp = me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp;
+                if (currentTimestamp != null) {
+                  var msMinute = 60 * 1000, msDay = 60 * 60 * 24 * 1000, msHour = 60 * 60 * 1000;
+                  var days = Math.floor((newDate - currentTimestamp) / msDay);
+                  var hours = Math.floor(((newDate - currentTimestamp) % msDay) / msHour);
+                  var minutes = Math.floor((((newDate - currentTimestamp) % msDay) % msHour) / msMinute);
 
           } else {
             if (oStore.data.length > 0 && me.scope.grid && me.scope.grid.pagingToolbar) {
@@ -115,26 +123,24 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
                     utcTime = days + " " + GLOBAL.APP.CF.zfill(hours, 2) + ":" + GLOBAL.APP.CF.zfill(minutes, 2);
 
-                  }
-
-                  me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp = newDate;
-
                 }
-                if (utcTime) {
-                  me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.data.getAt(0).get("date") + "(" + utcTime + ")");
-                } else {
-                  me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.data.getAt(0).get("date"));
-                }
+
+                me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp = newDate;
+
               }
-
+              if (utcTime) {
+                me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.getProxy().getReader().metaData["date"] + "(" + utcTime + ")");
+              } else {
+                me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.getProxy().getReader().metaData["date"]);
+              }
             }
 
-            if (me.remoteSort) {
-              me.remoteSort = false;
-              me.sort();
-              me.remoteSort = true;
-            }
+          }
 
+          if (me.remoteSort) {
+            me.remoteSort = false;
+            me.sort();
+            me.remoteSort = true;
           }
 
         },
