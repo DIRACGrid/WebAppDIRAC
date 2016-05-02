@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.TabPanel', {
       extend : 'Ext.tab.Panel',
-      requires : ["Ext.ux.TabReorderer"],
+      requires : ["Ext.ux.TabReorderer","Ext.ux.TabScrollerMenu"],
       xtype : 'diractabcontainer',
       alias : 'widget.tabPanel',
       resizeTabs : true,
@@ -16,6 +16,15 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       tabChangeTimeout : null,
       tabChangeCycle : 0,
       tabCounter : 0,
+       /*   tools : [{
+            type : 'plus',
+            tooltip : 'Add new tab',
+            callback : function(tabpanel) {
+              tabpanel.add({
+                    title : 'three'
+                  });
+            }
+          }],*/
       view : 'tabView',
       // renderTo:Ext.getBody(),
       //TODO: This is for scrolling!!!!

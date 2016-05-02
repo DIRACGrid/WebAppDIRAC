@@ -12,6 +12,7 @@
  * 
  */
 Ext.define('Ext.dirac.views.tabs.TabMenuPlugin', {
+  extend : 'Ext.plugin.Abstract',
       alias : 'plugin.tabtoolbar',
 
       constructor : function(config) {
@@ -52,16 +53,21 @@ Ext.define('Ext.dirac.views.tabs.TabMenuPlugin', {
               afterlayout : function() {
                 me.layout = me.tabBar.layout;
                 if (me.toolbar)
-                  return;
+                  delete me.toolbar;
+                  //return;
 
                 // we need to subtract the toolbar width from this function
                 // result
                 me.layout.availableSpaceOffset += this.width;
-
+                //result = Ext.getClass(me.layout.overflowHandler).prototype.handleOverflow.apply(me.layout.overflowHandler, arguments);
+                me.layout.reservedSpace += this.width; 
+                
                 var scrollerEl = me.tabBar.body.child('.' + Ext.baseCSSPrefix + 'box-scroller-' + this.position), contentEl = me.tabBar.body.createChild({
-                      style : 'width:' + this.width + 'px;',
+                      style : 'width:' + this.width + 'px;',// bottom:0; position:absolute; right:0px;',
                       cls : Ext.baseCSSPrefix + 'tab-toolbar-' + this.position
+                      //cls : Ext.baseCSSPrefix + 'box-scroller-' + this.position
                     }, scrollerEl);
+
 
                 // if scroller is not created (only one tab)
                 // we need to add the floating style to the tab bar
@@ -73,11 +79,20 @@ Ext.define('Ext.dirac.views.tabs.TabMenuPlugin', {
 
                 me.toolbar = new Ext.toolbar.Toolbar({
                       cls : 'x-tab-toolbar',
+                      //cls : Ext.baseCSSPrefix + 'box-scroller-' + this.position,
+                      enableOverflow : false,
                       renderTo : contentEl,
                       items : Ext.Array.from(this.items),
                       id : toolbarId
                     });
-                me.tabPanel.updateLayout();
+                
+               me.tabPanel.updateLayout();
+               var ownerContext = me.tabBar;
+               me.layout.publishInnerCtSize(ownerContext, 100);
+               //me.toolbar.getEl().insertBefore(scrollerEl);
+               
+
+               
 
               },
               beforedestroy : function() {
@@ -99,9 +114,10 @@ Ext.define('Ext.dirac.views.tabs.TabMenuPlugin', {
         result = Ext.getClass(me.layout.overflowHandler).prototype.handleOverflow.apply(me.layout.overflowHandler, arguments);
 
         var scrollerEl = me.tabBar.body.child('.' + Ext.baseCSSPrefix + 'box-scroller-' + this.position), contentEl = me.tabBar.body.createChild({
-              style : 'width:' + this.width + 'px;',
+              style : 'width:' + this.width + 'px;',// top:0; bottom:0; position:absolute; right:'+(this.width-result.reservedSpace-5)+'px;',
               cls : Ext.baseCSSPrefix + 'tab-toolbar-' + this.position
             }, scrollerEl);
+            
 
         // if scroller is not created (only one tab)
         // we need to add the floating style to the tab bar
@@ -117,9 +133,8 @@ Ext.define('Ext.dirac.views.tabs.TabMenuPlugin', {
               items : Ext.Array.from(this.items),
               id : toolbarId
             });
-
+        
         result.reservedSpace += contentEl.getWidth();
         return result;
       }
-
     });

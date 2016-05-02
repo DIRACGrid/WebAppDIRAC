@@ -5,7 +5,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.RightContainer', {
       extend : 'Ext.container.Container',
-      requires : ['Ext.dirac.views.tabs.TabPanel', 'Ext.dirac.views.tabs.Wallpaper', 'Ext.dirac.views.tabs.PresenterView', 'Ext.dirac.views.tabs.Panel', 'Ext.dirac.views.tabs.TabMenuPlugin', 'Ext.dirac.views.tabs.TabScrollerButton'],
+      requires : ['Ext.ux.desktop.TaskBar','Ext.ux.TabScrollerMenu','Ext.dirac.views.tabs.TabPanel', 'Ext.dirac.views.tabs.Wallpaper', 'Ext.dirac.views.tabs.PresenterView', 'Ext.dirac.views.tabs.Panel', 'Ext.dirac.views.tabs.TabMenuPlugin', 'Ext.dirac.views.tabs.TabScrollerButton'],
       xtype : 'diractabs',
       taskbar : null, // this is used by the desktop layout
       layout : 'fit',
@@ -407,11 +407,20 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                   isLoaded : isLoaded
                 });
           } else {
+            //Ext.ux.TabScrollerMenu
+          /*var scrollerMenu = new Ext.dirac.views.tabs.TabScrollerButton({
+                  maxText : 2,
+                  pageSize : 1
+                });*/
+  
+           // var scrollerMenu = new Ext.ux.desktop.TrayClock({flex:1});
+                
             tab = Ext.create('widget.tabPanel', {
                   region : 'center',
                   minWidth : 300,
                   title : name,
                   closable : true,
+                  //tabBarHeaderPosition: 'bottom',
                   type : 'desktop',
                   isLoaded : isLoaded,
                   bodyStyle : {
@@ -421,9 +430,36 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                     backgroundRepeat : 'no-repeat'
                   }
                 });
-            tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
-                  width : 60, // 30
-                  position : 'right',
+              //tab.addPlugin(scrollerMenu);
+              //tab.tabBar.add(scrollerMenu);
+              /*me.windbar = new Ext.toolbar.Toolbar({
+              layout : {
+                align : 'stretch'
+              },
+              items : {
+                flex : 1,
+                position : 'left',
+                cls : 'ux-desktop-windowbar',
+                items : ['&#160;'],
+                layout : {
+                  overflowHandler : 'Scroller'
+                }
+              }
+            });*/
+        //tab.tabBar.add(me.windbar);
+       /* me.tray = new Ext.toolbar.Toolbar({
+              items : {
+                layout : {
+                align : 'stretch'
+              },
+                position : 'left',
+                xtype : 'trayclock',
+                flex : 1
+              }
+            });
+              tab.tabBar.add(me.tray);*/
+             tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
+                  width : 80,
                   items : [{
                         xtype : "tabscrollerbutton",
                         tabPanel : tab,
@@ -431,7 +467,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                         maxText : 100,
                         pageSize : 5,
                         tooltip : "Jump to the selected application."
-                      }, {
+                      },{
                         xtype : "button",
                         glyph : '63',
                         tooltip : "It provides description of the active application.",
@@ -447,7 +483,8 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                         }
                       }]
                 }));
-            tab.initPlugin(tab.plugins[0]);
+            //tab.initPlugin(tab.plugins[0]);
+            //tab.initPlugin(tab.plugins[1]);
           }
 
           me.getApplicationContainer().add(tab);

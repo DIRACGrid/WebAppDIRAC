@@ -1,8 +1,7 @@
 Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       extend : 'Ext.dirac.core.Module',
 
-      requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging", "Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea",
-          "Ext.dirac.utils.DiracToolButton", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo', "Ext.dirac.utils.DiracPagingToolbar", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracBaseSelector",
+      requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging", "Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo', "Ext.dirac.utils.DiracPagingToolbar", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracBaseSelector",
           "Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracArrayStore"],
 
       loadState : function(data) {
@@ -642,11 +641,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
             });
 
         me.leftPanel.setGrid(me.grid);
-
-        me.grid.columns[1].setSortState("DESC");
+//TODO: UNCOMMNET
+      //  me.grid.columns[1].setSortState("DESC");
 
         /* Definition of the statistics panel */
-
+   
         me.statisticsGridComboMain = new Ext.form.field.ComboBox({
               allowBlank : false,
               displayField : 'set',

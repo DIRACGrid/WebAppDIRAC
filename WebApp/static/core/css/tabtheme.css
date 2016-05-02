@@ -73,9 +73,9 @@ pre {
     cursor:default;
 }
 
-.x-tab-toolbar-right { z-index: 6; float: right; }
+.x-tab-toolbar-right { z-index: 3; float: right; }
 .x-tab-toolbar-right .x-tab-toolbar { padding: 0 2px; border-width: 0 0 0 1px; }
-.x-tab-toolbar-left { z-index: 6; float: left; }
+.x-tab-toolbar-left { z-index: 3; float: left; }
 .x-tab-toolbar-left .x-tab-toolbar { padding: 0 2px; border-width: 0 1px 0 0; }
 
 @font-face {
