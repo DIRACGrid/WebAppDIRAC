@@ -114,7 +114,7 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
                     var hours = Math.floor(((newDate - currentTimestamp) % msDay) / msHour);
                     var minutes = Math.floor((((newDate - currentTimestamp) % msDay) % msHour) / msMinute);
 
-                    utcTime = days + " " + hours + ":" + minutes;
+                    utcTime = days + " " + GLOBAL.APP.CF.zfill(hours, 2) + ":" + GLOBAL.APP.CF.zfill(minutes, 2);
 
                   }
 
