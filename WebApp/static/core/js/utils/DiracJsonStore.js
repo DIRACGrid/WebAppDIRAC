@@ -122,7 +122,6 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
                     var minutes = Math.floor((((newDate - currentTimestamp) % msDay) % msHour) / msMinute);
 
                     utcTime = days + " " + GLOBAL.APP.CF.zfill(hours, 2) + ":" + GLOBAL.APP.CF.zfill(minutes, 2);
-
                 }
 
                 me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp = newDate;
