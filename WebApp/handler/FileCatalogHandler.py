@@ -332,9 +332,8 @@ class FileCatalogHandler( WebHandler ):
     retStrLines = []
 
     if len(result)>0:
-      for key , value in result.items() :
-        for fileName in value:
-          retStrLines.append(key+"/"+fileName)
+      for fileName in result:
+        retStrLines.append(fileName)
 
     strData = "\n".join(retStrLines)
 
