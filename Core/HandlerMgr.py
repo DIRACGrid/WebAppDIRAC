@@ -20,8 +20,8 @@ class HandlerMgr( object ):
     self.__baseURL = baseURL.strip( "/" )
     self.__routes = []
     self.__handlers = []
-    self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w-]*))?"
-    self.__shySetupGroupRE = r"(?:/s:(?:[\w-]*)/g:(?:[\w-]*))?"
+    self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w.-]*))?"
+    self.__shySetupGroupRE = r"(?:/s:(?:[\w-]*)/g:(?:[\w.-]*))?"
     self.log = gLogger.getSubLogger( "Routing" )
 
   def getPaths( self, dirName ):
