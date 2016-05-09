@@ -3,7 +3,7 @@ from DIRAC import gConfig, gLogger, rootPath
 from DIRAC import gLogger
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
-
+import re
 
 class RootHandler(WebHandler):
 
@@ -78,7 +78,11 @@ class RootHandler(WebHandler):
     data = self.request.arguments.get( "data", "" )[0]
     filename = self.request.arguments.get( "filename", "" )[0]
     
-    filepath = "%s/webRoot/www/pilot/%s" % ( rootPath, filename )
+    if re.match( "(?!\.)^[\w\d_\.]*$", filename ):
+      filepath = "%s/webRoot/www/pilot/%s" % ( rootPath, filename )
+    else:
+      raise WErr( 400, "Please provide a valid file name!" )
+    
     try:
       out_file = open( filepath, 'w' )      
       out_file.write( data )
