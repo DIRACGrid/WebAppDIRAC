@@ -458,7 +458,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               }
             });
               tab.tabBar.add(me.tray);*/
-             tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
+             /*tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
                   width : 80,
                   items : [{
                         xtype : "tabscrollerbutton",
@@ -482,7 +482,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
 
                         }
                       }]
-                }));
+                }));*/
             //tab.initPlugin(tab.plugins[0]);
             //tab.initPlugin(tab.plugins[1]);
           }

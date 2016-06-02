@@ -98,7 +98,7 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
           if (oStore.data.length > 0 && me.scope.grid && me.scope.grid.pagingToolbar) {
             var utcTime = null;
-            if (oStore.getProxy().getReader().metaData["date"]) {
+            if (oStore.getProxy().getReader().metaData && oStore.getProxy().getReader().metaData["date"]) {
               var newDate = Ext.Date.parse(Ext.String.trim(oStore.getProxy().getReader().metaData["date"].split("[UTC")[0]), "Y-m-d H:i");
               if (newDate) {
                 var currentTimestamp = me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp;

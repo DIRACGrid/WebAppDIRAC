@@ -16,7 +16,8 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       tabChangeTimeout : null,
       tabChangeCycle : 0,
       tabCounter : 0,
-       /*   tools : [{
+      tools : [],
+      tools : [{
             type : 'plus',
             tooltip : 'Add new tab',
             callback : function(tabpanel) {
@@ -24,7 +25,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
                     title : 'three'
                   });
             }
-          }],*/
+          }],
       view : 'tabView',
       // renderTo:Ext.getBody(),
       //TODO: This is for scrolling!!!!
