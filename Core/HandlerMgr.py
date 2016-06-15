@@ -112,7 +112,7 @@ class HandlerMgr( object ):
             self.__routes.append( ( route, handler ) )
             self.__routes.append( ( "%s(%s)" % ( baseRoute, handlerRoute ), CoreHandler, dict( action = 'addSlash' ) ) )
           else:
-            #Normal methods get the method appeded without web_
+            #Normal methods get the method appended without web_
             self.log.verbose( " - Route %s/%s ->  %s.%s" % ( handlerRoute, mName[4:], hn, mName ) )
             route = "%s(%s/%s)" % ( baseRoute, handlerRoute, mName[4:] )
             self.__routes.append( ( route, handler ) )
