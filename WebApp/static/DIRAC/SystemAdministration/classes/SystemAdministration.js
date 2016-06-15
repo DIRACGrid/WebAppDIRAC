@@ -1271,7 +1271,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
             if (oElems[i].checked) {
               iNumberSelected++;
               var oVal = oElems[i].value.split("|||");
-              var sTarget = oVal[0] + ' @ ' + oVal[1];
+              var sTarget = oVal[0] + '@' + oVal[1];
               if (!oParams[sTarget]) {
                 oParams[sTarget] = [];
               }
