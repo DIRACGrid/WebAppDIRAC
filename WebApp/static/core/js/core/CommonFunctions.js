@@ -281,7 +281,8 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
       },
       showAjaxErrorMessage : function(response) {
-
+        var me = this;
+        
         if (response.statusText == "transaction aborted")
           return;
 
@@ -307,7 +308,8 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
               shortMessage = response.responseText;
             }
 
-            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + response.statusText + ' .<br/>');
+           
+            me.log("error",'Operation failed: ' + response.statusText, response);
             Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + shortMessage + '.<br/>');
           } else {
             Ext.dirac.system_info.msg("Error Notification", "The reson of the failure is unknown!");

@@ -86,10 +86,12 @@ class WebHandler( tornado.web.RequestHandler ):
       try:
         result = method( *cargs, **ckwargs )
         ioloop.add_callback( functools.partial( cb, result ) )
-      except Exception, excp:
+      except Exception as excp:
+        gLogger.error( "Following exception occured %s" % excp )
         exc_info = sys.exc_info()
-        ioloop.add_callback( lambda : genTask.runner.handle_exception( *exc_info ) )
-
+        genTask.set_exc_info( exc_info )
+        ioloop.add_callback( lambda : genTask.exception() )
+        
     #Put the task in the thread :)
     def threadJob( tmethod, *targs, **tkwargs ):
       tkwargs[ 'callback' ] = tornado.stack_context.wrap( tkwargs[ 'callback' ] )
