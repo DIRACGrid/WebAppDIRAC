@@ -142,7 +142,7 @@ class App( object ):
     self.__app = tornado.web.Application( routes, **kw )
     self.log.notice( "Configuring HTTP on port %s" % ( Conf.HTTPPort() ) )
     # Create the web servers
-    srv = tornado.httpserver.HTTPServer( self.__app )
+    srv = tornado.httpserver.HTTPServer( self.__app, xheaders = True )
     port = Conf.HTTPPort()
     srv.listen( port )
     self.__servers[ ( 'http', port ) ] = srv
