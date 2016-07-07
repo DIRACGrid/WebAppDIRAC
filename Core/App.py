@@ -154,7 +154,8 @@ class App( object ):
       sslops = dict( certfile = Conf.HTTPSCert(),
                      keyfile = Conf.HTTPSKey(),
                      cert_reqs = ssl.CERT_OPTIONAL,
-                     ca_certs = Conf.generateCAFile() )
+                     ca_certs = Conf.generateCAFile(),
+                     ssl_version = ssl.PROTOCOL_TLSv1 ) 
 
       sslprotocol = str( Conf.SSLProrocol() )
       aviableProtocols = [ i for i in dir( ssl ) if  i.find( 'PROTOCOL' ) == 0]
@@ -171,6 +172,7 @@ class App( object ):
       srv.listen( port )
       self.__servers[ ( 'https', port ) ] = srv
     else:
+      #when NGINX is used then the Conf.HTTPS return False, it means tornado does not have to be configured using 443 port
       Conf.generateCAFile()  # if we use Nginx we have to generate the cas as well...
     return result
 
