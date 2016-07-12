@@ -167,7 +167,7 @@ class App( object ):
           gLogger.warn( message )
 
       self.log.debug( " - %s" % "\n - ".join( [ "%s = %s" % ( k, sslops[k] ) for k in sslops ] ) )
-      srv = tornado.httpserver.HTTPServer( self.__app, ssl_options = sslops )
+      srv = tornado.httpserver.HTTPServer( self.__app, ssl_options = sslops, xheaders = True )
       port = Conf.HTTPSPort()
       srv.listen( port )
       self.__servers[ ( 'https', port ) ] = srv
