@@ -2,6 +2,7 @@
 from DIRAC import gLogger
 from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.Core.Utilities.ThreadPoolExecutor import getGlobalThreadPool
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -18,7 +19,7 @@ import tornado.ioloop
 import tornado.gen
 import tornado.stack_context
 import tornado.websocket
-import concurrent.futures
+#import concurrent.futures
 
 class WErr( tornado.web.HTTPError ):
   def __init__( self, code, msg = "", **kwargs ):
@@ -52,7 +53,7 @@ def asyncGen( method ):
 
 class WebHandler( tornado.web.RequestHandler ):
 
-  __threadPool = concurrent.futures.ThreadPoolExecutor( 1000 )
+  __threadPool = getGlobalThreadPool()
   __disetConfig = ThreadConfig()
   __log = False
 
@@ -96,7 +97,7 @@ class WebHandler( tornado.web.RequestHandler ):
     def threadJob( tmethod, *targs, **tkwargs ):
       tkwargs[ 'callback' ] = tornado.stack_context.wrap( tkwargs[ 'callback' ] )
       targs = ( tmethod, self.__disetDump, targs )
-      self.__threadPool.submit( cbMethod, *targs, **tkwargs )
+      self.__threadPool.generateJobAndQueueIt( cbMethod, args = targs, kwargs = tkwargs )
 
     #Return a YieldPoint
     genTask = tornado.gen.Task( threadJob, method, *args, **kwargs )
