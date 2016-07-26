@@ -1,8 +1,8 @@
 
 from DIRAC import gLogger
+from DIRAC.Core.Utilities.ThreadPoolExecutor import getGlobalThreadPool
 from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.Core.Utilities.ThreadPoolExecutor import getGlobalThreadPool
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -19,7 +19,6 @@ import tornado.ioloop
 import tornado.gen
 import tornado.stack_context
 import tornado.websocket
-#import concurrent.futures
 
 class WErr( tornado.web.HTTPError ):
   def __init__( self, code, msg = "", **kwargs ):
