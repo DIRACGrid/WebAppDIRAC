@@ -200,13 +200,12 @@ Ext.define('Ext.dirac.utils.DiracTimeSearchPanel', {
 
         if ((iSpanValue != null) && (iSpanValue != 5)) {
 
-          var oNowJs = new Date();
+          var oLocalNowJs = new Date();
+          var oNowJs = Ext.Date.add(oLocalNowJs, Ext.Date.MINUTE, oLocalNowJs.getTimezoneOffset());
           var oBegin = null;
 
           switch (iSpanValue) {
             case 1 :
-              var utcHours = oNowJs.getUTCHours();
-              oNowJs.setHours(utcHours);
               oBegin = Ext.Date.add(oNowJs, Ext.Date.HOUR, -1);
               break;
             case 2 :
