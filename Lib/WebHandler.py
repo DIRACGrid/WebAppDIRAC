@@ -1,6 +1,5 @@
 
 from DIRAC import gLogger
-from DIRAC.Core.Utilities.ThreadPool import getGlobalThreadPool
 from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
@@ -19,6 +18,15 @@ import tornado.ioloop
 import tornado.gen
 import tornado.stack_context
 import tornado.websocket
+
+global gMissingLibrary
+gMissingLibrary = False
+try:
+  from concurrent.futures import ThreadPoolExecutor
+except ImportError:
+  from DIRAC.Core.Utilities.ThreadPoolExecutor import getGlobalThreadPool
+  gMissingLibrary = True
+  
 
 class WErr( tornado.web.HTTPError ):
   def __init__( self, code, msg = "", **kwargs ):
@@ -52,7 +60,11 @@ def asyncGen( method ):
 
 class WebHandler( tornado.web.RequestHandler ):
 
-  __threadPool = getGlobalThreadPool()
+  global gMissingLibrary
+  if gMissingLibrary:
+    __threadPool = getGlobalThreadPool()
+  else:
+    __threadPool = ThreadPoolExecutor(500)
   __disetConfig = ThreadConfig()
   __log = False
 
@@ -69,7 +81,7 @@ class WebHandler( tornado.web.RequestHandler ):
   def threadTask( self, method, *args, **kwargs ):
     """
     Helper method to generate a gen.Task and automatically call the callback when the real
-    method ends. THIS IS SPARTAAAAAAAAAA
+    method ends. THIS IS SPARTAAAAAAAAAA. SPARTA has improved using futures ;)
     """
     #Save the task to access the runner
     genTask = False
@@ -96,8 +108,12 @@ class WebHandler( tornado.web.RequestHandler ):
     def threadJob( tmethod, *targs, **tkwargs ):
       tkwargs[ 'callback' ] = tornado.stack_context.wrap( tkwargs[ 'callback' ] )
       targs = ( tmethod, self.__disetDump, targs )
-      self.__threadPool.generateJobAndQueueIt( cbMethod, args = targs, kwargs = tkwargs )
-
+      global gMissingLibrary
+      if gMissingLibrary:
+        self.__threadPool.generateJobAndQueueIt( cbMethod, args = targs, kwargs = tkwargs )
+      else:
+        self.__threadPool.submit( cbMethod, *targs, **tkwargs )
+      
     #Return a YieldPoint
     genTask = tornado.gen.Task( threadJob, method, *args, **kwargs )
     return genTask
