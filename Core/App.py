@@ -6,6 +6,10 @@ import tornado.web
 import tornado.httpserver
 import tornado.autoreload
 import tornado.process
+import signal
+import sys
+import DIRAC
+
 from DIRAC import gLogger, gConfig
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
@@ -13,7 +17,7 @@ from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
 from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
-import DIRAC
+
 
 class App( object ):
 
@@ -110,7 +114,22 @@ class App( object ):
       isLoaded = False
 
     return isLoaded
-
+  
+  def stopChildProcesses( self, sig, frame ):
+    """
+    It is used to properly stop tornado when more than one process is used.
+    In principle this is doing the job of runsv....
+    :param int sig: the signal sent to the process
+    :param object frame: execution frame which contains the child processes
+    """
+    # tornado.ioloop.IOLoop.instance().add_timeout(time.time()+5, sys.exit)
+    for child in frame.f_locals.get( 'children', [] ):
+      gLogger.info( "Stopping child processes: %d" % child )
+      os.kill( child, signal.SIGTERM )
+    # tornado.ioloop.IOLoop.instance().stop()
+    # gLogger.info('exit success')
+    sys.exit( 0 )
+ 
   def bootstrap( self ):
     """
     Configure and create web app
@@ -130,7 +149,12 @@ class App( object ):
     # Create the app
     tLoader = TemplateLoader( self.__handlerMgr.getPaths( "template" ) )
     kw = dict( debug = Conf.devMode(), template_loader = tLoader, cookie_secret = Conf.cookieSecret(),
-               log_function = self._logRequest )
+               log_function = self._logRequest, autoreload = Conf.numProcesses() < 2 )
+    
+    #please do no move this lines. The lines must be before the fork_processes
+    signal.signal(signal.SIGTERM, self.stopChildProcesses)
+    signal.signal(signal.SIGINT, self.stopChildProcesses)
+    
     # Check processes if we're under a load balancert
     if Conf.balancer() and Conf.numProcesses() not in ( 0, 1 ):
       tornado.process.fork_processes( Conf.numProcesses(), max_restarts = 0 )
