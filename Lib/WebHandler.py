@@ -24,7 +24,7 @@ gMissingLibrary = False
 try:
   from concurrent.futures import ThreadPoolExecutor
 except ImportError:
-  from DIRAC.Core.Utilities.ThreadPoolExecutor import getGlobalThreadPool
+  from DIRAC.Core.Utilities.ThreadPool import getGlobalThreadPool
   gMissingLibrary = True
   
 
