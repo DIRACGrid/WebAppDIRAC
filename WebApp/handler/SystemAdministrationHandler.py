@@ -76,7 +76,9 @@ class SystemAdministrationHandler( WebHandler ):
       if 'Extension' in callback[ i ]:
         #We have to keep the backward compatibility (this can heppen when we do not update one host to v6r15 ...
         callback[ i ][ 'DIRAC' ] = '%s,%s' % ( callback[ i ].get( 'DIRACVersion', callback[ i ].get( 'DIRAC' ) ) , callback[ i ][ 'Extension' ] )
-      
+      elif 'Extensions' in callback[ i ]:
+        callback[ i ][ 'DIRAC' ] = '%s,%s' % ( callback[ i ].get( 'DIRAC', callback[ i ].get( 'DIRAC' ) ) , callback[ i ][ 'Extensions' ] )
+    
     self.finish( { "success" : "true" , "result" : callback , "total" : total } )
 
   @asyncGen
