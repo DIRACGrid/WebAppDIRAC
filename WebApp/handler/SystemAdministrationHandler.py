@@ -73,9 +73,9 @@ class SystemAdministrationHandler( WebHandler ):
 
     # Add the information about the extensions' versions, if available, to display along with the DIRAC version
     for i in range( len( callback ) ):
-      if 'Extensions' in callback[ i ]:
+      if 'Extension' in callback[ i ]:
         #We have to keep the backward compatibility (this can heppen when we do not update one host to v6r15 ...
-        callback[ i ][ 'DIRAC' ] = '%s,%s' % ( callback[ i ].get( 'DIRACVersion', callback[ i ].get( 'DIRAC' ) ) , callback[ i ][ 'Extensions' ] )
+        callback[ i ][ 'DIRAC' ] = '%s,%s' % ( callback[ i ].get( 'DIRACVersion', callback[ i ].get( 'DIRAC' ) ) , callback[ i ][ 'Extension' ] )
       
     self.finish( { "success" : "true" , "result" : callback , "total" : total } )
 
