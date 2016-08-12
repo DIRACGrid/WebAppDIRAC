@@ -57,8 +57,9 @@ class SystemAdministrationHandler( WebHandler ):
                                             delegatedGroup = group )
         resultHost = yield self.threadTask( client.getHostInfo )
         if resultHost[ "OK" ]:
-          rec = resultHost[ "Value" ]
-          rec[ "Host" ] = host
+          resultHost[ "Value" ][ "Host" ] = host  
+          if "Timestamp" in resultHost[ "Value" ]: 
+            resultHost[ "Value" ][ "Timestamp" ] = str( resultHost[ "Value" ][ "Timestamp" ] )
           callback.append( resultHost[ "Value" ] )
         else:
           callback.append( { "Host":host } )
@@ -73,8 +74,9 @@ class SystemAdministrationHandler( WebHandler ):
     # Add the information about the extensions' versions, if available, to display along with the DIRAC version
     for i in range( len( callback ) ):
       if 'Extension' in callback[ i ]:
-        callback[ i ][ 'DIRAC' ] = '%s,%s' % ( callback[ i ][ 'DIRAC' ], callback[ i ][ 'Extension' ] )
-
+        #We have to keep the backward compatibility (this can heppen when we do not update one host to v6r15 ...
+        callback[ i ][ 'DIRAC' ] = '%s,%s' % ( callback[ i ].get( 'DIRACVersion', callback[ i ].get( 'DIRAC' ) ) , callback[ i ][ 'Extension' ] )
+      
     self.finish( { "success" : "true" , "result" : callback , "total" : total } )
 
   @asyncGen
