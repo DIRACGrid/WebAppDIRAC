@@ -5,6 +5,11 @@ from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 import re
 
+def xss_filter(text):
+  cleanr =re.compile('<.*?>')
+  cleantext = re.sub(cleanr,'', text)
+  return cleantext
+
 class RootHandler(WebHandler):
 
   AUTH_PROPS = "all"
@@ -45,11 +50,11 @@ class RootHandler(WebHandler):
 
     url_state = ""
     if self.request.arguments.has_key("url_state") and len(self.request.arguments["url_state"][0]) > 0:
-      url_state = self.request.arguments["url_state"][0]
+      url_state = xss_filter( self.request.arguments["url_state"][0] )
 
     view_name = Conf.getTheme()
     if self.request.arguments.has_key("view") and len(self.request.arguments["view"][0]) > 0:
-      view_name = self.request.arguments["view"][0]
+      view_name = xss_filter( self.request.arguments["view"][0] )
 
     theme_name = "ext-all-gray"
     if self.request.arguments.has_key("theme") and len(self.request.arguments["theme"][0]) > 0:
@@ -60,7 +65,7 @@ class RootHandler(WebHandler):
 
     open_app = ""
     if self.request.arguments.has_key("open_app") and len(self.request.arguments["open_app"][0]) > 0:
-      open_app = self.request.arguments["open_app"][0].strip()
+      open_app = xss_filter( self.request.arguments["open_app"][0].strip() )
 
     icon = data[ 'baseURL' ] + Conf.getIcon()
 
