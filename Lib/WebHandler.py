@@ -19,14 +19,10 @@ import tornado.gen
 import tornado.stack_context
 import tornado.websocket
 
-global gMissingLibrary
-gMissingLibrary = False
-try:
-  from concurrent.futures import ThreadPoolExecutor
-except ImportError:
-  from DIRAC.Core.Utilities.ThreadPool import getGlobalThreadPool
-  gMissingLibrary = True
-  
+from concurrent.futures import ThreadPoolExecutor
+
+global gThreadPool
+gThreadPool = ThreadPoolExecutor( 500 )
 
 class WErr( tornado.web.HTTPError ):
   def __init__( self, code, msg = "", **kwargs ):
@@ -60,11 +56,6 @@ def asyncGen( method ):
 
 class WebHandler( tornado.web.RequestHandler ):
 
-  global gMissingLibrary
-  if gMissingLibrary:
-    __threadPool = getGlobalThreadPool()
-  else:
-    __threadPool = ThreadPoolExecutor(500)
   __disetConfig = ThreadConfig()
   __log = False
 
@@ -108,11 +99,7 @@ class WebHandler( tornado.web.RequestHandler ):
     def threadJob( tmethod, *targs, **tkwargs ):
       tkwargs[ 'callback' ] = tornado.stack_context.wrap( tkwargs[ 'callback' ] )
       targs = ( tmethod, self.__disetDump, targs )
-      global gMissingLibrary
-      if gMissingLibrary:
-        self.__threadPool.generateJobAndQueueIt( cbMethod, args = targs, kwargs = tkwargs )
-      else:
-        self.__threadPool.submit( cbMethod, *targs, **tkwargs )
+      gThreadPool.submit( cbMethod, *targs, **tkwargs )
       
     #Return a YieldPoint
     genTask = tornado.gen.Task( threadJob, method, *args, **kwargs )
