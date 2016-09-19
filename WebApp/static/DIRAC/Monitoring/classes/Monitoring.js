@@ -1,77 +1,23 @@
+/*******************************************************************************
+ * It is allow to manage more than one plots in a single application. The
+ * RightPanle is replaced to a Presenter widget.
+ */
 Ext.define('DIRAC.Monitoring.classes.Monitoring', {
       extend : 'Ext.dirac.core.Module',
-      requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button",
+      requires : ['DIRAC.Accounting.classes.Presenter', "DIRAC.Accounting.classes.Image", 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button",
           "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record"],
-
+      timeout : 7200000, // 2 hours
       loadState : function(oData) {
-
         var me = this;
-        me.__stretchPlotMode = (oData.__stretchPlotMode == 1);
-
-        me.btnRefreshMenu.timeSpan = parseInt(oData.__auto_refresh_time, 10);
-
-        switch (me.btnRefreshMenu.timeSpan) {
-
-          case 0 :
-            me.btnRefreshMenu.setText("Auto refresh : Disabled");
-            break;
-          case 900000 :
-            me.btnRefreshMenu.setText("Auto refresh : Each 15m");
-            break;
-          case 3600000 :
-            me.btnRefreshMenu.setText("Auto refresh : Each hour");
-            break;
-          case 86400000 :
-            me.btnRefreshMenu.setText("Auto refresh : Each day");
-            break;
-
-        }
-
-        me.__loadSelectionData(oData.plotParams);
-
-        if (me.btnRefreshMenu.timeSpan != 0) {
-
-          clearInterval(me.rightPanel.refreshTimeout);
-          me.rightPanel.refreshTimeout = setInterval(function() {
-
-                Ext.Ajax.request({
-                      url : GLOBAL.BASE_URL + 'Monitoring/generatePlot',
-                      params : me.plotParams,
-                      success : function(responseImg) {
-
-                        responseImg = Ext.JSON.decode(responseImg.responseText);
-
-                        if (responseImg["success"]) {
-
-                          me.plotImage.setSrc(GLOBAL.BASE_URL + "Monitoring/getPlotImg?file=" + responseImg["data"] + "&nocache=" + (new Date()).getTime());
-                          me.rightPanel.setLoading('Loading Image ...');
-
-                        }
-                      }
-                    });
-
-              }, me.btnRefreshMenu.timeSpan);
-
-        }
-
+        me.rightPanel.loadState(oData);
       },
-
-      /*
-       * PARTLY DONE
-       */
       getStateData : function() {
-
         var me = this;
-        var oReturn = {};
-
-        oReturn.plotParams = me.__getSelectionParametars("save_state");
-        oReturn.__stretchPlotMode = ((me.__stretchPlotMode) ? 1 : 0);
-        oReturn.__auto_refresh_time = me.btnRefreshMenu.timeSpan;
+        var oReturn = me.rightPanel.getStateData();
 
         return oReturn;
-
       },
-
+      
       initComponent : function() {
         var me = this;
 
@@ -117,16 +63,10 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
         me.callParent(arguments);
 
       },
-
+      
       buildUI : function() {
-
         var me = this;
-
-        /*
-         * -----------------------------------------------------------------------------------------------------------
-         * DEFINITION OF THE LEFT PANEL
-         * -----------------------------------------------------------------------------------------------------------
-         */
+        me.callParent();
 
         me.leftPanel = new Ext.create('Ext.panel.Panel', {
               region : "west",
@@ -141,19 +81,26 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
               autoScroll : true
             });
 
-        me.rightPanel = new Ext.create('Ext.panel.Panel', {
+        me.rightPanel = Ext.create('DIRAC.Accounting.classes.Presenter', {
               region : "center",
               floatable : false,
-              header : false,
+              header : true,
               margins : '0',
               bodyPadding : 0,
-              layout : "border"
+              parent : me
+              
             });
 
         me.descPlotType = {
           WMSHistory : {
             title : "WMS History",
             selectionConditions : [["User", "User"], ["UserGroup", "User Group"], ["Status", "Major Status"], ["MinorStatus", "Minor Status"], ["ApplicationStatus", "Application Status"], ["Site", "Site"], ["JobGroup", "Job Group"], ["JobSplitType", "Job Split Type"]]
+
+          },
+           
+          ComponentMonitoring : {
+            title : "Component Monitoring",
+            selectionConditions : [["host", "Host"], ["component", "Component"], ["pid", "PID"], ["status", "Status"]]
 
           }
         };
@@ -167,7 +114,7 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
               anchor : '100%',
               store : new Ext.data.ArrayStore({
                     fields : ['value', 'text'],
-                    data : [ ["WMSHistory", "WMS Monitoring"] ]
+                    data : [ ["WMSHistory", "WMS Monitoring"], ["ComponentMonitoring", "Component Monitoring"]]
                   }),
               listeners : {
                 change : function(field, newValue, oldValue, eOpts) {
@@ -231,7 +178,7 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
               value : 86400,
               store : new Ext.data.ArrayStore({
                     fields : ['value', 'text'],
-                    data : [[3600, "Last Hour"], [86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]]
+                    data : [[86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]]
                   }),
               listeners : {
                 change : function(field, newValue, oldValue, eOpts) {
@@ -299,7 +246,6 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
             });
 
         me.advancedPlotTitle = Ext.create('Ext.form.field.Text', {
-
               fieldLabel : "Plot Title",
               labelAlign : 'top',
               anchor : "100%"
@@ -318,51 +264,23 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
         me.leftPanel.add([me.cmbDomain, me.cmbPlotGenerate, me.cmbGroupBy, me.fsetTimeSpan, me.fsetSpecialConditions, me.fsetAdvanced]);
 
         me.btnPlot = new Ext.Button({
-
+              tooltip : 'It creates a new plot',
               text : 'New',
               margin : 3,
-              iconCls : "accp-img-new-plot",
+              iconCls : "accp-submit-icon",
               handler : function() {
 
-                if (GLOBAL.VIEW_ID = "desktop") {
-                  var oSetupData = {};
-
-                  oSetupData.x = me.getContainer().x + 10;
-                  oSetupData.y = me.getContainer().y + 10;
-                  oSetupData.width = me.getContainer().getWidth();
-                  oSetupData.height = me.getContainer().getHeight();
-                  oSetupData.currentState = "";
-
-                  oSetupData.desktopStickMode = 0;
-                  oSetupData.hiddenHeader = 1;
-                  oSetupData.i_x = 0;
-                  oSetupData.i_y = 0;
-                  oSetupData.ic_x = 0;
-                  oSetupData.ic_y = 0;
-
-                  oSetupData.data = {
-                    plotParams : me.__getSelectionParametars("save_state"),
-                    __stretchPlotMode : (me.__stretchPlotMode ? 1 : 0),
-                    __auto_refresh_time : me.btnRefreshMenu.timeSpan
-                  };
-
-                  GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
-                        objectType : "app",
-                        moduleName : "DIRAC.Monitoring.classes.Monitoring",
-                        setupData : oSetupData
-                      });
-                }
-
+                me.__generatePlot(null, null, true);
               },
               scope : me
 
             });
 
         me.btnReset = new Ext.Button({
-
+              tooltip : 'It reset the Selection panel.',
               text : 'Reset',
               margin : 3,
-              iconCls : "dirac-icon-reset",
+              iconCls : "accp-reset-icon",
               handler : function() {
                 me.__resetSelectionWindow();
               },
@@ -371,15 +289,16 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
             });
 
         me.btnRefresh = new Ext.Button({
-
+              tooltip : 'It refreshes the Selection panel.',
               text : 'Refresh',
               margin : 3,
-              iconCls : "dirac-icon-refresh",
+              iconCls : "accp-refresh-icon",
               handler : function() {
 
                 me.leftPanel.body.mask("Wait ...");
                 Ext.Ajax.request({
                       url : GLOBAL.BASE_URL + 'Monitoring/getSelectionData',
+                      timeout : me.timeout,
                       method : 'POST',
                       params : {
                         type : me.cmbDomain.getValue()
@@ -392,7 +311,12 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
                         if (oResult["success"] == "true")
                           me.applySpecialConditions(oResult);
                         else
-                          GLOBAL.APP.CF.alert(oResult["error"], "error");
+                          alert(oResult["error"]);
+                        me.leftPanel.body.unmask();
+                      },
+                      failure : function(response, opt) {
+                        GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                        me.rightPanel.body.unmask();
                         me.leftPanel.body.unmask();
                       }
                     });
@@ -407,389 +331,330 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
          * already generated.
          */
         me.btnRefreshPlot = new Ext.Button({
-
-              text : 'Plot',
+              tooltip : 'It updates the selected plot.',
+              text : 'Apply',
               margin : 3,
-              iconCls : "dirac-icon-submit",
+              iconCls : "dirac-icon-upload",
               handler : function() {
-                me.__generatePlot();
+                image = me.rightPanel.getLastClickedImage();
+                if (image != null) {
+                  me.__generatePlot(image, null);
+                } else {
+                  Ext.dirac.system_info.msg("Notification", 'Please select an image what you want to change!');
+                }
               },
               scope : me
 
+            });
+
+        me.btnApplyAll = new Ext.Button({
+              tooltip : 'The time span will be applied to all plots',
+              text : 'ApplyAll',
+              margin : 3,
+              iconCls : "dirac-icon-upload",
+              handler : function() {
+                var me = this;
+                var oParamsData = me.__getSelectionParametars("show_plot");
+                me.rightPanel.applyTimeSpan(oParamsData);
+              },
+              scope : me
             });
 
         var oPanelButtons = new Ext.create('Ext.toolbar.Toolbar', {
-              items : [me.btnRefreshPlot, me.btnPlot, me.btnReset, me.btnRefresh],
-              dock : 'bottom',
-              layout : {
-                pack : 'center'
-              }
+              items : [me.btnPlot, me.btnRefreshPlot, me.btnReset, me.btnRefresh, me.btnApplyAll],
+              layout : 'column',
+              columnWidth : 3,
+              dock : 'bottom'
             });
 
         me.leftPanel.addDocked(oPanelButtons);
-
-        /*
-         * -----------------------------------------------------------------------------------------------------------
-         * DEFINITION OF THE MAIN CONTAINER
-         * -----------------------------------------------------------------------------------------------------------
-         */
-        me.plotParams = {};
         me.add([me.leftPanel, me.rightPanel]);
-        me.plotImage = null;
-        me.rightPanel.onResize = function(width, height, oldWidth, oldHeight) {
 
-          me.__oprResizeImageAccordingToContainer();
+      },
+      __generatePlot : function(image, oLoadState, selectAddedPlot) {
+
+        var me = this;
+        var oParams = null;
+
+        if (oLoadState == null) {
+
+          if (!me.__validateConditions(true)) {
+            if (me.rightPanel.body) {
+              me.rightPanel.body.unmask();
+            }
+            if (me.leftPanel.body) {
+              me.leftPanel.body.unmask();
+            }
+            return;
+          }
+
+          oParams = me.__getSelectionParametars("show_plot");
+
+        } else {
+
+          oParams = oLoadState["params"];
+
+        }
+
+        if (image) {
+          image.setLoading(true);
+          Ext.Ajax.request({
+                url : GLOBAL.BASE_URL + 'Monitoring/generatePlot',
+                timeout : me.timeout,
+                params : oParams,
+                scope : me,
+                success : function(response) {
+                  var me = this;
+
+                  me.leftPanel.body.unmask();
+
+                  var response = Ext.JSON.decode(response.responseText);
+
+                  if (response["success"]) {
+
+                    var src = GLOBAL.BASE_URL + "Monitoring/getPlotImg?file=" + response["data"];
+
+                    var params = {
+                      'src' : src,
+                      'params' : oParams
+                    };
+                    me.rightPanel.replaceImage(image, params);
+
+                  } else {
+                    GLOBAL.APP.CF.alert(response["errors"], "error");
+                  }
+
+                },
+                failure : function(response, opt) {
+
+                  GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                  if (me.rightPanel.body) {
+                    me.rightPanel.body.unmask();
+                  }
+                  if (me.leftPanel.body) {
+                    me.leftPanel.body.unmask();
+                  }
+
+                }
+              });
+        } else {
+
+          if (me.rightPanel.body) {
+            me.rightPanel.body.unmask();
+          }
+          if (me.leftPanel.body) {
+            me.leftPanel.body.unmask();
+          }
+
+          var width = 99 / me.rightPanel.columnWidth;
+          width = '.' + Math.round(width);
+          var oImg = Ext.create('DIRAC.Accounting.classes.Image', {
+                plotParams : oParams,
+                columnWidth : width,
+                rightPanel : me.rightPanel,
+                leftPanel : me.leftPanel,
+                listeners : {
+
+                  afterrender : function(me) {
+                    me.el.on({
+                          load : function(evt, ele, opts) {
+                            me.setLoading(false);
+                            if (me.isSetSrc) {
+                              if (me.rightPanel.body) {
+                                me.rightPanel.body.unmask();
+                              }
+                              if (me.leftPanel.body) {
+                                me.leftPanel.body.unmask();
+                              }
+                              me.isSetSrc = false;
+                            } else {
+                              if (selectAddedPlot) {
+                                var lastClickedImg = me.rightPanel.getLastClickedImage();
+                                if (lastClickedImg) {
+                                  me.rightPanel.unselectImage(lastClickedImg);
+                                }
+                                me.rightPanel.selectImage(me);
+                              }
+                            }
+                          }
+                        });
+                  },
+
+                  added : function(container, pos, eOpts) {
+                    var me = this;
+
+                    Ext.Ajax.request({
+                          url : GLOBAL.BASE_URL + 'Monitoring/generatePlot',
+                          timeout : me.timeout,
+                          params : oParams,
+                          scope : me,
+                          success : function(response) {
+                            var me = this;
+
+                            if (me.leftPanel.body) {
+                              me.leftPanel.body.unmask();
+                            }
+
+                            var response = Ext.JSON.decode(response.responseText);
+
+                            if (response["success"]) {
+
+                              var src = GLOBAL.BASE_URL + "Monitoring/getPlotImg?file=" + response["data"];
+
+                              me.setSrc(src);
+
+                              me.setLoading(true);
+
+                            } else {
+                              GLOBAL.APP.CF.alert(response["errors"], "error");
+                            }
+
+                          },
+                          failure : function(response, opt) {
+
+                            GLOBAL.APP.CF.showAjaxErrorMessage(response);
+
+                            if (me.rightPanel.body) {
+                              me.rightPanel.body.unmask();
+                            }
+                            if (me.leftPanel.body) {
+                              me.leftPanel.body.unmask();
+                            }
+
+                            me.setLoading(false);
+
+                          }
+                        });
+
+                  }
+                }
+              });
+
+          me.rightPanel.addImage(oImg);
+
+        }
+
+      },
+      __loadSelectionData : function(oParams) {
+
+        var me = this;
+
+        me.plotParams = oParams;
+
+        if (!("_typeName" in oParams))
+          return;
+
+        me.__additionalDataLoad = function() {
+
+          me.cmbGroupBy.setValue(oParams["_grouping"]);
+          me.cmbPlotGenerate.setValue(oParams["_plotName"]);
+          me.cmbTimeSpan.setValue(oParams["_timeSelector"]);
+
+          me.calendarFrom.hide();
+          me.calendarTo.hide();
+          me.cmbQuarter.hide();
+
+          switch (oParams["_timeSelector"]) {
+
+            case -1 :
+              me.calendarFrom.setValue(oParams["_startTime"]);
+              me.calendarTo.setValue(oParams["_endTime"]);
+              me.calendarFrom.show();
+              me.calendarTo.show();
+              break;
+
+            case -2 :
+              var oNewQuartersArray = [];
+
+              for (var i = 0; i < oParams["_quarters"].length; i++)
+                oNewQuartersArray.push(parseInt(oParams["_quarters"][i].replace(" Q", "")));
+
+              me.cmbQuarter.setValue(oNewQuartersArray);
+              me.cmbQuarter.show();
+              break;
+
+          }
+
+          me.advancedPlotTitle.setValue(oParams["_plotTitle"]);
+
+          if ("_pinDates" in oParams) {
+
+            if (oParams["_pinDates"] == "true")
+              me.advancedPin.setValue(true);
+            else
+              me.advancedPin.setValue(false);
+
+          } else
+            me.advancedPin.setValue(false);
+
+          if ("_ex_staticUnits" in oParams) {
+
+            if (oParams["_ex_staticUnits"] == "true")
+              me.advancedNotScaleUnits.setValue(true);
+            else
+              me.advancedNotScaleUnits.setValue(false);
+
+          } else
+            me.advancedNotScaleUnits.setValue(false);
+
+          for (var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
+
+            me.fsetSpecialConditions.items.getAt(i).setValue(null);
+
+          }
+
+          var oStandardParamsList = ["_grouping", "_plotName", "_typeName", "_timeSelector", "_startTime", "_endTime", "_plotTitle", "_pinDates", "_ex_staticUnits"];
+
+          for (var oParam in oParams) {
+
+            // first we check whether the param is not someone form the
+            // default ones
+            var oFound = false;
+
+            for (var i = 0; i < oStandardParamsList.length; i++) {
+
+              if (oParam == oStandardParamsList[i]) {
+
+                oFound = true;
+                break;
+
+              }
+
+            }
+
+            if (!oFound) {
+
+              for (var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
+
+                var oNewUnderlinedName = "_" + me.fsetSpecialConditions.items.getAt(i).getName();
+
+                if (oNewUnderlinedName == oParam) {
+
+                  me.fsetSpecialConditions.items.getAt(i).setInverseSelection((oParams[oParam][0] == 1));
+                  me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam].split(","));
+
+                  break;
+
+                }
+
+              }
+
+            }
+
+          }
 
         };
 
-        me.btnStretchPlot = new Ext.Button({
+        if (me.cmbDomain.getValue() == oParams["_typeName"]) {
 
-              text : 'Proportional',
-              iconCls : "dirac-icon-proportional",
-              handler : function() {
-
-                me.__stretchPlotMode = !me.__stretchPlotMode;
-                me.__oprResizeImageAccordingToContainer();
-                if (me.__stretchPlotMode) {
-
-                  me.btnStretchPlot.setText("Proportional");
-                  me.btnStretchPlot.setIconCls("dirac-icon-proportional");
-
-                } else {
-
-                  me.btnStretchPlot.setText("Stretch");
-                  me.btnStretchPlot.setIconCls("dirac-icon-stretch");
-
-                }
-              },
-              scope : me
-
-            });
-
-        me.refreshMenu = new Ext.menu.Menu({
-              items : [{
-                    text : 'Disabled',
-                    value : 0
-                  }, {
-                    text : 'Each 15m',
-                    value : 900000
-                  }, {
-                    text : 'Each hour',
-                    value : 3600000
-                  }, {
-                    text : 'Each day',
-                    value : 86400000
-                  }],
-              listeners : {
-                click : function(menu, menuItem, e, eOpts) {
-
-                  if (menuItem.value == 0) {
-                    clearInterval(me.rightPanel.refreshTimeout);
-                  } else {
-                    clearInterval(me.rightPanel.refreshTimeout);
-                    me.rightPanel.refreshTimeout = setInterval(function() {
-
-                          Ext.Ajax.request({
-                                url : GLOBAL.BASE_URL + 'Monitoring/generatePlot',
-                                params : me.plotParams,
-                                success : function(responseImg) {
-
-                                  responseImg = Ext.JSON.decode(responseImg.responseText);
-
-                                  if (responseImg["success"]) {
-
-                                    me.plotImage.setSrc(GLOBAL.BASE_URL + "Monitoring/getPlotImg?file=" + responseImg["data"] + "&nocache=" + (new Date()).getTime());
-                                    me.rightPanel.setLoading('Loading Image ...');
-
-                                  }
-                                }
-                              });
-
-                        }, menuItem.value);
-                  }
-
-                  menuItem.parentMenu.up('button').setText("Auto refresh : " + menuItem.text);
-                  menuItem.parentMenu.up('button').timeSpan = menuItem.value;
-                }
-              }
-            });
-
-        me.btnRefreshMenu = new Ext.Button({
-
-              menu : me.refreshMenu,
-              text : "Auto refresh :  Disabled",
-              timeSpan : 0,
-              iconCls : "dirac-icon-refresh"
-
-            });
-
-        me.__additionalDataLoad = null;
-        me.__stretchPlotMode = true;
-
-      },
-
-      /*
-       * OK
-       */
-      __fillComboQuarter : function() {
-
-        var me = this;
-
-        var oStore = me.cmbQuarter.getStore();
-        oStore.removeAll();
-
-        var now = new Date();
-
-        var currentQ = Math.floor(now.getUTCMonth() / 3) + 1;
-        var currentYear = now.getUTCFullYear();
-
-        var oRecords = [];
-
-        do {
-          var recLabel = "" + currentYear + " Q" + currentQ;
-          var recValue = currentYear * 10 + currentQ;
-
-          oRecords.push([recValue, recLabel]);
-
-          currentQ = currentQ - 1;
-
-          if (currentQ == 0) {
-            currentQ = 4;
-            currentYear = currentYear - 1;
-          }
-
-        } while (oRecords.length < 8);
-
-        var oNewStore = new Ext.data.ArrayStore({
-              fields : ['value', 'text'],
-              data : oRecords
-            });
-
-        me.cmbQuarter.bindStore(oNewStore);
-
-      },
-
-      /*
-       * OK
-       */
-      __resetSelectionWindow : function() {
-
-        var me = this;
-
-        me.cmbGroupBy.setValue(null);
-        me.cmbPlotGenerate.setValue(null);
-        me.calendarFrom.setValue(null);
-        me.calendarTo.setValue(null);
-        me.cmbTimeSpan.setValue(86400);
-
-        me.advancedPin.setValue(false);
-        me.advancedNotScaleUnits.setValue(false);
-        me.advancedPlotTitle.setValue("");
-        me.fsetSpecialConditions.removeAll();
-        me.cmbDomain.setValue(null);
-
-      },
-
-      applyDataToSelection : function(oData, sValue) {
-
-        var me = this;
-
-        var oList = oData["result"]["plotsList"];
-
-        me.__oprDoubleElementItemList(oList);
-
-        var oStore = new Ext.data.ArrayStore({
-              fields : ['value', 'text'],
-              data : oList
-            });
-
-        me.cmbPlotGenerate.setValue(null);
-
-        me.cmbPlotGenerate.bindStore(oStore);
-
-        var oSelectionData = oData["result"]["selectionValues"];
-
-        var oSelectionOptions = me.descPlotType[sValue]["selectionConditions"];
-
-        me.fsetSpecialConditions.removeAll();
-
-        var oListForGroup = [];
-
-        for (var i = 0; i < oSelectionOptions.length; i++) {
-
-          oListForGroup.push([oSelectionOptions[i][0], oSelectionOptions[i][0]]);
-
-          if ((oSelectionOptions[i][0] == "User") || (oSelectionOptions[i][0] == "UserGroup")) {
-            var allowedProperties = ["CSAdministrator", "JobAdministrator", "JobMonitor", "UserManager", "Operator", "ProductionManagement"];
-            var found = false;
-            for (var j = 0; j < allowedProperties.length; j++) { // Only
-              // powerfull
-              // users can
-              // choose the
-              // User and
-              // UserGroup
-              if (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, allowedProperties[j]) != -1) {
-                found = true;
-                break;
-              }
-            }
-            if (!found) {
-              continue;
-            }
-
-          }
-
-          var oList = oSelectionData[oSelectionOptions[i][0]];
-
-          me.__oprDoubleElementItemList(oList);
-
-          var oMultiList = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
-                fieldLabel : oSelectionOptions[i][1],
-                displayField : "text",
-                valueField : "value",
-                anchor : '100%',
-                store : new Ext.data.ArrayStore({
-                      fields : ['value', 'text'],
-                      data : oList
-                    }),
-                labelAlign : 'top',
-                name : oSelectionOptions[i][0],
-                queryMode : "local"
-              });
-
-          me.fsetSpecialConditions.add(oMultiList);
-
-        }
-
-        var oStore = new Ext.data.ArrayStore({
-              fields : ['value', 'text'],
-              data : oListForGroup
-            });
-
-        me.cmbGroupBy.setValue(null);
-
-        me.cmbGroupBy.bindStore(oStore);
-
-        // we call the additional function
-        if (me.__additionalDataLoad != null) {
           me.__additionalDataLoad();
           me.__additionalDataLoad = null;
         } else {
-          me.advancedPlotTitle.setValue("");
+          me.cmbDomain.setValue(oParams["_typeName"]);
         }
 
       },
-
-      /*
-       * OK
-       */
-      applySpecialConditions : function(oData) {
-
-        var me = this;
-
-        var oSelectionData = oData["result"]["selectionValues"];
-
-        for (var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
-
-          var oBox = me.fsetSpecialConditions.items.getAt(i);
-
-          var oList = oSelectionData[oBox.getName()];
-          me.__oprDoubleElementItemList(oList);
-
-          oBox.loadData(oList);
-
-        }
-
-      },
-      /*
-       * OK
-       */
-      __oprDoubleElementItemList : function(oList) {
-
-        for (var i = 0; i < oList.length; i++)
-          oList[i] = [oList[i], oList[i]];
-
-      },
-
-      /*
-       * OK
-       */
-      __validateConditions : function(bWithMessages) {
-
-        var me = this;
-        var bValid = true;
-
-        // check if the plot type is chosen
-        if ((me.cmbDomain.getValue() == null) || (Ext.util.Format.trim(me.cmbDomain.getValue()) == "")) {
-
-          if (bWithMessages)
-            GLOBAL.APP.CF.alert("No category defined !", "warning");
-
-          bValid = false;
-
-        } else if ((me.cmbPlotGenerate.getValue() == null) || (Ext.util.Format.trim(me.cmbPlotGenerate.getValue()) == "")) {
-
-          if (bWithMessages)
-            GLOBAL.APP.CF.alert("No plot type defined !", "warning");
-
-          bValid = false;
-
-        } else if ((me.cmbGroupBy.getValue() == null) || (Ext.util.Format.trim(me.cmbGroupBy.getValue()) == "")) {
-
-          if (bWithMessages)
-            GLOBAL.APP.CF.alert("No data grouping defined !", "warning");
-
-          bValid = false;
-
-        }
-
-        // checking the time span selection
-
-        switch (me.cmbTimeSpan.getValue()) {
-
-          case -1 :
-            if (me.calendarFrom.getValue() == null) {
-
-              if (bWithMessages)
-                GLOBAL.APP.CF.alert("No start date selected !", "warning");
-
-              bValid = false;
-
-            }
-
-            if ((me.calendarFrom.getValue() != null) && (me.calendarTo.getValue() != null)) {
-
-              if (me.calendarFrom.getValue() > me.calendarTo.getValue()) {
-
-                if (bWithMessages)
-                  GLOBAL.APP.CF.alert("Selected dates are not valid !", "warning");
-
-                bValid = false;
-
-              }
-
-            }
-            break;
-          case -2 :
-            if (me.cmbQuarter.getValue().length == 0) {
-
-              if (bWithMessages)
-                GLOBAL.APP.CF.alert("No quarters selected !", "warning");
-
-              bValid = false;
-
-            }
-            break;
-
-        }
-
-        return bValid;
-
-      },
-
-      /*
-       * OK
-       */
       __getSelectionParametars : function(sIntention) {
 
         var me = this;
@@ -898,311 +763,255 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
         return oParams;
 
       },
-      /*
-       * OK
-       */
-      __oprResizeImageAccordingToContainer : function() {
+      __fillComboQuarter : function() {
 
         var me = this;
 
-        if (me.plotImage == null)
-          return;
+        var oStore = me.cmbQuarter.getStore();
+        oStore.removeAll();
 
-        if (me.__stretchPlotMode) {
-          me.plotImage.setWidth(me.rightPanel.getWidth() - 10);
-          me.plotImage.setHeight(me.rightPanel.getHeight() - me.plotToolbar.getHeight() - 10);
-          me.btnStretchPlot.setText("Proportional");
-          me.btnStretchPlot.setIconCls("dirac-icon-proportional");
-          return;
-        } else {
-          me.btnStretchPlot.setText("Stretch");
-          me.btnStretchPlot.setIconCls("dirac-icon-stretch");
-        }
+        var now = new Date();
 
-        var a = me.plotImage.originalWidth;
-        var b = me.plotImage.originalHeight;
+        var currentQ = Math.floor(now.getUTCMonth() / 3) + 1;
+        var currentYear = now.getUTCFullYear();
 
-        var a1 = me.rightPanel.getWidth() - 10;
-        var b1 = me.rightPanel.getHeight() - me.plotToolbar.getHeight() - 10;
+        var oRecords = [];
 
-        if (a1 < 0)
-          a1 = 0;
-        if (b1 < 0)
-          b1 = 0;
+        do {
+          var recLabel = "" + currentYear + " Q" + currentQ;
+          var recValue = currentYear * 10 + currentQ;
 
-        if (b <= b1) {
+          oRecords.push([recValue, recLabel]);
 
-          if (a <= a1) {
+          currentQ = currentQ - 1;
 
-            if ((a1 / a) <= (b1 / b)) {
-
-              me.plotImage.setWidth(a1);
-              me.plotImage.setHeight(parseInt(a1 / a * b));
-
-            } else {
-
-              me.plotImage.setHeight(b1);
-              me.plotImage.setWidth(parseInt(b1 / b * a));
-
-            }
-
-          } else {
-
-            me.plotImage.setWidth(a1);
-            me.plotImage.setHeight(parseInt(a1 / a * b));
-
+          if (currentQ == 0) {
+            currentQ = 4;
+            currentYear = currentYear - 1;
           }
 
-        } else {
+        } while (oRecords.length < 8);
 
-          if (a <= a1) {
-
-            me.plotImage.setHeight(b1);
-            me.plotImage.setWidth(parseInt(b1 / b * a));
-
-          } else {
-
-            if ((a1 / a) <= (b1 / b)) {
-
-              me.plotImage.setWidth(a1);
-              me.plotImage.setHeight(parseInt(a1 / a * b));
-
-            } else {
-
-              me.plotImage.setHeight(b1);
-              me.plotImage.setWidth(parseInt(b1 / b * a));
-
-            }
-
-          }
-
-        }
-
-      },
-
-      __generatePlot : function() {
-
-        var me = this;
-
-        if (!me.__validateConditions(true))
-          return;
-
-        me.plotParams = me.__getSelectionParametars("show_plot");
-        me.plotParamsForSaveState = me.__getSelectionParametars("save_state");
-
-        Ext.Ajax.request({
-              url : GLOBAL.BASE_URL + 'Monitoring/generatePlot',
-              params : me.plotParams,
-              scope : me,
-              success : function(response) {
-
-                var me = this;
-                var response = Ext.JSON.decode(response.responseText);
-
-                if (response["success"]) {
-
-                  /*
-                   * This should go into the container, where we have to load
-                   * the image
-                   */
-                  me.leftPanel.collapse();
-                  me.plotImage = Ext.create('Ext.Img', {
-                        region : "center",
-                        src : GLOBAL.BASE_URL + "Monitoring/getPlotImg?file=" + response["data"] + "&nocache=" + (new Date()).getTime(),
-                        listeners : {
-
-                          render : function(oElem, eOpts) {
-                            oElem.el.on({
-                                  load : function(evt, ele, opts) {
-
-                                    oElem.originalWidth = oElem.getWidth();
-                                    oElem.originalHeight = oElem.getHeight();
-
-                                    me.__oprResizeImageAccordingToContainer();
-
-                                    me.rightPanel.setLoading(false);
-
-                                  }
-                                });
-
-                          }
-
-                        }
-
-                      });
-
-                  var oPlotPanel = Ext.create('Ext.panel.Panel', {
-                        region : "center",
-                        layout : "absolute",
-                        items : [me.plotImage]
-
-                      });
-
-                  var oHrefParams = "";
-
-                  for (var oParam in me.plotParams) {
-
-                    oHrefParams += ((oHrefParams == "") ? "" : "&") + oParam + "=" + encodeURIComponent(me.plotParams[oParam]);
-
-                  }
-
-                  me.plotToolbar = new Ext.toolbar.Toolbar({
-                        region : "north",
-                        items : [{
-                              xtype : "button",
-                              text : "Refresh",
-                              handler : function() {
-
-                                var oThisButton = this;
-                                me.__loadSelectionData(me.plotParamsForSaveState);
-
-                              },
-                              iconCls : "dirac-icon-refresh"
-                            }, me.btnStretchPlot, me.btnRefreshMenu, '->', "<a target='_blank' href='" + GLOBAL.BASE_URL + "Monitoring/getCsvPlotData?" + oHrefParams + "'>CSV data</a>"]
-                      });
-
-                  me.rightPanel.removeAll();
-
-                  me.rightPanel.add([me.plotToolbar, oPlotPanel]);
-                  me.rightPanel.setLoading('Loading Image ...');
-
-                } else {
-                  GLOBAL.APP.CF.alert(response["errors"], "error");
-                }
-
-              },
-              failure : function(response, options) {
-                GLOBAL.APP.CF.showAjaxErrorMessage(response);
-              }
+        var oNewStore = new Ext.data.ArrayStore({
+              fields : ['value', 'text'],
+              data : oRecords
             });
 
-      },
+        me.cmbQuarter.bindStore(oNewStore);
 
-      __loadSelectionData : function(oParams) {
+      },
+      __resetSelectionWindow : function() {
 
         var me = this;
 
-        me.plotParams = oParams;
+        me.cmbGroupBy.setValue(null);
+        me.cmbPlotGenerate.setValue(null);
+        me.calendarFrom.setValue(null);
+        me.calendarTo.setValue(null);
+        me.cmbTimeSpan.setValue(86400);
 
-        if (!("_typeName" in oParams))
-          return;
+        me.advancedPin.setValue(false);
+        me.advancedNotScaleUnits.setValue(false);
+        me.advancedPlotTitle.setValue("");
+        me.fsetSpecialConditions.removeAll();
+        me.cmbDomain.setValue(null);
 
-        me.__additionalDataLoad = function() {
+      },
+      applyDataToSelection : function(oData, sValue) {
 
-          me.cmbGroupBy.setValue(oParams["_grouping"]);
-          me.cmbPlotGenerate.setValue(oParams["_plotName"]);
-          me.cmbTimeSpan.setValue(oParams["_timeSelector"]);
+        var me = this;
 
-          me.calendarFrom.hide();
-          me.calendarTo.hide();
-          me.cmbQuarter.hide();
+        var oList = oData["result"]["plotsList"];
 
-          switch (oParams["_timeSelector"]) {
+        me.__oprDoubleElementItemList(oList);
 
-            case -1 :
-              me.calendarFrom.setValue(oParams["_startTime"]);
-              me.calendarTo.setValue(oParams["_endTime"]);
-              me.calendarFrom.show();
-              me.calendarTo.show();
-              break;
+        var oStore = new Ext.data.ArrayStore({
+              fields : ['value', 'text'],
+              data : oList
+            });
 
-            case -2 :
-              var oNewQuartersArray = [];
+        me.cmbPlotGenerate.setValue(null);
 
-              for (var i = 0; i < oParams["_quarters"].length; i++)
-                oNewQuartersArray.push(parseInt(oParams["_quarters"][i].replace(" Q", "")));
+        me.cmbPlotGenerate.bindStore(oStore);
 
-              me.cmbQuarter.setValue(oNewQuartersArray);
-              me.cmbQuarter.show();
-              break;
+        var oSelectionData = oData["result"]["selectionValues"];
 
-          }
+        var oSelectionOptions = me.descPlotType[sValue]["selectionConditions"];
 
-          me.advancedPlotTitle.setValue(oParams["_plotTitle"]);
+        me.fsetSpecialConditions.removeAll();
 
-          if ("_pinDates" in oParams) {
+        var oListForGroup = [];
 
-            if (oParams["_pinDates"] == "true")
-              me.advancedPin.setValue(true);
-            else
-              me.advancedPin.setValue(false);
+        for (var i = 0; i < oSelectionOptions.length; i++) {
 
-          } else
-            me.advancedPin.setValue(false);
+          oListForGroup.push([oSelectionOptions[i][0], oSelectionOptions[i][0]]);
 
-          if ("_ex_staticUnits" in oParams) {
-
-            if (oParams["_ex_staticUnits"] == "true")
-              me.advancedNotScaleUnits.setValue(true);
-            else
-              me.advancedNotScaleUnits.setValue(false);
-
-          } else
-            me.advancedNotScaleUnits.setValue(false);
-
-          for (var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
-
-            me.fsetSpecialConditions.items.getAt(i).setValue(null);
-
-          }
-
-          var oStandardParamsList = ["_grouping", "_plotName", "_typeName", "_timeSelector", "_startTime", "_endTime", "_plotTitle", "_pinDates", "_ex_staticUnits"];
-
-          for (var oParam in oParams) {
-
-            // first we check whether the param is not someone form the
-            // default ones
-            var oFound = false;
-
-            for (var i = 0; i < oStandardParamsList.length; i++) {
-
-              if (oParam == oStandardParamsList[i]) {
-
-                oFound = true;
+          if ((oSelectionOptions[i][0] == "User") || (oSelectionOptions[i][0] == "UserGroup")) {
+            var allowedProperties = ["CSAdministrator", "JobAdministrator", "JobMonitor", "UserManager", "Operator", "ProductionManagement"];
+            var found = false;
+            for (var j = 0; j < allowedProperties.length; j++) { // Only
+              // powerfull
+              // users can
+              // choose the
+              // User and
+              // UserGroup
+              if (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, allowedProperties[j]) != -1) {
+                found = true;
                 break;
-
               }
-
             }
-
-            if (!oFound) {
-
-              for (var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
-
-                var oNewUnderlinedName = "_" + me.fsetSpecialConditions.items.getAt(i).getName();
-
-                if (oNewUnderlinedName == oParam) {
-
-                  me.fsetSpecialConditions.items.getAt(i).setInverseSelection((oParams[oParam][0] == 1));
-                  me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam][1].split(","));
-
-                  break;
-
-                }
-
-              }
-
+            if (!found) {
+              continue;
             }
 
           }
 
-          if (me.__validateConditions(false)) {
-            me.__generatePlot();
-          }
+          var oList = oSelectionData[oSelectionOptions[i][0]];
 
-        };
+          me.__oprDoubleElementItemList(oList);
 
-        if (me.cmbDomain.getValue() == oParams["_typeName"]) {
+          var oMultiList = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
+                fieldLabel : oSelectionOptions[i][1],
+                displayField : "text",
+                valueField : "value",
+                anchor : '100%',
+                store : new Ext.data.ArrayStore({
+                      fields : ['value', 'text'],
+                      data : oList
+                    }),
+                labelAlign : 'top',
+                name : oSelectionOptions[i][0],
+                queryMode : "local"
+              });
 
-          me.__additionalDataLoad();
-          me.__additionalDataLoad = null;
-
-        } else {
-
-          me.cmbDomain.setValue(oParams["_typeName"]);
+          me.fsetSpecialConditions.add(oMultiList);
 
         }
 
-      }
+        if (sValue == 'DataOperation') {
+          // It has to added afterward as we can not select it from
+          // the selection condition.
+          oListForGroup.push(['Channel', 'Channel']);
+        }
 
+        if (sValue == 'Job') {
+          oListForGroup.push(['Country', 'Country']);
+          oListForGroup.push(['Grid', 'Grid']);
+        }
+
+        var oStore = new Ext.data.ArrayStore({
+              fields : ['value', 'text'],
+              data : oListForGroup
+            });
+
+        me.cmbGroupBy.setValue(null);
+
+        me.cmbGroupBy.bindStore(oStore);
+
+        // we call the additional function
+        if (me.__additionalDataLoad != null) {
+          me.__additionalDataLoad();
+          me.__additionalDataLoad = null;
+        } else {
+          me.advancedPlotTitle.setValue("");
+        }
+
+      },
+      applySpecialConditions : function(oData) {
+
+        var me = this;
+
+        var oSelectionData = oData["result"]["selectionValues"];
+
+        for (var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
+
+          var oBox = me.fsetSpecialConditions.items.getAt(i);
+
+          var oList = oSelectionData[oBox.getName()];
+          me.__oprDoubleElementItemList(oList);
+
+          oBox.loadData(oList);
+
+        }
+
+      },
+      __oprDoubleElementItemList : function(oList) {
+
+        for (var i = 0; i < oList.length; i++)
+          oList[i] = [oList[i], oList[i]];
+
+      },
+      __validateConditions : function(bWithMessages) {
+
+        var me = this;
+        var bValid = true;
+
+        // check if the plot type is chosen
+        if ((me.cmbDomain.getValue() == null) || (Ext.util.Format.trim(me.cmbDomain.getValue()) == "")) {
+
+          if (bWithMessages)
+            GLOBAL.APP.CF.alert("No category defined !", "warning");
+
+          bValid = false;
+
+        } else if ((me.cmbPlotGenerate.getValue() == null) || (Ext.util.Format.trim(me.cmbPlotGenerate.getValue()) == "")) {
+
+          if (bWithMessages)
+            GLOBAL.APP.CF.alert("No plot type defined !", "warning");
+
+          bValid = false;
+
+        } else if ((me.cmbGroupBy.getValue() == null) || (Ext.util.Format.trim(me.cmbGroupBy.getValue()) == "")) {
+
+          if (bWithMessages)
+            GLOBAL.APP.CF.alert("No data grouping defined !", "warning");
+
+          bValid = false;
+
+        }
+
+        // checking the time span selection
+
+        switch (me.cmbTimeSpan.getValue()) {
+
+          case -1 :
+            if (me.calendarFrom.getValue() == null) {
+
+              if (bWithMessages)
+                GLOBAL.APP.CF.alert("No start date selected !", "warning");
+
+              bValid = false;
+
+            }
+
+            if ((me.calendarFrom.getValue() != null) && (me.calendarTo.getValue() != null)) {
+
+              if (me.calendarFrom.getValue() > me.calendarTo.getValue()) {
+
+                if (bWithMessages)
+                  GLOBAL.APP.CF.alert("Selected dates are not valid !", "warning");
+
+                bValid = false;
+
+              }
+
+            }
+            break;
+          case -2 :
+            if (me.cmbQuarter.getValue().length == 0) {
+
+              if (bWithMessages)
+                GLOBAL.APP.CF.alert("No quarters selected !", "warning");
+
+              bValid = false;
+
+            }
+            break;
+
+        }
+
+        return bValid;
+
+      }
+      ,
     });

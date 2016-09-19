@@ -4,7 +4,8 @@
  */
 Ext.define('DIRAC.Accounting.classes.Accounting', {
       extend : 'Ext.dirac.core.Module',
-      requires : ['DIRAC.Accounting.classes.Presenter', "DIRAC.Accounting.classes.Image"],
+      requires : ['DIRAC.Accounting.classes.Presenter', "DIRAC.Accounting.classes.Image", 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button",
+          "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record"],
       timeout : 7200000, // 2 hours
       loadState : function(oData) {
         var me = this;
@@ -90,35 +91,14 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
               
             });
 
-        me.descPlotType = {
-          DataOperation : {
-            title : "Data Operation",
-            selectionConditions : [["OperationType", "Operation Type"], ["User", "User"], ["ExecutionSite", "Execution Site"], ["Source", "Source SE"], ["Destination", "Destination SE"], ["Protocol", "Protocol"], ["FinalStatus", "Final Transfer Status"]]
-
-          },
-          Job : {
-            title : "Job",
-            selectionConditions : [["JobGroup", "Job Group"], ["JobType", "Job Type"], ["JobClass", "Job Class"], ["Site", "Site"], ["ProcessingType", "Processing Type"], ["FinalMajorStatus", "Final Major Status"], ["FinalMinorStatus", "Final Minor Status"], ["User", "User"],
-                ["UserGroup", "User Group"]]
-
-          },
+         me.descPlotType = {
           WMSHistory : {
             title : "WMS History",
             selectionConditions : [["User", "User"], ["UserGroup", "User Group"], ["Status", "Major Status"], ["MinorStatus", "Minor Status"], ["ApplicationStatus", "Application Status"], ["Site", "Site"], ["JobGroup", "Job Group"], ["JobSplitType", "Job Split Type"]]
 
-          },
-          Pilot : {
-            title : "Pilot",
-            selectionConditions : [["User", "User"], ["UserGroup", "User Group"], ["Site", "Site"], ["GridCE", "Grid CE"], ["GridMiddleware", "Grid Middleware"], ["GridResourceBroker", "Grid Resource Broker"], ["GridStatus", "Grid Status"]]
-
-          },
-          SRMSpaceTokenDeployment : {
-            title : "SRM Space Token Deployment",
-            selectionConditions : [["Site", "Site"], ["Hostname", "Hostname"], ["SpaceTokenDesc", "Space Token Description"]]
-
           }
-
         };
+        
 
         me.cmbDomain = Ext.create('Ext.form.field.ComboBox', {
               fieldLabel : "Category",
