@@ -2,7 +2,7 @@
  * It is allow to manage more than one plots in a single application. The
  * RightPanle is replaced to a Presenter widget.
  */
-Ext.define('DIRAC.Accounting.classes.Accounting', {
+Ext.define('DIRAC.Monitoring.classes.Monitoring', {
       extend : 'Ext.dirac.core.Module',
       requires : ['DIRAC.Accounting.classes.Presenter', "DIRAC.Accounting.classes.Image", 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button",
           "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record"],
@@ -23,7 +23,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
 
         if (GLOBAL.VIEW_ID == "desktop") {
 
-          me.launcher.title = "Accounting";
+          me.launcher.title = "Monitoring";
           me.launcher.maximized = false;
 
           var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
@@ -38,7 +38,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
 
         if (GLOBAL.VIEW_ID == "tabs") {
 
-          me.launcher.title = "Accounting";
+          me.launcher.title = "Monitoring";
           me.launcher.maximized = false;
 
           var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
@@ -91,14 +91,19 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
               
             });
 
-         me.descPlotType = {
+        me.descPlotType = {
           WMSHistory : {
             title : "WMS History",
             selectionConditions : [["User", "User"], ["UserGroup", "User Group"], ["Status", "Major Status"], ["MinorStatus", "Minor Status"], ["ApplicationStatus", "Application Status"], ["Site", "Site"], ["JobGroup", "Job Group"], ["JobSplitType", "Job Split Type"]]
 
+          },
+           
+          ComponentMonitoring : {
+            title : "Component Monitoring",
+            selectionConditions : [["host", "Host"], ["component", "Component"], ["pid", "PID"], ["status", "Status"]]
+
           }
         };
-        
 
         me.cmbDomain = Ext.create('Ext.form.field.ComboBox', {
               fieldLabel : "Category",
@@ -109,7 +114,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
               anchor : '100%',
               store : new Ext.data.ArrayStore({
                     fields : ['value', 'text'],
-                    data : [["DataOperation", "Data Operation"], ["Job", "Job"], ["WMSHistory", "WMS History"], ["Pilot", "Pilot"], ["SRMSpaceTokenDeployment", "SRM Space Token Deployment"]]
+                    data : [ ["WMSHistory", "WMS Monitoring"], ["ComponentMonitoring", "Component Monitoring"]]
                   }),
               listeners : {
                 change : function(field, newValue, oldValue, eOpts) {
@@ -119,7 +124,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
 
                   me.leftPanel.body.mask("Wait ...");
                   Ext.Ajax.request({
-                        url : GLOBAL.BASE_URL + 'AccountingPlot/getSelectionData',
+                        url : GLOBAL.BASE_URL + 'Monitoring/getSelectionData',
                         method : 'POST',
                         params : {
                           type : newValue
@@ -292,7 +297,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
 
                 me.leftPanel.body.mask("Wait ...");
                 Ext.Ajax.request({
-                      url : GLOBAL.BASE_URL + 'AccountingPlot/getSelectionData',
+                      url : GLOBAL.BASE_URL + 'Monitoring/getSelectionData',
                       timeout : me.timeout,
                       method : 'POST',
                       params : {
@@ -394,7 +399,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
         if (image) {
           image.setLoading(true);
           Ext.Ajax.request({
-                url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
+                url : GLOBAL.BASE_URL + 'Monitoring/generatePlot',
                 timeout : me.timeout,
                 params : oParams,
                 scope : me,
@@ -407,7 +412,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
 
                   if (response["success"]) {
 
-                    var src = GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + response["data"];
+                    var src = GLOBAL.BASE_URL + "Monitoring/getPlotImg?file=" + response["data"];
 
                     var params = {
                       'src' : src,
@@ -480,7 +485,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
                     var me = this;
 
                     Ext.Ajax.request({
-                          url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
+                          url : GLOBAL.BASE_URL + 'Monitoring/generatePlot',
                           timeout : me.timeout,
                           params : oParams,
                           scope : me,
@@ -495,7 +500,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
 
                             if (response["success"]) {
 
-                              var src = GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + response["data"];
+                              var src = GLOBAL.BASE_URL + "Monitoring/getPlotImg?file=" + response["data"];
 
                               me.setSrc(src);
 

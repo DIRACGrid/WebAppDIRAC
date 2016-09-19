@@ -1,17 +1,17 @@
 
-from WebAppDIRAC.Lib.WebHandler                    import WebHandler, asyncGen
-from DIRAC.Core.DISET.RPCClient                    import RPCClient
-from DIRAC.Core.DISET.TransferClient               import TransferClient
-from DIRAC                                         import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities                          import Time, List, DictCache
-from DIRAC.AccountingSystem.Client.ReportsClient   import ReportsClient
-from DIRAC.Core.Utilities.Plotting.FileCoding      import extractRequestFromFileId, codeRequestInFileId
+from WebAppDIRAC.Lib.WebHandler                       import WebHandler, asyncGen
+from DIRAC.Core.DISET.RPCClient                       import RPCClient
+from DIRAC.Core.DISET.TransferClient                  import TransferClient
+from DIRAC                                            import gConfig, S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities                             import Time, List, DictCache
+from DIRAC.MonitoringSystem.Client.MonitoringClient   import MonitoringClient
+from DIRAC.Core.Utilities.Plotting.FileCoding         import extractRequestFromFileId, codeRequestInFileId
 import tempfile
 import datetime
 
 from hashlib import md5
 
-class AccountingPlotHandler( WebHandler ):
+class MonitoringHandler( WebHandler ):
 
   AUTH_PROPS = "all"
   __keysCache = DictCache.DictCache()
@@ -22,10 +22,10 @@ class AccountingPlotHandler( WebHandler ):
                  sessionData["user"].get( "group", "" ),
                  sessionData["setup"],
                  typeName )
-    data = AccountingPlotHandler.__keysCache.get( cacheKey )
+    data = MonitoringHandler.__keysCache.get( cacheKey )
     if not data:
-      rpcClient = RPCClient( "Accounting/ReportGenerator" )
-      retVal = rpcClient.listUniqueKeyValues( typeName )
+      client = MonitoringClient()
+      retVal = client.listUniqueKeyValues( typeName )
       if 'rpcStub' in retVal:
         del( retVal[ 'rpcStub' ] )
       if not retVal[ 'OK' ]:
@@ -45,7 +45,7 @@ class AccountingPlotHandler( WebHandler ):
           orderedSites.extend( sorted( siteLevel[ level ] ) )
         retVal[ 'Value' ][ 'Site' ] = orderedSites
       data = retVal
-      AccountingPlotHandler.__keysCache.add( cacheKey, 300, data )
+      MonitoringHandler.__keysCache.add( cacheKey, 300, data )
     return data
 
   @asyncGen
@@ -71,15 +71,15 @@ class AccountingPlotHandler( WebHandler ):
     callback["selectionValues"] = records
 
     # Cache for plotsList?
-    data = AccountingPlotHandler.__keysCache.get( "reportsList:%s" % typeName )
+    data = MonitoringHandler.__keysCache.get( "reportsList:%s" % typeName )
     if not data:
-      repClient = ReportsClient()
+      repClient = MonitoringClient()
       retVal = yield self.threadTask( repClient.listReports, typeName )
       if not retVal[ 'OK' ]:
         self.finish( { "success" : "false", "result" : "", "error" : retVal[ 'Message' ] } )
         return
       data = retVal[ 'Value' ]
-      AccountingPlotHandler.__keysCache.add( "reportsList:%s" % typeName, 300, data )
+      MonitoringHandler.__keysCache.add( "reportsList:%s" % typeName, 300, data )
     callback["plotsList"] = data
     self.finish( {"success" : "true", "result" : callback } )
 
@@ -167,7 +167,7 @@ class AccountingPlotHandler( WebHandler ):
     if not retVal[ 'OK' ]:
       return retVal
     params = retVal[ 'Value' ]
-    repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
+    repClient = MonitoringClient( rpcClient = RPCClient( "Monitoring/orMonitoring" ) )
     retVal = repClient.generateDelayedPlot( *params )
     return retVal
 
@@ -188,7 +188,7 @@ class AccountingPlotHandler( WebHandler ):
       self.finish( callback )
       return
 
-    transferClient = TransferClient( "Accounting/ReportGenerator" )
+    transferClient = TransferClient( "Monitoring/Monitoring" )
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask( transferClient.receiveFile, tempFile, plotImageFile )
     if not retVal[ 'OK' ]:
@@ -240,7 +240,7 @@ class AccountingPlotHandler( WebHandler ):
       return
     plotImageFile = retVal['Value']['plot']
 
-    transferClient = TransferClient( "Accounting/ReportGenerator" )
+    transferClient = TransferClient( "Monitoring/Monitoring" )
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask( transferClient.receiveFile, tempFile, plotImageFile )
     if not retVal[ 'OK' ]:
@@ -266,7 +266,7 @@ class AccountingPlotHandler( WebHandler ):
       callback = {"success":"false", "error":retVal[ 'Message' ]}
       self.finish( callback )
     params = retVal[ 'Value' ]
-    repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
+    repClient = MonitoringClient( rpcClient = RPCClient( "Monitoring/Monitoring" ) )
     retVal = yield self.threadTask( repClient.getReport, *params )
     if not retVal[ 'OK' ]:
       callback = {"success":"false", "error":retVal[ 'Message' ]}
@@ -305,7 +305,7 @@ class AccountingPlotHandler( WebHandler ):
       callback = {"success":"false", "error":retVal[ 'Message' ]}
       self.finish( callback )
     params = retVal[ 'Value' ]
-    repClient = ReportsClient( rpcClient = RPCClient( "Accounting/ReportGenerator" ) )
+    repClient = MonitoringClient( rpcClient = RPCClient( "Monitoring/Monitoring" ) )
     retVal = yield self.threadTask( repClient.getReport, *params )
     if not retVal[ 'OK' ]:
       callback = {"success":"false", "error":retVal[ 'Message' ]}
