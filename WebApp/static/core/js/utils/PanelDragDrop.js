@@ -17,7 +17,7 @@
  *          }
  *      }
  */
-Ext.define('DIRAC.Accounting.classes.PanelDragDrop', {
+Ext.define('Ext.dirac.utils.PanelDragDrop', {
    extend : 'Ext.AbstractPlugin',
    alias : 'plugin.paneldragdrop',
 

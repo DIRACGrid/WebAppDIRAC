@@ -4,8 +4,8 @@
  */
 Ext.define('DIRAC.Monitoring.classes.Monitoring', {
       extend : 'Ext.dirac.core.Module',
-      requires : ['DIRAC.Accounting.classes.Presenter', "DIRAC.Accounting.classes.Image", 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button",
-          "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record"],
+      requires : ['Ext.dirac.utils.Presenter', "Ext.dirac.utils.Image", 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea",
+          "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record"],
       timeout : 7200000, // 2 hours
       loadState : function(oData) {
         var me = this;
@@ -17,7 +17,7 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
 
         return oReturn;
       },
-      
+
       initComponent : function() {
         var me = this;
 
@@ -63,7 +63,7 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
         me.callParent(arguments);
 
       },
-      
+
       buildUI : function() {
         var me = this;
         me.callParent();
@@ -81,14 +81,15 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
               autoScroll : true
             });
 
-        me.rightPanel = Ext.create('DIRAC.Accounting.classes.Presenter', {
+        me.rightPanel = Ext.create('Ext.dirac.utils.Presenter', {
               region : "center",
               floatable : false,
               header : true,
               margins : '0',
               bodyPadding : 0,
-              parent : me
-              
+              parent : me,
+              webHandler : "Monitoring"
+
             });
 
         me.descPlotType = {
@@ -97,7 +98,7 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
             selectionConditions : [["User", "User"], ["UserGroup", "User Group"], ["Status", "Major Status"], ["MinorStatus", "Minor Status"], ["ApplicationStatus", "Application Status"], ["Site", "Site"], ["JobGroup", "Job Group"], ["JobSplitType", "Job Split Type"]]
 
           },
-           
+
           ComponentMonitoring : {
             title : "Component Monitoring",
             selectionConditions : [["host", "Host"], ["component", "Component"], ["pid", "PID"], ["status", "Status"]]
@@ -114,7 +115,7 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
               anchor : '100%',
               store : new Ext.data.ArrayStore({
                     fields : ['value', 'text'],
-                    data : [ ["WMSHistory", "WMS Monitoring"], ["ComponentMonitoring", "Component Monitoring"]]
+                    data : [["WMSHistory", "WMS Monitoring"], ["ComponentMonitoring", "Component Monitoring"]]
                   }),
               listeners : {
                 change : function(field, newValue, oldValue, eOpts) {
@@ -175,10 +176,10 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
               displayField : "text",
               valueField : "value",
               anchor : '100%',
-              value : 86400,
+              value : 3600,
               store : new Ext.data.ArrayStore({
                     fields : ['value', 'text'],
-                    data : [[86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]]
+                    data : [[3600, "Last Hour"], [86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]]
                   }),
               listeners : {
                 change : function(field, newValue, oldValue, eOpts) {
@@ -449,7 +450,7 @@ Ext.define('DIRAC.Monitoring.classes.Monitoring', {
 
           var width = 99 / me.rightPanel.columnWidth;
           width = '.' + Math.round(width);
-          var oImg = Ext.create('DIRAC.Accounting.classes.Image', {
+          var oImg = Ext.create('Ext.dirac.utils.Image', {
                 plotParams : oParams,
                 columnWidth : width,
                 rightPanel : me.rightPanel,

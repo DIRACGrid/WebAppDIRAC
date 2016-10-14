@@ -4,7 +4,7 @@
  */
 Ext.define('DIRAC.Accounting.classes.Accounting', {
       extend : 'Ext.dirac.core.Module',
-      requires : ['DIRAC.Accounting.classes.Presenter', "DIRAC.Accounting.classes.Image", 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button",
+      requires : ['Ext.dirac.utils.Presenter', "Ext.dirac.utils.Image", 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button",
           "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record"],
       timeout : 7200000, // 2 hours
       loadState : function(oData) {
@@ -81,13 +81,14 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
               autoScroll : true
             });
 
-        me.rightPanel = Ext.create('DIRAC.Accounting.classes.Presenter', {
+        me.rightPanel = Ext.create('Ext.dirac.utils.Presenter', {
               region : "center",
               floatable : false,
               header : true,
               margins : '0',
               bodyPadding : 0,
-              parent : me
+              parent : me,
+              webHandler : "AccountingPlot"
               
             });
 
@@ -444,7 +445,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
 
           var width = 99 / me.rightPanel.columnWidth;
           width = '.' + Math.round(width);
-          var oImg = Ext.create('DIRAC.Accounting.classes.Image', {
+          var oImg = Ext.create('Ext.dirac.utils.Image', {
                 plotParams : oParams,
                 columnWidth : width,
                 rightPanel : me.rightPanel,
