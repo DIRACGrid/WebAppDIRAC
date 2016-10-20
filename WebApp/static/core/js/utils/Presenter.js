@@ -1,9 +1,9 @@
 /**
  * This is used to present different plots.
  */
-Ext.define('DIRAC.Accounting.classes.Presenter', {
+Ext.define('Ext.dirac.utils.Presenter', {
       extend : 'Ext.panel.Panel',
-      requires : ['DIRAC.Accounting.classes.PanelDragDrop', 'Ext.panel.Tool'],
+      requires : ['Ext.dirac.utils.PanelDragDrop', 'Ext.panel.Tool'],
       autoScroll : true,
       frame : true,
       lastClickedImage : null,
@@ -18,6 +18,7 @@ Ext.define('DIRAC.Accounting.classes.Presenter', {
       timeout : 7200000, // // 2 hours
       plugins : ['paneldragdrop'],
       tools : [],
+      webHandler : null,
       refreshTimeout : null,
       /*
        * listeners : { render : function(oElem, eOpts) { var me = this;
@@ -256,7 +257,7 @@ Ext.define('DIRAC.Accounting.classes.Presenter', {
 
                               }
 
-                              window.open(GLOBAL.BASE_URL + 'AccountingPlot/getCsvPlotData?' + oHrefParams);
+                              window.open(GLOBAL.BASE_URL + me.webHandler + '/getCsvPlotData?' + oHrefParams);
 
                             }
                           }, {
@@ -403,7 +404,7 @@ Ext.define('DIRAC.Accounting.classes.Presenter', {
                 value.setLoading("Refreshing image...");
 
                 Ext.Ajax.request({
-                      url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
+                      url : GLOBAL.BASE_URL + me.webHandler + '/generatePlot',
                       timeout : me.timeout,
                       params : value.plotParams,
                       success : function(responseImg) {
@@ -411,7 +412,7 @@ Ext.define('DIRAC.Accounting.classes.Presenter', {
                         responseImg = Ext.JSON.decode(responseImg.responseText);
 
                         if (responseImg["success"]) {
-                          value.setSrc(GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + responseImg["data"]);
+                          value.setSrc(GLOBAL.BASE_URL + me.webHandler + "/getPlotImg?file=" + responseImg["data"]);
                         }
                       },
                       failure : function(response, opt) {
@@ -431,13 +432,13 @@ Ext.define('DIRAC.Accounting.classes.Presenter', {
                 me.items.each(function(value, index) {
                       value.setLoading("Refreshing image...");
                       Ext.Ajax.request({
-                            url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
+                            url : GLOBAL.BASE_URL + me.webHandler + '/generatePlot',
                             timeout : me.timeout,
                             params : value.plotParams,
                             success : function(responseImg) {
                               responseImg = Ext.JSON.decode(responseImg.responseText);
                               if (responseImg["success"]) {
-                                value.setSrc(GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + responseImg["data"]);
+                                value.setSrc(GLOBAL.BASE_URL + me.webHandler + "/getPlotImg?file=" + responseImg["data"]);
                               }
                             },
                             failure : function(response, opt) {
@@ -474,7 +475,7 @@ Ext.define('DIRAC.Accounting.classes.Presenter', {
               value.setLoading('Loading images...');
               value.plotParams = oNewParams;
               Ext.Ajax.request({
-                    url : GLOBAL.BASE_URL + 'AccountingPlot/generatePlot',
+                    url : GLOBAL.BASE_URL + me.webHandler + '/generatePlot',
                     timeout : me.timeout,
                     params : oNewParams,
                     success : function(responseImg) {
@@ -482,7 +483,7 @@ Ext.define('DIRAC.Accounting.classes.Presenter', {
                       responseImg = Ext.JSON.decode(responseImg.responseText);
 
                       if (responseImg["success"]) {
-                        value.setSrc(GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + responseImg["data"]);
+                        value.setSrc(GLOBAL.BASE_URL + me.webHandler + "/getPlotImg?file=" + responseImg["data"]);
                       }
                     },
                     failure : function(response, opt) {

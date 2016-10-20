@@ -13,7 +13,7 @@ from hashlib import md5
 
 class MonitoringHandler( WebHandler ):
 
-  AUTH_PROPS = "all"
+  AUTH_PROPS = "authenticated"
   __keysCache = DictCache.DictCache()
 
   def __getUniqueKeyValues( self, typeName ):

@@ -1,7 +1,7 @@
 /**
  * It is used by the plots images.
  */
-Ext.define("DIRAC.Accounting.classes.Image", {
+Ext.define("Ext.dirac.utils.Image", {
       extend : 'Ext.Img',
       frame : true,
       border : 3,

@@ -234,6 +234,9 @@
 	
 }
 
-
+.dirac-icon-settings {
+	background-image: url(../img/icons/fam/cog.png) !important;
+	background-color: transparent;
+}
 
 
