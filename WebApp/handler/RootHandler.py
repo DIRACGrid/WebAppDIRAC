@@ -28,11 +28,10 @@ class RootHandler(WebHandler):
        raise WErr( 400, "Please provide a valid file name!" )
      
      try:
-       out_file = open( filepath, 'w' )      
-       out_file.write( data )
-       out_file.close()
-     except Exception as e:
-       raise WErr( 400, "Cannot create the file: %s" % e )
+       with open( filepath, 'w' ) as out_file:      
+         out_file.write( data )
+     except OSError as e:
+       raise WErr( 400, "Cannot create the file: %s; %s" % ( filename, repr( e ) ) )
      self.finish( 'File has created' )
  
   def web_changeGroup( self ):
