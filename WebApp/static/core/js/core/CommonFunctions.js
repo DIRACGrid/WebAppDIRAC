@@ -310,7 +310,11 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
            
             me.log("error",'Operation failed: ' + response.statusText, response);
-            Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + shortMessage + '.<br/>');
+            if (response.status == 200) {
+              Ext.dirac.system_info.msg("Notification", shortMessage + '.<br/>');
+            } else {
+              Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + shortMessage + '.<br/>');
+            }
           } else {
             Ext.dirac.system_info.msg("Error Notification", "The reson of the failure is unknown!");
           }
