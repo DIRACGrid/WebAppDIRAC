@@ -514,40 +514,52 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
               margin : 0,
               iconCls : "dirac-icon-save",
               handler : function() {
+                var plot = me.statisticsPlotPanel.down("chart");
 
-                var sSvgElement = document.getElementById(me.id + "-statistics-plot").getElementsByTagName("svg")[0].parentNode.innerHTML;
+                var domEl = plot.getEl();
+                if (domEl && domEl.dom) {
 
-                var iHeight = me.statisticsPlotPanel.getHeight();
+                  var sSvgElement = domEl.dom.getElementsByTagName("svg")[0].parentNode.innerHTML;
 
-                var iWidth = me.statisticsPlotPanel.getWidth();
+                  var iHeight = me.statisticsPlotPanel.getHeight();
 
-                var canvas = document.createElement('canvas');
-                canvas.setAttribute('width', iWidth);
-                canvas.setAttribute('height', iHeight);
+                  var iWidth = me.statisticsPlotPanel.getWidth();
 
-                var oContext = canvas.getContext("2d");
+                  var canvas = document.createElement('canvas');
+                  canvas.setAttribute('width', iWidth);
+                  canvas.setAttribute('height', iHeight);
 
-                oContext.beginPath();
-                oContext.rect(0, 0, iWidth, iHeight);
-                oContext.fillStyle = "#FFFFFF";
-                oContext.fill();
+                  var oContext = canvas.getContext("2d");
 
-                var oImage = new Image();
-                oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png';
+                  oContext.beginPath();
+                  oContext.rect(0, 0, iWidth, iHeight);
+                  oContext.fillStyle = "#FFFFFF";
+                  oContext.fill();
 
-                oImage.onload = function() {
+                  var oImage = new Image();
+                  oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png';
 
-                  console.log([oImage.clientWidth, oImage.clientHeight]);
+                  oImage.onload = function() {
 
-                  oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
+                    console.log([oImage.clientWidth, oImage.clientHeight]);
 
-                  oContext.drawSvg(sSvgElement, 0, 0);
+                    oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
 
-                  var imgData = canvas.toDataURL("image/png");
-                  window.location = imgData.replace("image/png", "image/octet-stream");
+                    oContext.drawSvg(sSvgElement, 0, 0);
+
+                    var imgData = canvas.toDataURL("image/png");
+                    window.location = imgData.replace("image/png", "image/octet-stream");
+
+                  }
+                } else {
+                  plot.save({
+                        type : 'image/png',
+                        src : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png',
+                        backround : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png',
+                        cls : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png'
+                      });
 
                 }
-
               },
               scope : me,
               tooltip : "Save pie chart as PNG image"
@@ -556,7 +568,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
         me.btnPlotSettings = new Ext.Button({
 
               margin : 0,
-              iconCls : "dirac-icon-pie",
+              iconCls : "dirac-icon-settings",
               handler : function() {
 
                 me.formPlotSettings();
@@ -694,16 +706,30 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
               scope : me
             })
 
+        me.plotSettings = {};
+
+        me.plotSettings.plotTitle = {
+          type : 'text',
+          text : 'No data',
+          font : '18px Helvetica',
+          width : 100,
+          height : 30,
+          x : 40, // the sprite x position
+          y : 12
+          // the sprite y position
+        };
+        me.plotSettings.plotLegend = {
+          field : 'key',
+          position : 'right',
+          boxStrokeWidth : 2,
+          labelFont : '12px Helvetica',
+          padding : 10
+        };
         me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
               region : 'center',
               floatable : false,
               layout : 'fit',
-              header : false,
-              items : [{
-                    html : "<div id='" + me.id + "-statistics-plot' style='width:100%;'></div>",
-                    xtype : "box",
-                    cls : 'pm-statistics-plot-background'
-                  }]
+              header : false
             });
 
         me.statisticsPlotPanel.onResize = function(width, height, oldWidth, oldHeight) {
@@ -799,59 +825,57 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
       createPlotFromGridData : function(sTitle, sLegendPosition) {
 
         var me = this;
-
+        me.statisticsPlotPanel.removeAll();
         if (!sLegendPosition) {
-          if (("plotSettings" in me) && ("backupSettings" in me.plotSettings)) {
-            sLegendPosition = me.plotSettings.backupSettings.legend;
+          if (("plotSettings" in me) && ("plotLegend" in me.plotSettings)) {
+            sLegendPosition = me.plotSettings.plotLegend.legend;
           } else {
             sLegendPosition = "right";
           }
         }
 
-        var oStore = me.statisticsSelectionGrid.getStore();
-        var oData = [["Key", "Value"]];
-        var oColors = [];
-
-        for (var i = 0; i < oStore.getCount(); i++) {
-
-          oData.push([oStore.getAt(i).get("key"), oStore.getAt(i).get("value")]);
-          oColors.push(oStore.getAt(i).get("color"));
-
-        }
-
-        var data = google.visualization.arrayToDataTable(oData);
-
         var oNow = new Date();
 
-        var options = {
-          title : sTitle + " (" + oNow.toString() + ")",
-          legend : {
-            position : sLegendPosition
-          },
-          colors : oColors,
-          backgroundColor : "transparent",
-          chartArea : {
-            width : "80%",
-            height : "80%"
-          }
-        };
+        me.plotSettings.plotTitle.text = sTitle + " (" + oNow.toString() + ")";
+        me.plotSettings.plotLegend.position = sLegendPosition;
 
-        if (!("plotSettings" in me))
-          me.plotSettings = {};
-
-        me.plotSettings.backupSettings = {
-          "title" : sTitle,
-          "legend" : sLegendPosition
-        };
-
-        var iHeight = me.statisticsPlotPanel.getHeight() - 20;
-        document.getElementById(me.id + "-statistics-plot").style.height = "" + iHeight + "px";
-
-        var iWidth = me.statisticsPlotPanel.getWidth() - 20;
-        document.getElementById(me.id + "-statistics-plot").style.width = "" + iWidth + "px";
-
-        var chart = new google.visualization.PieChart(document.getElementById(me.id + "-statistics-plot"));
-        chart.draw(data, options);
+        var plot = Ext.create("Ext.chart.Chart", {
+              height : 410,
+              padding : '10 0 0 0',
+              cls : 'jm-statistics-plot-background',
+              animate : true,
+              shadow : false,
+              store : me.statisticsSelectionGrid.getStore(),
+              insetPadding : 40,
+              legend : me.plotSettings.plotLegend,
+              theme : 'Base:gradients',
+              items : [me.plotSettings.plotTitle],
+              series : [{
+                    type : 'pie',
+                    cls : 'jm-statistics-plot-background',
+                    angleField : 'value',
+                    label : {
+                      field : 'key',
+                      display : 'outside',
+                      calloutLine : true
+                    },
+                    showInLegend : true,
+                    highlight : {
+                      segment : {
+                        margin : 20
+                      }
+                    },
+                    tips : {
+                      width : 140,
+                      height : 28,
+                      trackMouse : true,
+                      renderer : function(storeItem, item) {
+                        this.setTitle(storeItem.get('key') + ': ' + storeItem.get('value'));
+                      }
+                    }
+                  }]
+            });
+        me.statisticsPlotPanel.add(plot);
 
       },
       formPlotSettings : function() {
@@ -868,7 +892,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
               allowBlank : false,
               margin : 10,
               anchor : '100%',
-              value : me.plotSettings.backupSettings.title
+              value : me.plotSettings.plotTitle.text
 
             });
 
@@ -883,7 +907,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
               valueField : "value",
               anchor : "100%",
               margin : 10,
-              value : me.plotSettings.backupSettings.legend
+              value : me.plotSettings.plotLegend.legend
             });
 
         // button for saving the state
