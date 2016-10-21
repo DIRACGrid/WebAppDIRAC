@@ -1008,5 +1008,4 @@ Ext.define('Ext.dirac.utils.PlotView', {
         return bValid;
 
       }
-      ,
     });
