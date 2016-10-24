@@ -22,7 +22,7 @@ import tornado.websocket
 from concurrent.futures import ThreadPoolExecutor
 
 global gThreadPool
-gThreadPool = ThreadPoolExecutor( 500 )
+gThreadPool = ThreadPoolExecutor( 100 )
 
 class WErr( tornado.web.HTTPError ):
   def __init__( self, code, msg = "", **kwargs ):

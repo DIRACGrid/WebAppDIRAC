@@ -4,6 +4,7 @@ from DIRAC import gLogger
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 import re
+import os
 
 def xss_filter(text):
   cleanr =re.compile('<.*?>')
@@ -28,8 +29,10 @@ class RootHandler(WebHandler):
        raise WErr( 400, "Please provide a valid file name!" )
      
      try:
-       with open( filepath, 'w' ) as out_file:      
-         out_file.write( data )
+       tmpfile = "%s.tmp" % filepath
+       with open( tmpfile ) as tmp:
+         tmp.write( data )
+       os.rename( tmpfile, filepath )    
      except OSError as e:
        raise WErr( 400, "Cannot create the file: %s; %s" % ( filename, repr( e ) ) )
      self.finish( 'File has created' )
