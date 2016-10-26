@@ -1,9 +1,9 @@
 /**
  * This class show different applications in a single panel.
  */
-Ext.define('Ext.dirac.views.tabs.Presenter', {
+Ext.define('Ext.dirac.utils.Tabtheme', {
       extend : 'Ext.panel.Panel',
-      requires : ['Ext.dirac.views.tabs.PanelDragDrop', 'Ext.panel.Tool'],
+      requires : ['Ext.dirac.utils.PanelDragDrop', 'Ext.panel.Tool'],
       autoScroll : true,
       frame : true,
       lastClickedImage : null,

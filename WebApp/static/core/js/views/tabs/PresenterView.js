@@ -4,7 +4,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.PresenterView', {
       extend : 'Ext.panel.Panel',
-      requires : ['Ext.dirac.views.tabs.Presenter'],
+      requires : ['Ext.dirac.utils.Tabtheme'],
       region : 'center',
       minWidth : 300,
       title : name,
@@ -16,7 +16,7 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
       },
       view : 'presenterView',
       /**
-       * @property{@link Ext.dirac.views.tabs.Presenter} presenter is contains
+       * @property{@link Ext.dirac.utils.Tabtheme} presenter is contains
        *           all applications.
        */
       presenter : null,
@@ -82,7 +82,7 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
       },
       constructor : function(config) {
         var me = this;
-        me.presenter = Ext.create('Ext.dirac.views.tabs.Presenter', {
+        me.presenter = Ext.create('Ext.dirac.utils.Tabtheme', {
               region : 'center',
               // minWidth : 300,
               // title : name,
@@ -99,7 +99,7 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
       /**
        * It return the widget which contains the applications.
        * 
-       * @return{@link Ext.dirac.views.tabs.Presenter}
+       * @return{@link Ext.dirac.utils.Tabtheme}
        */
       getPresenter : function() {
         var me = this;
@@ -107,7 +107,7 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
       },
       /*************************************************************************
        * It removes the {@link Ext.dirac.views.tabs.Panel} widget from the
-       * {@link Ext.dirac.views.tabs.Presenter}
+       * {@link Ext.dirac.utils.Tabtheme}
        * 
        * @param{Object} panel is an {@link Ext.dirac.views.tabs.Panel}
        * 
