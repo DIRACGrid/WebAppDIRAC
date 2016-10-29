@@ -30,7 +30,7 @@ class RootHandler(WebHandler):
      
      try:
        tmpfile = "%s.tmp" % filepath
-       with open( tmpfile ) as tmp:
+       with open( tmpfile, 'w' ) as tmp:
          tmp.write( data )
        os.rename( tmpfile, filepath )    
      except OSError as e:
