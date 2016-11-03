@@ -6,12 +6,14 @@ Ext.define('Ext.dirac.utils.PlotView', {
       extend : 'Ext.dirac.core.Module',
       requires : ['Ext.dirac.utils.Presenter', "Ext.dirac.utils.Image", 'Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea",
           "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.dirac.utils.DiracMultiSelect", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record"],
-      timeout : 7200000, // 2 hours
-      descPlotType : {},
+      timeout : 7200000, // 2 hours      
       title : '',
-      reports : [],
+      reports : {},
+      reportsDesc : {},
+      reportTypes : [["Accounting", "Accounting"], ["Monitoring", "Monitoring"]],
       dateSelector : [[86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]],
-      webHandler : '',
+      handlers : {},
+      actualReport : '',
       loadState : function(oData) {
         var me = this;
         me.rightPanel.loadState(oData);
@@ -96,8 +98,34 @@ Ext.define('Ext.dirac.utils.PlotView', {
               margins : '0',
               bodyPadding : 0,
               parent : me,
-              webHandler : me.webHandler
+              webHandler : ""
 
+            });
+
+        me.cmbReportType = Ext.create('Ext.form.field.ComboBox', {
+              fieldLabel : "Reports",
+              queryMode : 'local',
+              labelAlign : 'top',
+              displayField : "text",
+              valueField : "value",
+              anchor : '100%',
+              store : new Ext.data.ArrayStore({
+                    fields : ['value', 'text'],
+                    data : me.reportTypes
+                  }),
+              listeners : {
+                change : function(field, newValue, oldValue, eOpts) {
+
+                  if (newValue == null)
+                    return;
+
+                  me.leftPanel.body.mask("Wait ...");
+                  me.__resetSelectionWindow();
+                  me.applyReportType(newValue);
+                  me.leftPanel.body.unmask();
+
+                }
+              }
             });
 
         me.cmbDomain = Ext.create('Ext.form.field.ComboBox', {
@@ -109,7 +137,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
               anchor : '100%',
               store : new Ext.data.ArrayStore({
                     fields : ['value', 'text'],
-                    data : me.reports
+                    data : []
                   }),
               listeners : {
                 change : function(field, newValue, oldValue, eOpts) {
@@ -119,7 +147,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
                   me.leftPanel.body.mask("Wait ...");
                   Ext.Ajax.request({
-                        url : GLOBAL.BASE_URL + me.webHandler + '/getSelectionData',
+                        url : GLOBAL.BASE_URL + me.handlers[me.actualReport] + '/getSelectionData',
                         method : 'POST',
                         params : {
                           type : newValue
@@ -256,7 +284,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
         me.fsetAdvanced.add([me.advancedPlotTitle, me.advancedPin, me.advancedNotScaleUnits]);
 
-        me.leftPanel.add([me.cmbDomain, me.cmbPlotGenerate, me.cmbGroupBy, me.fsetTimeSpan, me.fsetSpecialConditions, me.fsetAdvanced]);
+        me.leftPanel.add([me.cmbReportType, me.cmbDomain, me.cmbPlotGenerate, me.cmbGroupBy, me.fsetTimeSpan, me.fsetSpecialConditions, me.fsetAdvanced]);
 
         me.btnPlot = new Ext.Button({
               tooltip : 'It creates a new plot',
@@ -292,7 +320,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
                 me.leftPanel.body.mask("Wait ...");
                 Ext.Ajax.request({
-                      url : GLOBAL.BASE_URL + me.webHandler + '/getSelectionData',
+                      url : GLOBAL.BASE_URL + me.handlers[me.actualReport] + '/getSelectionData',
                       timeout : me.timeout,
                       method : 'POST',
                       params : {
@@ -370,7 +398,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
         var me = this;
         var oParams = null;
-        var webhandler = me.webHandler;
+        var webhandler = me.handlers[me.actualReport];
         if (oLoadState == null) {
 
           if (!me.__validateConditions(true)) {
@@ -446,6 +474,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
           width = '.' + Math.round(width);
           var oImg = Ext.create('Ext.dirac.utils.Image', {
                 plotParams : oParams,
+                webHandler : webhandler,
                 columnWidth : width,
                 rightPanel : me.rightPanel,
                 leftPanel : me.leftPanel,
@@ -831,7 +860,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
         var oSelectionData = oData["result"]["selectionValues"];
 
-        var oSelectionOptions = me.descPlotType[sValue]["selectionConditions"];
+        var oSelectionOptions = me.reportsDesc[me.actualReport][sValue]["selectionConditions"];
 
         me.fsetSpecialConditions.removeAll();
 
@@ -1007,5 +1036,18 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
         return bValid;
 
+      },
+      applyReportType : function(reportType) {
+
+        var me = this;
+
+        var categoryStore = new Ext.data.ArrayStore({
+              fields : ['value', 'text'],
+              data : me.reports[reportType]
+            });
+
+        me.cmbDomain.bindStore(categoryStore);
+        me.actualReport = reportType;
+        me.rightPanel.webHandler = me.handlers[reportType];
       }
     });
