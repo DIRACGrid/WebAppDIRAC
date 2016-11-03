@@ -98,7 +98,8 @@ Ext.define('Ext.dirac.utils.PlotView', {
               margins : '0',
               bodyPadding : 0,
               parent : me,
-              webHandler : ""
+              reportType : "",
+              scope : me
 
             });
 
@@ -120,7 +121,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
                     return;
 
                   me.leftPanel.body.mask("Wait ...");
-                  me.__resetSelectionWindow();
+                  //me.__resetSelectionWindow();
                   me.applyReportType(newValue);
                   me.leftPanel.body.unmask();
 
@@ -156,9 +157,8 @@ Ext.define('Ext.dirac.utils.PlotView', {
                         success : function(response) {
 
                           var oResult = Ext.JSON.decode(response.responseText);
-
                           if (oResult["success"] == "true")
-                            me.applyDataToSelection(oResult, newValue);
+                            me.applyDataToSelection(oResult, newValue, me.actualReport);
                           else
                             GLOBAL.APP.CF.alert(oResult["error"], "error");
                           me.leftPanel.body.unmask();
@@ -474,7 +474,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
           width = '.' + Math.round(width);
           var oImg = Ext.create('Ext.dirac.utils.Image', {
                 plotParams : oParams,
-                webHandler : webhandler,
+                reportType : me.actualReport,
                 columnWidth : width,
                 rightPanel : me.rightPanel,
                 leftPanel : me.leftPanel,
@@ -841,10 +841,11 @@ Ext.define('Ext.dirac.utils.PlotView', {
         me.cmbDomain.setValue(null);
 
       },
-      applyDataToSelection : function(oData, sValue) {
+      applyDataToSelection : function(oData, sValue, reportType) {
 
         var me = this;
-
+        
+        me.cmbReportType.setValue(reportType);
         var oList = oData["result"]["plotsList"];
 
         me.__oprDoubleElementItemList(oList);
@@ -1048,6 +1049,6 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
         me.cmbDomain.bindStore(categoryStore);
         me.actualReport = reportType;
-        me.rightPanel.webHandler = me.handlers[reportType];
+        me.rightPanel.reportType = me.handlers[reportType];
       }
     });
