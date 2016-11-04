@@ -13,7 +13,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
       reportTypes : [["Accounting", "Accounting"], ["Monitoring", "Monitoring"]],
       dateSelector : [[86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]],
       handlers : {},
-      actualReport : '',
+      actualReport : null,
       loadState : function(oData) {
         var me = this;
         me.rightPanel.loadState(oData);
@@ -193,16 +193,18 @@ Ext.define('Ext.dirac.utils.PlotView', {
               layout : 'anchor'
             });
 
+        me.cmbTimeSpanStore = new Ext.data.ArrayStore({
+              fields : ['value', 'text'],
+              data : me.dataSelectors["Accounting"]["dataSelector"]
+            });
+
         me.cmbTimeSpan = Ext.create('Ext.form.field.ComboBox', {
               queryMode : 'local',
               displayField : "text",
               valueField : "value",
               anchor : '100%',
-              value : me.dateSelector[0][0],
-              store : new Ext.data.ArrayStore({
-                    fields : ['value', 'text'],
-                    data : me.dateSelector
-                  }),
+              value : me.dataSelectors["Accounting"]["dataSelector"][0][0],
+              store : me.cmbTimeSpanStore,
               listeners : {
                 change : function(field, newValue, oldValue, eOpts) {
 
@@ -398,7 +400,6 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
         var me = this;
         var oParams = null;
-        var webhandler = me.handlers[me.actualReport];
         if (oLoadState == null) {
 
           if (!me.__validateConditions(true)) {
@@ -416,13 +417,22 @@ Ext.define('Ext.dirac.utils.PlotView', {
         } else {
 
           oParams = oLoadState["params"];
+          if ("reportType" in oLoadState) {
+            me.actualReport = oLoadState["reportType"];
+          } else {
+            me.actualReport = oLoadState["Accounting"];
+          }
 
         }
 
         if (image) {
           image.setLoading(true);
+          requestHandler = me.handlers["Accounting"]
+          if (image.reportType) {
+            requestHandler = me.handlers[image.reportType];
+          }
           Ext.Ajax.request({
-                url : GLOBAL.BASE_URL + webhandler + '/generatePlot',
+                url : GLOBAL.BASE_URL + requestHandler + '/generatePlot',
                 timeout : me.timeout,
                 params : oParams,
                 scope : me,
@@ -435,7 +445,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
                   if (response["success"]) {
 
-                    var src = GLOBAL.BASE_URL + webhandler + "/getPlotImg?file=" + response["data"];
+                    var src = GLOBAL.BASE_URL + requestHandler + "/getPlotImg?file=" + response["data"];
 
                     var params = {
                       'src' : src,
@@ -472,12 +482,17 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
           var width = 99 / me.rightPanel.columnWidth;
           width = '.' + Math.round(width);
+          requestHandler = me.handlers["Accounting"];
+          if (me.actualReport) {
+            requestHandler = me.handlers[me.actualReport];
+          }
           var oImg = Ext.create('Ext.dirac.utils.Image', {
                 plotParams : oParams,
-                reportType : me.actualReport,
+                reportType : (me.actualReport != null ? me.actualReport : "Accounting"), //in principle actualReport can not be null
                 columnWidth : width,
                 rightPanel : me.rightPanel,
                 leftPanel : me.leftPanel,
+                scope : me,
                 listeners : {
 
                   afterrender : function(me) {
@@ -509,7 +524,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
                     var me = this;
 
                     Ext.Ajax.request({
-                          url : GLOBAL.BASE_URL + webhandler + '/generatePlot',
+                          url : GLOBAL.BASE_URL + requestHandler + '/generatePlot',
                           timeout : me.timeout,
                           params : oParams,
                           scope : me,
@@ -524,7 +539,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
                             if (response["success"]) {
 
-                              var src = GLOBAL.BASE_URL + webhandler + "/getPlotImg?file=" + response["data"];
+                              var src = GLOBAL.BASE_URL + me.scope.handlers[me.reportType] + "/getPlotImg?file=" + response["data"];
 
                               me.setSrc(src);
 
@@ -832,8 +847,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
         me.cmbPlotGenerate.setValue(null);
         me.calendarFrom.setValue(null);
         me.calendarTo.setValue(null);
-        me.cmbTimeSpan.setValue(86400);
-
+        me.cmbTimeSpan.setValue(me.dataSelectors[me.actualReport]["defaultTime"]);
         me.advancedPin.setValue(false);
         me.advancedNotScaleUnits.setValue(false);
         me.advancedPlotTitle.setValue("");
@@ -844,7 +858,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
       applyDataToSelection : function(oData, sValue, reportType) {
 
         var me = this;
-        
+
         me.cmbReportType.setValue(reportType);
         var oList = oData["result"]["plotsList"];
 
@@ -1050,5 +1064,11 @@ Ext.define('Ext.dirac.utils.PlotView', {
         me.cmbDomain.bindStore(categoryStore);
         me.actualReport = reportType;
         me.rightPanel.reportType = me.handlers[reportType];
+
+        var timeSelector = new Ext.data.ArrayStore({
+              fields : ['value', 'text'],
+              data : me.dataSelectors[me.actualReport]["dataSelector"]
+            });
+        me.cmbTimeSpan.bindStore(timeSelector);
       }
     });

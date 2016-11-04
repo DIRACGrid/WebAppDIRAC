@@ -64,7 +64,18 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
 
         
         
-        me.dateSelector = [[3600, "Last Hour"], [86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]]
+        me.dataSelectors = {
+          Accounting : {
+            dataSelector : [[86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]],
+            defaultTime : 86400
+          },
+          Monitoring : {
+            dataSelector : [[3600, "Last Hour"], [86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]],
+            defaultTime : 86400
+          }
+        };
+        
+        
         
         me.callParent();
 

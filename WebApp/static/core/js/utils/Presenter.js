@@ -59,7 +59,8 @@ Ext.define('Ext.dirac.utils.Presenter', {
 
         me.items.each(function(value, index) {
               var item = {
-                'params' : value.plotParams
+                'params' : value.plotParams,
+                'reportType' : value.reportType
               };
               oReturn.plots.push(item);
             });
@@ -210,8 +211,8 @@ Ext.define('Ext.dirac.utils.Presenter', {
                 isDoubleClickEvent = true;
                 var img = me.getImage(t.id);
                 if (img) {
+                  me.scope.actualReport = (img.reportType != null ? img.reportType : "Accounting");
                   me.selectImage(img);
-                  me.scope.actualReport = img.reportType;
                   var oParams = img.plotParams;
                   me.parent.__loadSelectionData(oParams);
                 }
