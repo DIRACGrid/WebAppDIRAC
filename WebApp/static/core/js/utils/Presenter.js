@@ -211,6 +211,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
                 isDoubleClickEvent = true;
                 var img = me.getImage(t.id);
                 if (img) {
+                  me.parent.__resetSelectionWindow();
                   me.scope.actualReport = (img.reportType != null ? img.reportType : "Accounting");
                   me.selectImage(img);
                   var oParams = img.plotParams;

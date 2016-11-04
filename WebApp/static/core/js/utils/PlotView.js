@@ -120,9 +120,11 @@ Ext.define('Ext.dirac.utils.PlotView', {
                     return;
 
                   me.leftPanel.body.mask("Wait ...");
-                  //me.__resetSelectionWindow();
+                  me.cmbDomain.suspendEvent("change");
+                  me.__resetSelectionWindow();
                   me.applyReportType(newValue);
                   me.leftPanel.body.unmask();
+                  me.cmbDomain.resumeEvent("change");
 
                 }
               }
@@ -156,8 +158,10 @@ Ext.define('Ext.dirac.utils.PlotView', {
                         success : function(response) {
 
                           var oResult = Ext.JSON.decode(response.responseText);
-                          if (oResult["success"] == "true")
+                          if (oResult["success"] == "true"){
                             me.applyDataToSelection(oResult, newValue, me.actualReport);
+                            me.cmbReportType.resumeEvent("change");
+                          }
                           else
                             GLOBAL.APP.CF.alert(oResult["error"], "error");
                           me.leftPanel.body.unmask();
@@ -689,6 +693,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
           me.__additionalDataLoad();
           me.__additionalDataLoad = null;
         } else {
+          me.cmbReportType.suspendEvent("change");
           me.cmbDomain.setValue(oParams["_typeName"]);
         }
 
@@ -846,7 +851,11 @@ Ext.define('Ext.dirac.utils.PlotView', {
         me.cmbPlotGenerate.setValue(null);
         me.calendarFrom.setValue(null);
         me.calendarTo.setValue(null);
-        me.cmbTimeSpan.setValue(me.dataSelectors[me.actualReport]["defaultTime"]);
+        var defaultTime = 86400;
+        if (me.actualReport) {
+          defaultTime = me.dataSelectors[me.actualReport]["defaultTime"]
+        }
+        me.cmbTimeSpan.setValue(defaultTime);
         me.advancedPin.setValue(false);
         me.advancedNotScaleUnits.setValue(false);
         me.advancedPlotTitle.setValue("");
@@ -1059,8 +1068,9 @@ Ext.define('Ext.dirac.utils.PlotView', {
               fields : ['value', 'text'],
               data : me.reports[reportType]
             });
-
+        //me.cmbDomain.setValue(null);
         me.cmbDomain.bindStore(categoryStore);
+        me.cmbDomain.store.sort('text', 'ASC');
         me.actualReport = reportType;
         me.rightPanel.reportType = me.handlers[reportType];
 
