@@ -426,7 +426,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
         if (image) {
           image.setLoading(true);
-          requestHandler = me.handlers["Accounting"]
+          var requestHandler = me.handlers["Accounting"]
           if (image.reportType) {
             requestHandler = me.handlers[image.reportType];
           }
