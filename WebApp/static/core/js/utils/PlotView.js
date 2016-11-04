@@ -884,7 +884,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
         var oSelectionData = oData["result"]["selectionValues"];
 
         var oSelectionOptions = me.reportsDesc[me.actualReport][sValue]["selectionConditions"];
-
+        oSelectionOptions.sort();
         me.fsetSpecialConditions.removeAll();
 
         var oListForGroup = [];
@@ -954,6 +954,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
         me.cmbGroupBy.setValue(null);
 
         me.cmbGroupBy.bindStore(oStore);
+        me.cmbGroupBy.store.sort("text","ASC");
 
         // we call the additional function
         if (me.__additionalDataLoad != null) {
