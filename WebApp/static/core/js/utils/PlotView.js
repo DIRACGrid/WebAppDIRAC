@@ -11,7 +11,6 @@ Ext.define('Ext.dirac.utils.PlotView', {
       reports : {},
       reportsDesc : {},
       reportTypes : [["Accounting", "Accounting"], ["Monitoring", "Monitoring"]],
-      dateSelector : [[86400, "Last Day"], [604800, "Last Week"], [2592000, "Last Month"], [-1, "Manual Selection"], [-2, "By Quarter"]],
       handlers : {},
       actualReport : null,
       loadState : function(oData) {
