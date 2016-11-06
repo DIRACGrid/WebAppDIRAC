@@ -18,7 +18,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
       timeout : 7200000, // // 2 hours
       plugins : ['paneldragdrop'],
       tools : [],
-      webHandler : null,
+      reportType : null,
       refreshTimeout : null,
       /*
        * listeners : { render : function(oElem, eOpts) { var me = this;
@@ -59,7 +59,8 @@ Ext.define('Ext.dirac.utils.Presenter', {
 
         me.items.each(function(value, index) {
               var item = {
-                'params' : value.plotParams
+                'params' : value.plotParams,
+                'reportType' : value.reportType
               };
               oReturn.plots.push(item);
             });
@@ -210,6 +211,8 @@ Ext.define('Ext.dirac.utils.Presenter', {
                 isDoubleClickEvent = true;
                 var img = me.getImage(t.id);
                 if (img) {
+                  me.parent.__resetSelectionWindow();
+                  me.scope.actualReport = (img.reportType != null ? img.reportType : "Accounting");
                   me.selectImage(img);
                   var oParams = img.plotParams;
                   me.parent.__loadSelectionData(oParams);
@@ -229,6 +232,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
                               if (img) {
                                 me.selectImage(img);
                                 var oParams = img.plotParams;
+                                me.scope.actualReport = me.scope.handlers[img.reportType];
                                 me.parent.__loadSelectionData(oParams);
                               }
                             }
@@ -257,7 +261,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
 
                               }
 
-                              window.open(GLOBAL.BASE_URL + me.webHandler + '/getCsvPlotData?' + oHrefParams);
+                              window.open(GLOBAL.BASE_URL + me.scope.handlers[img.reportType] + '/getCsvPlotData?' + oHrefParams);
 
                             }
                           }, {
@@ -404,7 +408,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
                 value.setLoading("Refreshing image...");
 
                 Ext.Ajax.request({
-                      url : GLOBAL.BASE_URL + me.webHandler + '/generatePlot',
+                      url : GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + '/generatePlot',
                       timeout : me.timeout,
                       params : value.plotParams,
                       success : function(responseImg) {
@@ -412,7 +416,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
                         responseImg = Ext.JSON.decode(responseImg.responseText);
 
                         if (responseImg["success"]) {
-                          value.setSrc(GLOBAL.BASE_URL + me.webHandler + "/getPlotImg?file=" + responseImg["data"]);
+                          value.setSrc(GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?file=" + responseImg["data"]);
                         }
                       },
                       failure : function(response, opt) {
@@ -432,13 +436,13 @@ Ext.define('Ext.dirac.utils.Presenter', {
                 me.items.each(function(value, index) {
                       value.setLoading("Refreshing image...");
                       Ext.Ajax.request({
-                            url : GLOBAL.BASE_URL + me.webHandler + '/generatePlot',
+                            url : GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + '/generatePlot',
                             timeout : me.timeout,
                             params : value.plotParams,
                             success : function(responseImg) {
                               responseImg = Ext.JSON.decode(responseImg.responseText);
                               if (responseImg["success"]) {
-                                value.setSrc(GLOBAL.BASE_URL + me.webHandler + "/getPlotImg?file=" + responseImg["data"]);
+                                value.setSrc(GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?file=" + responseImg["data"]);
                               }
                             },
                             failure : function(response, opt) {
@@ -475,7 +479,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
               value.setLoading('Loading images...');
               value.plotParams = oNewParams;
               Ext.Ajax.request({
-                    url : GLOBAL.BASE_URL + me.webHandler + '/generatePlot',
+                    url : GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + '/generatePlot',
                     timeout : me.timeout,
                     params : oNewParams,
                     success : function(responseImg) {
@@ -483,7 +487,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
                       responseImg = Ext.JSON.decode(responseImg.responseText);
 
                       if (responseImg["success"]) {
-                        value.setSrc(GLOBAL.BASE_URL + me.webHandler + "/getPlotImg?file=" + responseImg["data"]);
+                        value.setSrc(GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?file=" + responseImg["data"]);
                       }
                     },
                     failure : function(response, opt) {
