@@ -41,10 +41,11 @@ Ext.define('Ext.dirac.utils.Presenter', {
         for (var i in oData.plots) {
           me.parent.__generatePlot(null, oData.plots[i]);
         }
-
-        if (oData.leftPanelCollapsed) {
-          me.parent.leftPanel.collapse();
-        }
+        
+         if (oData.leftPanelCollapsed) {
+            me.parent.leftPanel.collapse();
+          }
+        
         me.setRefreshCycle(me.refreshCycle);
         me.autoRefresh.items.getAt(me.autoRefresh.items.findIndex("value",me.refreshCycle)).setChecked(true);
 
@@ -284,7 +285,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
                 contextMenu.showAt(e.getXY());
               }, this);
         } else {
-          alert('Cannot add click event to the image!');
+          Ext.Function.defer(this.addClickEvent, 4000, this, [img]);
         }
       },
       unselectImage : function(img) {

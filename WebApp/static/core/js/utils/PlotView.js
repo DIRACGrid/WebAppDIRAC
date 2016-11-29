@@ -158,11 +158,10 @@ Ext.define('Ext.dirac.utils.PlotView', {
                         success : function(response) {
 
                           var oResult = Ext.JSON.decode(response.responseText);
-                          if (oResult["success"] == "true"){
+                          if (oResult["success"] == "true") {
                             me.applyDataToSelection(oResult, newValue, me.actualReport);
                             me.cmbReportType.resumeEvent("change");
-                          }
-                          else
+                          } else
                             GLOBAL.APP.CF.alert(oResult["error"], "error");
                           me.leftPanel.body.unmask();
                         }
@@ -503,7 +502,6 @@ Ext.define('Ext.dirac.utils.PlotView', {
                 leftPanel : me.leftPanel,
                 scope : me,
                 listeners : {
-
                   afterrender : function(me) {
                     me.el.on({
                           load : function(evt, ele, opts) {
@@ -531,7 +529,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
                   added : function(container, pos, eOpts) {
                     var me = this;
-
+                    me.setLoading(true);
                     Ext.Ajax.request({
                           url : GLOBAL.BASE_URL + requestHandler + '/generatePlot',
                           timeout : me.timeout,
@@ -578,7 +576,8 @@ Ext.define('Ext.dirac.utils.PlotView', {
                   }
                 }
               });
-
+          
+          oImg.setLoading(true);
           me.rightPanel.addImage(oImg);
 
         }
@@ -960,7 +959,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
         me.cmbGroupBy.setValue(null);
 
         me.cmbGroupBy.bindStore(oStore);
-        me.cmbGroupBy.store.sort("text","ASC");
+        me.cmbGroupBy.store.sort("text", "ASC");
 
         // we call the additional function
         if (me.__additionalDataLoad != null) {
