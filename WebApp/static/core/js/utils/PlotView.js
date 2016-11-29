@@ -432,7 +432,13 @@ Ext.define('Ext.dirac.utils.PlotView', {
           image.setLoading(true);
           var requestHandler = me.handlers["Accounting"]
           if (image.reportType) {
-            requestHandler = me.handlers[image.reportType];
+            selectorReportType = me.cmbReportType.getValue();
+            if (image.reportType != selectorReportType) {
+              requestHandler = me.handlers[selectorReportType];
+              image.reportType = selectorReportType;
+            } else {
+              requestHandler = me.handlers[image.reportType];
+            }
           }
           Ext.Ajax.request({
                 url : GLOBAL.BASE_URL + requestHandler + '/generatePlot',
