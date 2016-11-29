@@ -577,7 +577,6 @@ Ext.define('Ext.dirac.utils.PlotView', {
                 }
               });
           
-          oImg.setLoading(true);
           me.rightPanel.addImage(oImg);
 
         }
