@@ -234,7 +234,10 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                           if (appnb == me.countloadedonDegault) {
                             // only load the latest application
                             widget.setActiveTab(component);
-                            component.loadData();
+                            component.on('afterlayout', function(p, layout, eOpts) {
+                                  component.loadData();
+                                });
+
                           }
                           me.countloadedonDegault += 1;
                         }, me);
