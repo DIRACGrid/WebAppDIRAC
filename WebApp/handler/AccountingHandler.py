@@ -11,7 +11,7 @@ import datetime
 
 from hashlib import md5
 
-class AccountingPlotHandler( WebHandler ):
+class AccountingHandler( WebHandler ):
 
   AUTH_PROPS = "all"
   __keysCache = DictCache.DictCache()
@@ -22,7 +22,7 @@ class AccountingPlotHandler( WebHandler ):
                  sessionData["user"].get( "group", "" ),
                  sessionData["setup"],
                  typeName )
-    data = AccountingPlotHandler.__keysCache.get( cacheKey )
+    data = AccountingHandler.__keysCache.get( cacheKey )
     if not data:
       rpcClient = RPCClient( "Accounting/ReportGenerator" )
       retVal = rpcClient.listUniqueKeyValues( typeName )
@@ -45,7 +45,7 @@ class AccountingPlotHandler( WebHandler ):
           orderedSites.extend( sorted( siteLevel[ level ] ) )
         retVal[ 'Value' ][ 'Site' ] = orderedSites
       data = retVal
-      AccountingPlotHandler.__keysCache.add( cacheKey, 300, data )
+      AccountingHandler.__keysCache.add( cacheKey, 300, data )
     return data
 
   @asyncGen
@@ -71,7 +71,7 @@ class AccountingPlotHandler( WebHandler ):
     callback["selectionValues"] = records
 
     # Cache for plotsList?
-    data = AccountingPlotHandler.__keysCache.get( "reportsList:%s" % typeName )
+    data = AccountingHandler.__keysCache.get( "reportsList:%s" % typeName )
     if not data:
       repClient = ReportsClient()
       retVal = yield self.threadTask( repClient.listReports, typeName )
@@ -79,7 +79,7 @@ class AccountingPlotHandler( WebHandler ):
         self.finish( { "success" : "false", "result" : "", "error" : retVal[ 'Message' ] } )
         return
       data = retVal[ 'Value' ]
-      AccountingPlotHandler.__keysCache.add( "reportsList:%s" % typeName, 300, data )
+      AccountingHandler.__keysCache.add( "reportsList:%s" % typeName, 300, data )
     callback["plotsList"] = data
     self.finish( {"success" : "true", "result" : callback } )
 

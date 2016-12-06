@@ -424,7 +424,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                   var width = 99 / 2;
                   width = '.' + Math.round(width);
                   for (var i = 0; i < jsonData.result.length; i++) {
-                    var src = GLOBAL.BASE_URL + "AccountingPlot/getPlotImg?file=" + jsonData.result[i] + "&nocache=" + (new Date()).getTime();
+                    var src = GLOBAL.BASE_URL + "Accounting/getPlotImg?file=" + jsonData.result[i] + "&nocache=" + (new Date()).getTime();
                     var img = Ext.create('Ext.Img', {
                           columnWidth : width,
                           src : src
