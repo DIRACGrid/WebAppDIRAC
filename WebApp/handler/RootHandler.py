@@ -23,7 +23,7 @@ class RootHandler(WebHandler):
      data = self.request.arguments.get( "data", "" )[0]
      filename = self.request.arguments.get( "filename", "" )[0]
      
-     if re.match( "(?!\.)^[\w\d_\.]*$", filename ):
+     if re.match( "(?!\.)^[\w\d_\.\-]*$", filename ):
        filepath = "%s/webRoot/www/pilot/%s" % ( rootPath, filename )
      else:
        raise WErr( 400, "Please provide a valid file name!" )
