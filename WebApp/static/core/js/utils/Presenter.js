@@ -251,8 +251,10 @@ Ext.define('Ext.dirac.utils.Presenter', {
                               window.open(img.src);
                             }
                           }, {
+                            scope : this,
                             text : "Save CSV data",
                             handler : function() {
+                              var me = this;
                               var oParams = img.plotParams;
                               var oHrefParams = "";
 
