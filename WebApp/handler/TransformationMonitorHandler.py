@@ -179,6 +179,8 @@ class TransformationMonitorHandler( WebHandler ):
       callback = yield self.threadTask( self.__transformationDetail, id )
     elif self.request.arguments["data_kind"][0] == "extend":
       callback = yield self.threadTask( self.__extendTransformation, id )
+    elif self.request.arguments["data_kind"][0] == "workflowxml":
+      callback = yield self.threadTask( self.__workflowxml, id )
     else:
       callback = {"success":"false", "error":"Action is unknown!!!"}
     self.finish( callback )
@@ -296,6 +298,17 @@ class TransformationMonitorHandler( WebHandler ):
       callback = {"success":"true", "result":back}
     return callback
 
+  ################################################################################
+  def __workflowxml ( self, id ):
+    callback = {}
+    tsClient = TransformationClient()
+    retVal = tsClient.getTransformations( {'TransformationID':id} )
+    print retVal
+    if not retVal['OK']:
+      raise WErr.fromSERROR( retVal )
+    print retVal['Value']
+    return {"success":"true", "result":retVal['Value'][0]['Body']}
+    
   ################################################################################
   def __getLoggingInfo( self, id ):
 
