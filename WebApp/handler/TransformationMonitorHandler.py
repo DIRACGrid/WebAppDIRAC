@@ -300,10 +300,9 @@ class TransformationMonitorHandler( WebHandler ):
 
   ################################################################################
   def __workflowxml ( self, id ):
-    callback = {}
+    
     tsClient = TransformationClient()
     retVal = tsClient.getTransformations( {'TransformationID':id} )
-    print retVal
     if not retVal['OK']:
       raise WErr.fromSERROR( retVal )
     print retVal['Value']
