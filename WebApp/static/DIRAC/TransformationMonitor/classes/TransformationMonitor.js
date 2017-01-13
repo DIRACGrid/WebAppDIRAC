@@ -225,7 +225,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               },
               scope : me
             });
-        me.dataStore.sort('TransformationGroup','DESC');
+        me.dataStore.sort('TransformationGroup', 'DESC');
         var pagingToolbar = null;
 
         var toolButtons = {
@@ -621,6 +621,13 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                   tooltip : 'Click to show the logging information of the selected transformation.'
                 }
               }, {
+                "text" : "Workflow xml",
+                "handler" : me.__oprGetJobData,
+                "arguments" : ["workflowxml"],
+                "properties" : {
+                  tooltip : 'Click to show the workflow information of the selected transformation.'
+                }
+              }, {
                 "text" : "File Status",
                 "handler" : me.__oprGetJobData,
                 "arguments" : ["fileStatus"],
@@ -823,9 +830,42 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                             }]);
                   } else if (oDataKind == 'transformationDetail') {
                     me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Production:" + oId);
-                  }// else if()
-                } else {
-                  alert(jsonData['error']);
+                  } else if (oDataKind == 'workflowxml') {
+                    var xmlText = '<?xml version="1.0" encoding="UTF-8" ?>' + jsonData["result"];
+                    // xmlText = encodeURI(xmlText);
+
+                    if (Ext.isSafari) {
+
+                      var w = window.open('data:text/xml,' + xmlText);
+                      w.focus();
+
+                    } else {
+                      
+                      var win = GLOBAL.APP.MAIN_VIEW.getRightContainer().createModalWindow({
+                            height : 500,
+                            width : 700,
+                            title : 'WorkFlow',
+                            modal : true,
+                            parentWindow : me,
+                            isChildWindow : true,
+                            autoscroll : true,
+                            autoScroll : true,
+                            iconCls : "system_child_window",
+                            html : '<div id = "xmlContainer"></div>',
+                            listeners : {
+                              render : function() {
+                                var xmlContainer = Ext.get('xmlContainer');
+                                xmlContainer.update('<pre>' + Ext.util.Format.htmlEncode(xmlText) + '</pre>');
+                              }
+                            }
+                          });
+
+                      win.show();
+
+                    }
+                  } else {
+                    alert(jsonData['error']);
+                  }
                 }
               }
             });
@@ -911,7 +951,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         var me = this;
         var oRunNumberId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me, "RunNumber");
         var oTransFormationId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(parentGrid, "TransformationID");
-        
+
         var appName = me.parent.applicationName;
 
         var title = 'Flush ' + oRunNumberId;
@@ -948,7 +988,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         var oTransFormationId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(parentGrid, "TransformationID");
 
         var appName = me.parent.applicationName;
-        
+
         var title = 'Set Site ' + site;
         var msg = 'Are you sure you want to set site ' + site + ' for the run ' + oRunNumberId + ' in production ' + oTransFormationId + ' ?';
         Ext.Msg.confirm(title, msg, function(btn) {
