@@ -167,7 +167,7 @@ class MonitoringHandler( WebHandler ):
     if not retVal[ 'OK' ]:
       return retVal
     params = retVal[ 'Value' ]
-    repClient = MonitoringClient( rpcClient = RPCClient( "Monitoring/orMonitoring" ) )
+    repClient = MonitoringClient( rpcClient = RPCClient( "Monitoring/Monitoring" ) )
     retVal = repClient.generateDelayedPlot( *params )
     return retVal
 
