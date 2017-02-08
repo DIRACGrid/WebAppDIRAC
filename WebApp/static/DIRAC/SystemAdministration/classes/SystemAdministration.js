@@ -204,7 +204,11 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     xtype : "button",
                     text : 'Restart',
                     handler : function() {
-                      me.oprHostAction("restart", 2);
+                      Ext.MessageBox.confirm('Confirm', 'Do you want to restart?', function(button) {
+                        if (button == 'yes') {
+                          me.oprHostAction("restart", 2);
+                        }
+                      }, me);
                     },
                     iconCls : "dirac-icon-restart",
                     scope : me
