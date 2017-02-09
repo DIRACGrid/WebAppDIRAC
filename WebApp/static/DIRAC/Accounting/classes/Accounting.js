@@ -31,6 +31,10 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
               title : "SRM Space Token Deployment",
               selectionConditions : [["Site", "Site"], ["Hostname", "Hostname"], ["SpaceTokenDesc", "Space Token Description"]]
 
+            },
+            Network : {
+              title : "Network",
+              selectionConditions : [["Source", "Source Site"], ["Destination", "Destination Site"], ["SourceHostName", "Source Host"], ["DestinationHostName", "Destination Host"]]
             }
           },
           Monitoring : {
@@ -51,7 +55,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
       
                 
         me.reports = {
-          Accounting: [["DataOperation", "Data Operation"], ["Job", "Job"], ["WMSHistory", "WMS History"], ["Pilot", "Pilot"], ["SRMSpaceTokenDeployment", "SRM Space Token Deployment"]],
+          Accounting: [["DataOperation", "Data Operation"], ["Job", "Job"], ["WMSHistory", "WMS History"], ["Pilot", "Pilot"], ["SRMSpaceTokenDeployment", "SRM Space Token Deployment"], ["Network", "Network"]],
           Monitoring: [["WMSHistory", "WMS Monitoring"], ["ComponentMonitoring", "Component Monitoring"]]
         };
         
