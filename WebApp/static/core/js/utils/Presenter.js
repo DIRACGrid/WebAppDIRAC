@@ -279,7 +279,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
                             scope : this,
                             handler : function() {
                               var me = this;
-                              var url = "http://" + window.location.host + img.src;
+                              var url = window.location.protocol + "//" + window.location.host + img.src;
                               me.parent.getContainer().oprPrepareAndShowWindowText(url, "URL");
                             }
                           }]
