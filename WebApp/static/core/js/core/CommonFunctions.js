@@ -316,7 +316,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
               Ext.dirac.system_info.msg("Error Notification", 'Operation failed: ' + shortMessage + '.<br/>');
             }
           } else {
-            Ext.dirac.system_info.msg("Error Notification", "The reson of the failure is unknown!");
+            Ext.dirac.system_info.msg("Error Notification", "The reason of the failure is unknown!");
           }
 
         }

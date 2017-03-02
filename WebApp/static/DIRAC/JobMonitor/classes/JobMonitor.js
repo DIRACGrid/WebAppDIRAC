@@ -477,7 +477,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                 "handler" : me.__oprJobAction,
                 "arguments" : ["kill", true],
                 "properties" : {
-                  tooltip : 'Click to kill the selected job.',
+                  tooltip : 'Click to kill the selected job',
                   iconCls : "dirac-icon-kill"
                 }
               }, {
@@ -485,7 +485,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                 "handler" : me.__oprJobAction,
                 "arguments" : ["delete", true],
                 "properties" : {
-                  tooltip : 'Click to kill the selected job.',
+                  tooltip : 'Click to delete the selected job',
                   iconCls : "dirac-icon-delete"
                 }
               }]
@@ -496,7 +496,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                 "handler" : me.__oprGetJobData,
                 "arguments" : ["getPilotStdOut"],
                 "properties" : {
-                  tooltip : 'Click to kill the selected job.',
+                  tooltip : 'Click to get pilot standard output',
                   iconCls : "dirac-icon-download"
                 }
               }, {
@@ -504,7 +504,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                 "handler" : me.__oprGetJobData,
                 "arguments" : ["getPilotStdErr"],
                 "properties" : {
-                  tooltip : 'Click to kill the selected job.',
+                  tooltip : 'Click to get pilot standard error',
                   iconCls : "dirac-icon-download"
                 }
               }, {
@@ -512,7 +512,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                 "handler" : me.__oprGetJobData,
                 "arguments" : ["getPilotLoggingInfo"],
                 "properties" : {
-                  tooltip : 'Click to kill the selected job.',
+                  tooltip : 'Click to get pilot logging information',
                   iconCls : "dirac-icon-download"
                 }
               }]
@@ -524,7 +524,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                 "handler" : me.__getSandbox,
                 "arguments" : ["Input"],
                 "properties" : {
-                  tooltip : 'Click to kill the selected job.',
+                  tooltip : 'Click to get the job input sandbox',
                   iconCls : "dirac-icon-download"
                 }
               }, {
@@ -532,7 +532,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                 "handler" : me.__getSandbox,
                 "arguments" : ["Output"],
                 "properties" : {
-                  tooltip : 'Click to kill the selected job.',
+                  tooltip : 'Click to get the job output sandbox',
                   iconCls : "dirac-icon-download"
                 }
               }]
