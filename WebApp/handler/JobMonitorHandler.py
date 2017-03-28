@@ -82,7 +82,7 @@ class JobMonitorHandler( WebHandler ):
     result = result.strip()
     result = result[:-1]
     return result
-
+  
   @asyncGen
   def web_getSelectionData( self ):
     sData = self.getSessionData()
@@ -111,7 +111,7 @@ class JobMonitorHandler( WebHandler ):
           gLogger.error( "RPC.getProductionIds() return error: %s" % result["Message"] )
           prod = [["Error happened on service side"]]
         callback["prod"] = prod
-        
+  
         RPC = RPCClient( "WorkloadManagement/JobMonitoring" )
         result = yield self.threadTask( RPC.getSites )
         if result["OK"]:
