@@ -476,6 +476,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         if (Object.keys(me.cmbSelectors).length > 0) { // only load the
           // selector
           // data if exist!
+          me.body.mask("Loading selectors...");
           Ext.Ajax.request({
                 url : GLOBAL.BASE_URL + me.url,
                 params : {
@@ -483,8 +484,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           }     ,
                 scope : me,
                 success : function(response) {
-
+                  
                   var me = this;
+                  
+                  me.body.unmask();
+                  
                   var response = Ext.JSON.decode(response.responseText);
 
                   if (response.success == "false") {
@@ -513,6 +517,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
                 failure : function(response) {
 
                   GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                  me.body.unmask();
 
                 }
               });
