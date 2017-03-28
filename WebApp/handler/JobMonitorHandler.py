@@ -5,14 +5,18 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 from WebAppDIRAC.WebApp.handler.Palette import Palette
-from DIRAC.RequestManagementSystem.Client.Request       import Request
+from DIRAC.RequestManagementSystem.Client.Request import Request
+from DIRAC.Core.Utilities import DictCache
+
 import json
 
 
 class JobMonitorHandler( WebHandler ):
 
   AUTH_PROPS = "authenticated"
-
+  
+  __dataCache = DictCache.DictCache()
+  
   @asyncGen
   def web_getJobData( self ):
     RPC = RPCClient( "WorkloadManagement/JobMonitoring", timeout = 600 )
@@ -83,121 +87,127 @@ class JobMonitorHandler( WebHandler ):
   def web_getSelectionData( self ):
     sData = self.getSessionData()
 
-    callback = {}
-
     user = sData["user"]["username"]
     if user == "Anonymous":
       callback["prod"] = [["Insufficient rights"]]
     else:
-      RPC = RPCClient( "WorkloadManagement/JobMonitoring" )
-      result = yield self.threadTask( RPC.getProductionIds )
-      if result["OK"]:
-        prod = []
-        prods = result["Value"]
-        if len( prods ) > 0:
-          prods.sort( reverse = True )
-          prod = [ [ i ] for i in prods if i.startswith('00')]
+      cacheKey = ( sData["user"].get( "group", "" ),
+                   sData["setup"] )
+      
+      callback = JobMonitorHandler.__dataCache.get( cacheKey )
+      if not callback:
+        callback = {}
+        RPC = RPCClient( "WorkloadManagement/JobMonitoring" )
+        result = yield self.threadTask( RPC.getProductionIds )
+        if result["OK"]:
+          prod = []
+          prods = result["Value"]
+          if len( prods ) > 0:
+            prods.sort( reverse = True )
+            prod = [ [ i ] for i in prods if i.startswith('00')]
+          else:
+            prod = [["Nothing to display"]]
         else:
-          prod = [["Nothing to display"]]
-      else:
-        gLogger.error( "RPC.getProductionIds() return error: %s" % result["Message"] )
-        prod = [["Error happened on service side"]]
-      callback["prod"] = prod
-# ##
-    RPC = RPCClient( "WorkloadManagement/JobMonitoring" )
-    result = yield self.threadTask( RPC.getSites )
-    if result["OK"]:
-      tier1 = gConfig.getValue( "/Website/PreferredSites", [] )  # Always return a list
-      site = []
-      if len( result["Value"] ) > 0:
-        s = list( result["Value"] )
-        for i in tier1:
-          site.append( [str( i )] )
-        for i in s:
-          if i not in tier1:
-            site.append( [str( i )] )
-      else:
-        site = [["Nothing to display"]]
-    else:
-      gLogger.error( "RPC.getSites() return error: %s" % result["Message"] )
-      site = [["Error happened on service side"]]
-    callback["site"] = site
-# ##
-    result = yield self.threadTask( RPC.getStates )
-    if result["OK"]:
-      stat = []
-      if len( result["Value"] ) > 0:
-        for i in result["Value"]:
-          stat.append( [str( i )] )
-      else:
-        stat = [["Nothing to display"]]
-    else:
-      gLogger.error( "RPC.getStates() return error: %s" % result["Message"] )
-      stat = [["Error happened on service side"]]
-    callback["status"] = stat
-# ##
-    result = yield self.threadTask( RPC.getMinorStates )
-    if result["OK"]:
-      stat = []
-      if len( result["Value"] ) > 0:
-        for i in result["Value"]:
-          stat.append( [i] )
-      else:
-        stat = [["Nothing to display"]]
-    else:
-      gLogger.error( "RPC.getMinorStates() return error: %s" % result["Message"] )
-      stat = [["Error happened on service side"]]
-    callback["minorstat"] = stat
-# ##
-    result = yield self.threadTask( RPC.getApplicationStates )
-    if result["OK"]:
-      app = []
-      if len( result["Value"] ) > 0:
-        for i in result["Value"]:
-          app.append( [i] )
-      else:
-        app = [["Nothing to display"]]
-    else:
-      gLogger.error( "RPC.getApplicationstates() return error: %s" % result["Message"] )
-      app = [["Error happened on service side"]]
-    callback["app"] = app
-# ##
-    result = yield self.threadTask( RPC.getJobTypes )
-    if result["OK"]:
-      types = []
-      if len( result["Value"] ) > 0:
-        for i in result["Value"]:
-          types.append( [i] )
-      else:
-        types = [["Nothing to display"]]
-    else:
-      gLogger.error( "RPC.getJobTypes() return error: %s" % result["Message"] )
-      types = [["Error happened on service side"]]
-    callback["types"] = types
-# ##
-    # groupProperty = credentials.getProperties(group)
-    if user == "Anonymous":
-      callback["owner"] = [["Insufficient rights"]]
-    else:
-      result = yield self.threadTask( RPC.getOwners )
-      if result["OK"]:
-        owner = []
-        if len( result["Value"] ) > 0:
-          for i in result["Value"]:
-            owner.append( [str( i )] )
+          gLogger.error( "RPC.getProductionIds() return error: %s" % result["Message"] )
+          prod = [["Error happened on service side"]]
+        callback["prod"] = prod
+        
+        RPC = RPCClient( "WorkloadManagement/JobMonitoring" )
+        result = yield self.threadTask( RPC.getSites )
+        if result["OK"]:
+          tier1 = gConfig.getValue( "/Website/PreferredSites", [] )  # Always return a list
+          site = []
+          if len( result["Value"] ) > 0:
+            s = list( result["Value"] )
+            for i in tier1:
+              site.append( [str( i )] )
+            for i in s:
+              if i not in tier1:
+                site.append( [str( i )] )
+          else:
+            site = [["Nothing to display"]]
         else:
-          owner = [["Nothing to display"]]
-      elif 'NormalUser' in  sData['user']['properties']:
-        owner = [[user]]
-        callback["owner"] = owner
-      else:
-          gLogger.error( "RPC.getOwners() return error: %s" % result["Message"] )
-          owner = [["Error happened on service side"]]
-      callback["owner"] = owner
-
-    result = yield self.threadTask( RPC.getOwnerGroup )
-    if result['OK']:
-      callback['OwnerGroup'] = [ [group] for group in result['Value']]
+          gLogger.error( "RPC.getSites() return error: %s" % result["Message"] )
+          site = [["Error happened on service side"]]
+        callback["site"] = site
+    # ##
+        result = yield self.threadTask( RPC.getStates )
+        if result["OK"]:
+          stat = []
+          if len( result["Value"] ) > 0:
+            for i in result["Value"]:
+              stat.append( [str( i )] )
+          else:
+            stat = [["Nothing to display"]]
+        else:
+          gLogger.error( "RPC.getStates() return error: %s" % result["Message"] )
+          stat = [["Error happened on service side"]]
+        callback["status"] = stat
+    # ##
+        result = yield self.threadTask( RPC.getMinorStates )
+        if result["OK"]:
+          stat = []
+          if len( result["Value"] ) > 0:
+            for i in result["Value"]:
+              stat.append( [i] )
+          else:
+            stat = [["Nothing to display"]]
+        else:
+          gLogger.error( "RPC.getMinorStates() return error: %s" % result["Message"] )
+          stat = [["Error happened on service side"]]
+        callback["minorstat"] = stat
+    # ##
+        result = yield self.threadTask( RPC.getApplicationStates )
+        if result["OK"]:
+          app = []
+          if len( result["Value"] ) > 0:
+            for i in result["Value"]:
+              app.append( [i] )
+          else:
+            app = [["Nothing to display"]]
+        else:
+          gLogger.error( "RPC.getApplicationstates() return error: %s" % result["Message"] )
+          app = [["Error happened on service side"]]
+        callback["app"] = app
+    # ##
+        result = yield self.threadTask( RPC.getJobTypes )
+        if result["OK"]:
+          types = []
+          if len( result["Value"] ) > 0:
+            for i in result["Value"]:
+              types.append( [i] )
+          else:
+            types = [["Nothing to display"]]
+        else:
+          gLogger.error( "RPC.getJobTypes() return error: %s" % result["Message"] )
+          types = [["Error happened on service side"]]
+        callback["types"] = types
+    # ##
+        # groupProperty = credentials.getProperties(group)
+        if user == "Anonymous":
+          callback["owner"] = [["Insufficient rights"]]
+        else:
+          result = yield self.threadTask( RPC.getOwners )
+          if result["OK"]:
+            owner = []
+            if len( result["Value"] ) > 0:
+              for i in result["Value"]:
+                owner.append( [str( i )] )
+            else:
+              owner = [["Nothing to display"]]
+          elif 'NormalUser' in  sData['user']['properties']:
+            owner = [[user]]
+            callback["owner"] = owner
+          else:
+              gLogger.error( "RPC.getOwners() return error: %s" % result["Message"] )
+              owner = [["Error happened on service side"]]
+          callback["owner"] = owner
+    
+        result = yield self.threadTask( RPC.getOwnerGroup )
+        if result['OK']:
+          callback['OwnerGroup'] = [ [group] for group in result['Value']]
+        
+        JobMonitorHandler.__dataCache.add( cacheKey, 360, callback )
 
     self.finish( callback )
 
