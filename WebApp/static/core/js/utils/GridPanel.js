@@ -1,7 +1,7 @@
 /*******************************************************************************
  * It is a simple GridPanel.
  */
-Ext.define('DIRAC.TransformationMonitor.classes.GridPanel', {
+Ext.define('Ext.dirac.utils.GridPanel', {
       extend : 'Ext.grid.Panel',
       requires : ["Ext.data.ArrayStore"],
       width : '100%',
