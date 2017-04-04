@@ -38,10 +38,7 @@ Ext.define('Ext.dirac.utils.GridPanel', {
                 timeout : 1800000,
                 listeners : {
                   exception : function(proxy, response, operation) {
-                    var jsonData = Ext.JSON.decode(response.responseText);
-                    if (jsonData && jsonData["success"] == "false") {
-                      alert(jsonData["error"]);
-                    }
+                    GLOBAL.APP.CF.showAjaxErrorMessage(response);
                   }
                 }
               },
