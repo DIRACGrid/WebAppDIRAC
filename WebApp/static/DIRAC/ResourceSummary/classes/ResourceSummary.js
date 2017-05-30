@@ -124,7 +124,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
               width : 26,
               sortable : false,
               hideable : false,
-              fixed : true,
+              fixed : false,
               menuDisabled : true
             },
             "renderFunction" : "rendererStatus"
@@ -132,7 +132,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           "Name" : {
             "dataIndex" : "Name",
             "properties" : {
-              fixed : true
+              fixed : false
             }
           },
           "ResourceType" : {
