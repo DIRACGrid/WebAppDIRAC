@@ -489,7 +489,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
     try:
       rollbackVersion = str( params[ 'rollbackToVersion' ] )
     except Exception, e:
-      WErr( 500, "Can't decode params: %s" % e )
+      raise WErr( 500, "Can't decode params: %s" % e )
     rpcClient = RPCClient( gConfig.getValue( "/DIRAC/Configuration/MasterServer", "Configuration/Server" ) )
     modCfg = Modificator( rpcClient )
     retVal = modCfg.rollbackToVersion( rollbackVersion )
@@ -520,7 +520,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
         cDict[ 'numVersions' ] += 1
         cDict[ 'versions' ].append( { 'version' : entry[1], 'commiter' : entry[0] } )
     else:
-      WErr.fromSERROR( retVal )
+      raise WErr.fromSERROR( retVal )
     return {"success":1, "op":"showshowHistory", "result":cDict}
 
   def __download(self):

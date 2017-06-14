@@ -3,9 +3,8 @@
  */
 Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
       extend : 'Ext.dirac.core.Module',
-      requires : ['Ext.panel.Panel', 'Ext.panel.Panel', 'Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracToolButton', 'DIRAC.TransformationMonitor.classes.GridPanel', "Ext.form.field.TextArea", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton',
-          'Ext.dirac.utils.DiracPageSizeCombo', 'Ext.dirac.utils.DiracPagingToolbar', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy', 'Ext.dirac.utils.DiracApplicationContextMenu', 'Ext.dirac.utils.DiracBaseSelector',
-          'DIRAC.TransformationMonitor.classes.GridPanel'],
+      requires : ['Ext.panel.Panel', 'Ext.panel.Panel', 'Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracToolButton', 'Ext.dirac.util.GridPanel', "Ext.form.field.TextArea", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton',
+          'Ext.dirac.utils.DiracPageSizeCombo', 'Ext.dirac.utils.DiracPagingToolbar', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy', 'Ext.dirac.utils.DiracApplicationContextMenu', 'Ext.dirac.utils.DiracBaseSelector'],
       applicationsToOpen : {
         'JobMonitor' : 'DIRAC.JobMonitor.classes.JobMonitor'
       },
@@ -1072,7 +1071,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         var me = this;
         var oGrid = null;
 
-        var oGrid = Ext.create("DIRAC.TransformationMonitor.classes.GridPanel", {
+        var oGrid = Ext.create("Ext.dirac.utils.GridPanel", {
               oFields : oFields,
               oColumns : oColumns,
               url : url,
