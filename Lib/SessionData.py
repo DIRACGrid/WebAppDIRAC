@@ -35,14 +35,24 @@ class SessionData( object ):
     self.__setup = setup
 
   def __isGroupAuthApp( self, appLoc ):
+    """
+    The method checks if the application is authorized for a certain user group
+     
+    :param str appLoc It is the application name for example: DIRAC.JobMonitor
+    :return bool if the handler is authorized to the user returns True otherwise False 
+    
+    """
+    
     handlerLoc = "/".join( List.fromChar( appLoc, "." )[1:] )
     if not handlerLoc:
+      gLogger.error( "Application handler does not exists:", appLoc )
       return False
     if handlerLoc not in self.__handlers:
       gLogger.error( "Handler %s required by %s does not exist!" % ( handlerLoc, appLoc ) )
       return False
     handler = self.__handlers[ handlerLoc ]
     auth = AuthManager( Conf.getAuthSectionForHandler( handlerLoc ) )
+    gLogger.info( "Authorization: %s -> %s" % ( dict( self.__credDict ), handler.AUTH_PROPS ) )
     return auth.authQuery( "", dict( self.__credDict ), handler.AUTH_PROPS )
 
   def __generateSchema( self, base, path ):
