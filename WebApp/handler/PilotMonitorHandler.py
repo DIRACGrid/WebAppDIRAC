@@ -122,7 +122,7 @@ class PilotMonitorHandler(WebHandler):
       callback["computingElement"] = ce
 
       if result.has_key("GridSite") and len(result["GridSite"]) > 0:
-        tier1 = gConfig.getValue("/Website/PreferredSites",[])
+        tier1 = gConfig.getValue("/WebApp/PreferredSites",[])
         site = []
         s = list(result["GridSite"])
         for i in tier1:
@@ -311,7 +311,7 @@ class PilotMonitorHandler(WebHandler):
       keylist = result.keys()
       keylist.sort()
       if selector == "Site":
-        tier1 = gConfig.getValue( "/Website/PreferredSites", [] )
+        tier1 = gConfig.getValue( "/WebApp/PreferredSites", [] )
         if len( tier1 ) > 0:
           tier1.sort()
           for i in tier1:

@@ -89,7 +89,7 @@ class PilotSummaryHandler(WebHandler):
       RPC = RPCClient("WorkloadManagement/JobMonitoring")
       result = yield self.threadTask(RPC.getSites)
       if result["OK"]:
-        tier1 = gConfig.getValue("/Website/PreferredSites")
+        tier1 = gConfig.getValue("/WebApp/PreferredSites")
         if tier1:
           try:
             tier1 = tier1.split(", ")

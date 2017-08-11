@@ -458,7 +458,7 @@ class TransformationMonitorHandler( WebHandler ):
   ################################################################################
   def web_getTier1Sites( self ):
     callback = {}
-    tier1 = gConfig.getValue( "/Website/PreferredSites", [] )
+    tier1 = gConfig.getValue( "/WebApp/PreferredSites", [] )
     if len( tier1 ) < 1:
       callback = { 'success' : False, 'errors' : 'No site defined in the CS!' }
     else:

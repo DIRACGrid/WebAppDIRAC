@@ -174,7 +174,7 @@ class FileCatalogHandler( WebHandler ):
     if self.request.arguments.has_key( "start" ) and len( self.request.arguments[ "start" ][0] ) > 0:
       self.S_NUMBER = int( self.request.arguments[ "start" ][0] )
 
-    result = gConfig.getOption( "/Website/ListSeparator" )
+    result = gConfig.getOption( "/WebApp/ListSeparator" )
     if result[ "OK" ] :
       separator = result[ "Value" ]
     else:

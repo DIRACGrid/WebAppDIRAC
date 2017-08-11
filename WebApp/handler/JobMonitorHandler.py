@@ -115,7 +115,7 @@ class JobMonitorHandler( WebHandler ):
         RPC = RPCClient( "WorkloadManagement/JobMonitoring" )
         result = yield self.threadTask( RPC.getSites )
         if result["OK"]:
-          tier1 = gConfig.getValue( "/Website/PreferredSites", [] )  # Always return a list
+          tier1 = gConfig.getValue( "/WebApp/PreferredSites", [] )  # Always return a list
           site = []
           if len( result["Value"] ) > 0:
             s = list( result["Value"] )
@@ -493,7 +493,7 @@ class JobMonitorHandler( WebHandler ):
       keylist = result.keys()
       keylist.sort()
       if selector == "Site":
-        tier1 = gConfig.getValue( "/Website/PreferredSites", [] )
+        tier1 = gConfig.getValue( "/WebApp/PreferredSites", [] )
         if len( tier1 ) > 0:
           tier1.sort()
           for i in tier1:

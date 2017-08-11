@@ -68,7 +68,7 @@ class JobLaunchpadHandler(WebHandler):
     gLogger.info("end __getPlatform")
     return platform
 
-  def __getOptionsFromCS(self , path="/Website/Launchpad/Options" , delimiter=","):
+  def __getOptionsFromCS(self , path="/WebApp/Launchpad/Options" , delimiter=","):
     gLogger.info("start __getOptionsFromCS")
 
     result = gConfig.getOptionsDict(path)
@@ -116,7 +116,7 @@ class JobLaunchpadHandler(WebHandler):
                      "ParameterStep" :  [0, "1"],
                      "ParameterFactor": [0, "0"]}
 
-    delimiter = gConfig.getValue("/Website/Launchpad/ListSeparator" , ',')
+    delimiter = gConfig.getValue("/WebApp/Launchpad/ListSeparator" , ',')
     options = self.__getOptionsFromCS(delimiter=delimiter)
 #     platform = self.__getPlatform()
 #     if platform and options:
@@ -128,7 +128,7 @@ class JobLaunchpadHandler(WebHandler):
 #         platform = uniqueElements(allPlatforms)
 #         options[ "Platform" ] = platform
     gLogger.debug("Combined options from CS: %s" % options)
-    override = gConfig.getValue("/Website/Launchpad/OptionsOverride" , False)
+    override = gConfig.getValue("/WebApp/Launchpad/OptionsOverride" , False)
     gLogger.info("end __getLaunchpadOpts")
 
 #    Updating the default values from OptionsOverride configuration branch
