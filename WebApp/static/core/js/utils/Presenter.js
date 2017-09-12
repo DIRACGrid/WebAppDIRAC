@@ -48,6 +48,11 @@ Ext.define('Ext.dirac.utils.Presenter', {
         
         me.setRefreshCycle(me.refreshCycle);
         me.autoRefresh.items.getAt(me.autoRefresh.items.findIndex("value",me.refreshCycle)).setChecked(true);
+        
+        var now = new Date();
+        var UTCTime = now.toUTCString();
+        UTCTime = UTCTime.replace('GMT', "[UTC]");
+        me.updateTime.setText("Updated:" + UTCTime);
 
       },
       getStateData : function() {
