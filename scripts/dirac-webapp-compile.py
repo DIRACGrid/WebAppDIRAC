@@ -2,12 +2,14 @@
 """
 This is used to compile WebAppDIRAC and its extension, if exists
 """
-import sys
+import sys, os
 from DIRAC.Core.Base import Script
 
 newCompiler = False  # we have to keep the backward compatibility...
 
 from DIRAC import gLogger, S_ERROR, S_OK
+from DIRAC.FrameworkSystem.Client.WebAppCompiler import WebAppCompiler
+
 try:
   from WebAppDIRAC.Lib.Compiler import Compiler
 except ImportError:
@@ -42,7 +44,7 @@ class Params:
   
   def setExtJsPath( self, opVal ):
     self.extjspath = opVal
-    return S_OK
+    return S_OK()
   
 if __name__ == "__main__":
   
@@ -69,6 +71,11 @@ if __name__ == "__main__":
       Script.showHelp()
       sys.exit( 1 )
     
+    compiler = WebAppCompiler( cliParams )
+    result = compiler.run()
+    if not result[ 'OK' ]:
+      gLogger.fatal( result[ 'Message' ] )
+      sys.exit( 1 )
   else:
     result = Compiler().run()
     if not result[ 'OK' ]:
