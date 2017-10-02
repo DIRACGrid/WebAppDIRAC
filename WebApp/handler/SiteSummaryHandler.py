@@ -32,10 +32,10 @@ class SiteSummaryHandler( WebHandler ):
 
       for elementStatus in elementStatuses[ 'Value' ]:
 
-        callback[ 'status' ].add( elementStatus[ 0 ] )
-        callback[ 'name' ].add( elementStatus[ 2 ] )
-        callback[ 'elementType' ].add( elementStatus[ 5 ] )
-        callback[ 'statusType' ].add( elementStatus[ 6 ] )
+        callback[ 'status' ].add( elementStatus[ 2 ] )
+        callback[ 'name' ].add( elementStatus[ 0 ] )
+        callback[ 'elementType' ].add( elementStatus[ 6 ] )
+        callback[ 'statusType' ].add( elementStatus[ 1 ] )
         callback[ 'tokenOwner' ].add( elementStatus[ 8 ] )
 
     for key, value in callback.items():

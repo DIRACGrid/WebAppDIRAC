@@ -1,4 +1,4 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen, WErr
 from DIRAC import gConfig, S_OK
 from DIRAC.Core.Utilities import Time
 from DIRAC.Core.DISET.RPCClient import RPCClient
