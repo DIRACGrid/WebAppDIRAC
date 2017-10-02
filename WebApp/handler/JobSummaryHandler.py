@@ -50,7 +50,7 @@ class JobSummaryHandler( WebHandler ):
       callback["maskstatus"] = maskstatus
       if len(result.get("Site", [])) > 0:
         s = list(result["Site"])
-        tier1 = gConfig.getValue("/Website/PreferredSites",[])
+        tier1 = gConfig.getValue("/WebApp/PreferredSites",[])
         site = list()
         site.append(["All"])
         for i in tier1:

@@ -44,7 +44,7 @@ class ProxyManagerHandler( WebHandler ):
 
     callback["username"] = users
     callback["usergroup"] = groups
-    result = gConfig.getOption( "/Website/ProxyManagementMonitoring/TimeSpan" )
+    result = gConfig.getOption( "/WebApp/ProxyManagementMonitoring/TimeSpan", "86400,432000,604800,2592000" )
     if result["OK"]:
       tmp = result["Value"]
       tmp = tmp.split( ", " )
