@@ -12,7 +12,7 @@ from DIRAC.FrameworkSystem.Client.WebAppCompiler import WebAppCompiler
 
 try:
   from WebAppDIRAC.Lib.Compiler import Compiler
-except ImportError:
+except ImportError as e:
   newCompiler = True
 
 __RCSID__ = "$Id$"
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     Script.addDefaultOptionValue( "/DIRAC/Setup", "Dummy" )
     Script.registerSwitch( "n:", "name=", "Tarball name", cliParams.setName )
     Script.registerSwitch( "D:", "destination=", "Destination where to build the tar files", cliParams.setDestination )
-    Script.registerSwitch( "E:", "extjspath=", "directory of the extjs library", cliParams.setExtJsPath )
+    Script.registerSwitch( "P:", "extjspath=", "directory of the extjs library", cliParams.setExtJsPath )
     Script.registerSwitch( "w:", "webappversion=", "In case you have a Web extension", cliParams.setWebappversion )
     Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                          '\nUsage:',
