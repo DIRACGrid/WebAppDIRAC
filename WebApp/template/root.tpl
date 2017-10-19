@@ -32,7 +32,6 @@
          <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all.js"></script>
        {% end %}
     {% else %}
-      <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all.js"></script>
       <script type="text/javascript" src="{{base_url}}/static/core/build/all-classes.js"></script>
     {% end %}
     <!-- </x-bootstrap> -->
