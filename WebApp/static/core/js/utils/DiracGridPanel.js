@@ -233,15 +233,15 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                     "direction" : key.direction
                   });
             });
-
-        me.store.groupers.each(function(key, value) {
+//TODO: this must be fixed
+        /*me.store.groupers.each(function(key, value) {
               GLOBAL.APP.CF.log('debug', ":", key);
               GLOBAL.APP.CF.log('debug', ":", value);
               oReturn.groupers.push({
                     "property" : key.property,
                     "direction" : key.direction
                   });
-            });
+            });*/
 
         if (me.pagingToolbar) {
           oReturn.pagingToolbar = me.pagingToolbar.getStateData();

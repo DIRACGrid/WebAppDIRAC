@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.TabPanel', {
       extend : 'Ext.tab.Panel',
-      requires : ["Ext.ux.TabReorderer","Ext.ux.TabScrollerMenu"],
+      requires : ["Ext.ux.TabScrollerMenu", "Ext.ux.TabReorderer"],
       xtype : 'diractabcontainer',
       alias : 'widget.tabPanel',
       resizeTabs : true,
@@ -16,21 +16,11 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       tabChangeTimeout : null,
       tabChangeCycle : 0,
       tabCounter : 0,
-      tools : [],
-      tools : [{
-            type : 'plus',
-            tooltip : 'Add new tab',
-            callback : function(tabpanel) {
-              tabpanel.add({
-                    title : 'three'
-                  });
-            }
-          }],
       view : 'tabView',
-      // renderTo:Ext.getBody(),
-      //TODO: This is for scrolling!!!!
+      renderTo : Ext.getBody(),
+      // TODO: This is for scrolling!!!!
       defaults: {
-        //bodyPadding: 10,
+        bodyPadding: 10,
         scrollable: true
     },
       bodyStyle : {
@@ -41,7 +31,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       },
 
       workspace : null,
-      plugins : ['tabreorderer'],
+      plugins : ['tabreorderer'], //TODO: use 'tabscrollermenu' plugin when it will be fixed
       setWorkspace : function(wsk) {
         this.workspace = wsk;
       },
