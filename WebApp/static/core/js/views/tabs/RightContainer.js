@@ -438,8 +438,6 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                           border : true
                         },
                         items : ['->', menu, {
-                              type : 'search'
-                            }, {
                               type : 'help',
                               align : 'right',
                               handler : function() {
@@ -457,6 +455,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
 
           }
           
+          //we have to re-initialize the plugin again ...
           menu.plugins[0].init(tab, menu);
           
           me.getApplicationContainer().add(tab);

@@ -18,7 +18,6 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       tabCounter : 0,
       view : 'tabView',
       renderTo : Ext.getBody(),
-      // TODO: This is for scrolling!!!!
       defaults: {
         bodyPadding: 10,
         scrollable: true
