@@ -3,7 +3,7 @@
  */
 Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
       extend : 'Ext.dirac.core.Module',
-      requires : ["Ext.dirac.utils.DiracBaseSelector", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracAjaxProxy", "Ext.dirac.utils.DiracPagingToolbar", 'Ext.dirac.utils.DiracToolButton', "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracGridPanel",
+      requires : ["Ext.dirac.utils.DiracBaseSelector", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracAjaxProxy", "Ext.dirac.utils.DiracPagingToolbar", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracGridPanel",
           "Ext.dirac.utils.DiracRowExpander"],
       applicationsToOpen : {
         'PilotMonitor' : 'DIRAC.PilotMonitor.classes.PilotMonitor'
