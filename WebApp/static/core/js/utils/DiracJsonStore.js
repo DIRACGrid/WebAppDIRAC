@@ -90,29 +90,22 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
         load : function(oStore, records, successful, eOpts) {
           var me = this;
 
-          if (oStore.data.length < 1) {
-             me.removeAll();
-             //in case of failure we remove the existing data
+          if (!oStore.proxy.reader.rawData) {
             return;
-          }
 
-          if (oStore.data.length > 0 && me.scope.grid && me.scope.grid.pagingToolbar) {
-            var utcTime = null;
-            if (oStore.getProxy().getReader().metaData && oStore.getProxy().getReader().metaData["date"]) {
-              var newDate = Ext.Date.parse(Ext.String.trim(oStore.getProxy().getReader().metaData["date"].split("[UTC")[0]), "Y-m-d H:i");
-              if (newDate) {
-                var currentTimestamp = me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp;
-                if (currentTimestamp != null) {
-                  var msMinute = 60 * 1000, msDay = 60 * 60 * 24 * 1000, msHour = 60 * 60 * 1000;
-                  var days = Math.floor((newDate - currentTimestamp) / msDay);
-                  var hours = Math.floor(((newDate - currentTimestamp) % msDay) / msHour);
-                  var minutes = Math.floor((((newDate - currentTimestamp) % msDay) % msHour) / msMinute);
+          }
+          var bResponseOK = (oStore.proxy.reader.rawData["success"] == "true" || oStore.proxy.reader.rawData["OK"] == true);
+          if (!bResponseOK) {
+
+            GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "info");
+            
+            me.removeAll();
 
           } else {
-            if (oStore.data.length > 0 && me.scope.grid && me.scope.grid.pagingToolbar) {
+            if (oStore.proxy.reader.rawData && me.scope.grid && me.scope.grid.pagingToolbar) {
               var utcTime = null;
-              if (oStore.data.getAt(0).get("date")){
-                var newDate = Ext.Date.parse(Ext.String.trim(oStore.data.getAt(0).get("date").split("[UTC")[0]), "Y-m-d H:i");
+              if (oStore.proxy.reader.rawData["date"]) {
+                var newDate = Ext.Date.parse(Ext.String.trim(oStore.proxy.reader.rawData["date"].split("[UTC")[0]), "Y-m-d H:i");
                 if (newDate) {
                   var currentTimestamp = me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp;
                   if (currentTimestamp != null) {
@@ -122,24 +115,27 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
                     var minutes = Math.floor((((newDate - currentTimestamp) % msDay) % msHour) / msMinute);
 
                     utcTime = days + " " + GLOBAL.APP.CF.zfill(hours, 2) + ":" + GLOBAL.APP.CF.zfill(minutes, 2);
+
+                  }
+
+                  me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp = newDate;
+
                 }
-
-                me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp = newDate;
-
+                if (utcTime) {
+                  me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"] + "(" + utcTime + ")");
+                } else {
+                  me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+                }
               }
-              if (utcTime) {
-                me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.getProxy().getReader().metaData["date"] + "(" + utcTime + ")");
-              } else {
-                me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.getProxy().getReader().metaData["date"]);
-              }
+
             }
 
-          }
+            if (me.remoteSort) {
+              me.remoteSort = false;
+              me.sort();
+              me.remoteSort = true;
+            }
 
-          if (me.remoteSort) {
-            me.remoteSort = false;
-            me.sort();
-            me.remoteSort = true;
           }
 
         },
@@ -149,9 +145,9 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
           if (me.oDiffFields) {// this is for marking the values in the
             // table...
-            if (oStore.data.length > 0 && oStore.data.getAt(0).get("total") > 0) {
-              for (var i = 0; i < oStore.data.getAt(0).get("total"); i++) {
-                var record = oStore.data.getAt(0).getAt(i);
+            if (oStore.proxy.reader.rawData && oStore.proxy.reader.rawData["total"] > 0) {
+              for (var i = 0; i < oStore.proxy.reader.rawData["total"]; i++) {
+                var record = oStore.getAt(i);
                 try {
                   me.diffValues[record.data[me.oDiffFields.Id]] = {};
                   for (var j = 0; j < me.oDiffFields.Fields.length; j++) {
