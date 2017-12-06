@@ -45,6 +45,10 @@
     {% else %}
       <script type="text/javascript" src="{{base_url}}/static/core/build/all-classes.js"></script>
     {% end %}
+    
+    <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/build/packages/charts/classic/charts.js"></script>
+    <link rel="stylesheet" type="text/css"  href="{{base_url}}/static/extjs/{{ext_version}}/build/packages/charts/classic/classic/resources/charts-all.css">
+    
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
       google.load("visualization", "1", {packages:["corechart","annotatedtimeline"]});
@@ -69,7 +73,7 @@
             'Ext.dirac.views': '{{base_url}}/static/core/js/views',
             'Ext.dirac.utils': '{{base_url}}/static/core/js/utils',
             'Ext.ux.form':'{{base_url}}/static/extjs/{{ext_version}}/packages/ux/classic/src/form',
-            'Ext.ux':'{{base_url}}/static/extjs/{{ext_version}}/packages/ux/classic/src'
+            'Ext.ux':'{{base_url}}/static/extjs/{{ext_version}}/packages/ux/classic/src'            
           });
 
           Ext.require(['Ext.dirac.core.App','Ext.*']);

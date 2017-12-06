@@ -2,7 +2,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       extend : 'Ext.dirac.core.Module',
 
       requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging", "Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo', "Ext.dirac.utils.DiracPagingToolbar", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracBaseSelector",
-          "Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracArrayStore"],
+          "Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracArrayStore","Ext.chart.PolarChart"],
 
       loadState : function(data) {
 
@@ -1060,8 +1060,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                   var response = Ext.JSON.decode(response.responseText);
 
                   if (response["success"] == "true") {
+                    me.statisticsPlotPanel.removeAll();
                     me.statisticsSelectionGrid.store.removeAll();
-
                     me.statisticsSelectionGrid.store.add(response["result"]);
 
                     me.createPlotFromGridData(sSet + " :: " + sCategory);
@@ -1096,8 +1096,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                   var response = Ext.JSON.decode(response.responseText);
 
                   if (response["success"] == "true") {
+                    me.statisticsPlotPanel.removeAll();
                     me.statisticsSelectionGrid.store.removeAll();
-
                     me.statisticsSelectionGrid.store.add(response["result"]);
 
                     me.createPlotFromGridData(sSet + " :: " + sCategory);
@@ -1138,7 +1138,36 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
         me.plotSettings.plotTitle.text = sTitle + " (" + oNow.toString() + ")"; 
         me.plotSettings.plotLegend.position = sLegendPosition;
         
-        var plot = Ext.create("Ext.chart.Chart", {
+        var plot = Ext.create("Ext.chart.PolarChart", {
+              cls : 'jm-statistics-plot-background',
+              width : 400,
+              height : 400,
+              theme : 'Base:gradients',
+              layout: 'fit',
+              interactions: ['rotate', 'itemhighlight'],
+              store : me.statisticsSelectionGrid.getStore(),
+              legend : {
+                type : 'sprite',
+                docked : 'bottom',
+                scrollable : true,
+                marker : {
+                  size : 10
+                }
+              },
+              series : {
+                type : 'pie',
+                highlight : true,
+                cls : 'jm-statistics-plot-background',
+                angleField : 'value',
+                label : {
+                  field : 'key',
+                  display : 'rotate'
+                },
+                showInLegend : true
+              }
+            });
+
+        /*var plot = Ext.create("Ext.chart.PolarChart",{
               height : 410,
               padding : '10 0 0 0',
               cls : 'jm-statistics-plot-background',
@@ -1173,7 +1202,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                       }
                     }
                   }]
-            });
+            });*/
         me.statisticsPlotPanel.add(plot);
 
       },
