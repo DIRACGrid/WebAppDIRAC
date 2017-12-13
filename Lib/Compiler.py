@@ -30,7 +30,7 @@ class Compiler(object):
     self.__inDir = os.path.join( os.path.dirname( self.__webAppPath ), "Lib", "CompileTemplates" )
     
     self.__senchacmddir = os.path.join(rootPath, "sbin", "Sencha", "Cmd")
-    self.__senchaVersion = "5.0.2.270"
+    self.__senchaVersion = "v6.5.0.180"
     
   def __writeINFile( self, tplName, extra = False ):
     inTpl = os.path.join( self.__inDir, tplName )

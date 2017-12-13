@@ -13,15 +13,7 @@
     <!-- <x-bootstrap> -->
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
-    
-        Ext.Loader.setPath({
-        	'DIRAC': '/DIRAC/static/DIRAC',
-            'Ext.dirac.core': '/DIRAC/static/core/js/core',
-            'Ext.dirac.utils': '/DIRAC/static/core/js/utils',
-            'Ext.ux.form':'/DIRAC/static/extjs/%EXT_VERSION%/examples/ux/form',
-            'Ext.ux':'/DIRAC/static/extjs/%EXT_VERSION%/examples/ux'
-        });
-        
+         
         Ext.require(['Ext.dirac.core.App','Ext.*']);
 
     </script>

@@ -13,7 +13,7 @@ class SessionData( object ):
   __handlers = {}
   __groupMenu = {}
   __extensions = []
-  __extVersion = False
+  __extVersion = "ext-4.2.1.883"
 
   @classmethod
   def setHandlers( cls, handlers ):
