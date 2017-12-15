@@ -1,8 +1,9 @@
 Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
       extend : 'Ext.dirac.core.Module',
 
-      requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging", "Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo', "Ext.dirac.utils.DiracPagingToolbar", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracBaseSelector",
-          "Ext.dirac.utils.DiracAjaxProxy", "Ext.data.ArrayStore", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracArrayStore","Ext.chart.PolarChart"],
+      requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.CheckItem", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.toolbar.Paging", "Ext.grid.Panel", "Ext.form.field.Date", "Ext.form.field.TextArea",
+          "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo', "Ext.dirac.utils.DiracPagingToolbar", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracBaseSelector", "Ext.dirac.utils.DiracAjaxProxy",
+          "Ext.data.ArrayStore", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracArrayStore", "Ext.chart.PolarChart"],
 
       loadState : function(data) {
 
@@ -641,11 +642,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
             });
 
         me.leftPanel.setGrid(me.grid);
-//TODO: UNCOMMNET
-      //  me.grid.columns[1].setSortState("DESC");
+        //TODO: UNCOMMNET
+        //  me.grid.columns[1].setSortState("DESC");
 
         /* Definition of the statistics panel */
-   
+
         me.statisticsGridComboMain = new Ext.form.field.ComboBox({
               allowBlank : false,
               displayField : 'set',
@@ -706,29 +707,28 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               scope : me
 
             });
-         
+
         me.btnShowPlotAsPng = new Ext.Button({
 
               margin : 0,
               iconCls : "dirac-icon-save",
               handler : function() {
 
-                var plot = me.statisticsPlotPanel.down("chart");
+                var plot = me.statisticsPlotPanel.down("polar");
+                if (plot) {
 
-                var domEl = plot.getEl();
-                if (domEl && domEl.dom) {
-
-                  var sSvgElement = domEl.dom.getElementsByTagName("svg")[0].parentNode.innerHTML;
+                  var imgData = plot.getImage();
 
                   var iHeight = me.statisticsPlotPanel.getHeight();
 
                   var iWidth = me.statisticsPlotPanel.getWidth();
 
-                  var canvas = document.createElement('canvas');
-                  canvas.setAttribute('width', iWidth);
-                  canvas.setAttribute('height', iHeight);
+                  var element = document.createElement('canvas');
 
-                  var oContext = canvas.getContext("2d");
+                  element.setAttribute('width', iWidth);
+                  element.setAttribute('height', iHeight);
+
+                  var oContext = element.getContext("2d");
 
                   oContext.beginPath();
                   oContext.rect(0, 0, iWidth, iHeight);
@@ -736,7 +736,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                   oContext.fill();
 
                   var oImage = new Image();
-                  oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png';
+                  oImage.src = imgData.data;
 
                   oImage.onload = function() {
 
@@ -744,20 +744,12 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
                     oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
 
-                    oContext.drawSvg(sSvgElement, 0, 0);
-
-                    var imgData = canvas.toDataURL("image/png");
-                    window.location = imgData.replace("image/png", "image/octet-stream");
+                    var link = document.createElement('a');
+                    link.download = "jobStatistics.png";
+                    link.href = element.toDataURL("image/png").replace("image/png", "image/octet-stream");;
+                    link.click();
 
                   }
-                } else {
-                  plot.save({
-                        type : 'image/png',
-                        src : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png',
-                        backround : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png',
-                        cls : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png'
-                      });
-
                 }
 
               },
@@ -769,7 +761,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               margin : 0,
               iconCls : "dirac-icon-settings",
               handler : function() {
-                
+
                 me.formPlotSettings();
 
               },
@@ -905,32 +897,33 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
             })
 
         me.plotSettings = {};
-        
+
         me.plotSettings.plotTitle = {
           type : 'text',
           text : 'No data',
-          font : '18px Helvetica',
+          font : '16px Helvetica',
           width : 100,
           height : 30,
           x : 40, // the sprite x position
-          y : 12
+          y : 22
           // the sprite y position
         };
         me.plotSettings.plotLegend = {
-            field : 'key',
-            position : 'right',
-            boxStrokeWidth : 2,
-            labelFont : '12px Helvetica',
-            padding : 10
-          };
+          field : 'key',
+          type : 'dom',
+          position : 'right',
+          boxStrokeWidth : 2,
+          labelFont : '12px Helvetica',
+          padding : 5
+        };
         me.statisticsPlotPanel = new Ext.create('Ext.panel.Panel', {
-          autoScroll : true,
-          region : 'center',
-          floatable : false,
-          layout : 'fit',
-          header : false
-          });
-        
+              autoScroll : true,
+              region : 'center',
+              floatable : false,
+              layout : 'fit',
+              header : false
+            });
+
         me.statisticsPlotPanel.onResize = function(width, height, oldWidth, oldHeight) {
 
           me.createPlotFromGridData(me.statisticsGridComboMain.getValue() + " :: " + me.statisticsGridCombo.getValue());
@@ -1135,75 +1128,61 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
         var oNow = new Date();
 
-        me.plotSettings.plotTitle.text = sTitle + " (" + oNow.toString() + ")"; 
-        me.plotSettings.plotLegend.position = sLegendPosition;
-        
-        var plot = Ext.create("Ext.chart.PolarChart", {
-              cls : 'jm-statistics-plot-background',
+        me.plotSettings.plotTitle.text = sTitle + " (" + oNow.toString() + ")";
+        me.plotSettings.plotLegend.docked = sLegendPosition;
+        var colors = [];
+        for (var i = 0; i < me.statisticsSelectionGrid.getStore().getCount(); i++) {
+          colors.push(me.statisticsSelectionGrid.getStore().getAt(i).data.color);
+        }
+        me.statisticsSelectionGrid.plot = Ext.create("Ext.chart.PolarChart", {
               width : 400,
               height : 400,
+              padding : '10 0 0 0',
               theme : 'Base:gradients',
-              layout: 'fit',
-              interactions: ['rotate', 'itemhighlight'],
-              store : me.statisticsSelectionGrid.getStore(),
-              legend : {
-                type : 'sprite',
-                docked : 'bottom',
-                scrollable : true,
-                marker : {
-                  size : 10
-                }
+              layout : 'center',
+              animate : true,
+              shadow : false,
+              insetPadding : 80,
+              background : {
+                type : 'image',
+                src : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png'
               },
+              interactions : ['rotate', 'itemhighlight'],
+              store : me.statisticsSelectionGrid.getStore(),
+              legend : me.plotSettings.plotLegend,
+              sprites : [me.plotSettings.plotTitle],
               series : {
                 type : 'pie',
                 highlight : true,
-                cls : 'jm-statistics-plot-background',
                 angleField : 'value',
                 label : {
                   field : 'key',
-                  display : 'rotate'
+                  display : 'outside',
+                  orientation : 'vertical'
                 },
-                showInLegend : true
+                showInLegend : true,
+                tooltip : {
+                  trackMouse : true,
+                  width : 140,
+                  height : 28,
+                  renderer : function(toolTip, record, ctx) {
+                    toolTip.setHtml(record.get('key') + ': ' + record.get('value'));
+                  }
+                }
               }
             });
 
-        /*var plot = Ext.create("Ext.chart.PolarChart",{
-              height : 410,
-              padding : '10 0 0 0',
-              cls : 'jm-statistics-plot-background',
-              animate : true,
-              shadow : false,
-              store : me.statisticsSelectionGrid.getStore(),
-              insetPadding : 40,
-              legend : me.plotSettings.plotLegend,
-              theme: 'Base:gradients',
-              items : [me.plotSettings.plotTitle],
-              series : [{
-                    type : 'pie',
-                    cls : 'jm-statistics-plot-background',
-                    angleField : 'value',
-                    label : {
-                      field : 'key',
-                      display : 'outside',
-                      calloutLine : true
-                    },
-                    showInLegend : true,
-                    highlight : {
-                      segment : {
-                        margin : 20
-                      }
-                    },
-                    tips : {
-                      width: 140,
-                      height: 28,
-                      trackMouse : true,
-                      renderer : function(storeItem, item) {
-                        this.setTitle(storeItem.get('key') + ': ' + storeItem.get('value'));
-                      }
-                    }
-                  }]
-            });*/
-        me.statisticsPlotPanel.add(plot);
+        me.statisticsSelectionGrid.on('sortchange', function(ct, column, direction, eOpts) {
+              var colors = [];
+              var me = this;
+              for (var i = 0; i < me.getStore().getCount(); i++) {
+                colors.push(me.getStore().getAt(i).data.color);
+              }
+              me.plot.setColors(colors);
+
+            });
+        me.statisticsSelectionGrid.plot.setColors(colors);
+        me.statisticsPlotPanel.add(me.statisticsSelectionGrid.plot);
 
       },
       __oprJobAction : function(oAction, useSelectedJobId) {
