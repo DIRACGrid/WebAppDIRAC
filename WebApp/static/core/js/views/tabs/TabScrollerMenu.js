@@ -30,7 +30,7 @@ Ext.define('Ext.dirac.views.tabs.TabScrollerMenu', {
       /**
        * @private
        * @param {Object} tabPanel tab panel which contains a toolbar
-       * @param {Object menu which shows the open tabs
+       * @param {Object} menu which shows the open tabs
        */
       init : function(tabPanel, menu) {
         var me = this;

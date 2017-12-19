@@ -165,21 +165,20 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                 col.hide();
               else
                 col.show();
-
-              var sortState = grid.columns[col.getSortParam()].sortState;
-
-              if (sortState != null)
-                col.setSortState(sortState);
             }
           }
         }
         if (grid && grid.groupers) {
-          me.store.groupers.clear();
-          me.store.groupers.addAll(me.store.decodeGroupers(grid.groupers));
+          me.getStore().clearGrouping();
+          for (var i = 0; i < grid.groupers.length; i++) {
+            me.getStore().group(grid.groupers[i].property, grid.groupers[i].direction);
+          }
         }
         if (grid && grid.sorters) {
-          me.store.sorters.clear();
-          me.store.sorters.addAll(me.store.decodeSorters(grid.sorters));
+          me.getStore().getSorters().clear();
+          for (var i = 0; i < grid.sorters.length; i++) {
+            me.getStore().getSorters().addSort(grid.sorters[i].property, grid.sorters[i].direction);
+          }
         }
 
         if (me.pagingToolbar) {
@@ -222,26 +221,29 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
         }
 
+        /*
+         * Get the sorter and grouper from the state data...
+         */
         oReturn.sorters = [];
         oReturn.groupers = [];
 
-        me.store.sorters.each(function(key, value) {
-              GLOBAL.APP.CF.log('debug', ":", key);
-              GLOBAL.APP.CF.log('debug', ":", value);
-              oReturn.sorters.push({
-                    "property" : key.property,
-                    "direction" : key.direction
-                  });
-            });
-//TODO: this must be fixed
-        /*me.store.groupers.each(function(key, value) {
-              GLOBAL.APP.CF.log('debug', ":", key);
-              GLOBAL.APP.CF.log('debug', ":", value);
-              oReturn.groupers.push({
-                    "property" : key.property,
-                    "direction" : key.direction
-                  });
-            });*/
+        var stateData = me.getState();
+
+        if (stateData.storeState.sorters) {
+          for (var i = 0; i < stateData.storeState.sorters.length; i++) {
+            oReturn.sorters.push({
+                  "property" : stateData.storeState.sorters[i].property,
+                  "direction" : stateData.storeState.sorters[i].direction
+                });
+          }
+        }
+
+        if (stateData.storeState.grouper) {
+          oReturn.groupers.push({
+                "property" : stateData.storeState.grouper.property,
+                "direction" : stateData.storeState.grouper.direction
+              });
+        }
 
         if (me.pagingToolbar) {
           oReturn.pagingToolbar = me.pagingToolbar.getStateData();
@@ -345,7 +347,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
                   beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
                     e.preventDefault();
-                    if (config.contextMenu.dynamicShow){
+                    if (config.contextMenu.dynamicShow) {
                       config.contextMenu.doSow(record);
                     }
                     config.contextMenu.showAt(e.xy);

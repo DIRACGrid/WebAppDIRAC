@@ -634,7 +634,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
 
         me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
               store : me.dataStore,
-              // features: [{ftype:'grouping'}],
+              //features: [{ftype:'grouping'}],
               oColumns : oColumns,
               contextMenu : me.contextGridMenu,
               pagingToolbar : pagingToolbar,
