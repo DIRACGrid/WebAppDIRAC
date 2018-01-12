@@ -251,16 +251,16 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
               case "setOptionValue" :
                 var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
-                oNode.raw.csValue = oResponse.value;
+                oNode.get('csValue') = oResponse.value;
                 me.valuePanel.csValue = oResponse.value;
-                me.txtOptionValuePanelTextArea.setValue(me.__stringToList(oNode.raw.csValue).join("\n"));
-                me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
+                me.txtOptionValuePanelTextArea.setValue(me.__stringToList(oNode.get('csValue')).join("\n"));
+                me.setNodeText(oNode, oNode.get('csName') + " = " + oNode.get('csValue'));
                 me.__setChangeMade(true);
                 break;
               case "setComment" :
                 var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
-                oNode.raw.csComment = oResponse.comment;
-                me.valuePanel.csComment = me.__commentToList(oNode.raw.csComment).join("\n");
+                oNode.get('csComment') = oResponse.comment;
+                me.valuePanel.csComment = me.__commentToList(oNode.get('csComment')).join("\n");
 
                 me.__setChangeMade(true);
                 break;
@@ -407,7 +407,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 text : 'Configuration'
               },
               listeners : {
-                beforeexpand : function(oNode, eOpts) {
+                nodebeforeexpand:function( oNode, eOpts ){ 
 
                   if (!me.flagReset) {
 
@@ -880,8 +880,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         var sPath = ""
         var oCopyRefNode = oNode;
         while (oCopyRefNode) {
-          if (oCopyRefNode.raw.csName)
-            sPath = "/" + oCopyRefNode.raw.csName + sPath;
+          if (oCopyRefNode.get('csName'))
+            sPath = "/" + oCopyRefNode.get('csName') + sPath;
           else
             break;
           oCopyRefNode = oCopyRefNode.parentNode;
@@ -1156,7 +1156,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
             for (var j = 0; j < oChildNodes.length; j++) {
 
-              if (oChildNodes[j].raw.csName == oParts[i]) {
+              if (oChildNodes[j].get('csName') == oParts[i]) {
 
                 oStartNode = oChildNodes[j];
                 break;
@@ -1286,13 +1286,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
       __oprSetValuesForValuePanel : function(oModule, oNode) {
 
         oModule.valuePanel.csNode = oNode;
-        oModule.valuePanel.csComment = oModule.__commentToList(oNode.raw.csComment).join("\n");
+        oModule.valuePanel.csComment = oModule.__commentToList(oNode.get('csComment')).join("\n");
         oModule.valuePanel.csPath = oModule.__getNodePath(oNode);
         oModule.valuePanel.setTitle("Node <br/>" + oModule.valuePanel.csPath);
 
         if (oNode.isLeaf()) {
 
-          oModule.valuePanel.csValue = oModule.__stringToList(oNode.raw.csValue).join("\n");
+          oModule.valuePanel.csValue = oModule.__stringToList(oNode.get('csValue')).join("\n");
           oModule.txtOptionValuePanelTextArea.setValue(oModule.valuePanel.csValue);
           oModule.txtCommentValuePanelTextArea.setValue(oModule.valuePanel.csComment);
           oModule.txtOptionValuePanelTextArea.show();
@@ -1356,7 +1356,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
           // when press PASTE, if only the name repeats itself
           // First we have to check if there is a node with that name
 
-          var sNewName = oModule.copyNode.raw.csName;
+          var sNewName = oModule.copyNode.get('csName');
 
           var bNameExists = oModule.__nameExists(oNode, sNewName);
 
@@ -1392,7 +1392,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
         for (var i = 0; i < oChildNodes.length; i++) {
 
-          if (oChildNodes[i].raw.csName == sName) {
+          if (oChildNodes[i].get('csName') == sName) {
 
             bNameExists = true;
             break;
@@ -1416,15 +1416,15 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         var newCfg = {
           text : oNode.data.text,
           csName : newName,
-          csComment : oNode.raw.csComment
+          csComment : oNode.get('csComment')
         };
 
         if (oNode.isLeaf()) {
 
           newCfg.leaf = true;
-          newCfg.csValue = oNode.raw.csValue;
+          newCfg.csValue = oNode.get('csValue');
           newCfg.csName = newName;
-          newCfg.text = newName + " = " + oNode.raw.csValue;
+          newCfg.text = newName + " = " + oNode.get('csValue');
           newCfg.id = me.__generateNewNodeId();
           var oNewNode = oNode.createNode(newCfg);
           oDestinationNode.appendChild(oNewNode);
@@ -1444,7 +1444,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
       __oprMenuRenameNode : function(oItem, e, eOpts) {
         var oNode = oItem.parentMenu.node;
         var oModule = oItem.parentMenu.moduleObject;
-        var sNewName = window.prompt("What's the new name for " + oNode.raw.csName + " ?");
+        var sNewName = window.prompt("What's the new name for " + oNode.get('csName') + " ?");
         if (sNewName == null)
           return;
 
@@ -1463,11 +1463,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         var newName = oResponse.newName;
         var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
 
-        oNode.raw.csName = newName;
+        oNode.get('csName') = newName;
 
         if (oNode.isLeaf()) {
 
-          me.setNodeText(oNode, oNode.raw.csName + " = " + oNode.raw.csValue);
+          me.setNodeText(oNode, oNode.get('csName') + " = " + oNode.get('csValue'));
 
         } else {
 

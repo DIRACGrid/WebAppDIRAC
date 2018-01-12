@@ -282,7 +282,11 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               fields : me.dataFields,
               scope : me,
               remoteSort : false,
-              autoLoad : true
+              autoLoad : true,
+              sorters : [{
+                    property : 'JobID',
+                    direction : 'DESC'
+                  }]
             });
 
         var pagingToolbar = {};
@@ -642,9 +646,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
             });
 
         me.leftPanel.setGrid(me.grid);
-        //TODO: UNCOMMNET
-        //  me.grid.columns[1].setSortState("DESC");
-
+        
         /* Definition of the statistics panel */
 
         me.statisticsGridComboMain = new Ext.form.field.ComboBox({

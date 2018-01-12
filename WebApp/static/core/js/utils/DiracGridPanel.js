@@ -229,20 +229,22 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
         var stateData = me.getState();
 
-        if (stateData.storeState.sorters) {
-          for (var i = 0; i < stateData.storeState.sorters.length; i++) {
-            oReturn.sorters.push({
-                  "property" : stateData.storeState.sorters[i].property,
-                  "direction" : stateData.storeState.sorters[i].direction
+        if (stateData.storeState) {
+          if (stateData.storeState.sorters) {
+            for (var i = 0; i < stateData.storeState.sorters.length; i++) {
+              oReturn.sorters.push({
+                    "property" : stateData.storeState.sorters[i].property,
+                    "direction" : stateData.storeState.sorters[i].direction
+                  });
+            }
+          }
+
+          if (stateData.storeState.grouper) {
+            oReturn.groupers.push({
+                  "property" : stateData.storeState.grouper.property,
+                  "direction" : stateData.storeState.grouper.direction
                 });
           }
-        }
-
-        if (stateData.storeState.grouper) {
-          oReturn.groupers.push({
-                "property" : stateData.storeState.grouper.property,
-                "direction" : stateData.storeState.grouper.direction
-              });
         }
 
         if (me.pagingToolbar) {
