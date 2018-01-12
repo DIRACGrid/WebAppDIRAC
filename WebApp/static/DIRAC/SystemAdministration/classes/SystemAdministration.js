@@ -102,7 +102,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 url : GLOBAL.BASE_URL + 'SystemAdministration/getSysInfo',
                 reader : {
                   type : 'json',
-                  root : 'result'
+                  rootProperty : 'result'
                 },
                 timeout : 1800000,
                 autoLoad : true
@@ -420,7 +420,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
                 beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
                   e.preventDefault();
-                  me.overallContextMenu.showAt(e.xy);
+                  me.overallContextMenu.showAt(e.getXY());
                   return false;
                 },
 
@@ -501,7 +501,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 url : GLOBAL.BASE_URL + 'SystemAdministration/getHostData',
                 reader : {
                   type : 'json',
-                  root : 'result'
+                  rootProperty : 'result'
                 },
                 timeout : 1800000,
                 extraParams : {
@@ -727,7 +727,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   e.preventDefault();
                   me.hostContextMenu.selected_record = record;
 
-                  me.hostContextMenu.showAt(e.xy);
+                  me.hostContextMenu.showAt(e.getXY());
                   return false;
                 }
 

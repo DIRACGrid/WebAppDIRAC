@@ -32,7 +32,7 @@ Ext.define('Ext.dirac.core.Container', {
                   e.preventDefault();
                   var me = this;
                   if (me.menu) {
-                    me.menu.showAt(e.xy);
+                    me.menu.showAt(e.getXY());
                   }
                   return false;
                 }

@@ -338,7 +338,7 @@ Ext.define('Ext.dirac.utils.Tabtheme', {
       removeImage : function(id) {
         var me = this;
         me.remove(id);
-        me.doLayout();
+        me.updateLayout();
       },
       getLastClickedImage : function() {
         var me = this;
@@ -362,7 +362,7 @@ Ext.define('Ext.dirac.utils.Tabtheme', {
           me.items.each(function(value, index) {
                 value.columnWidth = width;
               });
-          me.doLayout();
+          me.updateLayout();
         }
       },
       fullSizeImage : function(img) {
@@ -489,7 +489,7 @@ Ext.define('Ext.dirac.utils.Tabtheme', {
 
           me.lastClickedImage = null;
           me.items.insert(index, newImg);
-          me.doLayout();
+          me.updateLayout();
 
           me.addClickEvent(me.items.getAt(index));
           me.selectImage(me.items.getAt(index));

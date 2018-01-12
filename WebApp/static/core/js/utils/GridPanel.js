@@ -16,7 +16,7 @@ Ext.define('Ext.dirac.utils.GridPanel', {
           e.preventDefault();
           var me = this;
           if (me.menu) {
-            me.menu.showAt(e.xy);
+            me.menu.showAt(e.getXY());
           }
           return false;
         }
@@ -33,7 +33,7 @@ Ext.define('Ext.dirac.utils.GridPanel', {
                 extraParams : me.params,
                 reader : {
                   type : 'json',
-                  root : 'result'
+                  rootProperty : 'result'
                 },
                 timeout : 1800000,
                 listeners : {

@@ -372,7 +372,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
 
                         beforecellcontextmenu : function(table, td, cellIndex, record, tr, rowIndex, e, eOpts) {
                           e.preventDefault();
-                          me.contextGridMenu.showAt(e.xy);
+                          me.contextGridMenu.showAt(e.getXY());
                           this.isExpanded = true;
                           return false;
                         }

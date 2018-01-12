@@ -541,10 +541,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                     e.preventDefault();
                     if (oNode.isLeaf()) {
                       me.leafMenu.node = oNode;
-                      me.leafMenu.showAt(e.xy);
+                      me.leafMenu.showAt(e.getXY());
                     } else {
                       me.sectionMenu.node = oNode;
-                      me.sectionMenu.showAt(e.xy);
+                      me.sectionMenu.showAt(e.getXY());
                     }
 
                     if (me.editMode) {

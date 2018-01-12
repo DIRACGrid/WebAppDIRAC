@@ -377,7 +377,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
                 url : GLOBAL.BASE_URL + 'FileCatalog/getFilesData',
                 reader : {
                   type : 'json',
-                  root : 'result'
+                  rootProperty : 'result'
                 },
                 timeout : 1800000,
                 listeners : {
@@ -474,7 +474,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
                   me.filesGrid.columns[1].show();
                   me.filesGrid.columns[1].flex = 1;
-                  me.filesGrid.doLayout();
+                  me.filesGrid.updateLayout();
 
                 }
 
@@ -580,7 +580,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
                 url : GLOBAL.BASE_URL + 'FileCatalog/getSubnodeFiles',
                 reader : {
                   type : 'json',
-                  root : 'nodes'
+                  rootProperty : 'nodes'
                 }
               },
               root : {
@@ -608,7 +608,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
                   e.preventDefault();
                   if (!oNode.isLeaf()) {
                     me.sectionMenu.node = oNode;
-                    me.sectionMenu.showAt(e.xy);
+                    me.sectionMenu.showAt(e.getXY());
                   }
 
                   return false;

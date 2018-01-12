@@ -352,7 +352,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                     if (config.contextMenu.dynamicShow) {
                       config.contextMenu.doSow(record);
                     }
-                    config.contextMenu.showAt(e.xy);
+                    config.contextMenu.showAt(e.getXY());
                     return false;
                   }
                 }

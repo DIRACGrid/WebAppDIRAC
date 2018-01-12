@@ -110,7 +110,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                 url : GLOBAL.BASE_URL + 'ActivityMonitor/getActivityData',
                 reader : {
                   type : 'json',
-                  root : 'result'
+                  rootProperty : 'result'
                 },
                 timeout : 1800000
               },
@@ -769,7 +769,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                   e.preventDefault();
                   if (oNode.raw.id != "root") {
                     me.contextTreeMenu.node = oNode;
-                    me.contextTreeMenu.showAt(e.xy);
+                    me.contextTreeMenu.showAt(e.getXY());
                   }
 
                 }
