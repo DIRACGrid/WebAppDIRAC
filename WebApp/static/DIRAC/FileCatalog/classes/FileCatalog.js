@@ -587,7 +587,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
                 text : '/'
               },
               listeners : {
-                beforeexpand : function(oNode, eOpts) {
+                nodebeforeexpand : function(oNode, eOpts) {
                   me.treeFileCatalogStore.proxy.extraParams = {
                     "path" : me.__getNodePath(oNode)
                   };

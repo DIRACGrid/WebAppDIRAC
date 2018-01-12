@@ -576,14 +576,15 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeMenuModel');
 
-        config = {
+        var config = {
           text : 'Desktops',
           allowDrag : false,
           allowDrop : false,
           iconCls : "core-desktop-icon",
           expanded : true,
-          root : true
-        };
+          root : true,
+          application : "" 
+          };
         var rootNode = Ext.create('Ext.dirac.views.tabs.TreeMenuModel', config);
 
         for (var j = 0; j < GLOBAL.APP.configData["menu"].length; j++) {
@@ -676,7 +677,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               text : 'My Desktops',
               allowDrag : false,
               allowDrop : false,
-              iconCls : "my-desktop"
+              iconCls : "my-desktop",
+              application : ""
             });
         me.myDesktop = rootNode;
 
@@ -735,7 +737,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               text : 'Shared',
               allowDrag : false,
               allowDrop : false,
-              iconCls : "dirac-icon-share"
+              iconCls : "dirac-icon-share",
+              application : ""
             });
 
         me.sharedObjects = rootNode;
@@ -744,7 +747,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               text : 'Shared Desktops',
               allowDrag : false,
               allowDrop : false,
-              iconCls : "shared-desktop"
+              iconCls : "shared-desktop",
+              application :""
             });
         me.sharedDesktops = desktopsNode;
 
@@ -752,7 +756,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
               text : 'Shared Applications',
               allowDrag : false,
               allowDrop : false,
-              iconCls : "shared-desktop"
+              iconCls : "shared-desktop",
+              application : ""
             });
 
         me.sharedApplications = applicationsNode;
@@ -1101,12 +1106,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           defaultNode.data.stateToLoad = stateName;
           node.removeChild(defaultNode);
 
-          Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
-                extend : 'Ext.data.Model',
-                fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
-                alias : 'widget.treenodemodel'
-              });
-          nodeObj = {
+          var nodeObj = {
             'text' : 'Default',
             type : 'app',
             allowDrag : false,
@@ -1116,8 +1116,19 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             stateToLoad : 'Default',
             iconCls : 'icon-applications-states-all-default'
           };
-
-          Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
+          
+          if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.TreeNodeModel')) { 
+              Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
+                  extend : 'Ext.data.Model',
+                  fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
+                  alias : 'widget.treenodemodel'
+                });
+              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
+            } else {
+              var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.TreeNodeModel');// returns the constructor MyApp.models.MyModel()
+              Ext.data.NodeInterface.decorate(model);
+            }
+            
           var newNode = Ext.create('Ext.dirac.views.tabs.TreeNodeModel', nodeObj);
           node.insertChild(0, newNode);
           node.appendChild(defaultNode);
@@ -1136,7 +1147,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         var me = this;
         for (var i = 0; i < rootNode.childNodes.length; i++) {
           var node = rootNode.childNodes[i];
-          if (node.data.application == name) {
+          if (node.get('application') == name) {
             return node.parentNode;
           } else {
             found = me.__findNode(node, name);
@@ -1313,7 +1324,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           } else {
 
             try {
-              nodeObj = {
+              var nodeObj = {
                 'text' : stateName,
                 expandable : true,
                 application : stateName,
@@ -1323,15 +1334,21 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 allowDrag : false,
                 allowDrop : true
               };
-              Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
+              if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.DesktopNodeModel')) {
+                Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
                     extend : 'Ext.data.Model',
                     fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
                     alias : 'widget.desktopnodemodel'
                   });
-              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+                Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+              } else {
+                var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.DesktopNodeModel');
+                Ext.data.NodeInterface.decorate(model);
+              }
+              
               var node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
               var childNode = rootNode.appendChild(node);
-              nodeObj = {
+              var nodeObj = {
                 'text' : 'All',
                 expandable : false,
                 application : stateName,
@@ -1341,12 +1358,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 allowDrag : false,
                 allowDrop : false
               };
-              Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
-                    extend : 'Ext.data.Model',
-                    fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
-                    alias : 'widget.desktopnodemodel'
-                  });
-              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+              
               var node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
               childNode.appendChild(node);
               childNode.expand();
@@ -1615,7 +1627,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 continue;
               var appName = oDesktop.data[i].module.split(".");
               var qtip = appName[appName.length - 1] + "<br>State Name: " + oDesktop.data[i].currentState;
-              nodeObj = {
+              var nodeObj = {
                 'text' : oDesktop.data[i].currentState,
                 expandable : false,
                 application : oDesktop.data[i].module,
@@ -1629,12 +1641,17 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 qtip : qtip
               };
 
-              Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
+             if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.DesktopNodeModel')) {
+                Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
                     extend : 'Ext.data.Model',
                     fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
                     alias : 'widget.desktopnodemodel'
                   });
-              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+                Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+              } else {
+                var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.DesktopNodeModel');
+                Ext.data.NodeInterface.decorate(model);
+              }
               node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
             }
 
@@ -1690,7 +1707,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 leaf : true
               };
             } else {
-              nodeObj = {
+              var nodeObj = {
                 'text' : desktops.data[i].currentState,
                 expandable : false,
                 application : desktops.data[i].name,
@@ -1702,12 +1719,17 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 allowDrag : true,
                 allowDrop : true
               };
-              Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
+              if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.DesktopNodeModel')) {
+                Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
                     extend : 'Ext.data.Model',
                     fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
                     alias : 'widget.desktopnodemodel'
                   });
-              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+                Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
+              } else {
+                var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.DesktopNodeModel');
+                Ext.data.NodeInterface.decorate(model);
+              }
               node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
             }
 
@@ -2117,16 +2139,23 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         if (!me.defaultDesktop.loaded) {
           me.defaultDesktop.expand();
         } else {
+          
+          if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.TreeNodeModel')) { 
+              Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
+                  extend : 'Ext.data.Model',
+                  fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
+                  alias : 'widget.treenodemodel'
+                });
+              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
+            } else {
+              var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.TreeNodeModel');// returns the constructor MyApp.models.MyModel()
+              Ext.data.NodeInterface.decorate(model);
+            }
 
-          Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
-                extend : 'Ext.data.Model',
-                fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
-                alias : 'widget.treenodemodel'
-              });
           var appName = appClassName.split(".");
           var qTip = "State Name: " + stateName + "<br>Application: " + appName[appName.length - 1] + "<br>";
 
-          nodeObj = {
+          var nodeObj = {
             'text' : stateName,
             expandable : false,
             application : appClassName,
@@ -2139,10 +2168,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             allowDrop : true,
             qtip : qTip
           };
-          Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
-          // var model =
-          // Ext.ModelManager.getModel('Ext.dirac.views.tabs.TreeMenuModel');
-          // Ext.data.NodeInterface.decorate(model);
+          
           var newnode = Ext.create('Ext.dirac.views.tabs.TreeNodeModel', nodeObj);
           // n = node.createNode(nodeObj);
           me.defaultDesktop.appendChild(newnode);
@@ -2171,15 +2197,21 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           me.defaultDesktop.expand(false, cbFunc);
         } else {
 
-          Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
-                extend : 'Ext.data.Model',
-                fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
-                alias : 'widget.treenodemodel'
-              });
+          if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.TreeNodeModel')) { 
+              Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
+                  extend : 'Ext.data.Model',
+                  fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
+                  alias : 'widget.treenodemodel'
+                });
+              Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
+            } else {
+              var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.TreeNodeModel');// returns the constructor MyApp.models.MyModel()
+              Ext.data.NodeInterface.decorate(model);
+            }
           var appName = appClassName.split(".");
           var qTip = "State Name: " + stateName + "<br>Application: " + appName[appName.length - 1] + "<br>";
 
-          nodeObj = {
+          var nodeObj = {
             'text' : stateName,
             expandable : false,
             application : appClassName,
@@ -2193,10 +2225,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             allowDrop : true,
             qtip : qTip
           };
-          Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
-          // var model =
-          // Ext.ModelManager.getModel('Ext.dirac.views.tabs.TreeMenuModel');
-          // Ext.data.NodeInterface.decorate(model);
+          
           var newnode = Ext.create('Ext.dirac.views.tabs.TreeNodeModel', nodeObj);
           // n = node.createNode(nodeObj);
           var desktopNode = me.myDesktop.findChild('text', desktopName);
