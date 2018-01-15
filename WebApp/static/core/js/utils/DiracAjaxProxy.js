@@ -19,7 +19,9 @@
 Ext.define('Ext.dirac.utils.DiracAjaxProxy', {
       extend : 'Ext.data.proxy.Ajax',
       type : 'ajax',
+      autoLoad: true,
       reader : {
+        keepRawData : true,
         type : 'json',
         rootProperty : 'result',
         metaProperty: 'extra'

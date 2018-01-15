@@ -90,22 +90,22 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
         load : function(oStore, records, successful, eOpts) {
           var me = this;
 
-          if (!oStore.proxy.reader.rawData) {
+          if (!oStore.proxy.getReader().rawData) {
             return;
 
           }
-          var bResponseOK = (oStore.proxy.reader.rawData["success"] == "true" || oStore.proxy.reader.rawData["OK"] == true);
+          var bResponseOK = (oStore.proxy.getReader().rawData["success"] == "true" || oStore.proxy.getReader().rawData["OK"] == true);
           if (!bResponseOK) {
 
-            GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "info");
+            GLOBAL.APP.CF.alert(oStore.proxy.getReader().rawData["error"], "info");
             
             me.removeAll();
 
           } else {
-            if (oStore.proxy.reader.rawData && me.scope.grid && me.scope.grid.pagingToolbar) {
+            if (oStore.proxy.getReader().rawData && me.scope.grid && me.scope.grid.pagingToolbar) {
               var utcTime = null;
-              if (oStore.proxy.reader.rawData["date"]) {
-                var newDate = Ext.Date.parse(Ext.String.trim(oStore.proxy.reader.rawData["date"].split("[UTC")[0]), "Y-m-d H:i");
+              if (oStore.proxy.getReader().rawData["date"]) {
+                var newDate = Ext.Date.parse(Ext.String.trim(oStore.proxy.getReader().rawData["date"].split("[UTC")[0]), "Y-m-d H:i");
                 if (newDate) {
                   var currentTimestamp = me.scope.grid.pagingToolbar.updateStamp.updateTimeStamp;
                   if (currentTimestamp != null) {
@@ -122,9 +122,9 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
                 }
                 if (utcTime) {
-                  me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"] + "(" + utcTime + ")");
+                  me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.getReader().rawData["date"] + "(" + utcTime + ")");
                 } else {
-                  me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+                  me.scope.grid.pagingToolbar.updateStamp.setText('Updated: ' + oStore.proxy.getReader().rawData["date"]);
                 }
               }
 
@@ -145,8 +145,8 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
           if (me.oDiffFields) {// this is for marking the values in the
             // table...
-            if (oStore.proxy.reader.rawData && oStore.proxy.reader.rawData["total"] > 0) {
-              for (var i = 0; i < oStore.proxy.reader.rawData["total"]; i++) {
+            if (oStore.proxy.getReader().rawData && oStore.proxy.getReader().rawData["total"] > 0) {
+              for (var i = 0; i < oStore.proxy.getReader().rawData["total"]; i++) {
                 var record = oStore.getAt(i);
                 try {
                   me.diffValues[record.data[me.oDiffFields.Id]] = {};
