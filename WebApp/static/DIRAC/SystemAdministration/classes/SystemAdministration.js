@@ -101,6 +101,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 type : 'ajax',
                 url : GLOBAL.BASE_URL + 'SystemAdministration/getSysInfo',
                 reader : {
+                  keepRawData : true,
                   type : 'json',
                   rootProperty : 'result'
                 },
@@ -500,6 +501,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 type : 'ajax',
                 url : GLOBAL.BASE_URL + 'SystemAdministration/getHostData',
                 reader : {
+                  keepRawData : true,
                   type : 'json',
                   rootProperty : 'result'
                 },
@@ -544,17 +546,17 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
                 load : function(oStore, records, successful, eOpts) {
 
-                  var bResponseOK = (oStore.proxy.reader.rawData["success"] == "true");
+                  var bResponseOK = (oStore.proxy.getReader().rawData["success"] == "true");
 
                   if (!bResponseOK) {
 
-                    GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "error");
+                    GLOBAL.APP.CF.alert(oStore.proxy.getReader().rawData["error"], "error");
 
                   } else {
 
                     if ("updateStamp" in oStore) {
-                      if ("date" in oStore.proxy.reader.rawData)
-                        oStore.updateStamp.setText('Updated: ' + oStore.proxy.reader.rawData["date"]);
+                      if ("date" in oStore.proxy.getReader().rawData)
+                        oStore.updateStamp.setText('Updated: ' + oStore.proxy.getReader().rawData["date"]);
                       else
                         oStore.updateStamp.setText(me.getUtcDate());
                     }
