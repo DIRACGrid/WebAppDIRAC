@@ -514,22 +514,22 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
               margin : 0,
               iconCls : "dirac-icon-save",
               handler : function() {
-                var plot = me.statisticsPlotPanel.down("chart");
 
-                var domEl = plot.getEl();
-                if (domEl && domEl.dom) {
+                var plot = me.statisticsPlotPanel.down("polar");
+                if (plot) {
 
-                  var sSvgElement = domEl.dom.getElementsByTagName("svg")[0].parentNode.innerHTML;
+                  var imgData = plot.getImage();
 
                   var iHeight = me.statisticsPlotPanel.getHeight();
 
                   var iWidth = me.statisticsPlotPanel.getWidth();
 
-                  var canvas = document.createElement('canvas');
-                  canvas.setAttribute('width', iWidth);
-                  canvas.setAttribute('height', iHeight);
+                  var element = document.createElement('canvas');
 
-                  var oContext = canvas.getContext("2d");
+                  element.setAttribute('width', iWidth);
+                  element.setAttribute('height', iHeight);
+
+                  var oContext = element.getContext("2d");
 
                   oContext.beginPath();
                   oContext.rect(0, 0, iWidth, iHeight);
@@ -537,7 +537,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                   oContext.fill();
 
                   var oImage = new Image();
-                  oImage.src = GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png';
+                  oImage.src = imgData.data;
 
                   oImage.onload = function() {
 
@@ -545,21 +545,14 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
 
                     oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
 
-                    oContext.drawSvg(sSvgElement, 0, 0);
-
-                    var imgData = canvas.toDataURL("image/png");
-                    window.location = imgData.replace("image/png", "image/octet-stream");
+                    var link = document.createElement('a');
+                    link.download = "jobStatistics.png";
+                    link.href = element.toDataURL("image/png").replace("image/png", "image/octet-stream");;
+                    link.click();
 
                   }
-                } else {
-                  plot.save({
-                        type : 'image/png',
-                        src : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png',
-                        backround : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png',
-                        cls : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png'
-                      });
-
                 }
+
               },
               scope : me,
               tooltip : "Save pie chart as PNG image"
@@ -720,6 +713,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
         };
         me.plotSettings.plotLegend = {
           field : 'key',
+          type : 'dom',
           position : 'right',
           boxStrokeWidth : 2,
           labelFont : '12px Helvetica',
@@ -729,7 +723,8 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
               region : 'center',
               floatable : false,
               layout : 'fit',
-              header : false
+              header : false,
+              autoScroll : true
             });
 
         me.statisticsPlotPanel.onResize = function(width, height, oldWidth, oldHeight) {
@@ -839,43 +834,58 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
         me.plotSettings.plotTitle.text = sTitle + " (" + oNow.toString() + ")";
         me.plotSettings.plotLegend.position = sLegendPosition;
 
-        var plot = Ext.create("Ext.chart.Chart", {
-              height : 410,
+        var colors = [];
+        for (var i = 0; i < me.statisticsSelectionGrid.getStore().getCount(); i++) {
+          colors.push(me.statisticsSelectionGrid.getStore().getAt(i).data.color);
+        }
+        me.statisticsSelectionGrid.plot = Ext.create("Ext.chart.PolarChart", {
+              width : 400,
+              height : 400,
               padding : '10 0 0 0',
-              cls : 'jm-statistics-plot-background',
+              theme : 'Base:gradients',
+              layout : 'center',
               animate : true,
               shadow : false,
+              insetPadding : 80,
+              background : {
+                type : 'image',
+                src : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_jobmonitor_background.png'
+              },
+              interactions : ['rotate', 'itemhighlight'],
               store : me.statisticsSelectionGrid.getStore(),
-              insetPadding : 40,
               legend : me.plotSettings.plotLegend,
-              theme : 'Base:gradients',
-              items : [me.plotSettings.plotTitle],
-              series : [{
-                    type : 'pie',
-                    cls : 'jm-statistics-plot-background',
-                    angleField : 'value',
-                    label : {
-                      field : 'key',
-                      display : 'outside',
-                      calloutLine : true
-                    },
-                    showInLegend : true,
-                    highlight : {
-                      segment : {
-                        margin : 20
-                      }
-                    },
-                    tips : {
-                      width : 140,
-                      height : 28,
-                      trackMouse : true,
-                      renderer : function(storeItem, item) {
-                        this.setTitle(storeItem.get('key') + ': ' + storeItem.get('value'));
-                      }
-                    }
-                  }]
+              sprites : [me.plotSettings.plotTitle],
+              series : {
+                type : 'pie',
+                highlight : true,
+                angleField : 'value',
+                label : {
+                  field : 'key',
+                  display : 'outside',
+                  orientation : 'vertical'
+                },
+                showInLegend : true,
+                tooltip : {
+                  trackMouse : true,
+                  width : 140,
+                  height : 28,
+                  renderer : function(toolTip, record, ctx) {
+                    toolTip.setHtml(record.get('key') + ': ' + record.get('value'));
+                  }
+                }
+              }
             });
-        me.statisticsPlotPanel.add(plot);
+        me.statisticsSelectionGrid.on('sortchange', function(ct, column, direction, eOpts) {
+              var colors = [];
+              var me = this;
+              for (var i = 0; i < me.getStore().getCount(); i++) {
+                colors.push(me.getStore().getAt(i).data.color);
+              }
+              me.plot.setColors(colors);
+
+            });
+        me.statisticsSelectionGrid.plot.setColors(colors);
+        me.statisticsPlotPanel.add(me.statisticsSelectionGrid.plot);
 
       },
       formPlotSettings : function() {
@@ -974,6 +984,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                   var response = Ext.JSON.decode(response.responseText);
 
                   if (response["success"] == "true") {
+                    me.statisticsPlotPanel.removeAll();
                     me.statisticsSelectionGrid.store.removeAll();
 
                     me.statisticsSelectionGrid.store.add(response["result"]);
@@ -1010,6 +1021,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                   var response = Ext.JSON.decode(response.responseText);
 
                   if (response["success"] == "true") {
+                    me.statisticsPlotPanel.removeAll();
                     me.statisticsSelectionGrid.store.removeAll();
 
                     me.statisticsSelectionGrid.store.add(response["result"]);
