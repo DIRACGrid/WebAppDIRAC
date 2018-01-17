@@ -246,6 +246,21 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
               menu : menuitems,
               scope : me
             });
+      
+           // {[values.company.toUpperCase() + ", " + values.title]}</p>'
+         
+           // var tpl = new Ext.XTemplate('<div id="expanded-Grid-{Site}"> </div>', {
+        var tpl = new Ext.XTemplate('<div id="expanded-Grid-{[values.Site.split(".").join("_")]}"> </div>', { 
+              // XTemplate configuration:
+              disableFormats : true,
+              // member functions:
+              isGirl : function(name) {
+                return name == 'Aubrey' || name == 'Nikol';
+              },
+              isBaby : function(age) {
+                return age < 1;
+              }
+            });
 
         me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
               store : me.dataStore,
@@ -253,23 +268,28 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
               width : 600,
               height : 300,
               oColumns : oColumns,
+              region: 'center',
               contextMenu : me.contextGridMenu,
               pagingToolbar : pagingToolbar,
               scope : me,
-              columnLines : true,
               plugins : [{
                     ptype : 'diracrowexpander',
                     checkField : {
                       'CE' : 'Multiple'
-                    },
-                    rowBodyTpl : ['<div id="expanded-Grid-{Site}"> </div>']
+                    },                    
+                    rowBodyTpl : tpl//new Ext.XTemplate('<div id="expanded-Grid-{Site}"> </div>')// ['<div id="expanded-Grid-zozo"> </div>']
                   }]
             });
 
+        
         me.leftPanel.setGrid(me.grid);
-
         me.grid.view.on('expandbody', function(rowNode, record, expandbody) {
-              var targetId = 'expanded-Grid-' + record.get('Site');
+              
+              var targetId = 'expanded-Grid-' + record.get('Site').split(".").join("_");
+              if (Ext.getCmp(targetId + "_grid") != null) {
+                Ext.destroy(Ext.getCmp(targetId + "_grid"));
+              }
+              
               if (Ext.getCmp(targetId + "_grid") == null) {
                 var params = {
                   "expand" : Ext.JSON.encode([record.data.Site])
@@ -282,14 +302,20 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                       proxy : oProxy,
                       fields : me.dataFields,
                       scope : me,
-                      autoLoad : true
+                      autoLoad : true,
+                      dontLoadOnCreation : true
                     });
 
-                var expandedGridPanel = Ext.create('Ext.grid.Panel', {
-                      forceFit : true,
+                me.grid.expandedGridPanel = Ext.create('Ext.grid.Panel', {
+                       forceFit : true,
                       renderTo : targetId,
-                      id : targetId + "_grid",
+                      isExpanded : false,
+                      //id : targetId + "_grid",
                       store : expandStore,
+                      viewConfig : {
+                        stripeRows : true,
+                        enableTextSelection : true
+                      },
                       columns : [{
                             header : 'Site',
                             sortable : false,
@@ -377,15 +403,15 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                           }]
                     });
 
-                rowNode.grid = expandedGridPanel;
-                expandStore.load();
-                expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
-                expandedGridPanel.fireEvent("bind", expandedGridPanel, {
-                      id : record.get('id')
+                rowNode.grid = me.grid.expandedGridPanel;
+                me.grid.expandedGridPanel.getStore().load();
+                me.grid.expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
+                me.grid.expandedGridPanel.fireEvent("bind", me.grid.expandedGridPanel, {
+                      id : record.get('Site')
                     });
               }
             });
-
+       
         me.add([me.leftPanel, me.grid]);
 
       }

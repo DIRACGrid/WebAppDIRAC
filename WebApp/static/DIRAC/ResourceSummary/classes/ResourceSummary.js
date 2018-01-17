@@ -278,7 +278,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                     containValue : {
                       'StatusType' : "elements"
                     },
-                    rowBodyTpl : ['<div id="expanded-Grid-{Name}"> </div>']
+                    rowBodyTpl :['<div id="expanded-Grid-{Name}"> </div>']
                   }]
 
             });
@@ -304,7 +304,8 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                       proxy : oProxy,
                       fields : me.dataFields,
                       scope : me,
-                      autoLoad : true
+                      autoLoad : true,
+                      dontLoadOnCreation : true
                     });
 
                 me.grid.expandedGridPanel = Ext.create('Ext.grid.Panel', {
