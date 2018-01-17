@@ -810,6 +810,14 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                           handler : function() {
                             me.__loadSelectionData();
                           }
+                        }, {
+                          boxLabel : 'Executors',
+                          name : 'Executors',
+                          inputValue : '3',
+                          checked : true,
+                          handler : function() {
+                            me.__loadSelectionData();
+                          }
                         }]
                   }]
             });
