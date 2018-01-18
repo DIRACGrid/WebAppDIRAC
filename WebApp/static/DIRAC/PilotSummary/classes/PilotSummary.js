@@ -247,21 +247,6 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
               scope : me
             });
       
-           // {[values.company.toUpperCase() + ", " + values.title]}</p>'
-         
-           // var tpl = new Ext.XTemplate('<div id="expanded-Grid-{Site}"> </div>', {
-        var tpl = new Ext.XTemplate('<div id="expanded-Grid-{[values.Site.split(".").join("_")]}"> </div>', { 
-              // XTemplate configuration:
-              disableFormats : true,
-              // member functions:
-              isGirl : function(name) {
-                return name == 'Aubrey' || name == 'Nikol';
-              },
-              isBaby : function(age) {
-                return age < 1;
-              }
-            });
-
         me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
               store : me.dataStore,
               columnLines : true,
@@ -277,7 +262,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                     checkField : {
                       'CE' : 'Multiple'
                     },                    
-                    rowBodyTpl : tpl//new Ext.XTemplate('<div id="expanded-Grid-{Site}"> </div>')// ['<div id="expanded-Grid-zozo"> </div>']
+                    rowBodyTpl : ['<div id="expanded-Grid-{[values.Site.split(".").join("_")]}"> </div>']
                   }]
             });
 
@@ -310,7 +295,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                        forceFit : true,
                       renderTo : targetId,
                       isExpanded : false,
-                      //id : targetId + "_grid",
+                      id : targetId + "_grid",
                       store : expandStore,
                       viewConfig : {
                         stripeRows : true,

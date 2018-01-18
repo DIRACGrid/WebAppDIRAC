@@ -307,7 +307,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                       autoLoad : true,
                       dontLoadOnCreation : true
                     });
-
+                
                 me.grid.expandedGridPanel = Ext.create('Ext.grid.Panel', {
                       forceFit : true,
                       renderTo : targetId,
@@ -381,6 +381,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                     });
 
                 rowNode.grid = me.grid.expandedGridPanel;
+                me.grid.expandedGridPanel.setLoading(true);
                 expandStore.load();
                 me.grid.expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
                 me.grid.expandedGridPanel.fireEvent("bind", me.grid.expandedGridPanel, {
