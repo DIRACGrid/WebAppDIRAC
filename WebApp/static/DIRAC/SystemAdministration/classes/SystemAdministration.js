@@ -218,7 +218,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   }, '-', me.versionText, {
                     text : 'Update',
                     handler : function() {
-                      me.oprHostAction("updat", 2);
+                      me.oprHostAction("update", 2);
                     },
                     iconCls : "dirac-icon-update",
                     scope : me
