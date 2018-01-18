@@ -394,7 +394,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
         return new Ext.button.Button(button_theme);
       },
       addViewButton : function() {
-        var sButtonThemeText = "Grey";
+        var sButtonThemeText = "Gray";
 
         if (GLOBAL.WEB_THEME == "ext-all-neptune")
           sButtonThemeText = "Neptune";

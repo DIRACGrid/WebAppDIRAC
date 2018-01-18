@@ -5,19 +5,9 @@
  * @extends Ext.panel.Panel
  */
 Ext.define('Ext.dirac.views.desktop.StartMenu', {
-      extend : 'Ext.panel.Panel',
+      extend : 'Ext.ux.desktop.StartMenu',
 
-      requires : ['Ext.menu.Menu', 'Ext.toolbar.Toolbar', 'Ext.panel.Panel', "Ext.button.Button", "Ext.form.field.Text"],
-
-      ariaRole : 'menu',
-
-      cls : 'x-menu ux-start-menu',
-
-      defaultAlign : 'bl-tl',
-
-      iconCls : 'ux-start-button-icon',
-
-      height : 300,
+      height : 30,
 
       floating : true,
 
@@ -40,31 +30,10 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
         me.title = ((GLOBAL.APP.configData.user.username) ? GLOBAL.APP.configData["user"]["username"] + "@" + GLOBAL.APP.configData["user"]["group"] : "Anonymous");
 
-        me.menu = new Ext.menu.Menu({
-              cls : 'ux-start-menu-body',
-              border : false,
-              floating : false,
-              ignoreParentClicks : true
-            });
-
-        me.menu.layout.align = 'stretch';
-
-        me.items = [me.menu];
-        me.layout = 'fit';
-
-        Ext.menu.Manager.register(me);
-
-        /*
-         * me.toolbar = new Ext.toolbar.Toolbar({ dock : 'right', cls :
-         * 'ux-start-menu-toolbar', vertical : true, width : 100 });
-         */
-
         me.callParent(arguments);
 
         // me.toolbar.layout.align = 'stretch';
         // me.addDocked(me.toolbar);
-
-        delete me.toolItems;
 
       },
 

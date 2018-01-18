@@ -141,7 +141,7 @@ Ext.define('Ext.dirac.utils.DiracToolButton', {
         me.callParent();
       },
 
-      onClick : function(e) {
+      onClickA : function(e) {
         var me = this;
 
         if (!me.disabled) {

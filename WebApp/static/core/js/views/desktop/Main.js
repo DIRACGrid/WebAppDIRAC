@@ -12,7 +12,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
   alias : 'widget.desktop',
   requires : ['Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.views.desktop.Window', 'Ext.dirac.views.desktop.TaskBar', 'Ext.dirac.views.desktop.Wallpaper', 'Ext.dirac.views.desktop.StateManagement', 'Ext.dirac.views.desktop.ShortcutModel'],
   mixins : ["Ext.dirac.core.Stateful", "Ext.dirac.core.AppView", "Ext.dirac.views.desktop.TransformationData"],
-
+  
   activeWindowCls : 'ux-desktop-active-win',
   inactiveWindowCls : 'ux-desktop-inactive-win',
   lastActiveWindow : null,
@@ -268,7 +268,11 @@ Ext.define('Ext.dirac.views.desktop.Main', {
      */
     me.windowMenu = new Ext.menu.Menu(me.createWindowMenu());
 
+    /* 
+     * It is used to manage the state of the widgets
+     */
     me.SM = new Ext.dirac.views.desktop.StateManagement();
+    
     me.bbar = me.taskbar = new Ext.dirac.views.desktop.TaskBar(me.taskbarConfig);
     me.taskbar.windowMenu = me.windowMenu;
 
@@ -295,7 +299,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
           id : me.id + '_wallpaper'
         }, me.createDataView()];
 
-    me.callParent(arguments);
+    me.callParent();
 
     /*
      * Setting the wallpaper
