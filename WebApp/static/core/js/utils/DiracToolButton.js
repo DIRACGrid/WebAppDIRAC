@@ -1,7 +1,5 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
+/*
+ * ! Ext JS Library 4.0 Copyright(c) 2006-2011 Sencha Inc. licensing@sencha.com
  * http://www.sencha.com/license
  */
 
@@ -14,14 +12,14 @@
 Ext.define('Ext.dirac.utils.DiracToolButton', {
       extend : 'Ext.panel.Tool',
       alias : 'widget.diracToolButton',
-      requires : ['Ext.menu.Manager', 'Ext.util.ClickRepeater', 'Ext.util.TextMetrics', 'Ext.util.KeyMap'], //'Ext.layout.component.Button'
+      requires : ['Ext.menu.Manager', 'Ext.util.ClickRepeater', 'Ext.util.TextMetrics', 'Ext.util.KeyMap'], // 'Ext.layout.component.Button'
       menuActiveCls : 'menu-active',
       menuAlign : 'tl-bl?',
       menu : null,
 
       initComponent : function() {
         var me = this;
-        me.callParent(arguments);  
+        me.callParent(arguments);
         if (me.menu) {
           // Flag that we'll have a splitCls
           me.split = true;
@@ -45,7 +43,7 @@ Ext.define('Ext.dirac.utils.DiracToolButton', {
 
           me.keyMap = new Ext.util.KeyMap({
                 target : me.el,
-                key : Ext.EventObject.DOWN,
+                key : Ext.event.Event.DOWN,
                 handler : me.onDownKey,
                 scope : me
               });
@@ -140,14 +138,15 @@ Ext.define('Ext.dirac.utils.DiracToolButton', {
         }
         me.callParent();
       },
+      privates : {
+        onClick : function(e) {
+          var me = this;
 
-      onClickA : function(e) {
-        var me = this;
-
-        if (!me.disabled) {
-          // me.doToggle();
-          me.maybeShowMenu();
-          me.fireHandler(e);
+          if (!me.disabled) {
+            // me.doToggle();
+            me.maybeShowMenu();
+            me.fireHandler(e);
+          }
         }
       },
 

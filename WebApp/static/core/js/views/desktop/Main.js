@@ -1814,7 +1814,8 @@ Ext.define('Ext.dirac.views.desktop.Main', {
                     height : 0,
                     maximized : true,
                     x : null,
-                    y : null
+                    y : null,
+                    border : false
                   }
                 });
 
@@ -1867,7 +1868,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
     var me = this, win, cfg = Ext.applyIf(config || {}, {
           stateful : false,
           isWindow : true,
-          constrainHeader : false,
+          constrainHeader : true,
           minimizable : true,
           maximizable : true,
           animCollapse : false,
@@ -1875,7 +1876,9 @@ Ext.define('Ext.dirac.views.desktop.Main', {
           hideMode : 'offsets',
           layout : 'fit',
           x : 0,
-          y : 0
+          y : 0,
+          height : 0,
+          width : 0
         });
 
     // creating the window

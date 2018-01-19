@@ -301,11 +301,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       afterRender : function() {
         var me = this;
         if (me.selectorMenu) {
-          /*me.getHeader().addTool({
+          me.getHeader().addTool({
                 xtype : "diracToolButton",
                 type : "down",
                 menu : me.selectorMenu
-              });*/
+              });
         }
         me.__loadSelectorData();
         me.callParent();
