@@ -218,7 +218,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   }, '-', me.versionText, {
                     text : 'Update',
                     handler : function() {
-                      me.oprHostAction("updat", 2);
+                      me.oprHostAction("update", 2);
                     },
                     iconCls : "dirac-icon-update",
                     scope : me
@@ -806,6 +806,14 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                           boxLabel : 'Agents',
                           name : 'Agents',
                           inputValue : '2',
+                          checked : true,
+                          handler : function() {
+                            me.__loadSelectionData();
+                          }
+                        }, {
+                          boxLabel : 'Executors',
+                          name : 'Executors',
+                          inputValue : '3',
                           checked : true,
                           handler : function() {
                             me.__loadSelectionData();

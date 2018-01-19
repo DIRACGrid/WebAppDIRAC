@@ -1,14 +1,19 @@
+""" Handler for SystemAdministration WebApp
+"""
+
+import json
+import datetime
+
+from DIRAC import gConfig, gLogger
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.Utilities.List import uniqueElements
+import DIRAC.ConfigurationSystem.Client.Helpers.Registry as Registry
 
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
+
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC import gConfig, gLogger
-from DIRAC.Core.Utilities.List import uniqueElements
-import json
-import datetime
-import DIRAC.ConfigurationSystem.Client.Helpers.Registry as Registry
 
 class SystemAdministrationHandler( WebHandler ):
 
@@ -57,8 +62,8 @@ class SystemAdministrationHandler( WebHandler ):
                                             delegatedGroup = group )
         resultHost = yield self.threadTask( client.getHostInfo )
         if resultHost[ "OK" ]:
-          resultHost[ "Value" ][ "Host" ] = host  
-          if "Timestamp" in resultHost[ "Value" ]: 
+          resultHost[ "Value" ][ "Host" ] = host
+          if "Timestamp" in resultHost[ "Value" ]:
             resultHost[ "Value" ][ "Timestamp" ] = str( resultHost[ "Value" ][ "Timestamp" ] )
           callback.append( resultHost[ "Value" ] )
         else:
@@ -78,7 +83,7 @@ class SystemAdministrationHandler( WebHandler ):
         callback[ i ][ 'DIRAC' ] = '%s,%s' % ( callback[ i ].get( 'DIRACVersion', callback[ i ].get( 'DIRAC' ) ) , callback[ i ][ 'Extension' ] )
       elif 'Extensions' in callback[ i ]:
         callback[ i ][ 'DIRAC' ] = '%s,%s' % ( callback[ i ].get( 'DIRAC', callback[ i ].get( 'DIRAC' ) ) , callback[ i ][ 'Extensions' ] )
-    
+
     self.finish( { "success" : "true" , "result" : callback , "total" : total } )
 
   @asyncGen
@@ -96,13 +101,13 @@ class SystemAdministrationHandler( WebHandler ):
 
     callback = list()
 
-    if not ( self.request.arguments.has_key( "hostname" ) and len( self.request.arguments["hostname"][0] ) > 0 ):
+    if not ( self.request.arguments.has_key( "hostname" ) and self.request.arguments["hostname"][0] ):
       self.finish( { "success" : "false" , "error" : "Name of the host is absent" } )
       return
 
     host = self.request.arguments["hostname"][0]
     client = SystemAdministratorClient( host , None , delegatedDN = DN ,
-                                          delegatedGroup = group )
+                                        delegatedGroup = group )
     result = yield self.threadTask( client.getOverallStatus )
     gLogger.debug( "Result of getOverallStatus(): %s" % result )
 
@@ -248,7 +253,7 @@ class SystemAdministrationHandler( WebHandler ):
         result = yield self.threadTask( client.restartComponent, str( "*" ) , str( "*" ) )
       elif action == "revert":
         result = yield self.threadTask( client.revertSoftware )
-      elif action == "updat":
+      elif action == "update":
         result = yield self.threadTask( client.updateSoftware, version, '', '', timeout = 300 )
       else:
         error = i + ": Action %s is not defined" % action
@@ -318,7 +323,7 @@ class SystemAdministrationHandler( WebHandler ):
         result[ host ] = list()
       result[ host ].append( [ system , component ] )
 
-    if not len( result ) > 0:
+    if not result:
       error = "Failed to get component(s) for %s" % action
       gLogger.debug( error )
       self.finish( { "success" : "false" , "error" : error } )
@@ -327,13 +332,12 @@ class SystemAdministrationHandler( WebHandler ):
     actionSuccess = list()
     actionFailed = list()
 
-    for hostname in result.keys():
+    for hostname in result:
 
-      if not len( result[ hostname ] ) > 0:
+      if not result[ hostname ]:
         continue
 
-      client = SystemAdministratorClient( hostname , None , delegatedDN = DN ,
-                                          delegatedGroup = group )
+      client = SystemAdministratorClient( hostname, None, delegatedDN = DN, delegatedGroup = group )
 
       for i in result[ hostname ]:
 
@@ -350,7 +354,7 @@ class SystemAdministrationHandler( WebHandler ):
           else:
             result = list()
             result[ "Message" ] = "Action %s is not valid" % action
-        except Exception, x:
+        except Exception as x:
           result = list()
           result[ "Message" ] = "Exception: %s" % str( x )
         gLogger.debug( "Result: %s" % result )
@@ -381,22 +385,22 @@ class SystemAdministrationHandler( WebHandler ):
     else:
       fText = prefix
 
-    if len( success ) > 0 and len( failure ) > 0:
+    if success and failure:
       sMessage = "%s %sed successfully: %s" % ( sText , action , success )
       fMessage = "Failed to %s %s:\n%s" % ( action , fText , failure )
       result = sMessage + "\n\n" + fMessage
       return { "success" : "true" , "result" : result }
-    elif len( success ) > 0 and len( failure ) < 1:
+    elif success and len( failure ) < 1:
       result = "%s %sed successfully: %s" % ( sText , action , success )
       return { "success" : "true" , "result" : result }
-    elif len( success ) < 1 and len( failure ) > 0:
+    elif len( success ) < 1 and failure:
       result = "Failed to %s %s:\n%s" % ( action , fText , failure )
       gLogger.always( result )
       return { "success" : "false" , "error" : result }
-    else:
-      result = "No action has performed due technical failure. Check the logs please"
-      gLogger.debug( result )
-      return { "success" : "false" , "error" : result }
+
+    result = "No action has performed due technical failure. Check the logs please"
+    gLogger.debug( result )
+    return { "success" : "false" , "error" : result }
 
   def web_getUsersGroups( self ):
 
@@ -454,7 +458,7 @@ class SystemAdministrationHandler( WebHandler ):
       return
 
     subject = self.checkUnicode( self.request.arguments[ "subject" ][0] )
-    if not len( subject ) > 0:
+    if not subject:
       subject = "Message from %s" % email
 
     if not "message" in self.request.arguments:
@@ -520,7 +524,7 @@ class SystemAdministrationHandler( WebHandler ):
 
     users = gConfig.getValue( "/Registry/Groups/%s/Users" % groupname , [] )
     gLogger.debug( "%s users: %s" % ( groupname , users ) )
-    if not len( users ) > 0:
+    if not users:
       gLogger.debug( "No users for group %s found" % groupname )
       return None
     return users
@@ -539,7 +543,7 @@ class SystemAdministrationHandler( WebHandler ):
     for user in names:
       email = gConfig.getValue( "/Registry/Users/%s/Email" % user , "" )
       gLogger.debug( "/Registry/Users/%s/Email - '%s'" % ( user , email ) )
-      emil = email.strip()
+      email = email.strip()
 
       if not email:
         gLogger.error( "Can't find value for option /Registry/Users/%s/Email" % user )
@@ -604,23 +608,23 @@ class SystemAdministrationHandler( WebHandler ):
     success = ", ".join( sentSuccess )
     failure = "\n".join( sentFailed )
 
-    if len( success ) > 0 and len( failure ) > 0:
+    if success and failure:
       result = "Successfully sent e-mail to: "
       result = result + success + "\n\nFailed to send e-mail to:\n" + failure
       gLogger.debug( result )
       return { "success" : "true" , "result" : result }
-    elif len( success ) > 0 and len( failure ) < 1:
+    elif success and len( failure ) < 1:
       result = "Successfully sent e-mail to: %s" % success
       gLogger.debug( result )
       return { "success" : "true" , "result" : result }
-    elif len( success ) < 1 and len( failure ) > 0:
+    elif len( success ) < 1 and failure:
       result = "Failed to sent email to:\n%s" % failure
       gLogger.debug( result )
       return { "success" : "false" , "error" : result }
-    else:
-      result = "No messages were sent due technical failure"
-      gLogger.debug( result )
-      return { "success" : "false" , "error" : result }
+
+    result = "No messages were sent due technical failure"
+    gLogger.debug( result )
+    return { "success" : "false" , "error" : result }
 
   @asyncGen
   def web_getComponentNames( self ):
@@ -666,8 +670,6 @@ class SystemAdministrationHandler( WebHandler ):
     userData = self.getSessionData()
 
     setup = userData['setup'].split( '-' )[-1]
-    systemList = []
-    system = None
 
     hosts = []
     result = Registry.getHosts()
@@ -675,10 +677,7 @@ class SystemAdministrationHandler( WebHandler ):
       hosts = [ [i] for i in result['Value'] ]
     data['Hosts'] = hosts
 
-    if "system" in self.request.arguments:
-      system = self.request.arguments[ 'system' ][-1]
-
-    componentTypes = ['Services', 'Agents']
+    componentTypes = ['Services', 'Agents', 'Executors']
     if "ComponentType" in self.request.arguments:
       componentTypes = self.request.arguments['ComponentType']
 
@@ -777,12 +776,12 @@ class SystemAdministrationHandler( WebHandler ):
               compMatching[path] = module if module != '' else path
 
     records = []
-    if len( fullNames ) > 0:
+    if fullNames:
       condDict = {'Setup':userData['setup'], 'ComponentName':fullNames}
     else:
       if len( componentTypes ) < 2:
-        type = 'agent' if componentTypes[-1] == 'Agents' else 'service'
-        condDict = {'Setup':userData['setup'], 'Type':type}
+        cType = 'agent' if componentTypes[-1] == 'Agents' else 'service'
+        condDict = {'Setup':userData['setup'], 'Type':cType}
       else:
         condDict = {'Setup':userData['setup']}
 
@@ -793,10 +792,10 @@ class SystemAdministrationHandler( WebHandler ):
     if retVal['OK']:
       components = retVal['Value'][0]
       for setup in components:
-        for type in components[ setup ]:
-          for name in components[ setup ][ type ]:
-            for component in components[ setup ][ type ][ name ]:
-              if len( selectedHosts ) > 0 and 'Host' in component and component['Host'] not in selectedHosts:
+        for cType in components[ setup ]:
+          for name in components[ setup ][ cType ]:
+            for component in components[ setup ][ cType ][ name ]:
+              if selectedHosts and 'Host' in component and component['Host'] not in selectedHosts:
                 continue
               elif 'Host' in component and component['Host'] not in hosts:
                 continue
