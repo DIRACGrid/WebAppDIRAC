@@ -7,8 +7,6 @@
 Ext.define('Ext.dirac.views.desktop.StartMenu', {
       extend : 'Ext.ux.desktop.StartMenu',
 
-      height : 30,
-
       floating : true,
 
       shadow : true,
@@ -29,11 +27,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
          */
 
         me.title = ((GLOBAL.APP.configData.user.username) ? GLOBAL.APP.configData["user"]["username"] + "@" + GLOBAL.APP.configData["user"]["group"] : "Anonymous");
-
-        me.callParent(arguments);
-
-        // me.toolbar.layout.align = 'stretch';
-        // me.addDocked(me.toolbar);
+        me.callParent();
 
       },
 
@@ -42,11 +36,11 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
         var me = this;
 
         for (var j = 0; j < GLOBAL.APP.configData["menu"].length; j++)
-          me.menu.add(me.getMenuStructureRec(GLOBAL.APP.configData["menu"][j]));
+          me.add(me.getMenuStructureRec(GLOBAL.APP.configData["menu"][j]));
 
         if (GLOBAL.STATE_MANAGEMENT_ENABLED) {
 
-          me.menu.add(['-', {
+          me.add(['-', {
                 text : 'State Loader',
                 iconCls : 'dirac-icon-state',
                 handler : function() {
@@ -57,22 +51,6 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
         }
 
         this.callParent();
-      },
-
-      /**
-       * Function to add an item (button, menu) to the menu of the start menu
-       */
-      addMenuItem : function() {
-        var cmp = this.menu;
-        cmp.add.apply(cmp, arguments);
-      },
-
-      /**
-       * Function to add an item (button, menu) to the toolbar of the start menu
-       */
-      addToolItem : function() {
-        var cmp = this.toolbar;
-        cmp.add.apply(cmp, arguments);
       },
 
       showBy : function(cmp, pos, off) {
