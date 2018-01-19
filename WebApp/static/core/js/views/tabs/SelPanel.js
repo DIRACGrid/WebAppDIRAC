@@ -117,7 +117,12 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     if (!GLOBAL.STATE_MANAGEMENT_ENABLED)
                       return;
 
-                    var oParts = node.get('application').split(".");
+                    var app = node.get('application');
+                    if (!app) {
+                      app = "";
+                    }
+
+                    var oParts = app.split(".");
                     var sStartClass = "";
                     if (oParts.length == 2) {
                       sStartClass = node.get('application') + ".classes." + oParts[1];

@@ -59,7 +59,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       extend : 'Ext.panel.Panel',
-      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracNumericField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.form.field.Checkbox'],
+      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracNumericField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.form.field.Checkbox','Ext.dirac.utils.DiracToolButton'],
       title : 'Selectors',
       region : 'west',
       floatable : false,
