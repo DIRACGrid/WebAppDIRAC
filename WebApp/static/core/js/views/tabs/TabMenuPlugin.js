@@ -77,7 +77,7 @@ Ext.define('Ext.dirac.views.tabs.TabMenuPlugin', {
                       items : Ext.Array.from(this.items),
                       id : toolbarId
                     });
-                me.tabPanel.doLayout();
+                me.tabPanel.updateLayout();
 
               },
               beforedestroy : function() {

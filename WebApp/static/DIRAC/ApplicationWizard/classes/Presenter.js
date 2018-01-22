@@ -70,7 +70,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
         me.presenter.updateTime = Ext.create("Ext.form.Label", {
           xtype : "label",
           text : "Updated: -",
-          style : ((GLOBAL.WEB_THEME == 'ext-all-neptune') ? 'font-weight:bold;color:#FFFFFF;' : 'font-weight:bold;color:#666666;')
+          style : ((GLOBAL.WEB_THEME == 'neptune') ? 'font-weight:bold;color:#FFFFFF;' : 'font-weight:bold;color:#666666;')
             // #990066;', //#666666;'
             // html: "<span style='color:red'>Updated: - </span>"
           });

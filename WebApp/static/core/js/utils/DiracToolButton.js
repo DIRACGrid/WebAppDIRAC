@@ -14,7 +14,7 @@
 Ext.define('Ext.dirac.utils.DiracToolButton', {
       extend : 'Ext.panel.Tool',
       alias : 'widget.diracToolButton',
-      requires : ['Ext.menu.Manager', 'Ext.util.ClickRepeater', 'Ext.layout.component.Button', 'Ext.util.TextMetrics', 'Ext.util.KeyMap'],
+      requires : ['Ext.menu.Manager', 'Ext.util.ClickRepeater', 'Ext.util.TextMetrics', 'Ext.util.KeyMap'], //'Ext.layout.component.Button'
       menuActiveCls : 'menu-active',
       menuAlign : 'tl-bl?',
       menu : null,

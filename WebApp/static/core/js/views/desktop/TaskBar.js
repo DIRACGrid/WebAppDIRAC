@@ -43,20 +43,26 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 			text : me.startBtnText
 		}, me.windowBar ];
 
-		var sButtonThemeText = "Grey";
+		var sButtonThemeText = "Gray";
 
-		if (GLOBAL.WEB_THEME == "ext-all-neptune")
+		if (GLOBAL.WEB_THEME == "neptune")
 			sButtonThemeText = "Neptune";
 
-		if (GLOBAL.WEB_THEME == "ext-all")
+		if (GLOBAL.WEB_THEME == "classic")
 			sButtonThemeText = "Classic";
-
+    
+    if (GLOBAL.WEB_THEME == "triton")
+          sButtonThemeText = "Triton";
+        
+        if (GLOBAL.WEB_THEME == "crisp")
+          sButtonThemeText = "Crisp";
+          
 		var button_theme = {
 			"text" : sButtonThemeText,
 			"menu" : []
 		};
 
-		var oListTheme = [ "Grey", "Neptune", "Classic" ];
+		var oListTheme = [ "Grey", "Neptune", "Classic", "Triton", "Crisp" ];
 
 		for ( var i = 0; i < oListTheme.length; i++) {
 			button_theme.menu.push({

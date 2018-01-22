@@ -18,6 +18,11 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       tabCounter : 0,
       view : 'tabView',
       // renderTo:Ext.getBody(),
+      //TODO: This is for scrolling!!!!
+      defaults: {
+        //bodyPadding: 10,
+        scrollable: true
+    },
       bodyStyle : {
         background : '#AAAAAA',
         backgroundImage: 'url('+GLOBAL.BACKGROUND+')',
@@ -26,7 +31,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       },
 
       workspace : null,
-      plugins : [Ext.create('Ext.ux.TabReorderer')],
+      plugins : ['tabreorderer'],
       setWorkspace : function(wsk) {
         this.workspace = wsk;
       },

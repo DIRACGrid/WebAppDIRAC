@@ -2263,14 +2263,20 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
     var sNewUrlState = "";
 
-    var sThemeText = "Grey";
+    var sThemeText = "Gray";
 
-    if (GLOBAL.WEB_THEME == "ext-all-neptune")
+    if (GLOBAL.WEB_THEME == "neptune")
       sThemeText = "Neptune";
 
-    if (GLOBAL.WEB_THEME == "ext-all")
+    if (GLOBAL.WEB_THEME == "classic")
       sThemeText = "Classic";
-
+  
+    if (GLOBAL.WEB_THEME == "triton")
+      sButtonThemeText = "Triton";
+        
+    if (GLOBAL.WEB_THEME == "crisp")
+      sButtonThemeText = "Crisp";
+          
     if (me.currentState != "") {
 
       // if there is an active desktop state

@@ -77,14 +77,11 @@ class RootHandler(WebHandler):
     view_name = Conf.getTheme()
     if self.request.arguments.has_key("view") and len(self.request.arguments["view"][0]) > 0:
       view_name = xss_filter( self.request.arguments["view"][0] )
-
-    theme_name = "ext-all-gray"
+    
+    theme_name = "gray"
     if self.request.arguments.has_key("theme") and len(self.request.arguments["theme"][0]) > 0:
-      if self.request.arguments["theme"][0]=="Neptune":
-        theme_name = "ext-all-neptune"
-      if self.request.arguments["theme"][0]=="Classic":
-        theme_name = "ext-all"
-
+      theme_name = self.request.arguments["theme"][0].lower()
+    
     open_app = ""
     if self.request.arguments.has_key("open_app") and len(self.request.arguments["open_app"][0]) > 0:
       open_app = xss_filter( self.request.arguments["open_app"][0].strip() )

@@ -59,7 +59,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       extend : 'Ext.panel.Panel',
-      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracNumericField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.dirac.utils.DiracToolButton', 'Ext.form.field.Checkbox'],
+      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracNumericField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.form.field.Checkbox'],
       title : 'Selectors',
       region : 'west',
       floatable : false,
@@ -130,7 +130,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
         if (oConfig.cmbSelectors) {
           for (var cmb in oConfig.cmbSelectors) {
-
+        
             me.cmbSelectors[cmb] = Ext.create('Ext.dirac.utils.DiracBoxSelect', {
                   fieldLabel : oConfig.cmbSelectors[cmb],
                   queryMode : 'local',
@@ -301,11 +301,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       afterRender : function() {
         var me = this;
         if (me.selectorMenu) {
-          me.getHeader().addTool({
+          /*me.getHeader().addTool({
                 xtype : "diracToolButton",
                 type : "down",
                 menu : me.selectorMenu
-              });
+              });*/
         }
         me.__loadSelectorData();
         me.callParent();
@@ -540,23 +540,16 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           if (oData[me.datamap[j][0]] == null)
             continue;
           for (var i = 0; i < oData[me.datamap[j][0]].length; i++)
-            dataOptions.push([oData[me.datamap[j][0]][i][0], oData[me.datamap[j][0]][i][0]]);
+            dataOptions.push({'text':oData[me.datamap[j][0]][i][0], 'value':oData[me.datamap[j][0]][i][0]});
 
-          if (bRefreshStores) {
-
-            var oNewStore = new Ext.data.ArrayStore({
-                  fields : ['value', 'text'],
-                  data : dataOptions
-                });
-
-            me.cmbSelectors[me.datamap[j][1]].refreshStore(oNewStore);
-
-          } else {
-            me.cmbSelectors[me.datamap[j][1]].store = new Ext.data.ArrayStore({
-                  fields : ['value', 'text'],
-                  data : dataOptions
-                });
-          }
+          var dataStore = new Ext.data.Store({
+                fields : ['value', 'text'],
+                data : dataOptions
+              });
+                     
+            me.cmbSelectors[me.datamap[j][1]].setStore(dataStore);
+          
+          delete dataStore;
 
         }
       },

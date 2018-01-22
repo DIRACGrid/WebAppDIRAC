@@ -34,7 +34,7 @@ if not os.path.isdir( downDir ):
 
 # First, download EXTJS
 spinner = ".:|\-=-/|:"
-extVersion = "4.2.1"
+extVersion = "6.0.1"
 senchacmdVersion = "5.0.2.270"
 extFilePath = os.path.join( downDir, "ext-%s-gpl.zip" % extVersion )
 if not os.path.isfile( extFilePath ):
