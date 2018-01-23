@@ -90,7 +90,7 @@ class RootHandler(WebHandler):
       open_app = xss_filter( self.request.arguments["open_app"][0].strip() )
 
     icon = data[ 'baseURL' ] + Conf.getIcon()
-    backround = data[ 'baseURL' ] + Conf.getBackround()
+    background = data[ 'baseURL' ] + Conf.getBackgroud()
     logo = data[ 'baseURL' ] + Conf.getLogo()
     
     level = str(gLogger.getLevel()).lower()
@@ -100,5 +100,5 @@ class RootHandler(WebHandler):
                  credentials = data[ 'user' ], title = Conf.getTitle(),
                  theme = theme_name, root_url = Conf.rootURL(), view = view_name, 
                  open_app = open_app, debug_level= level,
-                 backroundImage = backround, logo = logo )
+                 backgroundImage = background, logo = logo )
     
