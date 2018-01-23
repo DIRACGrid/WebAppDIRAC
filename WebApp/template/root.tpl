@@ -82,6 +82,7 @@
           GLOBAL.VALID_VIEWS = ["desktop","tabs"];
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
+          GLOBAL.BACKGROUND = "{{backroundImage}}";
 
 
           Ext.onReady(function () {

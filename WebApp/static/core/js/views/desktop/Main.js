@@ -78,7 +78,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
   stateDataStructureVersion : 1,
 
-  wallpaper : GLOBAL.ROOT_URL + 'static/core/img/wallpapers/dirac_background_6.png',
+  wallpaper : GLOBAL.BACKGROUND,
 
   wallpaperStretch : false,
 

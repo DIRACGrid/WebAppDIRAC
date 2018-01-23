@@ -141,4 +141,4 @@ def getLogo():
   return getCSValue("Logo","/static/core/img/icons/system/_logo_waiting.gif")
 
 def getBackround():
-  return getCSValue("BackgroundImage","static/core/img/wallpapers/dirac_background_6.png")
+  return getCSValue("BackgroundImage","/static/core/img/wallpapers/dirac_background_6.png")

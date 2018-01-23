@@ -20,7 +20,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       // renderTo:Ext.getBody(),
       bodyStyle : {
         background : '#AAAAAA',
-        backgroundImage: 'url(/DIRAC/static/core/img/wallpapers/dirac_background_6.png)',
+        backgroundImage: 'url('+GLOBAL.BACKGROUND+')',
         backgroundPosition: 'bottom right',
         backgroundRepeat: 'no-repeat'
       },
