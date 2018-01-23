@@ -113,6 +113,7 @@
           GLOBAL.VALID_VIEWS = ["desktop","tabs"];
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
+          GLOBAL.BACKGROUND = "{{backroundImage}}";
 
           Ext.onReady(function () {
               Ext.override(Ext.data.Connection, { timeout:600000 });
@@ -134,7 +135,7 @@
         <table>
           <tr>
             <td style="width:100px;">
-              <img src="{{base_url}}/static/core/img/icons/system/_logo_waiting.gif" style="margin-right:8px;float:left;vertical-align:top;width:100%;"/>
+              <img src="{{logo}}" style="margin-right:8px;float:left;vertical-align:top;width:100%;"/>
             </td>
             <td style="width:300px;vertical-align:middle;text-align:left;padding:5px 0px 5px 15px;font-size:14px">
               DIRAC
