@@ -78,7 +78,7 @@ class RootHandler(WebHandler):
     if self.request.arguments.has_key("view") and len(self.request.arguments["view"][0]) > 0:
       view_name = xss_filter( self.request.arguments["view"][0] )
     
-    theme_name = "gray"
+    theme_name = "crisp" #"gray"
     if self.request.arguments.has_key("theme") and len(self.request.arguments["theme"][0]) > 0:
       theme_name = self.request.arguments["theme"][0].lower()
     

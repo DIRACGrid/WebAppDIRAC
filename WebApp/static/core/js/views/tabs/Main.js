@@ -1753,7 +1753,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         var sNewUrlState = "";
 
-        var sThemeText = "Gray";
+        var sThemeText = "Crisp";
 
         if (GLOBAL.WEB_THEME == "neptune")
           sThemeText = "Neptune";
@@ -1764,8 +1764,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         if (GLOBAL.WEB_THEME == "triton")
           sButtonThemeText = "Triton";
         
-        if (GLOBAL.WEB_THEME == "crisp")
-          sButtonThemeText = "Crisp";
+        if (GLOBAL.WEB_THEME == "gray")
+          sButtonThemeText = "Gray";
       
         var url_prefix = "&url_state=1|";
         var sState_related_url = "";

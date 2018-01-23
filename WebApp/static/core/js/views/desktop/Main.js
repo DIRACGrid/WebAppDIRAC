@@ -2270,7 +2270,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
     var sNewUrlState = "";
 
-    var sThemeText = "Gray";
+    var sThemeText = "Crisp";
 
     if (GLOBAL.WEB_THEME == "neptune")
       sThemeText = "Neptune";
@@ -2281,8 +2281,8 @@ Ext.define('Ext.dirac.views.desktop.Main', {
     if (GLOBAL.WEB_THEME == "triton")
       sButtonThemeText = "Triton";
         
-    if (GLOBAL.WEB_THEME == "crisp")
-      sButtonThemeText = "Crisp";
+    if (GLOBAL.WEB_THEME == "gray")
+      sButtonThemeText = "Gray";
           
     if (me.currentState != "") {
 
