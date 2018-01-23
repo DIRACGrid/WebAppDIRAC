@@ -251,7 +251,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
               case "setOptionValue" :
                 var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
-                oNode.get('csValue') = oResponse.value;
+                oNode.set('csValue', oResponse.value);
                 me.valuePanel.csValue = oResponse.value;
                 me.txtOptionValuePanelTextArea.setValue(me.__stringToList(oNode.get('csValue')).join("\n"));
                 me.setNodeText(oNode, oNode.get('csName') + " = " + oNode.get('csValue'));
@@ -259,7 +259,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 break;
               case "setComment" :
                 var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
-                oNode.get('csComment') = oResponse.comment;
+                oNode.set('csComment', oResponse.comment);
                 me.valuePanel.csComment = me.__commentToList(oNode.get('csComment')).join("\n");
 
                 me.__setChangeMade(true);
