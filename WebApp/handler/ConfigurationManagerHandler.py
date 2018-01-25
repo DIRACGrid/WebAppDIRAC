@@ -64,6 +64,9 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       res = self.__rollback( params )
     elif params["op"] == "download":
       res = self.__download( )
+    elif params["op"] == "showCommitDiff":
+      res = self.__showCommitDiff()
+    
 
     gLogger.info( "Sending back message %s" % res )
     if res:
@@ -459,9 +462,18 @@ class ConfigurationManagerHandler( WebSocketHandler ):
         diffList.append( ( "", diffLine[1:], diffLine[1:], lineNumber ) )
         lineNumber = lineNumber + 1
 
+    '''
+    print 'DJSHDJHSDJSJ', linesDiffList
+    newDiffList = []
+    for name, value in linesDiffList:
+      print 'AAA',diffList[value:value+1]
+      newDiffList+=diffList[int(value):int(value)+1]
+    print '!!!!!',newDiffList
+    #diffList[326:330]
+    ''' 
     return {"diff":diffList, "lines": linesDiffList, "totalLines": lineNumber}
 
-  def __showCurrentDiff( self ):
+  def __showCurrentDiff( self ):    
     if not self.__authorizeAction():
       return {"success":0, "op":"showCurrentDiff", "message":"You are not authorized to commit configurations!"}
     diffGen = self.__configData[ 'cfgData' ].showCurrentDiff()
@@ -535,3 +547,21 @@ class ConfigurationManagerHandler( WebSocketHandler ):
     fileName = "cs.%s.%s" % ( configName, version.replace( ":", "" ).replace( "-", "" ).replace( " ", "" ) )
 
     return {"success":1, "op":"download", "result":self.__configData[ 'strCfgData' ],"fileName":fileName}
+  
+  def __showCommitDiff( self ):
+    """
+    It returns only the modified CS content
+    """
+    if not self.__authorizeAction():
+      return {"success":0, "op":"showCurrentDiff", "message":"You are not authorized to commit configurations!! Bad boy!"}
+    diffGen = self.__configData[ 'cfgData' ].showCurrentDiff()
+    processedData = self.__generateHTMLDiff( diffGen )
+    diffList = []
+    allData = processedData.get( "diff" )
+    for mod, value in processedData.get( 'lines' ):
+      diffList += allData[value:value + 1]
+    return self.write_message( json.dumps( {"success":1, "op":"showCommitDiff", "lines":processedData["lines"], "totalLines": processedData["totalLines"], "html":self.render_string( "ConfigurationManager/diffConfig.tpl",
+                                                                                                         titles = ( "Server's version", "User's current version" ),
+                                                                                                         diffList = diffList )} ) )
+
+

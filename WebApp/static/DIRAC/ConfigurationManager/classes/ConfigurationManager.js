@@ -129,13 +129,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
           if (me.btnCommitConfiguration)
             me.btnCommitConfiguration.show();
 
-         } else {
-          
+        } else {
+
           if (me.btnCommitConfiguration)
             me.btnCommitConfiguration.hide();
-            
+
         }
-      
+
         me.changeMade = bChange;
 
       },
@@ -318,7 +318,23 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                   Ext.dirac.system_info.msg("Error Notification", "Download is not suported..." + ex);
                 }
                 break;
+              case "showCommitDiff" :
+                var cb = function(window) {
+                  if (confirm("Do you want to apply the configuration changes you've done till now?")) {
+                    me.treePanel.body.mask("Wait ...");
 
+                    me.__sendSocketMessage({
+                          op : "commitConfiguration"
+                        });
+
+                    window.hide();
+                    me.treePanel.body.unmask();
+                    me.btnCommitConfiguration.hide();
+                  }
+                }
+                me.__showConfigDiffInWindow(oResponse, cb);
+                me.setLoading(false);
+                break;
             }
           }
 
@@ -356,7 +372,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         me.btnDownloadConfigAsText = new Ext.Button({
 
               text : 'Download',
-              
+
               iconCls : "dirac-icon-download",
 
               handler : function() {
@@ -407,7 +423,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 text : 'Configuration'
               },
               listeners : {
-                nodebeforeexpand:function( oNode, eOpts ){ 
+                nodebeforeexpand : function(oNode, eOpts) {
 
                   if (!me.flagReset) {
 
@@ -468,13 +484,10 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
                 iconCls : "dirac-icon-submit",
                 handler : function() {
-                  if (confirm("Do you want to apply the configuration changes you've done till now?")) {
-                    me.treePanel.body.mask("Wait ...");
-                    me.__sendSocketMessage({
-                          op : "commitConfiguration"
-                        });
-                    me.btnCommitConfiguration.hide();
-                  }
+                  me.setLoading("Creating the diff.... Please be patient...");
+                  me.__sendSocketMessage({
+                        op : "showCommitDiff"
+                      });
                 },
                 scope : me,
                 hidden : true
@@ -976,7 +989,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
       },
 
-      __showConfigDiffInWindow : function(oResponse) {
+      __showConfigDiffInWindow : function(oResponse, cbFunction) {
 
         var me = this;
 
@@ -1016,7 +1029,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
          */
 
         /*------------------------ END TEST------------------------*/
-
+        
         oResponse.html = oResponse.html.replace(new RegExp("&amp;nbsp;", 'g'), "&nbsp;");
 
         oResponse.html = oResponse.html.replace(new RegExp("id='", 'g'), "id='" + me.id + "-");
@@ -1053,7 +1066,8 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
               }
             });
-
+            
+       
         var oPanel = new Ext.create('Ext.panel.Panel', {
               layout : "border",
               autoScroll : false,
@@ -1061,6 +1075,19 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
               items : [oCodePanel, oBlocksPanel]
             });
 
+        if (cbFunction) {
+          oPanel.addDocked([{
+                xtype : 'toolbar',
+                dock : 'top',
+                items : [{
+                      text : 'Commit',
+                      handler : function() {
+                        cbFunction(oWindow);
+                      }
+
+                    }]
+              }])
+        }
         oWindow.add(oPanel);
         oWindow.show();
         oWindow.maximize();
@@ -1112,8 +1139,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
         }
 
-        oBlocksPanel.add(oBlocksToAdd);
-
+       oBlocksPanel.add(oBlocksToAdd);
+       
+       /*if(cbFunction){
+        cbFunction();
+       }*/
       },
 
       __cbResetConfigurationTree : function() {
