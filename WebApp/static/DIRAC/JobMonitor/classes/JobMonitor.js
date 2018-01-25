@@ -840,13 +840,13 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
           "None" : {
             "dataIndex" : "key",
             "properties" : {
-              width : 26,
+              width : 46,
               sortable : false,
               hideable : false,
               fixed : true,
               menuDisabled : true
             },
-            "renderFunction" : "rendererStatus"
+            "renderer" : me.renderStatus
           },
           "Key" : {
             "dataIndex" : "key",
@@ -1445,6 +1445,15 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
               }
             });
+
+      },
+      renderStatus : function(value, metadata, record) {
+
+        for (var i = 0; i < this.getStore().getData().getCount(); i++) {
+          if (this.getStore().getData().getAt(i).data.key == value) {
+            return '<div style="background-color:' + this.getStore().getData().getAt(i).data.color + ';width:50px;padding:10px;">';
+          }
+        }
 
       }
 
