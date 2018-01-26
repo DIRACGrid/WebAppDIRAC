@@ -641,13 +641,13 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
           "None" : {
             "dataIndex" : "key",
             "properties" : {
-              width : 26,
+              width : 46,
               sortable : false,
               hideable : false,
               fixed : true,
               menuDisabled : true
             },
-            "renderFunction" : "rendererStatus"
+            "renderFunction" : "renderStatusForGivenColor"
           },
           "Key" : {
             "dataIndex" : "key",
