@@ -132,10 +132,10 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       columns : [],
       /**
        * @cfg{List} renderers it contains a list of available renderer:
-       *            ["rendererChkBox", "rendererStatus","diffValues"] NOTE: You
+       *            ["rendererChkBox", "rendererStatus","diffValues","renderStatusForGivenColor"] NOTE: You
        *            can implement new renderer.
        */
-      renderers : ["rendererChkBox", "rendererStatus", "diffValues"],
+      renderers : ["rendererChkBox", "rendererStatus", "diffValues","renderStatusForGivenColor"],
       /**
        * This function is used to load the data which is saved in the User
        * Profile.
@@ -319,6 +319,10 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                 func = function(value, metaData, record, rowIndex, colIndex, store) {
                   return me.diffValues(value, metaData, record, rowIndex, colIndex, store);
                 };
+              } else if (config.oColumns[i]["renderFunction"] == "renderStatusForGivenColor") {
+                func = function(value, metaData, record, rowIndex, colIndex, store) {
+                  return me.renderStatusForGivenColor(value, metaData, record, rowIndex, colIndex, store);
+                };
               } else {
                 var message = config.oColumns[i]["renderFunction"] + " render function does not exists!!!"
               }
@@ -437,5 +441,14 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
           }
 
         }
+      },
+      renderStatusForGivenColor : function(value, metadata, record) {
+
+        for (var i = 0; i < this.getStore().getData().getCount(); i++) {
+          if (this.getStore().getData().getAt(i).data.key == value) {
+            return '<div style="background-color:' + this.getStore().getData().getAt(i).data.color + ';width:50px;padding:10px;">';
+          }
+        }
+
       }
     });

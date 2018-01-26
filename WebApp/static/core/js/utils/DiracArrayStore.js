@@ -92,7 +92,7 @@ Ext.define('Ext.dirac.utils.DiracArrayStore', {
 
         },
 
-        bulkremove : function(store, records, indexes, isMove, eOpts) {
+        clear : function(store, records, indexes, isMove, eOpts) {
           var me = this;
           me.doAddDiff = false;
           if (me.oDiffFields) {
