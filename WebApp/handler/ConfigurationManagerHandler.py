@@ -113,8 +113,13 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       nodeDef[ 'expanded' ] = False
       if not sectionCfg.isSection( entryName ):
         nodeDef[ 'leaf' ] = True
-        nodeDef[ 'csValue' ] = sectionCfg[ entryName ]
+        if nodeDef.get( 'csName', "" ).lower() in ( "password", "passwd", "passw" ):
+           nodeDef[ 'csValue' ] = "******"
+        else:
+          nodeDef[ 'csValue' ] = sectionCfg[ entryName ]
+        
         nodeDef[ 'text' ] = nodeDef[ 'text' ] + " = " + nodeDef[ 'csValue' ]
+        
 
       # Comment magic
       htmlC = self.__htmlComment( comment )
