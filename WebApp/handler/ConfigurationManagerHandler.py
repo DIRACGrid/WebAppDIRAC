@@ -461,16 +461,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       else:
         diffList.append( ( "", diffLine[1:], diffLine[1:], lineNumber ) )
         lineNumber = lineNumber + 1
-
-    '''
-    print 'DJSHDJHSDJSJ', linesDiffList
-    newDiffList = []
-    for name, value in linesDiffList:
-      print 'AAA',diffList[value:value+1]
-      newDiffList+=diffList[int(value):int(value)+1]
-    print '!!!!!',newDiffList
-    #diffList[326:330]
-    ''' 
+  
     return {"diff":diffList, "lines": linesDiffList, "totalLines": lineNumber}
 
   def __showCurrentDiff( self ):    
