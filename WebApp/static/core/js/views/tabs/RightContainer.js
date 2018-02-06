@@ -80,7 +80,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
               margin : '0 0 2 0',
               value : 'welcome'
             });
-        wallpaper.setWallpaper('/DIRAC/static/core/img/wallpapers/dirac_background_6.png', false);
+        wallpaper.setWallpaper(GLOBAL.BACKGROUND, false);
         me.add(wallpaper);
         me.add({
               // xtype : 'panel',
@@ -416,7 +416,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                   isLoaded : isLoaded,
                   bodyStyle : {
                     background : '#AAAAAA',
-                    backgroundImage : 'url(/DIRAC/static/core/img/wallpapers/dirac_background_6.png)',
+                    backgroundImage : 'url('+GLOBAL.BACKGROUND+')',
                     backgroundPosition : 'bottom right',
                     backgroundRepeat : 'no-repeat'
                   }

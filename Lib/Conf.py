@@ -136,3 +136,9 @@ def SSLProrocol():
 
 def getStaticDirs():
   return getCSValue( "StaticDirs", [] )
+
+def getLogo():
+  return getCSValue("Logo","/static/core/img/icons/system/_logo_waiting.gif")
+
+def getBackgroud():
+  return getCSValue("BackgroundImage","/static/core/img/wallpapers/dirac_background_6.png")

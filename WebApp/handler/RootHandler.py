@@ -90,11 +90,15 @@ class RootHandler(WebHandler):
       open_app = xss_filter( self.request.arguments["open_app"][0].strip() )
 
     icon = data[ 'baseURL' ] + Conf.getIcon()
-
+    background = data[ 'baseURL' ] + Conf.getBackgroud()
+    logo = data[ 'baseURL' ] + Conf.getLogo()
+    
     level = str(gLogger.getLevel()).lower()
     self.render( "root.tpl", iconUrl=icon, base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
                  ext_version = data[ 'extVersion' ], url_state = url_state,
                  extensions = data[ 'extensions' ],
                  credentials = data[ 'user' ], title = Conf.getTitle(),
-                 theme = theme_name, root_url = Conf.rootURL(), view = view_name, open_app = open_app, debug_level= level)
+                 theme = theme_name, root_url = Conf.rootURL(), view = view_name, 
+                 open_app = open_app, debug_level= level,
+                 backgroundImage = background, logo = logo )
     
