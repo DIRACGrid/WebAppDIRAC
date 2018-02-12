@@ -89,10 +89,12 @@ Ext.define('Ext.dirac.utils.DiracJsonStore', {
 
         load : function(oStore, records, successful, eOpts) {
           var me = this;
-
+          
+          if (!successful) {
+            me.removeAll();
+          }
           if (!oStore.proxy.getReader().rawData) {
             return;
-
           }
           var bResponseOK = (oStore.proxy.getReader().rawData["success"] == "true" || oStore.proxy.getReader().rawData["OK"] == true);
           if (!bResponseOK) {
