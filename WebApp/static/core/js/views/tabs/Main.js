@@ -2371,3 +2371,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       }
 
     });
+  /*
+   * Welcome window
+   */
+  Ext.create('Ext.dirac.views.desktop.WelcomeWindow');

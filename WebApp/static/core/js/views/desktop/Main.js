@@ -2473,3 +2473,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
     /*-----------------END - IMPLEMENTATION OF THE INTERFACE BETWEEN STATE MANAGEMENT ADN DESKTOP----------------*/
 
   });
+  /*
+   * Welcome window
+   */
+  Ext.create('Ext.dirac.views.desktop.WelcomeWindow');

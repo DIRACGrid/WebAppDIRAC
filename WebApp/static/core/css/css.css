@@ -36,6 +36,78 @@
 }
 
 /*----------------------------------------------------
+    Application and module welcome intro
+*/
+
+#app-dirac-welcome{
+    display: none;
+    height:100%;
+    width:100%;
+    position:absolute;
+    bottom:0;
+    background-color: gray;
+    opacity:0.8;
+    color: white;
+    font-size: 16px;
+    z-index: 1;
+}
+#app-dirac-welcome .app-dirac-welcome-text{
+    margin:17%;
+    margin-top:3%;
+    padding-right: 15px;
+    text-shadow: 0px 0px 20px #333;
+    font-size: 16px;
+    overflow:auto;
+    height: 80%;
+}
+#app-dirac-welcome-visitor{
+    display:none;
+}
+#app-dirac-welcome .app-dirac-welcome-text::-webkit-scrollbar{
+    width:8px;
+    background-color: lightgray;
+}
+#app-dirac-welcome .app-dirac-welcome-text::-webkit-scrollbar-thumb{
+    background: #000;
+}
+#app-dirac-welcome .app-dirac-welcome-text b{
+    color: #333;
+    text-shadow: 0px 0px 5px white;
+}
+#app-dirac-welcome-close{
+    position:absolute;
+    right:0;
+    top:0;
+    margin:3%;
+    background-color:white;
+    border-radius:50%;
+    font-size:28px;
+    width:50px;
+    height:50px;
+    color:grey;
+    border:none;
+}
+#app-dirac-welcome-close:hover{
+    font-size:36px;
+    border-radius:40%;
+}
+#app-dirac-welcome .app-dirac-welcome-menu{
+    position:inherit;
+    bottom:0;
+    margin-bottom:30px;
+    padding: 10px;
+    font-family: 'comic sans ms';
+}
+#app-dirac-welcome .app-dirac-welcome-settings{
+    position:inherit;
+    right:0;
+    bottom:0;
+    margin-bottom:30px;
+    padding: 10px;
+    font-family: 'comic sans ms';
+}
+
+/*----------------------------------------------------
     Style for notification message
 */
 
