@@ -112,6 +112,37 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
           groupexpand : function(view, node, group, eOpts) {
             var selectedRow = view.getSelectionModel().getSelection();
             view.deselect(selectedRow);
+          },
+          render : function(view) {
+            var grid = this;
+
+            // record the current cellIndex
+            grid.mon(view, {
+                  uievent : function(type, view, cell, recordIndex, cellIndex, e) {
+                    grid.cellIndex = cellIndex;
+                    grid.recordIndex = recordIndex;
+                  }
+                });
+
+            grid.tip = Ext.create('Ext.tip.ToolTip', {
+                  target : view.el,
+                  delegate : '.x-grid-cell',
+                  trackMouse : true,
+                  renderTo : Ext.getBody(),
+                  listeners : {
+                    beforeshow : function updateTipBody(tip) {
+                      if (!Ext.isEmpty(grid.cellIndex) && grid.cellIndex !== -1) {
+                        header = grid.headerCt.getGridColumns()[grid.cellIndex];
+                        tip.update(grid.getStore().getAt(grid.recordIndex).get(header.dataIndex));
+                      }
+                    }
+                  }
+                });
+
+          },
+
+          destroy : function(view) {
+            delete view.tip; // Clean up this property on destroy.
           }
         }
       },
@@ -132,10 +163,11 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       columns : [],
       /**
        * @cfg{List} renderers it contains a list of available renderer:
-       *            ["rendererChkBox", "rendererStatus","diffValues","renderStatusForGivenColor"] NOTE: You
-       *            can implement new renderer.
+       *            ["rendererChkBox",
+       *            "rendererStatus","diffValues","renderStatusForGivenColor"]
+       *            NOTE: You can implement new renderer.
        */
-      renderers : ["rendererChkBox", "rendererStatus", "diffValues","renderStatusForGivenColor"],
+      renderers : ["rendererChkBox", "rendererStatus", "diffValues", "renderStatusForGivenColor"],
       /**
        * This function is used to load the data which is saved in the User
        * Profile.

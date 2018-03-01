@@ -23,7 +23,39 @@ Ext.define('Ext.dirac.core.Container', {
               width : '100%',
               viewConfig : {
                 stripeRows : true,
-                enableTextSelection : true
+                enableTextSelection : true,
+                listeners : {
+                  render : function(view) {
+                    var grid = this;
+
+                    // record the current cellIndex
+                    grid.mon(view, {
+                          uievent : function(type, view, cell, recordIndex, cellIndex, e) {
+                            grid.cellIndex = cellIndex;
+                            grid.recordIndex = recordIndex;
+                          }
+                        });
+
+                    grid.tip = Ext.create('Ext.tip.ToolTip', {
+                          target : view.el,
+                          delegate : '.x-grid-cell',
+                          trackMouse : true,
+                          renderTo : Ext.getBody(),
+                          listeners : {
+                            beforeshow : function updateTipBody(tip) {
+                              if (!Ext.isEmpty(grid.cellIndex) && grid.cellIndex !== -1) {
+                                header = grid.headerCt.getGridColumns()[grid.cellIndex];
+                                tip.update(grid.getStore().getAt(grid.recordIndex).get(header.dataIndex));
+                              }
+                            }
+                          }
+                        });
+
+                  },
+                  destroy : function(view) {
+                    delete view.tip; // Clean up this property on destroy.
+                  }
+                }
               },
               menu : null,
               listeners : {
