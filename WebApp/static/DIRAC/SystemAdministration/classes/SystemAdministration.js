@@ -673,15 +673,15 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     align : 'left',
                     dataIndex : 'PID',
                     header : 'PID',
-                    xtype: 'numbercolumn',
-                    format:'0.000',
+                    xtype : 'numbercolumn',
+                    format : '0.000',
                     sortable : true
                   }, {
                     align : 'left',
                     dataIndex : 'CPU',
                     header : 'CPU(%)',
-                    xtype: 'numbercolumn',
-                    format:'0.000',
+                    xtype : 'numbercolumn',
+                    format : '0.000',
                     sortable : true
                   }, {
                     align : 'left',
@@ -692,8 +692,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     align : 'left',
                     dataIndex : 'RSS',
                     header : 'RSS(MB)',
-                    xtype: 'numbercolumn',
-                    format:'0.000',
+                    xtype : 'numbercolumn',
+                    format : '0.000',
                     sortable : true,
                     renderer : function(value, metaData, record, row, col, store, gridView) {
                       return this.rendererMB(value);
@@ -702,8 +702,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     align : 'left',
                     dataIndex : 'VSZ',
                     header : 'VSZ(MB)',
-                    xtype: 'numbercolumn',
-                    format:'0.000',
+                    xtype : 'numbercolumn',
+                    format : '0.000',
                     sortable : true,
                     renderer : function(value, metaData, record, row, col, store, gridView) {
                       return this.rendererMB(value);
@@ -1074,7 +1074,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 me.getContainer().body.unmask();
                 if (response["success"] == "true") {
                   response["result"] = response["result"].replace(new RegExp("<br>", 'g'), "\n");
-                  me.__oprPrepareAndShowWindowText(response["result"], "Log file for: " + sComponent + "/" + sSystem + "@" + sHostName);
+                  me.__oprPrepareAndShowWindowText(response["result"], sComponent, sSystem, sHostName);
                 } else {
 
                   GLOBAL.APP.CF.alert(response["error"], "error");
@@ -1109,29 +1109,38 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 me.getContainer().body.unmask();
 
                 if (response["success"] == "true") {
+                  var menu = [{
+                        text : 'Log',
+                        handler : function() {
+                          var oRecord = this.up("menu").selected_record;
+                          me.oprGetHostLog(oRecord);
+                        },
+                        text : 'Log',
+                        iconCls : "dirac-icon-log"
+                      }];
 
                   me.__oprPrepareAndShowWindowGrid(response["result"], "Show errors for:" + sHostName, ["Name", "ErrorsHour", "System", "ErrorsDay", "Host", "LastError"], [{
                             text : 'System',
-                            sortable : false,
+                            sortable : true,
                             dataIndex : 'System'
                           }, {
                             text : 'Component',
-                            sortable : false,
+                            sortable : true,
                             dataIndex : 'Name'
                           }, {
                             text : 'Errors per day',
-                            sortable : false,
+                            sortable : true,
                             dataIndex : 'ErrorsDay'
                           }, {
                             text : 'Errors per hour',
-                            sortable : false,
+                            sortable : true,
                             dataIndex : 'ErrorsHour'
                           }, {
                             text : 'Last Error',
-                            sortable : false,
+                            sortable : true,
                             dataIndex : 'LastError',
                             flex : 1
-                          }]);
+                          }], menu);
 
                 } else {
 
@@ -1148,23 +1157,71 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
       },
 
-      __oprPrepareAndShowWindowText : function(sTextToShow, sTitle) {
+      __oprPrepareAndShowWindowText : function(sTextToShow, component, system, hostname) {
 
         var me = this;
 
-        var oWindow = me.getContainer().createChildWindow(sTitle, false, 800, 500);
+        var oWindow = me.getContainer().createChildWindow("Log file for: " + component + "/" + system + "@" + hostname, false, 800, 500);
+
+        var refreshButton = new Ext.Button({
+              text : 'Refresh',
+              margin : 3,
+              compParams : {
+                "host" : hostname,
+                "component" : component,
+                "system" : system
+              },
+              iconCls : "dirac-icon-refresh",
+              handler : function() {
+                var me = this;
+                me.up().remove(0);
+                me.setLoading("Refreshing log...")
+                Ext.Ajax.request({
+                      url : GLOBAL.BASE_URL + 'SystemAdministration/getHostLog',
+                      params : me.compParams,
+                      success : function(response) {
+
+                        var response = Ext.JSON.decode(response.responseText);
+                        if (response["success"] == "true") {
+                          response["result"] = response["result"].replace(new RegExp("<br>", 'g'), "\n");
+                          var oTextArea = new Ext.create('Ext.form.field.TextArea', {
+                                value : response["result"],
+                                cls : "sa-textbox-help-window"
+                              });
+
+                          me.up().add(oTextArea);
+                          me.setLoading(false);
+
+                        } else {
+
+                          GLOBAL.APP.CF.alert(response["error"], "error");
+                          me.setLoading(false);
+
+                        }
+
+                      },
+                      failure : function(response) {
+                        me.setLoading(false);
+                        GLOBAL.APP.CF.showAjaxErrorMessage(response);
+                      }
+                    });
+              }
+
+            });
 
         var oTextArea = new Ext.create('Ext.form.field.TextArea', {
               value : sTextToShow,
               cls : "sa-textbox-help-window"
             });
 
+        oWindow.addDocked(refreshButton);
+
         oWindow.add(oTextArea);
         oWindow.show();
 
       },
 
-      __oprPrepareAndShowWindowGrid : function(oData, sTitle, oFields, oColumns) {
+      __oprPrepareAndShowWindowGrid : function(oData, sTitle, oFields, oColumns, menu) {
 
         var me = this;
 
@@ -1181,10 +1238,63 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               width : '100%',
               viewConfig : {
                 stripeRows : true,
-                enableTextSelection : true
+                enableTextSelection : true,
+                listeners : {
+                  render : function(view) {
+                    var grid = this;
+
+                    // record the current cellIndex
+                    grid.mon(view, {
+                          uievent : function(type, view, cell, recordIndex, cellIndex, e) {
+                            grid.cellIndex = cellIndex;
+                            grid.recordIndex = recordIndex;
+                          }
+                        });
+
+                    grid.tip = Ext.create('Ext.tip.ToolTip', {
+                          target : view.el,
+                          delegate : '.x-grid-cell',
+                          trackMouse : true,
+                          renderTo : Ext.getBody(),
+                          listeners : {
+                            beforeshow : function updateTipBody(tip) {
+                              if (!Ext.isEmpty(grid.cellIndex) && grid.cellIndex !== -1) {
+                                header = grid.headerCt.getGridColumns()[grid.cellIndex];
+                                tip.update(grid.getStore().getAt(grid.recordIndex).get(header.dataIndex));
+                              }
+                            }
+                          }
+                        });
+
+                  },
+                  destroy : function(view) {
+                    delete view.tip; // Clean up this property on destroy.
+                  }
+                }
+              },
+              menu : null,
+              listeners : {
+
+                beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+                  e.preventDefault();
+                  var me = this;
+                  if (me.menu) {
+                    me.menu.selected_record = record;
+                    me.menu.showAt(e.getXY());
+                  }
+                  return false;
+                }
+
               }
             });
 
+        if (menu) {
+          var oMenu = new Ext.menu.Menu();
+          for (var i in menu) {
+            oMenu.add(menu[i]);
+          }
+          oGrid.menu = oMenu;
+        }
         oWindow.add(oGrid);
         oWindow.show();
 
@@ -1266,7 +1376,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
             }, me);
 
       },
-      
+
       __executeComponentAction : function(sAction, sEventSource) {
         var me = this;
         var oParams = {
@@ -1335,7 +1445,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
       oprComponentAction : function(sAction, sEventSource) {
 
         var me = this;
-        
+
         message = "Do you want to " + sAction + "?";
         Ext.MessageBox.confirm('Confirm', message, function(button) {
 
@@ -1346,7 +1456,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               }
 
             }, me);
-        
+
       },
 
       createBottomGridToolbar : function(oGrid) {
