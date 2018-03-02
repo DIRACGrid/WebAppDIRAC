@@ -540,7 +540,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   }, {
                     name : 'VSZ'
                   }],
-              remoteSort : true,
+              remoteSort : false,
               pageSize : 10000,
               listeners : {
 
@@ -673,11 +673,15 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     align : 'left',
                     dataIndex : 'PID',
                     header : 'PID',
+                    xtype: 'numbercolumn',
+                    format:'0.000',
                     sortable : true
                   }, {
                     align : 'left',
                     dataIndex : 'CPU',
                     header : 'CPU(%)',
+                    xtype: 'numbercolumn',
+                    format:'0.000',
                     sortable : true
                   }, {
                     align : 'left',
@@ -688,6 +692,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     align : 'left',
                     dataIndex : 'RSS',
                     header : 'RSS(MB)',
+                    xtype: 'numbercolumn',
+                    format:'0.000',
                     sortable : true,
                     renderer : function(value, metaData, record, row, col, store, gridView) {
                       return this.rendererMB(value);
@@ -696,6 +702,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     align : 'left',
                     dataIndex : 'VSZ',
                     header : 'VSZ(MB)',
+                    xtype: 'numbercolumn',
+                    format:'0.000',
                     sortable : true,
                     renderer : function(value, metaData, record, row, col, store, gridView) {
                       return this.rendererMB(value);
