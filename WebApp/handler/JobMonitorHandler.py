@@ -104,7 +104,7 @@ class JobMonitorHandler( WebHandler ):
           prods = result["Value"]
           if len( prods ) > 0:
             prods.sort( reverse = True )
-            prod = [ [ i ] for i in prods if i.startswith('00')]
+            prod = [ [ i ] for i in prods ]
           else:
             prod = [["Nothing to display"]]
         else:
