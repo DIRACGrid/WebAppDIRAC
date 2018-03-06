@@ -5,7 +5,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.Main', {
       extend : 'Ext.panel.Panel',
-      requires : ['Ext.dirac.views.tabs.LeftContainer', 'Ext.dirac.views.tabs.RightContainer', 'Ext.dirac.views.tabs.TreeMenuModel', 'Ext.dirac.views.tabs.StateManagement'],
+      requires : ['Ext.dirac.views.tabs.LeftContainer', 'Ext.dirac.views.tabs.RightContainer', 'Ext.dirac.views.tabs.TreeMenuModel', 'Ext.dirac.views.tabs.StateManagement', 'Ext.dirac.views.desktop.WelcomeWindow'],
       mixins : ["Ext.dirac.core.Stateful", "Ext.dirac.core.AppView"],
       alias : 'widget.viewtabs',
       xtype : 'main-container',
@@ -2371,7 +2371,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       }
 
     });
-  /*
-   * Welcome window
-   */
-  Ext.create('Ext.dirac.views.desktop.WelcomeWindow');
+/*
+ * Welcome window
+ */
+Ext.create('Ext.dirac.views.desktop.WelcomeWindow');
