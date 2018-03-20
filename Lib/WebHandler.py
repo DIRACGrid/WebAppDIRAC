@@ -1,6 +1,7 @@
 
 from DIRAC import gLogger
 from DIRAC.Core.Security.X509Chain import X509Chain
+from DIRAC.Core.Security import CS, Properties
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.DISET.AuthManager import AuthManager
@@ -22,194 +23,200 @@ import tornado.websocket
 from concurrent.futures import ThreadPoolExecutor
 
 global gThreadPool
-gThreadPool = ThreadPoolExecutor( 100 )
+gThreadPool = ThreadPoolExecutor(100)
 
-class WErr( tornado.web.HTTPError ):
-  def __init__( self, code, msg = "", **kwargs ):
-    super( WErr, self ).__init__( code, str( msg ) or None )
+
+class WErr(tornado.web.HTTPError):
+
+  def __init__(self, code, msg="", **kwargs):
+    super(WErr, self).__init__(code, str(msg) or None)
     for k in kwargs:
-      setattr( self, k, kwargs[ k ] )
+      setattr(self, k, kwargs[k])
     self.ok = False
     self.msg = msg
     self.kwargs = kwargs
 
-  def __str__( self ):
-    return super( tornado.web.HTTPError, self ).__str__()
+  def __str__(self):
+    return super(tornado.web.HTTPError, self).__str__()
 
   @classmethod
-  def fromSERROR( cls, result ):
-    #Prevent major fuckups with % in the message
-    return cls( 500, result[ 'Message' ].replace( "%", "" ) )
+  def fromSERROR(cls, result):
+    # Prevent major fuckups with % in the message
+    return cls(500, result['Message'].replace("%", ""))
 
-class WOK( object ):
-  def __init__( self, data = False, **kwargs ):
+
+class WOK(object):
+
+  def __init__(self, data=False, **kwargs):
     for k in kwargs:
-      setattr( self, k, kwargs[ k ] )
+      setattr(self, k, kwargs[k])
     self.ok = True
     self.data = data
 
-def asyncWithCallback( method ):
-  return tornado.web.asynchronous( method )
 
-def asyncGen( method ):
-  return tornado.gen.coroutine( method )
+def asyncWithCallback(method):
+  return tornado.web.asynchronous(method)
 
-class WebHandler( tornado.web.RequestHandler ):
+
+def asyncGen(method):
+  return tornado.gen.coroutine(method)
+
+
+class WebHandler(tornado.web.RequestHandler):
 
   __disetConfig = ThreadConfig()
   __log = False
 
-  #Auth requirements
+  # Auth requirements
   AUTH_PROPS = None
-  #Location of the handler in the URL
+  # Location of the handler in the URL
   LOCATION = ""
-  #URL Schema with holders to generate handler urls
+  # URL Schema with holders to generate handler urls
   URLSCHEMA = ""
-  #RE to extract group and setup
+  # RE to extract group and setup
   PATH_RE = ""
 
-  #Helper function to create threaded gen.Tasks with automatic callback and execption handling
-  def threadTask( self, method, *args, **kwargs ):
+  # Helper function to create threaded gen.Tasks with automatic callback and execption handling
+  def threadTask(self, method, *args, **kwargs):
     """
     Helper method to generate a gen.Task and automatically call the callback when the real
     method ends. THIS IS SPARTAAAAAAAAAA. SPARTA has improved using futures ;)
     """
-    #Save the task to access the runner
+    # Save the task to access the runner
     genTask = False
 
-    #This runs in the separate thread, calls the callback on finish and takes into account exceptions
-    def cbMethod( *cargs, **ckwargs ):
-      cb = ckwargs.pop( 'callback' )
+    # This runs in the separate thread, calls the callback on finish and takes into account exceptions
+    def cbMethod(*cargs, **ckwargs):
+      cb = ckwargs.pop('callback')
       method = cargs[0]
       disetConf = cargs[1]
       cargs = cargs[2]
       self.__disetConfig.reset()
-      self.__disetConfig.load( disetConf )
+      self.__disetConfig.load(disetConf)
       ioloop = tornado.ioloop.IOLoop.instance()
       try:
-        result = method( *cargs, **ckwargs )
-        ioloop.add_callback( functools.partial( cb, result ) )
+        result = method(*cargs, **ckwargs)
+        ioloop.add_callback(functools.partial(cb, result))
       except Exception as excp:
-        gLogger.error( "Following exception occured %s" % excp )
+        gLogger.error("Following exception occured %s" % excp)
         exc_info = sys.exc_info()
-        genTask.set_exc_info( exc_info )
-        ioloop.add_callback( lambda : genTask.exception() )
-        
-    #Put the task in the thread :)
-    def threadJob( tmethod, *targs, **tkwargs ):
-      tkwargs[ 'callback' ] = tornado.stack_context.wrap( tkwargs[ 'callback' ] )
-      targs = ( tmethod, self.__disetDump, targs )
-      gThreadPool.submit( cbMethod, *targs, **tkwargs )
-      
-    #Return a YieldPoint
-    genTask = tornado.gen.Task( threadJob, method, *args, **kwargs )
+        genTask.set_exc_info(exc_info)
+        ioloop.add_callback(lambda: genTask.exception())
+
+    # Put the task in the thread :)
+    def threadJob(tmethod, *targs, **tkwargs):
+      tkwargs['callback'] = tornado.stack_context.wrap(tkwargs['callback'])
+      targs = (tmethod, self.__disetDump, targs)
+      gThreadPool.submit(cbMethod, *targs, **tkwargs)
+
+    # Return a YieldPoint
+    genTask = tornado.gen.Task(threadJob, method, *args, **kwargs)
     return genTask
 
-  def __disetBlockDecor( self, func ):
-    def wrapper( *args, **kwargs ):
-      raise RuntimeError( "All DISET calls must be made from inside a Threaded Task! Bad boy!" )
+  def __disetBlockDecor(self, func):
+    def wrapper(*args, **kwargs):
+      raise RuntimeError("All DISET calls must be made from inside a Threaded Task! Bad boy!")
     return wrapper
 
-
-  def __init__( self, *args, **kwargs ):
+  def __init__(self, *args, **kwargs):
     """
     Initialize the handler
     """
-    super( WebHandler, self ).__init__( *args, **kwargs )
+    super(WebHandler, self).__init__(*args, **kwargs)
     if not WebHandler.__log:
-      WebHandler.__log = gLogger.getSubLogger( self.__class__.__name__ )
+      WebHandler.__log = gLogger.getSubLogger(self.__class__.__name__)
     self.__credDict = {}
     self.__setup = Conf.setup()
     self.__processCredentials()
     self.__disetConfig.reset()
-    self.__disetConfig.setDecorator( self.__disetBlockDecor )
+    self.__disetConfig.setDecorator(self.__disetBlockDecor)
     self.__disetDump = self.__disetConfig.dump()
-    match = self.PATH_RE.match( self.request.path )
-    self._pathResult = self.__checkPath( *match.groups() )
-    self.__sessionData = SessionData( self.__credDict, self.__setup )
+    match = self.PATH_RE.match(self.request.path)
+    self._pathResult = self.__checkPath(*match.groups())
+    self.__sessionData = SessionData(self.__credDict, self.__setup)
 
-  def __processCredentials( self ):
+  def __processCredentials(self):
     """
     Extract the user credentials based on the certificate or what comes from the balancer
     """
-    #NGINX
+    # NGINX
     if Conf.balancer() == "nginx":
       headers = self.request.headers
-      if headers[ 'X-Scheme' ] == "https" and headers[ 'X-Ssl_client_verify' ] == 'SUCCESS':
-        DN = headers[ 'X-Ssl_client_s_dn' ]
-        self.__credDict[ 'DN' ] = DN
-        self.__credDict[ 'issuer' ] = headers[ 'X-Ssl_client_i_dn' ]
-        result = Registry.getUsernameForDN( DN )
-        if not result[ 'OK' ]:
-          self.__credDict[ 'validDN' ] = False
+      if headers['X-Scheme'] == "https" and headers['X-Ssl_client_verify'] == 'SUCCESS':
+        DN = headers['X-Ssl_client_s_dn']
+        self.__credDict['DN'] = DN
+        self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
+        result = Registry.getUsernameForDN(DN)
+        if not result['OK']:
+          self.__credDict['validDN'] = False
         else:
-          self.__credDict[ 'validDN' ] = True
-          self.__credDict[ 'username' ] = result[ 'Value' ]
+          self.__credDict['validDN'] = True
+          self.__credDict['username'] = result['Value']
       return
-    #TORNADO
+    # TORNADO
     if not self.request.protocol == "https":
       return
-    derCert = self.request.get_ssl_certificate( binary_form = True )
+    derCert = self.request.get_ssl_certificate(binary_form=True)
     if not derCert:
       return
-    pemCert = ssl.DER_cert_to_PEM_cert( derCert )
+    pemCert = ssl.DER_cert_to_PEM_cert(derCert)
     chain = X509Chain()
-    chain.loadChainFromString( pemCert )
+    chain.loadChainFromString(pemCert)
     result = chain.getCredentials()
-    if not result[ 'OK' ]:
-      self.log.error( "Could not get client credentials %s" % result[ 'Message' ] )
+    if not result['OK']:
+      self.log.error("Could not get client credentials %s" % result['Message'])
       return
-    self.__credDict = result[ 'Value' ]
-    #Hack. Data coming from OSSL directly and DISET difer in DN/subject
+    self.__credDict = result['Value']
+    # Hack. Data coming from OSSL directly and DISET difer in DN/subject
     try:
-      self.__credDict[ 'DN' ] = self.__credDict[ 'subject' ]
+      self.__credDict['DN'] = self.__credDict['subject']
     except KeyError:
       pass
 
-  def _request_summary( self ):
+  def _request_summary(self):
     """
     Return a string returning the summary of the request
     """
-    summ = super( WebHandler, self )._request_summary()
+    summ = super(WebHandler, self)._request_summary()
     cl = []
-    if self.__credDict.get( 'validDN', False ):
-      cl.append( self.__credDict[ 'username' ] )
-      if self.__credDict.get( 'validGroup', False ):
-        cl.append( "@%s" % self.__credDict[ 'group' ] )
-      cl.append( " (%s)" % self.__credDict[ 'DN' ] )
-    summ = "%s %s" % ( summ, "".join( cl ) )
+    if self.__credDict.get('validDN', False):
+      cl.append(self.__credDict['username'])
+      if self.__credDict.get('validGroup', False):
+        cl.append("@%s" % self.__credDict['group'])
+      cl.append(" (%s)" % self.__credDict['DN'])
+    summ = "%s %s" % (summ, "".join(cl))
     return summ
 
   @property
-  def log( self ):
+  def log(self):
     return self.__log
 
   @classmethod
-  def getLog( cls ):
+  def getLog(cls):
     return cls.__log
 
-  def getUserDN( self ):
-    return self.__credDict.get( 'DN', '' )
+  def getUserDN(self):
+    return self.__credDict.get('DN', '')
 
-  def getUserName( self ):
-    return self.__credDict.get( 'username', '' )
+  def getUserName(self):
+    return self.__credDict.get('username', '')
 
-  def getUserGroup( self ):
-    return self.__credDict.get( 'group', '' )
+  def getUserGroup(self):
+    return self.__credDict.get('group', '')
 
-  def getUserSetup( self ):
+  def getUserSetup(self):
     return self.__setup
 
-  def getUserProperties( self ):
+  def getUserProperties(self):
     return self.__sessionData.getData().properties
 
-  def isRegisteredUser( self ):
-    return self.__credDict.get( 'validDN', "" ) and self.__credDict.get( 'validGroup', "" )
+  def isRegisteredUser(self):
+    return self.__credDict.get('validDN', "") and self.__credDict.get('validGroup', "")
 
-  def getSessionData( self ):
+  def getSessionData(self):
     return self.__sessionData.getData()
-  
-  def actionURL( self, action = "" ):
+
+  def actionURL(self, action=""):
     """
     Given an action name for the handler, return the URL
     """
@@ -224,47 +231,61 @@ class WebHandler( tornado.web.RequestHandler ):
     location = self.LOCATION
     if location:
       location = "/%s" % location
-    ats = dict( action = action, group = group, setup = setup, location = location )
+    ats = dict(action=action, group=group, setup=setup, location=location)
     return self.URLSCHEMA % ats
 
-  def __auth( self, handlerRoute, group ):
+  def __auth(self, handlerRoute, group, method):
     """
     Authenticate request
+    :param str handlerRoute: the name of the handler
+    :param str group: DIRAC group
+    :param str method: the name of the method
+    :return: bool
     """
     userDN = self.getUserDN()
     if group:
-      self.__credDict[ 'group' ] = group
+      self.__credDict['group'] = group
     else:
       if userDN:
-        result = Registry.findDefaultGroupForDN( userDN )
-        if result[ 'OK' ]:
-          self.__credDict[ 'group' ] = result[ 'Value' ]
-    self.__credDict[ 'validGroup' ] = False
+        result = Registry.findDefaultGroupForDN(userDN)
+        if result['OK']:
+          self.__credDict['group'] = result['Value']
+    self.__credDict['validGroup'] = False
 
-    if type( self.AUTH_PROPS ) not in ( types.ListType, types.TupleType ):
-      self.AUTH_PROPS = [ p.strip() for p in self.AUTH_PROPS.split( "," ) if p.strip() ]
-    allAllowed = False
-    for p in self.AUTH_PROPS:
-      if p.lower() in ( 'all', 'any' ):
-        allAllowed = True
+    if type(self.AUTH_PROPS) not in (types.ListType, types.TupleType):
+      self.AUTH_PROPS = [p.strip() for p in self.AUTH_PROPS.split(",") if p.strip()]
 
-    auth = AuthManager( Conf.getAuthSectionForHandler( handlerRoute ) )
-    ok = auth.authQuery( "", self.__credDict, self.AUTH_PROPS )
+    auth = AuthManager(Conf.getAuthSectionForHandler(handlerRoute))
+    ok = auth.authQuery(method, self.__credDict, self.AUTH_PROPS)
     if ok:
       if userDN:
-        self.__credDict[ 'validGroup' ] = True
-        self.log.info( "AUTH OK: %s by %s@%s (%s)" % ( handlerRoute, self.__credDict[ 'username' ], self.__credDict[ 'group' ], userDN ) )
+        self.__credDict['validGroup'] = True
+        self.log.info("AUTH OK: %s by %s@%s (%s)" %
+                      (handlerRoute, self.__credDict['username'], self.__credDict['group'], userDN))
       else:
-        self.__credDict[ 'validDN' ] = False
-        self.log.info( "AUTH OK: %s by visitor" % ( handlerRoute ) )
-    elif allAllowed:
-      self.log.info( "AUTH ALL: %s by %s" % ( handlerRoute, userDN ) )
-      ok = True
+        self.__credDict['validDN'] = False
+        self.log.info("AUTH OK: %s by visitor" % (handlerRoute))
+    elif self.isTrustedHost(self.__credDict.get('DN')):
+      self.log.info("Request is coming from Trusted host")
+      return True
     else:
-      self.log.info( "AUTH KO: %s by %s@%s" % ( handlerRoute, userDN, group ) )
+      self.log.info("AUTH KO: %s by %s@%s" % (handlerRoute, userDN, group))
     return ok
 
-  def __checkPath( self, setup, group, route ):
+  def isTrustedHost(self, dn):
+    """
+    Check if the request coming from a TrustedHost
+    :param str dn: certificate DN
+    :return: bool if the host is Trusrted it return true otherwise false
+    """
+    retVal = CS.getHostnameForDN(dn)
+    if retVal['OK']:
+      hostname = retVal['Value']
+      if Properties.TRUSTED_HOST in CS.getPropertiesForHost(hostname, []):
+        return True
+    return False
+
+  def __checkPath(self, setup, group, route):
     """
     Check the request, auth, credentials and DISET config
     """
@@ -272,72 +293,69 @@ class WebHandler( tornado.web.RequestHandler ):
       methodName = "index"
       handlerRoute = route
     else:
-      iP = route.rfind( "/" )
-      methodName = route[ iP + 1: ]
-      handlerRoute = route[ :iP ]
+      iP = route.rfind("/")
+      methodName = route[iP + 1:]
+      handlerRoute = route[:iP]
     if setup:
       self.__setup = setup
-    if not self.__auth( handlerRoute, group ):
-      return WErr( 401, "Unauthorized, bad boy!" )
+    if not self.__auth(handlerRoute, group, methodName):
+      return WErr(401, "Unauthorized, bad boy!")
 
     DN = self.getUserDN()
     if DN:
-      self.__disetConfig.setDN( DN )
+      self.__disetConfig.setDN(DN)
     group = self.getUserGroup()
     if group:
-      self.__disetConfig.setGroup( group )
-    self.__disetConfig.setSetup( setup )
+      self.__disetConfig.setGroup(group)
+    self.__disetConfig.setSetup(setup)
     self.__disetDump = self.__disetConfig.dump()
 
-    return WOK( methodName )
+    return WOK(methodName)
 
-  def get( self, setup, group, route ):
+  def get(self, setup, group, route):
     if not self._pathResult.ok:
       raise self._pathResult
     methodName = "web_%s" % self._pathResult.data
     try:
-      mObj = getattr( self, methodName )
+      mObj = getattr(self, methodName)
     except AttributeError as e:
-      self.log.fatal( "This should not happen!! %s" % e )
-      raise tornado.web.HTTPError( 404 )
+      self.log.fatal("This should not happen!! %s" % e)
+      raise tornado.web.HTTPError(404)
     return mObj()
 
-  def post( self, *args, **kwargs ):
-    return self.get( *args, **kwargs )
+  def post(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
 
-
-  def write_error( self, status_code, **kwargs ):
-    self.set_status( status_code )
+  def write_error(self, status_code, **kwargs):
+    self.set_status(status_code)
     cType = "text/plain"
     data = self._reason
     if 'exc_info' in kwargs:
-      ex = kwargs[ 'exc_info' ][1]
-      trace = traceback.format_exception( *kwargs["exc_info"] )
-      if not isinstance( ex, WErr ):
-        data += "\n".join( trace )
+      ex = kwargs['exc_info'][1]
+      trace = traceback.format_exception(*kwargs["exc_info"])
+      if not isinstance(ex, WErr):
+        data += "\n".join(trace)
       else:
         if self.settings.get("debug"):
-          self.log.error( "Request ended in error:\n  %s" % "\n  ".join( trace ) )
+          self.log.error("Request ended in error:\n  %s" % "\n  ".join(trace))
         data = ex.msg
-        if type( data ) == types.DictType:
+        if isinstance(data, dict):
           cType = "application/json"
-          data = json.dumps( data )
-    self.set_header( 'Content-Type', cType )
-    self.finish( data )
+          data = json.dumps(data)
+    self.set_header('Content-Type', cType)
+    self.finish(data)
 
 
-class WebSocketHandler( tornado.websocket.WebSocketHandler, WebHandler ):
+class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
 
-  def __init__( self, *args, **kwargs ):
-    WebHandler.__init__( self, *args, **kwargs )
-    tornado.websocket.WebSocketHandler.__init__( self, *args, **kwargs )
+  def __init__(self, *args, **kwargs):
+    WebHandler.__init__(self, *args, **kwargs)
+    tornado.websocket.WebSocketHandler.__init__(self, *args, **kwargs)
 
-  def open( self, setup, group, route ):
+  def open(self, setup, group, route):
     if not self._pathResult.ok:
       raise self._pathResult
     return self.on_open()
 
-  def on_open( self ):
+  def on_open(self):
     pass
-
-
