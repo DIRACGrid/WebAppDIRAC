@@ -1,6 +1,7 @@
 
 from DIRAC import gLogger
 from DIRAC.Core.Security.X509Chain import X509Chain
+from DIRAC.Core.Security import CS, Properties
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.DISET.AuthManager import AuthManager
@@ -264,9 +265,25 @@ class WebHandler(tornado.web.RequestHandler):
       else:
         self.__credDict['validDN'] = False
         self.log.info("AUTH OK: %s by visitor" % (handlerRoute))
+    elif self.isTrustedHost(self.__credDict.get('DN')):
+      self.log.info("Request is coming from Trusted host")
+      return True
     else:
       self.log.info("AUTH KO: %s by %s@%s" % (handlerRoute, userDN, group))
     return ok
+
+  def isTrustedHost(self, dn):
+    """
+    Check if the request coming from a TrustedHost
+    :param str dn: certificate DN
+    :return: bool if the host is Trusrted it return true otherwise false
+    """
+    retVal = CS.getHostnameForDN(dn)
+    if retVal['OK']:
+      hostname = retVal['Value']
+      if Properties.TRUSTED_HOST in CS.getPropertiesForHost(hostname, []):
+        return True
+    return False
 
   def __checkPath(self, setup, group, route):
     """
