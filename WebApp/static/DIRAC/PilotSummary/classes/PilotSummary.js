@@ -61,6 +61,8 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
           }, {
             name : 'StatusIcon',
             mapping : 'Status'
+          }, {
+            name : 'Failed'
           }],
 
       initComponent : function() {
@@ -197,6 +199,9 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
           },
           "Aborted_Hour" : {
             "dataIndex" : "Aborted_Hour"
+          },
+          "Failed" : {
+            "dataIndex" : "Failed"
           },
           "Done_Empty" : {
             "dataIndex" : "Done_Empty",
@@ -362,6 +367,11 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                             header : 'Done',
                             sortable : false,
                             dataIndex : 'Done',
+                            align : 'left'
+                          }, {
+                            header : 'Failed',
+                            sortable : false,
+                            dataIndex : 'Failed',
                             align : 'left'
                           }, {
                             header : 'Aborted',
