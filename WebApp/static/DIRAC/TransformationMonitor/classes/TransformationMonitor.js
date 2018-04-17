@@ -205,7 +205,8 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
          * -----------------------------------------------------------------------------------------------------------
          */
         var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy', {
-              url : GLOBAL.BASE_URL + me.applicationName + "/getTransformationData"
+              url : GLOBAL.BASE_URL + me.applicationName + "/getTransformationData",
+              timeout: 3600000
             });
 
         me.diffValues = {};
