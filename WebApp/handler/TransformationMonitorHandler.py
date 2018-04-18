@@ -79,7 +79,7 @@ class TransformationMonitorHandler(WebHandler):
         transType = []
         if len(result["Value"]) > 0:
           for i in result["Value"]:
-            type.append([str(i)])
+            transType.append([str(i)])
         else:
           transType = "Nothing to display"
       else:
