@@ -531,7 +531,7 @@ class TransformationMonitorHandler(WebHandler):
 
     if 'type' in self.request.arguments:
       transtype = list(json.loads(self.request.arguments["type"][-1]))
-      if len(type) > 0:
+      if len(transtype) > 0:
         req['Type'] = transtype
 
     if 'transformationGroup' in self.request.arguments:
