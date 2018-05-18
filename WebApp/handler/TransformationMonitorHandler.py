@@ -79,7 +79,7 @@ class TransformationMonitorHandler(WebHandler):
         transType = []
         if len(result["Value"]) > 0:
           for i in result["Value"]:
-            type.append([str(i)])
+            transType.append([str(i)])
         else:
           transType = "Nothing to display"
       else:
@@ -531,7 +531,7 @@ class TransformationMonitorHandler(WebHandler):
 
     if 'type' in self.request.arguments:
       transtype = list(json.loads(self.request.arguments["type"][-1]))
-      if len(type) > 0:
+      if len(transtype) > 0:
         req['Type'] = transtype
 
     if 'transformationGroup' in self.request.arguments:
