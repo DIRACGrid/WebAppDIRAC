@@ -2,7 +2,7 @@
  * @class Ext.dirac.views.desktop.WelcomeWindow This is a welcome window widget 
  * @extends Ext.Welcome.Window 
  */
-Ext.define('Ext.dirac.views.desktop.WelcomeWindow', {
+Ext.define('Ext.dirac.utils.WelcomeWindow', {
 	constructor : function() {
         var usr = GLOBAL.APP.configData["user"]["username"];
         if ((!Ext.util.Cookies.get('frstEntrUsrs')) || (Ext.util.Cookies.get('frstEntrUsrs').indexOf(usr) == -1)) {
