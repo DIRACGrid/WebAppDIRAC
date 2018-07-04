@@ -1574,8 +1574,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
                 }
 
-                var sUsers = ((oUsers.isInverseSelection()) ? oUsers.getInverseSelection() : oUsers.getValue().join(","));
-                var sGroups = ((oGroups.isInverseSelection()) ? oGroups.getInverseSelection() : oGroups.getValue().join(","));
+                var sUsers = ((oUsers.isInverseSelection()) ? oUsers.getInverseSelection() : oUsers.getValue()).join(",");
+                var sGroups = ((oGroups.isInverseSelection()) ? oGroups.getInverseSelection() : oGroups.getValue()).join(",");
 
                 if ((Ext.util.Format.trim(sUsers) == "") && (Ext.util.Format.trim(sGroups) == "")) {
 
