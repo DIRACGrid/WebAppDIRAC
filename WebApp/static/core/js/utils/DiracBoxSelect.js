@@ -353,14 +353,7 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
 
       },
 
-      getInverseSelection : function(sSeparator) {
-
-        var s = "";
-
-        if (!sSeparator)
-          s = ",";
-        else
-          s = sSeparator;
+      getInverseSelection : function() {
 
         var me = this;
 
@@ -374,7 +367,7 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
         for (var i = 0; i < records.getCount(); i++)
             oInverseValues.push(records.getAt(i).get(me.valueField));
 
-        return oInverseValues.join(s);
+        return oInverseValues;
 
       },
 
