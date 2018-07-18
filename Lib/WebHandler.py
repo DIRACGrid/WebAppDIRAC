@@ -5,6 +5,8 @@ from DIRAC.Core.Security import CS, Properties
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.DISET.AuthManager import AuthManager
+from DIRAC.Core.Utilities.Decorators import deprecated
+
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
 
@@ -76,8 +78,15 @@ class WebHandler(tornado.web.RequestHandler):
   # RE to extract group and setup
   PATH_RE = ""
 
-  # Helper function to create threaded gen.Tasks with automatic callback and execption handling
   def threadTask(self, method, *args, **kwargs):
+    if tornado.version < '5.0.0':
+      return self.threadTaskOld(method, *args, **kwargs)
+    else:
+      return self.threadTaskExecutor(method, *args, **kwargs)
+
+  # Helper function to create threaded gen.Tasks with automatic callback and execption handling
+  @deprecated("Only for Tornado 4.x.x and DIRAC v6r20")
+  def threadTaskOld(self, method, *args, **kwargs):
     """
     Helper method to generate a gen.Task and automatically call the callback when the real
     method ends. THIS IS SPARTAAAAAAAAAA. SPARTA has improved using futures ;)
@@ -112,6 +121,16 @@ class WebHandler(tornado.web.RequestHandler):
     # Return a YieldPoint
     genTask = tornado.gen.Task(threadJob, method, *args, **kwargs)
     return genTask
+
+  def threadTaskExecutor(self, method, *args, **kwargs):
+    def threadJob(*targs, **tkwargs):
+      args = targs[0]
+      disetConf = targs[1]
+      self.__disetConfig.reset()
+      self.__disetConfig.load(disetConf)
+      return method(*args, **tkwargs)
+    targs = (args, self.__disetDump)
+    return tornado.ioloop.IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *targs, **kwargs))
 
   def __disetBlockDecor(self, func):
     def wrapper(*args, **kwargs):
