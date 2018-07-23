@@ -11,6 +11,8 @@ import datetime
 
 from hashlib import md5
 
+import json
+
 class AccountingHandler( WebHandler ):
 
   AUTH_PROPS = "all"
@@ -148,7 +150,10 @@ class AccountingHandler( WebHandler ):
         extraParams[ k[3:] ] = pD[ k ]
     # Listify the rest
     for selName in pD:
-      pD[ selName ] = List.fromChar( pD[ selName ], "," )
+      if selName == 'grouping':
+        pD[ selName ] = [ pD[ selName ] ]
+      else:
+        pD[ selName ] = json.loads( pD[ selName ] )
 
     return S_OK( ( typeName, reportName, start, end, pD, grouping, extraParams ) )
 

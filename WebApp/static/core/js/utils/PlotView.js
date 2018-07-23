@@ -782,7 +782,8 @@ Ext.define('Ext.dirac.utils.PlotView', {
           if (oCondItem.getValue().length != 0) {
 
             if (sIntention == "show_plot") {
-              oParams["_" + oCondItem.getName()] = ((oCondItem.isInverseSelection()) ? oCondItem.getInverseSelection() : oCondItem.getValue().join(","));
+              param = (oCondItem.isInverseSelection()) ? oCondItem.getInverseSelection() : oCondItem.getValue();
+              oParams["_" + oCondItem.getName()] = Ext.JSON.encode(param);
             } else if (sIntention == "save_state") {
               oParams["_" + oCondItem.getName()] = [((oCondItem.isInverseSelection()) ? 1 : 0), oCondItem.getValue().join(",")];
             }
