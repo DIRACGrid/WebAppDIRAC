@@ -163,6 +163,10 @@ class WebHandler(tornado.web.RequestHandler):
       headers = self.request.headers
       if headers['X-Scheme'] == "https" and headers['X-Ssl_client_verify'] == 'SUCCESS':
         DN = headers['X-Ssl_client_s_dn']
+        if not DN.startswith('/'):
+          items = DN.split(',')
+          items.reverse()
+          DN = '/' + '/'.join(items)
         self.__credDict['DN'] = DN
         self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
         result = Registry.getUsernameForDN(DN)
