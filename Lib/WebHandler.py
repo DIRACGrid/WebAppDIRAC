@@ -134,7 +134,7 @@ class WebHandler(tornado.web.RequestHandler):
 
   def __disetBlockDecor(self, func):
     def wrapper(*args, **kwargs):
-      raise RuntimeError("All DISET calls must be made from inside a Threaded Task! Bad boy!")
+      raise RuntimeError("All DISET calls must be made from inside a Threaded Task!")
     return wrapper
 
   def __init__(self, *args, **kwargs):
