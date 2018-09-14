@@ -299,7 +299,7 @@ class WebHandler(tornado.web.RequestHandler):
     if setup:
       self.__setup = setup
     if not self.__auth(handlerRoute, group, methodName):
-      return WErr(401, "Unauthorized, bad boy!")
+      return WErr(401, "Unauthorized.")
 
     DN = self.getUserDN()
     if DN:
