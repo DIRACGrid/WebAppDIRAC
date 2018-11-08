@@ -116,12 +116,152 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 		me.items.push({ xtype : 'tbtext', text : "View" });
 		 
 		me.items.push(button_views);
-		 
+		
+		var button_usrname = {
+			"text" : "Visitor",
+			"menu" : []
+		};
+		button_usrname.menu.push({
+			xtype: 'tbtext',
+			text : 'Log in:'
+		});
+
+		var getAuthCFG = function(Auth = '',Value = ''){
+			var req = Ext.Ajax.request({
+				url: GLOBAL.BASE_URL + 'Authontification/getAuthCFG',
+				params: {
+					typeauth: Auth,
+					value: Value
+				},
+				async: false
+			}).responseText
+			res = JSON.parse(req)
+			if (Object.keys(res).includes('Value')) {
+				res = res.Value
+			}
+			return res
+		};
+
+		// OIDC login method
+		var oAuth2LogIn = function(settings,name) {
+			console.log(settings)
+			var manager = new Oidc.UserManager(settings);
+			manager.events.addUserLoaded(function (loadedUser) { console.log(loadedUser) });
+			manager.events.addSilentRenewError(function (error) {
+				console.error('error while renewing the access token', error);
+			});
+			manager.events.addUserSignedOut(function () {
+				alert('The user has signed out');
+			});
+			manager.events.addUserLoaded(function(loadedUser) {
+				if (loadedUser && typeof loadedUser === 'string') {
+					loadedUser = JSON.parse(data);
+				}
+				if (loadedUser) {
+					loadedUser = JSON.stringify(loadedUser, null, 2);
+				}
+				var aJson = JSON.parse(loadedUser);
+				var access_token = aJson["access_token"];
+				Ext.Ajax.request({
+					url: GLOBAL.BASE_URL + 'Authontification/auth',
+					params: { 
+						typeauth: name,
+						value: access_token
+					},
+					success: function(response){
+						var response = Ext.JSON.decode(response.responseText);
+						if (response.value == 'Done') {location.protocol = "https:"} 
+						else { 
+							Ext.create('Ext.window.Window', {
+								title: 'Welcome',
+								layout: 'fit',
+								preventBodyReset: true,
+								closable: true,
+								html: '<br><b>Welcome to DIRAC service '+ response.profile['given_name'] +'!</b><br><br>Sorry, but You are not registred as DIRAC user.<br>',
+								buttons : [
+									{
+										text    : 'Registration',
+										handler : function() {
+											Ext.Ajax.request({
+												url: GLOBAL.BASE_URL + 'Authontification/sendRequest',
+												params: { 
+													typeauth: name,
+													value: response.profile
+												},
+												success: function() { alert('Your request was sended.')	}
+											});
+											this.up('window').close();
+										}
+									}
+								]
+							}).show();
+						}
+					}
+				});
+			});
+			manager.signinPopup().catch(function(error){
+				console.error('error while logging in throught the popup', error);
+			});
+		} 
+
+		// Generate list of login buttons
+		var oListAuth = getAuthCFG()
+		var currentAuth = Ext.Ajax.request({
+			url: GLOBAL.BASE_URL + 'Authontification/getCurrentAuth',
+			perams: {},
+			async: false
+		}).responseText
+		for (var i = 0; i < oListAuth.length; i++) {
+			var name = getAuthCFG()[i]
+			var settings = getAuthCFG(name,'all')
+			if (name != currentAuth) {
+				button_usrname.menu.push({
+					'text' : name,
+					'settings': settings,
+					'handler' : function() {
+						if (this.settings.method == 'oAuth2') {oAuth2LogIn(this.settings,this.text)}
+						else (
+							Ext.Ajax.request({
+								url: GLOBAL.BASE_URL + 'Authontification/auth',
+								params: {
+									typeauth: 'Certificate',
+									value: ''
+								},
+								success: function() { location.protocol = "https:" }
+							})
+						)
+					}
+				})
+			}
+		}
+		if (currentAuth != 'Visitor') {
+			button_usrname.menu.push({xtype: 'menuseparator'})
+			button_usrname.menu.push({
+				text : 'Log out',
+				handler : function(){
+					Ext.Ajax.request({
+						url: GLOBAL.BASE_URL + 'Authontification/auth',
+						params: {
+							typeauth: 'Logout',
+							value: 'None'
+						},
+						success: function(response){
+							console.log(response.responseText)
+							location.protocol = "https:"
+						}
+					});
+				}
+			});
+			button_usrname.menu.push()
+		}
 
 		if (GLOBAL.APP.configData.user.username) {
 			/*
 			 * If the user is registered
 			 */
+			
+			button_usrname.text = GLOBAL.APP.configData["user"]["username"];
+			me.usrname_button = new Ext.button.Button(button_usrname);
 
 			var button_data = {
 				"text" : GLOBAL.APP.configData["user"]["group"],
@@ -171,11 +311,11 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 
 			me.setup_button = new Ext.button.Button(setup_data);
 			me.items.push('-');
+			me.items.push(me.usrname_button);
 			me.items.push({
-				xtype : 'tbtext',
-				text : GLOBAL.APP.configData["user"]["username"] + "@"
+				xtype: 'tbtext',
+				text: '@'
 			});
-
 			me.items.push(me.group_button);
 			me.items.push('-');
 			me.items.push(me.setup_button);
@@ -185,35 +325,9 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 			/*
 			 * If the user is not registered
 			 */
-			if (location.protocol === 'http:') {
-
-				var oHref = location.href;
-				var oQPosition = oHref.indexOf("?");
-				var sAddr = "";
-
-				if (oQPosition != -1) {
-
-					sAddr = oHref.substr(0, oQPosition);
-
-				} else {
-
-					sAddr = oHref;
-
-				}
-
-				me.items.push('-');
-				me.items.push({
-					xtype : 'tbtext',
-					text : "Visitor (<a href='https://" + location.host.replace("8080", "8443") + location.pathname + "'>Secure connection</a>)"
-				});
-
-			} else {
-				me.items.push('-');
-				me.items.push({
-					xtype : 'tbtext',
-					text : "Visitor"
-				});
-			}
+			me.usrname_button = new Ext.button.Button(button_usrname);
+			me.items.push('-');
+			me.items.push(button_usrname);
 		}
 
 		me.callParent();

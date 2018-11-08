@@ -7,7 +7,10 @@ from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
 
+import imp
+import requests
 import ssl
 import functools
 import sys
@@ -139,23 +142,62 @@ class WebHandler(tornado.web.RequestHandler):
     """
     Extract the user credentials based on the certificate or what comes from the balancer
     """
+
+    if not self.request.protocol == "https":
+      return
+
+    # OIDC auth method
+    def oAuth2():
+      if self.get_secure_cookie("AccessToken"):
+        access_token = self.get_secure_cookie("AccessToken")
+        url = Conf.getCSValue("TypeAuths/%s/authority" % typeAuth) + '/userinfo'
+        heads = {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
+        if requests.get(url, headers=heads, verify=False).json().has_key('error'):
+          return
+        ID = requests.get(url, headers=heads, verify=False).json()['sub']
+        result = getUsernameForID(ID)
+        if result['OK']:
+          self.__credDict[ 'username' ] = result['Value']
+        result = getDNForUsername(self.__credDict[ 'username' ])
+        if result['OK']:
+          self.__credDict[ 'validDN' ] = True
+          self.__credDict[ 'DN' ] = result['Value'][0]
+        result = getCAForUsername(self.__credDict[ 'username' ])
+        if result['OK']:
+          self.__credDict[ 'issuer' ] = result['Value'][0]
+        return
+
+    #Type of Auth
+    if self.get_secure_cookie("TypeAuth"):
+      typeAuth = self.get_secure_cookie("TypeAuth")
+      self.log.info("Type authentication: %s" % str(typeAuth) )
+      if typeAuth in Conf.getCSSections("TypeAuths").get("Value"):
+        method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth,'default')
+        if method == "oAuth2":
+          oAuth2()
+        elif method == 'logPass':
+          return
+      elif typeAuth == "Visitor":
+        return
+
     # NGINX
     if Conf.balancer() == "nginx":
       headers = self.request.headers
       if headers['X-Scheme'] == "https" and headers['X-Ssl_client_verify'] == 'SUCCESS':
         DN = headers['X-Ssl_client_s_dn']
-        self.__credDict['DN'] = DN
-        self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
+        if not DN.startswith('/'):
+          items = DN.split(',')
+          items.reverse()
+          DN = '/' + '/'.join(items)
         result = Registry.getUsernameForDN(DN)
-        if not result['OK']:
-          self.__credDict['validDN'] = False
-        else:
+        if result['OK']:
+          self.__credDict['DN'] = DN
+          self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
           self.__credDict['validDN'] = True
           self.__credDict['username'] = result['Value']
       return
+    
     # TORNADO
-    if not self.request.protocol == "https":
-      return
     derCert = self.request.get_ssl_certificate(binary_form=True)
     if not derCert:
       return
