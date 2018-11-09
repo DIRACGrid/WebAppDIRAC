@@ -16,9 +16,11 @@ class AuthontificationHandler(WebHandler):
   def web_sendRequest(self):
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"]
-    NotificationClient().sendMail(addresses = "lytovchenko@cppm.in2p3.fr, atsareg@gmail.com",subject = "Request from %s %s" % (loadValue[0],loadValue[1]),body = 'Type auth: %s, details: %s' % (typeAuth,loadValue))
+    addresses = Conf.getCSValue('AdminsEmails')
+    NotificationClient().sendMail(addresses,subject = "Request from %s %s" % (loadValue[0],loadValue[1]),body = 'Type auth: %s, details: %s' % (typeAuth,loadValue))
 
   # Get information from web.cfg about auth types
+  @asyncGen
   def web_getAuthCFG(self):
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"][0]
@@ -36,6 +38,7 @@ class AuthontificationHandler(WebHandler):
     self.write(res)
 
   # Get current auth type
+  @asyncGen
   def web_getCurrentAuth(self):
     if self.get_secure_cookie("TypeAuth"):
       current = self.get_secure_cookie("TypeAuth")

@@ -88,7 +88,7 @@ class Compiler(object):
     classPath.append( os.path.join( extPath, appName, "classes" ) )
     
     cmd = [ 'sencha', '-sdk', self.__sdkPath, 'compile', '-classpath=%s' % ",".join( classPath ),
-           '-debug=%s' % self.__debugFlag, 'page', '-name=page','-input-file',inFile, '-out', outFile,'and',
+           '-debug=%s' % self.__debugFlag, 'page', '-name=page','--input-file',inFile, '--output-page', outFile,'and',
             'restore','page','and','exclude','-not','-namespace','Ext.dirac.*%s' % excludePackage,'and',
             'concat','-yui',compressedJsFile]
 
@@ -145,7 +145,7 @@ class Compiler(object):
     gLogger.verbose( " IN file written to %s" % inFile )
 
     cmd = [ 'sencha', '-sdk', self.__sdkPath, 'compile', '-classpath=%s' % ",".join( self.__classPaths ),
-            '-debug=%s' % self.__debugFlag, 'page', '-yui', '-input-file', inFile, '-out', outFile ]
+            '-debug=%s' % self.__debugFlag, 'page', '-yui', '--input-file', inFile, '--output-page', outFile ]
 
     if self.__cmd( cmd ):
       gLogger.error( "Error compiling JS" )
@@ -216,7 +216,3 @@ class Compiler(object):
       self.__cmd( ["sencha"] )
     except OSError, err:
       raise OSError("sencha cmd is not installed!")
-    
-      
-
-

@@ -13,7 +13,7 @@
     <script type="text/javascript" src="{{base_url}}/static/oidc/oidc-client/dist/oidc-client.js"></script>
 	  
 	<link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
-    <!--<link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/resources/css/{{theme}}.css" />-->
+    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/resources/css/{{theme}}.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/iconset.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/TabScrollerMenu.css" />
@@ -28,9 +28,9 @@
     {% if _dev %}
        {% if debug_level=='debug' %}
        	  <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all-dev.js"></script>
-          <!--<script type="text/javascript" src="{{base_url}}/static/extjs/ext-all-dev.js"></script>-->
+          <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all-dev.js"></script>
        {% else %}
-         <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all.js"></script>
+         <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all.js"></script>
        {% end %}
     {% else %}
       <script type="text/javascript" src="{{base_url}}/static/core/build/all-classes.js"></script>
@@ -149,19 +149,22 @@
       </div>
   </div>
 
-  <div id="app-dirac-welcome" style="{{welcome_style}}">
-    <div class="app-dirac-welcome-text">
-      <h1>{{welcome_title}}</h1>
-      {{welcome_text}}
-      <div id="app-dirac-welcome-visitor">
-        <h2>{{welcome_visitor_title}}</h2>
-        {{welcome_visitor_text}}
+  {% if welcome_show %}
+      <div id="app-dirac-welcome" style="{{welcome_style}}">
+        <div class="app-dirac-welcome-text">
+          <h1>{{welcome_title}}</h1>
+          {{welcome_text}}
+          <div id="app-dirac-welcome-visitor">
+            <h2>{{welcome_visitor_title}}</h2>
+            {{welcome_visitor_text}}
+          </div>
+        </div>
+        <button id="app-dirac-welcome-close"> x </button>
+        <div class="app-dirac-welcome-menu"> menu button </div>
+        <div class="app-dirac-welcome-settings"> general settings </div>
       </div>
-    </div>
-    <button id="app-dirac-welcome-close"> x </button>
-    <div class="app-dirac-welcome-menu"> menu button </div>
-    <div class="app-dirac-welcome-settings"> general settings </div>
-  </div>
+  {% end %}
+
       
 
 </body>

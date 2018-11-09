@@ -151,12 +151,12 @@ def getLogo():
 
 def getWelcome():
   res = {}
-  res['show'] = getCSValue("WelcomePage/show", "True")
-  res['style'] = getCSValue("WelcomePage/style", "")
-  res['title'] = getCSValue("WelcomePage/title","Welcome to the EGI Workload Manager")
-  res['text'] = getCSValue("WelcomePage/text",'<b>The EGI Workload manager is a service provided to the EGI community to efficiently manage and distribute computing workloads on the EGI infrastructure. The service is based on the <a target="_blank" href="http://diracgrid.org">DIRAC technology</a>. The delivery of the service is coordinated by the EGI Foundation and operated by IN2P3 on resources provided by CYFRONET. <a target="_blank" href="https://wiki.egi.eu/wiki/Workload_Manager">Discover more...</a>')
-  res['visitor_title'] = getCSValue("WelcomePage/visitor_title","Access to the service")
-  res['visitor_text'] = getCSValue("WelcomePage/visitor_text",'<p>If you are a new user, please request access via <a target="_blank" href="https://marketplace.egi.eu">the EGI marketplace</a>.</p>        <p>If you are a registered user, please follow the <a target="_blank" href="https://dirac.readthedocs.io/en/latest/">instructions</a> to access the full set of functionalities.</p>')
+  res['show'] = getCSValue("WelcomePage/show", False)
+  res['style'] = getCSValue("WelcomePage/style")
+  res['title'] = getCSValue("WelcomePage/title", "")
+  res['text'] = getCSValue("WelcomePage/text", "")
+  res['visitor_title'] = getCSValue("WelcomePage/visitor_title", "")
+  res['visitor_text'] = getCSValue("WelcomePage/visitor_text", "")
   return res
 
 def getBackgroud():

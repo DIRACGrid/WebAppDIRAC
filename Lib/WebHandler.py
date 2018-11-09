@@ -152,7 +152,8 @@ class WebHandler(tornado.web.RequestHandler):
         access_token = self.get_secure_cookie("AccessToken")
         url = Conf.getCSValue("TypeAuths/%s/authority" % typeAuth) + '/userinfo'
         heads = {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
-        if requests.get(url, headers=heads, verify=False).json().has_key('error'):
+        if 'error' in requests.get(url, headers=heads, verify=False).json():
+          self.log.error('OIDC request error: %s' % requests.get(url, headers=heads, verify=False).json()['error'])
           return
         ID = requests.get(url, headers=heads, verify=False).json()['sub']
         result = getUsernameForID(ID)
