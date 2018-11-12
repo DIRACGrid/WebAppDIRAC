@@ -125,7 +125,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 		// HTTP used only for visitors
 		if (location.protocol === 'http:') {
 			button_usrname.menu.push({
-				text : 'Log in (swich to https://)',
+				text : 'Log in (switch to https://)',
 				handler: function() {location.protocol = "https:"}
 			});
 		} else {
@@ -185,7 +185,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 								layout: 'fit',
 								preventBodyReset: true,
 								closable: true,
-								html: '<br><b>Welcome to DIRAC service '+ response.profile['given_name'] +'!</b><br><br>Sorry, but You are not registred as DIRAC user.<br>',
+								html: '<br><b>Welcome to the DIRAC service '+ response.profile['given_name'] +'!</b><br><br>Sorry, but You are not registred as a DIRAC user.<br>',
 								buttons : [
 									{
 										text    : 'Registration',
@@ -196,7 +196,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 													typeauth: name,
 													value: response.profile
 												},
-												success: function() { GLOBAL.APP.CF.alert('Your request was sended.','info')	}
+												success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info')	}
 											});
 											this.up('window').close();
 										}
@@ -208,7 +208,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 				});
 			});
 			manager.signinPopup().catch(function(error){
-				GLOBAL.APP.CF.log("error", 'error while logging in throught the popup');
+				GLOBAL.APP.CF.log("error", 'error while logging in through the popup');
 			});
 		} 
 
