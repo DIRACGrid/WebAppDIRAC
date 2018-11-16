@@ -135,7 +135,7 @@ def getAuthSectionForHandler( route ):
   return "%s/Access/%s" % ( BASECS, route )
 
 def getTheme():
-  return getCSValue( "Theme", "tabs" )
+  return getCSValue( "Theme", "desktop" )
 
 def getIcon():
   return getCSValue("Icon","/static/core/img/icons/system/favicon.ico")
@@ -148,16 +148,6 @@ def getStaticDirs():
 
 def getLogo():
   return getCSValue("Logo","/static/core/img/icons/system/_logo_waiting.gif")
-
-def getWelcome():
-  res = {}
-  res['show'] = getCSValue("WelcomePage/show", False)
-  res['style'] = getCSValue("WelcomePage/style")
-  res['title'] = getCSValue("WelcomePage/title", "")
-  res['text'] = getCSValue("WelcomePage/text", "")
-  res['visitor_title'] = getCSValue("WelcomePage/visitor_title", "")
-  res['visitor_text'] = getCSValue("WelcomePage/visitor_text", "")
-  return res
 
 def getBackgroud():
   return getCSValue("BackgroundImage","/static/core/img/wallpapers/dirac_background_6.png")
