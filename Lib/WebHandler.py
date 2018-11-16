@@ -5,11 +5,11 @@ from DIRAC.Core.Security import CS, Properties
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.DISET.AuthManager import AuthManager
-from DIRAC.Core.Utilities.Decorators import deprecated
-
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
 
+import requests
 import ssl
 import functools
 import sys
@@ -78,15 +78,8 @@ class WebHandler(tornado.web.RequestHandler):
   # RE to extract group and setup
   PATH_RE = ""
 
-  def threadTask(self, method, *args, **kwargs):
-    if tornado.version < '5.0.0':
-      return self.threadTaskOld(method, *args, **kwargs)
-    else:
-      return self.threadTaskExecutor(method, *args, **kwargs)
-
   # Helper function to create threaded gen.Tasks with automatic callback and execption handling
-  @deprecated("Only for Tornado 4.x.x and DIRAC v6r20")
-  def threadTaskOld(self, method, *args, **kwargs):
+  def threadTask(self, method, *args, **kwargs):
     """
     Helper method to generate a gen.Task and automatically call the callback when the real
     method ends. THIS IS SPARTAAAAAAAAAA. SPARTA has improved using futures ;)
@@ -122,16 +115,6 @@ class WebHandler(tornado.web.RequestHandler):
     genTask = tornado.gen.Task(threadJob, method, *args, **kwargs)
     return genTask
 
-  def threadTaskExecutor(self, method, *args, **kwargs):
-    def threadJob(*targs, **tkwargs):
-      args = targs[0]
-      disetConf = targs[1]
-      self.__disetConfig.reset()
-      self.__disetConfig.load(disetConf)
-      return method(*args, **tkwargs)
-    targs = (args, self.__disetDump)
-    return tornado.ioloop.IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *targs, **kwargs))
-
   def __disetBlockDecor(self, func):
     def wrapper(*args, **kwargs):
       raise RuntimeError("All DISET calls must be made from inside a Threaded Task!")
@@ -158,6 +141,46 @@ class WebHandler(tornado.web.RequestHandler):
     """
     Extract the user credentials based on the certificate or what comes from the balancer
     """
+
+    if not self.request.protocol == "https":
+      return
+
+    # OIDC auth method
+    def oAuth2():
+      if self.get_secure_cookie("AccessToken"):
+        access_token = self.get_secure_cookie("AccessToken")
+        url = Conf.getCSValue("TypeAuths/%s/authority" % typeAuth) + '/userinfo'
+        heads = {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
+        if 'error' in requests.get(url, headers=heads, verify=False).json():
+          self.log.error('OIDC request error: %s' % requests.get(url, headers=heads, verify=False).json()['error'])
+          return
+        ID = requests.get(url, headers=heads, verify=False).json()['sub']
+        result = getUsernameForID(ID)
+        if result['OK']:
+          self.__credDict[ 'username' ] = result['Value']
+        result = getDNForUsername(self.__credDict[ 'username' ])
+        if result['OK']:
+          self.__credDict[ 'validDN' ] = True
+          self.__credDict[ 'DN' ] = result['Value'][0]
+        result = getCAForUsername(self.__credDict[ 'username' ])
+        if result['OK']:
+          self.__credDict[ 'issuer' ] = result['Value'][0]
+        return
+
+    #Type of Auth
+    if not self.get_secure_cookie("TypeAuth"):
+      self.set_secure_cookie("TypeAuth", 'Certificate')
+    typeAuth = self.get_secure_cookie("TypeAuth")
+    self.log.info("Type authentication: %s" % str(typeAuth))
+    if typeAuth == "Visitor":
+      return
+    retVal = Conf.getCSSections("TypeAuths")
+    if retVal['OK']:
+      if typeAuth in retVal.get("Value"):
+        method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth,'default')
+        if method == "oAuth2":
+          oAuth2()
+
     # NGINX
     if Conf.balancer() == "nginx":
       headers = self.request.headers
@@ -167,18 +190,15 @@ class WebHandler(tornado.web.RequestHandler):
           items = DN.split(',')
           items.reverse()
           DN = '/' + '/'.join(items)
-        self.__credDict['DN'] = DN
-        self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
         result = Registry.getUsernameForDN(DN)
-        if not result['OK']:
-          self.__credDict['validDN'] = False
-        else:
+        if result['OK']:
+          self.__credDict['DN'] = DN
+          self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
           self.__credDict['validDN'] = True
           self.__credDict['username'] = result['Value']
       return
+    
     # TORNADO
-    if not self.request.protocol == "https":
-      return
     derCert = self.request.get_ssl_certificate(binary_form=True)
     if not derCert:
       return

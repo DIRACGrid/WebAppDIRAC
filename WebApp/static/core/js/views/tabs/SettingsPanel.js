@@ -99,10 +99,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
               items : [{
                     xtype : 'label',
                     text : 'User:'
-                  }, {
-                    xtype : 'label',
-                    text : GLOBAL.APP.configData.user.username
-                  }, {
+                  }, me.addAuthsButton(), {
                     xtype : 'label',
                     text : 'Group:'
                   }, me.addGroupsButton(), {
@@ -118,6 +115,179 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
             });
         return form;
       },
+
+      getAuthCFG : function(Auth = '',Value = ''){
+        var req = Ext.Ajax.request({
+          url: GLOBAL.BASE_URL + 'Authentification/getAuthCFG',
+          params: {
+            typeauth: Auth,
+            value: Value
+          },
+          async: false
+        }).responseText
+        res = JSON.parse(req)
+        if (Object.keys(res).includes('Value')) {
+          res = res.Value
+        }
+        return res
+      },
+  
+      // OIDC login method
+      oAuth2LogIn : function(settings,name) {
+        var manager = new Oidc.UserManager(settings);
+        manager.events.addUserLoaded(function (loadedUser) { console.log(loadedUser) });
+        manager.events.addSilentRenewError(function (error) {
+          GLOBAL.APP.CF.log("error", "error while renewing the access token");
+        });
+        manager.events.addUserSignedOut(function () {
+          GLOBAL.APP.CF.alert('The user has signed out',"info");
+        });
+        manager.events.addUserLoaded(function(loadedUser) {
+          if (loadedUser && typeof loadedUser === 'string') {
+            loadedUser = JSON.parse(data);
+          }
+          if (loadedUser) {
+            loadedUser = JSON.stringify(loadedUser, null, 2);
+          }
+          var aJson = JSON.parse(loadedUser);
+          var access_token = aJson["access_token"];
+          Ext.Ajax.request({
+            url: GLOBAL.BASE_URL + 'Authentification/auth',
+            params: { 
+              typeauth: name,
+              value: access_token
+            },
+            success: function(response){
+              var response = Ext.JSON.decode(response.responseText);
+              if (response.value == 'Done') {location.protocol = "https:"} 
+              else { 
+                Ext.create('Ext.window.Window', {
+                  title: 'Welcome',
+                  layout: 'fit',
+                  preventBodyReset: true,
+                  closable: true,
+                  html: '<br><b>Welcome to the DIRAC service '+ response.profile['given_name'] +'!</b><br><br>Sorry, but You are not registred as a DIRAC user.<br>',
+                  buttons : [
+                    {
+                      text    : 'Registration',
+                      handler : function() {
+                        Ext.Ajax.request({
+                          url: GLOBAL.BASE_URL + 'Authentification/sendRequest',
+                          params: { 
+                            typeauth: name,
+                            value: response.profile
+                          },
+                          success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info')	}
+                        });
+                        this.up('window').close();
+                      }
+                    }
+                  ]
+                }).show();
+              }
+            }
+          });
+        });
+        manager.signinPopup().catch(function(error){
+          GLOBAL.APP.CF.log("error", 'error while logging in through the popup');
+        });
+      },
+
+      addAuthsButton : function() {
+        var me = this;
+        
+        // Generate list of login buttons
+        var oListAuth = me.getAuthCFG()
+        var currentAuth = Ext.Ajax.request({
+          url: GLOBAL.BASE_URL + 'Authentification/getCurrentAuth',
+          perams: {},
+          async: false
+        }).responseText
+        var button_usrname = {
+          "text" : "Visitor",
+          "menu" : []
+        };
+
+        // HTTP used only for visitors
+        if (location.protocol === 'http:') {
+          button_usrname.menu.push({
+            text : 'Log in (switch to https://)',
+            handler: function() {location.protocol = "https:"}
+          });
+        } else {
+          if (Array.isArray(oListAuth) || (currentAuth == "Visitor")) {
+            button_usrname.menu.push({
+              xtype: 'tbtext',
+              text : 'Log in:'
+            });
+          }
+          for (var i = 0; i < oListAuth.length; i++) {
+            var name = oListAuth[i]
+            var settings = getAuthCFG(name,'all')
+            if (name != currentAuth) {
+              button_usrname.menu.push({
+                'text' : name,
+                'settings': settings,
+                'handler' : function() {
+                  if (this.settings.method == 'oAuth2') {oAuth2LogIn(this.settings,this.text)}
+                  else if (settings.method) {
+                    GLOBAL.APP.CF.alert("Authentication method " + settings.method + " is not supported." ,'error')
+                  }
+                  else {
+                    GLOBAL.APP.CF.alert("Authentication method is not set." ,'error')
+                  }
+                }
+              })
+            }
+          }
+          // default authentication method
+          if (currentAuth != "Certificate") {
+            button_usrname.menu.push({
+              'text' : "Certificate",
+              'handler' : function() {
+                Ext.Ajax.request({
+                    url: GLOBAL.BASE_URL + 'Authentification/auth',
+                    params: {
+                      typeauth: 'Certificate',
+                      value: ''
+                    },
+                    success: function() { location.protocol = "https:" }
+                })
+              }
+            })
+          }
+          if (currentAuth != 'Visitor') {
+            if (Array.isArray(oListAuth)) {
+              button_usrname.menu.push({xtype: 'menuseparator'})
+            }
+            button_usrname.menu.push({
+              text : 'Log out',
+              handler : function(){
+                Ext.Ajax.request({
+                  url: GLOBAL.BASE_URL + 'Authentification/auth',
+                  params: {
+                    typeauth: 'Logout',
+                    value: 'None'
+                  },
+                  success: function(response){
+                    console.log(response.responseText)
+                    location.protocol = "https:"
+                  }
+                });
+              }
+            });
+            button_usrname.menu.push()
+          }
+        }
+        
+        // If the user is registered
+        if (GLOBAL.APP.configData.user.username) {
+          button_usrname.text = GLOBAL.APP.configData["user"]["username"];
+        }  
+        return new Ext.button.Button(button_usrname);
+
+      },
+
       addGroupsButton : function() {
         var me = this;
 
