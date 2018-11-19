@@ -119,7 +119,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 
 		var getAuthCFG = function(Auth = '',Value = ''){
 			var req = Ext.Ajax.request({
-				url: GLOBAL.BASE_URL + 'Authentification/getAuthCFG',
+				url: GLOBAL.BASE_URL + 'Authentication/getAuthCFG',
 				params: {
 					typeauth: Auth,
 					value: Value
@@ -153,7 +153,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 				var aJson = JSON.parse(loadedUser);
 				var access_token = aJson["access_token"];
 				Ext.Ajax.request({
-					url: GLOBAL.BASE_URL + 'Authentification/auth',
+					url: GLOBAL.BASE_URL + 'Authentication/auth',
 					params: { 
 						typeauth: name,
 						value: access_token
@@ -173,7 +173,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 										text    : 'Registration',
 										handler : function() {
 											Ext.Ajax.request({
-												url: GLOBAL.BASE_URL + 'Authentification/sendRequest',
+												url: GLOBAL.BASE_URL + 'Authentication/sendRequest',
 												params: { 
 													typeauth: name,
 													value: response.profile
@@ -197,7 +197,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 		// Generate list of login buttons
 		var oListAuth = getAuthCFG()
 		var currentAuth = Ext.Ajax.request({
-			url: GLOBAL.BASE_URL + 'Authentification/getCurrentAuth',
+			url: GLOBAL.BASE_URL + 'Authentication/getCurrentAuth',
 			perams: {},
 			async: false
 		}).responseText
@@ -244,7 +244,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 					'text' : "Certificate",
 					'handler' : function() {
 						Ext.Ajax.request({
-								url: GLOBAL.BASE_URL + 'Authentification/auth',
+								url: GLOBAL.BASE_URL + 'Authentication/auth',
 								params: {
 									typeauth: 'Certificate',
 									value: ''
@@ -262,7 +262,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
 					text : 'Log out',
 					handler : function(){
 						Ext.Ajax.request({
-							url: GLOBAL.BASE_URL + 'Authentification/auth',
+							url: GLOBAL.BASE_URL + 'Authentication/auth',
 							params: {
 								typeauth: 'Logout',
 								value: 'None'

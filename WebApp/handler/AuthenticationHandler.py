@@ -7,7 +7,7 @@ import json
 import tornado
 import requests
 
-class AuthentificationHandler(WebHandler):
+class AuthenticationHandler(WebHandler):
 
   AUTH_PROPS = "all"
   
