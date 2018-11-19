@@ -148,7 +148,7 @@ class App( object ):
     SessionData.setHandlers( self.__handlerMgr.getHandlers()[ 'Value' ] )
     # Create the app
     tLoader = TemplateLoader( self.__handlerMgr.getPaths( "template" ) )
-    kw = dict( debug = Conf.devMode(), template_loader = tLoader, cookie_secret = Conf.cookieSecret(),
+    kw = dict( debug = Conf.devMode(), template_loader = tLoader, cookie_secret = str(Conf.cookieSecret()),
                log_function = self._logRequest, autoreload = Conf.numProcesses() < 2 )
     
     #please do no move this lines. The lines must be before the fork_processes

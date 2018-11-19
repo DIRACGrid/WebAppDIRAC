@@ -11,6 +11,15 @@ BASECS = "/WebApp"
 def getCSValue( opt, defValue = None ):
   return gConfig.getValue( "%s/%s" % ( BASECS, opt ), defValue )
 
+def getCSSections( opt ):
+  return gConfig.getSections( "%s/%s" % ( BASECS, opt ) )
+
+def getCSOptions( opt ):
+  return gConfig.getOptions( "%s/%s" % ( BASECS, opt ) )
+  
+def getCSOptionsDict( opt ):
+  return gConfig.getOptionsDict( "%s/%s" % ( BASECS, opt ) )
+
 def getTitle():
   defVal = gConfig.getValue( "/DIRAC/Configuration/Name", gConfig.getValue( "/DIRAC/Setup" ) )
   return "%s - DIRAC" % gConfig.getValue( "%s/Title" % BASECS, defVal )
