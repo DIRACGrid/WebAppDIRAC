@@ -10,6 +10,7 @@
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/StackBlur.js"></script>
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/canvg.js"></script>
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/FileSaver/FileSaver.js"></script>
+    <script type="text/javascript" src="{{base_url}}/static/oidc/oidc-client/dist/oidc-client.js"></script>
 	  
 	<link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/resources/css/{{theme}}.css" />
@@ -83,7 +84,7 @@
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
           GLOBAL.BACKGROUND = "{{backgroundImage}}";
-
+          GLOBAL.WELCOME = {{welcome}};
 
           Ext.onReady(function () {
 						Ext.override(Ext.data.Connection, { timeout:600000 });
@@ -115,6 +116,7 @@
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
           GLOBAL.BACKGROUND = "{{backgroundImage}}";
+          GLOBAL.WELCOME = {{welcome}};
 
           Ext.onReady(function () {
               Ext.override(Ext.data.Connection, { timeout:600000 });
@@ -146,25 +148,6 @@
           </tr>
         </table>
       </div>
-  </div>
-
-  <div id="app-dirac-welcome">
-      <div class="app-dirac-welcome-text">
-        <h1>Weclome to DIRAC!</h1>
-        <b>D</b>istributed <b>I</b>nfrastructure with <b>R</b>emote <b>A</b>gent <b>C</b>ontrol INTERWARE is a software framework for distributed computing providing a complete solution to one (or more) user community requiring access to distributed resources. DIRAC builds a layer between the users and the resources offering a common interface to a number of heterogeneous providers, integrating them in a seamless manner, providing interoperability, at the same time as an optimized, transparent and reliable usage of the resources. 
-        <a target="_blank" href="http://diracgrid.org">Discover more...</a>
-        <div id="app-dirac-welcome-visitor">
-          <h4>You are not registry!</h4>
-          If you want to use a user proxy, we assume that you already have a user certificate, so in this case create a directory .globus in your home directory and copy the certificate files (public and pruvate keys in pem format) to this directory: 
-          <br><code> $ mkdir ~/.globus 
-          <br> $ cp /path/to/certificate_files ~/.globus/ </code>
-          <br><br> At this point you need a proxy, you should do: 
-          <br><code> $ dirac-proxy-init </code>
-        </div>
-      </div>
-      <button id="app-dirac-welcome-close"> x </button>
-      <div class="app-dirac-welcome-menu"> menu button </div>
-      <div class="app-dirac-welcome-settings"> general settings </div>
   </div>
       
 

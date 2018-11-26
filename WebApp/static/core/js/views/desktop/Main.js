@@ -2476,4 +2476,4 @@ Ext.define('Ext.dirac.views.desktop.Main', {
   /*
    * Welcome window
    */
-  Ext.create('Ext.dirac.views.desktop.WelcomeWindow');
+  Ext.create('Ext.dirac.utils.WelcomeWindow');

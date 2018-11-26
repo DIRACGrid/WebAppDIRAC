@@ -678,7 +678,11 @@ Ext.define('Ext.dirac.utils.PlotView', {
                 if (oNewUnderlinedName == oParam) {
 
                   me.fsetSpecialConditions.items.getAt(i).setInverseSelection((oParams[oParam][0] == 1));
-                  me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam].split(","));
+                  try{
+                    me.fsetSpecialConditions.items.getAt(i).setValue(Ext.JSON.decode(oParams[oParam]));  
+                  }catch(err){
+                    me.fsetSpecialConditions.items.getAt(i).setValue(oParams[oParam].split(","));
+                  }                 
 
                   break;
 
@@ -782,7 +786,8 @@ Ext.define('Ext.dirac.utils.PlotView', {
           if (oCondItem.getValue().length != 0) {
 
             if (sIntention == "show_plot") {
-              oParams["_" + oCondItem.getName()] = ((oCondItem.isInverseSelection()) ? oCondItem.getInverseSelection() : oCondItem.getValue().join(","));
+              param = (oCondItem.isInverseSelection()) ? oCondItem.getInverseSelection() : oCondItem.getValue();
+              oParams["_" + oCondItem.getName()] = Ext.JSON.encode(param);
             } else if (sIntention == "save_state") {
               oParams["_" + oCondItem.getName()] = [((oCondItem.isInverseSelection()) ? 1 : 0), oCondItem.getValue().join(",")];
             }

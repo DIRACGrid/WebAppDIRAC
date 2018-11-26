@@ -410,7 +410,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
       if "CSAdministrator" in data["user"]["properties"]:
         isAuth = True
     if not isAuth:
-      return {"success":0, "op":"commitConfiguration", "message":"You are not authorized to commit configurations!! Bad boy!"}
+      return {"success":0, "op":"commitConfiguration", "message":"You are not authorized to commit configurations!"}
     gLogger.always( "User %s is commiting a new configuration version" % data["user"]["DN"] )
     retDict = self.__configData[ 'cfgData' ].commit()
     if not retDict[ 'OK' ]:
@@ -463,7 +463,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
 
   def __showCurrentDiff( self ):
     if not self.__authorizeAction():
-      return {"success":0, "op":"showCurrentDiff", "message":"You are not authorized to commit configurations!! Bad boy!"}
+      return {"success":0, "op":"showCurrentDiff", "message":"You are not authorized to commit configurations!"}
     diffGen = self.__configData[ 'cfgData' ].showCurrentDiff()
     processedData = self.__generateHTMLDiff( diffGen )
     return self.write_message( json.dumps( {"success":1, "op":"showCurrentDiff", "lines":processedData["lines"], "totalLines": processedData["totalLines"], "html":self.render_string( "ConfigurationManager/diffConfig.tpl",
@@ -472,7 +472,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
 
   def __showDiff( self, params ):
     if not self.__authorizeAction():
-      raise WErr( 500, "You are not authorized to get diff's!! Bad boy!" )
+      raise WErr( 500, "You are not authorized to get diff's!" )
     try:
       fromDate = str( params[ 'fromVersion' ] )
       toDate = str( params[ 'toVersion' ] )
@@ -490,7 +490,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
   def __rollback( self, params ):
     rollbackVersion = ""
     if not self.__authorizeAction():
-      raise WErr( 500, "You are not authorized to get diff's!! Bad boy!" )
+      raise WErr( 500, "You are not authorized to get diff's!" )
     try:
       rollbackVersion = str( params[ 'rollbackToVersion' ] )
     except Exception, e:
@@ -516,7 +516,7 @@ class ConfigurationManagerHandler( WebSocketHandler ):
 
   def __history( self ):
     if not self.__authorizeAction():
-      raise WErr( 500, "You are not authorized to commit configurations!! Bad boy!" )
+      raise WErr( 500, "You are not authorized to commit configurations!" )
     rpcClient = RPCClient( gConfig.getValue( "/DIRAC/Configuration/MasterServer", "Configuration/Server" ) )
     retVal = rpcClient.getCommitHistory()
     if retVal[ 'OK' ]:

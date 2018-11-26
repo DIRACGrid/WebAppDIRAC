@@ -11,6 +11,15 @@ BASECS = "/WebApp"
 def getCSValue( opt, defValue = None ):
   return gConfig.getValue( "%s/%s" % ( BASECS, opt ), defValue )
 
+def getCSSections( opt ):
+  return gConfig.getSections( "%s/%s" % ( BASECS, opt ) )
+
+def getCSOptions( opt ):
+  return gConfig.getOptions( "%s/%s" % ( BASECS, opt ) )
+  
+def getCSOptionsDict( opt ):
+  return gConfig.getOptionsDict( "%s/%s" % ( BASECS, opt ) )
+
 def getTitle():
   defVal = gConfig.getValue( "/DIRAC/Configuration/Name", gConfig.getValue( "/DIRAC/Setup" ) )
   return "%s - DIRAC" % gConfig.getValue( "%s/Title" % BASECS, defVal )
@@ -142,3 +151,13 @@ def getLogo():
 
 def getBackgroud():
   return getCSValue("BackgroundImage","/static/core/img/wallpapers/dirac_background_6.png")
+
+def getWelcome():
+  res = {}
+  res['show'] = getCSValue("WelcomePage/show", "False")
+  res['style'] = getCSValue("WelcomePage/style", "")
+  res['title'] = getCSValue("WelcomePage/title", "")
+  res['text'] = getCSValue("WelcomePage/text", "")
+  res['visitor_title'] = getCSValue("WelcomePage/visitor_title", "")
+  res['visitor_text'] = getCSValue("WelcomePage/visitor_text", "")
+  return res

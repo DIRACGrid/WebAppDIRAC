@@ -95,7 +95,8 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
             type : 'date',
             dateFormat : 'Y-m-d H:i:s'
           }, {
-            name : 'RescheduleCounter'
+            name : 'RescheduleCounter',
+            type : 'int'
           }, {
             name : 'JobSplitType'
           }, {

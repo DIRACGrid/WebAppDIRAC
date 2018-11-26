@@ -4,15 +4,16 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 import json
 
-class TransformationMonitorHandler( WebHandler ):
+
+class TransformationMonitorHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
 
-  def index( self ):
+  def index(self):
     pass
 
   @asyncGen
-  def web_getSelectionData( self ):
+  def web_getSelectionData(self):
     sData = self.getSessionData()
     callback = {}
     group = sData["user"]["group"]
@@ -24,176 +25,176 @@ class TransformationMonitorHandler( WebHandler ):
 
   ####
       tsClient = TransformationClient()
-      result = yield self.threadTask( tsClient.getDistinctAttributeValues, "Plugin", {} )
+      result = yield self.threadTask(tsClient.getDistinctAttributeValues, "Plugin", {})
 
       if result["OK"]:
         plugin = []
-        if len( result["Value"] ) > 0:
+        if len(result["Value"]) > 0:
           for i in result["Value"]:
-            plugin.append( [str( i )] )
+            plugin.append([str(i)])
         else:
-          plugin.append( "Nothing to display" )
+          plugin.append("Nothing to display")
       else:
         plugin = "Error during RPC call"
       callback["plugin"] = plugin
   ####
-      result = yield self.threadTask( tsClient.getDistinctAttributeValues, "Status", {} )
+      result = yield self.threadTask(tsClient.getDistinctAttributeValues, "Status", {})
       if result["OK"]:
         status = []
-        if len( result["Value"] ) > 0:
+        if len(result["Value"]) > 0:
           for i in result["Value"]:
-            status.append( [str( i )] )
+            status.append([str(i)])
         else:
           status = "Nothing to display"
       else:
         status = "Error during RPC call"
       callback["prodStatus"] = status
   ####
-      result = yield self.threadTask( tsClient.getDistinctAttributeValues, "TransformationGroup", {} )
+      result = yield self.threadTask(tsClient.getDistinctAttributeValues, "TransformationGroup", {})
       if result["OK"]:
         group = []
-        if len( result["Value"] ) > 0:
+        if len(result["Value"]) > 0:
           for i in result["Value"]:
-            group.append( [str( i )] )
+            group.append([str(i)])
         else:
           group = "Nothing to display"
       else:
         group = "Error during RPC call"
       callback["transformationGroup"] = group
   ####
-      result = yield self.threadTask( tsClient.getDistinctAttributeValues, "AgentType", {} )
+      result = yield self.threadTask(tsClient.getDistinctAttributeValues, "AgentType", {})
       if result["OK"]:
         atype = []
-        if len( result["Value"] ) > 0:
+        if len(result["Value"]) > 0:
           for i in result["Value"]:
-            atype.append( [str( i )] )
+            atype.append([str(i)])
         else:
           atype = "Nothing to display"
       else:
         atype = "Error during RPC call"
       callback["agentType"] = atype
   ####
-      result = yield self.threadTask( tsClient.getDistinctAttributeValues, "Type", {} )
+      result = yield self.threadTask(tsClient.getDistinctAttributeValues, "Type", {})
       if result["OK"]:
-        type = []
-        if len( result["Value"] ) > 0:
+        transType = []
+        if len(result["Value"]) > 0:
           for i in result["Value"]:
-            type.append( [str( i )] )
+            transType.append([str(i)])
         else:
-          type = "Nothing to display"
+          transType = "Nothing to display"
       else:
-        type = "Error during RPC call"
-      callback["productionType"] = type
-    self.finish( callback )
+        transType = "Error during RPC call"
+      callback["productionType"] = transType
+    self.finish(callback)
 
   @asyncGen
-  def web_getTransformationData( self ):
+  def web_getTransformationData(self):
 
     pagestart = Time.time()
-    callback = None
     sData = self.getSessionData()
     callback = {}
     user = sData["user"]["username"]
 
-    tsClient = TransformationClient()
+    tsClient = TransformationClient(timeout=3600)
 
     if user == "Anonymous":
-      callback = {"success":"false", "error":"You are not authorised"}
+      callback = {"success": "false", "error": "You are not authorised"}
     else:
       result = self.__request()
 
-      result = yield self.threadTask( tsClient.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs )
+      result = yield self.threadTask(tsClient.getTransformationSummaryWeb,
+                                     result, self.globalSort, self.pageNumber, self.numberOfJobs)
       if not result["OK"]:
-        self.finish( json.dumps( {"success":"false", "error":result["Message"]} ) )
+        self.finish(json.dumps({"success": "false", "error": result["Message"]}))
         return
 
       result = result["Value"]
 
-      if not result.has_key( "TotalRecords" ):
-        self.finish( json.dumps( {"success":"false", "result":"", "error":"Data structure is corrupted"} ) )
+      if "TotalRecords" not in result:
+        self.finish(json.dumps({"success": "false", "result": "", "error": "Data structure is corrupted"}))
         return
 
-      if not ( result["TotalRecords"] > 0 ):
-        self.finish( json.dumps( {"success":"false", "result":"", "error":"There were no data matching your selection"} ) )
+      if result["TotalRecords"] < 1:
+        self.finish(
+            json.dumps({"success": "false", "result": "", "error": "There were no data matching your selection"}))
         return
 
-
-      if not ( result.has_key( "ParameterNames" ) and result.has_key( "Records" ) ):
-        self.finish( json.dumps( {"success":"false", "result":"", "error":"Data structure is corrupted"} ) )
+      if "ParameterNames" not in result and "Records" not in result:
+        self.finish(json.dumps({"success": "false", "result": "", "error": "Data structure is corrupted"}))
         return
 
-      if not ( len( result["ParameterNames"] ) > 0 ):
-        self.finish( json.dumps( {"success":"false", "result":"", "error":"ParameterNames field is missing"} ) )
+      if len(result["ParameterNames"]) < 1:
+        self.finish(json.dumps({"success": "false", "result": "", "error": "ParameterNames field is missing"}))
         return
 
-      if not ( len( result["Records"] ) > 0 ):
-        self.finish( json.dumps( {"success":"false", "Message":"There are no data to display"} ) )
+      if len(result["Records"]) < 1:
+        self.finish(json.dumps({"success": "false", "Message": "There are no data to display"}))
         return
 
       callback = []
       jobs = result["Records"]
       head = result["ParameterNames"]
-      headLength = len( head )
+      headLength = len(head)
       for i in jobs:
         tmp = {}
-        for j in range( 0, headLength ):
+        for j in range(0, headLength):
           tmp[head[j]] = i[j]
-        callback.append( tmp )
+        callback.append(tmp)
       total = result["TotalRecords"]
       if "Extras" in result:
-        gLogger.info( result["Extras"] )
+        gLogger.info(result["Extras"])
         extra = result["Extras"]
-        timestamp = Time.dateTime().strftime( "%Y-%m-%d %H:%M [UTC]" )
-        callback = {"success":"true", "result":callback, "total":total, "extra":extra, "date":timestamp}
+        timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        callback = {"success": "true", "result": callback, "total": total, "extra": extra, "date": timestamp}
       else:
-        callback = {"success":"true", "result":callback, "total":total, "date":None}
+        callback = {"success": "true", "result": callback, "total": total, "date": None}
 
-      gLogger.info( "\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % ( Time.time() - pagestart ) )
-    self.finish( json.dumps( callback ) )
+      gLogger.info("\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % (Time.time() - pagestart))
+    self.finish(json.dumps(callback))
 
   ################################################################################
   @asyncGen
-  def web_action( self ):
+  def web_action(self):
     try:
-      id = int( self.request.arguments[ 'id' ][-1] )
+      transid = int(self.request.arguments['id'][-1])
     except KeyError as excp:
-      raise WErr( 400, "Missing %s" % excp )
+      raise WErr(400, "Missing %s" % excp)
 
     callback = {}
 
     if self.request.arguments["data_kind"][0] == "getLoggingInfo":
-      callback = yield self.threadTask( self.__getLoggingInfo, id )
+      callback = yield self.threadTask(self.__getLoggingInfo, transid)
     elif self.request.arguments["data_kind"][0] == "fileStatus":
-      callback = yield self.threadTask( self.__transformationFileStatus, id )
+      callback = yield self.threadTask(self.__transformationFileStatus, transid)
     elif self.request.arguments["data_kind"][0] == "fileProcessed":
-      callback = yield self.threadTask( self.__fileRetry, id, 'proc' )
+      callback = yield self.threadTask(self.__fileRetry, transid, 'proc')
     elif self.request.arguments["data_kind"][0] == "fileNotProcessed":
-      callback = yield self.threadTask( self.__fileRetry, id, 'not' )
+      callback = yield self.threadTask(self.__fileRetry, transid, 'not')
     elif self.request.arguments["data_kind"][0] == "fileAllProcessed":
-      callback = yield self.threadTask( self.__fileRetry, id, 'all' )
+      callback = yield self.threadTask(self.__fileRetry, transid, 'all')
     elif self.request.arguments["data_kind"][0] == "dataQuery":
-      callback = yield self.threadTask( self.__dataQuery, id )
+      callback = yield self.threadTask(self.__dataQuery, transid)
     elif self.request.arguments["data_kind"][0] == "additionalParams":
-      callback = yield self.threadTask( self.__additionalParams, id )
+      callback = yield self.threadTask(self.__additionalParams, transid)
     elif self.request.arguments["data_kind"][0] == "transformationDetail":
-      callback = yield self.threadTask( self.__transformationDetail, id )
+      callback = yield self.threadTask(self.__transformationDetail, transid)
     elif self.request.arguments["data_kind"][0] == "extend":
-      callback = yield self.threadTask( self.__extendTransformation, id )
+      callback = yield self.threadTask(self.__extendTransformation, transid)
     elif self.request.arguments["data_kind"][0] == "workflowxml":
-      callback = yield self.threadTask( self.__workflowxml, id )
+      callback = yield self.threadTask(self.__workflowxml, transid)
     else:
-      callback = {"success":"false", "error":"Action is unknown!!!"}
-    self.finish( callback )
+      callback = {"success": "false", "error": "Action is unknown!!!"}
+    self.finish(callback)
 
   ################################################################################
   @asyncGen
-  def web_executeOperation( self ):
+  def web_executeOperation(self):
     try:
-      cmd = self.request.arguments[ 'action' ][-1]
-      ids = self.request.arguments["ids"][0].split( "," )
-      ids = [int( i ) for i in ids ]
+      cmd = self.request.arguments['action'][-1]
+      ids = self.request.arguments["ids"][0].split(",")
+      ids = [int(i) for i in ids]
     except KeyError as excp:
-      raise WErr( 400, "Missing %s" % excp )
+      raise WErr(400, "Missing %s" % excp)
 
     tsClient = TransformationClient()
 
@@ -211,355 +212,355 @@ class TransformationMonitorHandler( WebHandler ):
     elif cmd == 'complete':
       status = 'Completed'
     else:
-      self.finish( {"success":"false", "error": "Unknown action"} )
+      self.finish({"success": "false", "error": "Unknown action"})
 
     callback = []
 
     for i in ids:
 
       try:
-        id = int( i )
+        transid = int(i)
 
-        result = yield self.threadTask( tsClient.setTransformationParameter, id, 'Status', status )
+        result = yield self.threadTask(tsClient.setTransformationParameter, transid, 'Status', status)
 
         if result["OK"]:
-          resString = "ProdID: %s set to %s successfully" % ( i, cmd )
-          result = yield self.threadTask( tsClient.setTransformationParameter, id, 'AgentType', agentType )
+          resString = "ProdID: %s set to %s successfully" % (i, cmd)
+          result = yield self.threadTask(tsClient.setTransformationParameter, transid, 'AgentType', agentType)
           if not result["OK"]:
-            resString = "ProdID: %s failed to set to %s: %s" % ( i, cmd, result["Message"] )
+            resString = "ProdID: %s failed to set to %s: %s" % (i, cmd, result["Message"])
         else:
-          resString = "ProdID: %s failed due the reason: %s" % ( i, result["Message"] )
+          resString = "ProdID: %s failed due the reason: %s" % (i, result["Message"])
       except:
         resString = "Unable to convert given ID %s to transformation ID" % i
-      callback.append( resString )
-    callback = {"success":"true", "showResult":callback}
-    gLogger.info( cmd, ids )
-    self.finish( callback )
+      callback.append(resString)
+    callback = {"success": "true", "showResult": callback}
+    gLogger.info(cmd, ids)
+    self.finish(callback)
 
   ################################################################################
-  def __fileRetry( self, prodid, mode ):
+  def __fileRetry(self, prodid, mode):
     callback = {}
 
     tsClient = TransformationClient()
 
     if mode == "proc":
-      res = tsClient.getTransformationFilesCount( prodid, "ErrorCount", {'Status':'Processed'} )
+      res = tsClient.getTransformationFilesCount(prodid, "ErrorCount", {'Status': 'Processed'})
     elif mode == "not":
-      res = tsClient.getTransformationFilesCount( prodid, "ErrorCount", {'Status':['Unused', 'Assigned', 'Failed']} )
+      res = tsClient.getTransformationFilesCount(prodid, "ErrorCount", {'Status': ['Unused', 'Assigned', 'Failed']})
     elif mode == "all":
-      res = tsClient.getTransformationFilesCount( prodid, "ErrorCount" )
+      res = tsClient.getTransformationFilesCount(prodid, "ErrorCount")
 
     if not res['OK']:
-      callback = {"success":"false", "error":res["Message"]}
+      callback = {"success": "false", "error": res["Message"]}
     else:
       resList = []
-      total = res['Value'].pop( 'Total' )
+      total = res['Value'].pop('Total')
       if total == 0:
-        callback = {"success":"false", "error":"No files found"}
+        callback = {"success": "false", "error": "No files found"}
       else:
-        for status in sorted( res['Value'].keys() ):
+        for status in sorted(res['Value'].keys()):
           count = res['Value'][status]
-          percent = "%.1f" % ( ( count * 100.0 ) / total )
-          resList.append( ( status, str( count ), percent ) )
-        resList.append( ( 'Total', total, '-' ) )
-        callback = {"success":"true", "result":resList}
-    gLogger.info( "#######", res )
+          percent = "%.1f" % ((count * 100.0) / total)
+          resList.append((status, str(count), percent))
+        resList.append(('Total', total, '-'))
+        callback = {"success": "true", "result": resList}
+    gLogger.info("#######", res)
     return callback
 
   ################################################################################
-  def __dataQuery( self, prodid ):
+  def __dataQuery(self, prodid):
     callback = {}
     tsClient = TransformationClient()
-    res = tsClient.getTransformationInputDataQuery( prodid )
-    gLogger.info( "-= #######", res )
+    res = tsClient.getTransformationInputDataQuery(prodid)
+    gLogger.info("-= #######", res)
     if not res['OK']:
-      callback = {"success":"false", "error":res["Message"]}
+      callback = {"success": "false", "error": res["Message"]}
     else:
       result = res["Value"]
       back = []
-      for i in sorted( result.keys() ):
-        back.append( [i, result[i]] )
-      callback = {"success":"true", "result":back}
+      for i in sorted(result.keys()):
+        back.append([i, result[i]])
+      callback = {"success": "true", "result": back}
     return callback
 
   ################################################################################
-  def __additionalParams( self, prodid ):
+  def __additionalParams(self, prodid):
     callback = {}
     tsClient = TransformationClient()
 
-    res = tsClient.getAdditionalParameters( prodid )
+    res = tsClient.getAdditionalParameters(prodid)
     if not res['OK']:
-      callback = {"success":"false", "error":res["Message"]}
+      callback = {"success": "false", "error": res["Message"]}
     else:
       result = res["Value"]
       back = []
-      for i in sorted( result.keys() ):
-        back.append( [i, result[i]] )
-      callback = {"success":"true", "result":back}
+      for i in sorted(result.keys()):
+        back.append([i, result[i]])
+      callback = {"success": "true", "result": back}
     return callback
 
   ################################################################################
-  def __workflowxml ( self, id ):
-    
+  def __workflowxml(self, transid):
+
     tsClient = TransformationClient()
-    retVal = tsClient.getTransformations( {'TransformationID':id} )
+    retVal = tsClient.getTransformations({'TransformationID': transid})
     if not retVal['OK']:
-      raise WErr.fromSERROR( retVal )
+      raise WErr.fromSERROR(retVal)
     print retVal['Value']
-    return {"success":"true", "result":retVal['Value'][0]['Body']}
-    
+    return {"success": "true", "result": retVal['Value'][0]['Body']}
+
   ################################################################################
-  def __getLoggingInfo( self, id ):
+  def __getLoggingInfo(self, transid):
 
     callback = {}
     tsClient = TransformationClient()
-    result = tsClient.getTransformationLogging( id )
+    result = tsClient.getTransformationLogging(transid)
     if result["OK"]:
       result = result["Value"]
-      if len( result ) > 0:
+      if len(result) > 0:
         callback = []
-        resultUser = gConfig.getSections( "/Security/Users" )
+        resultUser = gConfig.getSections("/Security/Users")
         if resultUser["OK"]:
           users = resultUser["Value"]
           dndb = {}
           for j in users:
-            dndb[gConfig.getValue( "/Security/Users/%s/DN" % j )] = j
+            dndb[gConfig.getValue("/Security/Users/%s/DN" % j)] = j
         else:
           dndb = {}
         for i in result:
           DN = i["AuthorDN"]
-          if dndb.has_key( DN ):
+          if DN in dndb:
             i["AuthorDN"] = dndb[DN]
           else:
             i["AuthorDN"] = DN  # "Owner Unknown"
-          date = Time.toString( i["MessageDate"] )
-          callback.append( [i["Message"], date, i["AuthorDN"]] )
-        callback = {"success":"true", "result":callback}
+          date = Time.toString(i["MessageDate"])
+          callback.append([i["Message"], date, i["AuthorDN"]])
+        callback = {"success": "true", "result": callback}
       else:
-        callback = {"success":"false", "error":"Nothing to display"}
+        callback = {"success": "false", "error": "Nothing to display"}
     else:
-      callback = {"success":"false", "error":result["Message"]}
-    gLogger.info( "PRODUCTION LOG:", id )
+      callback = {"success": "false", "error": result["Message"]}
+    gLogger.info("PRODUCTION LOG:", id)
     return callback
 
   ################################################################################
-  def __transformationFileStatus( self, id ):
+  def __transformationFileStatus(self, transid):
     callback = {}
     tsClient = TransformationClient()
-    res = tsClient.getTransformationFilesCount( id, "Status" )
+    res = tsClient.getTransformationFilesCount(transid, "Status")
     if not res['OK']:
-      callback = {"success":"false", "error":res["Message"]}
+      callback = {"success": "false", "error": res["Message"]}
     else:
       resList = []
-      total = res['Value'].pop( 'Total' )
+      total = res['Value'].pop('Total')
       if total == 0:
-        callback = {"success":"false", "error":"No files found"}
+        callback = {"success": "false", "error": "No files found"}
       else:
-        for status in sorted( res['Value'].keys() ):
+        for status in sorted(res['Value'].keys()):
           count = res['Value'][status]
-          percent = "%.1f" % ( ( count * 100.0 ) / total )
-          resList.append( ( status, str( count ), percent ) )
-        resList.append( ( 'Total', total, '-' ) )
-        callback = {"success":"true", "result":resList}
-    gLogger.info( "#######", res )
+          percent = "%.1f" % ((count * 100.0) / total)
+          resList.append((status, str(count), percent))
+        resList.append(('Total', total, '-'))
+        callback = {"success": "true", "result": resList}
+    gLogger.info("#######", res)
     return callback
 
   ################################################################################
-  def __transformationDetail( self, prodid ):
+  def __transformationDetail(self, prodid):
     callback = {}
 
     tsClient = TransformationClient()
-    res = tsClient.getTransformationParameters( prodid, ['DetailedInfo'] )
+    res = tsClient.getTransformationParameters(prodid, ['DetailedInfo'])
 
     if not res["OK"]:
-      callback = {"success":"false", "error":res["Message"]}
+      callback = {"success": "false", "error": res["Message"]}
     else:
       callback = res['Value']
       if callback:
-        callback = {"success":"true", "result":res['Value']}
+        callback = {"success": "true", "result": res['Value']}
       else:
-        callback = {"success":"false", "error":"Production does not have parameter 'DetailedInfo'"}
-    gLogger.info( "#######", res )
+        callback = {"success": "false", "error": "Production does not have parameter 'DetailedInfo'"}
+    gLogger.info("#######", res)
     return callback
 
   ################################################################################
-  def __extendTransformation( self, transid ):
+  def __extendTransformation(self, transid):
 
     try:
-      tasks = int( self.request.arguments["tasks"][-1] )
+      tasks = int(self.request.arguments["tasks"][-1])
     except KeyError as excp:
-      raise WErr( 400, "Missing %s" % excp )
+      raise WErr(400, "Missing %s" % excp)
 
-    gLogger.info( "extend %s" % transid )
+    gLogger.info("extend %s" % transid)
 
     tsClient = TransformationClient()
 
-    gLogger.info( "extendTransformation(%s,%s)" % ( transid, tasks ) )
-    res = tsClient.extendTransformation( transid, tasks )
+    gLogger.info("extendTransformation(%s,%s)" % (transid, tasks))
+    res = tsClient.extendTransformation(transid, tasks)
     if res["OK"]:
-      resString = "%s extended by %s successfully" % ( transid, tasks )
+      resString = "%s extended by %s successfully" % (transid, tasks)
     else:
-      resString = "%s failed to extend: %s" % ( transid, res["Message"] )
-    callback = {"success":"true", "showResult":[resString], "result":resString}
-    gLogger.info( "#######", res )
+      resString = "%s failed to extend: %s" % (transid, res["Message"])
+    callback = {"success": "true", "showResult": [resString], "result": resString}
+    gLogger.info("#######", res)
     return callback
 
   ################################################################################
   @asyncGen
-  def web_showFileStatus( self ):
+  def web_showFileStatus(self):
     callback = {}
-    start = int( self.request.arguments["start"][-1] )
-    limit = int( self.request.arguments["limit"][-1] )
+    start = int(self.request.arguments["start"][-1])
+    limit = int(self.request.arguments["limit"][-1])
     try:
-      id = self.request.arguments[ 'transformationId' ][-1]
-      status = self.request.arguments[ 'status' ][-1]
+      transid = self.request.arguments['transformationId'][-1]
+      status = self.request.arguments['status'][-1]
     except KeyError as excp:
-      raise WErr( 400, "Missing %s" % excp )
+      raise WErr(400, "Missing %s" % excp)
 
     tsClient = TransformationClient()
-    result = yield self.threadTask( tsClient.getTransformationFilesSummaryWeb, {'TransformationID':id, 'Status':status}, [["FileID", "ASC"]], start, limit )
+    result = yield self.threadTask(tsClient.getTransformationFilesSummaryWeb,
+                                   {'TransformationID': transid,
+                                    'Status': status},
+                                   [["FileID", "ASC"]], start, limit)
 
     if not result['OK']:
-      callback = {"success":"false", "error":result["Message"]}
+      callback = {"success": "false", "error": result["Message"]}
     else:
       result = result["Value"]
-      if result.has_key( "TotalRecords" ) and  result["TotalRecords"] > 0:
-        if result.has_key( "ParameterNames" ) and result.has_key( "Records" ):
-          if len( result["ParameterNames"] ) > 0:
-            if len( result["Records"] ) > 0:
+      if "TotalRecords" in result and result["TotalRecords"] > 0:
+        if "ParameterNames" in result and "Records" in result:
+          if len(result["ParameterNames"]) > 0:
+            if len(result["Records"]) > 0:
               callback = []
               jobs = result["Records"]
               head = result["ParameterNames"]
-              headLength = len( head )
+              headLength = len(head)
               for i in jobs:
                 tmp = {}
-                for j in range( 0, headLength ):
+                for j in range(0, headLength):
                   tmp[head[j]] = i[j]
-                callback.append( tmp )
+                callback.append(tmp)
               total = result["TotalRecords"]
-              timestamp = Time.dateTime().strftime( "%Y-%m-%d %H:%M [UTC]" )
-              if result.has_key( "Extras" ):
+              timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+              if "Extras" in result:
                 extra = result["Extras"]
-                callback = {"success":"true", "result":callback, "total":total, "extra":extra, "date":timestamp}
+                callback = {"success": "true", "result": callback, "total": total, "extra": extra, "date": timestamp}
               else:
-                callback = {"success":"true", "result":callback, "total":total, "date":timestamp}
+                callback = {"success": "true", "result": callback, "total": total, "date": timestamp}
             else:
-              callback = {"success":"false", "result":"", "error":"There are no data to display"}
+              callback = {"success": "false", "result": "", "error": "There are no data to display"}
           else:
-            callback = {"success":"false", "result":"", "error":"ParameterNames field is undefined"}
+            callback = {"success": "false", "result": "", "error": "ParameterNames field is undefined"}
         else:
-          callback = {"success":"false", "result":"", "error":"Data structure is corrupted"}
+          callback = {"success": "false", "result": "", "error": "Data structure is corrupted"}
       else:
-        callback = {"success":"false", "result":"", "error":"There were no data matching your selection"}
-    self.finish( callback )
-
-
+        callback = {"success": "false", "result": "", "error": "There were no data matching your selection"}
+    self.finish(callback)
 
   ################################################################################
-  def web_getTier1Sites( self ):
+  def web_getTier1Sites(self):
     callback = {}
-    tier1 = gConfig.getValue( "/WebApp/PreferredSites", [] )
-    if len( tier1 ) < 1:
-      callback = { 'success' : False, 'errors' : 'No site defined in the CS!' }
+    tier1 = gConfig.getValue("/WebApp/PreferredSites", [])
+    if len(tier1) < 1:
+      callback = {'success': False, 'errors': 'No site defined in the CS!'}
     else:
-      callback = { 'success' : True, 'data' : tier1}
-    self.finish( json.dumps( callback ) )
-
+      callback = {'success': True, 'data': tier1}
+    self.finish(json.dumps(callback))
 
   ################################################################################
   @asyncGen
-  def web_setSite( self ):
+  def web_setSite(self):
     callback = {}
     try:
-      transID = int( self.request.arguments[ 'TransformationId' ][-1] )
-      runID = int( self.request.arguments[ 'RunNumber' ][-1] )
-      site = self.request.arguments[ 'Site' ][-1]
+      transID = int(self.request.arguments['TransformationId'][-1])
+      runID = int(self.request.arguments['RunNumber'][-1])
+      site = self.request.arguments['Site'][-1]
     except KeyError as excp:
-      raise WErr( 400, "Missing %s" % excp )
+      raise WErr(400, "Missing %s" % excp)
 
-    gLogger.info( "\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % ( transID, runID, site ) )
+    gLogger.info("\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % (transID, runID, site))
 
     tsClient = TransformationClient()
-    result = yield self.threadTask( tsClient.setTransformationRunsSite, transID, runID, site )
+    result = yield self.threadTask(tsClient.setTransformationRunsSite, transID, runID, site)
 
     if result["OK"]:
-      callback = {"success":"true", "result":"true"}
+      callback = {"success": "true", "result": "true"}
     else:
-      callback = {"success":"false", "error":result["Message"]}
-    self.finish( callback )
+      callback = {"success": "false", "error": result["Message"]}
+    self.finish(callback)
 
   ################################################################################
-  def __request( self ):
+  def __request(self):
     req = {}
     if "limit" in self.request.arguments:
-      self.numberOfJobs = int( self.request.arguments["limit"][-1] )
+      self.numberOfJobs = int(self.request.arguments["limit"][-1])
       if "start" in self.request.arguments:
-        self.pageNumber = int( self.request.arguments["start"][-1] )
+        self.pageNumber = int(self.request.arguments["start"][-1])
       else:
         self.pageNumber = 0
     else:
       self.numberOfJobs = 25
       self.pageNumber = 0
     if 'transformationId' in self.request.arguments:
-      prods = list( json.loads( self.request.arguments[ 'transformationId' ][-1] ) )
-      if len( prods ) > 0:
+      prods = list(json.loads(self.request.arguments['transformationId'][-1]))
+      if len(prods) > 0:
         req['TransformationID'] = prods
 
     if 'requestId' in self.request.arguments:
-      requests = list( json.loads( self.request.arguments[ 'requestId' ][-1] ) )
-      if len( requests ) > 0:
+      requests = list(json.loads(self.request.arguments['requestId'][-1]))
+      if len(requests) > 0:
         req['TransformationFamily'] = requests
 
     if 'TransformationFamily' in self.request.arguments:
-      req['TransformationFamily'] = self.request.arguments[ 'TransformationFamily' ][-1]
+      req['TransformationFamily'] = self.request.arguments['TransformationFamily'][-1]
 
     if 'agentType' in self.request.arguments:
-      agentType = list( json.loads( self.request.arguments["agentType"][-1] ) )
-      if len( agentType ) > 0:
+      agentType = list(json.loads(self.request.arguments["agentType"][-1]))
+      if len(agentType) > 0:
         req['agentType'] = agentType
 
     if 'status' in self.request.arguments:
-      status = list( json.loads( self.request.arguments["status"][-1] ) )
-      if len( status ) > 0:
+      status = list(json.loads(self.request.arguments["status"][-1]))
+      if len(status) > 0:
         req['Status'] = status
 
     if 'plugin' in self.request.arguments:
-      plugin = list( json.loads( self.request.arguments["plugin"][-1] ) )
-      if len( plugin ) > 0:
+      plugin = list(json.loads(self.request.arguments["plugin"][-1]))
+      if len(plugin) > 0:
         req["Plugin"] = plugin
 
     if 'type' in self.request.arguments:
-      type = list( json.loads( self.request.arguments["type"][-1] ) )
-      if len( type ) > 0:
-        req['Type'] = type
+      transtype = list(json.loads(self.request.arguments["type"][-1]))
+      if len(transtype) > 0:
+        req['Type'] = transtype
 
     if 'transformationGroup' in self.request.arguments:
-      group = list( json.loads( self.request.arguments["transformationGroup"][-1] ) )
-      if len( group ) > 0:
+      group = list(json.loads(self.request.arguments["transformationGroup"][-1]))
+      if len(group) > 0:
         req['TransformationGroup'] = group
 
     if 'sort' in self.request.arguments:
-      sort = json.loads( self.request.arguments['sort'][-1] )
-      if len( sort ) > 0:
-        self.globalSort = [ ["TransformationFamily", "ASC"]]
-        for i in sort :
+      sort = json.loads(self.request.arguments['sort'][-1])
+      if len(sort) > 0:
+        self.globalSort = [["TransformationFamily", "ASC"]]
+        for i in sort:
           self.globalSort += [[i['property'], i['direction']]]
     else:
       self.globalSort = [["TransformationID", "DESC"]]
 
-    if 'startDate' in self.request.arguments and len( self.request.arguments["startDate"][0] ) > 0:
-      if 'startTime' in self.request.arguments and len( self.request.arguments["startTime"][0] ) > 0:
-        req["FromDate"] = str( self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0] )
+    if 'startDate' in self.request.arguments and len(self.request.arguments["startDate"][0]) > 0:
+      if 'startTime' in self.request.arguments and len(self.request.arguments["startTime"][0]) > 0:
+        req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
       else:
-        req["FromDate"] = str( self.request.arguments["startDate"][0] )
+        req["FromDate"] = str(self.request.arguments["startDate"][0])
 
-    if 'endDate' in self.request.arguments and len( self.request.arguments["endDate"][0] ) > 0:
-      if 'endTime' in self.request.arguments and len( self.request.arguments["endTime"][0] ) > 0:
-        req["ToDate"] = str( self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0] )
+    if 'endDate' in self.request.arguments and len(self.request.arguments["endDate"][0]) > 0:
+      if 'endTime' in self.request.arguments and len(self.request.arguments["endTime"][0]) > 0:
+        req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
       else:
-        req["ToDate"] = str( self.request.arguments["endDate"][0] )
+        req["ToDate"] = str(self.request.arguments["endDate"][0])
 
-    if 'date' in self.request.arguments and len( self.request.arguments["date"][0] ) > 0:
-      req["LastUpdate"] = str( self.request.arguments["date"][0] )
-    gLogger.info( "REQUEST:", req )
+    if 'date' in self.request.arguments and len(self.request.arguments["date"][0]) > 0:
+      req["LastUpdate"] = str(self.request.arguments["date"][0])
+    gLogger.info("REQUEST:", req)
     return req

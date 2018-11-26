@@ -622,10 +622,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             Ext.merge(extraParams, timeSearchData);
           }
           for (var i in me.cmbSelectors) {
-            var param = (me.cmbSelectors[i].isInverseSelection()) ? me.cmbSelectors[i].getInverseSelection().split(",") : me.cmbSelectors[i].getValue();
-            // var param = (me.cmbSelectors[i].isInverseSelection()) ?
-            // me.cmbSelectors[i].getInverseSelection() :
-            // me.cmbSelectors[i].getValue();
+            var param = (me.cmbSelectors[i].isInverseSelection()) ? me.cmbSelectors[i].getInverseSelection() : me.cmbSelectors[i].getValue();
             if (param.length != 0) {
               extraParams[i] = Ext.JSON.encode(param);
             }

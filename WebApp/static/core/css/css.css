@@ -40,7 +40,6 @@
 */
 
 #app-dirac-welcome{
-    display: none;
     height:100%;
     width:100%;
     position:absolute;
@@ -59,9 +58,6 @@
     font-size: 16px;
     overflow:auto;
     height: 80%;
-}
-#app-dirac-welcome-visitor{
-    display:none;
 }
 #app-dirac-welcome .app-dirac-welcome-text::-webkit-scrollbar{
     width:8px;
