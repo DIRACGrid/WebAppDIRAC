@@ -92,6 +92,7 @@ class RootHandler(WebHandler):
     icon = data[ 'baseURL' ] + Conf.getIcon()
     background = data[ 'baseURL' ] + Conf.getBackgroud()
     logo = data[ 'baseURL' ] + Conf.getLogo()
+    welcome = Conf.getWelcome()
     
     level = str(gLogger.getLevel()).lower()
     self.render( "root.tpl", iconUrl=icon, base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
@@ -99,6 +100,6 @@ class RootHandler(WebHandler):
                  extensions = data[ 'extensions' ],
                  credentials = data[ 'user' ], title = Conf.getTitle(),
                  theme = theme_name, root_url = Conf.rootURL(), view = view_name, 
-                 open_app = open_app, debug_level= level,
+                 open_app = open_app, debug_level = level, welcome = welcome,
                  backgroundImage = background, logo = logo )
     
