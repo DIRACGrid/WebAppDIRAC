@@ -176,17 +176,17 @@ class WebHandler(tornado.web.RequestHandler):
         ID = requests.get(url, headers=heads, verify=False).json()['sub']
         result = getUsernameForID(ID)
         if result['OK']:
-          self.__credDict[ 'username' ] = result['Value']
-        result = getDNForUsername(self.__credDict[ 'username' ])
+          self.__credDict['username'] = result['Value']
+        result = getDNForUsername(self.__credDict['username'])
         if result['OK']:
-          self.__credDict[ 'validDN' ] = True
-          self.__credDict[ 'DN' ] = result['Value'][0]
-        result = getCAForUsername(self.__credDict[ 'username' ])
+          self.__credDict['validDN'] = True
+          self.__credDict['DN'] = result['Value'][0]
+        result = getCAForUsername(self.__credDict['username'])
         if result['OK']:
-          self.__credDict[ 'issuer' ] = result['Value'][0]
+          self.__credDict['issuer'] = result['Value'][0]
         return
 
-    #Type of Auth
+    # Type of Auth
     if not self.get_secure_cookie("TypeAuth"):
       self.set_secure_cookie("TypeAuth", 'Certificate')
     typeAuth = self.get_secure_cookie("TypeAuth")
@@ -196,7 +196,7 @@ class WebHandler(tornado.web.RequestHandler):
     retVal = Conf.getCSSections("TypeAuths")
     if retVal['OK']:
       if typeAuth in retVal.get("Value"):
-        method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth,'default')
+        method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth, 'default')
         if method == "oAuth2":
           oAuth2()
 
@@ -209,14 +209,16 @@ class WebHandler(tornado.web.RequestHandler):
           items = DN.split(',')
           items.reverse()
           DN = '/' + '/'.join(items)
+        self.__credDict['DN'] = DN
+        self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
         result = Registry.getUsernameForDN(DN)
-        if result['OK']:
-          self.__credDict['DN'] = DN
-          self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
+        if not result['OK']:
+          self.__credDict['validDN'] = False
+        else:
           self.__credDict['validDN'] = True
           self.__credDict['username'] = result['Value']
       return
-    
+
     # TORNADO
     derCert = self.request.get_ssl_certificate(binary_form=True)
     if not derCert:
