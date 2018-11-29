@@ -10,13 +10,14 @@ Ext.define('Ext.dirac.utils.GridPanel', {
         enableTextSelection : true
       },
       menu : null,
+      scrollable : true,
       listeners : {
         
         beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           e.preventDefault();
           var me = this;
           if (me.menu) {
-            me.menu.showAt(e.xy);
+            me.menu.showAt(e.getXY());
           }
           return false;
         }
@@ -33,7 +34,7 @@ Ext.define('Ext.dirac.utils.GridPanel', {
                 extraParams : me.params,
                 reader : {
                   type : 'json',
-                  root : 'result'
+                  rootProperty : 'result'
                 },
                 timeout : 1800000,
                 listeners : {
@@ -76,6 +77,7 @@ Ext.define('Ext.dirac.utils.GridPanel', {
               disabled : true,
               // disabledClass:'my-disabled',
               text : 'Updated: -'
+              
             });
 
         me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
@@ -110,7 +112,8 @@ Ext.define('Ext.dirac.utils.GridPanel', {
               displayMsg : 'Displaying topics {0} - {1} of {2}',
               items : pagingToolbarItems,
               emptyMsg : "No topics to display",
-              prependButtons : true
+              prependButtons : true,
+              scrollable : true
             });
 
         Ext.apply(me, {

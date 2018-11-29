@@ -1,7 +1,7 @@
 Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
       extend : 'Ext.dirac.core.Module',
       requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet",
-          "Ext.dirac.utils.DiracMultiSelect", "Ext.toolbar.Toolbar", "Ext.data.Record", 'Ext.Array', 'Ext.data.TreeStore', "Ext.ux.form.MultiSelect"],
+          "Ext.dirac.utils.DiracMultiSelect", "Ext.toolbar.Toolbar", "Ext.data.Record", 'Ext.Array', 'Ext.data.TreeStore', "Ext.ux.form.MultiSelect","DIRAC.ActivityMonitor.classes.ActivityTreeModel"],
 
       expansionState : {},
       initComponent : function() {
@@ -109,8 +109,9 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                 type : 'ajax',
                 url : GLOBAL.BASE_URL + 'ActivityMonitor/getActivityData',
                 reader : {
+                  keepRawData : true,
                   type : 'json',
-                  root : 'result'
+                  rootProperty : 'result'
                 },
                 timeout : 1800000
               },
@@ -134,13 +135,13 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
                 load : function(oStore, records, successful, eOpts) {
 
-                  var bResponseOK = (oStore.proxy.reader.rawData["success"] == "true");
+                  var bResponseOK = (oStore.proxy.getReader().rawData["success"] == "true");
 
                   if (!bResponseOK) {
 
-                    GLOBAL.APP.CF.alert(oStore.proxy.reader.rawData["error"], "info");
+                    GLOBAL.APP.CF.alert(oStore.proxy.getReader().rawData["error"], "info");
 
-                    if (parseInt(oStore.proxy.reader.rawData["total"], 10) == 0) {
+                    if (parseInt(oStore.proxy.getReader().rawData["total"], 10) == 0) {
 
                       me.dataStore.removeAll();
 
@@ -769,7 +770,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                   e.preventDefault();
                   if (oNode.raw.id != "root") {
                     me.contextTreeMenu.node = oNode;
-                    me.contextTreeMenu.showAt(e.xy);
+                    me.contextTreeMenu.showAt(e.getXY());
                   }
 
                 }

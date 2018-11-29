@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.TabPanel', {
       extend : 'Ext.tab.Panel',
-      requires : ["Ext.ux.TabReorderer"],
+      requires : ["Ext.ux.TabScrollerMenu", "Ext.ux.TabReorderer"],
       xtype : 'diractabcontainer',
       alias : 'widget.tabPanel',
       resizeTabs : true,
@@ -17,7 +17,11 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       tabChangeCycle : 0,
       tabCounter : 0,
       view : 'tabView',
-      // renderTo:Ext.getBody(),
+      renderTo : Ext.getBody(),
+      defaults: {
+        bodyPadding: 10,
+        scrollable: true
+    },
       bodyStyle : {
         background : '#AAAAAA',
         backgroundImage: 'url('+GLOBAL.BACKGROUND+')',
@@ -26,7 +30,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
       },
 
       workspace : null,
-      plugins : [Ext.create('Ext.ux.TabReorderer')],
+      plugins : ['tabreorderer'], //TODO: use 'tabscrollermenu' plugin when it will be fixed
       setWorkspace : function(wsk) {
         this.workspace = wsk;
       },

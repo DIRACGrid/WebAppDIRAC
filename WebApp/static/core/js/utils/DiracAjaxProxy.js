@@ -19,9 +19,12 @@
 Ext.define('Ext.dirac.utils.DiracAjaxProxy', {
       extend : 'Ext.data.proxy.Ajax',
       type : 'ajax',
+      autoLoad: true,
       reader : {
+        keepRawData : true,
         type : 'json',
-        root : 'result'
+        rootProperty : 'result',
+        metaProperty: 'extra'
       },
       /**
        * @cfg{Number} timeout default timeout is 2 minutes (120000 millisecond).

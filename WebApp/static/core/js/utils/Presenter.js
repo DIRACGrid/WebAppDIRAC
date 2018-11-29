@@ -189,7 +189,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
         var me = this;
         me.add(img);
         me.addClickEvent(img);
-        me.doLayout();
+        me.updateLayout();
       },
       addClickEvent : function(img) {
         var el = img.getEl();
@@ -353,7 +353,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
           me.unselectImage(image);
         }
         me.remove(id);
-        me.doLayout();
+        me.updateLayout();
       },
       getLastClickedImage : function() {
         var me = this;
@@ -374,7 +374,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
         me.items.each(function(value, index) {
               value.columnWidth = width;
             });
-        me.doLayout();
+        me.updateLayout();
       },
       fullSizeImage : function(img) {
         var me = this;

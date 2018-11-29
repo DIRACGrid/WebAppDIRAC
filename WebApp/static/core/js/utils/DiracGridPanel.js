@@ -112,6 +112,37 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
           groupexpand : function(view, node, group, eOpts) {
             var selectedRow = view.getSelectionModel().getSelection();
             view.deselect(selectedRow);
+          },
+          render : function(view) {
+            var grid = this;
+
+            // record the current cellIndex
+            grid.mon(view, {
+                  uievent : function(type, view, cell, recordIndex, cellIndex, e) {
+                    grid.cellIndex = cellIndex;
+                    grid.recordIndex = recordIndex;
+                  }
+                });
+
+            grid.tip = Ext.create('Ext.tip.ToolTip', {
+                  target : view.el,
+                  delegate : '.x-grid-cell',
+                  trackMouse : true,
+                  renderTo : Ext.getBody(),
+                  listeners : {
+                    beforeshow : function updateTipBody(tip) {
+                      if (!Ext.isEmpty(grid.cellIndex) && grid.cellIndex !== -1) {
+                        header = grid.headerCt.getGridColumns()[grid.cellIndex];
+                        tip.update(grid.getStore().getAt(grid.recordIndex).get(header.dataIndex));
+                      }
+                    }
+                  }
+                });
+
+          },
+
+          destroy : function(view) {
+            delete view.tip; // Clean up this property on destroy.
           }
         }
       },
@@ -132,10 +163,11 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       columns : [],
       /**
        * @cfg{List} renderers it contains a list of available renderer:
-       *            ["rendererChkBox", "rendererStatus","diffValues"] NOTE: You
-       *            can implement new renderer.
+       *            ["rendererChkBox",
+       *            "rendererStatus","diffValues","renderStatusForGivenColor"]
+       *            NOTE: You can implement new renderer.
        */
-      renderers : ["rendererChkBox", "rendererStatus", "diffValues"],
+      renderers : ["rendererChkBox", "rendererStatus", "diffValues", "renderStatusForGivenColor"],
       /**
        * This function is used to load the data which is saved in the User
        * Profile.
@@ -165,21 +197,20 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                 col.hide();
               else
                 col.show();
-
-              var sortState = grid.columns[col.getSortParam()].sortState;
-
-              if (sortState != null)
-                col.setSortState(sortState);
             }
           }
         }
         if (grid && grid.groupers) {
-          me.store.groupers.clear();
-          me.store.groupers.addAll(me.store.decodeGroupers(grid.groupers));
+          me.getStore().clearGrouping();
+          for (var i = 0; i < grid.groupers.length; i++) {
+            me.getStore().group(grid.groupers[i].property, grid.groupers[i].direction);
+          }
         }
         if (grid && grid.sorters) {
-          me.store.sorters.clear();
-          me.store.sorters.addAll(me.store.decodeSorters(grid.sorters));
+          me.getStore().getSorters().clear();
+          for (var i = 0; i < grid.sorters.length; i++) {
+            me.getStore().getSorters().addSort(grid.sorters[i].property, grid.sorters[i].direction);
+          }
         }
 
         if (me.pagingToolbar) {
@@ -222,26 +253,31 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
         }
 
+        /*
+         * Get the sorter and grouper from the state data...
+         */
         oReturn.sorters = [];
         oReturn.groupers = [];
 
-        me.store.sorters.each(function(key, value) {
-              GLOBAL.APP.CF.log('debug', ":", key);
-              GLOBAL.APP.CF.log('debug', ":", value);
-              oReturn.sorters.push({
-                    "property" : key.property,
-                    "direction" : key.direction
-                  });
-            });
+        var stateData = me.getState();
 
-        me.store.groupers.each(function(key, value) {
-              GLOBAL.APP.CF.log('debug', ":", key);
-              GLOBAL.APP.CF.log('debug', ":", value);
-              oReturn.groupers.push({
-                    "property" : key.property,
-                    "direction" : key.direction
+        if (stateData.storeState) {
+          if (stateData.storeState.sorters) {
+            for (var i = 0; i < stateData.storeState.sorters.length; i++) {
+              oReturn.sorters.push({
+                    "property" : stateData.storeState.sorters[i].property,
+                    "direction" : stateData.storeState.sorters[i].direction
                   });
-            });
+            }
+          }
+
+          if (stateData.storeState.grouper) {
+            oReturn.groupers.push({
+                  "property" : stateData.storeState.grouper.property,
+                  "direction" : stateData.storeState.grouper.direction
+                });
+          }
+        }
 
         if (me.pagingToolbar) {
           oReturn.pagingToolbar = me.pagingToolbar.getStateData();
@@ -315,6 +351,10 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                 func = function(value, metaData, record, rowIndex, colIndex, store) {
                   return me.diffValues(value, metaData, record, rowIndex, colIndex, store);
                 };
+              } else if (config.oColumns[i]["renderFunction"] == "renderStatusForGivenColor") {
+                func = function(value, metaData, record, rowIndex, colIndex, store) {
+                  return me.renderStatusForGivenColor(value, metaData, record, rowIndex, colIndex, store);
+                };
               } else {
                 var message = config.oColumns[i]["renderFunction"] + " render function does not exists!!!"
               }
@@ -345,10 +385,10 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
                   beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
                     e.preventDefault();
-                    if (config.contextMenu.dynamicShow){
+                    if (config.contextMenu.dynamicShow) {
                       config.contextMenu.doSow(record);
                     }
-                    config.contextMenu.showAt(e.xy);
+                    config.contextMenu.showAt(e.getXY());
                     return false;
                   }
                 }
@@ -433,5 +473,14 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
           }
 
         }
+      },
+      renderStatusForGivenColor : function(value, metadata, record) {
+
+        for (var i = 0; i < this.getStore().getData().getCount(); i++) {
+          if (this.getStore().getData().getAt(i).data.key == value) {
+            return '<div style="background-color:' + this.getStore().getData().getAt(i).data.color + ';width:50px;padding:10px;">';
+          }
+        }
+
       }
     });

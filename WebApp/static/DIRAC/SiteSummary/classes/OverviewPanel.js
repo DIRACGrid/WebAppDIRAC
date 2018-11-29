@@ -207,7 +207,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
                   e.preventDefault();
                   me.contextGridMenu.record = record;
-                  me.contextGridMenu.showAt(e.xy);
+                  me.contextGridMenu.showAt(e.getXY());
                   return false;
                 }
               }
@@ -278,7 +278,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 beforecellcontextmenu : function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
                   e.preventDefault();
                   me.contextGridMenu.record = record;
-                  me.contextGridMenu.showAt(e.xy);
+                  me.contextGridMenu.showAt(e.getXY());
                   return false;
                 }
               }
@@ -449,7 +449,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                   }
                   
                   
-                  me.plotPanel.doLayout();
+                  me.plotPanel.updateLayout();
                   me.rightPanel.dorefresh();
                   //me.plotPanel.dorefresh();
                   //me.dorefresh();

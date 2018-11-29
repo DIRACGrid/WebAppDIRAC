@@ -3,8 +3,8 @@
  */
 Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
       extend : 'Ext.dirac.core.Module',
-      requires : ['Ext.panel.Panel', 'Ext.panel.Panel', 'Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracToolButton', 'Ext.dirac.utils.GridPanel', "Ext.form.field.TextArea", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton',
-          'Ext.dirac.utils.DiracPageSizeCombo', 'Ext.dirac.utils.DiracPagingToolbar', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy', 'Ext.dirac.utils.DiracApplicationContextMenu', 'Ext.dirac.utils.DiracBaseSelector'],
+      requires : ['Ext.panel.Panel', 'Ext.panel.Panel', 'Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.GridPanel', "Ext.form.field.TextArea", "Ext.dirac.utils.DiracGridPanel", 'Ext.dirac.utils.DiracIdListButton', 'Ext.dirac.utils.DiracPageSizeCombo',
+          'Ext.dirac.utils.DiracPagingToolbar', 'Ext.dirac.utils.DiracJsonStore', 'Ext.dirac.utils.DiracAjaxProxy', 'Ext.dirac.utils.DiracApplicationContextMenu', 'Ext.dirac.utils.DiracBaseSelector'],
       applicationsToOpen : {
         'JobMonitor' : 'DIRAC.JobMonitor.classes.JobMonitor'
       },
@@ -754,6 +754,11 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                               dataIndex : 'precentage'
                             }], menu);
                   } else if (oDataKind == 'fileProcessed') {
+                    var menu = [{
+                          text : 'Show Files',
+                          handler : me.__showFileStatus,
+                          arguments : [me, "Processed"]
+                        }];
                     me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Production:" + oId, ["retries", "count", "precentage"], [{
                               text : 'Retries',
                               flex : 1,
@@ -769,8 +774,13 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                               flex : 1,
                               sortable : false,
                               dataIndex : 'precentage'
-                            }]);
+                            }], menu);
                   } else if (oDataKind == 'fileNotProcessed') {
+                    var menu = [{
+                          text : 'Show Files',
+                          handler : me.__showFileStatus,
+                          arguments : [me, "NotProcessed"]
+                        }];
                     me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Production:" + oId, ["retries", "count", "precentage"], [{
                               text : 'Retries',
                               flex : 1,
@@ -786,7 +796,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                               flex : 1,
                               sortable : false,
                               dataIndex : 'precentage'
-                            }]);
+                            }], menu);
                   } else if (oDataKind == 'fileAllProcessed') {
                     me.getContainer().oprPrepareAndShowWindowGrid(jsonData["result"], "Production:" + oId, ["retries", "count", "precentage"], [{
                               text : 'Retries',
@@ -840,7 +850,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                       w.focus();
 
                     } else {
-                      
+
                       var win = GLOBAL.APP.MAIN_VIEW.getRightContainer().createModalWindow({
                             height : 500,
                             width : 700,
@@ -870,10 +880,13 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               }
             });
       },
-      __showFileStatus : function(parent) {
+      __showFileStatus : function(parent, status) {
         var me = this;
         oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(parent.grid, "TransformationID");
         var oStatus = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me, "status");
+        if (!oStatus) {
+          oStatus = status;
+        }
         parent.grid.body.mask("Wait ...");
 
         var url = GLOBAL.BASE_URL + 'TransformationMonitor/showFileStatus';
@@ -887,6 +900,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         var oColumns = [{
               text : 'LFN',
               flex : 1,
+              width : 60,
               sortable : false,
               dataIndex : oFields[0]
             }, {
@@ -939,6 +953,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
             }];
 
         var oGrid = parent.__createStatusGridPanel(oFields, oColumns, url, params);
+        
         /*
          * var oMenu = new Ext.menu.Menu({ items : [{ text : 'Show value',
          * handler : Ext.bind(parent.getContainer().showValue, oGrid, [oGrid],
@@ -1079,7 +1094,41 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               params : params,
               menu : null,
               parent : me,
-              selType : 'cellmodel'
+              selType : 'cellmodel',
+              viewConfig : {
+                listeners : {
+                  render : function(view) {
+                    var grid = this;
+
+                    // record the current cellIndex
+                    grid.mon(view, {
+                          uievent : function(type, view, cell, recordIndex, cellIndex, e) {
+                            grid.cellIndex = cellIndex;
+                            grid.recordIndex = recordIndex;
+                          }
+                        });
+
+                    grid.tip = Ext.create('Ext.tip.ToolTip', {
+                          target : view.el,
+                          delegate : '.x-grid-cell',
+                          trackMouse : true,
+                          renderTo : Ext.getBody(),
+                          listeners : {
+                            beforeshow : function updateTipBody(tip) {
+                              if (!Ext.isEmpty(grid.cellIndex) && grid.cellIndex !== -1) {
+                                header = grid.headerCt.getGridColumns()[grid.cellIndex];
+                                tip.update(grid.getStore().getAt(grid.recordIndex).get(header.dataIndex));
+                              }
+                            }
+                          }
+                        });
+
+                  },
+                  destroy : function(view) {
+                    delete view.tip; // Clean up this property on destroy.
+                  }
+                }
+              }
             });
 
         return oGrid;

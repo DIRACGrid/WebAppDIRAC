@@ -12,11 +12,15 @@
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/FileSaver/FileSaver.js"></script>
     <script type="text/javascript" src="{{base_url}}/static/oidc/oidc-client/dist/oidc-client.js"></script>
 	  
-	<link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
-    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/resources/css/{{theme}}.css" />
+	  {% if bugReportURL!='' %}
+	  	<script type="text/javascript" src="{{bugReportURL}}"></script>
+	  {% end %}
+
+    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/build/classic/theme-{{theme}}/resources/theme-{{theme}}-all.css" />
+    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/build/classic/theme-{{theme}}/resources/theme-{{theme}}-all.css" />
+
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/iconset.css" />
-    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/TabScrollerMenu.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/tabtheme.css" />    
  
     {% autoescape None %}
@@ -27,14 +31,20 @@
 
     {% if _dev %}
        {% if debug_level=='debug' %}
-       	  <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all-dev.js"></script>
-          <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all-dev.js"></script>
+          <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/build/ext-all-debug.js"></script>
+          <script type="text/javascript" src="{{base_url}}/static/extjs/build/ext-all-debug.js"></script>
        {% else %}
-         <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all.js"></script>
+         <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/build/ext-all.js"></script>
+         <script type="text/javascript" src="{{base_url}}/static/extjs/build/ext-all.js"></script>
+
        {% end %}
     {% else %}
       <script type="text/javascript" src="{{base_url}}/static/core/build/all-classes.js"></script>
     {% end %}
+    
+    <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/build/packages/charts/classic/charts.js"></script>
+    <link rel="stylesheet" type="text/css"  href="{{base_url}}/static/extjs/{{ext_version}}/build/packages/charts/classic/classic/resources/charts-all.css">
+    
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
       google.load("visualization", "1", {packages:["corechart","annotatedtimeline"]});
@@ -58,8 +68,8 @@
             'Ext.dirac.core': '{{base_url}}/static/core/js/core',
             'Ext.dirac.views': '{{base_url}}/static/core/js/views',
             'Ext.dirac.utils': '{{base_url}}/static/core/js/utils',
-            'Ext.ux.form':'{{base_url}}/static/extjs/{{ext_version}}/examples/ux/form',
-            'Ext.ux':'{{base_url}}/static/extjs/{{ext_version}}/examples/ux'
+            'Ext.ux.form':'{{base_url}}/static/extjs/{{ext_version}}/packages/ux/classic/src/form',
+            'Ext.ux':'{{base_url}}/static/extjs/{{ext_version}}/packages/ux/classic/src'            
           });
 
           Ext.require(['Ext.dirac.core.App','Ext.*']);
@@ -92,7 +102,7 @@
             GLOBAL.APP = new Ext.dirac.core.App();
             setTimeout(function(){
               Ext.get("app-dirac-loading").hide();
-              Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ...");
+              Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
             },1000);
           });
       {% else %}
@@ -124,7 +134,7 @@
               GLOBAL.APP = new Ext.dirac.core.App();
               setTimeout(function(){
                 Ext.get("app-dirac-loading").hide();
-                Ext.get("app-dirac-loading-msg").setHTML("Loading module. Please wait ...");
+                Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
               },1000);
           });
       {% end %}

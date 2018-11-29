@@ -674,7 +674,7 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
                       e.preventDefault();
 
                       me.predefinedSetsMenu.node = oNode;
-                      me.predefinedSetsMenu.showAt(e.xy);
+                      me.predefinedSetsMenu.showAt(e.getXY());
 
                       return false;
 

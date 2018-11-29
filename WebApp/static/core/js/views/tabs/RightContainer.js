@@ -5,7 +5,8 @@
  */
 Ext.define('Ext.dirac.views.tabs.RightContainer', {
       extend : 'Ext.container.Container',
-      requires : ['Ext.dirac.views.tabs.TabPanel', 'Ext.dirac.views.tabs.Wallpaper', 'Ext.dirac.views.tabs.PresenterView', 'Ext.dirac.views.tabs.Panel', 'Ext.dirac.views.tabs.TabMenuPlugin', 'Ext.dirac.views.tabs.TabScrollerButton'],
+      requires : ['Ext.ux.desktop.TaskBar','Ext.dirac.views.tabs.TabPanel', 'Ext.dirac.views.tabs.Wallpaper', 
+      'Ext.dirac.views.tabs.PresenterView', 'Ext.dirac.views.tabs.Panel','Ext.ux.TabScrollerMenu','Ext.dirac.views.tabs.TabScrollerMenu'],
       xtype : 'diractabs',
       taskbar : null, // this is used by the desktop layout
       layout : 'fit',
@@ -407,6 +408,15 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                   isLoaded : isLoaded
                 });
           } else {
+          
+            /* let's create the fast menu */
+            var menu = Ext.create({
+                  xtype : 'button',
+                  iconCls : null,
+                  tab : me,
+                  plugins : 'diractabscrollermenu',
+                  glyph : 61
+                });
             tab = Ext.create('widget.tabPanel', {
                   region : 'center',
                   minWidth : 300,
@@ -419,37 +429,35 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                     backgroundImage : 'url('+GLOBAL.BACKGROUND+')',
                     backgroundPosition : 'bottom right',
                     backgroundRepeat : 'no-repeat'
-                  }
-                });
-            tab.addPlugin(Ext.create('Ext.dirac.views.tabs.TabMenuPlugin', {
-                  width : 60, // 30
-                  position : 'right',
-                  items : [{
-                        xtype : "tabscrollerbutton",
-                        tabPanel : tab,
-                        menuPrefixText : "Applications",
-                        maxText : 100,
-                        pageSize : 5,
-                        tooltip : "Jump to the selected application."
-                      }, {
-                        xtype : "button",
-                        glyph : '63',
-                        tooltip : "It provides description of the active application.",
-                        handler : function() {
-                          var desktop = me.getApplicationContainer().getActiveTab();
-                          if (desktop) {
-                            var app = desktop.getActiveTab();
-                            if (app) {
-                              GLOBAL.APP.MAIN_VIEW.openHelpWindow(app);
-                            }
-                          }
-
-                        }
+                  },
+                  dockedItems : [{
+                        xtype : 'toolbar',
+                        defaults : {
+                          xtype : 'tool',
+                          weight : 20,
+                          border : true
+                        },
+                        items : ['->', menu, {
+                              type : 'help',
+                              align : 'right',
+                              handler : function() {
+                                var desktop = me.getApplicationContainer().getActiveTab();
+                                if (desktop) {
+                                  var app = desktop.getActiveTab();
+                                  if (app) {
+                                    GLOBAL.APP.MAIN_VIEW.openHelpWindow(app);
+                                  }
+                                }
+                              }
+                            }]
                       }]
-                }));
-            tab.initPlugin(tab.plugins[0]);
-          }
+                });
 
+          }
+          
+          //we have to re-initialize the plugin again ...
+          menu.plugins[0].init(tab, menu);
+          
           me.getApplicationContainer().add(tab);
           me.getApplicationContainer().setActiveTab(tab);
         }

@@ -8,41 +8,52 @@ from DIRAC.Core.Security import Locations, X509Chain, X509CRL
 
 BASECS = "/WebApp"
 
-def getCSValue( opt, defValue = None ):
-  return gConfig.getValue( "%s/%s" % ( BASECS, opt ), defValue )
 
-def getCSSections( opt ):
-  return gConfig.getSections( "%s/%s" % ( BASECS, opt ) )
+def getCSValue(opt, defValue=None):
+  return gConfig.getValue("%s/%s" % (BASECS, opt), defValue)
 
-def getCSOptions( opt ):
-  return gConfig.getOptions( "%s/%s" % ( BASECS, opt ) )
-  
-def getCSOptionsDict( opt ):
-  return gConfig.getOptionsDict( "%s/%s" % ( BASECS, opt ) )
+
+def getCSSections(opt):
+  return gConfig.getSections("%s/%s" % (BASECS, opt))
+
+
+def getCSOptions(opt):
+  return gConfig.getOptions("%s/%s" % (BASECS, opt))
+
+
+def getCSOptionsDict(opt):
+  return gConfig.getOptionsDict("%s/%s" % (BASECS, opt))
+
 
 def getTitle():
-  defVal = gConfig.getValue( "/DIRAC/Configuration/Name", gConfig.getValue( "/DIRAC/Setup" ) )
-  return "%s - DIRAC" % gConfig.getValue( "%s/Title" % BASECS, defVal )
+  defVal = gConfig.getValue("/DIRAC/Configuration/Name", gConfig.getValue("/DIRAC/Setup"))
+  return "%s - DIRAC" % gConfig.getValue("%s/Title" % BASECS, defVal)
+
 
 def devMode():
-  return getCSValue( "DevelopMode", True )
+  return getCSValue("DevelopMode", True)
+
 
 def rootURL():
-  return getCSValue( "RootURL", "/DIRAC" )
+  return getCSValue("RootURL", "/DIRAC")
+
 
 def balancer():
-  b = getCSValue( "Balancer", "" ).lower()
-  if b in ( "", "none" ):
-      return ""
+  b = getCSValue("Balancer", "").lower()
+  if b in ("", "none"):
+    return ""
   return b
 
+
 def numProcesses():
-  return getCSValue( "NumProcesses", 1 )
+  return getCSValue("NumProcesses", 1)
+
 
 def HTTPS():
   if balancer():
     return False
-  return getCSValue( "HTTPS/Enabled", True )
+  return getCSValue("HTTPS/Enabled", True)
+
 
 def HTTPPort():
   if balancer():
@@ -50,10 +61,12 @@ def HTTPPort():
   else:
     default = 8080
   procAdd = tornado.process.task_id() or 0
-  return getCSValue( "HTTP/Port", default ) + procAdd
+  return getCSValue("HTTP/Port", default) + procAdd
+
 
 def HTTPSPort():
-  return getCSValue( "HTTPS/Port", 8443 )
+  return getCSValue("HTTPS/Port", 8443)
+
 
 def HTTPSCert():
   cert = Locations.getHostCertificateAndKeyLocation()
@@ -61,7 +74,8 @@ def HTTPSCert():
     cert = cert[0]
   else:
     cert = "/opt/dirac/etc/grid-security/hostcert.pem"
-  return getCSValue( "HTTPS/Cert", cert )
+  return getCSValue("HTTPS/Cert", cert)
+
 
 def HTTPSKey():
   key = Locations.getHostCertificateAndKeyLocation()
@@ -69,88 +83,100 @@ def HTTPSKey():
     key = key[1]
   else:
     key = "/opt/dirac/etc/grid-security/hostkey.pem"
-  return getCSValue( "HTTPS/Key", key )
+  return getCSValue("HTTPS/Key", key)
+
 
 def setup():
-  return gConfig.getValue( "/DIRAC/Setup" )
+  return gConfig.getValue("/DIRAC/Setup")
+
 
 def cookieSecret():
   # TODO: Store the secret somewhere
-  return gConfig.getValue( "CookieSecret", uuid.getnode() )
+  return gConfig.getValue("CookieSecret", uuid.getnode())
+
 
 def generateCAFile():
   """
   Generate a single CA file with all the PEMs
   """
   caDir = Locations.getCAsLocation()
-  for fn in ( os.path.join( os.path.dirname( caDir ), "cas.pem" ),
-              os.path.join( os.path.dirname( HTTPSCert() ), "cas.pem" ),
-              False ):
+  for fn in (os.path.join(os.path.dirname(caDir), "cas.pem"),
+             os.path.join(os.path.dirname(HTTPSCert()), "cas.pem"),
+             False):
     if not fn:
-      fn = tempfile.mkstemp( prefix = "cas.", suffix = ".pem" )[1]
+      fn = tempfile.mkstemp(prefix="cas.", suffix=".pem")[1]
     try:
-      fd = open( fn, "w" )
+      fd = open(fn, "w")
     except IOError:
       continue
-    for caFile in os.listdir( caDir ):
-      caFile = os.path.join( caDir, caFile )
-      result = X509Chain.X509Chain.instanceFromFile( caFile )
-      if not result[ 'OK' ]:
+    for caFile in os.listdir(caDir):
+      caFile = os.path.join(caDir, caFile)
+      result = X509Chain.X509Chain.instanceFromFile(caFile)
+      if not result['OK']:
         continue
-      chain = result[ 'Value' ]
+      chain = result['Value']
       expired = chain.hasExpired()
-      if not expired[ 'OK' ] or expired[ 'Value' ]:
+      if not expired['OK'] or expired['Value']:
         continue
-      fd.write( chain.dumpAllToString()[ 'Value' ] )
+      fd.write(chain.dumpAllToString()['Value'])
     fd.close()
     return fn
   return False
+
 
 def generateRevokedCertsFile():
   """
   Generate a single CA file with all the PEMs
   """
   caDir = Locations.getCAsLocation()
-  for fn in ( os.path.join( os.path.dirname( caDir ), "allRevokedCerts.pem" ),
-              os.path.join( os.path.dirname( HTTPSCert() ), "allRevokedCerts.pem" ),
-              False ):
+  for fn in (os.path.join(os.path.dirname(caDir), "allRevokedCerts.pem"),
+             os.path.join(os.path.dirname(HTTPSCert()), "allRevokedCerts.pem"),
+             False):
     if not fn:
-      fn = tempfile.mkstemp( prefix = "allRevokedCerts", suffix = ".pem" )[1]
+      fn = tempfile.mkstemp(prefix="allRevokedCerts", suffix=".pem")[1]
     try:
-      fd = open( fn, "w" )
+      fd = open(fn, "w")
     except IOError:
       continue
-    for caFile in os.listdir( caDir ):
-      caFile = os.path.join( caDir, caFile )
-      result = X509CRL.X509CRL.instanceFromFile( caFile )
-      if not result[ 'OK' ]:
+    for caFile in os.listdir(caDir):
+      caFile = os.path.join(caDir, caFile)
+      result = X509CRL.X509CRL.instanceFromFile(caFile)
+      if not result['OK']:
         continue
-      chain = result[ 'Value' ]    
-      fd.write( chain.dumpAllToString()[ 'Value' ] )
+      chain = result['Value']
+      fd.write(chain.dumpAllToString()['Value'])
     fd.close()
     return fn
   return False
 
-def getAuthSectionForHandler( route ):
-  return "%s/Access/%s" % ( BASECS, route )
+
+def getAuthSectionForHandler(route):
+  return "%s/Access/%s" % (BASECS, route)
+
 
 def getTheme():
-  return getCSValue( "Theme", "desktop" )
+  return getCSValue("Theme", "desktop")
+
 
 def getIcon():
-  return getCSValue("Icon","/static/core/img/icons/system/favicon.ico")
+  return getCSValue("Icon", "/static/core/img/icons/system/favicon.ico")
+
 
 def SSLProrocol():
-  return getCSValue( "SSLProtcol", "" )
+  return getCSValue("SSLProtcol", "")
+
 
 def getStaticDirs():
-  return getCSValue( "StaticDirs", [] )
+  return getCSValue("StaticDirs", [])
+
 
 def getLogo():
-  return getCSValue("Logo","/static/core/img/icons/system/_logo_waiting.gif")
+  return getCSValue("Logo", "/static/core/img/icons/system/_logo_waiting.gif")
+
 
 def getBackgroud():
-  return getCSValue("BackgroundImage","/static/core/img/wallpapers/dirac_background_6.png")
+  return getCSValue("BackgroundImage", "/static/core/img/wallpapers/dirac_background_6.png")
+
 
 def getWelcome():
   res = {}
@@ -161,3 +187,7 @@ def getWelcome():
   res['visitor_title'] = getCSValue("WelcomePage/visitor_title", "")
   res['visitor_text'] = getCSValue("WelcomePage/visitor_text", "")
   return res
+
+
+def bugReportURL():
+  return getCSValue("bugReportURL", "")

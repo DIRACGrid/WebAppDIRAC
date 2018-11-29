@@ -1,6 +1,6 @@
 Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       extend : 'Ext.dirac.core.Module',
-      requires : ["Ext.dirac.utils.DiracBaseSelector", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracAjaxProxy", "Ext.dirac.utils.DiracPagingToolbar", 'Ext.dirac.utils.DiracToolButton', "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracGridPanel",
+      requires : ["Ext.dirac.utils.DiracBaseSelector", "Ext.dirac.utils.DiracJsonStore", "Ext.dirac.utils.DiracAjaxProxy", "Ext.dirac.utils.DiracPagingToolbar", "Ext.dirac.utils.DiracApplicationContextMenu", "Ext.dirac.utils.DiracGridPanel",
           "Ext.dirac.utils.DiracRowExpander", "DIRAC.ResourceSummary.classes.OverviewPanel"],
       loadState : function(data) {
         var me = this;
@@ -278,7 +278,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                     containValue : {
                       'StatusType' : "elements"
                     },
-                    rowBodyTpl : ['<div id="expanded-Grid-{Name}"> </div>']
+                    rowBodyTpl :['<div id="expanded-Grid-{Name}"> </div>']
                   }]
 
             });
@@ -304,9 +304,10 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                       proxy : oProxy,
                       fields : me.dataFields,
                       scope : me,
-                      autoLoad : true
+                      autoLoad : true,
+                      dontLoadOnCreation : true
                     });
-
+                
                 me.grid.expandedGridPanel = Ext.create('Ext.grid.Panel', {
                       forceFit : true,
                       renderTo : targetId,
@@ -372,7 +373,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
 
                         beforecellcontextmenu : function(table, td, cellIndex, record, tr, rowIndex, e, eOpts) {
                           e.preventDefault();
-                          me.contextGridMenu.showAt(e.xy);
+                          me.contextGridMenu.showAt(e.getXY());
                           this.isExpanded = true;
                           return false;
                         }
@@ -380,6 +381,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                     });
 
                 rowNode.grid = me.grid.expandedGridPanel;
+                me.grid.expandedGridPanel.setLoading(true);
                 expandStore.load();
                 me.grid.expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
                 me.grid.expandedGridPanel.fireEvent("bind", me.grid.expandedGridPanel, {

@@ -40,7 +40,7 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
   extend : 'Ext.dirac.core.Module',
 
   requires :
-    ["Ext.dirac.utils.DiracToolButton", "Ext.dirac.utils.DiracGridPanel", "Ext.dirac.utils.DiracPagingToolbar",
+    ["Ext.dirac.utils.DiracGridPanel", "Ext.dirac.utils.DiracPagingToolbar",
      "Ext.dirac.utils.DiracApplicationContextMenu","Ext.dirac.utils.DiracBaseSelector","Ext.dirac.utils.DiracAjaxProxy"],
 
      /***
