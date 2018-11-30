@@ -153,11 +153,4 @@ def getBackgroud():
   return getCSValue("BackgroundImage","/static/core/img/wallpapers/dirac_background_6.png")
 
 def getWelcome():
-  res = {}
-  res['show'] = getCSValue("WelcomePage/show", "False")
-  res['style'] = getCSValue("WelcomePage/style", "")
-  res['title'] = getCSValue("WelcomePage/title", "")
-  res['text'] = getCSValue("WelcomePage/text", "")
-  res['visitor_title'] = getCSValue("WelcomePage/visitor_title", "")
-  res['visitor_text'] = getCSValue("WelcomePage/visitor_text", "")
-  return res
+  return getCSValue("WelcomeHTML","")
