@@ -19,43 +19,10 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
       initComponent : function() {
         var me = this;
         me.desktopSettings = Ext.create("Ext.dirac.views.tabs.DesktopSettings");
-        if (GLOBAL.APP.configData.user.username) {
-          Ext.apply(me, {
-                items : [me.addUserForm(), me.desktopSettings]
-              });
-        } else {
-          var userName = null;
-          GLOBAL.STATE_MANAGEMENT_ENABLED = false;
-          /*
-           * If the user is not registered
-           */
-          if (location.protocol === 'http:') {
-
-            var oHref = location.href;
-            var oQPosition = oHref.indexOf("?");
-            var sAddr = "";
-
-            if (oQPosition != -1) {
-
-              sAddr = oHref.substr(0, oQPosition);
-
-            } else {
-
-              sAddr = oHref;
-
-            }
-
-            userName = me.addUserName("Visitor (<a href='https://" + location.host.replace("8080", "8443") + location.pathname + "'>Secure connection</a>)");
-
-          } else {
-            userName = me.addUserName("Visitor");
-          }
-
-          Ext.apply(me, {
-                items : [userName, me.desktopSettings]
-              });
-        }
-
+        Ext.apply(me, {
+          items : [me.addUserForm(), me.desktopSettings]
+        });
+        
         me.callParent(arguments);
       },
       addUserName : function(name) {
@@ -223,13 +190,13 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
           }
           for (var i = 0; i < oListAuth.length; i++) {
             var name = oListAuth[i]
-            var settings = getAuthCFG(name,'all')
+            var settings = me.getAuthCFG(name,'all')
             if (name != currentAuth) {
               button_usrname.menu.push({
                 'text' : name,
                 'settings': settings,
                 'handler' : function() {
-                  if (this.settings.method == 'oAuth2') {oAuth2LogIn(this.settings,this.text)}
+                  if (this.settings.method == 'oAuth2') { me.oAuth2LogIn(this.settings,this.text) }
                   else if (settings.method) {
                     GLOBAL.APP.CF.alert("Authentication method " + settings.method + " is not supported." ,'error')
                   }
