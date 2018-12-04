@@ -19,12 +19,13 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
       initComponent : function() {
         var me = this;
         me.desktopSettings = Ext.create("Ext.dirac.views.tabs.DesktopSettings");
-        Ext.apply(me, {
-          items : [me.addUserForm(), me.desktopSettings]
-        });
         if (!GLOBAL.APP.configData.user.username) {
           GLOBAL.STATE_MANAGEMENT_ENABLED = false;
         };
+        Ext.apply(me, {
+          items : [me.addUserForm(), me.desktopSettings]
+        });
+
         me.callParent(arguments);
       },
       addUserName : function(name) {
