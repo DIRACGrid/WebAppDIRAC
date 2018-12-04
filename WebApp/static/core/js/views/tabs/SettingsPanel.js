@@ -22,7 +22,9 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
         Ext.apply(me, {
           items : [me.addUserForm(), me.desktopSettings]
         });
-        
+        if (!GLOBAL.APP.configData.user.username) {
+          GLOBAL.STATE_MANAGEMENT_ENABLED = false;
+        };
         me.callParent(arguments);
       },
       addUserName : function(name) {
