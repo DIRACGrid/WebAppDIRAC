@@ -16,8 +16,7 @@
 	  	<script type="text/javascript" src="{{bugReportURL}}"></script>
 	  {% end %}
 
-    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/build/classic/theme-{{theme}}/resources/theme-{{theme}}-all.css" />
-    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/build/classic/theme-{{theme}}/resources/theme-{{theme}}-all.css" />
+    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/classic/theme-{{theme}}/resources/theme-{{theme}}-all.css" />
 
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/iconset.css" />
@@ -28,22 +27,21 @@
 
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
-
+	
     {% if _dev %}
        {% if debug_level=='debug' %}
-          <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/build/ext-all-debug.js"></script>
-          <script type="text/javascript" src="{{base_url}}/static/extjs/build/ext-all-debug.js"></script>
+          <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all-debug.js"></script>
        {% else %}
-         <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/build/ext-all.js"></script>
-         <script type="text/javascript" src="{{base_url}}/static/extjs/build/ext-all.js"></script>
-
+         <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all.js"></script>
        {% end %}
+       <script type="text/javascript" src="{{base_url}}/static/extjs/ux-debug.js"></script>
     {% else %}
+      <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all.js"></script>
       <script type="text/javascript" src="{{base_url}}/static/core/build/all-classes.js"></script>
     {% end %}
     
-    <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/build/packages/charts/classic/charts.js"></script>
-    <link rel="stylesheet" type="text/css"  href="{{base_url}}/static/extjs/{{ext_version}}/build/packages/charts/classic/classic/resources/charts-all.css">
+    <script type="text/javascript" src="{{base_url}}/static/extjs/packages/charts/classic/charts.js"></script>
+    <link rel="stylesheet" type="text/css"  href="{{base_url}}/static/extjs/packages/charts/classic/classic/resources/charts-all.css">
     
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
