@@ -1493,7 +1493,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         var newName = oResponse.newName;
         var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
 
-        oNode.get('csName') = newName;
+        oNode.set('csName', newName);
 
         if (oNode.isLeaf()) {
 
