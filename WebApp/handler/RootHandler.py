@@ -87,11 +87,18 @@ class RootHandler(WebHandler):
     if "open_app" in self.request.arguments and len(self.request.arguments["open_app"][0]) > 0:
       open_app = xss_filter(self.request.arguments["open_app"][0].strip())
 
-    icon = data['baseURL'] + Conf.getIcon()
-    background = data['baseURL'] + Conf.getBackgroud()
-    logo = data['baseURL'] + Conf.getLogo()
-    welcome = Conf.getWelcome()
-
+    icon = data[ 'baseURL' ] + Conf.getIcon()
+    background = data[ 'baseURL' ] + Conf.getBackgroud()
+    logo = data[ 'baseURL' ] + Conf.getLogo()
+    welcomeFile = Conf.getWelcome()
+    welcome = ''
+    if welcomeFile:
+      try: 
+        with open(welcomeFile, 'r') as f:
+          welcome = f.read().replace('\n', '')
+      except:
+        gLogger.warn('Welcome page not found here: %s' % welcomeFile)
+    
     level = str(gLogger.getLevel()).lower()
     self.render("root.tpl", iconUrl=icon, base_url=data['baseURL'], _dev=Conf.devMode(),
                 ext_version=data['extVersion'], url_state=url_state,

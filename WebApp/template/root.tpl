@@ -12,12 +12,16 @@
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/FileSaver/FileSaver.js"></script>
     <script type="text/javascript" src="{{base_url}}/static/oidc/oidc-client/dist/oidc-client.js"></script>
 	  
+<<<<<<< HEAD
 	  {% if bugReportURL!='' %}
 	  	<script type="text/javascript" src="{{bugReportURL}}"></script>
 	  {% end %}
 
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/classic/theme-{{theme}}/resources/theme-{{theme}}-all.css" />
 
+=======
+	<link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
+>>>>>>> rel-v3r1
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/iconset.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/tabtheme.css" />    
@@ -30,9 +34,13 @@
 	
     {% if _dev %}
        {% if debug_level=='debug' %}
+<<<<<<< HEAD
           <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all-debug.js"></script>
+=======
+       	  <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all-dev.js"></script>
+>>>>>>> rel-v3r1
        {% else %}
-         <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all.js"></script>
+          <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all.js"></script>
        {% end %}
        <script type="text/javascript" src="{{base_url}}/static/extjs/ux-debug.js"></script>
     {% else %}
@@ -92,7 +100,6 @@
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
           GLOBAL.BACKGROUND = "{{backgroundImage}}";
-          GLOBAL.WELCOME = {{welcome}};
 
           Ext.onReady(function () {
 						Ext.override(Ext.data.Connection, { timeout:600000 });
@@ -124,7 +131,6 @@
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
           GLOBAL.BACKGROUND = "{{backgroundImage}}";
-          GLOBAL.WELCOME = {{welcome}};
 
           Ext.onReady(function () {
               Ext.override(Ext.data.Connection, { timeout:600000 });
@@ -157,7 +163,8 @@
         </table>
       </div>
   </div>
-      
+  
+  {{welcome}}
 
 </body>
 </html>

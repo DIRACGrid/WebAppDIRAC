@@ -179,6 +179,7 @@ def getBackgroud():
 
 
 def getWelcome():
+<<<<<<< HEAD
   res = {}
   res['show'] = getCSValue("WelcomePage/show", "False")
   res['style'] = getCSValue("WelcomePage/style", "")
@@ -191,3 +192,6 @@ def getWelcome():
 
 def bugReportURL():
   return getCSValue("bugReportURL", "")
+=======
+  return getCSValue("WelcomeHTML","")
+>>>>>>> rel-v3r1
