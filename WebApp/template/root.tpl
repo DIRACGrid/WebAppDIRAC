@@ -13,7 +13,6 @@
     <script type="text/javascript" src="{{base_url}}/static/oidc/oidc-client/dist/oidc-client.js"></script>
 	  
 	<link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/{{ext_version}}/resources/css/{{theme}}.css" />
-    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/resources/css/{{theme}}.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/iconset.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/TabScrollerMenu.css" />
@@ -28,9 +27,8 @@
     {% if _dev %}
        {% if debug_level=='debug' %}
        	  <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all-dev.js"></script>
-          <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all-dev.js"></script>
        {% else %}
-         <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all.js"></script>
+          <script type="text/javascript" src="{{base_url}}/static/extjs/{{ext_version}}/ext-all.js"></script>
        {% end %}
     {% else %}
       <script type="text/javascript" src="{{base_url}}/static/core/build/all-classes.js"></script>
@@ -84,7 +82,6 @@
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
           GLOBAL.BACKGROUND = "{{backgroundImage}}";
-          GLOBAL.WELCOME = {{welcome}};
 
           Ext.onReady(function () {
 						Ext.override(Ext.data.Connection, { timeout:600000 });
@@ -116,7 +113,6 @@
           GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
           GLOBAL.OPEN_APP = "{{open_app}}";
           GLOBAL.BACKGROUND = "{{backgroundImage}}";
-          GLOBAL.WELCOME = {{welcome}};
 
           Ext.onReady(function () {
               Ext.override(Ext.data.Connection, { timeout:600000 });
@@ -149,7 +145,8 @@
         </table>
       </div>
   </div>
-      
+  
+  {{welcome}}
 
 </body>
 </html>

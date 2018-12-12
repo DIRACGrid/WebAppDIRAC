@@ -92,7 +92,14 @@ class RootHandler(WebHandler):
     icon = data[ 'baseURL' ] + Conf.getIcon()
     background = data[ 'baseURL' ] + Conf.getBackgroud()
     logo = data[ 'baseURL' ] + Conf.getLogo()
-    welcome = Conf.getWelcome()
+    welcomeFile = Conf.getWelcome()
+    welcome = ''
+    if welcomeFile:
+      try: 
+        with open(welcomeFile, 'r') as f:
+          welcome = f.read().replace('\n', '')
+      except:
+        gLogger.warn('Welcome page not found here: %s' % welcomeFile)
     
     level = str(gLogger.getLevel()).lower()
     self.render( "root.tpl", iconUrl=icon, base_url = data[ 'baseURL' ], _dev = Conf.devMode(),
