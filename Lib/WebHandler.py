@@ -209,12 +209,10 @@ class WebHandler(tornado.web.RequestHandler):
           items = DN.split(',')
           items.reverse()
           DN = '/' + '/'.join(items)
-        self.__credDict['DN'] = DN
-        self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
         result = Registry.getUsernameForDN(DN)
-        if not result['OK']:
-          self.__credDict['validDN'] = False
-        else:
+        if result['OK']:
+          self.__credDict['DN'] = DN
+          self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
           self.__credDict['validDN'] = True
           self.__credDict['username'] = result['Value']
       return
