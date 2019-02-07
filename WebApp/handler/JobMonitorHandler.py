@@ -404,9 +404,12 @@ class JobMonitorHandler(WebHandler):
         attr = result["Value"]
         if "Log URL" in attr:
           url = attr["Log URL"].split('"')
-          # we can not open non secured URL
-          httpsUrl = url[1].replace('http', 'https')
-          callback = {"success": "true", "result": httpsUrl}
+          if 'https:' not in url[1]:
+            # we can not open non secured URL
+            httpsUrl = url[1].replace( 'http', 'https' )
+          else:
+            httpsUrl = url[1]
+          callback = {"success":"true", "result":httpsUrl}
         else:
           callback = {"success": "false", "error": "No URL found"}
       else:
