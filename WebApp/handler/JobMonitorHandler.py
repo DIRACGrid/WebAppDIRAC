@@ -34,7 +34,7 @@ class JobMonitorHandler(WebHandler):
       self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
       return
 
-    if not (result["TotalRecords"] > 0):
+    if not result["TotalRecords"]:
       self.finish({"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"})
       return
 
@@ -42,11 +42,11 @@ class JobMonitorHandler(WebHandler):
       self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
       return
 
-    if not (len(result["ParameterNames"]) > 0):
+    if not result["ParameterNames"]:
       self.finish({"success": "false", "result": [], "total": -1, "error": "ParameterNames field is missing"})
       return
 
-    if not (len(result["Records"]) > 0):
+    if not result["Records"]:
       self.finish({"success": "false", "result": [], "total": 0, "Message": "There are no data to display"})
       return
 
@@ -60,7 +60,7 @@ class JobMonitorHandler(WebHandler):
         tmp[head[j]] = i[j]
       callback.append(tmp)
     total = result["TotalRecords"]
-    if result.has_key("Extras"):
+    if "Extras" in result:
       st = self.__dict2string({})
       extra = result["Extras"]
       timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
@@ -86,6 +86,7 @@ class JobMonitorHandler(WebHandler):
   def web_getSelectionData(self):
     sData = self.getSessionData()
 
+    callback = {}
     user = sData["user"]["username"]
     if user == "Anonymous":
       callback["prod"] = [["Insufficient rights"]]
@@ -101,7 +102,7 @@ class JobMonitorHandler(WebHandler):
         if result["OK"]:
           prod = []
           prods = result["Value"]
-          if len(prods) > 0:
+          if prods:
             prods.sort(reverse=True)
             prod = [[i] for i in prods]
           else:
@@ -116,7 +117,7 @@ class JobMonitorHandler(WebHandler):
         if result["OK"]:
           tier1 = gConfig.getValue("/WebApp/PreferredSites", [])  # Always return a list
           site = []
-          if len(result["Value"]) > 0:
+          if result["Value"]:
             s = list(result["Value"])
             for i in tier1:
               site.append([str(i)])
@@ -133,7 +134,7 @@ class JobMonitorHandler(WebHandler):
         result = yield self.threadTask(RPC.getStates)
         if result["OK"]:
           stat = []
-          if len(result["Value"]) > 0:
+          if result["Value"]:
             for i in result["Value"]:
               stat.append([str(i)])
           else:
@@ -146,7 +147,7 @@ class JobMonitorHandler(WebHandler):
         result = yield self.threadTask(RPC.getMinorStates)
         if result["OK"]:
           stat = []
-          if len(result["Value"]) > 0:
+          if result["Value"]:
             for i in result["Value"]:
               stat.append([i])
           else:
@@ -159,7 +160,7 @@ class JobMonitorHandler(WebHandler):
         result = yield self.threadTask(RPC.getApplicationStates)
         if result["OK"]:
           app = []
-          if len(result["Value"]) > 0:
+          if result["Value"]:
             for i in result["Value"]:
               app.append([i])
           else:
@@ -172,7 +173,7 @@ class JobMonitorHandler(WebHandler):
         result = yield self.threadTask(RPC.getJobTypes)
         if result["OK"]:
           types = []
-          if len(result["Value"]) > 0:
+          if result["Value"]:
             for i in result["Value"]:
               types.append([i])
           else:
@@ -189,7 +190,7 @@ class JobMonitorHandler(WebHandler):
           result = yield self.threadTask(RPC.getOwners)
           if result["OK"]:
             owner = []
-            if len(result["Value"]) > 0:
+            if result["Value"]:
               for i in result["Value"]:
                 owner.append([str(i)])
             else:
@@ -217,76 +218,76 @@ class JobMonitorHandler(WebHandler):
 
     req = {}
 
-    if "limit" in self.request.arguments and len(self.request.arguments["limit"][0]) > 0:
+    if "limit" in self.request.arguments and self.request.arguments["limit"][0]:
       self.numberOfJobs = int(self.request.arguments["limit"][0])
-      if "start" in self.request.arguments and len(self.request.arguments["start"][0]) > 0:
+      if "start" in self.request.arguments and self.request.arguments["start"][0]:
         self.pageNumber = int(self.request.arguments["start"][0])
       else:
         self.pageNumber = 0
 
     if "JobID" in self.request.arguments:
       jobids = list(json.loads(self.request.arguments['JobID'][-1]))
-      if len(jobids) > 0:
+      if jobids:
         req['JobID'] = jobids
 
     if "jobGroup" in self.request.arguments:
       prodids = list(json.loads(self.request.arguments['jobGroup'][-1]))
-      if len(prodids) > 0:
+      if prodids:
         req['JobGroup'] = prodids
 
     if "site" in self.request.arguments:
       sites = list(json.loads(self.request.arguments['site'][-1]))
-      if len(sites) > 0:
+      if sites:
         req["Site"] = sites
 
     if "status" in self.request.arguments:
       status = list(json.loads(self.request.arguments['status'][-1]))
-      if len(status) > 0:
+      if status:
         req["Status"] = status
 
     if "minorStatus" in self.request.arguments:
       minorstat = list(json.loads(self.request.arguments['minorStatus'][-1]))
-      if len(minorstat) > 0:
+      if minorstat:
         req["MinorStatus"] = minorstat
 
     if "appStatus" in self.request.arguments:
       apps = list(json.loads(self.request.arguments['appStatus'][-1]))
-      if len(apps) > 0:
+      if apps:
         req["ApplicationStatus"] = apps
 
     if "jobType" in self.request.arguments:
       types = list(json.loads(self.request.arguments['jobType'][-1]))
-      if len(types) > 0:
+      if types:
         req["JobType"] = types
 
     if "owner" in self.request.arguments:
       owner = list(json.loads(self.request.arguments['owner'][-1]))
-      if len(owner) > 0:
+      if owner:
         req["Owner"] = owner
 
     if "OwnerGroup" in self.request.arguments:
       ownerGroup = list(json.loads(self.request.arguments['OwnerGroup'][-1]))
-      if len(ownerGroup) > 0:
+      if ownerGroup:
         req["OwnerGroup"] = ownerGroup
 
-    if 'startDate' in self.request.arguments and len(self.request.arguments["startDate"][0]) > 0:
-      if 'startTime' in self.request.arguments and len(self.request.arguments["startTime"][0]) > 0:
+    if 'startDate' in self.request.arguments and self.request.arguments["startDate"][0]:
+      if 'startTime' in self.request.arguments and self.request.arguments["startTime"][0]:
         req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
       else:
         req["FromDate"] = str(self.request.arguments["startDate"][0])
 
-    if 'endDate' in self.request.arguments and len(self.request.arguments["endDate"][0]) > 0:
-      if 'endTime' in self.request.arguments and len(self.request.arguments["endTime"][0]) > 0:
+    if 'endDate' in self.request.arguments and self.request.arguments["endDate"][0]:
+      if 'endTime' in self.request.arguments and self.request.arguments["endTime"][0]:
         req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
       else:
         req["ToDate"] = str(self.request.arguments["endDate"][0])
 
-    if 'date' in self.request.arguments and len(self.request.arguments["date"][0]) > 0:
+    if 'date' in self.request.arguments and self.request.arguments["date"][0]:
       req["LastUpdate"] = str(self.request.arguments["date"][0])
 
     if 'sort' in self.request.arguments:
       sort = json.loads(self.request.arguments['sort'][-1])
-      if len(sort) > 0:
+      if sort:
         self.globalSort = []
         for i in sort:
           if "LastSignOfLife" not in i['property']:
@@ -495,7 +496,7 @@ class JobMonitorHandler(WebHandler):
       keylist.sort()
       if selector == "Site":
         tier1 = gConfig.getValue("/WebApp/PreferredSites", [])
-        if len(tier1) > 0:
+        if tier1:
           tier1.sort()
           for i in tier1:
             if i in result:
