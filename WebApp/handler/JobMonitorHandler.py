@@ -38,7 +38,7 @@ class JobMonitorHandler(WebHandler):
       self.finish({"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"})
       return
 
-    if "ParameterNames" not in result and "Records" not in result:
+    if "ParameterNames" not in result or "Records" not in result:
       self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
       return
 
