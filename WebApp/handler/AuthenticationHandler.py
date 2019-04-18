@@ -1,76 +1,101 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID
-from DIRAC.FrameworkSystem.Client.NotificationClient   import NotificationClient
-from WebAppDIRAC.Lib import Conf
-
 import json
 import tornado
 import requests
+import tornado.web
+
+from tornado.web import HTTPError, RequestHandler
+from tornado.template import Template
+
+from WebAppDIRAC.Lib import Conf
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+
+from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC.FrameworkSystem.Utilities.OAuth2 import OAuth2
+from DIRAC.FrameworkSystem.Client.OAuthClient import OAuthClient
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getIdPOption
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID
+
 
 class AuthenticationHandler(WebHandler):
 
   AUTH_PROPS = "all"
-  
-  # Send mail to administrators
+
+  oauth = OAuthClient()
+
   @asyncGen
   def web_sendRequest(self):
+    """ Send mail to administrators """
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"]
     addresses = Conf.getCSValue('AdminsEmails')
-    NotificationClient().sendMail(addresses,subject = "Request from %s %s" % (loadValue[0],loadValue[1]),body = 'Type auth: %s, details: %s' % (typeAuth,loadValue))
+    subject = "Request from %s %s" % (loadValue[0],loadValue[1])
+    body = 'Type auth: %s, details: %s' % (typeAuth,loadValue)
+    result = NotificationClient().sendMail(addresses,subject=subject,body=body)
+    self.finish(result)
 
-  # Get information from web.cfg about auth types
+  @asyncGen
+  def web_getAuthNames(self):
+    """ Get list of enable authentication types """
+    self.finish(Conf.getAuthNames())
+
   @asyncGen
   def web_getAuthCFG(self):
+    """ Get option from IdP """
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"][0]
-    res = {}
-    if Conf.getCSSections("TypeAuths")['OK']:
-      if typeAuth:
-        if loadValue:
-          if loadValue == 'all':
-            res = Conf.getCSOptionsDict("TypeAuths/%s" % typeAuth).get('Value')
-          else:
-            res = Conf.getCSValue("TypeAuths/%s/%s" % (typeAuth, loadValue), None)
-        else:
-          res = Conf.getCSOptions("TypeAuths/%s" % typeAuth)
-      else:
-        res = Conf.getCSSections("TypeAuths")
-    self.write(res)
+    res = getIdPOption(typeAuth,loadValue)
+    if not res:
+      method = getIdPOption(typeAuth, 'method')
+      if method == 'oAuth2':
+        if loadValue == 'authorization_url':
+          res = OAuthClient().create_auth_request_uri(typeAuth)
+          if not res['OK']:
+            self.finish(res)
+          res = res['Value']
+    self.finish(S_OK(res))
 
-  # Get current auth type
   @asyncGen
   def web_getCurrentAuth(self):
+    """ Get current authentication type """
     if self.get_secure_cookie("TypeAuth"):
       current = self.get_secure_cookie("TypeAuth")
     else:
       current = 'default'
-    self.write(current)
+    self.finish(current)
 
-  # Python part in auth process
+  @asyncGen
+  def web_waitOAuthStatus(self):
+    """ Listen authentication status on OAuthDB """ 
+    state = str(self.request.arguments["state"][0])
+    typeAuth = str(self.request.arguments["typeauth"][0])
+    gLogger.debug('Read authentication status of "%s" session' % state)
+    result = OAuthClient().waitStateResponse(state)
+    if result['OK']:
+      if result['Value']['Status'] == 'authed':
+        self.set_secure_cookie("TypeAuth", result['Value']['OAuthProvider'])
+        self.set_secure_cookie("StateAuth", result['Value']['State'], expires_days=1)
+      result = S_OK()
+    self.finish(result)
+
   @asyncGen
   def web_auth(self):
+    """ Set authentication type """
     typeAuth = str(self.request.arguments["typeauth"][0])
-    loadValue = self.request.arguments["value"][0]
-    method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth)
+    needLogOut = False
     auths = ['Certificate']
     if Conf.getCSSections("TypeAuths")['OK']:
       auths.extend(Conf.getCSSections("TypeAuths").get("Value"))
-    if (typeAuth == 'Logout') or (typeAuth not in auths):
+    if (typeAuth == 'Log out') or (typeAuth not in auths):
       typeAuth = self.get_secure_cookie("TypeAuth")
       self.set_secure_cookie("TypeAuth", 'Visitor')
-    elif method == 'oAuth2':
-      accessToken = loadValue
-      url = Conf.getCSValue('TypeAuths/%s/authority' % typeAuth) + '/userinfo'
-      access = 'Bearer ' + accessToken
-      heads = {'Authorization': access, 'Content-Type': 'application/json'}
-      oJson = requests.get(url, headers=heads, verify=False).json()
-      res = getUsernameForID(oJson['sub'])
-      if res['OK']:
-        self.set_secure_cookie("TypeAuth", typeAuth)
-        self.set_secure_cookie("AccessToken", accessToken)
-        self.write({"value": 'Done'})
-      else:
-        self.write({"value": 'NotRegistred', "profile": oJson})
+      needLogOut = True
+    method = getIdPOption(typeAuth, 'method')
+    if needLogOut:
+      if method == 'oAuth2':
+        state = self.get_secure_cookie("StateAuth")
+        result = OAuthClient().killState(state)
     else:
       self.set_secure_cookie("TypeAuth", typeAuth)
+    self.finish(S_OK())
+  

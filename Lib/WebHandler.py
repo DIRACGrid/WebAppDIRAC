@@ -1,28 +1,31 @@
 
-from DIRAC import gLogger
-from DIRAC.Core.Security.X509Chain import X509Chain
+from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Security import CS, Properties
-from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.ConfigurationSystem.Client.Helpers import Registry
+from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.Core.DISET.AuthManager import AuthManager
+from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.Decorators import deprecated
-
-from WebAppDIRAC.Lib.SessionData import SessionData
-from WebAppDIRAC.Lib import Conf
+from DIRAC.FrameworkSystem.Client.OAuthClient import OAuthClient
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getIdPOption
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
 
-import requests
-import ssl
-import functools
+from WebAppDIRAC.Lib import Conf
+from WebAppDIRAC.Lib.SessionData import SessionData
+
 import sys
-import types
+import ssl
 import json
+import types
+import requests
+import functools
 import traceback
 import tornado.web
-import tornado.ioloop
 import tornado.gen
-import tornado.stack_context
+import tornado.ioloop
 import tornado.websocket
+import tornado.stack_context
+
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -143,6 +146,7 @@ class WebHandler(tornado.web.RequestHandler):
     """
     Initialize the handler
     """
+    self.stream = None #Needed for set_secure_cookie tornado method
     super(WebHandler, self).__init__(*args, **kwargs)
     if not WebHandler.__log:
       WebHandler.__log = gLogger.getSubLogger(self.__class__.__name__)
@@ -166,25 +170,23 @@ class WebHandler(tornado.web.RequestHandler):
 
     # OIDC auth method
     def oAuth2():
-      if self.get_secure_cookie("AccessToken"):
-        access_token = self.get_secure_cookie("AccessToken")
-        url = Conf.getCSValue("TypeAuths/%s/authority" % typeAuth) + '/userinfo'
-        heads = {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
-        if 'error' in requests.get(url, headers=heads, verify=False).json():
-          self.log.error('OIDC request error: %s' % requests.get(url, headers=heads, verify=False).json()['error'])
-          return
-        ID = requests.get(url, headers=heads, verify=False).json()['sub']
-        result = getUsernameForID(ID)
-        if result['OK']:
-          self.__credDict['username'] = result['Value']
+      if self.get_secure_cookie("StateAuth"):
+        state = self.get_secure_cookie("StateAuth")
+        result = OAuthClient().getUsrnameForState(state)
+        if not result['OK']:
+          return result
+        self.set_secure_cookie("StateAuth", result['Value']['state'])#, expires_days=1)
+        self.__credDict['username'] = result['Value']['username']
         result = getDNForUsername(self.__credDict['username'])
-        if result['OK']:
-          self.__credDict['validDN'] = True
-          self.__credDict['DN'] = result['Value'][0]
+        if not result['OK']:
+          self.__credDict['validDN'] = False
+          return result
+        self.__credDict['validDN'] = True
+        self.__credDict['DN'] = result['Value'][0]
         result = getCAForUsername(self.__credDict['username'])
         if result['OK']:
           self.__credDict['issuer'] = result['Value'][0]
-        return
+        return S_OK()
 
     # Type of Auth
     if not self.get_secure_cookie("TypeAuth"):
@@ -193,12 +195,22 @@ class WebHandler(tornado.web.RequestHandler):
     self.log.info("Type authentication: %s" % str(typeAuth))
     if typeAuth == "Visitor":
       return
-    retVal = Conf.getCSSections("TypeAuths")
-    if retVal['OK']:
-      if typeAuth in retVal.get("Value"):
-        method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth, 'default')
+    result = Conf.getCSSections("TypeAuths")
+    if result['OK']:
+      if typeAuth in result.get("Value"):
+        method = getIdPOption(typeAuth, 'method')
         if method == "oAuth2":
-          oAuth2()
+          if oAuth2()['OK']:
+            return
+        else:
+          result = S_ERROR("Is no type authentication found for %s" % str(typeAuth))
+      else:
+        result = S_ERROR('%s isn`t in available Identity Providers.' % str(typeAuth))
+    # Caught error
+    self.log.error("Authentication was fall with error: %s" % str(result['Message']))
+    typeAuth = 'Certificate'
+    self.set_secure_cookie("TypeAuth", typeAuth)
+    self.log.info("Type authentication has been fixed to %s" % str(typeAuth))
 
     # NGINX
     if Conf.balancer() == "nginx":

@@ -184,3 +184,17 @@ def getWelcome():
 def bugReportURL():
   return getCSValue("bugReportURL", "")
 
+def getAuthNames():
+  return getCSSections("TypeAuths")
+
+
+def getAuthSettingsDict(authname):
+  return getCSOptionsDict("TypeAuths/%s" % authname)
+
+
+def getAuthSettingsOptions(authname):
+  return getCSOptions("TypeAuths/%s" % authname)
+
+
+def getAuthCFG(authname,getvalue):
+  return getCSValue("TypeAuths/%s/%s" % (authname, getvalue))
