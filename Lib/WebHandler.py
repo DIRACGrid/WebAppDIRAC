@@ -204,10 +204,10 @@ class WebHandler(tornado.web.RequestHandler):
             return
         else:
           result = S_ERROR("Is no type authentication found for %s" % str(typeAuth))
-      else:
+      elif not typeAuth == 'Certificate':
         result = S_ERROR('%s isn`t in available Identity Providers.' % str(typeAuth))
     # Caught error
-    self.log.error("Authentication was fall with error: %s" % str(result['Message']))
+    self.log.error("Authentication was fall with error: %s" % result)
     typeAuth = 'Certificate'
     self.set_secure_cookie("TypeAuth", typeAuth)
     self.log.info("Type authentication has been fixed to %s" % str(typeAuth))
