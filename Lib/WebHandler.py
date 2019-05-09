@@ -5,13 +5,18 @@ from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.Decorators import deprecated
-from DIRAC.FrameworkSystem.Client.OAuthClient import OAuthClient
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getIdPOption
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
+
+try:
+  from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient
+  oauth = OAuthManagerClient()
+except:
+  oauth = None
 
 import sys
 import ssl
@@ -172,10 +177,10 @@ class WebHandler(tornado.web.RequestHandler):
     def oAuth2():
       if self.get_secure_cookie("StateAuth"):
         state = self.get_secure_cookie("StateAuth")
-        result = OAuthClient().getUsrnameForState(state)
+        result = oauth.getUsrnameForState(state) if oauth else S_ERROR('OAuthDIRAC extantion is not enable')
         if not result['OK']:
           return result
-        self.set_secure_cookie("StateAuth", result['Value']['state'])#, expires_days=1)
+        self.set_secure_cookie("StateAuth", result['Value']['state'])
         self.__credDict['username'] = result['Value']['username']
         result = getDNForUsername(self.__credDict['username'])
         if not result['OK']:

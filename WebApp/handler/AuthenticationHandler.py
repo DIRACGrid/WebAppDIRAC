@@ -10,11 +10,15 @@ from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
 from DIRAC import S_OK, S_ERROR, gLogger
-from DIRAC.FrameworkSystem.Utilities.OAuth2 import OAuth2
-from DIRAC.FrameworkSystem.Client.OAuthClient import OAuthClient
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getIdPOption
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID
+
+try:
+  from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient
+  oauth = OAuthManagerClient()
+except:
+  oauth = None
 
 
 class AuthenticationHandler(WebHandler):
@@ -49,7 +53,7 @@ class AuthenticationHandler(WebHandler):
       method = getIdPOption(typeAuth, 'method')
       if method == 'oAuth2':
         if loadValue == 'authorization_url':
-          res = OAuthClient().create_auth_request_uri(typeAuth)
+          res = oauth.create_auth_request_uri(typeAuth) if oauth else S_ERROR('OAuthDIRAC extantion is not enable')
           if not res['OK']:
             self.finish(res)
           res = res['Value']
@@ -70,7 +74,7 @@ class AuthenticationHandler(WebHandler):
     state = str(self.request.arguments["state"][0])
     typeAuth = str(self.request.arguments["typeauth"][0])
     gLogger.debug('Read authentication status of "%s" session' % state)
-    result = OAuthClient().waitStateResponse(state)
+    result = oauth.waitStateResponse(state) if oauth else S_ERROR('OAuthDIRAC extantion is not enable')
     if result['OK']:
       if result['Value']['Status'] == 'authed':
         self.set_secure_cookie("TypeAuth", result['Value']['OAuthProvider'])
@@ -94,7 +98,7 @@ class AuthenticationHandler(WebHandler):
     if needLogOut:
       if method == 'oAuth2':
         state = self.get_secure_cookie("StateAuth")
-        result = OAuthClient().killState(state)
+        result = oauth.killState(state) if oauth else S_ERROR('OAuthDIRAC extantion is not enable')
     else:
       self.set_secure_cookie("TypeAuth", typeAuth)
     self.finish(S_OK())

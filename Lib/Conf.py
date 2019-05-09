@@ -3,8 +3,11 @@ import os
 import uuid
 import tempfile
 import tornado.process
+
 from DIRAC import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Security import Locations, X509Chain, X509CRL
+
+__RCSID__ = "$Id$"
 
 BASECS = "/WebApp"
 
@@ -167,7 +170,8 @@ def SSLProrocol():
 
 
 def getStaticDirs():
-  return getCSValue("StaticDirs", [])
+  staticDirs = getCSValue("DefaultStaticDirs") or ['defaults', 'demo']
+  return getCSValue("StaticDirs", []) + staticDirs
 
 
 def getLogo():
