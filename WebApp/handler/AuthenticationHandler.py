@@ -14,18 +14,16 @@ from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getIdPOption
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID
 
-try:
-  from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient
-  oauth = OAuthManagerClient()
-except:
-  oauth = None
-
 
 class AuthenticationHandler(WebHandler):
 
   AUTH_PROPS = "all"
 
-  oauth = OAuthClient()
+  try:
+    from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient
+    oauth = OAuthManagerClient()
+  except:
+    oauth = None
 
   @asyncGen
   def web_sendRequest(self):

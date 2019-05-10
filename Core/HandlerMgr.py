@@ -34,8 +34,7 @@ class HandlerMgr(object):
     self.log = gLogger.getSubLogger("Routing")
 
   def getPaths(self, dirName):
-    """
-    Get lists of paths for all installed and enabled extensions
+    """ Get lists of paths for all installed and enabled extensions
     """
     pathList = []
     for extName in CSGlobals.getCSExtensions():
@@ -43,14 +42,14 @@ class HandlerMgr(object):
         extName = "%sDIRAC" % extName
       try:
         modFile, modPath, desc = imp.find_module(extName)
-        #to match in the real root path to enabling module web extensions (static, templates...)
+        # to match in the real root path to enabling module web extensions (static, templates...)
         realModPath = os.path.realpath(modPath)
       except ImportError:
         continue
       staticPath = os.path.join(realModPath, "WebApp", dirName)
       if os.path.isdir(staticPath):
         pathList.append(staticPath)
-    #Add WebAppDirac to the end
+    # Add WebAppDirac to the end
     pathList.append(os.path.join(WebAppDIRAC.rootPath, "WebApp", dirName))
     return pathList
 
