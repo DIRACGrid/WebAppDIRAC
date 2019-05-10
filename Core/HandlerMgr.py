@@ -3,6 +3,7 @@ import os
 import re
 import imp
 import inspect
+import collections
 
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
@@ -10,10 +11,10 @@ from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 
 import WebAppDIRAC
+from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
-from WebAppDIRAC.Lib import Conf
 
 __RCSID__ = "$Id$"
 
@@ -21,7 +22,7 @@ __RCSID__ = "$Id$"
 class HandlerMgr(object):
   __metaclass__ = DIRACSingleton
 
-  def __init__(self, baseURL="/", sysService=[None]):
+  def __init__(self, baseURL="/", sysService=None):
     self.__baseURL = baseURL.strip("/")
     self.__sysService = sysService or []
     if not isinstance(self.__sysService, list):
