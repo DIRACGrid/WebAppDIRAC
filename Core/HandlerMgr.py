@@ -99,6 +99,8 @@ class HandlerMgr(object):
       #IF theres a base url like /DIRAC add it
       if self.__baseURL:
         baseRoute = "/%s%s" % (self.__baseURL, baseRoute)
+      else:
+        baseRoute = "/%s" % baseRoute
       #Set properly the LOCATION after calculating where it is with helpers to add group and setup later
       handler.LOCATION = handlerRoute
       handler.PATH_RE = re.compile("%s(%s/.*)" % (baseRoute, handlerRoute))

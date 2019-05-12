@@ -51,7 +51,7 @@ class AuthenticationHandler(WebHandler):
       method = getIdPOption(typeAuth, 'method')
       if method == 'oAuth2':
         if loadValue == 'authorization_url':
-          res = oauth.create_auth_request_uri(typeAuth) if oauth else S_ERROR('OAuthDIRAC extantion is not enable')
+          res = oauth.createAuthRequestURL(typeAuth) if oauth else S_ERROR('OAuthDIRAC extantion is not enable')
           if not res['OK']:
             self.finish(res)
           res = res['Value']

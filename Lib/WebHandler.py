@@ -1,13 +1,11 @@
 
 from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Security import CS, Properties
+from DIRAC.Core.Security import Properties
 from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.Decorators import deprecated
-from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getIdPOption
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry, Resources
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -182,13 +180,13 @@ class WebHandler(tornado.web.RequestHandler):
           return result
         self.set_secure_cookie("StateAuth", result['Value']['state'])
         self.__credDict['username'] = result['Value']['username']
-        result = getDNForUsername(self.__credDict['username'])
+        result = Registry.getDNForUsername(self.__credDict['username'])
         if not result['OK']:
           self.__credDict['validDN'] = False
           return result
         self.__credDict['validDN'] = True
         self.__credDict['DN'] = result['Value'][0]
-        result = getCAForUsername(self.__credDict['username'])
+        result = Registry.getCAForUsername(self.__credDict['username'])
         if result['OK']:
           self.__credDict['issuer'] = result['Value'][0]
         return S_OK()
@@ -203,7 +201,7 @@ class WebHandler(tornado.web.RequestHandler):
     result = Conf.getCSSections("TypeAuths")
     if result['OK']:
       if typeAuth in result.get("Value"):
-        method = getIdPOption(typeAuth, 'method')
+        method = Resources.getIdPOption(typeAuth, 'method')
         if method == "oAuth2":
           if oAuth2()['OK']:
             return
