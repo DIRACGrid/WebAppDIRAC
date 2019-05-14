@@ -191,29 +191,30 @@ class WebHandler(tornado.web.RequestHandler):
           self.__credDict['issuer'] = result['Value'][0]
         return S_OK()
 
-    # Type of Auth
-    if not self.get_secure_cookie("TypeAuth"):
-      self.set_secure_cookie("TypeAuth", 'Certificate')
+    # Look in idetity providers
     typeAuth = self.get_secure_cookie("TypeAuth")
-    self.log.info("Type authentication: %s" % str(typeAuth))
-    if typeAuth == "Visitor":
-      return
+    self.log.info("Type authentication: %s" % str(typeAuth)) 
     result = Conf.getCSSections("TypeAuths")
     if result['OK']:
-      if typeAuth in result.get("Value"):
-        method = Resources.getIdPOption(typeAuth, 'method')
-        if method == "oAuth2":
+      if typeAuth in result["Value"]:
+        providerType = Resources.getIdPOption(typeAuth, 'Type')
+        if providerType == "OAuth2":
           if oAuth2()['OK']:
             return
         else:
-          result = S_ERROR("Is no type authentication found for %s" % str(typeAuth))
+          self.log.error("Is no type authentication found for %s" % typeAuth)
+      elif typeAuth == "Visitor":
+        return
+      elif not typeAuth:
+        self.log.error('Identity provider isn`t set')
       elif not typeAuth == 'Certificate':
-        result = S_ERROR('%s isn`t in available Identity Providers.' % str(typeAuth))
-    # Caught error
-    self.log.error("Authentication was fall with error: %s" % result)
-    typeAuth = 'Certificate'
-    self.set_secure_cookie("TypeAuth", typeAuth)
-    self.log.info("Type authentication has been fixed to %s" % str(typeAuth))
+        self.log.error('%s isn`t in available identity providers.' % typeAuth)
+    else:
+      self.log.error("Cannot found enabled identity providers: %s" % result['Message'])
+    if not typeAuth == 'Certificate':
+      typeAuth = 'Certificate'
+      self.set_secure_cookie("TypeAuth", typeAuth)
+      self.log.info("Type authentication has been fixed to %s" % typeAuth)
 
     # NGINX
     if Conf.balancer() == "nginx":

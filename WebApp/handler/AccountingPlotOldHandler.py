@@ -4,7 +4,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from WebAppDIRAC.Lib.SessionData import SessionData
 from DIRAC import gConfig, S_OK, S_ERROR
-from DIRAC.Core.Security import CS
+#from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
 import tempfile

@@ -14,16 +14,16 @@ from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getIdPOption
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID
 
+try:
+  from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient
+  oauth = OAuthManagerClient()
+except ImportError:
+  oauth = None
+
 
 class AuthenticationHandler(WebHandler):
 
   AUTH_PROPS = "all"
-
-  try:
-    from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient
-    oauth = OAuthManagerClient()
-  except:
-    oauth = None
 
   @asyncGen
   def web_sendRequest(self):
@@ -48,10 +48,10 @@ class AuthenticationHandler(WebHandler):
     loadValue = self.request.arguments["value"][0]
     res = getIdPOption(typeAuth,loadValue)
     if not res:
-      method = getIdPOption(typeAuth, 'method')
-      if method == 'oAuth2':
+      providerType = getIdPOption(typeAuth, 'Type')
+      if providerType == 'OAuth2':
         if loadValue == 'authorization_url':
-          res = oauth.createAuthRequestURL(typeAuth) if oauth else S_ERROR('OAuthDIRAC extantion is not enable')
+          res = oauth.createAuthRequestURL(typeAuth)
           if not res['OK']:
             self.finish(res)
           res = res['Value']
@@ -72,7 +72,7 @@ class AuthenticationHandler(WebHandler):
     state = str(self.request.arguments["state"][0])
     typeAuth = str(self.request.arguments["typeauth"][0])
     gLogger.debug('Read authentication status of "%s" session' % state)
-    result = oauth.waitStateResponse(state) if oauth else S_ERROR('OAuthDIRAC extantion is not enable')
+    result = oauth.waitStateResponse(state)
     if result['OK']:
       if result['Value']['Status'] == 'authed':
         self.set_secure_cookie("TypeAuth", result['Value']['OAuthProvider'])
@@ -83,21 +83,46 @@ class AuthenticationHandler(WebHandler):
   @asyncGen
   def web_auth(self):
     """ Set authentication type """
+    logOut = False
     typeAuth = str(self.request.arguments["typeauth"][0])
-    needLogOut = False
-    auths = ['Certificate']
-    if Conf.getCSSections("TypeAuths")['OK']:
-      auths.extend(Conf.getCSSections("TypeAuths").get("Value"))
-    if (typeAuth == 'Log out') or (typeAuth not in auths):
+
+    result = Conf.getCSSections("TypeAuths")
+    if not result['OK']:
+      self.finish(result)
+    auths = result['Value']
+
+    # Log out
+    if typeAuth == 'Log out':
+      logOut = True
       typeAuth = self.get_secure_cookie("TypeAuth")
-      self.set_secure_cookie("TypeAuth", 'Visitor')
-      needLogOut = True
-    method = getIdPOption(typeAuth, 'method')
-    if needLogOut:
-      if method == 'oAuth2':
+    
+    if typeAuth == 'Certificate':
+      if logOut:
+        self.set_secure_cookie("TypeAuth", 'Visitor')
+      else:
+        self.set_secure_cookie("TypeAuth", typeAuth)
+
+    # Not in CS
+    elif typeAuth not in auths:
+      if logOut:
+        self.set_secure_cookie("TypeAuth", 'Visitor')
+      else:
+        self.finish(S_ERROR('Not found %s identity provider in configuration' % typeAuth))
+
+    providerType = getIdPOption(typeAuth, 'Type')
+    if providerType == 'OAuth2':
+      if logOut:
         state = self.get_secure_cookie("StateAuth")
-        result = oauth.killState(state) if oauth else S_ERROR('OAuthDIRAC extantion is not enable')
+        result = oauth.killState(state)
+        if not result['OK']:
+          self.finish(result)
+        self.set_secure_cookie("TypeAuth", 'Visitor')
+      else:
+        self.set_secure_cookie("TypeAuth", typeAuth)
     else:
-      self.set_secure_cookie("TypeAuth", typeAuth)
+      if logOut:
+        self.set_secure_cookie("TypeAuth", 'Visitor')
+      else:
+        self.finish(S_ERROR('Cannot get type of %s identity provider' % typeAuth))
+    
     self.finish(S_OK())
-  
