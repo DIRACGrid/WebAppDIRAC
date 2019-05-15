@@ -190,6 +190,7 @@ class WebHandler(tornado.web.RequestHandler):
         if result['OK']:
           self.__credDict['issuer'] = result['Value'][0]
         return S_OK()
+      return S_ERROR('No actual state found')
 
     # Look in idetity providers
     typeAuth = self.get_secure_cookie("TypeAuth")

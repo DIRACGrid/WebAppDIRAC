@@ -27,7 +27,8 @@ class AuthenticationHandler(WebHandler):
 
   @asyncGen
   def web_sendRequest(self):
-    """ Send mail to administrators """
+    """ Send mail to administrators
+    """
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"]
     addresses = Conf.getCSValue('AdminsEmails')
@@ -38,12 +39,14 @@ class AuthenticationHandler(WebHandler):
 
   @asyncGen
   def web_getAuthNames(self):
-    """ Get list of enable authentication types """
+    """ Get list of enable authentication types
+    """
     self.finish(Conf.getAuthNames())
 
   @asyncGen
   def web_getAuthCFG(self):
-    """ Get option from IdP """
+    """ Get option from IdP
+    """
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"][0]
     res = getIdPOption(typeAuth,loadValue)
@@ -59,7 +62,8 @@ class AuthenticationHandler(WebHandler):
 
   @asyncGen
   def web_getCurrentAuth(self):
-    """ Get current authentication type """
+    """ Get current authentication type
+    """
     if self.get_secure_cookie("TypeAuth"):
       current = self.get_secure_cookie("TypeAuth")
     else:
@@ -68,7 +72,8 @@ class AuthenticationHandler(WebHandler):
 
   @asyncGen
   def web_waitOAuthStatus(self):
-    """ Listen authentication status on OAuthDB """ 
+    """ Listen authentication status on OAuthDB
+    """ 
     state = str(self.request.arguments["state"][0])
     typeAuth = str(self.request.arguments["typeauth"][0])
     gLogger.debug('Read authentication status of "%s" session' % state)
@@ -82,7 +87,8 @@ class AuthenticationHandler(WebHandler):
 
   @asyncGen
   def web_auth(self):
-    """ Set authentication type """
+    """ Set authentication type
+    """
     logOut = False
     typeAuth = str(self.request.arguments["typeauth"][0])
 
@@ -113,9 +119,7 @@ class AuthenticationHandler(WebHandler):
     if providerType == 'OAuth2':
       if logOut:
         state = self.get_secure_cookie("StateAuth")
-        result = oauth.killState(state)
-        if not result['OK']:
-          self.finish(result)
+        oauth.killState(state)
         self.set_secure_cookie("TypeAuth", 'Visitor')
       else:
         self.set_secure_cookie("TypeAuth", typeAuth)

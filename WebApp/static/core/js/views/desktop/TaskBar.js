@@ -129,6 +129,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
     me.items.push(button_views);
     
     var getAuthCFG = function(Auth = '',Value = '') {
+      console.log('getAuthCFG Auth: ' + Auth + ', Value: ' + Value)
       var req = Ext.Ajax.request({
         url: GLOBAL.BASE_URL + 'Authentication/getAuthCFG',
         params: {
@@ -138,6 +139,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
         async: false
       }).responseText
       res = JSON.parse(req)
+      console.log(res)
       return res
     };
     
@@ -166,24 +168,28 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
     };
 
     var auth = function(AuthType) {
-      result = getAuthCFG(AuthType,'method')
+      console.log('"' + AuthType + '" was choosed to authorization')
+      result = getAuthCFG(AuthType, 'Type')
       if (!result.OK) { return GLOBAL.APP.CF.alert("Authentication was ended with error: %s", result.Message,'error') }
       if (result.Value) {
+        console.log('"' + result.Value + '" is not null')
         Metod = result.Value
-        if (Metod == 'oAuth2') {
-          result = getAuthCFG(AuthType,'authorization_url')
+        if (Metod == 'OAuth2') {
+          console.log('OIDC authorization flow')
+          result = getAuthCFG(AuthType, 'authorization_url')
           if (!result.OK) { return GLOBAL.APP.CF.alert('We cannot get authorization_url for you.','error') }
           authorization_url = result.Value.url
           state = result.Value.state
-          console.log('========authorization_url=========')
-          console.log(authorization_url)
+          
           //Open popup
+          console.log('Open authorization URL: "' + authorization_url + '"')
           var oAuthReqWin = open(authorization_url, "popupWindow", "hidden=yes,height=570,width=520,scrollbars=yes,status=yes")
           oAuthReqWin.focus();
           
-          // Send request to redirect_uri about success auth
+          // Send request to redirect URL about success authorzation
+          console.log('Watch when popup window will be close')
           var res = (function waitPopupClosed (i,r) {
-            // Show Load icon
+            // Show load icon
             Ext.get("app-dirac-loading").show();
             Ext.get("app-dirac-loading-msg").setHtml("Waiting when authentication will be finished...");
             if (r==='closed') {
@@ -208,6 +214,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
           })(120,'opened');
         } else { GLOBAL.APP.CF.alert("Authentication method " + Metod + " is not supported." ,'error') }
       } else {
+        console.log('"' + result.Value + '" is null')
         Ext.Ajax.request({
           url: GLOBAL.BASE_URL + 'Authentication/auth',
           params: { typeauth: AuthType },
