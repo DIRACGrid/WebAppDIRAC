@@ -163,18 +163,17 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
         Ext.get("app-dirac-loading").hide();
         Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
         console.error('Request was ended with error: %s', status_json.Message)
-        //GLOBAL.APP.CF.alert('Request was ended with error: %s', status_json,'error') 
       }
     };
 
     var auth = function(AuthType) {
-      console.log('"' + AuthType + '" was choosed to authorization')
+      console.log('"' + AuthType + '" was chosen for authorization')
       result = getAuthCFG(AuthType, 'Type')
       if (!result.OK) { return GLOBAL.APP.CF.alert("Authentication was ended with error: %s", result.Message,'error') }
       if (result.Value) {
         console.log('"' + result.Value + '" is not null')
-        Metod = result.Value
-        if (Metod == 'OAuth2') {
+        Method = result.Value
+        if (Method == 'OAuth2') {
           console.log('OIDC authorization flow')
           result = getAuthCFG(AuthType, 'authorization_url')
           if (!result.OK) { return GLOBAL.APP.CF.alert('We cannot get authorization_url for you.','error') }
@@ -186,7 +185,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
           var oAuthReqWin = open(authorization_url, "popupWindow", "hidden=yes,height=570,width=520,scrollbars=yes,status=yes")
           oAuthReqWin.focus();
           
-          // Send request to redirect URL about success authorzation
+          // Send request to redirect URL about success authorization
           console.log('Watch when popup window will be close')
           var res = (function waitPopupClosed (i,r) {
             // Show load icon
@@ -212,7 +211,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
               }, 1000);
             }
           })(120,'opened');
-        } else { GLOBAL.APP.CF.alert("Authentication method " + Metod + " is not supported." ,'error') }
+        } else { GLOBAL.APP.CF.alert("Authentication method " + Method + " is not supported." ,'error') }
       } else {
         console.log('"' + result.Value + '" is null')
         Ext.Ajax.request({
@@ -221,122 +220,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
           success: function() { location.protocol = "https:" }
         })
       }
-      // if (res.OK) {
-      //   location.protocol = "https:"
-      // } else {
-      //   GLOBAL.APP.CF.alert('Your auth isn`t done!!')
-      // }
     };
-      /* success: function(response){
-          console.log('========authStateresponse=========');
-          var response = Ext.JSON.decode(response.responseText);
-          if (response.value == 'authed') {location.protocol = "https:"} 
-          else { 
-            Ext.create('Ext.window.Window', {
-              title: 'Welcome',
-              layout: 'fit',
-              preventBodyReset: true,
-              closable: true,
-              html: '<br><b>Welcome to the DIRAC service '+ response.profile['given_name'] +'!</b><br><br>Sorry, but You are not registred as a DIRAC user.<br>',
-              buttons : [
-                {
-                  text    : 'Registration',
-                  handler : function() {
-                    Ext.Ajax.request({
-                      url: GLOBAL.BASE_URL + 'Authentication/sendRequest',
-                      params: { 
-                        typeauth: name,
-                        value: response.profile
-                      },
-                      success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info')  }
-                    });
-                    this.up('window').close();
-                  }
-                }
-              ]
-            }).show();
-          }
-        }
-      });
-      
-      var req = Ext.Ajax.request({
-        url: GLOBAL.BASE_URL + 'Authentication/authStatus',
-        params: { 
-          typeauth: name,
-          state: state
-        },
-        async: false
-      }).responseText
-      success: function(response){
-        console.log('========authStateresponse=========');
-        var response = Ext.JSON.decode(response.responseText);
-        if (response.value == 'authed') {location.protocol = "https:"}
-      res = JSON.parse(req)
-      if (Object.keys(res).includes('Value')) {
-        res = res.Value
-      }
-      return res
-    };*/
-
-    // OIDC login method
-    // var oAuth2LogIn = function(settings,name) {
-    //   var manager = new Oidc.UserManager(settings);
-    //   manager.events.addUserLoaded(function (loadedUser) { console.log(loadedUser) });
-    //   manager.events.addSilentRenewError(function (error) {
-    //     GLOBAL.APP.CF.log("error", "error while renewing the access token");
-    //   });
-    //   manager.events.addUserSignedOut(function () {
-    //     GLOBAL.APP.CF.alert('The user has signed out',"info");
-    //   });
-    //   manager.events.addUserLoaded(function(loadedUser) {
-    //     if (loadedUser && typeof loadedUser === 'string') {
-    //       loadedUser = JSON.parse(data);
-    //     }
-    //     if (loadedUser) {
-    //       loadedUser = JSON.stringify(loadedUser, null, 2);
-    //     }
-    //     var aJson = JSON.parse(loadedUser);
-    //     var access_token = aJson["access_token"];
-    //     Ext.Ajax.request({
-    //       url: GLOBAL.BASE_URL + 'Authentication/auth',
-    //       params: { 
-    //         typeauth: name,
-    //         value: access_token
-    //       },
-    //       success: function(response){
-    //         var response = Ext.JSON.decode(response.responseText);
-    //         if (response.value == 'Done') {location.protocol = "https:"} 
-    //         else { 
-    //           Ext.create('Ext.window.Window', {
-    //             title: 'Welcome',
-    //             layout: 'fit',
-    //             preventBodyReset: true,
-    //             closable: true,
-    //             html: '<br><b>Welcome to the DIRAC service '+ response.profile['given_name'] +'!</b><br><br>Sorry, but You are not registred as a DIRAC user.<br>',
-    //             buttons : [
-    //               {
-    //                 text    : 'Registration',
-    //                 handler : function() {
-    //                   Ext.Ajax.request({
-    //                     url: GLOBAL.BASE_URL + 'Authentication/sendRequest',
-    //                     params: { 
-    //                       typeauth: name,
-    //                       value: response.profile
-    //                     },
-    //                     success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info')  }
-    //                   });
-    //                   this.up('window').close();
-    //                 }
-    //               }
-    //             ]
-    //           }).show();
-    //         }
-    //       }
-    //     });
-    //   });
-    //   manager.signinPopup().catch(function(error){ GLOBAL.APP.CF.log("error",
-    //   'error while logging in through the popup'); });
-    // } 
 
     // Generate list of login buttons
     var getListAuth = function() { 
@@ -466,103 +350,6 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
           xtype : 'tbtext',
           text : '@'
         });
-    // //=====>> FOR TESTING
-    // me.newButton = new Ext.button.Button({
-    //   text : 'newButton',
-    //   handler: function() {
-    //     var name = 'CheckIn'
-    //     var req = getAuthCFG(name,'authorization_url')
-    //     authorization_url = req.url
-    //     state = req.state
-    //     console.log('========authorization_url=========')
-    //     console.log(authorization_url)
-
-    //     //Open popup
-    //     if (typeof oAuthReqWin !== 'undefined') { oAuthReqWin.focus() };
-    //     var oAuthReqWin = open(authorization_url, "popupWindow", "hidden=yes,height=570,width=520,scrollbars=yes,status=yes");
-        
-    //     //Reg form
-    //     /*Ext.create('Ext.window.Window', {
-    //       title: 'Authorization..',
-    //       layout: 'fit',
-    //       preventBodyReset: true,
-    //       closable: true,
-    //       html: 'Waiting..',
-    //       buttons : [{
-    //         text    : 'Abort',
-    //         handler : function() {
-    //           Ext.Ajax.request({
-    //             url: GLOBAL.BASE_URL + 'Authentication/sendRequest',
-    //             params: { 
-    //               typeauth: name,
-    //               value: response.profile
-    //             },
-    //             success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info')  }
-    //           });
-    //           this.up('window').close();
-    //         }
-    //       }]});*/         
-        
-
-    //     // Send request to redirect_uri about success auth
-    //     var status_req = (function waitPopupClosed (i,r) {
-    //       if (r==='closed') {
-    //         return waitAuthStatus(name,state);
-    //       } else {
-    //         setTimeout(function () {
-    //           if (--i) {
-    //             if (typeof oAuthReqWin !== 'undefined' ) {
-    //               if(oAuthReqWin.closed){
-    //                 console.log('I`m CLOSED!!!'); waitPopupClosed(0,'closed')
-    //               } else {waitPopupClosed(i)}
-    //             } else {waitPopupClosed(i)}
-    //           }
-    //         }, 1000);
-    //       }
-    //     })(120,'opened');
-
-    //     /*var status_req = Ext.Ajax.request({
-    //       url: GLOBAL.BASE_URL + 'Authentication/authStatus',
-    //       params: { 
-    //         typeauth: name,
-    //         state: state
-    //       },
-    //       async: false,
-    //       success: function(response){
-    //         console.log('========authStateresponse=========');
-    //         var response = Ext.JSON.decode(response.responseText);
-    //         if (response.value == 'authed') {location.protocol = "https:"} 
-    //         else { 
-    //           Ext.create('Ext.window.Window', {
-    //             title: 'Welcome',
-    //             layout: 'fit',
-    //             preventBodyReset: true,
-    //             closable: true,
-    //             html: '<br><b>Welcome to the DIRAC service '+ response.profile['given_name'] +'!</b><br><br>Sorry, but You are not registred as a DIRAC user.<br>',
-    //             buttons : [
-    //               {
-    //                 text    : 'Registration',
-    //                 handler : function() {
-    //                   Ext.Ajax.request({
-    //                     url: GLOBAL.BASE_URL + 'Authentication/sendRequest',
-    //                     params: { 
-    //                       typeauth: name,
-    //                       value: response.profile
-    //                     },
-    //                     success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info')  }
-    //                   });
-    //                   this.up('window').close();
-    //                 }
-    //               }
-    //             ]
-    //           }).show();
-    //         }
-    //       }
-    //     });*/
-    //   }
-    // });
-    // me.items.push(me.newButton);
-    // //=====>> END
     me.items.push(me.group_button);
     me.items.push('-');
     me.items.push(me.setup_button);
@@ -585,7 +372,6 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
     var me = this;
     me.callParent();
     me.windowBar.el.on('contextmenu', me.onButtonContextMenu, me);
-    // me.startMenu.createMenu();
   },
 
   /**
