@@ -6,7 +6,6 @@ python:
 env:
   matrix:
     - CHECK=pytest
-    - CHECK=docs
     - CHECK=pylint
     - CHECK=format
 
@@ -22,12 +21,10 @@ script:
   - ls $PYTHONPATH
   - if [[ "${CHECK}" == "pytest"  ]];
     then pytest;
-    elif [[ "${CHECK}" == "docs"  ]];
-    then cd docs; READTHEDOCS=True make html;
     elif [[ "${CHECK}" == "pylint"  ]];
     then travis_wait 30 .travis.d/runPylint.sh;
     elif [[ "${CHECK}" == "format" ]] && [[ "${TRAVIS_PULL_REQUEST}" != "false" ]];
-    then git remote add GH https://github.com/DIRACGrid/DIRAC.git; git fetch --no-tags GH ${TRAVIS_BRANCH}; git branch -vv; git diff -U0 GH/${TRAVIS_BRANCH} | pycodestyle --diff;
+    then git remote add GH https://github.com/DIRACGrid/WebAppDIRAC.git; git fetch --no-tags GH ${TRAVIS_BRANCH}; git branch -vv; git diff -U0 GH/${TRAVIS_BRANCH} | pycodestyle --diff;
     fi
 
 ## ignore errors for sourcefiles "-i"
