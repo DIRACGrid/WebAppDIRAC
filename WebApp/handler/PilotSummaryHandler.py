@@ -1,8 +1,11 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
+import json
+
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-import json
+from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
+from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+
 
 class PilotSummaryHandler(WebHandler):
 
@@ -10,38 +13,36 @@ class PilotSummaryHandler(WebHandler):
 
   @asyncGen
   def web_getPilotSummaryData(self):
-    RPC = RPCClient("WorkloadManagement/WMSAdministrator", timeout = 600 )
     callback = {}
     req = self.__request()
 
-    result = yield self.threadTask(RPC.getPilotSummaryWeb, req, self.globalSort , self.pageNumber, self.numberOfJobs)
+    result = yield self.threadTask(PilotManagerClient().getPilotSummaryWeb,
+                                   req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:
-      self.finish({"success":"false", "result":[], "total":0, "error":result["Message"]})
+      self.finish({"success": "false", "result": [], "total": 0, "error": result["Message"]})
       return
 
     result = result["Value"]
 
-    if not result.has_key("TotalRecords"):
-      self.finish({"success":"false", "result":[], "total":-1, "error":"Data structure is corrupted"})
+    if "TotalRecords" not in result:
+      self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
       return
-
 
     if not (result["TotalRecords"] > 0):
-      self.finish({"success":"false", "result":[], "total":0, "error":"There were no data matching your selection"})
+      self.finish({"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"})
       return
 
-
-    if not (result.has_key("ParameterNames") and result.has_key("Records")):
-      self.finish({"success":"false", "result":[], "total":-1, "error":"Data structure is corrupted"})
+    if not ("ParameterNames" in result and "Records" in result):
+      self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
       return
 
     if not (len(result["ParameterNames"]) > 0):
-      self.finish({"success":"false", "result":[], "total":-1, "error":"ParameterNames field is missing"})
+      self.finish({"success": "false", "result": [], "total": -1, "error": "ParameterNames field is missing"})
       return
 
     if not (len(result["Records"]) > 0):
-      self.finish({"success":"false", "result":[], "total":0, "Message":"There are no data to display"})
+      self.finish({"success": "false", "result": [], "total": 0, "Message": "There are no data to display"})
       return
 
     callback = []
@@ -51,18 +52,24 @@ class PilotSummaryHandler(WebHandler):
 
     for i in jobs:
       tmp = {}
-      for j in range(0,headLength):
+      for j in range(0, headLength):
         tmp[head[j]] = i[j]
       callback.append(tmp)
     total = result["TotalRecords"]
     total = result["TotalRecords"]
     timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
-    if result.has_key("Extras"):
+    if "Extras" in result:
       st = self.__dict2string({})
       extra = result["Extras"]
-      callback = {"success":"true", "result":callback, "total":total, "extra":extra, "request":st, "date":timestamp }
+      callback = {
+          "success": "true",
+          "result": callback,
+          "total": total,
+          "extra": extra,
+          "request": st,
+          "date": timestamp}
     else:
-      callback = {"success":"true", "result":callback, "total":total, "date":timestamp}
+      callback = {"success": "true", "result": callback, "total": total, "date": timestamp}
     self.finish(callback)
 
   def __dict2string(self, req):
@@ -70,7 +77,7 @@ class PilotSummaryHandler(WebHandler):
     try:
       for key, value in req.iteritems():
         result = result + str(key) + ": " + ", ".join(value) + "; "
-    except Exception, x:
+    except Exception as x:
       pass
       gLogger.info("\033[0;31m Exception: \033[0m %s" % x)
     result = result.strip()
@@ -84,21 +91,20 @@ class PilotSummaryHandler(WebHandler):
     group = sData["user"]["group"]
     user = sData["user"]["username"]
     if user == "Anonymous":
-      self.finish({"success":"false", "result":[], "total":0, "error":"Insufficient rights"})
+      self.finish({"success": "false", "result": [], "total": 0, "error": "Insufficient rights"})
     else:
-      RPC = RPCClient("WorkloadManagement/JobMonitoring")
-      result = yield self.threadTask(RPC.getSites)
+      result = yield self.threadTask(JobMonitoringClient().getSites)
       if result["OK"]:
         tier1 = gConfig.getValue("/WebApp/PreferredSites")
         if tier1:
           try:
             tier1 = tier1.split(", ")
-          except:
+          except BaseException:
             tier1 = list()
         else:
           tier1 = list()
         site = []
-        if len(result["Value"])>0:
+        if len(result["Value"]) > 0:
           s = list(result["Value"])
           for i in tier1:
             site.append([str(i)])
@@ -112,16 +118,16 @@ class PilotSummaryHandler(WebHandler):
         site = [["Error during RPC call"]]
 
       callback["site"] = site
-      callback['Status'] = [['Good'],['Bad'],['Idle'],['Poor'],['Fair']]
+      callback['Status'] = [['Good'], ['Bad'], ['Idle'], ['Poor'], ['Fair']]
 
       self.finish(callback)
 
-
   ################################################################################
+
   def __request(self):
     self.pageNumber = 0
     self.numberOfJobs = 25
-    self.globalSort = [["GridSite","ASC"]]
+    self.globalSort = [["GridSite", "ASC"]]
     sData = self.getSessionData()
     req = {}
     group = sData["user"]["group"]
@@ -139,15 +145,15 @@ class PilotSummaryHandler(WebHandler):
 
     found = False
     if 'id' in self.request.arguments:
-      jobids = list(json.loads(self.request.arguments[ 'id' ][-1]))
+      jobids = list(json.loads(self.request.arguments['id'][-1]))
       if len(jobids) > 0:
         req['JobID'] = jobids
         found = True
 
     elif 'expand' in self.request.arguments:
-      expand = list(json.loads(self.request.arguments[ 'expand' ][-1]))
+      expand = list(json.loads(self.request.arguments['expand'][-1]))
       if len(expand) > 0:
-        globalSort = [["GridSite","ASC"]]
+        globalSort = [["GridSite", "ASC"]]
         numberOfJobs = 500
         pageNumber = 0
         req["ExpandSite"] = expand[0]
@@ -177,10 +183,10 @@ class PilotSummaryHandler(WebHandler):
         sort = json.loads(self.request.arguments['sort'][-1])
         if len(sort) > 0:
           self.globalSort = []
-          for i in sort :
-            self.globalSort  += [[i['property'],i['direction']]]
+          for i in sort:
+            self.globalSort += [[i['property'], i['direction']]]
         else:
-          self.globalSort = [["GridSite","DESC"]]
+          self.globalSort = [["GridSite", "DESC"]]
 
     if 'startDate' in self.request.arguments and len(self.request.arguments["startDate"][0]) > 0:
       if 'startTime' in self.request.arguments and len(self.request.arguments["startTime"][0]) > 0:
@@ -196,5 +202,5 @@ class PilotSummaryHandler(WebHandler):
 
     if 'date' in self.request.arguments and len(self.request.arguments["date"][0]) > 0:
       req["LastUpdate"] = str(self.request.arguments["date"][0])
-    gLogger.info("REQUEST:",req)
+    gLogger.info("REQUEST:", req)
     return req

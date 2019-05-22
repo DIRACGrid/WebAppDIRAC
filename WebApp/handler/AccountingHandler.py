@@ -1,16 +1,15 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.DISET.TransferClient import TransferClient
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import Time, List, DictCache
-from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
-from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 import tempfile
 import datetime
+import json
 
 from hashlib import md5
 
-import json
+from DIRAC import gConfig, S_OK, S_ERROR
+from DIRAC.Core.DISET.TransferClient import TransferClient
+from DIRAC.Core.Utilities import Time, List, DictCache
+from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
+from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
 
 class AccountingHandler(WebHandler):
@@ -26,8 +25,7 @@ class AccountingHandler(WebHandler):
                 typeName)
     data = AccountingHandler.__keysCache.get(cacheKey)
     if not data:
-      rpcClient = RPCClient("Accounting/ReportGenerator")
-      retVal = rpcClient.listUniqueKeyValues(typeName)
+      retVal = ReportsClient().listUniqueKeyValues(typeName)
       if 'rpcStub' in retVal:
         del(retVal['rpcStub'])
       if not retVal['OK']:
@@ -64,11 +62,11 @@ class AccountingHandler(WebHandler):
     for record in retVal['Value']:  # may have more than 1000 of records.
       # do not show all of them in the web portal
       #length = len( retVal['Value'][record] )
-      #if  length > 10000:
+      # if  length > 10000:
       #  records[record] = retVal['Value'][record][length - 5000:]
       #  message = "The %s accounting type contains to many rows: %s - > %d. Note: Only 1000 rows are returned!" % ( typeName, record, length )
       #  gLogger.warn( message )
-      #else:
+      # else:
       records[record] = retVal['Value'][record]
     callback["selectionValues"] = records
 
@@ -175,8 +173,7 @@ class AccountingHandler(WebHandler):
     if not retVal['OK']:
       return retVal
     params = retVal['Value']
-    repClient = ReportsClient(rpcClient=RPCClient("Accounting/ReportGenerator"))
-    retVal = repClient.generateDelayedPlot(*params)
+    retVal = ReportsClient().generateDelayedPlot(*params)
     return retVal
 
   @asyncGen
@@ -275,14 +272,12 @@ class AccountingHandler(WebHandler):
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
     params = retVal['Value']
-    repClient = ReportsClient(rpcClient=RPCClient("Accounting/ReportGenerator"))
-    retVal = yield self.threadTask(repClient.getReport, *params)
+    retVal = yield self.threadTask(ReportsClient().getReport, *params)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
     rawData = retVal['Value']
-    groupKeys = rawData['data'].keys()
-    groupKeys.sort()
+    groupKeys = sorted(rawData['data'].keys())
 #     print rawData['data']
     if 'granularity' in rawData:
       granularity = rawData['granularity']
@@ -314,8 +309,7 @@ class AccountingHandler(WebHandler):
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
     params = retVal['Value']
-    repClient = ReportsClient(rpcClient=RPCClient("Accounting/ReportGenerator"))
-    retVal = yield self.threadTask(repClient.getReport, *params)
+    retVal = yield self.threadTask(ReportsClient().getReport, *params)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
