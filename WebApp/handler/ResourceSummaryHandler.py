@@ -17,11 +17,11 @@ class ResourceSummaryHandler(WebHandler):
     '''It returns the possible selection data
     '''
     callback = {
-	'name': set(),
-	'elementType': set(),
-	'status': set(),
-	'statusType': set(),
-	'tokenOwner': set()
+        'name': set(),
+        'elementType': set(),
+        'status': set(),
+        'statusType': set(),
+        'tokenOwner': set()
     }
 
     pub = RPCClient('ResourceStatus/Publisher')
@@ -33,11 +33,11 @@ class ResourceSummaryHandler(WebHandler):
     if elementStatuses['OK']:
 
       for elementStatus in elementStatuses['Value']:
-	callback['status'].add(elementStatus[2])
-	callback['name'].add(elementStatus[0])
-	callback['elementType'].add(elementStatus[6])
-	callback['statusType'].add(elementStatus[1])
-	callback['tokenOwner'].add(elementStatus[8])
+        callback['status'].add(elementStatus[2])
+        callback['name'].add(elementStatus[0])
+        callback['elementType'].add(elementStatus[6])
+        callback['statusType'].add(elementStatus[1])
+        callback['tokenOwner'].add(elementStatus[8])
 
     for key, value in callback.items():
 
@@ -58,11 +58,11 @@ class ResourceSummaryHandler(WebHandler):
     pub = RPCClient('ResourceStatus/Publisher')
 
     elementStatuses = yield self.threadTask(pub.getElementStatuses, 'Resource',
-					    requestParams['name'],
-					    requestParams['elementType'],
-					    requestParams['statusType'],
-					    requestParams['status'],
-					    requestParams['tokenOwner'])
+                                            requestParams['name'],
+                                            requestParams['elementType'],
+                                            requestParams['statusType'],
+                                            requestParams['status'],
+                                            requestParams['tokenOwner'])
     if not elementStatuses['OK']:
       self.finish({'success': 'false', 'error': elementStatuses['Message']})
 
@@ -83,10 +83,10 @@ class ResourceSummaryHandler(WebHandler):
     for elementValues in elementTree.values():
 
       if len(elementValues) == 1:
-	elementList.append(elementValues[0])
+        elementList.append(elementValues[0])
       else:
 
-	elementList.append(self.combine(elementValues))
+        elementList.append(self.combine(elementValues))
 
     rssMachine = RSSMachine(None)
 
@@ -154,8 +154,8 @@ class ResourceSummaryHandler(WebHandler):
     pub = RPCClient('ResourceStatus/Publisher')
 
     elements = yield self.threadTask(pub.getElementStatuses, 'Resource',
-				     requestParams['name'],
-				     None, None, None, None)
+                                     requestParams['name'],
+                                     None, None, None, None)
     if not elements['OK']:
       self.finish({'success': 'false', 'error': elements['Message']})
 
@@ -180,9 +180,9 @@ class ResourceSummaryHandler(WebHandler):
         methodName = '_get%s' % actionName
 
       try:
-	return getattr(self, methodName)(requestParams)
+        return getattr(self, methodName)(requestParams)
       except AttributeError:
-	result = {'success': 'false', 'error': 'bad action %s' % actionName}
+        result = {'success': 'false', 'error': 'bad action %s' % actionName}
 
     else:
 
@@ -203,12 +203,12 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = RPCClient('ResourceStatus/Publisher')
     res = yield self.threadTask(pub.setToken, 'Resource',
-				str(requestParams['name'][0]),
-				str(requestParams['statusType'][0]),
-				str(requestParams['status'][0]),
-				str(requestParams['elementType'][0]),
-				username,
-				str(requestParams['lastCheckTime'][0]))
+                                str(requestParams['name'][0]),
+                                str(requestParams['statusType'][0]),
+                                str(requestParams['status'][0]),
+                                str(requestParams['elementType'][0]),
+                                username,
+                                str(requestParams['lastCheckTime'][0]))
 
     if not res['OK']:
       self.finish({'success': 'false', 'error': res['Message']})
@@ -229,12 +229,12 @@ class ResourceSummaryHandler(WebHandler):
     pub = RPCClient('ResourceStatus/Publisher')
 
     res = yield self.threadTask(pub.setStatus, 'Resource',
-				str(requestParams['name'][0]),
-				str(requestParams['statusType'][0]),
-				str(requestParams['status'][0]),
-				str(requestParams['elementType'][0]),
-				username,
-				str(requestParams['lastCheckTime'][0]))
+                                str(requestParams['name'][0]),
+                                str(requestParams['statusType'][0]),
+                                str(requestParams['status'][0]),
+                                str(requestParams['elementType'][0]),
+                                username,
+                                str(requestParams['lastCheckTime'][0]))
 
     if not res['OK']:
       self.finish({'success': 'false', 'error': res['Message']})
@@ -253,8 +253,8 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = RPCClient('ResourceStatus/Publisher')
     res = yield self.threadTask(pub.getElementHistory, 'Resource', requestParams['name'],
-				requestParams['elementType'],
-				requestParams['statusType'])
+                                requestParams['elementType'],
+                                requestParams['statusType'])
 
     if not res['OK']:
       gLogger.error(res['Message'])
@@ -276,7 +276,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = RPCClient('ResourceStatus/Publisher')
     res = yield self.threadTask(pub.getElementPolicies, 'Resource', requestParams['name'],
-				requestParams['statusType'])
+                                requestParams['statusType'])
 
     if not res['OK']:
       gLogger.error(res['Message'])
@@ -322,8 +322,8 @@ class ResourceSummaryHandler(WebHandler):
     pub = RPCClient('ResourceStatus/Publisher')
 
     res = yield self.threadTask(pub.getElementHistory, 'Resource', str(requestParams['name'][-1]),
-				str(requestParams['elementType'][-1]),
-				str(requestParams['statusType'][-1]))
+                                str(requestParams['elementType'][-1]),
+                                str(requestParams['statusType'][-1]))
 
     if not res['OK']:
       gLogger.error(res['Message'])
@@ -366,13 +366,13 @@ class ResourceSummaryHandler(WebHandler):
     for ce, ceDict in res[siteName]['ces'].items():
       tree.append([ce, None, None, 'ces'])
       for k, v in ceDict.items():
-	tree.append([None, k, v, ce])
+        tree.append([None, k, v, ce])
 
     tree.append(['ses', None, None, siteName])
     for se, seDict in res[siteName]['ses'].items():
       tree.append([se, None, None, 'ses'])
       for k, v in seDict.items():
-	tree.append([None, k, v, se])
+        tree.append([None, k, v, se])
 
     self.finish({'success': 'true', 'result': tree, 'total': len(tree)})
 
@@ -389,11 +389,11 @@ class ResourceSummaryHandler(WebHandler):
     pub = RPCClient('ResourceStatus/Publisher')
 
     res = yield self.threadTask(pub.getElementStatuses, str(requestParams['element'][-1]),
-				str(requestParams['name'][-1]),
-				str(requestParams['elementType'][-1]),
-				str(requestParams['statusType'][-1]),
-				None,
-				None)
+                                str(requestParams['name'][-1]),
+                                str(requestParams['elementType'][-1]),
+                                str(requestParams['statusType'][-1]),
+                                None,
+                                None)
 
     if not res['OK']:
       self.finish({'success': 'false', 'error': res["Message"]})
@@ -417,18 +417,18 @@ class ResourceSummaryHandler(WebHandler):
     gLogger.always("!!!  PARAMS: ", str(self.request.arguments))
 
     responseParams = {
-	'element': None,
-	'name': None,
-	'elementType': None,
-	'statusType': None,
-	'status': None,
-	'tokenOwner': None,
-	'lastCheckTime': None,
-	'action': None
+        'element': None,
+        'name': None,
+        'elementType': None,
+        'statusType': None,
+        'status': None,
+        'tokenOwner': None,
+        'lastCheckTime': None,
+        'action': None
     }
 
     for key in responseParams:
       if key in self.request.arguments and str(self.request.arguments[key][-1]):
-	responseParams[key] = list(json.loads(self.request.arguments[key][-1]))
+        responseParams[key] = list(json.loads(self.request.arguments[key][-1]))
 
     return responseParams

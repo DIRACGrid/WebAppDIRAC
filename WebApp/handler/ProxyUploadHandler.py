@@ -4,6 +4,7 @@ from DIRAC.FrameworkSystem.Client import ProxyUpload
 from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC import gLogger
 
+
 class ProxyUploadHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
@@ -26,7 +27,7 @@ class ProxyUploadHandler(WebHandler):
       error = "Please, send a registration request first"
       gLogger.error("Anonymous is not allowed")
       gLogger.debug("Service response: %s" % error)
-      self.finish({"success":"false", "error":error})
+      self.finish({"success": "false", "error": error})
       return
 
     groupList = userData["validGroups"]
@@ -38,7 +39,7 @@ class ProxyUploadHandler(WebHandler):
       error = "Seems that user %s is not register in any group" % username
       error = error + disclaimer
       gLogger.debug("Service response: %s" % error)
-      self.finish({"success":"false", "error":error})
+      self.finish({"success": "false", "error": error})
       return
 
     fileObject = None
@@ -56,17 +57,16 @@ class ProxyUploadHandler(WebHandler):
             gLogger.info(".p12 password detected")
 #             store.append(fileObject)
             gLogger.info("Certificate object is loaded")
-    except Exception, x:
+    except Exception as x:
       gLogger.debug("Non fatal for logic, exception happens: %s" % str(x))
       pass
 
-
-    if fileObject == None:  # If there is a file(s) to store
+    if fileObject is None:  # If there is a file(s) to store
       gLogger.error("No file with *.p12 found")
       error = "Failed to find any suitable *.p12 filename in your request"
       error = error + disclaimer
       gLogger.debug("Service response: %s" % error)
-      self.finish({"success":"false", "error":error})
+      self.finish({"success": "false", "error": error})
       return
 
     import tempfile
@@ -97,13 +97,13 @@ class ProxyUploadHandler(WebHandler):
       tmpFile = open(descriptionDict["pem"], "w")
       tmpFile.write(pemPassword)
       tmpFile.close()
-    except Exception, x:
+    except Exception as x:
       shutil.rmtree(storePath)
       gLogger.error("Exception: %s" % str(x))
       error = "An exception has happen '%s'" % str(x)
       error = error + disclaimer
       gLogger.debug("Service response: %s" % error)
-      self.finish({"success":"false", "error":error})
+      self.finish({"success": "false", "error": error})
       return
 
     gLogger.info("Split certificate(s) to public and private keys")
@@ -121,7 +121,8 @@ class ProxyUploadHandler(WebHandler):
       keyDict[j] = os.path.join(storePath, tmp)
 
     cmdCert = "openssl pkcs12 -clcerts -nokeys -in %s -out %s -password file:%s" % (name, keyDict["pub"], p12)
-    cmdKey = "openssl pkcs12 -nocerts -in %s -out %s -passout file:%s -password file:%s" % (name, keyDict["private"], keyDict["pem"], p12)
+    cmdKey = "openssl pkcs12 -nocerts -in %s -out %s -passout file:%s -password file:%s" % (
+        name, keyDict["private"], keyDict["pem"], p12)
 
     for cmd in cmdCert, cmdKey:
       result = yield self.threadTask(Subprocess.shellCall, 900, cmd)
@@ -133,74 +134,73 @@ class ProxyUploadHandler(WebHandler):
         error = "Error while executing SSL command: %s" % result["Message"]
         error = error + disclaimer
         gLogger.debug("Service response: %s" % error)
-        self.finish({"success":"false", "error":error})
+        self.finish({"success": "false", "error": error})
         return
 
-
     for group in groupList:
-#         gLogger.info("Uploading proxy for group: %s" % group)
-#         cmd = "cat %s | dirac-proxy-init -U -g %s -C %s -K %s -p" % (key["pem"],group,key["pub"],key["private"])
-#         result = result = yield self.threadTask(Subprocess.shellCall,900,cmd)
-#         gLogger.debug("Command is: %s" % cmd)
-#         gLogger.debug("Result is: %s" % result)
-#         gLogger.info("Command is: %s" % cmd)
-#         gLogger.info("Result is: %s" % result)
-#
-#         if not result[ 'OK' ]:
-#           shutil.rmtree(storePath)
-#           error = "".join(result["Message"])
-#           gLogger.error(error)
-#           if len(resultList) > 0:
-#             success = "\nHowever some operations has finished successfully:\n"
-#             success = success + "\n".join(resultList)
-#             error = error + success
-#           error = error + disclaimer
-#           gLogger.debug("Service response: %s" % error)
-#           self.finish({"success":"false","error":error})
-#           return
-#         code = result["Value"][0]
-#         stdout = result["Value"][1]
-#         error = result["Value"][2]
-#         if len(error) > 0:
-#           error = error.replace(">","")
-#           error = error.replace("<","")
-#         if not code == 0:
-#           if len(resultList) > 0:
-#             success = "\nHowever some operations has finished successfully:\n"
-#             success = success + "\n".join(resultList)
-#             error = error + success
-#           error = error + disclaimer
-#           gLogger.debug("Service response: %s" % error)
-#           self.finish({"success":"false","error":error})
-#           return
-#         resultList.append(stdout)
+      #         gLogger.info("Uploading proxy for group: %s" % group)
+      #         cmd = "cat %s | dirac-proxy-init -U -g %s -C %s -K %s -p" % (key["pem"],group,key["pub"],key["private"])
+      #         result = result = yield self.threadTask(Subprocess.shellCall,900,cmd)
+      #         gLogger.debug("Command is: %s" % cmd)
+      #         gLogger.debug("Result is: %s" % result)
+      #         gLogger.info("Command is: %s" % cmd)
+      #         gLogger.info("Result is: %s" % result)
+      #
+      #         if not result[ 'OK' ]:
+      #           shutil.rmtree(storePath)
+      #           error = "".join(result["Message"])
+      #           gLogger.error(error)
+      #           if len(resultList) > 0:
+      #             success = "\nHowever some operations has finished successfully:\n"
+      #             success = success + "\n".join(resultList)
+      #             error = error + success
+      #           error = error + disclaimer
+      #           gLogger.debug("Service response: %s" % error)
+      #           self.finish({"success":"false","error":error})
+      #           return
+      #         code = result["Value"][0]
+      #         stdout = result["Value"][1]
+      #         error = result["Value"][2]
+      #         if len(error) > 0:
+      #           error = error.replace(">","")
+      #           error = error.replace("<","")
+      #         if not code == 0:
+      #           if len(resultList) > 0:
+      #             success = "\nHowever some operations has finished successfully:\n"
+      #             success = success + "\n".join(resultList)
+      #             error = error + success
+      #           error = error + disclaimer
+      #           gLogger.debug("Service response: %s" % error)
+      #           self.finish({"success":"false","error":error})
+      #           return
+      #         resultList.append(stdout)
       proxyChain = X509Chain()
 
       result = proxyChain.loadChainFromFile(keyDict["pub"])
 
-      if not result[ 'OK' ]:
-        self.finish({"error":"Could not load the proxy: %s" % result[ 'Message' ], "success": "false"})
+      if not result['OK']:
+        self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
         return
 
       result = proxyChain.getIssuerCert()
 
-      if not result[ 'OK' ]:
-        self.finish({"error":"Could not load the proxy: %s" % result[ 'Message' ], "success": "false"})
+      if not result['OK']:
+        self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
         return
       issuerCert = result['Value']
 
       upParams = ProxyUpload.CLIParams()
 
       upParams.onTheFly = True
-      upParams.proxyLifeTime = issuerCert.getRemainingSecs()[ 'Value' ] - 300
+      upParams.proxyLifeTime = issuerCert.getRemainingSecs()['Value'] - 300
       upParams.diracGroup = group
       upParams.certLoc = keyDict["pub"]
       upParams.keyLoc = keyDict["private"]
       upParams.userPasswd = pemPassword
       result = ProxyUpload.uploadProxy(upParams)
 
-      if not result[ 'OK' ]:
-        self.finish({"error":result[ 'Message' ], "success": "false"})
+      if not result['OK']:
+        self.finish({"error": result['Message'], "success": "false"})
         return
     shutil.rmtree(storePath)
 
@@ -214,4 +214,4 @@ class ProxyUploadHandler(WebHandler):
 
     result += "\nYour private info was safely deleted from DIRAC server."
     gLogger.info(result)
-    self.finish({"success":"true", "result":result})
+    self.finish({"success": "true", "result": result})
