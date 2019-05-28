@@ -607,7 +607,10 @@ class ConfigurationManagerHandler(WebSocketHandler):
     configName = str(self.__configData['cfgData'].getCFG()["DIRAC"]["Configuration"]["Name"])
     fileName = "cs.%s.%s" % (configName, version.replace(":", "").replace("-", "").replace(" ", ""))
 
-    return {"success": 1, "op": "download", "result": self.__configData['strCfgData'], "fileName": fileName}
+    return {"success": 1,
+            "op": "download",
+            "result": self.__configData['strCfgData'],
+            "fileName": fileName}
 
   def __showCommitDiff(self):
     """
@@ -622,16 +625,11 @@ class ConfigurationManagerHandler(WebSocketHandler):
     allData = processedData.get("diff")
     for mod, value in processedData.get('lines'):
       diffList += allData[value:value + 1]
-    return self.write_message(
-        json.dumps(
-            {
-                "success": 1,
-                "op": "showCommitDiff",
-                "lines": processedData["lines"],
-                "totalLines": processedData["totalLines"],
-                "html": self.render_string(
-                    "ConfigurationManager/diffConfig.tpl",
-                    titles=(
-                        "Server's version",
-                        "User's current version"),
-                    diffList=diffList)}))
+    return {"success": 1,
+            "op": "showCommitDiff",
+            "lines": processedData["lines"],
+            "totalLines": processedData["totalLines"],
+            "html": self.render_string("ConfigurationManager/diffConfig.tpl",
+                                       titles=("Server's version",
+                                               "User's current version"),
+                                       diffList=diffList)}
