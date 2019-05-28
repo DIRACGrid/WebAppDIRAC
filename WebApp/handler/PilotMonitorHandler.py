@@ -2,9 +2,9 @@ import json
 
 from DIRAC import gConfig, S_OK, gLogger
 from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities.Graphs.Palette import Palette
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForDN
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
-from WebAppDIRAC.WebApp.handler.Palette import Palette
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
 
@@ -71,9 +71,6 @@ class PilotMonitorHandler(WebHandler):
   @asyncGen
   def web_getSelectionData(self):
 
-    sData = self.getSessionData()
-    group = sData["user"]["group"]
-    user = sData["user"]["username"]
     callback = {}
 
     if len(self.request.arguments) > 0:

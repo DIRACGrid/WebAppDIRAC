@@ -3,6 +3,7 @@ import json
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities import DictCache
+from DIRAC.Core.Utilities.Graphs.Palette import Palette
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
@@ -11,7 +12,6 @@ from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManage
 from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
 from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from WebAppDIRAC.WebApp.handler.Palette import Palette
 
 
 class JobMonitorHandler(WebHandler):
