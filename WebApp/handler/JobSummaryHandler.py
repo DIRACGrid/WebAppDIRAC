@@ -1,11 +1,11 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
-
-
-from DIRAC import gLogger, gConfig
+import json
 from time import time
 
-import json 
+from DIRAC import gLogger, gConfig
+from DIRAC.Core.DISET.RPCClient import RPCClient
+
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+
 
 class JobSummaryHandler( WebHandler ):
 
@@ -14,7 +14,7 @@ class JobSummaryHandler( WebHandler ):
   pageNumber = 0
   numberOfJobs = 25
   globalSort = [["GridSite", "ASC"]]
-    
+
   @asyncGen
   def web_getSelectionData( self ):
     callback = {}
