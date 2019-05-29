@@ -1,14 +1,17 @@
+import json
 
-from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-from WebAppDIRAC.WebApp.handler.Palette import Palette
-from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.Core.Utilities import DictCache
-
-import json
+from DIRAC.Core.Utilities.Graphs.Palette import Palette
+from DIRAC.RequestManagementSystem.Client.Request import Request
+from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
+from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
+from DIRAC.WorkloadManagementSystem.Client.JobManagerClient import JobManagerClient
+from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
+from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
+from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
 
 class JobMonitorHandler(WebHandler):
@@ -19,10 +22,10 @@ class JobMonitorHandler(WebHandler):
 
   @asyncGen
   def web_getJobData(self):
-    RPC = RPCClient("WorkloadManagement/JobMonitoring", timeout=600)
     req = self._request()
 
-    result = yield self.threadTask(RPC.getJobPageSummaryWeb, req, self.globalSort, self.pageNumber, self.numberOfJobs)
+    result = yield self.threadTask(JobMonitoringClient().getJobPageSummaryWeb,
+                                   req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:
       self.finish({"success": "false", "result": [], "total": 0, "error": result["Message"]})
@@ -74,7 +77,7 @@ class JobMonitorHandler(WebHandler):
     try:
       for key, value in req.iteritems():
         result = result + str(key) + ": " + ", ".join(value) + "; "
-    except Exception, x:
+    except Exception as x:
       pass
       gLogger.info("\033[0;31m Exception: \033[0m %s" % x)
     result = result.strip()
@@ -95,7 +98,7 @@ class JobMonitorHandler(WebHandler):
       callback = JobMonitorHandler.__dataCache.get(cacheKey)
       if not callback:
         callback = {}
-        RPC = RPCClient("WorkloadManagement/JobMonitoring")
+        RPC = JobMonitoringClient()
         result = yield self.threadTask(RPC.getProductionIds)
         if result["OK"]:
           prod = []
@@ -110,7 +113,7 @@ class JobMonitorHandler(WebHandler):
           prod = [["Error happened on service side"]]
         callback["prod"] = prod
 
-        RPC = RPCClient("WorkloadManagement/JobMonitoring")
+        RPC = JobMonitoringClient()
         result = yield self.threadTask(RPC.getSites)
         if result["OK"]:
           tier1 = gConfig.getValue("/WebApp/PreferredSites", [])  # Always return a list
@@ -301,7 +304,7 @@ class JobMonitorHandler(WebHandler):
     ids = self.request.arguments["JobID"][0].split(",")
     ids = [int(i) for i in ids]
 
-    RPC = RPCClient("WorkloadManagement/JobManager")
+    RPC = JobManagerClient()
     if self.request.arguments["action"][0] == "delete":
       result = yield self.threadTask(RPC.deleteJob, ids)
     elif self.request.arguments["action"][0] == "kill":
@@ -330,14 +333,14 @@ class JobMonitorHandler(WebHandler):
     callback = {}
 
     if self.request.arguments["data_kind"][0] == "getJDL":
-      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobJDL, jobId, False)
       if result["OK"]:
         callback = {"success": "true", "result": result["Value"]}
       else:
         callback = {"success": "false", "error": result["Message"]}
     elif self.request.arguments["data_kind"][0] == "getBasicInfo":
-      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobSummary, jobId)
       if result["OK"]:
         items = []
@@ -347,7 +350,7 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success": "false", "error": result["Message"]}
     elif self.request.arguments["data_kind"][0] == "getParams":
-      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
         attr = result["Value"].get(jobId, {})
@@ -362,7 +365,7 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success": "false", "error": result["Message"]}
     elif self.request.arguments["data_kind"][0] == "getLoggingInfo":
-      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobLoggingInfo, jobId)
       if result["OK"]:
         callback = {"success": "true", "result": result["Value"]}
@@ -370,7 +373,7 @@ class JobMonitorHandler(WebHandler):
         callback = {"success": "false", "error": result["Message"]}
 
     elif self.request.arguments["data_kind"][0] == "getStandardOutput":
-      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobParameters, jobId)
       attr = result["Value"].get(jobId, {})
       if result["OK"]:
@@ -381,9 +384,8 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success": "false", "error": result["Message"]}
     elif self.request.arguments["data_kind"][0] == "getPending":
-      RPC = RPCClient("RequestManagement/ReqManager")
 
-      result = yield self.threadTask(RPC.readRequestsForJobs, [jobId])
+      result = yield self.threadTask(ReqClient().readRequestsForJobs, [jobId])
 
       if result["OK"]:
         items = {}
@@ -399,7 +401,7 @@ class JobMonitorHandler(WebHandler):
         callback = {"success": "false", "error": result["Message"]}
 
     elif self.request.arguments["data_kind"][0] == "getLogURL":
-      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
         attr = result["Value"].get(jobId, {})
@@ -416,7 +418,7 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success": "false", "error": result["Message"]}
     elif self.request.arguments["data_kind"][0] == "getStagerReport":
-      RPC = RPCClient("WorkloadManagement/JobMonitoring")
+      RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
         attr = result["Value"].get(jobId, {})
@@ -427,27 +429,24 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success": "false", "error": result["Message"]}
     elif self.request.arguments["data_kind"][0] == "getPilotStdOut":
-      RPC = RPCClient("WorkloadManagement/WMSAdministrator")
-      result = yield self.threadTask(RPC.getJobPilotOutput, jobId)
+      result = yield self.threadTask(WMSAdministratorClient().getJobPilotOutput, jobId)
       if result["OK"]:
         if "StdOut" in result["Value"]:
           callback = {"success": "true", "result": result["Value"]["StdOut"]}
       else:
         callback = {"success": "false", "error": result["Message"]}
     elif self.request.arguments["data_kind"][0] == "getPilotStdErr":
-      RPC = RPCClient("WorkloadManagement/WMSAdministrator")
-      result = yield self.threadTask(RPC.getJobPilotOutput, jobId)
+      result = yield self.threadTask(WMSAdministratorClient().getJobPilotOutput, jobId)
       if result["OK"]:
         if "StdErr" in result["Value"]:
           callback = {"success": "true", "result": result["Value"]["StdErr"]}
       else:
         callback = {"success": "false", "error": result["Message"]}
     elif self.request.arguments["data_kind"][0] == "getPilotLoggingInfo":
-      PILOTRPC = RPCClient("WorkloadManagement/WMSAdministrator")
-      retVal = yield self.threadTask(PILOTRPC.getPilots, int(jobId))
+      retVal = yield self.threadTask(PilotManagerClient().getPilots, int(jobId))
       if retVal['OK']:
         pilotReference = retVal['Value'].keys()[0]
-        retVal = yield self.threadTask(PILOTRPC.getPilotLoggingInfo, pilotReference)
+        retVal = yield self.threadTask(PilotManagerClient().getPilotLoggingInfo, pilotReference)
         if retVal["OK"]:
           callback = {"success": "true", "result": retVal["Value"]}
         else:
@@ -462,7 +461,7 @@ class JobMonitorHandler(WebHandler):
 
     paletteColor = Palette()
 
-    RPC = RPCClient("WorkloadManagement/JobMonitoring")
+    RPC = JobMonitoringClient()
 
     selector = self.request.arguments["statsField"][0]
 
@@ -482,8 +481,7 @@ class JobMonitorHandler(WebHandler):
     if result["OK"]:
       callback = []
       result = dict(result["Value"])
-      keylist = result.keys()
-      keylist.sort()
+      keylist = sorted(result.keys())
       if selector == "Site":
         tier1 = gConfig.getValue("/WebApp/PreferredSites", [])
         if tier1:
@@ -498,14 +496,14 @@ class JobMonitorHandler(WebHandler):
           if key not in tier1:
             try:
               countryCode = key.rsplit(".", 1)[1]
-            except:
+            except BaseException:
               countryCode = "Unknown"
             callback.append(
                 {"key": key, "value": result[key], "code": countryCode, "color": paletteColor.getColor(key)})
         elif selector == "Site" and not tier1:
           try:
             countryCode = key.rsplit(".", 1)[1]
-          except:
+          except BaseException:
             countryCode = "Unknown"
           callback.append({"key": key, "value": result[key], "code": countryCode, "color": paletteColor.getColor(key)})
         else:

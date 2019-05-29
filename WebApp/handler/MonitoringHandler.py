@@ -1,16 +1,17 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.DISET.TransferClient import TransferClient
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import Time, List, DictCache
-from DIRAC.MonitoringSystem.Client.MonitoringClient import MonitoringClient
-from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
+import json
 import tempfile
 import datetime
 
 from hashlib import md5
 
-import json
+from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.DISET.TransferClient import TransferClient
+from DIRAC.Core.Utilities import Time, List, DictCache
+from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
+from DIRAC.MonitoringSystem.Client.MonitoringClient import MonitoringClient
+
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
 
 class MonitoringHandler(WebHandler):
@@ -209,9 +210,6 @@ class MonitoringHandler(WebHandler):
     self.set_header('Content-Disposition', 'attachment; filename="%s.png"' % md5(plotImageFile).hexdigest())
     self.set_header('Content-Length', len(data))
     self.set_header('Content-Transfer-Encoding', 'Binary')
-    #self.set_header( 'Cache-Control', "no-cache, no-store, must-revalidate, max-age=0" )
-    #self.set_header( 'Pragma', "no-cache" )
-    #self.set_header( 'Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ) )
     self.finish(data)
 
   @asyncGen
