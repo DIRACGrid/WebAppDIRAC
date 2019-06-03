@@ -130,7 +130,6 @@ class JobLaunchpadHandler(WebHandler):
 #         platform = uniqueElements(allPlatforms)
 #         options[ "Platform" ] = platform
     gLogger.debug("Combined options from CS: %s" % options)
-    override = gConfig.getValue("/WebApp/Launchpad/OptionsOverride", False)
     gLogger.info("end __getLaunchpadOpts")
 
 #    Updating the default values from OptionsOverride configuration branch
@@ -209,7 +208,8 @@ class JobLaunchpadHandler(WebHandler):
               self.finish({"success": "false", "error": "Parameters vector has zero length"})
               return
           else:
-            self.finish({"success": "false", "error": "Parameters must be an integer or a vector. Example: 4 or {1,2,3,4}"})
+            self.finish({"success": "false",
+                         "error": "Parameters must be an integer or a vector. Example: 4 or {1,2,3,4}"})
             return
       else:
         jdl = jdl + str(item) + " = \"" + str(params[item]) + "\";"
