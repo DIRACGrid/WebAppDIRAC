@@ -1,8 +1,10 @@
-from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
+import json
+
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-import json
+from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
 
 
 class TransformationMonitorHandler(WebHandler):
