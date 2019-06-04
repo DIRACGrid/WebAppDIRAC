@@ -1,6 +1,6 @@
 /*
 * FileSaver.js
-* A saveAs() FileSaver implementation. mi van?
+* A saveAs() FileSaver implementation.
 *
 * By Eli Grey, http://eligrey.com
 *
