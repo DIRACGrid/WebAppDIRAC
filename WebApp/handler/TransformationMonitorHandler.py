@@ -308,7 +308,6 @@ class TransformationMonitorHandler(WebHandler):
     retVal = tsClient.getTransformations({'TransformationID': transid})
     if not retVal['OK']:
       raise WErr.fromSERROR(retVal)
-    print retVal['Value']
     return {"success": "true", "result": retVal['Value'][0]['Body']}
 
   ################################################################################

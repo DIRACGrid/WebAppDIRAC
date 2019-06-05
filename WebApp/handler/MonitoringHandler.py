@@ -281,7 +281,6 @@ class MonitoringHandler(WebHandler):
     rawData = retVal['Value']
     groupKeys = rawData['data'].keys()
     groupKeys.sort()
-#     print rawData['data']
     if 'granularity' in rawData:
       granularity = rawData['granularity']
       data = rawData['data']

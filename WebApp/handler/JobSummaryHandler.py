@@ -126,7 +126,6 @@ class JobSummaryHandler(WebHandler):
         result = {"success": "false", "result": "", "error": "There were no data matching your selection"}
     else:
       gLogger.always("- E R R O R -")
-      print retVal
       result = {"success": "false", "error": retVal["Message"]}
     gLogger.info("\033[0;31m SITESUMMARY INDEX REQUEST: \033[0m %s" % (time() - pagestart))
     self.finish(result)

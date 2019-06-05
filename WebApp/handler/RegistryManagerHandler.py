@@ -330,7 +330,6 @@ class RegistryManagerHandler(WebSocketHandler):
     sectionCfg = self.getSectionCfg(sectionPath)
 
     for opt in sectionCfg.listAll():
-      print "deleting " + opt + "\n"
       self.__configData[ 'cfgData' ].removeOption(sectionPath + "/" + opt)
 
     newCFG = CFG()

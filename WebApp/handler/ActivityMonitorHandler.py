@@ -278,7 +278,6 @@ class ActivityMonitorHandler(WebHandler):
     path = self.request.arguments['node'][0]
 
     result = self.__getSections(path)
-    print result
     for i in result:
       nodes += [i]
 

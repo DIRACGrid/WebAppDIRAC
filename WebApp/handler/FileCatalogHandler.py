@@ -349,14 +349,12 @@ class FileCatalogHandler(WebHandler):
   @asyncGen
   def web_getSubnodeFiles(self):
     path = self.request.arguments["path"][0]
-#     print path
-#     path = "/vo.cta.in2p3.fr"
+
     result = yield self.threadTask(self.fc.listDirectory, path, False)
     if not result["OK"]:
       gLogger.error("submit: %s" % result["Message"])
       self.finish({"success": "false", "error": result["Message"]})
       return
-#     print result
     filesData = result["Value"]["Successful"][path]["Files"]
     dirData = result["Value"]["Successful"][path]["SubDirs"]
 
