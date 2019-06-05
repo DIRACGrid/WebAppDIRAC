@@ -232,7 +232,7 @@ class TransformationMonitorHandler(WebHandler):
             resString = "ProdID: %s failed to set to %s: %s" % (i, cmd, result["Message"])
         else:
           resString = "ProdID: %s failed due the reason: %s" % (i, result["Message"])
-      except:
+      except BaseException:
         resString = "Unable to convert given ID %s to transformation ID" % i
       callback.append(resString)
     callback = {"success": "true", "showResult": callback}
@@ -491,7 +491,7 @@ class TransformationMonitorHandler(WebHandler):
     self.finish(callback)
 
   ################################################################################
-  def __request(self):
+  def _request(self):
     req = {}
     if "limit" in self.request.arguments:
       self.numberOfJobs = int(self.request.arguments["limit"][-1])
