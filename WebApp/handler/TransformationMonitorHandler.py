@@ -1,8 +1,10 @@
-from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
+import json
+
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-import json
+from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
 
 
 class TransformationMonitorHandler(WebHandler):
@@ -230,7 +232,7 @@ class TransformationMonitorHandler(WebHandler):
             resString = "ProdID: %s failed to set to %s: %s" % (i, cmd, result["Message"])
         else:
           resString = "ProdID: %s failed due the reason: %s" % (i, result["Message"])
-      except:
+      except BaseException:
         resString = "Unable to convert given ID %s to transformation ID" % i
       callback.append(resString)
     callback = {"success": "true", "showResult": callback}
@@ -306,7 +308,6 @@ class TransformationMonitorHandler(WebHandler):
     retVal = tsClient.getTransformations({'TransformationID': transid})
     if not retVal['OK']:
       raise WErr.fromSERROR(retVal)
-    print retVal['Value']
     return {"success": "true", "result": retVal['Value'][0]['Body']}
 
   ################################################################################
@@ -490,7 +491,7 @@ class TransformationMonitorHandler(WebHandler):
     self.finish(callback)
 
   ################################################################################
-  def __request(self):
+  def _request(self):
     req = {}
     if "limit" in self.request.arguments:
       self.numberOfJobs = int(self.request.arguments["limit"][-1])

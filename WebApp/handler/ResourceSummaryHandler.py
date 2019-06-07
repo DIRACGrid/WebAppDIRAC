@@ -1,11 +1,12 @@
+import collections
+import json
+
+from DIRAC import gLogger
+
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
 from DIRAC.Core.Utilities import Time
-
-from DIRAC import gLogger
-import collections
-import json
 
 
 class ResourceSummaryHandler(WebHandler):
@@ -300,7 +301,10 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = RPCClient('ResourceStatus/Publisher')
 
-    res = yield self.threadTask(pub.getDowntimes, str(requestParams['element'][-1]), str(requestParams['elementType'][-1]), str(requestParams['name'][-1]))
+    res = yield self.threadTask(pub.getDowntimes,
+                                str(requestParams['element'][-1]),
+                                str(requestParams['elementType'][-1]),
+                                str(requestParams['name'][-1]))
     if not res['OK']:
       gLogger.error(res['Message'])
       self.finish({'success': 'false', 'error': 'error getting downtimes'})

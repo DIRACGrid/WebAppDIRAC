@@ -1,23 +1,26 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID
-from DIRAC.FrameworkSystem.Client.NotificationClient   import NotificationClient
-from WebAppDIRAC.Lib import Conf
-
-import json
-import tornado
 import requests
+
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+
+from WebAppDIRAC.Lib import Conf
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+
 
 class AuthenticationHandler(WebHandler):
 
   AUTH_PROPS = "all"
-  
+
   # Send mail to administrators
   @asyncGen
   def web_sendRequest(self):
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"]
     addresses = Conf.getCSValue('AdminsEmails')
-    NotificationClient().sendMail(addresses,subject = "Request from %s %s" % (loadValue[0],loadValue[1]),body = 'Type auth: %s, details: %s' % (typeAuth,loadValue))
+    NotificationClient().sendMail(
+        addresses, subject="Request from %s %s" %
+        (loadValue[0], loadValue[1]), body='Type auth: %s, details: %s' %
+        (typeAuth, loadValue))
 
   # Get information from web.cfg about auth types
   @asyncGen

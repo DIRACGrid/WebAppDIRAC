@@ -1,8 +1,7 @@
-
 import json
 import types
 
-from DIRAC import gConfig, gLogger
+from DIRAC import gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities import Time, List
 from DIRAC.Core.Utilities.CFG import CFG
@@ -21,11 +20,11 @@ class ConfigurationManagerHandler(WebSocketHandler):
   @asyncGen
   def on_message(self, msg):
 
-    self.log.info("RECEIVED %s" % msg)
+    self.log.info("RECEIVED", msg)
     try:
       params = json.loads(msg)
     except BaseException:
-      gLogger.exception("No op defined")
+      self.log.exception("No op defined")
 
     res = False
     if params["op"] == "init":
@@ -69,7 +68,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     elif params["op"] == "showCommitDiff":
       res = self.__showCommitDiff()
 
-    gLogger.info("Sending back message %s" % res)
+    self.log.info("Sending back message", res)
     if res:
       self.write_message(res)
 
@@ -90,7 +89,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
   def __getSubnodes(self, parentNodeId, sectionPath):
 
-    gLogger.info("Expanding section", "%s" % sectionPath)
+    self.log.info("Expanding section", sectionPath)
 
     retData = []
     retVal = self.__getSubnodesForPath(sectionPath, retData)
@@ -109,7 +108,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
       for section in [section for section in sectionPath.split("/") if not section.strip() == ""]:
         sectionCfg = sectionCfg[section]
     except Exception as v:
-      gLogger.exception("Section does not exist", "%s -> %s" % (sectionPath, repr(v)))
+      self.log.exception("Section does not exist",
+                         "%s -> %s" % (sectionPath, repr(v)))
       return False
 
     for entryName in sectionCfg.listAll():
@@ -177,7 +177,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
     self.__configData['cfgData'].setOptionValue(optionPath, optionValue)
 
     if self.__configData['cfgData'].getValue(optionPath) == optionValue:
-      gLogger.info("Set option value", "%s = %s" % (optionPath, optionValue))
+      self.log.info("Set option value",
+                    "%s = %s" % (optionPath, optionValue))
       return {"success": 1, "op": "setOptionValue", "parentNodeId": params["parentNodeId"], "value": optionValue}
     return {"success": 0, "op": "setOptionValue", "message": "Can't update %s" % optionPath}
 
@@ -191,7 +192,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
     self.__setCommiter()
 
     self.__configData['cfgData'].setComment(path, value)
-    gLogger.info("Set comment", "%s = %s" % (path, value))
+    self.log.info("Set comment",
+                  "%s = %s" % (path, value))
     return {
         "success": 1,
         "op": "setComment",
@@ -249,7 +251,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       if len(sectionName) == 0:
         return {"success": 0, "op": "createSection", "message": "Put any name for the section!"}
       sectionPath = "%s/%s" % (parentPath, sectionName)
-      gLogger.info("Creating section", "%s" % sectionPath)
+      self.log.info("Creating section", sectionPath)
 
       self.__setCommiter()
 
@@ -302,7 +304,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       if len(optionValue) == 0:
         return {"success": 0, "op": "createOption", "message": "Options should have values!"}
       optionPath = "%s/%s" % (parentPath, optionName)
-      gLogger.info("Creating option", "%s = %s" % (optionPath, optionValue))
+      self.log.info("Creating option", "%s = %s" % (optionPath, optionValue))
       if not self.__configData['cfgData'].existsOption(optionPath):
         self.__setCommiter()
         self.__configData['cfgData'].setOptionValue(optionPath, optionValue)
@@ -335,7 +337,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
           "parentNewId": params["parentNewId"],
           "oldIndex": params["oldIndex"]}
 
-    gLogger.info("Moving %s under %s before pos %s" % (nodePath, destinationParentPath, beforeOfIndex))
+    self.log.info("Moving node",
+                  "Moving %s under %s before pos %s" % (nodePath, destinationParentPath, beforeOfIndex))
     cfgData = self.__configData['cfgData'].getCFG()
 
     nodeDict = cfgData.getRecursive(nodePath)
@@ -469,7 +472,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
         isAuth = True
     if not isAuth:
       return {"success": 0, "op": "commitConfiguration", "message": "You are not authorized to commit configurations!"}
-    gLogger.always("User %s is commiting a new configuration version" % data["user"]["DN"])
+    self.log.always("User is commiting a new configuration version",
+                    "(%s)" % data["user"]["DN"])
     retDict = self.__configData['cfgData'].commit()
     if not retDict['OK']:
       return {"success": 0, "op": "commitConfiguration", "message": retDict['Message']}
