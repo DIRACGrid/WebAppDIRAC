@@ -313,7 +313,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                   var blob = new Blob([oResponse.result], {
                         type : "text/plain;charset=utf-8"
                       });
-                  saveAs(oResponse.result, oResponse.fileName);
+                  saveAs(blob, oResponse.fileName);
                 } catch (ex) {
                   Ext.dirac.system_info.msg("Error Notification", "Download is not suported..." + ex);
                 }
