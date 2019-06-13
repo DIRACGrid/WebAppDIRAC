@@ -82,7 +82,7 @@ class HandlerMgr(object):
       self.log.info("Found handler %s" % hn)
       handler = self.__handlers[hn]
       # CHeck it has AUTH_PROPS
-      if isinstance(handler.AUTH_PROPS, None):
+      if isinstance(handler.AUTH_PROPS, type(None)):
         return S_ERROR("Handler %s does not have AUTH_PROPS defined. Fix it!" % hn)
       # Get the root for the handler
       if handler.LOCATION:
