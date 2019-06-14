@@ -38,6 +38,7 @@ pip-log.txt
 .pyproject
 .settings
 .metadata
+.tern-project
 
 # Vim 
 .*.sw[a-z]
