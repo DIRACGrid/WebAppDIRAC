@@ -1,4 +1,3 @@
-
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Security import Properties
 from DIRAC.Core.Security.X509Chain import X509Chain
@@ -13,7 +12,7 @@ from WebAppDIRAC.Lib.SessionData import SessionData
 try:
   from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient
   oauth = OAuthManagerClient()
-except:
+except Exception as e:
   oauth = None
 
 import sys
@@ -149,7 +148,7 @@ class WebHandler(tornado.web.RequestHandler):
     """
     Initialize the handler
     """
-    self.stream = None #Needed for set_secure_cookie tornado method
+    self.stream = None  # Needed for set_secure_cookie tornado method
     super(WebHandler, self).__init__(*args, **kwargs)
     if not WebHandler.__log:
       WebHandler.__log = gLogger.getSubLogger(self.__class__.__name__)
@@ -194,7 +193,7 @@ class WebHandler(tornado.web.RequestHandler):
 
     # Look in idetity providers
     typeAuth = self.get_secure_cookie("TypeAuth")
-    self.log.info("Type authentication: %s" % str(typeAuth)) 
+    self.log.info("Type authentication: %s" % str(typeAuth))
     result = Conf.getCSSections("TypeAuths")
     if result['OK']:
       if typeAuth in result["Value"]:

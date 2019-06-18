@@ -32,9 +32,9 @@ class AuthenticationHandler(WebHandler):
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"]
     addresses = Conf.getCSValue('AdminsEmails')
-    subject = "Request from %s %s" % (loadValue[0],loadValue[1])
-    body = 'Type auth: %s, details: %s' % (typeAuth,loadValue)
-    result = NotificationClient().sendMail(addresses,subject=subject,body=body)
+    subject = "Request from %s %s" % (loadValue[0], loadValue[1])
+    body = 'Type auth: %s, details: %s' % (typeAuth, loadValue)
+    result = NotificationClient().sendMail(addresses, subject=subject, body=body)
     self.finish(result)
 
   @asyncGen
@@ -73,7 +73,7 @@ class AuthenticationHandler(WebHandler):
   @asyncGen
   def web_waitOAuthStatus(self):
     """ Listen authentication status on OAuthDB
-    """ 
+    """
     state = str(self.request.arguments["state"][0])
     typeAuth = str(self.request.arguments["typeauth"][0])
     gLogger.debug('Read authentication status of "%s" session' % state)
@@ -101,7 +101,7 @@ class AuthenticationHandler(WebHandler):
     if typeAuth == 'Log out':
       logOut = True
       typeAuth = self.get_secure_cookie("TypeAuth")
-    
+
     if typeAuth == 'Certificate':
       if logOut:
         self.set_secure_cookie("TypeAuth", 'Visitor')
@@ -128,5 +128,5 @@ class AuthenticationHandler(WebHandler):
         self.set_secure_cookie("TypeAuth", 'Visitor')
       else:
         self.finish(S_ERROR('Cannot get type of %s identity provider' % typeAuth))
-    
+
     self.finish(S_OK())

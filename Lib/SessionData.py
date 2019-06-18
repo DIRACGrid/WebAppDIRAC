@@ -49,7 +49,7 @@ class SessionData(object):
     
     """
     
-    handlerLoc = "/".join(List.fromChar( appLoc, ".")[1:])
+    handlerLoc = "/".join(List.fromChar(appLoc, ".")[1:])
     if not handlerLoc:
       gLogger.error("Application handler does not exists:", appLoc)
       return False
@@ -104,7 +104,7 @@ class SessionData(object):
 
   @classmethod
   def getWebAppPath(cls):
-    return  os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "WebApp")
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "WebApp")
 
   @classmethod
   def getExtJSVersion(cls):
@@ -120,7 +120,7 @@ class SessionData(object):
 
   def getData( self ):
     data = {'menu': self.__getGroupMenu(),
-            'user':  self.__credDict,
+            'user': self.__credDict,
             'validGroups': [],
             'setup': self.__setup,
             'validSetups': gConfig.getSections("/DIRAC/Setups")['Value'],
@@ -134,7 +134,7 @@ class SessionData(object):
         data['validGroups'] = result['Value']
     #Calculate baseURL
     baseURL = [Conf.rootURL().strip("/"),
-                "s:%s" % data['setup'],
-                "g:%s" % self.__credDict.get('group', '')]
+               "s:%s" % data['setup'],
+               "g:%s" % self.__credDict.get('group', '')]
     data['baseURL'] = "/%s" % "/".join(baseURL)
     return data

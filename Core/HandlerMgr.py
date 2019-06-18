@@ -64,13 +64,13 @@ class HandlerMgr(object):
       if not result['OK']:
         return result
       self.__handlers = collections.OrderedDict(list(self.__handlers.items()) + list(result['Value'].items()))
-    
+
     staticPaths = self.getPaths("static")
     self.log.verbose("Static paths found:\n - %s" % "\n - ".join(staticPaths))
     self.__routes = []
 
     # Add some standard paths for static files
-    statDirectories = Conf.getStaticDirs() 
+    statDirectories = Conf.getStaticDirs()
     self.log.info("The following static directories are used:%s" % str(statDirectories))
     for stdir in statDirectories:
       pattern = '/%s/(.*)' % stdir

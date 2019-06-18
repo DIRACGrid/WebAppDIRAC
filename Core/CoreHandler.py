@@ -20,7 +20,7 @@ class CoreHandler(tornado.web.RequestHandler):
       nurl = "%s://%s%s/" % (proto, self.request.host, o.path)
       if o.query:
         nurl = "%s?%s" % (nurl, o.query)
-      self.redirect(nurl, permanent = True)
+      self.redirect(nurl, permanent=True)
     elif self.__action == "sendToRoot":
       dest = "/"
       rootURL = Conf.rootURL()

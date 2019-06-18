@@ -183,10 +183,12 @@ def getBackgroud():
 
 
 def getWelcome():
-  return getCSValue("WelcomeHTML","")
+  return getCSValue("WelcomeHTML", "")
+
 
 def bugReportURL():
   return getCSValue("bugReportURL", "")
+
 
 def getAuthNames():
   return getCSSections("TypeAuths")
