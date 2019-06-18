@@ -202,5 +202,5 @@ def getAuthSettingsOptions(authname):
   return getCSOptions("TypeAuths/%s" % authname)
 
 
-def getAuthCFG(authname,getvalue):
+def getAuthCFG(authname, getvalue):
   return getCSValue("TypeAuths/%s/%s" % (authname, getvalue))

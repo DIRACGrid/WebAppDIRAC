@@ -49,7 +49,7 @@ class AuthenticationHandler(WebHandler):
     """
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"][0]
-    res = getIdPOption(typeAuth,loadValue)
+    res = getIdPOption(typeAuth, loadValue)
     if not res:
       providerType = getIdPOption(typeAuth, 'Type')
       if providerType == 'OAuth2':
