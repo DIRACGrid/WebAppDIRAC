@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-<head>
+<head> 
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title>{{title}}</title>
     <link rel="SHORTCUT ICON" href='{{iconUrl}}'>
@@ -10,7 +10,6 @@
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/StackBlur.js"></script>
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/canvg.js"></script>
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/FileSaver/FileSaver.js"></script>
-    <script type="text/javascript" src="{{base_url}}/static/oidc/oidc-client/dist/oidc-client.js"></script>
 	  
 	  {% if bugReportURL!='' %}
 	  	<script type="text/javascript" src="{{bugReportURL}}"></script>
@@ -24,7 +23,7 @@
  
     {% autoescape None %}
     <!-- GC -->
-
+    
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
 	

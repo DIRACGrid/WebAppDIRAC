@@ -1,8 +1,8 @@
-
-import inspect
-import imp
 import os
 import re
+import imp
+import inspect
+import collections
 
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
@@ -10,17 +10,23 @@ from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 
 import WebAppDIRAC
+
+from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
-from WebAppDIRAC.Lib import Conf
+
+__RCSID__ = "$Id$"
 
 
 class HandlerMgr(object):
   __metaclass__ = DIRACSingleton
 
-  def __init__(self, baseURL=""):
+  def __init__(self, baseURL="/", sysService=None):
     self.__baseURL = baseURL.strip("/")
+    self.__sysService = sysService or []
+    if not isinstance(self.__sysService, list):
+      self.__sysService = self.__sysService.replace(' ', '').split(',')
     self.__routes = []
     self.__handlers = []
     self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w.-]*))?"
@@ -28,15 +34,12 @@ class HandlerMgr(object):
     self.log = gLogger.getSubLogger("Routing")
 
   def getPaths(self, dirName):
-    """
-    Get lists of paths for all installed and enabled extensions
+    """ Get lists of paths for all installed and enabled extensions
     """
     pathList = []
     for extName in CSGlobals.getCSExtensions():
       if extName.rfind("DIRAC") != len(extName) - 5:
         extName = "%sDIRAC" % extName
-      if extName == "WebAppDIRAC":
-        continue
       try:
         modFile, modPath, desc = imp.find_module(extName)
         # to match in the real root path to enabling module web extensions (static, templates...)
@@ -55,17 +58,19 @@ class HandlerMgr(object):
     Load all handlers and generate the routes
     """
     ol = ObjectLoader()
-    origin = "WebApp.handler"
-    result = ol.getObjects(origin, parentClass=WebHandler, recurse=True)
-    if not result['OK']:
-      return result
-    self.__handlers = result['Value']
+    self.__handlers = collections.OrderedDict()
+    for origin in self.__sysService:
+      result = ol.getObjects(origin, parentClass=WebHandler, recurse=True)
+      if not result['OK']:
+        return result
+      self.__handlers = collections.OrderedDict(list(self.__handlers.items()) + list(result['Value'].items()))
+    
     staticPaths = self.getPaths("static")
     self.log.verbose("Static paths found:\n - %s" % "\n - ".join(staticPaths))
     self.__routes = []
 
     # Add some standard paths for static files
-    statDirectories = ['defaults', 'demo'] + Conf.getStaticDirs()
+    statDirectories = Conf.getStaticDirs() 
     self.log.info("The following static directories are used:%s" % str(statDirectories))
     for stdir in statDirectories:
       pattern = '/%s/(.*)' % stdir
@@ -94,6 +99,8 @@ class HandlerMgr(object):
       # IF theres a base url like /DIRAC add it
       if self.__baseURL:
         baseRoute = "/%s%s" % (self.__baseURL, baseRoute)
+      else:
+        baseRoute = "/%s" % baseRoute
       # Set properly the LOCATION after calculating where it is with helpers to add group and setup later
       handler.LOCATION = handlerRoute
       handler.PATH_RE = re.compile("%s(%s/.*)" % (baseRoute, handlerRoute))
