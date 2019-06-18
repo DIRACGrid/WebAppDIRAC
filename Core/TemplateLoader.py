@@ -11,9 +11,9 @@ class TemplateLoader(BaseLoader):
     self.pathList = pathList
 
   def resolve_path(self, name, parent_path=None):
-    if parent_path and not parent_path.startswith("<") and \
-                   not parent_path.startswith("/") and not name.startswith("/"):
-      name = os.path.join(os.path.dirname(parent_path), name)
+    if parent_path and not parent_path.startswith("<"):
+      if not parent_path.startswith("/") and not name.startswith("/"):
+        name = os.path.join(os.path.dirname(parent_path), name)
     return name
 
   def _create_template(self, name):
