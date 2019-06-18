@@ -359,10 +359,10 @@ class WebHandler(tornado.web.RequestHandler):
     :param str dn: certificate DN
     :return: bool if the host is Trusrted it return true otherwise false
     """
-    retVal = CS.getHostnameForDN(dn)
+    retVal = Registry.getHostnameForDN(dn)
     if retVal['OK']:
       hostname = retVal['Value']
-      if Properties.TRUSTED_HOST in CS.getPropertiesForHost(hostname, []):
+      if Properties.TRUSTED_HOST in Registry.getPropertiesForHost(hostname, []):
         return True
     return False
 

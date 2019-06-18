@@ -1,4 +1,3 @@
-
 import os
 import ssl
 import imp
@@ -12,12 +11,12 @@ import tornado.autoreload
 import DIRAC
 
 from DIRAC import gLogger, gConfig
+from DIRAC.Core.Utilities.CFG import CFG
+from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
-from DIRAC.Core.Utilities.CFG import CFG
-from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 
 __RCSID__ = "$Id$"
 
@@ -70,7 +69,7 @@ class App(object):
         continue
       try:
         modCFG = CFG().loadFromFile(cfgPath)
-      except Exception, excp:
+      except Exception as excp:
         gLogger.error("Could not load %s: %s" % (cfgPath, excp))
         continue
       gLogger.verbose("Loaded %s" % cfgPath)
@@ -83,7 +82,7 @@ class App(object):
           gLogger.verbose("%s:%s is an absolute definition" % (modName, current))
           try:
             webCFG.deleteKey(current)
-          except:
+          except BaseException:
             pass
           modCFG.deleteKey("%s/AbsoluteDefinition" % current)
         else:
@@ -103,7 +102,7 @@ class App(object):
     else:
       try:
         modCFG = CFG().loadFromFile(cfgPath)
-      except Exception, excp:
+      except Exception as excp:
         isLoaded = False
         gLogger.error("Could not load %s: %s" % (cfgPath, excp))
 
@@ -117,7 +116,7 @@ class App(object):
       isLoaded = False
 
     return isLoaded
-  
+
   def stopChildProcesses(self, sig, frame):
     """
     It is used to properly stop tornado when more than one process is used.
@@ -128,11 +127,11 @@ class App(object):
     # tornado.ioloop.IOLoop.instance().add_timeout(time.time()+5, sys.exit)
     for child in frame.f_locals.get('children', []):
       gLogger.info("Stopping child processes: %d" % child)
-      os.kill( child, signal.SIGTERM )
+      os.kill(child, signal.SIGTERM)
     # tornado.ioloop.IOLoop.instance().stop()
     # gLogger.info('exit success')
     sys.exit(0)
- 
+
   def bootstrap(self):
     """
     Configure and create web app
@@ -155,11 +154,11 @@ class App(object):
     tLoader = TemplateLoader(self.__handlerMgr.getPaths("template"))
     kw = dict(debug=Conf.devMode(), template_loader=tLoader, cookie_secret=str(Conf.cookieSecret()),
               log_function=self._logRequest, autoreload=Conf.numProcesses() < 2)
-    
-    #please do no move this lines. The lines must be before the fork_processes
+
+    # please do no move this lines. The lines must be before the fork_processes
     signal.signal(signal.SIGTERM, self.stopChildProcesses)
     signal.signal(signal.SIGINT, self.stopChildProcesses)
-    
+
     # Check processes if we're under a load balancert
     if Conf.balancer() and Conf.numProcesses() not in (0, 1):
       tornado.process.fork_processes(Conf.numProcesses(), max_restarts=0)
@@ -180,21 +179,21 @@ class App(object):
 
     if Conf.HTTPS():
       self.log.notice("Configuring HTTPS on port %s" % Conf.HTTPSPort())
-      sslops = dict(certfile = Conf.HTTPSCert(),
-                    keyfile = Conf.HTTPSKey(),
-                    cert_reqs = ssl.CERT_OPTIONAL,
-                    ca_certs = Conf.generateCAFile(),
-                    ssl_version = ssl.PROTOCOL_TLSv1) 
+      sslops = dict(certfile=Conf.HTTPSCert(),
+                    keyfile=Conf.HTTPSKey(),
+                    cert_reqs=ssl.CERT_OPTIONAL,
+                    ca_certs=Conf.generateCAFile(),
+                    ssl_version=ssl.PROTOCOL_TLSv1)
 
       sslprotocol = str(Conf.SSLProrocol())
       aviableProtocols = [i for i in dir(ssl) if i.find('PROTOCOL') == 0]
-      if  sslprotocol and sslprotocol != "":
+      if sslprotocol and sslprotocol != "":
         if (sslprotocol in aviableProtocols):
           sslops['ssl_version'] = getattr(ssl, sslprotocol)
         else:
           message = "%s protocol is not provided." % sslprotocol
           message += "The following protocols are provided: %s" % str(aviableProtocols)
-          gLogger.warn( message )
+          gLogger.warn(message)
 
       self.log.debug(" - %s" % "\n - ".join(["%s = %s" % (k, sslops[k]) for k in sslops]))
       srv = tornado.httpserver.HTTPServer(self.__app, ssl_options=sslops, xheaders=True)
@@ -202,8 +201,8 @@ class App(object):
       srv.listen(port)
       self.__servers[('https', port)] = srv
     else:
-      # when NGINX is used then the Conf.HTTPS return False, it means
-      # tornado does not have to be configured using 443 port
+      # when NGINX is used then the Conf.HTTPS return False, it means tornado
+      # does not have to be configured using 443 port
       Conf.generateCAFile()  # if we use Nginx we have to generate the cas as well...
     return result
 
@@ -214,7 +213,7 @@ class App(object):
     bu = Conf.rootURL().strip("/")
     urls = []
     for proto, port in self.__servers:
-      urls.append( "%s://0.0.0.0:%s/%s/" % (proto, port, bu))
-    self.log.always( "Listening on %s" % " and ".join(urls))
+      urls.append("%s://0.0.0.0:%s/%s/" % (proto, port, bu))
+    self.log.always("Listening on %s" % " and ".join(urls))
     tornado.autoreload.add_reload_hook(self.__reloadAppCB)
     tornado.ioloop.IOLoop.instance().start()

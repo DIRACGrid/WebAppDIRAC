@@ -1,4 +1,3 @@
-
 import os
 from tornado.web import StaticFileHandler, HTTPError
 
@@ -24,8 +23,3 @@ class StaticHandler(StaticFileHandler):
       if os.path.isfile(possiblePath):
         return possiblePath
     raise HTTPError(404)
-
-
-
-
-
