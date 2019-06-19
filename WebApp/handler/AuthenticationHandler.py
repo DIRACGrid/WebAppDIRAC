@@ -48,17 +48,17 @@ class AuthenticationHandler(WebHandler):
     """ Get option from IdP
     """
     typeAuth = str(self.request.arguments["typeauth"][0])
-    loadValue = self.request.arguments["value"][0]
-    res = getIdPOption(typeAuth, loadValue)
-    if not res:
-      providerType = getIdPOption(typeAuth, 'Type')
-      if providerType == 'OAuth2':
-        if loadValue == 'authorization_url':
-          res = oauth.createAuthRequestURL(typeAuth)
-          if not res['OK']:
-            self.finish(res)
-          res = res['Value']
-    self.finish(S_OK(res))
+    result = getIdPOption(typeAuth, 'Type')
+    if not result['OK']:
+      self.finish(result)
+    providerType = result['Value']
+    settings = {}
+    if providerType == 'OAuth2':
+      result = oauth.createAuthRequestURL(typeAuth)
+      if not result['OK']:
+        self.finish(result)
+      settings = result['Value']
+    self.finish(S_OK({'providerType': providerType, 'settings': settings}))
 
   @asyncGen
   def web_getCurrentAuth(self):
@@ -76,7 +76,7 @@ class AuthenticationHandler(WebHandler):
     """
     state = str(self.request.arguments["state"][0])
     typeAuth = str(self.request.arguments["typeauth"][0])
-    gLogger.debug('Read authentication status of "%s" session' % state)
+    gLogger.debug('Read authentication status of ", "%s" session' % state)
     result = oauth.waitStateResponse(state)
     if result['OK']:
       if result['Value']['Status'] == 'authed':

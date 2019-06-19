@@ -54,8 +54,7 @@ class HandlerMgr(object):
     return pathList
 
   def __calculateRoutes(self):
-    """
-    Load all handlers and generate the routes
+    """ Load all handlers and generate the routes
     """
     ol = ObjectLoader()
     self.__handlers = collections.OrderedDict()

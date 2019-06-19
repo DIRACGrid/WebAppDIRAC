@@ -12,7 +12,8 @@ from WebAppDIRAC.Lib.SessionData import SessionData
 try:
   from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient
   oauth = OAuthManagerClient()
-except Exception as e:
+except BaseException:
+  self.log.exception("No OAuthManager defined")
   oauth = None
 
 import sys
@@ -177,6 +178,8 @@ class WebHandler(tornado.web.RequestHandler):
         result = oauth.getUsrnameForState(state) if oauth else S_ERROR('OAuthDIRAC extension is not enable')
         if not result['OK']:
           return result
+        if 'state' not in result['Value'] or 'username' not in result['Value']:
+          return S_ERROR('Cannot get session state or user name')
         self.set_secure_cookie("StateAuth", result['Value']['state'])
         self.__credDict['username'] = result['Value']['username']
         result = Registry.getDNForUsername(self.__credDict['username'])
