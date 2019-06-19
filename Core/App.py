@@ -24,7 +24,7 @@ __RCSID__ = "$Id$"
 class App(object):
 
   def __init__(self, handlersLoc='WebApp.handler'):
-    self.__handlerMgr = HandlerMgr(Conf.rootURL(), handlersLoc)
+    self.__handlerMgr = HandlerMgr(handlersLoc, Conf.rootURL())
     self.__servers = {}
     self.log = gLogger.getSubLogger("Web")
 

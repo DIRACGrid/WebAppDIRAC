@@ -22,11 +22,11 @@ __RCSID__ = "$Id$"
 class HandlerMgr(object):
   __metaclass__ = DIRACSingleton
 
-  def __init__(self, baseURL="/", sysService=None):
+  def __init__(self, sysService, baseURL="/"):
     self.__baseURL = baseURL.strip("/")
+    if sysService and not isinstance(sysService, list):
+      sysService = sysService.replace(' ', '').split(',')
     self.__sysService = sysService or []
-    if not isinstance(self.__sysService, list):
-      self.__sysService = self.__sysService.replace(' ', '').split(',')
     self.__routes = []
     self.__handlers = []
     self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w.-]*))?"
@@ -40,6 +40,8 @@ class HandlerMgr(object):
     for extName in CSGlobals.getCSExtensions():
       if extName.rfind("DIRAC") != len(extName) - 5:
         extName = "%sDIRAC" % extName
+      if extName == "WebAppDIRAC":
+        continue
       try:
         modFile, modPath, desc = imp.find_module(extName)
         # to match in the real root path to enabling module web extensions (static, templates...)
@@ -58,6 +60,7 @@ class HandlerMgr(object):
     """
     ol = ObjectLoader()
     hendlerList = []
+    self.log.debug(" self.__sysService: %s" % str(self.__sysService))
     for origin in self.__sysService:
       result = ol.getObjects(origin, parentClass=WebHandler, recurse=True)
       if not result['OK']:
@@ -87,7 +90,7 @@ class HandlerMgr(object):
       self.log.info("Found handler %s" % hn)
       handler = self.__handlers[hn]
       # CHeck it has AUTH_PROPS
-      if isinstance(handler.AUTH_PROPS, None):
+      if isinstance(handler.AUTH_PROPS, type(None)):
         return S_ERROR("Handler %s does not have AUTH_PROPS defined. Fix it!" % hn)
       # Get the root for the handler
       if handler.LOCATION:

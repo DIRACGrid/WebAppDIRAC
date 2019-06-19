@@ -48,10 +48,7 @@ class AuthenticationHandler(WebHandler):
     """ Get option from IdP
     """
     typeAuth = str(self.request.arguments["typeauth"][0])
-    result = getIdPOption(typeAuth, 'Type')
-    if not result['OK']:
-      self.finish(result)
-    providerType = result['Value']
+    providerType = getIdPOption(typeAuth, 'Type')
     settings = {}
     if providerType == 'OAuth2':
       result = oauth.createAuthRequestURL(typeAuth)
