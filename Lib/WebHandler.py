@@ -174,7 +174,7 @@ class WebHandler(tornado.web.RequestHandler):
     def oAuth2():
       if self.get_secure_cookie("StateAuth"):
         state = self.get_secure_cookie("StateAuth")
-        result = oauth.getUsrnameForState(state) if oauth else S_ERROR('OAuthDIRAC extantion is not enable')
+        result = oauth.getUsrnameForState(state) if oauth else S_ERROR('OAuthDIRAC extension is not enable')
         if not result['OK']:
           return result
         self.set_secure_cookie("StateAuth", result['Value']['state'])
