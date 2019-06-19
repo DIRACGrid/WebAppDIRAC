@@ -57,12 +57,13 @@ class HandlerMgr(object):
     """ Load all handlers and generate the routes
     """
     ol = ObjectLoader()
-    self.__handlers = collections.OrderedDict()
+    hendlerList = []
     for origin in self.__sysService:
       result = ol.getObjects(origin, parentClass=WebHandler, recurse=True)
       if not result['OK']:
         return result
-      self.__handlers = collections.OrderedDict(list(self.__handlers.items()) + list(result['Value'].items()))
+      hendlerList += list(result['Value'].items())
+    self.__handlers = collections.OrderedDict(hendlerList)
 
     staticPaths = self.getPaths("static")
     self.log.verbose("Static paths found:\n - %s" % "\n - ".join(staticPaths))
