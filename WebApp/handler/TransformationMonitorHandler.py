@@ -102,7 +102,7 @@ class TransformationMonitorHandler(WebHandler):
     if user == "Anonymous":
       callback = {"success": "false", "error": "You are not authorised"}
     else:
-      result = self.__request()
+      result = self._request()
 
       result = yield self.threadTask(tsClient.getTransformationSummaryWeb,
                                      result, self.globalSort, self.pageNumber, self.numberOfJobs)
