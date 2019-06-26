@@ -3,8 +3,9 @@ import json
 from DIRAC import gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping import getGOCSiteName, getDIRACSiteName
+from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.Core.Utilities.Plotting.FileCoding import codeRequestInFileId
-from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSiteComputingElements, getSiteStorageElements
+from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSiteComputingElements
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -236,12 +237,12 @@ class SiteSummaryHandler(WebHandler):
     pub = RPCClient('ResourceStatus/Publisher')
 
     elementName = requestParams['name'][0]
-    storage_elements = getSiteStorageElements(elementName)
-    storage_elements_status = []
-    gLogger.info('storage_elements = ' + str(storage_elements))
+    storageElements = getSEsForSite(elementName)
+    storageElementsStatus = []
+    gLogger.info('storageElements = ' + str(storageElements))
 
     # FIXME: use properly RSS
-    for se in storage_elements:
+    for se in storageElements:
       sestatuses = pub.getElementStatuses('Resource',
                                           se,
                                           None,
@@ -250,9 +251,9 @@ class SiteSummaryHandler(WebHandler):
                                           None)
 
       for sestatus in sestatuses['Value']:
-        storage_elements_status.append([sestatus[0], sestatus[2], sestatus[6]])
+        storageElementsStatus.append([sestatus[0], sestatus[2], sestatus[6]])
 
-    return {'success': 'true', 'result': storage_elements_status, 'total': len(storage_elements_status)}
+    return {'success': 'true', 'result': storageElementsStatus, 'total': len(storageElementsStatus)}
 
   def _getComputingElements(self, requestParams):
 
