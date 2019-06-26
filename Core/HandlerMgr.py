@@ -1,3 +1,5 @@
+""" Basic modules for loading handlers
+"""
 
 import inspect
 import imp
@@ -10,10 +12,10 @@ from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 
 import WebAppDIRAC
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 from WebAppDIRAC.Lib import Conf
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
 
 
 class HandlerMgr(object):
