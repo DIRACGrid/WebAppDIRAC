@@ -88,10 +88,13 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
           });
     }
 
-    /*
-     * me.items.push({ xtype : 'tbtext', text : "Theme" });
-     * me.items.push(button_theme);
-     */
+    
+    me.items.push({
+      xtype : 'tbtext',
+      text : "Theme"
+    });
+    me.items.push(button_theme);
+    
 
     var button_views = {
       "text" : GLOBAL.VIEW_ID,
@@ -131,11 +134,12 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
     var getAuthCFG = function(Auth){
       var req = Ext.Ajax.request({
         url: GLOBAL.BASE_URL + 'Authentication/getAuthCFG',
-        params: { typeauth: Auth },
+        params: {
+          typeauth: Auth
+        },
         async: false
       }).responseText
       res = JSON.parse(req)
-      console.log(res)
       return res
     };
     
@@ -148,12 +152,10 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
         },
         async: false
       }).responseText
-      console.log(status_req);
       status_json = JSON.parse(status_req);
-      console.log(status_json);
       if (status_json.OK) { 
         location.protocol = "https:"
-      } else { 
+      } else {
         // Hide load icon
         Ext.get("app-dirac-loading").hide();
         Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
@@ -162,55 +164,69 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
     };
 
     var auth = function(AuthType) {
-      console.log('"' + AuthType + '" was chosen for authorization')
+      GLOBAL.APP.CF.log("debug", '"' + AuthType + '" was chosen for authorization')
       result = getAuthCFG(AuthType)
-      if (!result.OK) { return GLOBAL.APP.CF.alert("Authentication was ended with error: %s", result.Message, 'error') }
+      if (!result.OK) {
+        return GLOBAL.APP.CF.alert("Authentication was ended with error: %s", result.Message, 'error')
+      }
       if (result.Value.providerType) {
         providerType = result.Value.providerType
         if (providerType == 'OAuth2') {
-          console.log('OIDC authorization flow')
-          if (!result.Value.settings) { return GLOBAL.APP.CF.alert('We cannot get authorization URL for you.', 'error') }
+          GLOBAL.APP.CF.log("debug", 'OIDC authorization flow')
+          if (!result.Value.settings) {
+            return GLOBAL.APP.CF.alert('We cannot get authorization URL for you.', 'error')
+          }
           authorizationURL = result.Value.settings.url
           state = result.Value.settings.state
           
           //Open popup
-          console.log('Open authorization URL: "' + authorizationURL + '"')
+          GLOBAL.APP.CF.log("debug", 'Open authorization URL: "' + authorizationURL + '"')
           var oAuthReqWin = open(authorizationURL, "popupWindow", "hidden=yes,height=570,width=520,scrollbars=yes,status=yes")
           oAuthReqWin.focus();
           
           // Send request to redirect URL about success authorization
-          console.log('Watch when popup window will be close')
-          var res = (function waitPopupClosed (i,r) {
-            // Show load icon
-            Ext.get("app-dirac-loading").show();
-            Ext.get("app-dirac-loading-msg").setHtml("Waiting when authentication will be finished...");
+          Ext.get("app-dirac-loading").show();
+          Ext.get("app-dirac-loading-msg").setHtml("Waiting when authentication will be finished...");
+          GLOBAL.APP.CF.log("debug", 'Watch when popup window will be close')
+          var res = (function waitPopupClosed (i, r) {
             if (r==='closed') {
-              return waitOAuthStatus(AuthType,state);
+              return waitOAuthStatus(AuthType, state);
             } else {
               setTimeout(function () {
                 if (--i) {
                   if (oAuthReqWin===undefined) {
-                    console.log('Popup window was closed.'); return waitPopupClosed(0, 'closed')
+                    GLOBAL.APP.CF.log("debug", 'Popup window was closed.');
+                    return waitPopupClosed(0, 'closed')
                   }
                   if (oAuthReqWin) {
                     if (oAuthReqWin.closed) {
-                      console.log('Popup window was closed.'); return waitPopupClosed(0, 'closed')
+                      GLOBAL.APP.CF.log("debug", 'Popup window was closed.');
+                      return waitPopupClosed(0, 'closed')
                     } else {
                       oAuthReqWin.focus();
                       return waitPopupClosed(i)
                     }
-                  } else {return waitPopupClosed(i)}
+                  } else {
+                    return waitPopupClosed(i)
+                  }
+                } else {
+                  return waitPopupClosed(120)
                 }
               }, 1000);
             }
           })(120,'opened');
-        } else { GLOBAL.APP.CF.alert("Authentication method " + providerType + " is not supported." , 'error') }
+        } else {
+          GLOBAL.APP.CF.alert("Authentication method " + providerType + " is not supported." , 'error')
+        }
       } else {
-        console.log('"' + result.Value + '" is null')
         Ext.Ajax.request({
           url: GLOBAL.BASE_URL + 'Authentication/auth',
-          params: { typeauth: AuthType },
-          success: function() { location.protocol = "https:" }
+          params: {
+            typeauth: AuthType
+          },
+          success: function() {
+            location.protocol = "https:"
+          }
         })
       }
     };
