@@ -103,6 +103,7 @@
             },1000);
             if (location.protocol === 'http:') {
               var https_url = location.href.replace('http:', 'https:');
+              https_url = https_url.replace(":{{ http_port }}/", ":{{ https_port }}/");
               Ext.dirac.system_info.msg(
                 "Notification",
                 'Running without authentication, did you mean: '+
