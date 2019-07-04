@@ -68,7 +68,7 @@ class JobSummaryHandler(WebHandler):
         for i in result["Country"]:
           if i in countryCode:
             j = countryCode[i]
-          country.append([str(j)])
+            country.append([str(j)])
       else:
         country = [["Nothing to display"]]
       country.sort()
@@ -79,7 +79,7 @@ class JobSummaryHandler(WebHandler):
       callback["maskstatus"] = [["Error during RPC call"]]
       callback["site"] = [["Error during RPC call"]]
       callback["country"] = [["Error during RPC call"]]
-###
+# ##
     self.finish(callback)
 
   @asyncGen
@@ -184,7 +184,6 @@ class JobSummaryHandler(WebHandler):
       if 'date' in self.request.arguments and len(self.request.arguments["date"][0]) > 0:
         req["LastUpdate"] = str(self.request.arguments["date"][0])
 
-      globalSort = []
     gLogger.info("REQUEST:", req)
     return req
 
