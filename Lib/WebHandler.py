@@ -1,20 +1,6 @@
-
-from DIRAC import gLogger
-from DIRAC.Core.Security.X509Chain import X509Chain
-from DIRAC.Core.Security import Properties
-from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.Core.DISET.AuthManager import AuthManager
-from DIRAC.Core.Utilities.Decorators import deprecated
-from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-
-from WebAppDIRAC.Lib.SessionData import SessionData
-from WebAppDIRAC.Lib import Conf
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
-
 import requests
 import ssl
 import functools
-import sys
 import types
 import json
 import traceback
@@ -25,6 +11,17 @@ import tornado.stack_context
 import tornado.websocket
 
 from concurrent.futures import ThreadPoolExecutor
+
+from DIRAC import gLogger
+from DIRAC.Core.Security.X509Chain import X509Chain
+from DIRAC.Core.Security import Properties
+from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.Core.DISET.AuthManager import AuthManager
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
+
+from WebAppDIRAC.Lib.SessionData import SessionData
+from WebAppDIRAC.Lib import Conf
 
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
@@ -81,50 +78,6 @@ class WebHandler(tornado.web.RequestHandler):
   PATH_RE = ""
 
   def threadTask(self, method, *args, **kwargs):
-    if tornado.version < '5.0.0':
-      return self.threadTaskOld(method, *args, **kwargs)
-    else:
-      return self.threadTaskExecutor(method, *args, **kwargs)
-
-  # Helper function to create threaded gen.Tasks with automatic callback and execption handling
-  @deprecated("Only for Tornado 4.x.x and DIRAC v6r20")
-  def threadTaskOld(self, method, *args, **kwargs):
-    """
-    Helper method to generate a gen.Task and automatically call the callback when the real
-    method ends. THIS IS SPARTAAAAAAAAAA. SPARTA has improved using futures ;)
-    """
-    # Save the task to access the runner
-    genTask = False
-
-    # This runs in the separate thread, calls the callback on finish and takes into account exceptions
-    def cbMethod(*cargs, **ckwargs):
-      cb = ckwargs.pop('callback')
-      method = cargs[0]
-      disetConf = cargs[1]
-      cargs = cargs[2]
-      self.__disetConfig.reset()
-      self.__disetConfig.load(disetConf)
-      ioloop = tornado.ioloop.IOLoop.instance()
-      try:
-        result = method(*cargs, **ckwargs)
-        ioloop.add_callback(functools.partial(cb, result))
-      except Exception as excp:
-        gLogger.error("Following exception occured %s" % excp)
-        exc_info = sys.exc_info()
-        genTask.set_exc_info(exc_info)
-        ioloop.add_callback(lambda: genTask.exception())
-
-    # Put the task in the thread :)
-    def threadJob(tmethod, *targs, **tkwargs):
-      tkwargs['callback'] = tornado.stack_context.wrap(tkwargs['callback'])
-      targs = (tmethod, self.__disetDump, targs)
-      gThreadPool.submit(cbMethod, *targs, **tkwargs)
-
-    # Return a YieldPoint
-    genTask = tornado.gen.Task(threadJob, method, *args, **kwargs)
-    return genTask
-
-  def threadTaskExecutor(self, method, *args, **kwargs):
     def threadJob(*targs, **tkwargs):
       args = targs[0]
       disetConf = targs[1]
