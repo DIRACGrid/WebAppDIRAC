@@ -191,7 +191,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
         }
         return sVal;
       },
-      msg : function(type, message) {
+      msg : function(type, message, autoClose = null) {
         var me = this;
 
         if (message == null)
@@ -212,6 +212,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           case "Notification" :
             config = {
+              autoClose : autoClose === null ? true : autoClose,
               title : 'Notification',
               position : 'tl',
               manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
@@ -224,7 +225,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           case "Error Notification" :
             config = {
-              autoClose : false,
+              autoClose : autoClose === null ? false : autoClose,
               title : 'Error Notification',
               position : 'tl',
               manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
@@ -237,6 +238,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           case "info" :
             config = {
+              autoClose : autoClose === null ? true : autoClose,
               title : 'Notification',
               position : 'tl',
               manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
@@ -249,7 +251,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           case "Error" :
             config = {
-              autoClose : false,
+              autoClose : autoClose === null ? false : autoClose,
               title : 'Error Notification',
               position : 'tl',
               manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
@@ -262,7 +264,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           default :
             config = {
-              autoClose : false,
+              autoClose : autoClose === null ? false : autoClose,
               title : 'Error Notification',
               position : 'tl',
               manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
