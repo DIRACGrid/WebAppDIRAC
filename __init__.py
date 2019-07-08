@@ -1,25 +1,25 @@
-# $HeadURL$
 __RCSID__ = "$Id$"
 
-import sys, os, platform
+import sys
+import os
+import platform
 
 # Define Version
 
-majorVersion = 1
-minorVersion = 6
-patchLevel = 31
+majorVersion = 4
+minorVersion = 0
+patchLevel = 4
 preVersion = 0
 
-version = "v%sr%s" % ( majorVersion, minorVersion )
-buildVersion = "v%dr%d" % ( majorVersion, minorVersion )
+version = "v%sr%s" % (majorVersion, minorVersion)
+buildVersion = "v%dr%d" % (majorVersion, minorVersion)
 if patchLevel:
-  version = "%sp%s" % ( version, patchLevel )
-  buildVersion = "%s build %s" % ( buildVersion, patchLevel )
+  version = "%sp%s" % (version, patchLevel)
+  buildVersion = "%s build %s" % (buildVersion, patchLevel)
 if preVersion:
-  version = "%s-pre%s" % ( version, preVersion )
-  buildVersion = "%s pre %s" % ( buildVersion, preVersion )
+  version = "%s-pre%s" % (version, preVersion)
+  buildVersion = "%s pre %s" % (buildVersion, preVersion)
 
 # Check of python version
 
-rootPath = os.path.realpath( os.path.dirname( __file__ ) )
-
+rootPath = os.path.realpath(os.path.dirname(__file__))

@@ -683,7 +683,13 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               oColumns : oColumns,
               contextMenu : me.contextGridMenu,
               pagingToolbar : pagingToolbar,
-              scope : me
+              scope : me,
+             /* viewConfig : {
+                enableTextSelection : true,
+                getRowClass : function() {
+                  return this.enableTextSelection ? 'x-selectable' : '';
+                }
+              }*/
             });
 
         me.leftPanel.setGrid(me.grid);
@@ -1096,6 +1102,10 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               parent : me,
               selType : 'cellmodel',
               viewConfig : {
+                enableTextSelection : true,
+                getRowClass : function() {
+                  return this.enableTextSelection ? 'x-selectable' : '';
+                },
                 listeners : {
                   render : function(view) {
                     var grid = this;

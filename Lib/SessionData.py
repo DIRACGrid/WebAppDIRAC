@@ -12,14 +12,13 @@ from WebAppDIRAC.Lib import Conf
 
 __RCSID__ = "$Id$"
 
-
 class SessionData(object):
 
   __disetConfig = ThreadConfig()
   __handlers = {}
   __groupMenu = {}
   __extensions = []
-  __extVersion = "ext-6.2.0" 
+  __extVersion = "ext-6.2.0"
 
   @classmethod
   def setHandlers(cls, handlers):
@@ -27,7 +26,7 @@ class SessionData(object):
     for k in handlers:
       handler = handlers[k]
       cls.__handlers[handler.LOCATION.strip("/")] = handler
-    #Calculate extensions
+    # Calculate extensions
     cls.__extensions = []
     for ext in CSGlobals.getInstalledExtensions():
       if ext in ("WebAppDIRAC", "DIRAC"):
@@ -43,12 +42,11 @@ class SessionData(object):
   def __isGroupAuthApp(self, appLoc):
     """
     The method checks if the application is authorized for a certain user group
-     
+
     :param str appLoc It is the application name for example: DIRAC.JobMonitor
-    :return bool if the handler is authorized to the user returns True otherwise False 
-    
+    :return bool if the handler is authorized to the user returns True otherwise False
+
     """
-    
     handlerLoc = "/".join(List.fromChar(appLoc, ".")[1:])
     if not handlerLoc:
       gLogger.error("Application handler does not exists:", appLoc)
@@ -65,7 +63,7 @@ class SessionData(object):
     """
     Generate a menu schema based on the user credentials
     """
-    #Calculate schema
+    # Calculate schema
     schema = []
     fullName = "%s/%s" % (base, path)
     result = gConfig.getSections(fullName)
@@ -93,14 +91,13 @@ class SessionData(object):
     """
     Load the schema from the CS and filter based on the group
     """
-    #Somebody coming from HTTPS and not with a valid group
+    # Somebody coming from HTTPS and not with a valid group
     group = self.__credDict.get("group", "")
-    #Cache time!
+    # Cache time!
     if group not in self.__groupMenu:
       base = "%s/Schema" % (Conf.BASECS)
       self.__groupMenu[group] = self.__generateSchema(base, "")
     return self.__groupMenu[group]
-
 
   @classmethod
   def getWebAppPath(cls):
@@ -118,7 +115,7 @@ class SessionData(object):
       cls.__extVersion = sorted(extVersionPath)[-1]
     return cls.__extVersion
 
-  def getData( self ):
+  def getData(self):
     data = {'menu': self.__getGroupMenu(),
             'user': self.__credDict,
             'validGroups': [],
@@ -126,13 +123,13 @@ class SessionData(object):
             'validSetups': gConfig.getSections("/DIRAC/Setups")['Value'],
             'extensions': self.__extensions,
             'extVersion': self.getExtJSVersion()}
-    #Add valid groups if known
+    # Add valid groups if known
     DN = self.__credDict.get("DN", "")
     if DN:
       result = Registry.getGroupsForDN(DN)
       if result['OK']:
         data['validGroups'] = result['Value']
-    #Calculate baseURL
+    # Calculate baseURL
     baseURL = [Conf.rootURL().strip("/"),
                "s:%s" % data['setup'],
                "g:%s" % self.__credDict.get('group', '')]

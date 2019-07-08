@@ -1,3 +1,6 @@
+""" Basic modules for loading handlers
+"""
+
 import os
 import re
 import imp
@@ -17,7 +20,6 @@ from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
 __RCSID__ = "$Id$"
-
 
 class HandlerMgr(object):
   __metaclass__ = DIRACSingleton

@@ -7,7 +7,10 @@ Ext.define('Ext.dirac.utils.GridPanel', {
       width : '100%',
       viewConfig : {
         stripeRows : true,
-        enableTextSelection : true
+        enableTextSelection : true,
+        getRowClass : function() {
+          return this.enableTextSelection ? 'x-selectable' : '';
+        }
       },
       menu : null,
       scrollable : true,
@@ -115,7 +118,7 @@ Ext.define('Ext.dirac.utils.GridPanel', {
               prependButtons : true,
               scrollable : true
             });
-
+		
         Ext.apply(me, {
               tbar : me.pagingToolbar.toolbar,
               store : me.dataStore,

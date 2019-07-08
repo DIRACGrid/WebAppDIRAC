@@ -97,6 +97,9 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       viewConfig : {
         stripeRows : true,
         enableTextSelection : true,
+         getRowClass : function() {
+          return this.enableTextSelection ? 'x-selectable' : '';
+        },
         listeners : {
           refresh : function(dataview) {
             var nodes = dataview.getNodes();
