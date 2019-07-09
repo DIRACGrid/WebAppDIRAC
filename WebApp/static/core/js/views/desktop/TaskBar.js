@@ -167,7 +167,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
       GLOBAL.APP.CF.log("debug", '"' + AuthType + '" was chosen for authorization')
       result = getAuthCFG(AuthType)
       if (!result.OK) {
-        return GLOBAL.APP.CF.alert("Authentication was ended with error: %s", result.Message, 'error')
+        return GLOBAL.APP.CF.alert("Authentication was ended with error: \n" + result.Message, 'error')
       }
       if (result.Value.providerType) {
         providerType = result.Value.providerType

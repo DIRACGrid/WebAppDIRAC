@@ -52,10 +52,10 @@ class AuthenticationHandler(WebHandler):
     settings = {}
     if providerType == 'OAuth2':
       result = oauth.createAuthRequestURL(typeAuth)
-      if not result['OK']:
-        self.finish(result)
-      settings = result['Value']
-    self.finish(S_OK({'providerType': providerType, 'settings': settings}))
+      if result['OK']:
+        settings = result['Value']
+    result['Value'] = {'providerType': providerType, 'settings': settings}
+    self.finish(result)
 
   @asyncGen
   def web_getCurrentAuth(self):
