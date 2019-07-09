@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Security import Properties
-from DIRAC.Core.Security.X509Chain import X509Chain
+from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.Decorators import deprecated

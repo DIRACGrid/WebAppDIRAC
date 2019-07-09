@@ -47,9 +47,10 @@ class AuthenticationHandler(WebHandler):
   def web_getAuthCFG(self):
     """ Get option from IdP
     """
+    settings = {}
+    result = S_OK()
     typeAuth = str(self.request.arguments["typeauth"][0])
     providerType = getIdPOption(typeAuth, 'Type')
-    settings = {}
     if providerType == 'OAuth2':
       result = oauth.createAuthRequestURL(typeAuth)
       if result['OK']:
