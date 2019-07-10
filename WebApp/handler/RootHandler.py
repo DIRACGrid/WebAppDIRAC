@@ -108,4 +108,5 @@ class RootHandler(WebHandler):
                 credentials=data['user'], title=Conf.getTitle(),
                 theme=theme_name, root_url=Conf.rootURL(), view=view_name,
                 open_app=open_app, debug_level=level, welcome=welcome,
-                backgroundImage=background, logo=logo, bugReportURL=Conf.bugReportURL())
+                backgroundImage=background, logo=logo, bugReportURL=Conf.bugReportURL(),
+                http_port=Conf.HTTPPort(), https_port=Conf.HTTPSPort())
