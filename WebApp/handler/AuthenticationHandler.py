@@ -11,7 +11,7 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getIdPOption
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID
 
 try:
@@ -19,7 +19,6 @@ try:
   oauth = OAuthManagerClient()
 except ImportError:
   oauth = None
-
 
 class AuthenticationHandler(WebHandler):
 
@@ -50,7 +49,7 @@ class AuthenticationHandler(WebHandler):
     settings = {}
     result = S_OK()
     typeAuth = str(self.request.arguments["typeauth"][0])
-    providerType = getIdPOption(typeAuth, 'Type')
+    providerType = getInfoAboutProviders(ofWhat='Id', providerName=typeAuth, option='Type')['Value']
     if providerType == 'OAuth2':
       result = oauth.createAuthRequestURL(typeAuth)
       if result['OK']:
@@ -113,7 +112,7 @@ class AuthenticationHandler(WebHandler):
       else:
         self.finish(S_ERROR('Not found %s identity provider in configuration' % typeAuth))
 
-    providerType = getIdPOption(typeAuth, 'Type')
+    providerType = getInfoAboutProviders(ofWhat='Id', providerName=typeAuth, option='Type')['Value']
     if providerType == 'OAuth2':
       if logOut:
         state = self.get_secure_cookie("StateAuth")
