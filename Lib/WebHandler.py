@@ -39,7 +39,7 @@ class WErr(tornado.web.HTTPError):
     self.kwargs = kwargs
 
   def __str__(self):
-    return super(tornado.web.HTTPError, self).__str__()
+    return super(WErr, self).__str__()
 
   @classmethod
   def fromSERROR(cls, result):
