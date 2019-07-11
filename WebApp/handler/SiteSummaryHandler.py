@@ -83,7 +83,8 @@ class SiteSummaryHandler(WebHandler):
     requestParams = self.__requestParams()
     if 'action' in requestParams and requestParams['action']:
 
-      actionName = requestParams['action'][0]
+      # pylint does not understand the action entry is not None any more
+      actionName = requestParams['action'][0]  # pylint: disable=unsubscriptable-object
 
       methodName = actionName
       if not actionName.startswith('set'):
