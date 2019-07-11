@@ -581,7 +581,7 @@ class SystemAdministrationHandler(WebHandler):
     sentSuccess = list()
     sentFailed = list()
     gLogger.debug("Initializing Notification client")
-    ntc = NotificationClient(lambda x, timeout: RPCClient(x, timeout=timeout, static=True))
+    ntc = NotificationClient()
 
     for email, name in sendDict.iteritems():
       result = ntc.sendMail(email, title, body, fromAddress, False)
