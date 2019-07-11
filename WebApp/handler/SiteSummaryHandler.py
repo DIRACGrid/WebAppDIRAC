@@ -43,8 +43,7 @@ class SiteSummaryHandler(WebHandler):
 
     for key, value in callback.items():
 
-      callback[key] = [[item] for item in list(value)]
-      callback[key].sort()
+      callback[key] = sorted([[item] for item in list(value)])
 
     return self.finish(callback)
 
