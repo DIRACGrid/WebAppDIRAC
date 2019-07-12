@@ -77,7 +77,7 @@ class WebHandler(tornado.web.RequestHandler):
   # URL Schema with holders to generate handler urls
   URLSCHEMA = ""
   # RE to extract group and setup
-  PATH_RE = ""
+  PATH_RE = None
 
   def threadTask(self, method, *args, **kwargs):
     if tornado.version < '5.0.0':
