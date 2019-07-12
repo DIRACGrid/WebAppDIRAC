@@ -270,9 +270,6 @@ class WebHandler(tornado.web.RequestHandler):
   def getUserSetup(self):
     return self.__setup
 
-  def getUserProperties(self):
-    return self.__sessionData.getData().properties
-
   def isRegisteredUser(self):
     return self.__credDict.get('validDN', "") and self.__credDict.get('validGroup', "")
 
