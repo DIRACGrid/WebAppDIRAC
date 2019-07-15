@@ -11,8 +11,8 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders
 
 try:
   from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient

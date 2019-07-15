@@ -19,7 +19,8 @@ from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-er
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.Decorators import deprecated
-from DIRAC.ConfigurationSystem.Client.Helpers import Registry, Resources
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -199,7 +200,10 @@ class WebHandler(tornado.web.RequestHandler):
     result = Conf.getCSSections("TypeAuths")
     if result['OK']:
       if typeAuth in result["Value"]:
-        providerType = Resources.getIdPOption(typeAuth, 'Type')
+        result = getInfoAboutProviders(ofWhat='Id', providerName=typeAuth, option='Type')
+        if not result['OK']:
+          return result
+        providerType = result['Value']
         if providerType == "OAuth2":
           if oAuth2()['OK']:
             return
