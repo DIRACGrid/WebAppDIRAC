@@ -83,8 +83,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
     self.__configData['cfgData'] = modCfg
     self.__configData['strCfgData'] = str(modCfg)
 
-    version = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Version"])
-    configName = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Name"])
+    version = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Version"])  # pylint: disable=unsubscriptable-object
+    configName = str(modCfg.getCFG()["DIRAC"]["Configuration"]["Name"])  # pylint: disable=unsubscriptable-object
     return {"success": 1, "op": funcName, "version": version, "name": configName}
 
   def __getSubnodes(self, parentNodeId, sectionPath):

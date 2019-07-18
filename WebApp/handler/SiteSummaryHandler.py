@@ -43,8 +43,7 @@ class SiteSummaryHandler(WebHandler):
 
     for key, value in callback.items():
 
-      callback[key] = [[item] for item in list(value)]
-      callback[key].sort()
+      callback[key] = sorted([[item] for item in list(value)])
 
     return self.finish(callback)
 
@@ -84,7 +83,8 @@ class SiteSummaryHandler(WebHandler):
     requestParams = self.__requestParams()
     if 'action' in requestParams and requestParams['action']:
 
-      actionName = requestParams['action'][0]
+      # pylint does not understand the action entry is not None any more
+      actionName = requestParams['action'][0]  # pylint: disable=unsubscriptable-object
 
       methodName = actionName
       if not actionName.startswith('set'):

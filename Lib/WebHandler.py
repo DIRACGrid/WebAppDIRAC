@@ -14,7 +14,8 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 
 from DIRAC import gLogger
-from DIRAC.Core.Security.X509Chain import X509Chain
+from DIRAC.Core.Utilities.Decorators import deprecated
+from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC.Core.Security import Properties
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.DISET.AuthManager import AuthManager
@@ -39,7 +40,7 @@ class WErr(tornado.web.HTTPError):
     self.kwargs = kwargs
 
   def __str__(self):
-    return super(tornado.web.HTTPError, self).__str__()
+    return super(WErr, self).__str__()
 
   @classmethod
   def fromSERROR(cls, result):
@@ -76,7 +77,7 @@ class WebHandler(tornado.web.RequestHandler):
   # URL Schema with holders to generate handler urls
   URLSCHEMA = ""
   # RE to extract group and setup
-  PATH_RE = ""
+  PATH_RE = None
 
   def threadTask(self, method, *args, **kwargs):
     if tornado.version < '5.0.0':
@@ -268,9 +269,6 @@ class WebHandler(tornado.web.RequestHandler):
 
   def getUserSetup(self):
     return self.__setup
-
-  def getUserProperties(self):
-    return self.__sessionData.getData().properties
 
   def isRegisteredUser(self):
     return self.__credDict.get('validDN', "") and self.__credDict.get('validGroup', "")
