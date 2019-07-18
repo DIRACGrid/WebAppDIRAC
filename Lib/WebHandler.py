@@ -20,7 +20,7 @@ from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.Decorators import deprecated
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders  # pylint: disable=import-error
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders  # pylint: disable=no-name-in-module
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -29,7 +29,6 @@ try:
   from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient  # pylint: disable=import-error
   oauth = OAuthManagerClient()
 except BaseException:
-  self.log.exception("No OAuthManager defined")
   oauth = None
 
 global gThreadPool
