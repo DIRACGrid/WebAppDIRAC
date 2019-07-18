@@ -14,6 +14,9 @@ install:
   - "pip install --upgrade setuptools"
   - "pip install --upgrade pip"
   - "pip install -r requirements.txt"
+  - "yum install -y npm"
+  - "npm install eslint --save-dev"
+
 # command to run tests
 script:
   - export PYTHONPATH=${PWD%/*}
@@ -23,6 +26,7 @@ script:
     elif [[ "${CHECK}" == "format" ]] && [[ "${TRAVIS_PULL_REQUEST}" != "false" ]];
     then git remote add GH https://github.com/DIRACGrid/WebAppDIRAC.git; git fetch --no-tags GH ${TRAVIS_BRANCH}; git branch -vv; git diff -U0 GH/${TRAVIS_BRANCH} | pycodestyle --diff;
     fi
+  - node_modules/.bin/eslint WebApp
 
 ## ignore errors for sourcefiles "-i"
 after_success:
