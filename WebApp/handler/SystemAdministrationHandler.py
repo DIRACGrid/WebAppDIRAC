@@ -346,10 +346,10 @@ class SystemAdministrationHandler(WebHandler):
           elif action == "stop":
             result = yield self.threadTask(client.stopComponent, system, component)
           else:
-            result = list()
+            result = dict(OK=False)
             result["Message"] = "Action %s is not valid" % action
         except Exception as x:
-          result = list()
+          result = dict(OK=False)
           result["Message"] = "Exception: %s" % str(x)
         gLogger.debug("Result: %s" % result)
 
@@ -581,7 +581,7 @@ class SystemAdministrationHandler(WebHandler):
     sentSuccess = list()
     sentFailed = list()
     gLogger.debug("Initializing Notification client")
-    ntc = NotificationClient(lambda x, timeout: RPCClient(x, timeout=timeout, static=True))
+    ntc = NotificationClient()
 
     for email, name in sendDict.iteritems():
       result = ntc.sendMail(email, title, body, fromAddress, False)
