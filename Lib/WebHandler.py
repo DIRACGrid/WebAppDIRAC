@@ -20,7 +20,8 @@ from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.Decorators import deprecated
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders  # pylint: disable=no-name-in-module
+# pylint: disable=no-name-in-module
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
