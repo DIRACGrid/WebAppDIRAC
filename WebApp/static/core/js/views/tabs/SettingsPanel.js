@@ -167,12 +167,12 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
         var me = this;
         
         // Generate list of login buttons
-        var oListAuth = me.getAuthCFG()
+        var oListAuth = me.getAuthCFG();
         var currentAuth = Ext.Ajax.request({
           url: GLOBAL.BASE_URL + 'Authentication/getCurrentAuth',
           perams: {},
           async: false
-        }).responseText
+        }).responseText;
         var button_usrname = {
           "text" : "Visitor",
           "menu" : []
@@ -192,7 +192,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
             });
           }
           for (var i = 0; i < oListAuth.length; i++) {
-            var name = oListAuth[i]
+            var name = oListAuth[i];
             var settings = me.getAuthCFG(name,'all');
             if (name != currentAuth) {
               button_usrname.menu.push({
@@ -207,7 +207,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
                     GLOBAL.APP.CF.alert("Authentication method is not set." ,'error');
                   }
                 }
-              })
+              });
             }
           }
           // default authentication method
@@ -222,13 +222,13 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
                       value: ''
                     },
                     success: function() { location.protocol = "https:"; }
-                })
+                });
               }
-            })
+            });
           }
           if (currentAuth != 'Visitor') {
             if (Array.isArray(oListAuth)) {
-              button_usrname.menu.push({xtype: 'menuseparator'})
+              button_usrname.menu.push({xtype: 'menuseparator'});
             }
             button_usrname.menu.push({
               text : 'Log out',
@@ -246,7 +246,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
                 });
               }
             });
-            button_usrname.menu.push()
+            button_usrname.menu.push();
           }
         }
         

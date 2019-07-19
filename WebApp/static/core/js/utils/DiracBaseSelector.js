@@ -559,7 +559,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       getSelectionData : function() {
         var me = this;
 
-        var extraParams = {}
+        var extraParams = {};
         var foundTextSelector = false;
 
         for (var i in me.textFields) {
