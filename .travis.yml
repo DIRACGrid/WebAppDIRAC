@@ -1,46 +1,36 @@
-jobs:
-  include:
-    - stage: test
-      name: "Checking Pylint and code format"
-      language: python
-      python:
-        - '2.7'
-      env:
-        matrix:
-          - CHECK=pylint
-          - CHECK=format
-      # command to install dependencies
-      install:
-        - "pip install --upgrade setuptools"
-        - "pip install --upgrade pip"
-        - "pip install -r requirements.txt"
-      # command to run tests
-      script:
-        - export PYTHONPATH=${PWD%/*}
-        - ls $PYTHONPATH
-        - if [[ "${CHECK}" == "pylint"  ]];
-          then travis_wait 30 .travis.d/runPylint.sh;
-          elif [[ "${CHECK}" == "format" ]] && [[ "${TRAVIS_PULL_REQUEST}" != "false" ]];
-          then git remote add GH https://github.com/DIRACGrid/WebAppDIRAC.git; git fetch --no-tags GH ${TRAVIS_BRANCH}; git branch -vv; git diff -U0 GH/${TRAVIS_BRANCH} | pycodestyle --diff;
-          fi
-      ## ignore errors for sourcefiles "-i"
-      after_success:
-        - if [[ "${CHECK}" == "pytest"  ]];
-          then codecov;
-          fi
+dist: trusty
+language: python
+python:
+  - "2.7"
 
-    - stage: test
-      name: "Checking JS"
-      language: node_js
-      node_js:
-        - '8.10.0'
-      cache:
-        yarn: true
-      before_install:
-        - echo `pwd` 
-      install:
-        - npm install eslint --save-dev
-      script:
-        - node_modules/.bin/eslint WebApp
-notifications:
-  email: false
+env:
+  matrix:
+    - CHECK=pylint
+    - CHECK=format
+
+# command to install dependencies
+install: 
+  - "pip install --upgrade setuptools"
+  - "pip install --upgrade pip"
+  - "pip install -r requirements.txt"
+# command to run tests
+script:
+  - export PYTHONPATH=${PWD%/*}
+  - ls $PYTHONPATH
+  - if [[ "${CHECK}" == "pylint"  ]];
+    then travis_wait 30 .travis.d/runPylint.sh;
+    elif [[ "${CHECK}" == "format" ]] && [[ "${TRAVIS_PULL_REQUEST}" != "false" ]];
+    then git remote add GH https://github.com/DIRACGrid/WebAppDIRAC.git; git fetch --no-tags GH ${TRAVIS_BRANCH}; git branch -vv; git diff -U0 GH/${TRAVIS_BRANCH} | pycodestyle --diff;
+    fi
+
+
+matrix:
+  include:
+    language: node_js
+    node_js: 8.10.0
+    before_install:
+      - echo `PWD`
+    install:
+      - npm install eslint --save-dev
+    script:
+      - node_modules/.bin/eslint WebApp
