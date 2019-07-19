@@ -129,7 +129,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
             },
             success: function(response){
               var response = Ext.JSON.decode(response.responseText);
-              if (response.value == 'Done') {location.protocol = "https:"} 
+              if (response.value == 'Done') {location.protocol = "https:";} 
               else { 
                 Ext.create('Ext.window.Window', {
                   title: 'Welcome',
@@ -147,7 +147,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
                             typeauth: name,
                             value: response.profile
                           },
-                          success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info')	}
+                          success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info');	}
                         });
                         this.up('window').close();
                       }
@@ -182,7 +182,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
         if (location.protocol === 'http:') {
           button_usrname.menu.push({
             text : 'Log in (switch to https://)',
-            handler: function() {location.protocol = "https:"}
+            handler: function() {location.protocol = "https:";}
           });
         } else {
           if (Array.isArray(oListAuth) || (currentAuth == "Visitor")) {
@@ -193,18 +193,18 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
           }
           for (var i = 0; i < oListAuth.length; i++) {
             var name = oListAuth[i]
-            var settings = me.getAuthCFG(name,'all')
+            var settings = me.getAuthCFG(name,'all');
             if (name != currentAuth) {
               button_usrname.menu.push({
                 'text' : name,
                 'settings': settings,
                 'handler' : function() {
-                  if (this.settings.method == 'oAuth2') { me.oAuth2LogIn(this.settings,this.text) }
+                  if (this.settings.method == 'oAuth2') { me.oAuth2LogIn(this.settings,this.text); }
                   else if (settings.method) {
-                    GLOBAL.APP.CF.alert("Authentication method " + settings.method + " is not supported." ,'error')
+                    GLOBAL.APP.CF.alert("Authentication method " + settings.method + " is not supported." ,'error');
                   }
                   else {
-                    GLOBAL.APP.CF.alert("Authentication method is not set." ,'error')
+                    GLOBAL.APP.CF.alert("Authentication method is not set." ,'error');
                   }
                 }
               })
@@ -221,7 +221,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
                       typeauth: 'Certificate',
                       value: ''
                     },
-                    success: function() { location.protocol = "https:" }
+                    success: function() { location.protocol = "https:"; }
                 })
               }
             })
@@ -240,8 +240,8 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
                     value: 'None'
                   },
                   success: function(response){
-                    console.log(response.responseText)
-                    location.protocol = "https:"
+                    console.log(response.responseText);
+                    location.protocol = "https:";
                   }
                 });
               }

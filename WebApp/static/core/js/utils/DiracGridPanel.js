@@ -289,7 +289,9 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
         return oReturn;
 
       },
+      /* eslint-disable */
       initComponent : function(arguments) {
+      /* eslint-enable */
         var me = this;
         GLOBAL.APP.CF.log("debug", "init function", me.columns);
         me.callParent(arguments);

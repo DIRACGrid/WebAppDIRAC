@@ -293,7 +293,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           desktop = null;
         }
         notLoadedStates = [];
+        /* eslint-disable */
         delete notLoadedStates;
+        /* eslint-enable */
         return desktop;
       },
       listeners : {

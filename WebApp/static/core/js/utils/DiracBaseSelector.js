@@ -334,7 +334,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             hidden : me.cmbSelectors[cmb].isHidden(),
             data_selected : me.cmbSelectors[cmb].getValue(),
             not_selected : me.cmbSelectors[cmb].isInverseSelection()
-          }
+          };
 
         }
 

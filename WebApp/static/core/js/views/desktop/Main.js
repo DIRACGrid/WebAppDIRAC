@@ -1839,7 +1839,9 @@ Ext.define('Ext.dirac.views.desktop.Main', {
       if (window.location.protocol.startsWith("https") && !moduleName.startsWith("https")) {
         var win = Ext.create("Ext.dirac.views.desktop.Window");
         win.oprShowInNewTab(moduleName, moduleName);
+        /* eslint-disable */
         delete win;
+        /* eslint-enable */
         Ext.get("app-dirac-loading").hide();
       } else {
         var win = me.initWindow({
