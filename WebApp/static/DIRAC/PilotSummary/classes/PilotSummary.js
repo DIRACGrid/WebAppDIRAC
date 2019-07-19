@@ -235,7 +235,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                 moduleName : me.applicationsToOpen['PilotMonitor'],
                 setupData : setupdata
               });
-        }
+        };
 
         var menuitems = {
           'Visible' : [{

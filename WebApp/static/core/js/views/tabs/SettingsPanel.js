@@ -94,18 +94,18 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
             value: Value
           },
           async: false
-        }).responseText
-        res = JSON.parse(req)
+        }).responseText;
+        res = JSON.parse(req);
         if (Object.keys(res).includes('Value')) {
-          res = res.Value
+          res = res.Value;
         }
-        return res
+        return res;
       },
   
       // OIDC login method
       oAuth2LogIn : function(settings,name) {
         var manager = new Oidc.UserManager(settings);
-        manager.events.addUserLoaded(function (loadedUser) { console.log(loadedUser) });
+        manager.events.addUserLoaded(function (loadedUser) { console.log(loadedUser); });
         manager.events.addSilentRenewError(function (error) {
           GLOBAL.APP.CF.log("error", "error while renewing the access token");
         });

@@ -230,7 +230,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                         var applicationTab = activeDesktop.getApplicationTab(item.get('application'), item.get('stateToLoad'));
                         if (applicationTab) {
                           // the application already exists
-                          activeDesktop.setActiveTab(applicationTab)
+                          activeDesktop.setActiveTab(applicationTab);
                         } else {
                           // we have to load the application
                           GLOBAL.APP.MAIN_VIEW.loadSharedStateByName(item.get('application'), item.get('stateToLoad'));

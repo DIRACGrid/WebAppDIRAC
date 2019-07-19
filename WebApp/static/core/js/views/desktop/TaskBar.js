@@ -135,18 +135,18 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
           value: Value
         },
         async: false
-      }).responseText
-      res = JSON.parse(req)
+      }).responseText;
+      res = JSON.parse(req);
       if (Object.keys(res).includes('Value')) {
-        res = res.Value
+        res = res.Value;
       }
-      return res
+      return res;
     };
 
     // OIDC login method
     var oAuth2LogIn = function(settings,name) {
       var manager = new Oidc.UserManager(settings);
-      manager.events.addUserLoaded(function (loadedUser) { console.log(loadedUser) });
+      manager.events.addUserLoaded(function (loadedUser) { console.log(loadedUser); });
       manager.events.addSilentRenewError(function (error) {
         GLOBAL.APP.CF.log("error", "error while renewing the access token");
       });
@@ -170,7 +170,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
           },
           success: function(response){
             var response = Ext.JSON.decode(response.responseText);
-            if (response.value == 'Done') {location.protocol = "https:"} 
+            if (response.value == 'Done') {location.protocol = "https:";} 
             else { 
               Ext.create('Ext.window.Window', {
                 title: 'Welcome',
@@ -188,7 +188,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
                           typeauth: name,
                           value: response.profile
                         },
-                        success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info')  }
+                        success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info');  }
                       });
                       this.up('window').close();
                     }
@@ -201,15 +201,15 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
       });
       manager.signinPopup().catch(function(error){ GLOBAL.APP.CF.log("error",
       'error while logging in through the popup'); });
-    } 
+    }; 
 
     // Generate list of login buttons
-    var oListAuth = getAuthCFG()
+    var oListAuth = getAuthCFG();
     var currentAuth = Ext.Ajax.request({
       url: GLOBAL.BASE_URL + 'Authentication/getCurrentAuth',
       perams: {},
       async: false
-    }).responseText
+    }).responseText;
     var button_usrname = {
       "text" : "Visitor",
       "menu" : []
@@ -219,7 +219,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
     if (location.protocol === 'http:') {
       button_usrname.menu.push({
         text : 'Log in (switch to https://)',
-        handler: function() {location.protocol = "https:"}
+        handler: function() {location.protocol = "https:";}
       });
     } else {
       if (Array.isArray(oListAuth) || (currentAuth == "Visitor")) {
@@ -229,22 +229,22 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
         });
       }
       for (var i = 0; i < oListAuth.length; i++) {
-        var name = oListAuth[i]
-        var settings = getAuthCFG(name,'all')
+        var name = oListAuth[i];
+        var settings = getAuthCFG(name,'all');
         if (name != currentAuth) {
           button_usrname.menu.push({
             'text' : name,
             'settings': settings,
             'handler' : function() {
-              if (this.settings.method == 'oAuth2') {oAuth2LogIn(this.settings,this.text)}
+              if (this.settings.method == 'oAuth2') {oAuth2LogIn(this.settings,this.text);}
               else if (settings.method) {
-                GLOBAL.APP.CF.alert("Authentication method " + settings.method + " is not supported." ,'error')
+                GLOBAL.APP.CF.alert("Authentication method " + settings.method + " is not supported." ,'error');
               }
               else {
-                GLOBAL.APP.CF.alert("Authentication method is not set." ,'error')
+                GLOBAL.APP.CF.alert("Authentication method is not set." ,'error');
               }
             }
-          })
+          });
         }
       }
       // default authentication method
@@ -258,14 +258,14 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
                   typeauth: 'Certificate',
                   value: ''
                 },
-                success: function() { location.protocol = "https:" }
-            })
+                success: function() { location.protocol = "https:"; }
+            });
           }
-        })
+        });
       }
       if (currentAuth != 'Visitor') {
         if (Array.isArray(oListAuth)) {
-          button_usrname.menu.push({xtype: 'menuseparator'})
+          button_usrname.menu.push({xtype: 'menuseparator'});
         }
         button_usrname.menu.push({
           text : 'Log out',
@@ -277,13 +277,13 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
                 value: 'None'
               },
               success: function(response){
-                console.log(response.responseText)
-                location.protocol = "https:"
+                console.log(response.responseText);
+                location.protocol = "https:";
               }
             });
           }
         });
-        button_usrname.menu.push()
+        button_usrname.menu.push();
       }
     }
 	   if (GLOBAL.APP.configData.user.username) {

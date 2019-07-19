@@ -429,7 +429,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
         if (image) {
           image.setLoading(true);
-          var requestHandler = me.handlers["Accounting"]
+          var requestHandler = me.handlers["Accounting"];
           if (image.reportType) {
             selectorReportType = me.cmbReportType.getValue();
             if (image.reportType != selectorReportType) {
@@ -862,7 +862,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
         me.calendarTo.setValue(null);
         var defaultTime = 86400;
         if (me.actualReport) {
-          defaultTime = me.dataSelectors[me.actualReport]["defaultTime"]
+          defaultTime = me.dataSelectors[me.actualReport]["defaultTime"];
         }
         me.cmbTimeSpan.setValue(defaultTime);
         me.advancedPin.setValue(false);

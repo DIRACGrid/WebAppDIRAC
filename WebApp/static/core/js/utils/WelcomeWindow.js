@@ -11,8 +11,8 @@ Ext.define('Ext.dirac.utils.WelcomeWindow', {
         if (mainDiv && closeBtn && visitorDiv) {
             if ((!Ext.util.Cookies.get('frstEntrUsrs')) || (Ext.util.Cookies.get('frstEntrUsrs').indexOf(usr) == -1)) {
                 mainDiv.style.display = 'block';
-                closeBtn.onclick = function() { mainDiv.style.display = 'none' };
-                if (!GLOBAL.APP.configData.user.username) { visitorDiv.style.display = 'block' }
+                closeBtn.onclick = function() { mainDiv.style.display = 'none'; };
+                if (!GLOBAL.APP.configData.user.username) { visitorDiv.style.display = 'block'; }
             };
             if (!Ext.util.Cookies.get('frstEntrUsrs')) {
                 Ext.util.Cookies.set('frstEntrUsrs',usr);

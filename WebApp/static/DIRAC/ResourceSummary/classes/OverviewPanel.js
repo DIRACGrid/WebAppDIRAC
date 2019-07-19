@@ -150,7 +150,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                 stripeRows : true,
                 enableTextSelection : true
               }
-            })
+            });
         me.historyPanel = Ext.create("Ext.panel.Panel", {
               title : "History",
               columnWidth : 1 / 3,
@@ -457,7 +457,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                   data.addColumn('string', 'title1');
                   data.addColumn('string', 'text1');
 
-                  var rows = []
+                  var rows = [];
 
                   for (var i = 0; i < jsonData["result"].length; i++) {
                     title = jsonData["result"][i][0];
@@ -507,7 +507,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                 var jsonData = Ext.JSON.decode(response.responseText);
 
                 if (jsonData["success"] == "true") {
-                  var json = []
+                  var json = [];
 
                   for (var i = 1; i < jsonData["result"].length; i++) {
                     if (jsonData["result"][i][0] == null) {
@@ -519,13 +519,13 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                             "html" : '#'
                           });
                     } else {
-                      break
+                      break;
                     }
                   }
 
-                  var ces = []
-                  var ce = []
-                  var buffer = []
+                  var ces = [];
+                  var ce = [];
+                  var buffer = [];
 
                   for (var j = i + 1; j < jsonData["result"].length; j++) {
 
@@ -547,10 +547,10 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                               "leaf" : false,
                               "children" : buffer
                             });
-                        buffer = []
+                        buffer = [];
                         ce = [];
                       }
-                      ce = jsonData["result"][j]
+                      ce = jsonData["result"][j];
                     } else {
                       buffer.push({
                             "text" : jsonData["result"][j][1],
@@ -573,9 +573,9 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                         "children" : ces
                       });
 
-                  var ses = []
-                  var se = []
-                  buffer = []
+                  var ses = [];
+                  var se = [];
+                  buffer = [];
 
                   for (var k = j + 1; k < jsonData["result"].length; k++) {
 
@@ -587,10 +587,10 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                               "leaf" : false,
                               "children" : buffer
                             });
-                        buffer = []
+                        buffer = [];
                         se = [];
                       }
-                      se = jsonData["result"][k]
+                      se = jsonData["result"][k];
                     } else {
                       buffer.push({
                             "text" : jsonData["result"][k][1],
@@ -621,7 +621,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                         "children" : ses
                       });
 
-                  siteName = jsonData["result"][0][0]
+                  siteName = jsonData["result"][0][0];
                   var rootNode = {
                     expanded : true,
                     text : siteName,

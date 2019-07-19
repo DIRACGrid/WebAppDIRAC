@@ -154,7 +154,7 @@ Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
 
        var textFields = {
            'ids' : "PersonalId"
-       }
+       };
 
        var map = [ [ "firstName", "firstName" ], [ "lastName", "lastName" ]];
 

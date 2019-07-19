@@ -69,7 +69,7 @@ Ext.define("Ext.dirac.views.tabs.DesktopSettings", {
         var setDesktopName = function(name) {
           me.setDesktopName(name);
         };
-        GLOBAL.APP.MAIN_VIEW.setTabChangePeriod(value, setDesktopName)
+        GLOBAL.APP.MAIN_VIEW.setTabChangePeriod(value, setDesktopName);
       },
       setTabChangePeriod : function(value) {
         var me = this;

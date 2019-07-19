@@ -252,7 +252,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
             name : "JobID(s)",
             type : "number"
           }
-        }
+        };
 
         var properties = [["NormalUser", "JobSharing", "owner"]];
         var map = [["app", "appStatus"], ["minorstat", "minorStatus"], ["owner", "owner"], ["prod", "jobGroup"], ["site", "site"], ["status", "status"], ["types", "jobType"], ["OwnerGroup", "OwnerGroup"]];
@@ -751,7 +751,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                     link.href = element.toDataURL("image/png").replace("image/png", "image/octet-stream");;
                     link.click();
 
-                  }
+                  };
                 }
 
               },
@@ -777,7 +777,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
             me.leftPanel.oprLoadGridData();
           },
           interval : 0
-        }
+        };
 
         var oHeartbeat = new Ext.util.TaskRunner();
 
@@ -896,7 +896,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                       })],
               oColumns : oColumns,
               scope : me
-            })
+            });
 
         me.plotSettings = {};
 

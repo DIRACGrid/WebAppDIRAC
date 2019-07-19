@@ -110,14 +110,14 @@ Ext.define('Ext.dirac.core.App', {
          */
         me.SM = new Ext.dirac.core.StateManagement();
 
-        GLOBAL.IS_IE = document.all ? true : false
-
+        GLOBAL.IS_IE = document.all ? true : false;
+        
         /*
          * Starting capturing the X, Y coordinates of the mouse cursor
          */
         // If NS -- that is, !IE -- then set up for mouse capture
         if (!GLOBAL.IS_IE)
-          document.captureEvents(Event.MOUSEMOVE)
+          document.captureEvents(Event.MOUSEMOVE);
 
         // Set-up to use getMouseXY function onMouseMove
         document.onmousemove = me.__getMouseXY;
@@ -135,21 +135,21 @@ Ext.define('Ext.dirac.core.App', {
       __getMouseXY : function(e) {
 
         if (GLOBAL.IS_IE) { // grab the x-y pos.s if browser is IE
-          GLOBAL.MOUSE_X = event.clientX + document.body.scrollLeft
-          GLOBAL.MOUSE_Y = event.clientY + document.body.scrollTop
+          GLOBAL.MOUSE_X = event.clientX + document.body.scrollLeft;
+          GLOBAL.MOUSE_Y = event.clientY + document.body.scrollTop;
         } else { // grab the x-y pos.s if browser is NS
-          GLOBAL.MOUSE_X = e.pageX
-          GLOBAL.MOUSE_Y = e.pageY
+          GLOBAL.MOUSE_X = e.pageX;
+          GLOBAL.MOUSE_Y = e.pageY;
         }
         // catch possible negative values in NS4
         if (GLOBAL.MOUSE_X < 0) {
-          GLOBAL.MOUSE_X = 0
+          GLOBAL.MOUSE_X = 0;
         }
         if (GLOBAL.MOUSE_Y < 0) {
-          GLOBAL.MOUSE_Y = 0
+          GLOBAL.MOUSE_Y = 0;
         }
 
-        return true
+        return true;
       },
 
       /**

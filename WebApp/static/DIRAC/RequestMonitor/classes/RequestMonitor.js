@@ -226,7 +226,7 @@ Ext.define('DIRAC.RequestMonitor.classes.RequestMonitor', {
                 moduleName : me.applicationsToOpen['JobMonitor'],
                 setupData : setupdata
               });
-        }
+        };
 
         var menuitems = {
           'Visible' : [{

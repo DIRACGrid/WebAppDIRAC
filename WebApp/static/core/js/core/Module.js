@@ -14,7 +14,7 @@ Ext.define('Ext.dirac.core.Module', {
         this.launcher = config.launcherElements;
         this.applicationName = config.launcherElements.applicationName;
         this._container = null;
-        this.text = ""
+        this.text = "";
 
         this.callParent();
         this.loadCSS();

@@ -548,9 +548,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
               });
                      
             me.cmbSelectors[me.datamap[j][1]].setStore(dataStore);
-          
-          delete dataStore;
-
+        
         }
       },
       /**
