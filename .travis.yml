@@ -37,7 +37,7 @@ jobs:
       cache:
         yarn: true
       before_install:
-        - cd LHCbWebDIRAC/WebApp
+        - cd DIRACGrid/WebAppDIRAC/WebApp/
       install:
         - yarn install --frozen-lockfile
       script:
