@@ -23,7 +23,6 @@ script:
     then git remote add GH https://github.com/DIRACGrid/WebAppDIRAC.git; git fetch --no-tags GH ${TRAVIS_BRANCH}; git branch -vv; git diff -U0 GH/${TRAVIS_BRANCH} | pycodestyle --diff;
     fi
 
-
 matrix:
   include:
     language: node_js
