@@ -88,6 +88,8 @@
  *     });
  * </pre>
  */
+
+/*eslint strict: [2, "never"]*/
 Ext.define('Ext.dirac.utils.DiracGridPanel', {
       extend : 'Ext.grid.Panel',
       mixins : ["Ext.dirac.core.Stateful"],
