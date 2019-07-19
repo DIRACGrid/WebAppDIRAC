@@ -1,35 +1,41 @@
-dist: trusty
-language: python
-python:
-  - "2.7"
-
-env:
-  matrix:
+matrix:
     - CHECK=pylint
     - CHECK=format
+  include:
+    - language: python
+      python: 
+        - 2.7
+      # command to install dependencies
+      install: 
+        - "pip install --upgrade setuptools"
+  	- "pip install --upgrade pip"
+  	- "pip install -r requirements.txt"
+      # command to run tests
+      script:
+        - export PYTHONPATH=${PWD%/*}
+  	- ls $PYTHONPATH
+  	- if [[ "${CHECK}" == "pylint"  ]];
+    	  then travis_wait 30 .travis.d/runPylint.sh;
+    	  elif [[ "${CHECK}" == "format" ]] && [[ "${TRAVIS_PULL_REQUEST}" != "false" ]];
+    	then git remote add GH https://github.com/DIRACGrid/WebAppDIRAC.git; git fetch --no-tags GH ${TRAVIS_BRANCH}; git branch -vv; git diff -U0 GH/${TRAVIS_BRANCH} | pycodestyle --diff;
+          fi
+      ## ignore errors for sourcefiles "-i"
+      after_success:
+  	- if [[ "${CHECK}" == "pytest"  ]];
+    	  then codecov;
+          fi
+
+    - language: node_js
+      node_js:
+        - 8.10.0
+      before_install:
+        - cd LHCbWebDIRAC
+        - npm install --global npm
+      script:
+        - npm run-script pretest && npm run-script coverage
+      after_script: npx coveralls < coverage/lcov.info
+
+notifications:
+  email: false
 
 
-# command to install dependencies
-install: 
-  - "pip install --upgrade setuptools"
-  - "pip install --upgrade pip"
-  - "pip install -r requirements.txt"
-  - "yum install -y npm"
-  - "npm install eslint --save-dev"
-
-# command to run tests
-script:
-  - export PYTHONPATH=${PWD%/*}
-  - ls $PYTHONPATH
-  - if [[ "${CHECK}" == "pylint"  ]];
-    then travis_wait 30 .travis.d/runPylint.sh;
-    elif [[ "${CHECK}" == "format" ]] && [[ "${TRAVIS_PULL_REQUEST}" != "false" ]];
-    then git remote add GH https://github.com/DIRACGrid/WebAppDIRAC.git; git fetch --no-tags GH ${TRAVIS_BRANCH}; git branch -vv; git diff -U0 GH/${TRAVIS_BRANCH} | pycodestyle --diff;
-    fi
-  - node_modules/.bin/eslint WebApp
-
-## ignore errors for sourcefiles "-i"
-after_success:
-  - if [[ "${CHECK}" == "pytest"  ]];
-    then codecov;
-    fi
