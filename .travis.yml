@@ -1,6 +1,4 @@
 matrix:
-    - CHECK=pylint
-    - CHECK=format
   include:
     - language: python
       python: 
