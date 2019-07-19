@@ -37,7 +37,8 @@ jobs:
       cache:
         yarn: true
       before_install:
-        - cd WebAppDIRAC/WebApp/
+        - echo `pwd` 
+        - cd WebApp/
       install:
         - yarn install --frozen-lockfile
       script:
