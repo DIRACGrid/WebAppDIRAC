@@ -293,9 +293,9 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           desktop = null;
         }
         notLoadedStates = [];
-        /* eslint-disable */
-        delete notLoadedStates;
-        /* eslint-enable */
+        
+        delete notLoadedStates; // eslint-disable-line no-alert
+        
         return desktop;
       },
       listeners : {

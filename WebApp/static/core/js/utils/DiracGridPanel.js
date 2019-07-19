@@ -290,7 +290,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
       },
       /* eslint-disable */
-      initComponent : function(arguments) {
+      initComponent : function(arguments) { // eslint-disable-line no-alert
       /* eslint-enable */
         var me = this;
         GLOBAL.APP.CF.log("debug", "init function", me.columns);

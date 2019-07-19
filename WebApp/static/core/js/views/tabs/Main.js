@@ -919,9 +919,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           if (window.location.protocol.startsWith("https") && !moduleName.startsWith("https")) {
             var tab = new Ext.dirac.views.tabs.Panel();
             tab.oprShowInNewTab(moduleName, moduleName);
-            /* eslint-disable */
-            delete tab;
-            /* eslint-enable */
+            
+            delete tab; // eslint-disable-line no-alert
+            
             Ext.get("app-dirac-loading").hide();
           } else {
             me.getRightContainer().createWindow({
