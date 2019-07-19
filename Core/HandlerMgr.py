@@ -24,11 +24,16 @@ __RCSID__ = "$Id$"
 class HandlerMgr(object):
   __metaclass__ = DIRACSingleton
 
-  def __init__(self, sysService, baseURL="/"):
+  def __init__(self, sysService=[], baseURL="/"):
+    """ Constructor
+
+        :param list sysService: DIRAC system services
+        :param basestring baseURL: base URL
+    """
     self.__baseURL = baseURL.strip("/")
     if sysService and not isinstance(sysService, list):
       sysService = sysService.replace(' ', '').split(',')
-    self.__sysService = sysService or []
+    self.__sysService = sysService
     self.__routes = []
     self.__handlers = []
     self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w.-]*))?"
@@ -37,6 +42,10 @@ class HandlerMgr(object):
 
   def getPaths(self, dirName):
     """ Get lists of paths for all installed and enabled extensions
+
+        :param basestring dirName: path to handlers
+
+        :return: list
     """
     pathList = []
     for extName in CSGlobals.getCSExtensions():
@@ -59,6 +68,8 @@ class HandlerMgr(object):
 
   def __calculateRoutes(self):
     """ Load all handlers and generate the routes
+
+        :return: S_OK()/S_ERROR()
     """
     ol = ObjectLoader()
     hendlerList = []
@@ -140,6 +151,10 @@ class HandlerMgr(object):
     return S_OK()
 
   def getHandlers(self):
+    """ Get handlers
+
+        :return: S_OK()/S_ERROR()
+    """
     if not self.__handlers:
       result = self.__calculateRoutes()
       if not result['OK']:
@@ -147,6 +162,10 @@ class HandlerMgr(object):
     return S_OK(self.__handlers)
 
   def getRoutes(self):
+    """ Get routes
+
+        :return: S_OK()/S_ERROR()
+    """
     if not self.__routes:
       result = self.__calculateRoutes()
       if not result['OK']:
