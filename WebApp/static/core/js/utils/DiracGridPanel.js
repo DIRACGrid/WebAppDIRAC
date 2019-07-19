@@ -291,7 +291,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       },
 
       /* eslint-disable */
-      initComponent : function(arguments) { /* eslint-disable-line quotes, semi */
+      initComponent : function(arguments) { /* eslint-disable-line */
       // not strict mode
       /* eslint-enable */
         var me = this;
