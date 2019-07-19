@@ -1,29 +1,36 @@
-import requests
+import sys
 import ssl
-import functools
-import types
 import json
+import types
+import requests
+import functools
 import traceback
 import tornado.web
-import tornado.ioloop
 import tornado.gen
-import tornado.stack_context
+import tornado.ioloop
 import tornado.websocket
-import sys
+import tornado.stack_context
 
 from concurrent.futures import ThreadPoolExecutor
 
-from DIRAC import gLogger
-from DIRAC.Core.Utilities.Decorators import deprecated
-from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
+from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Security import Properties
-from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC.Core.DISET.AuthManager import AuthManager
+from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.Core.Utilities.Decorators import deprecated
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
+# pylint: disable=no-name-in-module
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders
 
-from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
+from WebAppDIRAC.Lib.SessionData import SessionData
+
+try:
+  from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient  # pylint: disable=import-error
+  oauth = OAuthManagerClient()
+except BaseException:
+  oauth = None
 
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
@@ -142,6 +149,7 @@ class WebHandler(tornado.web.RequestHandler):
     """
     Initialize the handler
     """
+    self.stream = None  # Needed for set_secure_cookie tornado method
     super(WebHandler, self).__init__(*args, **kwargs)
     if not WebHandler.__log:
       WebHandler.__log = gLogger.getSubLogger(self.__class__.__name__)
@@ -165,39 +173,54 @@ class WebHandler(tornado.web.RequestHandler):
 
     # OIDC auth method
     def oAuth2():
-      if self.get_secure_cookie("AccessToken"):
-        access_token = self.get_secure_cookie("AccessToken")
-        url = Conf.getCSValue("TypeAuths/%s/authority" % typeAuth) + '/userinfo'
-        heads = {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
-        if 'error' in requests.get(url, headers=heads, verify=False).json():
-          self.log.error('OIDC request error: %s' % requests.get(url, headers=heads, verify=False).json()['error'])
-          return
-        ID = requests.get(url, headers=heads, verify=False).json()['sub']
-        result = getUsernameForID(ID)
-        if result['OK']:
-          self.__credDict['username'] = result['Value']
-        result = getDNForUsername(self.__credDict['username'])
-        if result['OK']:
-          self.__credDict['validDN'] = True
-          self.__credDict['DN'] = result['Value'][0]
-        result = getCAForUsername(self.__credDict['username'])
+      if self.get_secure_cookie("StateAuth"):
+        state = self.get_secure_cookie("StateAuth")
+        result = oauth.getUsrnameForState(state) if oauth else S_ERROR('OAuthDIRAC extension is not enable')
+        if not result['OK']:
+          return result
+        if 'state' not in result['Value'] or 'username' not in result['Value']:
+          return S_ERROR('Cannot get session state or user name')
+        self.set_secure_cookie("StateAuth", result['Value']['state'])
+        self.__credDict['username'] = result['Value']['username']
+        result = Registry.getDNForUsername(self.__credDict['username'])
+        if not result['OK']:
+          self.__credDict['validDN'] = False
+          return result
+        self.__credDict['validDN'] = True
+        self.__credDict['DN'] = result['Value'][0]
+        result = Registry.getCAForUsername(self.__credDict['username'])
         if result['OK']:
           self.__credDict['issuer'] = result['Value'][0]
-        return
+        return S_OK()
+      return S_ERROR('No actual state found')
 
-    # Type of Auth
-    if not self.get_secure_cookie("TypeAuth"):
-      self.set_secure_cookie("TypeAuth", 'Certificate')
+    # Look in idetity providers
     typeAuth = self.get_secure_cookie("TypeAuth")
     self.log.info("Type authentication: %s" % str(typeAuth))
-    if typeAuth == "Visitor":
-      return
-    retVal = Conf.getCSSections("TypeAuths")
-    if retVal['OK']:
-      if typeAuth in retVal.get("Value"):
-        method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth, 'default')
-        if method == "oAuth2":
-          oAuth2()
+    result = Conf.getCSSections("TypeAuths")
+    if result['OK']:
+      if typeAuth in result["Value"]:
+        result = getInfoAboutProviders(ofWhat='Id', providerName=typeAuth, option='Type')
+        if not result['OK']:
+          return result
+        providerType = result['Value']
+        if providerType == "OAuth2":
+          if oAuth2()['OK']:
+            return
+        else:
+          self.log.error("Is no type authentication found for %s" % typeAuth)
+      elif typeAuth == "Visitor":
+        return
+      elif not typeAuth:
+        self.log.error('Identity provider isn`t set')
+      elif not typeAuth == 'Certificate':
+        self.log.error('%s isn`t in available identity providers.' % typeAuth)
+    else:
+      self.log.error("Cannot found enabled identity providers: %s" % result['Message'])
+    if not typeAuth == 'Certificate':
+      typeAuth = 'Certificate'
+      self.set_secure_cookie("TypeAuth", typeAuth)
+      self.log.info("Type authentication has been fixed to %s" % typeAuth)
 
     # NGINX
     if Conf.balancer() == "nginx":

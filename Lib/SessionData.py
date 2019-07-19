@@ -1,12 +1,16 @@
+
 import os
+
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Utilities import List
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+
 from WebAppDIRAC.Lib import Conf
 
+__RCSID__ = "$Id$"
 
 class SessionData(object):
 
@@ -43,7 +47,6 @@ class SessionData(object):
     :return bool if the handler is authorized to the user returns True otherwise False
 
     """
-
     handlerLoc = "/".join(List.fromChar(appLoc, ".")[1:])
     if not handlerLoc:
       gLogger.error("Application handler does not exists:", appLoc)
