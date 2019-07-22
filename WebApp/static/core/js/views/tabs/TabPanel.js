@@ -62,7 +62,6 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
        * 
        * @return {Object}
        */
-      /* eslint-disable */
       getStateData : function() {
         var me = this;
 
@@ -300,8 +299,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
         delete notLoadedStates;
                 
         return desktop;
-      },
-      /* eslint-disable */
+      },     
       listeners : {
         beforeclose : function() {
           var me = this;

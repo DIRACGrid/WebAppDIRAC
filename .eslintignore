@@ -5,5 +5,7 @@ WebApp/static/oidc/oidc-client/dist/*.js
 WebApp/static/core/js/views/desktop/Main.js
 WebApp/static/core/js/views/tabs/Main.js
 WebApp/static/core/js/views/tabs/TabPanel.js
+WebApp/static/core/js/utils/DiracGridPanel.js
+WebAppDIRAC/WebApp/static/core/js/utils/Tabtheme.js
 
 
