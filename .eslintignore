@@ -2,5 +2,8 @@ WebApp/static/core/js/utils/canvg-1.3/*js
 WebApp/static/core/js/utils/FileSaver/*js
 WebApp/static/oidc/*.js
 WebApp/static/oidc/oidc-client/dist/*.js
+WebApp/static/core/js/views/desktop/Main.js
+WebApp/static/core/js/views/tabs/Main.js
+WebApp/static/core/js/views/tabs/TabPanel.js
 
 
