@@ -1968,7 +1968,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
     }
 
     if (last) {
-      if (last.el.dom) {
+      if (last.el && last.el.dom) {
         last.addCls(me.inactiveWindowCls);
         last.removeCls(me.activeWindowCls);
       }
