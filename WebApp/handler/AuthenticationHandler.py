@@ -25,6 +25,11 @@ class AuthenticationHandler(WebHandler):
 
   AUTH_PROPS = "all"
 
+  def initialize(self):
+    super(AuthenticationHandler, self).initialize()
+    self.loggin = gLogger.getSubLogger("AuthenticationHandler")
+    return S_OK()
+
   @asyncGen
   def web_sendRequest(self):
     """ Send mail to administrators
@@ -74,7 +79,7 @@ class AuthenticationHandler(WebHandler):
     """
     state = str(self.request.arguments["state"][0])
     typeAuth = str(self.request.arguments["typeauth"][0])
-    gLogger.debug('Read authentication status of ", "%s" session' % state)
+    self.loggin.debug('Read authentication status of ", "%s" session' % state)
     result = oauth.waitStateResponse(state)
     if result['OK']:
       if result['Value']['Status'] == 'authed':
@@ -91,40 +96,38 @@ class AuthenticationHandler(WebHandler):
     typeAuth = str(self.request.arguments["typeauth"][0])
 
     result = Conf.getCSSections("TypeAuths")
-    if not result['OK']:
-      self.finish(result)
-    auths = result['Value']
+    if result['OK']:
+      auths = result['Value']
 
-    # Log out
-    if typeAuth == 'Log out':
-      logOut = True
-      typeAuth = self.get_secure_cookie("TypeAuth")
+      # Log out
+      if typeAuth == 'Log out':
+        logOut = True
+        typeAuth = self.get_secure_cookie("TypeAuth")
+        self.loggin.info('Log out from ', typeAuth)
 
-    if typeAuth == 'Certificate':
-      if logOut:
-        self.set_secure_cookie("TypeAuth", 'Visitor')
+      if typeAuth == 'Certificate':
+        if logOut:
+          self.set_secure_cookie("TypeAuth", 'Visitor')
+        else:
+          self.set_secure_cookie("TypeAuth", typeAuth)
+
+      elif typeAuth in auths:
+        providerType = getInfoAboutProviders(ofWhat='Id', providerName=typeAuth, option='Type')['Value']
+        if providerType == 'OAuth2':
+          if logOut:
+            state = self.get_secure_cookie("StateAuth")
+            oauth.killState(state)
+            self.set_secure_cookie("TypeAuth", 'Visitor')
+          else:
+            self.set_secure_cookie("TypeAuth", typeAuth)
+        else:
+          if logOut:
+            self.set_secure_cookie("TypeAuth", 'Visitor')
+          else:
+            result = S_ERROR('Cannot get type of %s identity provider' % typeAuth)
       else:
-        self.set_secure_cookie("TypeAuth", typeAuth)
-
-    # Not in CS
-    elif typeAuth not in auths:
-      if logOut:
-        self.set_secure_cookie("TypeAuth", 'Visitor')
-      else:
-        self.finish(S_ERROR('Not found %s identity provider in configuration' % typeAuth))
-
-    providerType = getInfoAboutProviders(ofWhat='Id', providerName=typeAuth, option='Type')['Value']
-    if providerType == 'OAuth2':
-      if logOut:
-        state = self.get_secure_cookie("StateAuth")
-        oauth.killState(state)
-        self.set_secure_cookie("TypeAuth", 'Visitor')
-      else:
-        self.set_secure_cookie("TypeAuth", typeAuth)
-    else:
-      if logOut:
-        self.set_secure_cookie("TypeAuth", 'Visitor')
-      else:
-        self.finish(S_ERROR('Cannot get type of %s identity provider' % typeAuth))
-
-    self.finish(S_OK())
+        if logOut:
+          self.set_secure_cookie("TypeAuth", 'Visitor')
+        else:
+          result = S_ERROR('Not found %s identity provider in configuration' % typeAuth)
+    self.finish(result)

@@ -107,16 +107,13 @@ class HandlerMgr(object):
         return S_ERROR("Handler %s does not have AUTH_PROPS defined. Fix it!" % hn)
       # Get the root for the handler
       if handler.LOCATION:
-        handlerRoute = handler.LOCATION.strip("/")
+        handlerRoute = handler.LOCATION.strip("/") and "/%s" % handler.LOCATION.strip("/") or ''
       else:
-        handlerRoute = hn[len(origin):].replace(".", "/").replace("Handler", "")
+        handlerRoute = hn[len(re.sub(r".[A-z]+$", "", hn)):].replace(".", "/").replace("Handler", "")
       # Add the setup group RE before
       baseRoute = self.__setupGroupRE
       # IF theres a base url like /DIRAC add it
-      if self.__baseURL:
-        baseRoute = "/%s%s" % (self.__baseURL, baseRoute)
-      else:
-        baseRoute = "/%s" % baseRoute
+      baseRoute = "/%s%s" % (self.__baseURL or '', baseRoute)
       # Set properly the LOCATION after calculating where it is with helpers to add group and setup later
       handler.LOCATION = handlerRoute
       handler.PATH_RE = re.compile("%s(%s/.*)" % (baseRoute, handlerRoute))
