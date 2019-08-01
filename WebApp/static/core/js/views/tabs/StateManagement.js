@@ -1028,7 +1028,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                             // from the notepad...
                             var helptext = {
                               "helptext" : appTab.childWindows[i].items.getAt(0).getValue()
-                            }
+                            };
                             Ext.apply(desktops.data[i].data, helptext);
                           }
                         }
@@ -1084,7 +1084,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                       // from the notepad...
                       var helptext = {
                         "helptext" : appTab.childWindows[i].items.getAt(0).getValue()
-                      }
+                      };
                       Ext.apply(desktops.data[i].data, helptext);
                     }
                   }
@@ -1303,7 +1303,7 @@ Ext.define('Ext.dirac.views.tabs.StateManagement', {
                         // from the notepad...
                         var helptext = {
                           "helptext" : appObj.childWindows[i].items.getAt(0).getValue()
-                        }
+                        };
                         Ext.apply(data.data, helptext);
                       }
                     }

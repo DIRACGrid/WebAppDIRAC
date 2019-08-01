@@ -629,7 +629,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
                 me.oprRefreshAppStates();
               }
 
-            }
+            };
 
             if (GLOBAL.STATE_MANAGEMENT_ENABLED)
               GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(me.appClassName, oFunc);
@@ -662,7 +662,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
             me.desktop.removeStateFromWindows(sStateType, sAppName, sStateName);
 
-          }
+          };
 
           me.loadMenu = new Ext.menu.Menu({
                 items : [{
@@ -983,7 +983,7 @@ Ext.define('Ext.dirac.views.desktop.Window', {
 
               me.oprLoadAppStateFromCache(stateName);
 
-            }
+            };
 
             setTimeout(me.funcPostponedLoading, 1000);
             return;

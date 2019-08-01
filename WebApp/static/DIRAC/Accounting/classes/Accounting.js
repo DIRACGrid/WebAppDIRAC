@@ -57,7 +57,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
         me.handlers = {
           Accounting:"Accounting",
           Monitoring: "Monitoring"
-        }
+        };
         
         me.title = 'Accounting';
 

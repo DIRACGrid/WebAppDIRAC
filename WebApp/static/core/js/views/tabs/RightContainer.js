@@ -227,7 +227,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
                         var origSize = {
                           'width' : tab.getWidth(),
                           'height' : tab.getHeight()
-                        }
+                        };
                         me.origiginalSize = origSize;
                         me.setWidth(activeTab.getWidth());
                         me.setHeight(activeTab.getHeight());
@@ -550,7 +550,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
           GLOBAL.APP.MAIN_VIEW.destroyDeleteApplications();
 
           // we do not want to save the default desktop as Default
-          GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", "desktop", desktop, funcAfterSave)
+          GLOBAL.APP.MAIN_VIEW.SM.oprSaveAppState("application", "desktop", desktop, funcAfterSave);
 
         } else {
           Ext.dirac.system_info.msg("Notification", 'The desktop is not active!');

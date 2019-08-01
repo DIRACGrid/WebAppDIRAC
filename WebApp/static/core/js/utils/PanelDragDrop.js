@@ -198,7 +198,7 @@ Ext.define('Ext.dirac.utils.PanelDragDrop', {
          if (image) {
           imageid = image.id;
           if (imageid) {
-           imageobj = view.getComponent(imageid)
+           imageobj = view.getComponent(imageid);
            return {
             node : imageobj,
             record : imageobj

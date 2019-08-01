@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * To be defined
  */
@@ -293,9 +294,12 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
           desktop = null;
         }
         notLoadedStates = [];
+        
+        // eslint-disable-next-line no-use-before-define
         delete notLoadedStates;
+                
         return desktop;
-      },
+      },     
       listeners : {
         beforeclose : function() {
           var me = this;

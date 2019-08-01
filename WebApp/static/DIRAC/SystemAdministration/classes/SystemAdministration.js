@@ -1175,7 +1175,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               handler : function() {
                 var me = this;
                 me.up().remove(0);
-                me.setLoading("Refreshing log...")
+                me.setLoading("Refreshing log...");
                 Ext.Ajax.request({
                       url : GLOBAL.BASE_URL + 'SystemAdministration/getHostLog',
                       params : me.compParams,
@@ -1381,7 +1381,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
         var me = this;
         var oParams = {
           action : sAction
-        }
+        };
 
         if (sEventSource == 1) {
 
@@ -1467,7 +1467,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
             oGrid.getStore().load();
           },
           interval : 0
-        }
+        };
 
         var oHeartbeat = new Ext.util.TaskRunner();
 

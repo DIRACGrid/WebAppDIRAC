@@ -175,7 +175,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
                     me.presenterView.clickedPanel.linkToLoad = link;
                     me.presenterView.clickedPanel.items.getAt(0).el.set({
                           'src' : link
-                        })
+                        });
 
                   }
 

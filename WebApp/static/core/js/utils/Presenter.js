@@ -58,7 +58,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
       getStateData : function() {
         var me = this;
         var oReturn = {};
-        oReturn.plots = []
+        oReturn.plots = [];
         oReturn.columnWidth = me.columnWidth;
         oReturn.refreshCycle = me.refreshCycle;
         oReturn.leftPanelCollapsed = me.parent.leftPanel.collapsed;
@@ -208,7 +208,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
                     }
 
                   }
-                }
+                };
                 setTimeout(singeClickAction, 500);
 
               }, this);
@@ -288,7 +288,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
                               me.parent.getContainer().oprPrepareAndShowWindowText(url, "URL");
                             }
                           }]
-                    })
+                    });
                 contextMenu.showAt(e.getXY());
               }, this);
         } else {
@@ -348,7 +348,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
         if (me.lastClickedImage && me.lastClickedImage.id == id) {
           me.lastClickedImage = null;
         }
-        var image = me.getImage(id)
+        var image = me.getImage(id);
         if (image) {
           me.unselectImage(image);
         }

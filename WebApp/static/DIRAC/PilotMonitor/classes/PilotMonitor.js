@@ -270,7 +270,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
               iconCls : "dirac-icon-pie",
               tooltip : "Go to the statistics panel",
               handler : function() {
-                me.__setActiveItemInTheCentralWorkPanel()
+                me.__setActiveItemInTheCentralWorkPanel();
 
               }
             });
@@ -550,7 +550,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                     link.href = element.toDataURL("image/png").replace("image/png", "image/octet-stream");;
                     link.click();
 
-                  }
+                  };
                 }
 
               },
@@ -577,7 +577,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
             me.leftPanel.oprLoadGridData();
           },
           interval : 0
-        }
+        };
 
         var oHeartbeat = new Ext.util.TaskRunner();
 
@@ -697,7 +697,7 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
                       })],
               oColumns : oColumns,
               scope : me
-            })
+            });
 
         me.plotSettings = {};
 

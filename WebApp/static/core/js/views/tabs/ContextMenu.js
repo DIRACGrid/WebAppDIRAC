@@ -155,7 +155,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                                 case -2 :
                                   me.funcPostponedLoading = function() {
                                     GLOBAL.APP.CF.alert("Network problem during the svae...", "warning");
-                                  }
+                                  };
                                   setTimeout(me.funcPostponedLoading, 1000);
                                   return;
                                   break;
@@ -201,7 +201,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                                 case -2 :
                                   me.funcPostponedLoading = function() {
                                     GLOBAL.APP.CF.alert("Network problem during the svae...", "warning");
-                                  }
+                                  };
                                   setTimeout(me.funcPostponedLoading, 1000);
                                   return;
                                   break;

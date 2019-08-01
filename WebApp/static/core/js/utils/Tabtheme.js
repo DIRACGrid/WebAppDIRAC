@@ -484,7 +484,13 @@ Ext.define('Ext.dirac.utils.Tabtheme', {
         if (index != -1) {
 
           me.remove(me.items.getAt(index));
-          delete oldImg;
+         
+         /* eslint-disable */
+          
+          delete oldImg; 
+          
+         /* eslint-enable */
+          
           delete me.lastClickedImage;
 
           me.lastClickedImage = null;

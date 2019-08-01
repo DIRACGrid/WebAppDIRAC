@@ -384,7 +384,7 @@ Ext.define('Ext.dirac.utils.Notification', {
         var me = this;
 
         var notifications = me.getNotifications(me.managerAlignment);
-        var index = Ext.Array.indexOf(notifications, me)
+        var index = Ext.Array.indexOf(notifications, me);
 
         // Not animating the element if it already started to hide itself or if
         // the manager is not present in the dom

@@ -94,6 +94,6 @@ Ext.define('Ext.dirac.utils.DiracRowExpander', {
               return me.selectRowOnExpand;
             }
           }
-        }
+        };
       }
     });
