@@ -27,6 +27,10 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
               selectionConditions : [["User", "User"], ["UserGroup", "User Group"], ["Site", "Site"], ["GridCE", "Grid CE"], ["GridMiddleware", "Grid Middleware"], ["GridResourceBroker", "Grid Resource Broker"], ["GridStatus", "Grid Status"]]
 
             },
+            PilotSubmission : {
+              title : "Pilot Submission",
+              selectionConditions : [["Site", "Site"], ["HostName", "HostName"], ["SiteDirector", "SiteDirector"], ["CE","CE"],["Queue","Queue"], ["Status","Status"]]
+            },
             Network : {
               title : "Network",
               selectionConditions : [["Source", "Source Site"], ["Destination", "Destination Site"], ["SourceHostName", "Source Host"], ["DestinationHostName", "Destination Host"]]
@@ -50,7 +54,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
       
                 
         me.reports = {
-          Accounting: [["DataOperation", "Data Operation"], ["Job", "Job"], ["WMSHistory", "WMS History"], ["Pilot", "Pilot"], ["Network", "Network"]],
+          Accounting: [["DataOperation", "Data Operation"], ["Job", "Job"], ["WMSHistory", "WMS History"], ["Pilot", "Pilot"], ["PilotSubmission","Pilot Submission"], ["Network", "Network"]],
           Monitoring: [["WMSHistory", "WMS Monitoring"], ["ComponentMonitoring", "Component Monitoring"]]
         };
         
