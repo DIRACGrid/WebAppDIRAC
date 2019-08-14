@@ -31,7 +31,7 @@ def getTitle():
 
 
 def devMode():
-  return getCSValue("DevelopMode", True)
+  return getCSValue("DevelopMode", False)
 
 
 def rootURL():
