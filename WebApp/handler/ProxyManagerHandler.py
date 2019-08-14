@@ -1,8 +1,8 @@
 import json
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.Utilities.List import uniqueElements
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -97,7 +97,7 @@ class ProxyManagerHandler(WebHandler):
 
     try:
       webIds = list(json.loads(self.request.arguments['idList'][-1]))
-    except Exception as e:
+    except BaseException:
       self.finish({"success": "false", "error": "No valid id's specified"})
     idList = []
     for id in webIds:

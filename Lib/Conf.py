@@ -3,7 +3,7 @@ import os
 import uuid
 import tempfile
 import tornado.process
-from DIRAC import S_OK, S_ERROR, gConfig
+from DIRAC import gConfig
 from DIRAC.Core.Security import Locations, X509Chain, X509CRL
 
 BASECS = "/WebApp"
@@ -179,8 +179,8 @@ def getBackgroud():
 
 
 def getWelcome():
-  return getCSValue("WelcomeHTML","")
+  return getCSValue("WelcomeHTML", "")
+
 
 def bugReportURL():
   return getCSValue("bugReportURL", "")
-
