@@ -2,7 +2,7 @@ import json
 from time import time
 
 from DIRAC import gLogger, gConfig
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -19,8 +19,7 @@ class JobSummaryHandler(WebHandler):
   def web_getSelectionData(self):
     callback = {}
 
-    RPC = RPCClient("WorkloadManagement/WMSAdministrator")
-    result = yield self.threadTask(RPC.getSiteSummarySelectors)
+    result = yield self.threadTask(WMSAdministratorClient().getSiteSummarySelectors)
     gLogger.info("\033[0;31m ++++++: \033[0m %s" % result)
     if result["OK"]:
       result = result["Value"]
@@ -85,11 +84,10 @@ class JobSummaryHandler(WebHandler):
   @asyncGen
   def web_getData(self):
     pagestart = time()
-    RPC = RPCClient("WorkloadManagement/WMSAdministrator")
-    gLogger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     result = self.__request()
     gLogger.always("getSiteSummaryWeb(%s,%s,%s,%s)" % (result, self.globalSort, self.pageNumber, self.numberOfJobs))
-    retVal = yield self.threadTask(RPC.getSiteSummaryWeb, result, [], self.pageNumber, self.numberOfJobs)
+    retVal = yield self.threadTask(WMSAdministratorClient().getSiteSummaryWeb,
+                                   result, [], self.pageNumber, self.numberOfJobs)
     gLogger.always("\033[0;31m YO: \033[0m", result)
     if retVal["OK"]:
       if retVal["Value"].get("TotalRecords", 0) > 0:

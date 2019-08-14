@@ -1,5 +1,5 @@
 import os
-from DIRAC import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import List
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
