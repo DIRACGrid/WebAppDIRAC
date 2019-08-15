@@ -84,10 +84,10 @@ Ext.define('Ext.dirac.utils.PlotView', {
               margins : '0',
               width : 350,
               minWidth : 330,
-              maxWidth : 450,
+              maxWidth : 550,
               bodyPadding : 5,
               layout : 'anchor',
-              autoScroll : true
+              scrollable : true
             });
 
         me.rightPanel = Ext.create('Ext.dirac.utils.Presenter', {

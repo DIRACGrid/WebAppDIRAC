@@ -314,7 +314,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
             oColumn = {
               header : me.checkboxFunctionDefinition,
               name : "checkBox",
-              width : 26,
+              width : 36,
               sortable : false,
               dataIndex : config.oColumns[i]["dataIndex"],
               renderer : function(value, metaData, record, row, col, store, gridView) {
