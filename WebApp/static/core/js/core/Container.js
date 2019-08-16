@@ -173,8 +173,7 @@ Ext.define('Ext.dirac.core.Container', {
 
         var oPanel = Ext.create('Ext.panel.Panel', {
               html: tpl.apply(tplData),
-              scrollable : true,
-              editable : true
+              scrollable : true
             });
         oWindow.add(oPanel);
         oWindow.show().removeCls("x-unselectable"); // Todo: this can be removed after ext-6.2.0 
