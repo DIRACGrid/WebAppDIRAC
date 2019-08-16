@@ -1,10 +1,8 @@
 Ext.define('Ext.dirac.utils.DiracBoxSelect', {
       extend : "Ext.form.field.Tag",
-      // filterPickList : true,
       scrollable : true,
-      resisable : true,
+      resizable : true,
       multiSelect : true,
-      labelStyle : "width:10;word-wrap:break-word;",
       isInverseSelection : function() {
         return false;
       },
