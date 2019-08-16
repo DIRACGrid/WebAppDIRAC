@@ -47,6 +47,11 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
               title : "Component Monitoring",
               selectionConditions : [["host", "Host"], ["component", "Component"], ["pid", "PID"], ["status", "Status"], ["site", "Site"], ["componentType", "Component Type"], ["componentLocation", "Component Location"]]
 
+            },
+
+            RMSMonitoring: {
+              title: "RMS Monitoring",
+              selectionConditions: [["host", "Host"], ["objectType", "Object Type"], ["operationType", "Operation Type"], ["status", "Status"]]
             }
           }
 
@@ -55,7 +60,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
                 
         me.reports = {
           Accounting: [["DataOperation", "Data Operation"], ["Job", "Job"], ["WMSHistory", "WMS History"], ["Pilot", "Pilot"], ["PilotSubmission","Pilot Submission"], ["Network", "Network"]],
-          Monitoring: [["WMSHistory", "WMS Monitoring"], ["ComponentMonitoring", "Component Monitoring"]]
+          Monitoring: [["WMSHistory", "WMS Monitoring"], ["ComponentMonitoring", "Component Monitoring"], ["RMSMonitoring", "RMS Monitoring"] ]
         };
         
         me.handlers = {
