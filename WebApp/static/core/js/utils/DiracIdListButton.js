@@ -118,7 +118,7 @@ Ext.define('Ext.dirac.utils.DiracIdListButton', {
 
           oWindow.add(new Ext.create('Ext.panel.Panel', {
                 floatable : false,
-                autoScroll : true,
+                scrollable : true,
                 autoHeight : true,
                 layout : {
                   type : 'vbox',

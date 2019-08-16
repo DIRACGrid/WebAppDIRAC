@@ -4,7 +4,7 @@
 Ext.define('Ext.dirac.utils.Presenter', {
       extend : 'Ext.panel.Panel',
       requires : ['Ext.dirac.utils.PanelDragDrop', 'Ext.panel.Tool'],
-      autoScroll : true,
+      scrollable : true,
       frame : true,
       lastClickedImage : null,
       columnWidth : 3,

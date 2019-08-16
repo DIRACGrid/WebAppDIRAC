@@ -69,7 +69,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       maxWidth : 350,
       bodyPadding : 5,
       layout : 'anchor',
-      autoScroll : true,
+      scrollable : true,
       /**
        * @property{Boolean} allowMultipleSelect It allows to use all the textfield in the selector. By defauld only one textfield is used. 
        */
