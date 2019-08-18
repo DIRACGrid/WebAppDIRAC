@@ -27,6 +27,7 @@ from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
 
 try:
+  from OAuthDIRAC.Resources.IdProvider.IdProviderFactory import IdProviderFactory  # pylint: disable=import-error
   from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient  # pylint: disable=import-error
   oauth = OAuthManagerClient()
 except BaseException:
@@ -167,97 +168,50 @@ class WebHandler(tornado.web.RequestHandler):
     """
     Extract the user credentials based on the certificate or what comes from the balancer
     """
-
     if not self.request.protocol == "https":
       return
 
-    # OIDC auth method
-    def oAuth2():
-      if self.get_secure_cookie("StateAuth"):
-        state = self.get_secure_cookie("StateAuth")
-        result = oauth.getUsrnameForState(state) if oauth else S_ERROR('OAuthDIRAC extension is not enable')
-        if not result['OK']:
-          return result
-        if 'state' not in result['Value'] or 'username' not in result['Value']:
-          return S_ERROR('Cannot get session state or user name')
-        self.set_secure_cookie("StateAuth", result['Value']['state'])
-        self.__credDict['username'] = result['Value']['username']
-        result = Registry.getDNForUsername(self.__credDict['username'])
-        if not result['OK']:
-          self.__credDict['validDN'] = False
-          return result
-        self.__credDict['validDN'] = True
-        self.__credDict['DN'] = result['Value'][0]
-        result = Registry.getCAForUsername(self.__credDict['username'])
-        if result['OK']:
-          self.__credDict['issuer'] = result['Value'][0]
-        return S_OK()
-      return S_ERROR('No actual state found')
-
     # Look in idetity providers
-    typeAuth = self.get_secure_cookie("TypeAuth")
-    self.log.info("Type authentication: %s" % str(typeAuth))
+    typeAuth = self.get_secure_cookie("TypeAuth") or "Certificate"
+    stateAuth = json.loads(self.get_secure_cookie("StateAuth") or '{ }')
+    self.log.info("%s authentication" % typeAuth, stateAuth.get(typeAuth) and 'with %s session' % stateAuth[typeAuth] or '')
+    
+    # If enter as visitor
+    if typeAuth == "Visitor":
+      return
+    
+    # Look enabled authentication types in CS
     result = Conf.getCSSections("TypeAuths")
-    if result['OK']:
-      if typeAuth in result["Value"]:
-        result = getInfoAboutProviders(ofWhat='Id', providerName=typeAuth, option='Type')
-        if not result['OK']:
-          return result
-        providerType = result['Value']
-        if providerType == "OAuth2":
-          if oAuth2()['OK']:
-            return
-        else:
-          self.log.error("Is no type authentication found for %s" % typeAuth)
-      elif typeAuth == "Visitor":
-        return
-      elif not typeAuth:
-        self.log.error('Identity provider isn`t set')
-      elif not typeAuth == 'Certificate':
-        self.log.error('%s isn`t in available identity providers.' % typeAuth)
-    else:
-      self.log.error("Cannot found enabled identity providers: %s" % result['Message'])
-    if not typeAuth == 'Certificate':
-      typeAuth = 'Certificate'
-      self.set_secure_cookie("TypeAuth", typeAuth)
-      self.log.info("Type authentication has been fixed to %s" % typeAuth)
-
-    # NGINX
-    if Conf.balancer() == "nginx":
-      headers = self.request.headers
-      if headers['X-Scheme'] == "https" and headers['X-Ssl_client_verify'] == 'SUCCESS':
-        DN = headers['X-Ssl_client_s_dn']
-        if not DN.startswith('/'):
-          items = DN.split(',')
-          items.reverse()
-          DN = '/' + '/'.join(items)
-        self.__credDict['DN'] = DN
-        self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
-        result = Registry.getUsernameForDN(DN)
-        if not result['OK']:
-          self.__credDict['validDN'] = False
-        else:
-          self.__credDict['validDN'] = True
-          self.__credDict['username'] = result['Value']
-      return
-
-    # TORNADO
-    derCert = self.request.get_ssl_certificate(binary_form=True)
-    if not derCert:
-      return
-    pemCert = ssl.DER_cert_to_PEM_cert(derCert)
-    chain = X509Chain()
-    chain.loadChainFromString(pemCert)
-    result = chain.getCredentials()
     if not result['OK']:
-      self.log.error("Could not get client credentials %s" % result['Message'])
-      return
-    self.__credDict = result['Value']
-    # Hack. Data coming from OSSL directly and DISET difer in DN/subject
-    try:
-      self.__credDict['DN'] = self.__credDict['subject']
-    except KeyError:
-      pass
+      self.log.error(result['Message'])
+    if typeAuth not in ['Certificate'] + result.get('Value') or []:
+      self.log.error(typeAuth, "is absent in configuration. Try to use certificate.")
+      typeAuth = 'Certificate'
+
+    # Parameters for IdProviders
+    params = {}
+    params['stateAuth'] = stateAuth.get(typeAuth)
+    params['balancer'] = Conf.balancer()
+    params['headers'] = self.request.headers
+    params['certificate'] = not params['balancer'] == 'nginx' and self.request.get_ssl_certificate(binary_form=True)
+    
+    # Fill credentials dict
+    for idp in list(set([typeAuth, 'Certificate'])):
+      result = IdProviderFactory().getIdProvider(idp)
+      if result['OK']:
+        providerObj = result['Value']
+        result = providerObj.getCredentials(params)
+        if result['OK']:
+          typeAuth = idp
+          stateAuth[typeAuth] = result['Value']['Session']
+          for key in result['Value']['credDict']:
+            self.__credDict[key] = result['Value']['credDict'][key]
+          break
+      self.log.error(result['Message'], not idp == 'Certificate' and 'Try to authenticate with certificate.' or '')
+    
+    # Set cookies
+    self.set_secure_cookie("TypeAuth", typeAuth)
+    self.set_secure_cookie("StateAuth", json.dumps(stateAuth))
 
   def _request_summary(self):
     """
