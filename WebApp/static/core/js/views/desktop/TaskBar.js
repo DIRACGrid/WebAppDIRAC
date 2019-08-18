@@ -130,106 +130,106 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
         });
 
     me.items.push(button_views);
-    
-    var getAuthCFG = function(Auth){
-      var req = Ext.Ajax.request({
-        url: GLOBAL.BASE_URL + 'Authentication/getAuthCFG',
-        params: {
-          typeauth: Auth
-        },
-        async: false
-      }).responseText
-      res = JSON.parse(req)
-      return res
-    };
-    
-    var waitOAuthStatus = function(Auth='', Value=''){
-      var status_req = Ext.Ajax.request({
-        url: GLOBAL.BASE_URL + 'Authentication/waitOAuthStatus',
-        params: { 
-          typeauth: Auth,
-          state: Value
-        },
-        async: false
-      }).responseText
-      status_json = JSON.parse(status_req);
-      if (status_json.OK) { 
-        location.protocol = "https:"
-      } else {
-        // Hide load icon
-        Ext.get("app-dirac-loading").hide();
-        Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-        console.error('Request was ended with error: %s', status_json.Message)
-      }
-    };
 
+    /**
+     * Helper function to submit authentication flow and read status of it
+     */
     var auth = function(AuthType) {
-      GLOBAL.APP.CF.log("debug", '"' + AuthType + '" was chosen for authorization')
-      result = getAuthCFG(AuthType)
-      if (!result.OK) {
-        return GLOBAL.APP.CF.alert("Authentication was ended with error: \n" + result.Message, 'error')
-      }
-      if (result.Value.providerType) {
-        providerType = result.Value.providerType
-        if (providerType == 'OAuth2') {
-          GLOBAL.APP.CF.log("debug", 'OIDC authorization flow')
-          if (!result.Value.settings) {
-            return GLOBAL.APP.CF.alert('We cannot get authorization URL for you.', 'error')
-          }
-          authorizationURL = result.Value.settings.url
-          state = result.Value.settings.state
-          
-          //Open popup
-          GLOBAL.APP.CF.log("debug", 'Open authorization URL: "' + authorizationURL + '"')
-          var oAuthReqWin = open(authorizationURL, "popupWindow", "hidden=yes,height=570,width=520,scrollbars=yes,status=yes")
-          oAuthReqWin.focus();
-          
-          // Send request to redirect URL about success authorization
-          Ext.get("app-dirac-loading").show();
-          Ext.get("app-dirac-loading-msg").setHtml("Waiting when authentication will be finished...");
-          GLOBAL.APP.CF.log("debug", 'Watch when popup window will be close')
-          var res = (function waitPopupClosed (i, r) {
-            if (r==='closed') {
-              return waitOAuthStatus(AuthType, state);
-            } else {
-              setTimeout(function () {
-                if (--i) {
-                  if (oAuthReqWin===undefined) {
-                    GLOBAL.APP.CF.log("debug", 'Popup window was closed.');
-                    return waitPopupClosed(0, 'closed')
-                  }
-                  if (oAuthReqWin) {
-                    if (oAuthReqWin.closed) {
-                      GLOBAL.APP.CF.log("debug", 'Popup window was closed.');
-                      return waitPopupClosed(0, 'closed')
-                    } else {
-                      oAuthReqWin.focus();
-                      return waitPopupClosed(i)
-                    }
+      Ext.Ajax.request({
+        url: GLOBAL.BASE_URL + 'Authentication/auth',
+        params: {
+          typeauth: AuthType
+        },
+        success: function(response) {
+          if (!response.status == 200) {
+            return GLOBAL.APP.CF.alert(response.statusText, 'error')
+          } else {
+            var result = Ext.decode(response.responseText);
+            if (!result.OK) {
+              return GLOBAL.APP.CF.alert("Authentication was ended with error: \n" + result.Message, 'error')
+            } else if (result.Value.Action == 'reload') {
+              return location.protocol = "https:"
+            } else if (result.Value.Action == 'popup') {
+              if (!result.Value.URL || !result.Value.Session) {
+                return GLOBAL.APP.CF.alert('We cannot get authorization URL.', 'error')
+              } else {
+                authorizationURL = result.Value.URL
+                session = result.Value.Session
+                
+                //Open popup
+                GLOBAL.APP.CF.log("debug", 'Open authorization URL: "' + authorizationURL + '"')
+                var oAuthReqWin = open(authorizationURL, "popupWindow", "hidden=yes,height=570,width=520,scrollbars=yes,status=yes")
+                oAuthReqWin.focus();
+                
+                // Send request to redirect URL about success authorization
+                Ext.get("app-dirac-loading").show();
+                Ext.get("app-dirac-loading-msg").setHtml("Waiting when authentication will be finished...");
+                GLOBAL.APP.CF.log("debug", 'Watch when popup window will be close')
+                var res = (function waitPopupClosed (i, r) {
+                  if (r==='closed') {
+                    return Ext.Ajax.request({
+                      url: GLOBAL.BASE_URL + 'Authentication/waitOAuthStatus',
+                      params: { 
+                        typeauth: AuthType,
+                        session: session
+                      },
+                      async: false,
+                      success: function(response) {
+                        var result = Ext.decode(response.responseText);
+                        if (!result.OK) {
+                          // Hide load icon
+                          Ext.get("app-dirac-loading").hide();
+                          Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+                          return GLOBAL.APP.CF.alert("Authentication was ended with error: \n" + result.Message, 'error')
+                        } else {
+                          location.protocol = "https:"
+                        }
+                      },
+                      failure: function(form, action) {
+                        // Hide load icon
+                        Ext.get("app-dirac-loading").hide();
+                        Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+                        return GLOBAL.APP.CF.alert('Request was ended with error: ' + form + action, 'error')
+                      }
+                    })
                   } else {
-                    return waitPopupClosed(i)
+                    setTimeout(function () {
+                      if (--i) {
+                        if (oAuthReqWin===undefined) {
+                          GLOBAL.APP.CF.log("debug", 'Popup window was closed.');
+                          return waitPopupClosed(0, 'closed')
+                        }
+                        if (oAuthReqWin) {
+                          if (oAuthReqWin.closed) {
+                            GLOBAL.APP.CF.log("debug", 'Popup window was closed.');
+                            return waitPopupClosed(0, 'closed')
+                          } else {
+                            oAuthReqWin.focus();
+                            return waitPopupClosed(i)
+                          }
+                        } else {
+                          return waitPopupClosed(i)
+                        }
+                      } else {
+                        return waitPopupClosed(120)
+                      }
+                    }, 1000);
                   }
-                } else {
-                  return waitPopupClosed(120)
-                }
-              }, 1000);
+                })(120,'opened');
+              }
+            } else {
+              return GLOBAL.APP.CF.alert('Cannot submit authorization flow.', 'error')
             }
-          })(120,'opened');
-        } else {
-          GLOBAL.APP.CF.alert("Authentication method " + providerType + " is not supported." , 'error')
-        }
-      } else {
-        Ext.Ajax.request({
-          url: GLOBAL.BASE_URL + 'Authentication/auth',
-          params: {
-            typeauth: AuthType
-          },
-          success: function() {
-            location.protocol = "https:"
           }
-        })
-      }
-    };
+        },
+        failure: function(form, action) {
+          // Hide load icon
+          Ext.get("app-dirac-loading").hide();
+          Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+          return GLOBAL.APP.CF.alert('Request was ended with error: ' + form + action, 'error')
+        }
+      })
+    }
 
     // Generate list of login buttons
     var getListAuth = function() { 
@@ -237,7 +237,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
         url: GLOBAL.BASE_URL + 'Authentication/getAuthNames',
         async: false
       }).responseText
-      res = JSON.parse(req)
+      var res = Ext.decode(req)
       if (Object.keys(res).includes('Value')) {
         res = res.Value
       }
