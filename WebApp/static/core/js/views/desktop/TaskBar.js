@@ -275,7 +275,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
         if (oListAuth[i] != currentAuth) {
           button_usrname.menu.push({
             text : oListAuth[i],
-            'handler' : function() { auth(this.text) };
+            'handler' : function() { auth(this.text); }
           });
         }
       }
@@ -283,17 +283,17 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
       if (currentAuth != "Certificate") {
         button_usrname.menu.push({
           'text' : "Certificate",
-          'handler' : function() { auth("Certificate") };
+          'handler' : function() { auth("Certificate"); }
         });
       }
       // Log out section
       if (currentAuth != 'Visitor') {
         if (Array.isArray(oListAuth)) {
-          button_usrname.menu.push({xtype: 'menuseparator'});
+          button_usrname.menu.push({ xtype: 'menuseparator' });
         }
         button_usrname.menu.push({
           'text' : 'Log out',
-          'handler' : function() { auth('Log out') };
+          'handler' : function() { auth('Log out'); }
         });
         button_usrname.menu.push();
       }
