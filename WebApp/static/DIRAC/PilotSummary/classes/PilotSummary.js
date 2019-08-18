@@ -127,6 +127,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
         me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
               proxy : oProxy,
               fields : me.dataFields,
+              remoteSort : false,
               scope : me
             });
 

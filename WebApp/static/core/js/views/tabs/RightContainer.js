@@ -16,7 +16,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
       // },
       region : 'center',
       collapsible : false,
-      autoScroll : true,
+      scrollable : true,
       frame : true,
       defaults : {
         xtype : 'tabpanel',
@@ -24,7 +24,7 @@ Ext.define('Ext.dirac.views.tabs.RightContainer', {
         height : 200,
         // defaults: {
         // bodyPadding: 10,
-        // autoScroll: true
+        // scrollable: true
         // },
         layout : {
           type : 'border',

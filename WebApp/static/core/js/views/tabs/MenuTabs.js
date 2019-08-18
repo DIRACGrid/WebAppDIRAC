@@ -16,7 +16,7 @@ Ext.define('Ext.dirac.views.tabs.MenuTabs', {
       coordinates : {},
       defaults : {
         bodyPadding : 10,
-        autoScroll : true,
+        scrollable : true,
         listeners : {
           activate : function(component) {
             var me = this;

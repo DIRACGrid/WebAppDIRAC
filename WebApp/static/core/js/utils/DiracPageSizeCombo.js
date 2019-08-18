@@ -19,5 +19,5 @@ Ext.define('Ext.dirac.utils.DiracPageSizeCombo', {
           }),
       triggerAction : 'all',
       value : 25,
-      width : 50
+      width : 60
     });

@@ -14,7 +14,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
       iconCls : 'settings',
       // animCollapse: true,
       border : false,
-      autoScroll : true,
+      scrollable : true,
       layout : 'vbox',
       initComponent : function() {
         var me = this;
