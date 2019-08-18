@@ -99,7 +99,7 @@ class AuthenticationHandler(WebHandler):
         stateAuth[typeAuth] = result['Value']['Session']
         if result['Value']['Status'] == 'ready':
           result['Value']['Action'] = 'reload'
-        elif result['Value']['Status'] == 'needToAuth': 
+        elif result['Value']['Status'] == 'needToAuth':
           result['Value']['Action'] = 'popup'
           typeAuth = self.get_secure_cookie("TypeAuth")
           stateAuth[typeAuth] = ''

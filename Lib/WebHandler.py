@@ -174,12 +174,13 @@ class WebHandler(tornado.web.RequestHandler):
     # Look in idetity providers
     typeAuth = self.get_secure_cookie("TypeAuth") or "Certificate"
     stateAuth = json.loads(self.get_secure_cookie("StateAuth") or '{ }')
-    self.log.info("%s authentication" % typeAuth, stateAuth.get(typeAuth) and 'with %s session' % stateAuth[typeAuth] or '')
-    
+    self.log.info("%s authentication" % typeAuth,
+                  stateAuth.get(typeAuth) and 'with %s session' % stateAuth[typeAuth] or '')
+
     # If enter as visitor
     if typeAuth == "Visitor":
       return
-    
+
     # Look enabled authentication types in CS
     result = Conf.getCSSections("TypeAuths")
     if not result['OK']:
@@ -194,7 +195,7 @@ class WebHandler(tornado.web.RequestHandler):
     params['balancer'] = Conf.balancer()
     params['headers'] = self.request.headers
     params['certificate'] = not params['balancer'] == 'nginx' and self.request.get_ssl_certificate(binary_form=True)
-    
+
     # Fill credentials dict
     for idp in list(set([typeAuth, 'Certificate'])):
       result = IdProviderFactory().getIdProvider(idp)
@@ -208,7 +209,7 @@ class WebHandler(tornado.web.RequestHandler):
             self.__credDict[key] = result['Value']['credDict'][key]
           break
       self.log.error(result['Message'], not idp == 'Certificate' and 'Try to authenticate with certificate.' or '')
-    
+
     # Set cookies
     self.set_secure_cookie("TypeAuth", typeAuth)
     self.set_secure_cookie("StateAuth", json.dumps(stateAuth))
