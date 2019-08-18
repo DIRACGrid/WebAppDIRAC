@@ -239,7 +239,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
       }).responseText
       var res = Ext.decode(req)
       if (Object.keys(res).includes('Value')) {
-        res = res.Value
+        res = res.Value;
       }
       return res
     }
@@ -249,7 +249,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
       url: GLOBAL.BASE_URL + 'Authentication/getCurrentAuth',
       perams: {},
       async: false
-    }).responseText
+    }).responseText;
     var button_usrname = {
       "text" : "Visitor",
       "menu" : []
@@ -259,7 +259,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
     if (location.protocol === 'http:') {
       button_usrname.menu.push({
         text : 'Log in (switch to https://)',
-        handler: function() {location.protocol = "https:"}
+        handler: function() {location.protocol = "https:";}
       });
     // HTTPS 
     // Log in section
@@ -289,13 +289,13 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
       // Log out section
       if (currentAuth != 'Visitor') {
         if (Array.isArray(oListAuth)) {
-          button_usrname.menu.push({xtype: 'menuseparator'})
+          button_usrname.menu.push({xtype: 'menuseparator'});
         }
         button_usrname.menu.push({
           'text' : 'Log out',
           'handler' : function() { auth('Log out') }
         });
-        button_usrname.menu.push()
+        button_usrname.menu.push();
       }
     }
     if (GLOBAL.APP.configData.user.username) {

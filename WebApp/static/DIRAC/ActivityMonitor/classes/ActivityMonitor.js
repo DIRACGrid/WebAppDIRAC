@@ -11,7 +11,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
         if (GLOBAL.VIEW_ID == "desktop") {
 
-          me.launcher.maximized = true;
+          me.launcher.maximized = true;  
 
         }
 
@@ -733,12 +733,12 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                             });
 
                         if (me.viewDefinitionData[sType].value in me.viewDefinitionDataForServer) {
-                          delete me.viewDefinitionDataForServer[me.viewDefinitionData[sType].value]
+                          delete me.viewDefinitionDataForServer[me.viewDefinitionData[sType].value];
                         } else {
                           Ext.Array.remove(me.viewDefinitionDataForServerVariable, me.viewDefinitionData[sType].value);
                         }
 
-                        delete me.viewDefinitionData[sType]
+                        delete me.viewDefinitionData[sType];
 
                         var oParentNode = oNode.parentNode;
                         oParentNode.removeChild(oNode);
@@ -1261,7 +1261,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                   me.__oprUnsetPathAsExpanded(me.__getNodePath(oNode), true);
                 },
                 expand : function(oNode, eOpts) {
-                  me.__oprPathAsExpanded(me.__getNodePath(oNode), true)
+                  me.__oprPathAsExpanded(me.__getNodePath(oNode), true);
                 },
                 scope : me
               }
@@ -1369,7 +1369,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
       },
       __getNodePath : function(oNode) {
-        var sPath = ""
+        var sPath = "";
         var oCopyRefNode = oNode;
         while (oCopyRefNode) {
           if (oCopyRefNode.raw.id)

@@ -1,6 +1,7 @@
 Ext.define('Ext.dirac.utils.DiracBoxSelect', {
       extend : "Ext.form.field.Tag",
-      filterPickList : true,
+      scrollable : true,
+      resizable : true,
       multiSelect : true,
       isInverseSelection : function() {
         return false;
@@ -9,5 +10,10 @@ Ext.define('Ext.dirac.utils.DiracBoxSelect', {
         if (bInverseSelection) {
           Ext.Logger.warn("Invers selection is not supported in extjs 6!");
         }
+      },
+      loadData : function(data) {
+        var me = this;
+        var store = me.getStore();
+        store.loadData(data);
       }
     });

@@ -88,6 +88,8 @@
  *     });
  * </pre>
  */
+
+/*eslint strict: [2, "never"]*/
 Ext.define('Ext.dirac.utils.DiracGridPanel', {
       extend : 'Ext.grid.Panel',
       mixins : ["Ext.dirac.core.Stateful"],
@@ -289,6 +291,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
         return oReturn;
 
       },
+	  // eslint-disable-next-line no-use-before-define      
       initComponent : function(arguments) {
         var me = this;
         GLOBAL.APP.CF.log("debug", "init function", me.columns);
@@ -311,7 +314,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
             oColumn = {
               header : me.checkboxFunctionDefinition,
               name : "checkBox",
-              width : 26,
+              width : 36,
               sortable : false,
               dataIndex : config.oColumns[i]["dataIndex"],
               renderer : function(value, metaData, record, row, col, store, gridView) {

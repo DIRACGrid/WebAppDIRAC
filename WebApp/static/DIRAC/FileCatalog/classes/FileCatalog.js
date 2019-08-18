@@ -894,7 +894,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
           var sName = oParts[1];
           var sLogic = oParts[2];
-          var oValue = oSendData[sParam].split("|")
+          var oValue = oSendData[sParam].split("|");
 
           if (!(sName in req["selection"]))
             req["selection"][sName] = {};
@@ -1319,7 +1319,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
                     if (me.funcAfterEveryBlockGetsBlured != null) {
 
                       me.funcAfterEveryBlockGetsBlured();
-                      me.funcAfterEveryBlockGetsBlured = null
+                      me.funcAfterEveryBlockGetsBlured = null;
                     }
 
                   } else {
@@ -1610,7 +1610,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
 
       },
       __getNodePath : function(oNode) {
-        var sPath = ""
+        var sPath = "";
         var oCopyRefNode = oNode;
 
         if (oCopyRefNode.get('text') == "/") {

@@ -24,7 +24,7 @@ Ext.define('Ext.dirac.views.tabs.PresenterView', {
       listeners : {
         'resize' : function(view, width, height, oldWidth, oldHeight, eOpts) {
           var me = this;
-          var panel = me.getOpenedApplication()
+          var panel = me.getOpenedApplication();
           if (panel) {
             panel.setWidth(view.getWidth());
             panel.setHeight(view.getHeight());

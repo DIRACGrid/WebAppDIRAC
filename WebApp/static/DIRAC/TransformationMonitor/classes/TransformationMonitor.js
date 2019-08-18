@@ -528,7 +528,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                 moduleName : me.applicationsToOpen["JobMonitor"],
                 setupData : setupdata
               });
-        }
+        };
         var fileRetrySubMenu = {
           'Visible' : [{
                 "text" : "Processed",
@@ -683,7 +683,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               oColumns : oColumns,
               contextMenu : me.contextGridMenu,
               pagingToolbar : pagingToolbar,
-              scope : me,
+              scope : me
              /* viewConfig : {
                 enableTextSelection : true,
                 getRowClass : function() {
@@ -965,7 +965,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
          * handler : Ext.bind(parent.getContainer().showValue, oGrid, [oGrid],
          * false) }] }); oGrid.menu = oMenu;
          */
-        parent.getContainer().showInWindow("Files with status " + oStatus + " for production:" + oId, oGrid)
+        parent.getContainer().showInWindow("Files with status " + oStatus + " for production:" + oId, oGrid);
         parent.grid.body.unmask();
       },
       __flushRun : function(parentGrid) {
@@ -1071,7 +1071,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                         failure : function(response) {
                           GLOBAL.APP.CF.showAjaxErrorMessage(response);
                         }
-                      })
+                      });
                 }
               }
             });

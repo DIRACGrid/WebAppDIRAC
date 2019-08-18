@@ -277,7 +277,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
         var notificationobj = Ext.create('widget.uxNotification', config);
         notificationobj.on("beforeclose", function(notification) {
-              Ext.Array.remove(me.messages, notification.message)
+              Ext.Array.remove(me.messages, notification.message);
             });
         notificationobj.show();
 

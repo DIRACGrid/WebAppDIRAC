@@ -295,7 +295,7 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
                 moduleName : me.applicationsToOpen["JobMonitor"],
                 setupData : setupdata
               });
-        }
+        };
 
         var menuitems = {
           'Visible' : [{

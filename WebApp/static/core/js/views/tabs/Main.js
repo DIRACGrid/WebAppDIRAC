@@ -919,7 +919,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
           if (window.location.protocol.startsWith("https") && !moduleName.startsWith("https")) {
             var tab = new Ext.dirac.views.tabs.Panel();
             tab.oprShowInNewTab(moduleName, moduleName);
-            delete tab;
+            
+            delete tab; // eslint-disable-line no-alert
+            
             Ext.get("app-dirac-loading").hide();
           } else {
             me.getRightContainer().createWindow({
@@ -1116,8 +1118,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
             stateToLoad : 'Default',
             iconCls : 'icon-applications-states-all-default'
           };
-          
+          /* eslint-disable */
           if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.TreeNodeModel')) { 
+          /* eslint-enable */
               Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
                   extend : 'Ext.data.Model',
                   fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
@@ -1125,7 +1128,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 });
               Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
             } else {
+              /* eslint-disable */
               var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.TreeNodeModel');// returns the constructor MyApp.models.MyModel()
+              /* eslint-enable */
               Ext.data.NodeInterface.decorate(model);
             }
             
@@ -1334,7 +1339,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 allowDrag : false,
                 allowDrop : true
               };
+              /* eslint-disable */
               if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.DesktopNodeModel')) {
+              /* eslint-enable */
                 Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
                     extend : 'Ext.data.Model',
                     fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
@@ -1342,7 +1349,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   });
                 Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
               } else {
+              	/* eslint-disable */
                 var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.DesktopNodeModel');
+                /* eslint-enable */
                 Ext.data.NodeInterface.decorate(model);
               }
               
@@ -1649,7 +1658,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   });
                 Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
               } else {
+              	/* eslint-disable */
                 var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.DesktopNodeModel');
+                /* eslint-enable */
                 Ext.data.NodeInterface.decorate(model);
               }
               node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
@@ -1719,7 +1730,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 allowDrag : true,
                 allowDrop : true
               };
+              /* eslint-disable */
               if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.DesktopNodeModel')) {
+              /* eslint-enable */
                 Ext.define('Ext.dirac.views.tabs.DesktopNodeModel', {
                     extend : 'Ext.data.Model',
                     fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
@@ -1727,7 +1740,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                   });
                 Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.DesktopNodeModel');
               } else {
+              	/* eslint-disable */
                 var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.DesktopNodeModel');
+                /* eslint-enable */
                 Ext.data.NodeInterface.decorate(model);
               }
               node = Ext.create('Ext.dirac.views.tabs.DesktopNodeModel', nodeObj);
@@ -2139,8 +2154,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         if (!me.defaultDesktop.loaded) {
           me.defaultDesktop.expand();
         } else {
-          
-          if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.TreeNodeModel')) { 
+          /* eslint-disable */
+          if (!Ext.data.schema.Schema.instances.default.hasEntity('Ext.dirac.views.tabs.TreeNodeModel')) {
+          /* eslint-enable */
               Ext.define('Ext.dirac.views.tabs.TreeNodeModel', {
                   extend : 'Ext.data.Model',
                   fields : ['text', 'type', 'application', 'stateToLoad', 'desktop'],
@@ -2205,7 +2221,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
                 });
               Ext.data.NodeInterface.decorate('Ext.dirac.views.tabs.TreeNodeModel');
             } else {
+            /* eslint-disable */
               var model = Ext.data.schema.Schema.instances.default.getEntity('Ext.dirac.views.tabs.TreeNodeModel');// returns the constructor MyApp.models.MyModel()
+              /* eslint-enable */
               Ext.data.NodeInterface.decorate(model);
             }
           var appName = appClassName.split(".");
