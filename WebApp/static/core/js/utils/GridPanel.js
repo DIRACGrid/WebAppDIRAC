@@ -51,7 +51,7 @@ Ext.define('Ext.dirac.utils.GridPanel', {
               // (see Ext.data.Store for an example)
               fields : me.oFields,
               autoLoad : true,
-              remoteSort : true,
+              remoteSort : false,
               pageSize : 25,
               listeners : {
 

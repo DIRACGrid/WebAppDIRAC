@@ -12,7 +12,7 @@ Ext.define('Ext.dirac.views.tabs.LeftContainer', {
   bodyPadding : 5,
   //collapsible : true,
   layout : 'fit',
-  //autoScroll : true,
+  //scrollable : true,
   width : 275, //225
   minWidth : 35,
   items : [],

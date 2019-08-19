@@ -156,7 +156,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.Presenter', {
                         var origSize = {
                           'width' : tab.getWidth(),
                           'height' : tab.getHeight()
-                        }
+                        };
                         me.origiginalSize = origSize;
                         me.setWidth(activeTab.getWidth());
                         me.setHeight(activeTab.getHeight());

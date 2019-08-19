@@ -84,10 +84,10 @@ Ext.define('Ext.dirac.utils.PlotView', {
               margins : '0',
               width : 350,
               minWidth : 330,
-              maxWidth : 450,
+              maxWidth : 550,
               bodyPadding : 5,
               layout : 'anchor',
-              autoScroll : true
+              scrollable : true
             });
 
         me.rightPanel = Ext.create('Ext.dirac.utils.Presenter', {
@@ -429,7 +429,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
 
         if (image) {
           image.setLoading(true);
-          var requestHandler = me.handlers["Accounting"]
+          var requestHandler = me.handlers["Accounting"];
           if (image.reportType) {
             selectorReportType = me.cmbReportType.getValue();
             if (image.reportType != selectorReportType) {
@@ -862,7 +862,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
         me.calendarTo.setValue(null);
         var defaultTime = 86400;
         if (me.actualReport) {
-          defaultTime = me.dataSelectors[me.actualReport]["defaultTime"]
+          defaultTime = me.dataSelectors[me.actualReport]["defaultTime"];
         }
         me.cmbTimeSpan.setValue(defaultTime);
         me.advancedPin.setValue(false);

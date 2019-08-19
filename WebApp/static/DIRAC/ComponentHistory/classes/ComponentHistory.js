@@ -115,7 +115,7 @@ Ext.define('DIRAC.ComponentHistory.classes.ComponentHistory', {
            type : "Type"
        };
 
-       var textFields = {}
+       var textFields = {};
 
        var map = [ [ "name", "name" ], [ "host", "host" ], [ "system", "system" ], [ "module", "module" ], [ "type", "type" ] ];
 

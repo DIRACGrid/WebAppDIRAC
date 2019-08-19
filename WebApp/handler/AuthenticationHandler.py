@@ -17,13 +17,18 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProvi
 
 try:
   from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient  # pylint: disable=import-error
-  oauth = OAuthManagerClient()
+  authCli = OAuthManagerClient()
 except ImportError:
-  oauth = None
+  authCli = None
 
 class AuthenticationHandler(WebHandler):
 
   AUTH_PROPS = "all"
+
+  def initialize(self):
+    super(AuthenticationHandler, self).initialize()
+    self.loggin = gLogger.getSubLogger(__name__)
+    return S_OK()
 
   @asyncGen
   def web_sendRequest(self):
@@ -44,21 +49,6 @@ class AuthenticationHandler(WebHandler):
     self.finish(Conf.getAuthNames())
 
   @asyncGen
-  def web_getAuthCFG(self):
-    """ Get option from IdP
-    """
-    settings = {}
-    result = S_OK()
-    typeAuth = str(self.request.arguments["typeauth"][0])
-    providerType = getInfoAboutProviders(ofWhat='Id', providerName=typeAuth, option='Type')['Value']
-    if providerType == 'OAuth2':
-      result = oauth.createAuthRequestURL(typeAuth)
-      if result['OK']:
-        settings = result['Value']
-    result['Value'] = {'providerType': providerType, 'settings': settings}
-    self.finish(result)
-
-  @asyncGen
   def web_getCurrentAuth(self):
     """ Get current authentication type
     """
@@ -72,14 +62,16 @@ class AuthenticationHandler(WebHandler):
   def web_waitOAuthStatus(self):
     """ Listen authentication status on OAuthDB
     """
-    state = str(self.request.arguments["state"][0])
+    session = str(self.request.arguments["session"][0])
     typeAuth = str(self.request.arguments["typeauth"][0])
-    gLogger.debug('Read authentication status of ", "%s" session' % state)
-    result = oauth.waitStateResponse(state)
+    stateAuth = json.loads(self.get_secure_cookie("StateAuth") or '{ }')
+    self.loggin.info('Read authentication status of "%s" session' % session)
+    result = authCli.waitStateResponse(session)
     if result['OK']:
       if result['Value']['Status'] == 'authed':
-        self.set_secure_cookie("TypeAuth", result['Value']['OAuthProvider'])
-        self.set_secure_cookie("StateAuth", result['Value']['State'], expires_days=1)
+        stateAuth[result['Value']['Provider']] = result['Value']['State']
+        self.set_secure_cookie("TypeAuth", result['Value']['Provider'])
+        self.set_secure_cookie("StateAuth", json.dumps(stateAuth), expires_days=1)
       result = S_OK()
     self.finish(result)
 
@@ -87,44 +79,33 @@ class AuthenticationHandler(WebHandler):
   def web_auth(self):
     """ Set authentication type
     """
-    logOut = False
+    result = S_OK({'Action': 'reload'})
     typeAuth = str(self.request.arguments["typeauth"][0])
-
-    result = Conf.getCSSections("TypeAuths")
-    if not result['OK']:
-      self.finish(result)
-    auths = result['Value']
-
-    # Log out
+    stateAuth = json.loads(self.get_secure_cookie("StateAuth") or '{ }')
     if typeAuth == 'Log out':
-      logOut = True
-      typeAuth = self.get_secure_cookie("TypeAuth")
-
-    if typeAuth == 'Certificate':
-      if logOut:
-        self.set_secure_cookie("TypeAuth", 'Visitor')
-      else:
-        self.set_secure_cookie("TypeAuth", typeAuth)
-
-    # Not in CS
-    elif typeAuth not in auths:
-      if logOut:
-        self.set_secure_cookie("TypeAuth", 'Visitor')
-      else:
-        self.finish(S_ERROR('Not found %s identity provider in configuration' % typeAuth))
-
-    providerType = getInfoAboutProviders(ofWhat='Id', providerName=typeAuth, option='Type')['Value']
-    if providerType == 'OAuth2':
-      if logOut:
-        state = self.get_secure_cookie("StateAuth")
-        oauth.killState(state)
-        self.set_secure_cookie("TypeAuth", 'Visitor')
-      else:
-        self.set_secure_cookie("TypeAuth", typeAuth)
+      typeAuth = 'Visitor'
+      stateAuth = {}
+      for __provider, __session in stateAuth.items():
+        self.loggin.info('Log out from ', __provider)
+        result = authCli.killState(__session)
+        if not result['OK']:
+          msg = result['Message']
+      result = S_OK({'Action': 'reload'})
+    elif typeAuth == 'Certificate':
+      typeAuth = 'Certificate'
     else:
-      if logOut:
-        self.set_secure_cookie("TypeAuth", 'Visitor')
-      else:
-        self.finish(S_ERROR('Cannot get type of %s identity provider' % typeAuth))
-
-    self.finish(S_OK())
+      result = authCli.submitAuthorizeFlow(typeAuth, stateAuth.get(typeAuth))
+      if result['OK']:
+        stateAuth[typeAuth] = result['Value']['Session']
+        if result['Value']['Status'] == 'ready':
+          result['Value']['Action'] = 'reload'
+        elif result['Value']['Status'] == 'needToAuth':
+          result['Value']['Action'] = 'popup'
+          typeAuth = self.get_secure_cookie("TypeAuth")
+          stateAuth[typeAuth] = ''
+        else:
+          result = S_ERROR('Not correct status "%s" of %s' % (result['Value']['Status'], typeAuth))
+    if result['OK']:
+      self.set_secure_cookie("TypeAuth", typeAuth)
+      self.set_secure_cookie("StateAuth", json.dumps(stateAuth))
+    self.finish(result)

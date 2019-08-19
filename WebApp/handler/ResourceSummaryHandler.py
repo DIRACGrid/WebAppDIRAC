@@ -2,11 +2,11 @@ import collections
 import json
 
 from DIRAC import gLogger
+from DIRAC.Core.Utilities import Time
+from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
+from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
-from DIRAC.Core.Utilities import Time
 
 
 class ResourceSummaryHandler(WebHandler):
@@ -25,7 +25,7 @@ class ResourceSummaryHandler(WebHandler):
         'tokenOwner': set()
     }
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     gLogger.info(self.request.arguments)
 
@@ -55,7 +55,7 @@ class ResourceSummaryHandler(WebHandler):
     requestParams = self.__requestParams()
     gLogger.info(requestParams)
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     elementStatuses = yield self.threadTask(pub.getElementStatuses, 'Resource',
                                             requestParams['name'],
@@ -151,7 +151,7 @@ class ResourceSummaryHandler(WebHandler):
     requestParams = self.__requestParams()
     gLogger.info(requestParams)
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     elements = yield self.threadTask(pub.getElementStatuses, 'Resource',
                                      requestParams['name'],
@@ -202,7 +202,7 @@ class ResourceSummaryHandler(WebHandler):
     elif 'SiteManager' not in sData['user']['properties']:
       self.finish({'success': 'false', 'error': 'Not authorized'})
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
     res = yield self.threadTask(pub.setToken, 'Resource',
                                 str(requestParams['name'][0]),
                                 str(requestParams['statusType'][0]),
@@ -227,7 +227,7 @@ class ResourceSummaryHandler(WebHandler):
     elif 'SiteManager' not in sData['user']['properties']:
       self.finish({'success': 'false', 'error': 'Not authorized'})
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     res = yield self.threadTask(pub.setStatus, 'Resource',
                                 str(requestParams['name'][0]),
@@ -252,7 +252,7 @@ class ResourceSummaryHandler(WebHandler):
     if 'statusType' not in requestParams or not requestParams['statusType']:
       self.finish({'success': 'false', 'error': 'Missing statusType'})
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
     res = yield self.threadTask(pub.getElementHistory, 'Resource', requestParams['name'],
                                 requestParams['elementType'],
                                 requestParams['statusType'])
@@ -275,7 +275,7 @@ class ResourceSummaryHandler(WebHandler):
     if 'statusType' not in requestParams or not requestParams['statusType']:
       self.finish({'success': 'false', 'error': 'Missing statusType'})
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
     res = yield self.threadTask(pub.getElementPolicies, 'Resource', requestParams['name'],
                                 requestParams['statusType'])
 
@@ -299,7 +299,7 @@ class ResourceSummaryHandler(WebHandler):
     if 'element' not in requestParams or not requestParams['element']:
       self.finish({'success': 'false', 'error': 'Missing element'})
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     res = yield self.threadTask(pub.getDowntimes,
                                 str(requestParams['element'][-1]),
@@ -323,7 +323,7 @@ class ResourceSummaryHandler(WebHandler):
     if 'statusType' not in requestParams or not requestParams['statusType']:
       self.finish({'success': 'false', 'error': 'Missing statusType'})
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     res = yield self.threadTask(pub.getElementHistory, 'Resource', str(requestParams['name'][-1]),
                                 str(requestParams['elementType'][-1]),
@@ -352,7 +352,7 @@ class ResourceSummaryHandler(WebHandler):
     if 'statusType' not in requestParams or not requestParams['statusType']:
       self.finish({'success': 'false', 'error': 'Missing statusType'})
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     res = yield self.threadTask(pub.getTree, str(requestParams['elementType'][-1]), str(requestParams['name'][-1]))
     if not res['OK']:
@@ -390,7 +390,7 @@ class ResourceSummaryHandler(WebHandler):
     if 'element' not in requestParams or not requestParams['element']:
       self.finish({'success': 'false', 'error': 'Missing element'})
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     res = yield self.threadTask(pub.getElementStatuses, str(requestParams['element'][-1]),
                                 str(requestParams['name'][-1]),

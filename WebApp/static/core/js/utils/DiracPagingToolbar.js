@@ -195,7 +195,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
         var me = this;
         Ext.apply(me, {
               items : me.pagingToolbarItems
-            })
+            });
         me.callParent(arguments);
 
         var refreshButton = me.getComponent('refresh');
@@ -308,7 +308,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
         var returnValues = {
           pageSize : me.pageSizeCombo.getValue(),
           refreshCycle : me.refreshCycle
-        }
+        };
 
         return returnValues;
       },

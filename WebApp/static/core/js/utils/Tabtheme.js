@@ -4,7 +4,7 @@
 Ext.define('Ext.dirac.utils.Tabtheme', {
       extend : 'Ext.panel.Panel',
       requires : ['Ext.dirac.utils.PanelDragDrop', 'Ext.panel.Tool'],
-      autoScroll : true,
+      scrollable : true,
       frame : true,
       lastClickedImage : null,
       columnWidth : 3,
@@ -484,7 +484,13 @@ Ext.define('Ext.dirac.utils.Tabtheme', {
         if (index != -1) {
 
           me.remove(me.items.getAt(index));
-          delete oldImg;
+         
+         /* eslint-disable */
+          
+          delete oldImg; 
+          
+         /* eslint-enable */
+          
           delete me.lastClickedImage;
 
           me.lastClickedImage = null;

@@ -254,7 +254,7 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
               GLOBAL.APP.CF.alert("The state" + stateName + " does not exist !", "warning");
             break;
           case 1 :
-            var oState = GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName)
+            var oState = GLOBAL.APP.SM.getStateData("application", me.appClassName, stateName);
         }
 
         /*

@@ -331,7 +331,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                     me.treePanel.body.unmask();
                     me.btnCommitConfiguration.hide();
                   }
-                }
+                };
                 me.__showConfigDiffInWindow(oResponse, cb);
                 me.setLoading(false);
                 break;
@@ -890,7 +890,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
       },
       __getNodePath : function(oNode) {
-        var sPath = ""
+        var sPath = "";
         var oCopyRefNode = oNode;
         while (oCopyRefNode) {
           if (oCopyRefNode.get('csName'))
@@ -1086,7 +1086,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                       }
 
                     }]
-              }])
+              }]);
         }
         oWindow.add(oPanel);
         oWindow.show();
@@ -1584,7 +1584,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
         var oFunc = function(oModule, oNode) {
 
-          var sValue = oModule.__stringToList(oModule.txtElementValue.getValue(), "\n").join(",")
+          var sValue = oModule.__stringToList(oModule.txtElementValue.getValue(), "\n").join(",");
 
           oModule.__sendSocketMessage({
                 op : "createOption",
@@ -1593,7 +1593,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                 value : sValue,
                 parentNodeId : oNode.getId()
               });
-        }
+        };
 
         var oNode = oItem.parentMenu.node;
         var oModule = oItem.parentMenu.moduleObject;

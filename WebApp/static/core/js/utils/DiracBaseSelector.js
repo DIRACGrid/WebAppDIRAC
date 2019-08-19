@@ -69,7 +69,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       maxWidth : 350,
       bodyPadding : 5,
       layout : 'anchor',
-      autoScroll : true,
+      scrollable : true,
       /**
        * @property{Boolean} allowMultipleSelect It allows to use all the textfield in the selector. By defauld only one textfield is used. 
        */
@@ -334,7 +334,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             hidden : me.cmbSelectors[cmb].isHidden(),
             data_selected : me.cmbSelectors[cmb].getValue(),
             not_selected : me.cmbSelectors[cmb].isInverseSelection()
-          }
+          };
 
         }
 
@@ -548,9 +548,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
               });
                      
             me.cmbSelectors[me.datamap[j][1]].setStore(dataStore);
-          
-          delete dataStore;
-
+        
         }
       },
       /**
@@ -561,7 +559,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       getSelectionData : function() {
         var me = this;
 
-        var extraParams = {}
+        var extraParams = {};
         var foundTextSelector = false;
 
         for (var i in me.textFields) {

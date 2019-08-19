@@ -61,7 +61,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.HistoryGridPanel', {
                       margin : 3
                     }
                   }]
-            })
+            });
 
         me.callParent(arguments);
 

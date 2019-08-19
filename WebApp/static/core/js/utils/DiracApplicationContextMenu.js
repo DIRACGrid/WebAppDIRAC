@@ -135,7 +135,7 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               } else if ("subMenu" in subMenu.Visible[i]) {
                 var oMenuItem = new Ext.menu.Item({
                       text : oConfig.menu.Visible[i].text
-                    })
+                    });
                 me.__createSubmenu(oMenuItem, oConfig.menu.Visible[i].subMenu);
                 oMenu.menu.add(oMenuItem);
               }

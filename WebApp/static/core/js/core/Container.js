@@ -148,7 +148,7 @@ Ext.define('Ext.dirac.core.Container', {
           var panelContent = new Ext.panel.Panel({
                 region : 'center',
                 margins : '0 0 0 0',
-                autoScroll : true,
+                scrollable : true,
                 html : '<iframe style="overflow:auto;width:100%;height:100%;" frameborder="0"  src="' + url + '"></iframe>'
               });
 
@@ -172,11 +172,11 @@ Ext.define('Ext.dirac.core.Container', {
         var tpl = new Ext.Template(tplMarkup);
 
         var oPanel = Ext.create('Ext.panel.Panel', {
-              html : tpl.apply(tplData),
-              autoScroll : true
+              html: tpl.apply(tplData),
+              scrollable : true
             });
         oWindow.add(oPanel);
-        oWindow.show();
+        oWindow.show().removeCls("x-unselectable"); // Todo: this can be removed after ext-6.2.0 
       }
 
     });

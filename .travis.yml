@@ -8,7 +8,6 @@ env:
     - CHECK=pylint
     - CHECK=format
 
-
 # command to install dependencies
 install: 
   - "pip install --upgrade setuptools"
@@ -24,8 +23,13 @@ script:
     then git remote add GH https://github.com/DIRACGrid/WebAppDIRAC.git; git fetch --no-tags GH ${TRAVIS_BRANCH}; git branch -vv; git diff -U0 GH/${TRAVIS_BRANCH} | pycodestyle --diff;
     fi
 
-## ignore errors for sourcefiles "-i"
-after_success:
-  - if [[ "${CHECK}" == "pytest"  ]];
-    then codecov;
-    fi
+matrix:
+  include:
+    language: node_js
+    node_js: 8.10.0
+    before_install:
+      - echo `PWD`
+    install:
+      - npm install eslint --save-dev
+    script:
+      - node_modules/.bin/eslint WebApp

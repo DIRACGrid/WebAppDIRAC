@@ -1,11 +1,11 @@
 import json
 
 from DIRAC import gLogger
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping import getGOCSiteName, getDIRACSiteName
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.Core.Utilities.Plotting.FileCoding import codeRequestInFileId
 from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSiteComputingElements
+from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -25,7 +25,7 @@ class SiteSummaryHandler(WebHandler):
         'tokenOwner': set()
     }
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     gLogger.info(self.request.arguments)
 
@@ -53,7 +53,7 @@ class SiteSummaryHandler(WebHandler):
     requestParams = self.__requestParams()
     gLogger.info(requestParams)
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     elementStatuses = yield self.threadTask(pub.getElementStatuses, 'Site',
                                             requestParams['name'],
@@ -111,7 +111,7 @@ class SiteSummaryHandler(WebHandler):
     if 'statusType' not in requestParams or not requestParams['statusType']:
       return {'success': 'false', 'error': 'Missing statusType'}
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
     res = pub.getElementHistory('Site', requestParams['name'],
                                 requestParams['elementType'],
                                 requestParams['statusType'])
@@ -132,7 +132,7 @@ class SiteSummaryHandler(WebHandler):
     if 'statusType' not in requestParams or not requestParams['statusType']:
       self.finish({'success': 'false', 'error': 'Missing statusType'})
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
     res = pub.getElementPolicies('Site', requestParams['name'],
                                  requestParams['statusType'])
 
@@ -154,7 +154,7 @@ class SiteSummaryHandler(WebHandler):
 
     elementName = requestParams['name'][0]
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     elementStatuses = pub.getElementStatuses('Site',
                                              str(elementName),
@@ -234,7 +234,7 @@ class SiteSummaryHandler(WebHandler):
       gLogger.warn('No name given')
       return {'success': 'false', 'error': 'We need a Site Name to generate an Overview'}
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     elementName = requestParams['name'][0]
     storageElements = getSEsForSite(elementName)
@@ -261,7 +261,7 @@ class SiteSummaryHandler(WebHandler):
       gLogger.warn('No name given')
       return {'success': 'false', 'error': 'We need a Site Name to generate an Overview'}
 
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     elementName = requestParams['name'][0]
 
@@ -290,7 +290,7 @@ class SiteSummaryHandler(WebHandler):
       return {'success': 'false', 'error': 'We need a Site Name to generate an Overview'}
 
     elementName = requestParams['name'][0]
-    pub = RPCClient('ResourceStatus/Publisher')
+    pub = PublisherClient()
 
     elementStatuses = pub.getElementStatuses('Site',
                                              str(elementName),

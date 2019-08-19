@@ -3,8 +3,7 @@ import os
 import uuid
 import tempfile
 import tornado.process
-
-from DIRAC import S_OK, S_ERROR, gConfig
+from DIRAC import gConfig
 from DIRAC.Core.Security import Locations, X509Chain, X509CRL
 
 __RCSID__ = "$Id$"
@@ -34,7 +33,7 @@ def getTitle():
 
 
 def devMode():
-  return getCSValue("DevelopMode", True)
+  return getCSValue("DevelopMode", False)
 
 
 def rootURL():
@@ -198,15 +197,3 @@ def bugReportURL():
 
 def getAuthNames():
   return getCSSections("TypeAuths")
-
-
-def getAuthSettingsDict(authname):
-  return getCSOptionsDict("TypeAuths/%s" % authname)
-
-
-def getAuthSettingsOptions(authname):
-  return getCSOptions("TypeAuths/%s" % authname)
-
-
-def getAuthCFG(authname, getvalue):
-  return getCSValue("TypeAuths/%s/%s" % (authname, getvalue))
