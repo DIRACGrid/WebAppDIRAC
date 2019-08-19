@@ -874,7 +874,9 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         }
 
         for (var field in me.textFields) {
-          me.textFields[field].enable();
+          if (me.textFields[field].isDisabled()){
+            me.textFields[field].enable();
+          }
         }
       },
       setGrid : function(grid) {
