@@ -45,7 +45,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
 
             ComponentMonitoring : {
               title : "Component Monitoring",
-              selectionConditions : [["host", "Host"], ["component", "Component"], ["pid", "PID"], ["status", "Status"], ["site", "Site"], ["componentType", "Component Type"], ["componentLocation", "Component Location"]]
+              selectionConditions : [["host", "Host"], ["component", "Component"], ["pid", "PID"], ["status", "Status"], ["componentType", "Component Type"], ["componentLocation", "Component Location"]]
 
             },
 
