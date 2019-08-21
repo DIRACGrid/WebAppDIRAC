@@ -35,7 +35,7 @@ class HandlerMgr(object):
     """
     pathList = []
     for extName in CSGlobals.getCSExtensions():
-      if extName.rfind("DIRAC") != len(extName) - 5:
+      if not extName.endswith('DIRAC'):
         extName = "%sDIRAC" % extName
       if extName == "WebAppDIRAC":
         continue
