@@ -7,13 +7,14 @@ Ext.define('Ext.dirac.utils.DiracNumericField', {
       labelAlign : 'top',
       anchor : "100%",
       canDisable : true,
-
+      disableValidator : false,
       validator : function(value) {
         var me = this;
         
         if (!me.canDisable)
           return true;
-          
+        if (me.disableValidator)
+        	return true;
         if (Ext.util.Format.trim(value) != "") {
           var newValue = "";
           for (var i = 0; i < value.length; i++) {
@@ -29,6 +30,7 @@ Ext.define('Ext.dirac.utils.DiracNumericField', {
             return "The IDs expression is not valid";
           }
         } else {
+          me.disableValidator = true;
           me.scope.enableElements();
           return true;
         }
@@ -38,7 +40,8 @@ Ext.define('Ext.dirac.utils.DiracNumericField', {
 
         keypress : function(oTextField, e, eOpts) {
           var me = this;
-
+		
+          me.disableValidator = false;
           //it disables all the widgets except this.
           if (e.getCharCode() == 13) {
 
@@ -46,6 +49,10 @@ Ext.define('Ext.dirac.utils.DiracNumericField', {
 
           }
 
+        },
+        specialkey : function(field, e) {
+          var me = this;
+          me.disableValidator = false;
         }
       }
     });

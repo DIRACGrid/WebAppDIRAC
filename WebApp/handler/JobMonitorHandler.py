@@ -12,7 +12,7 @@ from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManage
 from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
 from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen, WErr
 
 
 class JobMonitorHandler(WebHandler):
@@ -391,8 +391,11 @@ class JobMonitorHandler(WebHandler):
       if result["OK"]:
         items = {}
         if jobId in result['Value']['Successful']:
-          req = Request(result['Value']['Successful'][jobId]).getDigest()['Value']
-          items["PendingRequest"] = req
+          result = result['Value']['Successful'][jobId].getDigest()
+          if result['OK']:
+            items["PendingRequest"] = result['Value']
+          else:
+            raise WErr.fromSERROR(result)
           callback = {"success": "true", "result": items}
         elif jobId in result['Value']['Failed']:  # when no request associated to the job
           callback = {"success": "false", "error": result['Value']["Failed"][jobId]}

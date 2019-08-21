@@ -98,7 +98,8 @@ Ext.define('Ext.dirac.utils.PlotView', {
               bodyPadding : 0,
               parent : me,
               reportType : "",
-              scope : me
+              scope : me,
+              collapsible : false
 
             });
 
