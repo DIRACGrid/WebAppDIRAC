@@ -316,7 +316,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
           "AgentType" : {
             "dataIndex" : "AgentType",
             "properties" : {
-              width : 60
+              width : 100
             }
           },
           "Type" : {
@@ -337,41 +337,49 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
           },
           "Processed (%)" : {
             "dataIndex" : "Files_PercentProcessed",
-            "renderFunction" : "diffValues"
+            "renderFunction" : "diffValues",
+             "properties" : {
+             width : 110
+            }
           },
           "Files Processed" : {
             "dataIndex" : "Files_Processed",
             "renderFunction" : "diffValues",
             "properties" : {
-              hidden : true
+              hidden : true,
+              width : 120
             }
           },
           "Files Assigned" : {
             "dataIndex" : "Files_Assigned",
             "renderFunction" : "diffValues",
             "properties" : {
-              hidden : true
+              hidden : true,
+              width : 120
             }
           },
           "Files Problematic" : {
             "dataIndex" : "Files_Problematic",
             "renderFunction" : "diffValues",
             "properties" : {
-              hidden : true
+              hidden : true,
+              width : 120
             }
           },
           "Files Unused" : {
             "dataIndex" : "Files_Unused",
             "renderFunction" : "diffValues",
             "properties" : {
-              hidden : true
+              hidden : true,
+              width : 120
             }
           },
           "Files MaxReset" : {
             "dataIndex" : "Files_MaxReset",
             "renderFunction" : "diffValues",
             "properties" : {
-              hidden : true
+              hidden : true,
+              width : 120
             }
           },
           "Created" : {
