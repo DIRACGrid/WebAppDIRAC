@@ -13,7 +13,7 @@ import tornado.stack_context
 
 from concurrent.futures import ThreadPoolExecutor
 
-from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Security import Properties
 from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC.Core.DISET.AuthManager import AuthManager
@@ -163,6 +163,18 @@ class WebHandler(tornado.web.RequestHandler):
     match = self.PATH_RE.match(self.request.path)
     self._pathResult = self.__checkPath(*match.groups())
     self.__sessionData = SessionData(self.__credDict, self.__setup)
+    self.__forceRefreshCS()
+
+  def __forceRefreshCS(self):
+    """ Force refresh configuration from master configuration server
+    """
+    if self.request.headers.get('X-RefreshConfiguration') == 'True':
+      self.log.info('Initialize force refresh..')
+      if not AuthManager('').authQuery("", dict(self.__credDict), "CSAdministrator"):
+        raise tornado.web.HTTPError(401, 'Cannot initialize force refresh, request not authenticated')
+      result = gConfig.forceRefresh()
+      if not result['OK']:
+        raise tornado.web.HTTPError(501, result['Message'])
 
   def __processCredentials(self):
     """
@@ -173,9 +185,12 @@ class WebHandler(tornado.web.RequestHandler):
 
     # Look in idetity providers
     typeAuth = self.get_secure_cookie("TypeAuth") or "Certificate"
-    stateAuth = json.loads(self.get_secure_cookie("StateAuth") or '{ }')
-    self.log.info("%s authentication" % typeAuth,
-                  stateAuth.get(typeAuth) and 'with %s session' % stateAuth[typeAuth] or '')
+    try:
+      stateAuth = json.loads(self.get_secure_cookie("StateAuth"))
+    except BaseException as e:
+      stateAuth = {}
+    __session = stateAuth.get(typeAuth) or ''
+    self.log.info("%s authentication" % typeAuth, __session and 'with %s session' % __session)
 
     # If enter as visitor
     if typeAuth == "Visitor":
@@ -191,7 +206,7 @@ class WebHandler(tornado.web.RequestHandler):
 
     # Parameters for IdProviders
     params = {}
-    params['stateAuth'] = stateAuth.get(typeAuth)
+    params['stateAuth'] = __session
     params['balancer'] = Conf.balancer()
     params['headers'] = self.request.headers
     params['certificate'] = not params['balancer'] == 'nginx' and self.request.get_ssl_certificate(binary_form=True)
@@ -205,12 +220,14 @@ class WebHandler(tornado.web.RequestHandler):
         if result['OK']:
           typeAuth = idp
           stateAuth[typeAuth] = result['Value']['Session']
-          for key in result['Value']['credDict']:
-            self.__credDict[key] = result['Value']['credDict'][key]
+          self.__credDict = result['Value']['credDict']
           break
       self.log.error(result['Message'], not idp == 'Certificate' and 'Try to authenticate with certificate.' or '')
 
     # Set cookies
+    __session = stateAuth.get(typeAuth) and '%s session.' % stateAuth[typeAuth] or ''
+    self.log.info(__session, 'Set cookie: "TypeAuth": %s' % typeAuth)
+    self.log.info(__session, 'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
     self.set_secure_cookie("TypeAuth", typeAuth)
     self.set_secure_cookie("StateAuth", json.dumps(stateAuth))
 
@@ -236,7 +253,7 @@ class WebHandler(tornado.web.RequestHandler):
   def getLog(cls):
     return cls.__log
 
-  def getUserDN(self):
+  def getDN(self):
     return self.__credDict.get('DN', '')
 
   def getUserName(self):
@@ -280,26 +297,29 @@ class WebHandler(tornado.web.RequestHandler):
     :param str method: the name of the method
     :return: bool
     """
-    userDN = self.getUserDN()
+    __DN = self.getDN()
     if group:
       self.__credDict['group'] = group
-    else:
-      if userDN:
-        result = Registry.findDefaultGroupForDN(userDN)
+    elif __DN:
+      result = Registry.getHostnameForDN(__DN)
+      if result['OK'] and result['Value']:
+        self.__credDict['group'] = 'hosts'
+      else:
+        result = Registry.findDefaultGroupForDN(__DN)
         if result['OK']:
           self.__credDict['group'] = result['Value']
-    self.__credDict['validGroup'] = False
 
     if type(self.AUTH_PROPS) not in (types.ListType, types.TupleType):
       self.AUTH_PROPS = [p.strip() for p in self.AUTH_PROPS.split(",") if p.strip()]
 
+    self.__credDict['validGroup'] = False
     auth = AuthManager(Conf.getAuthSectionForHandler(handlerRoute))
     ok = auth.authQuery(method, self.__credDict, self.AUTH_PROPS)
     if ok:
-      if userDN:
+      if __DN:
         self.__credDict['validGroup'] = True
         self.log.info("AUTH OK: %s by %s@%s (%s)" %
-                      (handlerRoute, self.__credDict['username'], self.__credDict['group'], userDN))
+                      (handlerRoute, self.__credDict['username'], self.__credDict['group'], __DN))
       else:
         self.__credDict['validDN'] = False
         self.log.info("AUTH OK: %s by visitor" % (handlerRoute))
@@ -307,7 +327,7 @@ class WebHandler(tornado.web.RequestHandler):
       self.log.info("Request is coming from Trusted host")
       return True
     else:
-      self.log.info("AUTH KO: %s by %s@%s" % (handlerRoute, userDN, group))
+      self.log.info("AUTH KO: %s by %s@%s" % (handlerRoute, __DN, group))
     return ok
 
   def isTrustedHost(self, dn):
@@ -339,7 +359,7 @@ class WebHandler(tornado.web.RequestHandler):
     if not self.__auth(handlerRoute, group, methodName):
       return WErr(401, "Unauthorized.")
 
-    DN = self.getUserDN()
+    DN = self.getDN()
     if DN:
       self.__disetConfig.setDN(DN)
     group = self.getUserGroup()
