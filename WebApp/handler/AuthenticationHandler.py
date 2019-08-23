@@ -39,6 +39,7 @@ class AuthenticationHandler(WebHandler):
     addresses = Conf.getCSValue('AdminsEmails')
     subject = "Request from %s %s" % (loadValue[0], loadValue[1])
     body = 'Type auth: %s, details: %s' % (typeAuth, loadValue)
+    self.loggin.info('Send mail to' % addresses)
     result = NotificationClient().sendMail(addresses, subject=subject, body=body)
     self.finish(result)
 
@@ -52,10 +53,8 @@ class AuthenticationHandler(WebHandler):
   def web_getCurrentAuth(self):
     """ Get current authentication type
     """
-    if self.get_secure_cookie("TypeAuth"):
-      current = self.get_secure_cookie("TypeAuth")
-    else:
-      current = 'default'
+    current = self.get_secure_cookie("TypeAuth") or ''
+    self.loggin.info('Get current authetication type:', current or 'is empty')
     self.finish(current)
 
   @asyncGen
@@ -64,12 +63,21 @@ class AuthenticationHandler(WebHandler):
     """
     session = str(self.request.arguments["session"][0])
     typeAuth = str(self.request.arguments["typeauth"][0])
-    stateAuth = json.loads(self.get_secure_cookie("StateAuth") or '{ }')
-    self.loggin.info('Read authentication status of "%s" session' % session)
+    self.loggin.info(session, 'session, waiting "%s" authentication status' % typeAuth)
+    try:
+      stateAuth = json.loads(self.get_secure_cookie("StateAuth"))
+    except BaseException as e:
+      stateAuth = {}
     result = authCli.waitStateResponse(session)
-    if result['OK']:
-      if result['Value']['Status'] == 'authed':
+    if not result['OK']:
+      self.loggin.error(session, 'session, %s' % result['Message'])
+    else:
+      __status = result['Value']['Status']
+      self.loggin.info(session, 'session, authentication status: %s' % __status)
+      if __status == 'authed':
         stateAuth[result['Value']['Provider']] = result['Value']['State']
+        self.loggin.info(session, 'session, set cookie: "TypeAuth": %s' % result['Value']['Provider'])
+        self.loggin.info(session, 'session, set cookie: "StateAuth": %s' % json.dumps(stateAuth))
         self.set_secure_cookie("TypeAuth", result['Value']['Provider'])
         self.set_secure_cookie("StateAuth", json.dumps(stateAuth), expires_days=1)
       result = S_OK()
@@ -81,7 +89,10 @@ class AuthenticationHandler(WebHandler):
     """
     result = S_OK({'Action': 'reload'})
     typeAuth = str(self.request.arguments["typeauth"][0])
-    stateAuth = json.loads(self.get_secure_cookie("StateAuth") or '{ }')
+    try:
+      stateAuth = json.loads(self.get_secure_cookie("StateAuth"))
+    except BaseException as e:
+      stateAuth = {}
     if typeAuth == 'Log out':
       typeAuth = 'Visitor'
       stateAuth = {}
@@ -91,21 +102,26 @@ class AuthenticationHandler(WebHandler):
         if not result['OK']:
           msg = result['Message']
       result = S_OK({'Action': 'reload'})
-    elif typeAuth == 'Certificate':
-      typeAuth = 'Certificate'
-    else:
-      result = authCli.submitAuthorizeFlow(typeAuth, stateAuth.get(typeAuth))
+    elif not typeAuth == 'Certificate':
+      __session = stateAuth.get(typeAuth)
+      self.loggin.info('Try "%s" autheticate' % typeAuth, __session and 'with %s' % __session or '')
+      result = authCli.submitAuthorizeFlow(typeAuth, __session)
       if result['OK']:
-        stateAuth[typeAuth] = result['Value']['Session']
         if result['Value']['Status'] == 'ready':
           result['Value']['Action'] = 'reload'
+          stateAuth[typeAuth] = result['Value']['Session']
         elif result['Value']['Status'] == 'needToAuth':
           result['Value']['Action'] = 'popup'
-          typeAuth = self.get_secure_cookie("TypeAuth")
+          typeAuth = self.get_secure_cookie("TypeAuth") or 'Certificate'
           stateAuth[typeAuth] = ''
         else:
           result = S_ERROR('Not correct status "%s" of %s' % (result['Value']['Status'], typeAuth))
     if result['OK']:
+      __action = result['Value']['Action']
+      __session = stateAuth.get(typeAuth) or ''
+      self.loggin.info('"%s" action by %s authetication' % (__action, typeAuth), __session and 'with %s session' % __session)
+      self.loggin.info(__session and '%s session.' % __session, 'Set cookie: "TypeAuth": %s' % typeAuth)
+      self.loggin.info(__session and '%s session.' % __session, 'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
       self.set_secure_cookie("TypeAuth", typeAuth)
       self.set_secure_cookie("StateAuth", json.dumps(stateAuth))
     self.finish(result)
