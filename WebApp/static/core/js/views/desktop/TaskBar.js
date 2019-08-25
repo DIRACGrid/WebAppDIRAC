@@ -181,8 +181,18 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
                           Ext.get("app-dirac-loading").hide();
                           Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
                           return GLOBAL.APP.CF.alert("Authentication was ended with error: \n" + result.Message, 'error');
-                        } else {
+                        } else if (result.Value.Status == 'authed') {
                           location.protocol = "https:";
+                        } else if (result.Value.Status == 'authed and reported') {
+                          // Hide load icon
+                          Ext.get("app-dirac-loading").hide();
+                          Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+                          return GLOBAL.APP.CF.alert('Autheticated success. Administrators was notified to register current authetication.', 'info');
+                        } else if (result.Value.Status == 'visitor') {
+                          // Hide load icon
+                          Ext.get("app-dirac-loading").hide();
+                          Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+                          return GLOBAL.APP.CF.alert('Autheticated success. \n' + result.Value.Comment, 'info');
                         }
                       },
                       failure: function(form, action) {
