@@ -76,11 +76,12 @@ class AuthenticationHandler(WebHandler):
       self.loggin.info(session, 'session, authentication status: %s' % __status)
       if __status == 'authed':
         stateAuth[result['Value']['Provider']] = result['Value']['State']
-        self.loggin.info(session, 'session, set cookie: "TypeAuth": %s' % result['Value']['Provider'])
-        self.loggin.info(session, 'session, set cookie: "StateAuth": %s' % json.dumps(stateAuth))
-        self.set_secure_cookie("TypeAuth", result['Value']['Provider'])
-        self.set_secure_cookie("StateAuth", json.dumps(stateAuth), expires_days=1)
-      result = S_OK()
+      else:
+        stateAuth[result['Value']['Provider']] = ''
+      self.loggin.info(session, 'session, set cookie: "TypeAuth": %s' % result['Value']['Provider'])
+      self.loggin.info(session, 'session, set cookie: "StateAuth": %s' % json.dumps(stateAuth))
+      self.set_secure_cookie("TypeAuth", result['Value']['Provider'])
+      self.set_secure_cookie("StateAuth", json.dumps(stateAuth), expires_days=1)
     self.finish(result)
 
   @asyncGen
