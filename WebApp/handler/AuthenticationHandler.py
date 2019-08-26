@@ -112,9 +112,9 @@ class AuthenticationHandler(WebHandler):
           result['Value']['Action'] = 'reload'
           stateAuth[typeAuth] = result['Value']['Session']
         elif result['Value']['Status'] == 'needToAuth':
+          stateAuth[typeAuth] = ''
           result['Value']['Action'] = 'popup'
           typeAuth = self.get_secure_cookie("TypeAuth") or 'Certificate'
-          stateAuth[typeAuth] = ''
         else:
           result = S_ERROR('Not correct status "%s" of %s' % (result['Value']['Status'], typeAuth))
     if result['OK']:
