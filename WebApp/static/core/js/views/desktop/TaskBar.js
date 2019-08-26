@@ -187,12 +187,14 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
                           // Hide load icon
                           Ext.get("app-dirac-loading").hide();
                           Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-                          return GLOBAL.APP.CF.alert('Autheticated success. Administrators was notified to register current authetication.', 'info');
+                          GLOBAL.APP.CF.msg('info', result.Value.Comment);
+                          return GLOBAL.APP.CF.alert('Autheticated success. Administrators was notified about you.', 'info');
                         } else if (result.Value.Status == 'visitor') {
                           // Hide load icon
                           Ext.get("app-dirac-loading").hide();
                           Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-                          return GLOBAL.APP.CF.alert('Autheticated success. \n' + result.Value.Comment, 'info');
+                          GLOBAL.APP.CF.msg('info', result.Value.Comment);
+                          return GLOBAL.APP.CF.alert('Autheticated success. You have permissions as Visitor.', 'info');
                         }
                       },
                       failure: function(form, action) {
@@ -260,6 +262,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
       perams: {},
       async: false
     }).responseText;
+
     var button_usrname = {
       "text" : "Visitor",
       "menu" : []
