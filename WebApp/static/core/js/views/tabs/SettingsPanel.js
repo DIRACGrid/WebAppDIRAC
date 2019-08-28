@@ -130,25 +130,28 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
                         },
                         async: false,
                         success: function(response) {
+                          var msg, title;
                           var result = Ext.decode(response.responseText);
                           if (!result.OK) {
-                            // Hide load icon
-                            Ext.get("app-dirac-loading").hide();
-                            Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-                            return GLOBAL.APP.CF.alert("Authentication was ended with error: \n" + result.Message, 'error');
+                            title = 'Authentication was ended with error.';
+                            msg = result.Message.replace(/\n/g, "<br>");
                           } else if (result.Value.Status == 'authed') {
                             location.protocol = "https:";
-                          } else if (result.Value.Status == 'authed and reported') {
-                            // Hide load icon
-                            Ext.get("app-dirac-loading").hide();
-                            Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-                            return GLOBAL.APP.CF.alert('Autheticated success.\nAdministrators was notified to register current authetication.', 'info');
-                          } else if (result.Value.Status == 'visitor') {
-                            // Hide load icon
-                            Ext.get("app-dirac-loading").hide();
-                            Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-                            return GLOBAL.APP.CF.alert('Autheticated success.\n\n---\n' + result.Value.Comment, 'info');
+                          } else {
+                            msg = result.Value.Comment ? result.Value.Comment.replace(/\n/g, "<br>") : "";
+                            if (result.Value.Status == 'authed and reported') {
+                              title = 'Autheticated success. Administrators was notified about you.';
+                            } else if (result.Value.Status == 'visitor') {
+                              title = 'Autheticated success. You have permissions as Visitor.';
+                            }
                           }
+                          // Hide load icon
+                          Ext.get("app-dirac-loading").hide();
+                          Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+                          return Ext.create('Ext.Msg', { closeAction: 'destroy' }).show({
+                            title: title,
+                            message: msg
+                          });
                         },
                         failure: function(form, action) {
                           // Hide load icon
