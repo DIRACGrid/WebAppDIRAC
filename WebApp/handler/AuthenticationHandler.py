@@ -122,9 +122,12 @@ class AuthenticationHandler(WebHandler):
     if result['OK']:
       __action = result['Value']['Action']
       __session = stateAuth.get(typeAuth) or ''
-      self.loggin.verbose('"%s" action by %s authetication' % (__action, typeAuth), __session and 'with %s session' % __session)
-      self.loggin.verbose(__session and '%s session.' % __session, 'Set cookie: "TypeAuth": %s' % typeAuth)
-      self.loggin.verbose(__session and '%s session.' % __session, 'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
+      self.loggin.verbose('"%s" action by %s authetication' % (__action, typeAuth),
+                          __session and 'with %s session' % __session)
+      self.loggin.verbose(__session and '%s session.' % __session,
+                          'Set cookie: "TypeAuth": %s' % typeAuth)
+      self.loggin.verbose(__session and '%s session.' % __session,
+                          'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
       self.set_secure_cookie("TypeAuth", typeAuth)
       self.set_secure_cookie("StateAuth", json.dumps(stateAuth))
     self.finish(result)
