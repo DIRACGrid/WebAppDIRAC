@@ -1,4 +1,5 @@
 import json
+import pprint
 import tornado
 import requests
 import tornado.web
@@ -54,7 +55,7 @@ class AuthenticationHandler(WebHandler):
     """ Get current authentication type
     """
     current = self.get_secure_cookie("TypeAuth") or ''
-    self.loggin.info('Get current authetication type:', current or 'is empty')
+    self.loggin.verbose('Get current authetication type:', current or 'is empty')
     self.finish(current)
 
   @asyncGen
@@ -78,8 +79,9 @@ class AuthenticationHandler(WebHandler):
         stateAuth[result['Value']['Provider']] = result['Value']['State']
       else:
         stateAuth[result['Value']['Provider']] = ''
-      self.loggin.info(session, 'session, set cookie: "TypeAuth": %s' % result['Value']['Provider'])
-      self.loggin.info(session, 'session, set cookie: "StateAuth": %s' % json.dumps(stateAuth))
+      self.loggin.debug(session, 'session, status dictionary:\n%s' % pprint.pformat(result['Value']))
+      self.loggin.verbose(session, 'session, set cookie: "TypeAuth": %s' % result['Value']['Provider'])
+      self.loggin.verbose(session, 'session, set cookie: "StateAuth": %s' % json.dumps(stateAuth))
       self.set_secure_cookie("TypeAuth", result['Value']['Provider'])
       self.set_secure_cookie("StateAuth", json.dumps(stateAuth), expires_days=1)
     self.finish(result)
@@ -120,9 +122,9 @@ class AuthenticationHandler(WebHandler):
     if result['OK']:
       __action = result['Value']['Action']
       __session = stateAuth.get(typeAuth) or ''
-      self.loggin.info('"%s" action by %s authetication' % (__action, typeAuth), __session and 'with %s session' % __session)
-      self.loggin.info(__session and '%s session.' % __session, 'Set cookie: "TypeAuth": %s' % typeAuth)
-      self.loggin.info(__session and '%s session.' % __session, 'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
+      self.loggin.verbose('"%s" action by %s authetication' % (__action, typeAuth), __session and 'with %s session' % __session)
+      self.loggin.verbose(__session and '%s session.' % __session, 'Set cookie: "TypeAuth": %s' % typeAuth)
+      self.loggin.verbose(__session and '%s session.' % __session, 'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
       self.set_secure_cookie("TypeAuth", typeAuth)
       self.set_secure_cookie("StateAuth", json.dumps(stateAuth))
     self.finish(result)
