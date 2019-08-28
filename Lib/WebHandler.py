@@ -226,8 +226,8 @@ class WebHandler(tornado.web.RequestHandler):
 
     # Set cookies
     __session = stateAuth.get(typeAuth) and '%s session.' % stateAuth[typeAuth] or ''
-    self.log.info(__session, 'Set cookie: "TypeAuth": %s' % typeAuth)
-    self.log.info(__session, 'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
+    self.log.verbose(__session, 'Set cookie: "TypeAuth": %s' % typeAuth)
+    self.log.verbose(__session, 'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
     self.set_secure_cookie("TypeAuth", typeAuth)
     self.set_secure_cookie("StateAuth", json.dumps(stateAuth))
 
