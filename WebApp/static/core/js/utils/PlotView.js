@@ -151,6 +151,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
                   me.leftPanel.body.mask("Wait ...");
                   Ext.Ajax.request({
                         url : GLOBAL.BASE_URL + me.handlers[me.actualReport] + '/getSelectionData',
+                        timeout : me.timeout,
                         method : 'POST',
                         params : {
                           type : newValue
