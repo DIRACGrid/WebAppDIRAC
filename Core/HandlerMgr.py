@@ -116,7 +116,9 @@ class HandlerMgr(object):
       baseRoute = "/%s%s" % (self.__baseURL or '', baseRoute)
       # Set properly the LOCATION after calculating where it is with helpers to add group and setup later
       handler.LOCATION = handlerRoute
-      handler.PATH_RE = re.compile("%s(%s/.*)" % (baseRoute, handlerRoute))
+      handler.PATH_RE = re.compile("%s(%s/[A-z]+|.)" % (baseRoute, handlerRoute))
+      if handler.OVERPATH:
+        handler.PATH_RE = re.compile(handler.PATH_RE.pattern + '(/[A-z0-9=-_/|]+)?')
       handler.URLSCHEMA = "/%s%%(setup)s%%(group)s%%(location)s/%%(action)s" % (self.__baseURL)
       if issubclass(handler, WebSocketHandler):
         handler.PATH_RE = re.compile("%s(%s)" % (baseRoute, handlerRoute))
@@ -138,6 +140,9 @@ class HandlerMgr(object):
             # Normal methods get the method appended without web_
             self.log.verbose(" - Route %s/%s ->  %s.%s" % (handlerRoute, mName[4:], hn, mName))
             route = "%s(%s/%s)" % (baseRoute, handlerRoute, mName[4:])
+            # Use request path as options/values, for ex. ../method/<option>/<file path>?<option>=..
+            if handler.OVERPATH:
+              route += '(/[A-z0-9=-_/|]+)?'
             self.__routes.append((route, handler))
           self.log.debug("  * %s" % route)
     # Send to root
