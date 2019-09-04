@@ -170,13 +170,13 @@ def SSLProrocol():
 
 def getDefaultStaticDirs():
   defDirs = getCSValue("DefaultStaticDirs", ['defaults', 'demo'])
-  if defDirs == 'None':
+  if defDirs == ['None']:
     return []
   return defDirs
 
 
 def getStaticDirs():
-  return getCSValue("StaticDirs", []) + getDefaultStaticDirs()
+  return list(set(getCSValue("StaticDirs", []) + getDefaultStaticDirs()))
 
 
 def getLogo():
