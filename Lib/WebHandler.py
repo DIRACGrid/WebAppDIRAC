@@ -26,12 +26,12 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProvi
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
 
+# FIXME: Need add to DIRAC project
 try:
   from OAuthDIRAC.Resources.IdProvider.IdProviderFactory import IdProviderFactory  # pylint: disable=import-error
-  from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import OAuthManagerClient  # pylint: disable=import-error
-  oauth = OAuthManagerClient()
+  idFactory = IdProviderFactory()
 except BaseException:
-  oauth = None
+  idFactory = None
 
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
@@ -86,6 +86,8 @@ class WebHandler(tornado.web.RequestHandler):
   URLSCHEMA = ""
   # RE to extract group and setup
   PATH_RE = None
+  # If need to use request path for declare some value/option
+  OVERPATH = False
 
   def threadTask(self, method, *args, **kwargs):
     if tornado.version < '5.0.0':
@@ -161,9 +163,24 @@ class WebHandler(tornado.web.RequestHandler):
     self.__disetConfig.setDecorator(self.__disetBlockDecor)
     self.__disetDump = self.__disetConfig.dump()
     match = self.PATH_RE.match(self.request.path)
-    self._pathResult = self.__checkPath(*match.groups())
+    self.log.info('self.request.path:', self.request.path)
+    self.log.info('self.PATH_RE.pattern:', self.PATH_RE.pattern)
+    self.log.info('match.groups():', match.groups())
+    __pathItems = match.groups()
+    self._pathResult = self.__checkPath(*__pathItems[:3])
+    self.overpath = __pathItems[3:] or ''
+    self.log.info('self.postpath:', self.overpath)
     self.__sessionData = SessionData(self.__credDict, self.__setup)
     self.__forceRefreshCS()
+
+  def getArgs(self):
+    __args = {}
+    for arg in self.request.arguments:
+      if len(self.request.arguments[arg]) > 1:
+        __args[arg] = self.request.arguments[arg]
+      else:
+        __args[arg] = self.request.arguments[arg][0] or ''
+    return __args
 
   def __forceRefreshCS(self):
     """ Force refresh configuration from master configuration server
@@ -172,7 +189,8 @@ class WebHandler(tornado.web.RequestHandler):
       self.log.info('Initialize force refresh..')
       if not AuthManager('').authQuery("", dict(self.__credDict), "CSAdministrator"):
         raise tornado.web.HTTPError(401, 'Cannot initialize force refresh, request not authenticated')
-      result = gConfig.forceRefresh()
+      # FIXME: In production to be fromMaster=False
+      result = gConfig.forceRefresh(fromMaster=True)
       if not result['OK']:
         raise tornado.web.HTTPError(501, result['Message'])
 
@@ -213,7 +231,7 @@ class WebHandler(tornado.web.RequestHandler):
 
     # Fill credentials dict
     for idp in list(set([typeAuth, 'Certificate'])):
-      result = IdProviderFactory().getIdProvider(idp)
+      result = idFactory.getIdProvider(idp)
       if result['OK']:
         providerObj = result['Value']
         result = providerObj.getCredentials(params)
@@ -370,7 +388,7 @@ class WebHandler(tornado.web.RequestHandler):
 
     return WOK(methodName)
 
-  def get(self, setup, group, route):
+  def get(self, setup, group, route, postPath=None):
     if not self._pathResult.ok:
       raise self._pathResult
     methodName = "web_%s" % self._pathResult.data
