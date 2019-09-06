@@ -96,6 +96,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
       region : 'center',
       height : '600',
       header : false,
+      leadingBufferZone : 1000,
       viewConfig : {
         stripeRows : true,
         enableTextSelection : true,
