@@ -78,7 +78,7 @@ class RootHandler(WebHandler):
       url_state = xss_filter(self.request.arguments["url_state"][0])
 
     # Default theme/view settings
-    theme_name = "Crisp"
+    theme_name = "crisp"
     view_name = Conf.getTheme()
     if ":" in view_name:
       view_name, theme_name = view_name.split(":", 1)
