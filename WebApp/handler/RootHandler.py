@@ -77,11 +77,16 @@ class RootHandler(WebHandler):
     if "url_state" in self.request.arguments and len(self.request.arguments["url_state"][0]) > 0:
       url_state = xss_filter(self.request.arguments["url_state"][0])
 
+    # Default theme/view settings
+    theme_name = "Crisp"
     view_name = Conf.getTheme()
+    if ":" in view_name:
+      view_name, theme_name = view_name.split(":", 1)
+
+    # User selected theme/view
     if "view" in self.request.arguments and len(self.request.arguments["view"][0]) > 0:
       view_name = xss_filter(self.request.arguments["view"][0])
 
-    theme_name = "crisp"  # "gray"
     if "theme" in self.request.arguments and len(self.request.arguments["theme"][0]) > 0:
       theme_name = self.request.arguments["theme"][0].lower()
 
