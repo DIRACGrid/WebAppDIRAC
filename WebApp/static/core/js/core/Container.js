@@ -84,7 +84,7 @@ Ext.define('Ext.dirac.core.Container', {
         }
 
         oWindow.add(oGrid);
-        oWindow.show();
+        oWindow.show().removeCls("x-unselectable"); // Todo: this can be removed after ext-6.2.0;
 
       },
       showValue : function(grid) {
@@ -97,7 +97,7 @@ Ext.define('Ext.dirac.core.Container', {
         var me = this;
         var oWindow = me.createChildWindow(sTitle, false, 700, 500);
         oWindow.add(panel);
-        oWindow.show();
+        oWindow.show().removeCls("x-unselectable"); // Todo: this can be removed after ext-6.2.0;
       },
       oprPrepareAndShowWindowText : function(sTextToShow, sTitle) {
 
@@ -112,7 +112,7 @@ Ext.define('Ext.dirac.core.Container', {
             });
 
         oWindow.add(oTextArea);
-        oWindow.show();
+        oWindow.show().removeCls("x-unselectable"); // Todo: this can be removed after ext-6.2.0;
 
       },
       /**
@@ -138,7 +138,7 @@ Ext.define('Ext.dirac.core.Container', {
                   }]
             });
         window.add(htmlPanel);
-        window.show();
+        window.show().removeCls("x-unselectable"); // Todo: this can be removed after ext-6.2.0;
       },
 
       oprShowInNewTab : function(url, title) {
@@ -154,7 +154,7 @@ Ext.define('Ext.dirac.core.Container', {
 
           var win = this.createChildWindow(title, false, 700, 500);
           win.add(panelContent);
-          win.show();
+          win.show().removeCls("x-unselectable"); // Todo: this can be removed after ext-6.2.0;
         } else {
           var win = window.open(url, "_blank");
           if (win == null || typeof(win) == 'undefined') {
