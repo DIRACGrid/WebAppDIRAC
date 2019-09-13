@@ -176,26 +176,34 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
                       async: false,
                       success: function(response) {
                         var msg, title;
+                        var icon = Ext.Msg.INFO;
                         var result = Ext.decode(response.responseText);
                         if (!result.OK) {
-                          title = 'Authentication was ended with error.';
+                          icon = Ext.Msg.ERROR;
+                          title = 'Authentication error.';
                           msg = result.Message.replace(/\n/g, "<br>");
-                        } else if (result.Value.Status == 'authed') {
-                          location.protocol = "https:";
                         } else {
+                          title = 'Authenticated successfully.'
                           msg = result.Value.Comment ? result.Value.Comment.replace(/\n/g, "<br>") : "";
-                          if (result.Value.Status == 'authed and reported') {
-                            title = 'Autheticated success. Administrators was notified about you.';
+                          if (result.Value.Status == 'failed') {
+                            icon = Ext.Msg.ERROR;
+                            title = 'Authentication error.';
+                          } else if (result.Value.Status == 'authed') {
+                            return location.protocol = "https:";
                           } else if (result.Value.Status == 'visitor') {
-                            title = 'Autheticated success. You have permissions as Visitor.';
+                            msg = 'You have permissions as Visitor.\n' + msg;
+                          } else if (result.Value.Status == 'authed and reported') {
+                            msg = 'Admins was notified about you.\n' + msg;
                           }
                         }
                         // Hide load icon
                         Ext.get("app-dirac-loading").hide();
                         Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-                        return Ext.create('Ext.Msg', { closeAction: 'destroy' }).show({
+                        return Ext.Msg.show({
+                          closeAction: 'destroy',
                           title: title,
-                          message: msg
+                          message: msg,
+                          icon: icon
                         });
                       },
                       failure: function(form, action) {
