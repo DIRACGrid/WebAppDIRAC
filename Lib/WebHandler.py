@@ -3,6 +3,7 @@ import ssl
 import json
 import types
 import requests
+import datetime
 import functools
 import traceback
 import tornado.web
@@ -19,6 +20,7 @@ from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-er
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.Decorators import deprecated
+from DIRAC.Core.Utilities.JEncode import encode, decode
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 # pylint: disable=no-name-in-module
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders
@@ -152,7 +154,7 @@ class WebHandler(tornado.web.RequestHandler):
     """
     Initialize the handler
     """
-    self.stream = None  # Needed for set_secure_cookie tornado method
+    #self.stream = None  # Needed for set_secure_cookie tornado method
     super(WebHandler, self).__init__(*args, **kwargs)
     if not WebHandler.__log:
       WebHandler.__log = gLogger.getSubLogger(self.__class__.__name__)
@@ -163,24 +165,11 @@ class WebHandler(tornado.web.RequestHandler):
     self.__disetConfig.setDecorator(self.__disetBlockDecor)
     self.__disetDump = self.__disetConfig.dump()
     match = self.PATH_RE.match(self.request.path)
-    self.log.info('self.request.path:', self.request.path)
-    self.log.info('self.PATH_RE.pattern:', self.PATH_RE.pattern)
-    self.log.info('match.groups():', match.groups())
     __pathItems = match.groups()
     self._pathResult = self.__checkPath(*__pathItems[:3])
-    self.overpath = __pathItems[3:] or ''
-    self.log.info('self.postpath:', self.overpath)
+    self.overpath = __pathItems[3:] and __pathItems[3] or ''
     self.__sessionData = SessionData(self.__credDict, self.__setup)
     self.__forceRefreshCS()
-
-  def getArgs(self):
-    __args = {}
-    for arg in self.request.arguments:
-      if len(self.request.arguments[arg]) > 1:
-        __args[arg] = self.request.arguments[arg]
-      else:
-        __args[arg] = self.request.arguments[arg][0] or ''
-    return __args
 
   def __forceRefreshCS(self):
     """ Force refresh configuration from master configuration server
@@ -202,9 +191,9 @@ class WebHandler(tornado.web.RequestHandler):
       return
 
     # Look in idetity providers
-    typeAuth = self.get_secure_cookie("TypeAuth") or "Certificate"
+    typeAuth = self.get_cookie("TypeAuth") or "Certificate"
     try:
-      stateAuth = json.loads(self.get_secure_cookie("StateAuth"))
+      stateAuth = json.loads(self.get_cookie("StateAuth"))
     except BaseException as e:
       stateAuth = {}
     __session = stateAuth.get(typeAuth) or ''
@@ -218,7 +207,7 @@ class WebHandler(tornado.web.RequestHandler):
     result = Conf.getCSSections("TypeAuths")
     if not result['OK']:
       self.log.error(result['Message'])
-    if typeAuth not in ['Certificate'] + result.get('Value') or []:
+    if typeAuth not in ['Certificate'] + result['Value'] or []:
       self.log.error(typeAuth, "is absent in configuration. Try to use certificate.")
       typeAuth = 'Certificate'
 
@@ -246,8 +235,8 @@ class WebHandler(tornado.web.RequestHandler):
     __session = stateAuth.get(typeAuth) and '%s session.' % stateAuth[typeAuth] or ''
     self.log.verbose(__session, 'Set cookie: "TypeAuth": %s' % typeAuth)
     self.log.verbose(__session, 'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
-    self.set_secure_cookie("TypeAuth", typeAuth)
-    self.set_secure_cookie("StateAuth", json.dumps(stateAuth))
+    self.set_cookie("TypeAuth", typeAuth)
+    self.set_cookie("StateAuth", json.dumps(stateAuth).replace(' ', ''))
 
   def _request_summary(self):
     """
@@ -388,7 +377,7 @@ class WebHandler(tornado.web.RequestHandler):
 
     return WOK(methodName)
 
-  def get(self, setup, group, route, postPath=None):
+  def get(self, setup, group, route, overpath=None):
     if not self._pathResult.ok:
       raise self._pathResult
     methodName = "web_%s" % self._pathResult.data
@@ -400,6 +389,9 @@ class WebHandler(tornado.web.RequestHandler):
     return mObj()
 
   def post(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
+  
+  def delete(self, *args, **kwargs):
     return self.get(*args, **kwargs)
 
   def write_error(self, status_code, **kwargs):
@@ -421,6 +413,10 @@ class WebHandler(tornado.web.RequestHandler):
     self.set_header('Content-Type', cType)
     self.finish(data)
 
+  def finishJEncode(self, o):
+    """ Encode data before finish
+    """
+    self.finish(encode(o))
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
 

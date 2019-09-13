@@ -2,6 +2,7 @@ import json
 import pprint
 import tornado
 import requests
+import datetime
 import tornado.web
 
 from tornado.web import HTTPError, RequestHandler
@@ -54,7 +55,7 @@ class AuthenticationHandler(WebHandler):
   def web_getCurrentAuth(self):
     """ Get current authentication type
     """
-    current = self.get_secure_cookie("TypeAuth") or ''
+    current = self.get_cookie("TypeAuth") or ''
     self.loggin.verbose('Get current authetication type:', current or 'is empty')
     self.finish(current)
 
@@ -66,10 +67,10 @@ class AuthenticationHandler(WebHandler):
     typeAuth = str(self.request.arguments["typeauth"][0])
     self.loggin.info(session, 'session, waiting "%s" authentication status' % typeAuth)
     try:
-      stateAuth = json.loads(self.get_secure_cookie("StateAuth"))
+      stateAuth = json.loads(self.get_cookie("StateAuth"))
     except BaseException as e:
       stateAuth = {}
-    result = authCli.waitStateResponse(session)
+    result = authCli.waitStateResponse(session, 300)
     if not result['OK']:
       self.loggin.error(session, 'session, %s' % result['Message'])
     else:
@@ -82,8 +83,8 @@ class AuthenticationHandler(WebHandler):
       self.loggin.debug(session, 'session, status dictionary:\n%s' % pprint.pformat(result['Value']))
       self.loggin.verbose(session, 'session, set cookie: "TypeAuth": %s' % result['Value']['Provider'])
       self.loggin.verbose(session, 'session, set cookie: "StateAuth": %s' % json.dumps(stateAuth))
-      self.set_secure_cookie("TypeAuth", result['Value']['Provider'])
-      self.set_secure_cookie("StateAuth", json.dumps(stateAuth), expires_days=1)
+      self.set_cookie("TypeAuth", result['Value']['Provider'])
+      self.set_cookie("StateAuth", json.dumps(stateAuth).replace(' ', ''))
     self.finish(result)
 
   @asyncGen
@@ -93,7 +94,7 @@ class AuthenticationHandler(WebHandler):
     result = S_OK({'Action': 'reload'})
     typeAuth = str(self.request.arguments["typeauth"][0])
     try:
-      stateAuth = json.loads(self.get_secure_cookie("StateAuth"))
+      stateAuth = json.loads(self.get_cookie("StateAuth"))
     except BaseException as e:
       stateAuth = {}
     if typeAuth == 'Log out':
@@ -116,7 +117,7 @@ class AuthenticationHandler(WebHandler):
         elif result['Value']['Status'] == 'needToAuth':
           stateAuth[typeAuth] = ''
           result['Value']['Action'] = 'popup'
-          typeAuth = self.get_secure_cookie("TypeAuth") or 'Certificate'
+          typeAuth = self.get_cookie("TypeAuth") or 'Certificate'
         else:
           result = S_ERROR('Not correct status "%s" of %s' % (result['Value']['Status'], typeAuth))
     if result['OK']:
@@ -128,6 +129,6 @@ class AuthenticationHandler(WebHandler):
                           'Set cookie: "TypeAuth": %s' % typeAuth)
       self.loggin.verbose(__session and '%s session.' % __session,
                           'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
-      self.set_secure_cookie("TypeAuth", typeAuth)
-      self.set_secure_cookie("StateAuth", json.dumps(stateAuth))
-    self.finish(result)
+      self.set_cookie("TypeAuth", typeAuth)
+      self.set_cookie("StateAuth", json.dumps(stateAuth).replace(' ', ''))
+    self.finishJEncode(result)
