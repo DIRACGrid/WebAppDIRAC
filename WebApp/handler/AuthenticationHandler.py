@@ -58,9 +58,9 @@ class AuthenticationHandler(WebHandler):
     if not result['OK']:
       self.log.error(session, 'session, %s' % result['Message'])
     else:
-      __status = result['Value']['Status']
-      self.log.verbose(session, 'session, authentication status: %s' % __status)
-      if __status == 'authed':
+      status = result['Value']['Status']
+      self.log.verbose(session, 'session, authentication status: %s' % status)
+      if status == 'authed':
         stateAuth[result['Value']['Provider']] = result['Value']['State']
       else:
         stateAuth[result['Value']['Provider']] = ''
@@ -84,16 +84,16 @@ class AuthenticationHandler(WebHandler):
     if typeAuth == 'Log out':
       typeAuth = 'Visitor'
       stateAuth = {}
-      for __provider, __session in stateAuth.items():
-        self.log.info('Log out from ', __provider)
-        result = authCli.killState(__session)
+      for provider, session in stateAuth.items():
+        self.log.info('Log out from ', provider)
+        result = authCli.killState(session)
         if not result['OK']:
           msg = result['Message']
       result = S_OK({'Action': 'reload'})
     elif not typeAuth == 'Certificate':
-      __session = stateAuth.get(typeAuth)
-      self.log.info('Try autheticate by "%s"' % typeAuth, 'with %s' % __session if __session else '')
-      result = authCli.submitAuthorizeFlow(typeAuth, __session)
+      session = stateAuth.get(typeAuth)
+      self.log.info('Try autheticate by "%s"' % typeAuth, 'with %s' % session if session else '')
+      result = authCli.submitAuthorizeFlow(typeAuth, session)
       if result['OK']:
         if result['Value']['Status'] == 'ready':
           result['Value']['Action'] = 'reload'
@@ -105,13 +105,13 @@ class AuthenticationHandler(WebHandler):
         else:
           result = S_ERROR('Not correct status "%s" of %s' % (result['Value']['Status'], typeAuth))
     if result['OK']:
-      __action = result['Value']['Action']
-      __session = stateAuth.get(typeAuth) or ''
-      self.log.debug('"%s" action by %s authetication' % (__action, typeAuth),
-                          __session and 'with %s session' % __session)
-      self.log.debug(__session and '%s session.' % __session,
+      action = result['Value']['Action']
+      session = stateAuth.get(typeAuth) or ''
+      self.log.debug('"%s" action by %s authetication' % (action, typeAuth),
+                          session and 'with %s session' % session)
+      self.log.debug(session and '%s session.' % session,
                           'Set cookie: "TypeAuth": %s' % typeAuth)
-      self.log.debug(__session and '%s session.' % __session,
+      self.log.debug(session and '%s session.' % session,
                           'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
       self.set_cookie("TypeAuth", typeAuth)
       self.set_cookie("StateAuth", json.dumps(stateAuth).replace(' ', ''))
