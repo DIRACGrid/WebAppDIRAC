@@ -266,11 +266,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
     };
 
     var oListAuth = getListAuth();
-    var currentAuth = Ext.Ajax.request({
-      url: GLOBAL.BASE_URL + 'Authentication/getCurrentAuth',
-      perams: {},
-      async: false
-    }).responseText;
+    var currentAuth = Ext.util.Cookies.get('TypeAuth');
 
     var button_usrname = {
       "text" : "Visitor",

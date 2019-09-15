@@ -43,13 +43,13 @@ class AuthenticationHandler(WebHandler):
     """
     self.finish(Conf.getAuthNames())
 
-  @asyncGen
-  def web_getCurrentAuth(self):
-    """ Get current authentication type
-    """
-    current = self.get_cookie("TypeAuth") or ''
-    self.log.debug('Get current authetication type:', current or 'is empty')
-    self.finish(current)
+  # @asyncGen
+  # def web_getCurrentAuth(self):
+  #   """ Get current authentication type
+  #   """
+  #   current = self.get_cookie("TypeAuth") or ''
+  #   self.log.debug('Get current authetication type:', current or 'is empty')
+  #   self.finish(current)
 
   @asyncGen
   def web_waitOAuthStatus(self):
