@@ -2,7 +2,6 @@ import sys
 import ssl
 import json
 import types
-import requests
 import functools
 import traceback
 import tornado.web
@@ -250,17 +249,19 @@ class WebHandler(tornado.web.RequestHandler):
     params = {}
     params['stateAuth'] = __session
 
-    # Fill credentials dict
-    for idp in list(set([typeAuth, 'Certificate'])):
+    # Fill credentials dict. If IdP fail try to read certificate credentionals
+    for idp in [typeAuth, 'Certificate']:
+      typeAuth = idp
+      if idp == 'Certificate':
+        result = readCertificate()
+        break
       result = IdProviderFactory().getIdProvider(idp)
       if result['OK']:
         providerObj = result['Value']
-        # If IdP fail try to read certificate credentionals
-        result = providerObj.getCredentials(params) if idp != 'Certificate' else readCertificate()
+        result = providerObj.getCredentials(params)
         if result['OK']:
-          typeAuth = idp
-          stateAuth[typeAuth] = result['Value']['Session'] if result['Value'] else ''
-          self.__credDict = result['Value']['credDict'] if result['Value'] else self.__credDict
+          stateAuth[typeAuth] = result['Value']['Session']
+          self.__credDict = result['Value']['credDict']
           break
       self.log.error(result['Message'], not idp == 'Certificate' and 'Try to authenticate with certificate.' or '')
 
