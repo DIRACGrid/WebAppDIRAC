@@ -24,16 +24,10 @@ from DIRAC.Core.Utilities.JEncode import encode, decode
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 # pylint: disable=no-name-in-module
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders
+from DIRAC.Resources.IdProvider.IdProviderFactory import IdProviderFactory
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
-
-# FIXME: Need add to DIRAC project
-try:
-  from OAuthDIRAC.Resources.IdProvider.IdProviderFactory import IdProviderFactory  # pylint: disable=import-error
-  idFactory = IdProviderFactory()
-except BaseException:
-  idFactory = None
 
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
@@ -175,11 +169,10 @@ class WebHandler(tornado.web.RequestHandler):
     """ Force refresh configuration from master configuration server
     """
     if self.request.headers.get('X-RefreshConfiguration') == 'True':
-      self.log.info('Initialize force refresh..')
+      self.log.verbose('Initialize force refresh..')
       if not AuthManager('').authQuery("", dict(self.__credDict), "CSAdministrator"):
         raise tornado.web.HTTPError(401, 'Cannot initialize force refresh, request not authenticated')
-      # FIXME: In production to be fromMaster=False
-      result = gConfig.forceRefresh(fromMaster=True)
+      result = gConfig.forceRefresh()
       if not result['OK']:
         raise tornado.web.HTTPError(501, result['Message'])
 
@@ -187,6 +180,50 @@ class WebHandler(tornado.web.RequestHandler):
     """
     Extract the user credentials based on the certificate or what comes from the balancer
     """
+    def readCertificate():
+      """ Fill credentional from certificate
+
+          :return: S_OK()/S_ERROR()
+      """
+      # NGINX
+      if Conf.balancer() == "nginx":
+        headers = self.request.headers
+        if not headers:
+          return S_ERROR('No headers found.')
+        if headers.get('X-Scheme') == "https" and headers.get('X-Ssl_client_verify') == 'SUCCESS':
+          DN = headers['X-Ssl_client_s_dn']
+          if not DN.startswith('/'):
+            items = DN.split(',')
+            items.reverse()
+            DN = '/' + '/'.join(items)
+          self.__credDict['DN'] = DN
+          self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
+          result = Registry.getUsernameForDN(DN)
+          if not result['OK']:
+            self.__credDict['validDN'] = False
+          else:
+            self.__credDict['validDN'] = True
+            self.__credDict['username'] = result['Value']
+        return S_OK()
+
+      # TORNADO
+      derCert = self.request.get_ssl_certificate(binary_form=True)
+      if not derCert:
+        return S_ERROR('No certificate found.')
+      pemCert = ssl.DER_cert_to_PEM_cert(derCert)
+      chain = X509Chain()
+      chain.loadChainFromString(pemCert)
+      result = chain.getCredentials()
+      if not result['OK']:
+        return S_ERROR("Could not get client credentials %s" % result['Message'])
+      self.__credDict = result['Value']
+      # Hack. Data coming from OSSL directly and DISET difer in DN/subject
+      try:
+        self.__credDict['DN'] = self.__credDict['subject']
+      except KeyError:
+        pass
+      return S_OK()
+
     if not self.request.protocol == "https":
       return
 
@@ -197,7 +234,7 @@ class WebHandler(tornado.web.RequestHandler):
     except BaseException as e:
       stateAuth = {}
     __session = stateAuth.get(typeAuth) or ''
-    self.log.info("%s authentication" % typeAuth, __session and 'with %s session' % __session)
+    self.log.verbose("%s authentication" % typeAuth, __session and 'with %s session' % __session)
 
     # If enter as visitor
     if typeAuth == "Visitor":
@@ -214,27 +251,25 @@ class WebHandler(tornado.web.RequestHandler):
     # Parameters for IdProviders
     params = {}
     params['stateAuth'] = __session
-    params['balancer'] = Conf.balancer()
-    params['headers'] = self.request.headers
-    params['certificate'] = not params['balancer'] == 'nginx' and self.request.get_ssl_certificate(binary_form=True)
 
     # Fill credentials dict
     for idp in list(set([typeAuth, 'Certificate'])):
-      result = idFactory.getIdProvider(idp)
+      result = IdProviderFactory().getIdProvider(idp)
       if result['OK']:
         providerObj = result['Value']
-        result = providerObj.getCredentials(params)
+        # If IdP fail try to read certificate credentionals
+        result = providerObj.getCredentials(params) if idp != 'Certificate' else readCertificate()
         if result['OK']:
           typeAuth = idp
-          stateAuth[typeAuth] = result['Value']['Session']
-          self.__credDict = result['Value']['credDict']
+          stateAuth[typeAuth] = result['Value']['Session'] if result['Value'] else ''
+          self.__credDict = result['Value']['credDict'] if result['Value'] else self.__credDict
           break
       self.log.error(result['Message'], not idp == 'Certificate' and 'Try to authenticate with certificate.' or '')
 
     # Set cookies
     __session = stateAuth.get(typeAuth) and '%s session.' % stateAuth[typeAuth] or ''
-    self.log.verbose(__session, 'Set cookie: "TypeAuth": %s' % typeAuth)
-    self.log.verbose(__session, 'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
+    self.log.debug(__session, 'Set cookie: "TypeAuth": %s' % typeAuth)
+    self.log.debug(__session, 'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
     self.set_cookie("TypeAuth", typeAuth)
     self.set_cookie("StateAuth", json.dumps(stateAuth).replace(' ', ''))
 
