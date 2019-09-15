@@ -220,7 +220,7 @@ class WebHandler(tornado.web.RequestHandler):
         pass
       return S_OK()
 
-    if not self.request.protocol == "https":
+    if self.request.protocol != "https":
       return
 
     # Look in idetity providers
@@ -262,7 +262,7 @@ class WebHandler(tornado.web.RequestHandler):
           stateAuth[typeAuth] = result['Value']['Session']
           self.__credDict = result['Value']['credDict']
           break
-      self.log.error(result['Message'], not idp == 'Certificate' and 'Try to authenticate with certificate.' or '')
+      self.log.error(result['Message'], idp != 'Certificate' and 'Try to authenticate with certificate.' or '')
 
     # Set cookies
     session = stateAuth.get(typeAuth) and '%s session.' % stateAuth[typeAuth] or ''
