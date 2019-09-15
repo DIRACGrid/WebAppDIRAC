@@ -3,7 +3,6 @@ import ssl
 import json
 import types
 import requests
-import datetime
 import functools
 import traceback
 import tornado.web
@@ -20,10 +19,9 @@ from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-er
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.Decorators import deprecated
-from DIRAC.Core.Utilities.JEncode import encode, decode
+from DIRAC.Core.Utilities.JEncode import encode
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 # pylint: disable=no-name-in-module
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getInfoAboutProviders
 from DIRAC.Resources.IdProvider.IdProviderFactory import IdProviderFactory
 
 from WebAppDIRAC.Lib import Conf
@@ -171,10 +169,10 @@ class WebHandler(tornado.web.RequestHandler):
     if self.request.headers.get('X-RefreshConfiguration') == 'True':
       self.log.verbose('Initialize force refresh..')
       if not AuthManager('').authQuery("", dict(self.__credDict), "CSAdministrator"):
-        raise tornado.web.HTTPError(401, 'Cannot initialize force refresh, request not authenticated')
+        raise WErr(401, 'Cannot initialize force refresh, request not authenticated')
       result = gConfig.forceRefresh()
       if not result['OK']:
-        raise tornado.web.HTTPError(501, result['Message'])
+        raise WErr(501, result['Message'])
 
   def __processCredentials(self):
     """
