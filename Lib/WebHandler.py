@@ -145,7 +145,6 @@ class WebHandler(tornado.web.RequestHandler):
     """
     Initialize the handler
     """
-    #self.stream = None  # Needed for set_secure_cookie tornado method
     super(WebHandler, self).__init__(*args, **kwargs)
     if not WebHandler.__log:
       WebHandler.__log = gLogger.getSubLogger(self.__class__.__name__)
