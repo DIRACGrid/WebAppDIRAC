@@ -172,8 +172,7 @@ class WebHandler(tornado.web.RequestHandler):
       self.log.verbose('Initialize force refresh..')
       if not AuthManager('').authQuery("", dict(self.__credDict), "CSAdministrator"):
         raise tornado.web.HTTPError(401, 'Cannot initialize force refresh, request not authenticated')
-      # FIXME: In production to be fromMaster=False
-      result = gConfig.forceRefresh(fromMaster=False)
+      result = gConfig.forceRefresh()
       if not result['OK']:
         raise tornado.web.HTTPError(501, result['Message'])
 
