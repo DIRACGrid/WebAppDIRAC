@@ -240,7 +240,7 @@ class WebHandler(tornado.web.RequestHandler):
     result = Conf.getCSSections("TypeAuths")
     if not result['OK']:
       self.log.error(result['Message'])
-    if typeAuth not in ['Certificate'] + result['Value'] or []:
+    if typeAuth not in ['Certificate'] + (result['Value'] or []):
       self.log.error(typeAuth, "is absent in configuration. Try to use certificate.")
       typeAuth = 'Certificate'
 
