@@ -108,11 +108,11 @@ class AuthenticationHandler(WebHandler):
       action = result['Value']['Action']
       session = stateAuth.get(typeAuth) or ''
       self.log.debug('"%s" action by %s authetication' % (action, typeAuth),
-                          session and 'with %s session' % session)
+                     session and 'with %s session' % session)
       self.log.debug(session and '%s session.' % session,
-                          'Set cookie: "TypeAuth": %s' % typeAuth)
+                     'Set cookie: "TypeAuth": %s' % typeAuth)
       self.log.debug(session and '%s session.' % session,
-                          'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
+                     'Set cookie: "StateAuth": %s' % json.dumps(stateAuth))
       self.set_cookie("TypeAuth", typeAuth)
       self.set_cookie("StateAuth", json.dumps(stateAuth).replace(' ', ''))
     self.finishJEncode(result)

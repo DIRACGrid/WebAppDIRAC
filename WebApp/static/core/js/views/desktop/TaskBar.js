@@ -183,7 +183,7 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
                           title = 'Authentication error.';
                           msg = result.Message.replace(/\n/g, "<br>");
                         } else {
-                          title = 'Authenticated successfully.'
+                          title = 'Authenticated successfully.';
                           msg = result.Value.Comment ? result.Value.Comment.replace(/\n/g, "<br>") : "";
                           if (result.Value.Status == 'failed') {
                             icon = Ext.Msg.ERROR;
