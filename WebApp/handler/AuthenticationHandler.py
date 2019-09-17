@@ -55,7 +55,7 @@ class AuthenticationHandler(WebHandler):
       stateAuth = json.loads(self.get_cookie("StateAuth"))
     except BaseException as e:
       stateAuth = {}
-    
+
     gLogger.notice(session, "session, waiting authorization status")
     result = S_ERROR('Timeout')
     for i in range(60):
@@ -69,7 +69,7 @@ class AuthenticationHandler(WebHandler):
       if result['Value']['Status'] not in ['prepared', 'in progress']:
         break
       time.sleep(5)
-    
+
     if not result['OK']:
       authCli.killState(session)
       self.log.error(session, 'session, %s' % result['Message'])
