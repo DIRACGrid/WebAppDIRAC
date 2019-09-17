@@ -175,15 +175,36 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
                       },
                       async: false,
                       success: function(response) {
+                        var msg, title;
+                        var icon = Ext.Msg.INFO;
                         var result = Ext.decode(response.responseText);
                         if (!result.OK) {
-                          // Hide load icon
-                          Ext.get("app-dirac-loading").hide();
-                          Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-                          return GLOBAL.APP.CF.alert("Authentication was ended with error: \n" + result.Message, 'error');
+                          icon = Ext.Msg.ERROR;
+                          title = 'Authentication error.';
+                          msg = result.Message.replace(/\n/g, "<br>");
                         } else {
-                          location.protocol = "https:";
+                          title = 'Authenticated successfully.';
+                          msg = result.Value.Comment ? result.Value.Comment.replace(/\n/g, "<br>") : "";
+                          if (result.Value.Status == 'failed') {
+                            icon = Ext.Msg.ERROR;
+                            title = 'Authentication error.';
+                          } else if (result.Value.Status == 'authed') {
+                            return location.protocol = "https:";
+                          } else if (result.Value.Status == 'visitor') {
+                            msg = 'You have permissions as Visitor.\n' + msg;
+                          } else if (result.Value.Status == 'authed and reported') {
+                            msg = 'Admins was notified about you.\n' + msg;
+                          }
                         }
+                        // Hide load icon
+                        Ext.get("app-dirac-loading").hide();
+                        Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+                        return Ext.Msg.show({
+                          closeAction: 'destroy',
+                          title: title,
+                          message: msg,
+                          icon: icon
+                        });
                       },
                       failure: function(form, action) {
                         // Hide load icon
@@ -245,11 +266,8 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
     };
 
     var oListAuth = getListAuth();
-    var currentAuth = Ext.Ajax.request({
-      url: GLOBAL.BASE_URL + 'Authentication/getCurrentAuth',
-      perams: {},
-      async: false
-    }).responseText;
+    var currentAuth = Ext.util.Cookies.get('TypeAuth');
+
     var button_usrname = {
       "text" : "Visitor",
       "menu" : []
