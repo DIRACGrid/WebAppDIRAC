@@ -423,7 +423,7 @@ class WebHandler(tornado.web.RequestHandler):
 
   def post(self, *args, **kwargs):
     return self.get(*args, **kwargs)
-  
+
   def delete(self, *args, **kwargs):
     return self.get(*args, **kwargs)
 

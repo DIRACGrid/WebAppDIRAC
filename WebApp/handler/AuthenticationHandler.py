@@ -1,4 +1,5 @@
 import json
+import time
 import pprint
 
 from tornado.web import HTTPError, RequestHandler
@@ -54,8 +55,23 @@ class AuthenticationHandler(WebHandler):
       stateAuth = json.loads(self.get_cookie("StateAuth"))
     except BaseException as e:
       stateAuth = {}
-    result = authCli.waitStateResponse(session, 300)
+    
+    gLogger.notice(session, "session, waiting authorization status")
+    result = S_ERROR('Timeout')
+    for i in range(60):
+      result = authCli.getSessionStatus(session)
+      if not result['OK']:
+        break
+      gLogger.verbose('%s session' % session, result['Value']['Status'])
+      if result['Value']['Status'] == 'prepared' and i > 3:
+        result = S_ERROR('Waiting authentication response to long.')
+        break
+      if result['Value']['Status'] not in ['prepared', 'in progress']:
+        break
+      time.sleep(5)
+    
     if not result['OK']:
+      authCli.killState(session)
       self.log.error(session, 'session, %s' % result['Message'])
     else:
       status = result['Value']['Status']
