@@ -239,7 +239,7 @@ class WebHandler(tornado.web.RequestHandler):
     # Look enabled authentication types in CS
     result = Conf.getCSSections("TypeAuths")
     if not result['OK']:
-      self.log.error(result['Message'])
+      self.log.warn('To enable idenyity provider need to use "TypeAuths" section, but %s' % result['Message'])
     if typeAuth not in ['Certificate'] + (result.get('Value') or []):
       self.log.error(typeAuth, "is absent in configuration. Try to use certificate.")
       typeAuth = 'Certificate'
