@@ -58,7 +58,7 @@ class AuthenticationHandler(WebHandler):
 
     gLogger.notice(session, "session, waiting authorization status")
     result = S_ERROR('Timeout')
-    for i in range(60):
+    for i in range(5):
       result = authCli.getSessionStatus(session)
       if not result['OK']:
         break
