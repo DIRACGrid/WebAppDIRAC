@@ -93,9 +93,10 @@
           GLOBAL.BACKGROUND = "{{backgroundImage}}";
 
           Ext.onReady(function () {
+          				Ext.Ajax.setTimeout(600000);
 						Ext.override(Ext.data.Connection, { timeout:600000 });
-						Ext.override(Ext.data.proxy.Ajax, { timeout:600000 });
             GLOBAL.APP = new Ext.dirac.core.App();
+            Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
             setTimeout(function(){
               Ext.get("app-dirac-loading").hide();
               Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
@@ -135,8 +136,9 @@
 
           Ext.onReady(function () {
               Ext.override(Ext.data.Connection, { timeout:600000 });
-				      Ext.override(Ext.data.proxy.Ajax, { timeout:600000 });
+				      Ext.Ajax.setTimeout(600000);
               GLOBAL.APP = new Ext.dirac.core.App();
+              Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
               setTimeout(function(){
                 Ext.get("app-dirac-loading").hide();
                 Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
