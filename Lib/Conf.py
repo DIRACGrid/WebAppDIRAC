@@ -155,7 +155,7 @@ def getAuthSectionForHandler(route):
 
 
 def getTheme():
-  return getCSValue("Theme", "desktop")
+  return getCSValue("Theme", "tabs")
 
 
 def getIcon():
