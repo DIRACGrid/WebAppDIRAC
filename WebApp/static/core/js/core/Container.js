@@ -20,6 +20,8 @@ Ext.define('Ext.dirac.core.Container', {
         var oGrid = Ext.create('Ext.grid.Panel', {
               store : oStore,
               columns : oColumns,
+              stateful : true,
+              stateId : "containerGrid",
               width : '100%',
               viewConfig : {
                 stripeRows : true,

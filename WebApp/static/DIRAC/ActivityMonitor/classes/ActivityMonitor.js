@@ -1,7 +1,7 @@
 Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
       extend : 'Ext.dirac.core.Module',
       requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet",
-          "Ext.dirac.utils.DiracMultiSelect", "Ext.toolbar.Toolbar", "Ext.data.Record", 'Ext.Array', 'Ext.data.TreeStore', "Ext.ux.form.MultiSelect","DIRAC.ActivityMonitor.classes.ActivityTreeModel"],
+          "Ext.dirac.utils.DiracMultiSelect", "Ext.toolbar.Toolbar", "Ext.data.Record", 'Ext.Array', 'Ext.data.TreeStore', "Ext.ux.form.MultiSelect", "DIRAC.ActivityMonitor.classes.ActivityTreeModel"],
 
       expansionState : {},
       initComponent : function() {
@@ -11,7 +11,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
         if (GLOBAL.VIEW_ID == "desktop") {
 
-          me.launcher.maximized = true;  
+          me.launcher.maximized = true;
 
         }
 
@@ -211,6 +211,8 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
         me.activityMonitorPanel = Ext.create('Ext.grid.Panel', {
               store : me.activityMonitorDataStore,
+              stateful : true,
+              stateId : "ActivityMonitirPanel",
               id : sGridId,
               header : false,
               viewConfig : {
@@ -359,6 +361,8 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
               region : "south",
               height : 300,
               store : null,
+              stateful : true,
+              stateId : "ActivityList",
               header : false,
               viewConfig : {
                 stripeRows : true,
@@ -821,6 +825,8 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
               width : 250,
               store : null,
               header : false,
+              stateful : true,
+              stateId : "ActivityViewList",
               viewConfig : {
                 stripeRows : true,
                 enableTextSelection : true

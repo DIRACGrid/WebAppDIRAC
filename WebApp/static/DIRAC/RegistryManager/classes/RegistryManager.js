@@ -656,6 +656,8 @@ Ext.define('DIRAC.RegistryManager.classes.RegistryManager',
 				me.grid = Ext.create('Ext.grid.Panel', {
 					store : me.dataStore,
 					height : '600',
+					sateful : true,
+					stateId : "RegistryManagerGrid",
 					header : false,
 					viewConfig : {
 						stripeRows : true,

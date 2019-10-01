@@ -150,6 +150,8 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
         me.ceGrid = Ext.create("Ext.grid.Panel", {
               title : 'Computing elements',
               layout : 'fit',
+              stateful : true,
+              stateId : "SiteSummaryCeGrid",
               store : ceStore,
               columns : [{
                     text : 'Status',
