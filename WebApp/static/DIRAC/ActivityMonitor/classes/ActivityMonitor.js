@@ -212,7 +212,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
         me.activityMonitorPanel = Ext.create('Ext.grid.Panel', {
               store : me.activityMonitorDataStore,
               stateful : true,
-              stateId : "ActivityMonitirPanel",
+              stateId : "ActivityMonitorPanel",
               id : sGridId,
               header : false,
               viewConfig : {

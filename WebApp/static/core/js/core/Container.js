@@ -21,7 +21,7 @@ Ext.define('Ext.dirac.core.Container', {
               store : oStore,
               columns : oColumns,
               stateful : true,
-              stateId : "containerGrid",
+              stateId : "ContainerGrid",
               width : '100%',
               viewConfig : {
                 stripeRows : true,
