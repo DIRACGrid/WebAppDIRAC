@@ -100,7 +100,6 @@ class RootHandler(WebHandler):
           welcome = f.read().replace('\n', '')
       except BaseException:
         gLogger.warn('Welcome page not found here: %s' % welcomeFile)
-    
 
     level = str(gLogger.getLevel()).lower()
     self.render("root.tpl", iconUrl=icon, base_url=data['baseURL'], _dev=Conf.devMode(),
