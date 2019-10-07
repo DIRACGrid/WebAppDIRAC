@@ -83,7 +83,7 @@ class RootHandler(WebHandler):
 
     theme_name = "crisp"  # "gray"
     if "theme" in self.request.arguments and len(self.request.arguments["theme"][0]) > 0:
-      theme_name = self.request.arguments["theme"][0].lower()
+      theme_name = xss_filter(self.request.arguments["theme"][0].lower())
 
     open_app = ""
     if "open_app" in self.request.arguments and len(self.request.arguments["open_app"][0]) > 0:
@@ -100,7 +100,8 @@ class RootHandler(WebHandler):
           welcome = f.read().replace('\n', '')
       except BaseException:
         gLogger.warn('Welcome page not found here: %s' % welcomeFile)
-
+    
+    print(theme_name)
     level = str(gLogger.getLevel()).lower()
     self.render("root.tpl", iconUrl=icon, base_url=data['baseURL'], _dev=Conf.devMode(),
                 ext_version=data['extVersion'], url_state=url_state,
