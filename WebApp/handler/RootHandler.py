@@ -88,7 +88,7 @@ class RootHandler(WebHandler):
       view_name = xss_filter(self.request.arguments["view"][0])
 
     if "theme" in self.request.arguments and len(self.request.arguments["theme"][0]) > 0:
-      theme_name = self.request.arguments["theme"][0].lower()
+      theme_name = xss_filter(self.request.arguments["theme"][0].lower())
 
     open_app = ""
     if "open_app" in self.request.arguments and len(self.request.arguments["open_app"][0]) > 0:

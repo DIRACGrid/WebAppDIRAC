@@ -246,6 +246,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               title : "Overall System Information",
               store : me.systemInfoDataStore,
               animCollapse : true,
+              stateful : true,
+              stateId : "SysAdminMainGrid",
               height : 300,
               minHeight : 100,
               header : false,
@@ -256,7 +258,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               dockedItems : [oGridButtonsToolbar],
               columns : [{
                     header : me.checkboxFunctionDefinition,
-                    width : 26,
+                    width : 36,
                     sortable : false,
                     dataIndex : 'Host',
                     renderer : function(value, metaData, record, row, col, store, gridView) {
@@ -270,12 +272,14 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     align : 'left',
                     dataIndex : 'Host',
                     header : 'Hostname',
-                    sortable : true
+                    sortable : true,
+                    width : 200
                   }, {
                     align : 'left',
                     dataIndex : 'Status',
                     header : 'Status',
-                    sortable : true
+                    sortable : true,
+                    width : 40
                   }, {
                     align : 'left',
                     dataIndex : 'DIRAC',
@@ -617,6 +621,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               moduleObject : me,
               height : 200,
               minHeight : 120,
+              stateful : true,
+              steteId : "SysAdminHostGrid",
               id : sId,
               viewConfig : {
                 stripeRows : true,
@@ -626,7 +632,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               dockedItems : [oGridButtonsToolbar],
               columns : [{
                     header : sHtml,
-                    width : 26,
+                    width : 36,
                     sortable : false,
                     dataIndex : 'System',
                     renderer : function(value, metaData, record, row, col, store, gridView) {
@@ -640,17 +646,20 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     align : 'left',
                     dataIndex : 'System',
                     header : 'System',
-                    sortable : true
+                    sortable : true,
+                    width : 150
                   }, {
                     align : 'left',
                     dataIndex : 'Name',
                     header : 'Name',
-                    sortable : true
+                    sortable : true,
+                    width : 150
                   }, {
                     align : 'left',
                     dataIndex : 'Module',
                     header : 'Module',
-                    sortable : true
+                    sortable : true,
+                    width : 150
                   }, {
                     align : 'left',
                     dataIndex : 'Type',

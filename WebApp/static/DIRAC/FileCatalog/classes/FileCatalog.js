@@ -624,6 +624,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
         me.filesGrid = Ext.create('Ext.grid.Panel', {
               region : 'center',
               header : false,
+              stateful : true,
+              stateId : "FileCatalogGrid",
               store : me.filesDataStore,
               flex : 1,
               viewConfig : {
@@ -693,6 +695,8 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
               title : 'Directory Metadata',
               region : 'center',
               hideHeaders : true,
+              stateful : true,
+              stateId : "FileCatalogMetadata",
               store : me.metadataCatalogStore,
               bodyBorder : false,
               viewConfig : {

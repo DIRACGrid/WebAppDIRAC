@@ -128,6 +128,8 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         me.historyGrid = Ext.create("Ext.grid.Panel", {
               layout : 'fit',
               store : historyStore,
+              stateful : true,
+              stateId : "ResourceStatusHistory",
               columns : [{
                     text : 'Status',
                     flex : 1,
