@@ -101,7 +101,7 @@ class RootHandler(WebHandler):
       except BaseException:
         gLogger.warn('Welcome page not found here: %s' % welcomeFile)
     
-    print(theme_name)
+
     level = str(gLogger.getLevel()).lower()
     self.render("root.tpl", iconUrl=icon, base_url=data['baseURL'], _dev=Conf.devMode(),
                 ext_version=data['extVersion'], url_state=url_state,
