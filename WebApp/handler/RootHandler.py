@@ -10,9 +10,10 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 def xss_filter(text):
   cleanr = re.compile('<.*?>')
-  cleantext = re.sub(cleanr, '', text)
-  return cleantext
-
+  if re.findall(cleanr, text):
+    raise WErr(404, "XSS attack! Cross-site scripting is discovered! \
+    Make sure the URL what you are using from a trusted source")
+  return text
 
 class RootHandler(WebHandler):
 
