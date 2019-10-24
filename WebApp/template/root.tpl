@@ -13,7 +13,9 @@
     <script type="text/javascript" src="{{base_url}}/static/oidc/oidc-client/dist/oidc-client.js"></script>
 	  
 	  {% if bugReportURL!='' %}
-	  	<script type="text/javascript" src="{{bugReportURL}}"></script>
+	  {% for item in bugReportURL.split(',') %}
+         <script type="text/javascript" src="{{escape(item)}}"></script>
+       {% end %}
 	  {% end %}
 
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/extjs/classic/theme-{{theme}}/resources/theme-{{theme}}-all.css" />
