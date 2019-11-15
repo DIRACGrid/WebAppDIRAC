@@ -152,7 +152,8 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
           "Site" : {
             "dataIndex" : "Site",
             "properties" : {
-              fixed : true
+              fixed : false,
+              width : 120
             }
           },
           "CE" : {
@@ -262,6 +263,8 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
               region: 'center',
               contextMenu : me.contextGridMenu,
               pagingToolbar : pagingToolbar,
+              stateful : true,
+              stateId : "PilotSummary-Grid",
               scope : me,
               plugins : [{
                     ptype : 'diracrowexpander',
@@ -296,7 +299,9 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                       autoLoad : true,
                       dontLoadOnCreation : true
                     });
-
+				expandStore.on('load', function() {
+                      me.grid.expandedGridPanel.setLoading(false);
+                    });
                 me.grid.expandedGridPanel = Ext.create('Ext.grid.Panel', {
                        forceFit : true,
                       renderTo : targetId,
@@ -400,6 +405,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
                     });
 
                 rowNode.grid = me.grid.expandedGridPanel;
+                me.grid.expandedGridPanel.setLoading("Loading data ...");
                 me.grid.expandedGridPanel.getStore().load();
                 me.grid.expandedGridPanel.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
                 me.grid.expandedGridPanel.fireEvent("bind", me.grid.expandedGridPanel, {
