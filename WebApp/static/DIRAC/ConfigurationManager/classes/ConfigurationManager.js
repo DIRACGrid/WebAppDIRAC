@@ -321,14 +321,13 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
               case "showCommitDiff" :
                 var cb = function(window) {
                   if (confirm("Do you want to apply the configuration changes you've done till now?")) {
-                    me.treePanel.body.mask("Wait ...");
+                    me.treePanel.body.mask("Committing the configuration changes...");
 
                     me.__sendSocketMessage({
                           op : "commitConfiguration"
                         });
 
                     window.hide();
-                    me.treePanel.body.unmask();
                     me.btnCommitConfiguration.hide();
                   }
                 };
@@ -437,7 +436,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
 
                   }
                 },
-                collapse : function(oNode, eOpts) {
+                nodebeforecollapse : function(oNode, eOpts) {
 
                   // remove the path from the
                   var oNodePath = me.__getNodePath(oNode);
