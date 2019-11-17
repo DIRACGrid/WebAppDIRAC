@@ -118,37 +118,6 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
           groupexpand : function(view, node, group, eOpts) {
             var selectedRow = view.getSelectionModel().getSelection();
             view.deselect(selectedRow);
-          },
-          render : function(view) {
-            var grid = this;
-
-            // record the current cellIndex
-            grid.mon(view, {
-                  uievent : function(type, view, cell, recordIndex, cellIndex, e) {
-                    grid.cellIndex = cellIndex;
-                    grid.recordIndex = recordIndex;
-                  }
-                });
-
-            grid.tip = Ext.create('Ext.tip.ToolTip', {
-                  target : view.el,
-                  delegate : '.x-grid-cell',
-                  trackMouse : true,
-                  renderTo : Ext.getBody(),
-                  listeners : {
-                    beforeshow : function updateTipBody(tip) {
-                      if (!Ext.isEmpty(grid.cellIndex) && grid.cellIndex !== -1) {
-                        header = grid.headerCt.getGridColumns()[grid.cellIndex];
-                        tip.update(grid.getStore().getAt(grid.recordIndex).get(header.dataIndex));
-                      }
-                    }
-                  }
-                });
-
-          },
-
-          destroy : function(view) {
-            delete view.tip; // Clean up this property on destroy.
           }
         }
       },
@@ -293,10 +262,10 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
 
       },
 	  // eslint-disable-next-line no-use-before-define      
-      initComponent : function(arguments) {
+      initComponent : function() {
         var me = this;
         GLOBAL.APP.CF.log("debug", "init function", me.columns);
-        me.callParent(arguments);
+        me.callParent();
       },
       constructor : function(config) {
         var me = this;
@@ -368,6 +337,15 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
               Ext.apply(oColumn, {
                     "renderer" : func
                   });
+            } else {
+              var tooltipRenderer = function(value, metaData) {
+                metaData.tdAttr = Ext.String.format('data-qtip="{0}"', value);
+                return value;
+              };
+              Ext.apply(oColumn, {
+                    "renderer" : tooltipRenderer
+                  });
+
             }
             if ("renderer" in config.oColumns[i]) {
               Ext.apply(oColumn, {
@@ -401,7 +379,7 @@ Ext.define('Ext.dirac.utils.DiracGridPanel', {
                 }
               });
         }
-
+		
         me.callParent(arguments);
 
         if (config.pagingToolbar) {

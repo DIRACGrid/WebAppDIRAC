@@ -7,45 +7,15 @@ from DIRAC.Core.Utilities.Plotting.FileCoding import codeRequestInFileId
 from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSiteComputingElements
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import asyncGen
+from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import ResourceSummaryHandler
+
+ELEMENT_TYPE = 'Site'
 
 
-class SiteSummaryHandler(WebHandler):
+class SiteSummaryHandler(ResourceSummaryHandler):
 
   AUTH_PROPS = "all"
-
-  @asyncGen
-  def web_getSelectionData(self):
-
-    callback = {
-        'name': set(),
-        'elementType': set(),
-        'status': set(),
-        'statusType': set(),
-        'tokenOwner': set()
-    }
-
-    pub = PublisherClient()
-
-    gLogger.info(self.request.arguments)
-
-    elementStatuses = pub.getElementStatuses('Site', None, None, None, None, None)
-
-    if elementStatuses['OK']:
-
-      for elementStatus in elementStatuses['Value']:
-
-        callback['status'].add(elementStatus[2])
-        callback['name'].add(elementStatus[0])
-        callback['elementType'].add(elementStatus[6])
-        callback['statusType'].add(elementStatus[1])
-        callback['tokenOwner'].add(elementStatus[8])
-
-    for key, value in callback.items():
-
-      callback[key] = sorted([[item] for item in list(value)])
-
-    return self.finish(callback)
 
   @asyncGen
   def web_getSiteSummaryData(self):
@@ -76,73 +46,6 @@ class SiteSummaryHandler(WebHandler):
     result = {'success': 'true', 'result': elementList, 'total': len(elementList)}
 
     self.finish(result)
-
-  @asyncGen
-  def web_action(self):
-
-    requestParams = self.__requestParams()
-    if 'action' in requestParams and requestParams['action']:
-
-      # pylint does not understand the action entry is not None any more
-      actionName = requestParams['action'][0]  # pylint: disable=unsubscriptable-object
-
-      methodName = actionName
-      if not actionName.startswith('set'):
-        methodName = '_get%s' % actionName
-
-      try:
-        result = yield self.threadTask(getattr(self, methodName), requestParams)
-      except AttributeError:
-        result = {'success': 'false', 'error': 'bad action %s' % actionName}
-
-    else:
-
-      result = {'success': 'false', 'error': 'Missing action'}
-
-    self.finish(result)
-
-  def _getHistory(self, requestParams):
-
-    # Sanitize
-    if 'name' not in requestParams or not requestParams['name']:
-      return {'success': 'false', 'error': 'Missing name'}
-    if 'elementType' not in requestParams or not requestParams['elementType']:
-      return {'success': 'false', 'error': 'Missing elementType'}
-    if 'statusType' not in requestParams or not requestParams['statusType']:
-      return {'success': 'false', 'error': 'Missing statusType'}
-
-    pub = PublisherClient()
-    res = pub.getElementHistory('Site', requestParams['name'],
-                                requestParams['elementType'],
-                                requestParams['statusType'])
-
-    if not res['OK']:
-      gLogger.error(res['Message'])
-      return {'success': 'false', 'error': 'error getting history'}
-
-    history = [[r[0], str(r[1]), r[2]] for r in res['Value']]
-
-    return {'success': 'true', 'result': history, 'total': len(history)}
-
-  def _getPolicies(self, requestParams):
-
-    # Sanitize
-    if 'name' not in requestParams or not requestParams['name']:
-      return {'success': 'false', 'error': 'Missing name'}
-    if 'statusType' not in requestParams or not requestParams['statusType']:
-      self.finish({'success': 'false', 'error': 'Missing statusType'})
-
-    pub = PublisherClient()
-    res = pub.getElementPolicies('Site', requestParams['name'],
-                                 requestParams['statusType'])
-
-    if not res['OK']:
-      gLogger.error(res['Message'])
-      return {'success': 'false', 'error': 'error getting policies'}
-
-    policies = [[r[0], r[1], str(r[2]), str(r[3]), r[4]] for r in res['Value']]
-
-    return {'success': 'true', 'result': policies, 'total': len(policies)}
 
   def _getInfo(self, requestParams):
 
