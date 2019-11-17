@@ -44,6 +44,10 @@ class AccountingHandler(WebHandler):
         for level in sorted(siteLevel):
           orderedSites.extend(sorted(siteLevel[level]))
         retVal['Value']['Site'] = orderedSites
+      if 'JobGroup' in retVal['Value']:
+        productions = retVal['Value']['JobGroup']
+        productions.sort(reverse=True)
+        retVal['Value']['JobGroup'] = productions
       data = retVal
       AccountingHandler.__keysCache.add(cacheKey, 300, data)
     return data

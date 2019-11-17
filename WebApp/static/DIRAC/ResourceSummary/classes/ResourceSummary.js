@@ -270,6 +270,8 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
               width : 600,
               height : 300,
               oColumns : oColumns,
+              stateful : true,
+              stateId : 'ResourceSummaryGrid',
               contextMenu : me.contextGridMenu,
               pagingToolbar : pagingToolbar,
               scope : me,
@@ -313,6 +315,8 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                       renderTo : targetId,
                       isExpanded : false,
                       id : targetId + "_grid",
+                      stateful : true,
+                      stateId : 'ResourseStatusExpandGrid',
                       store : expandStore,
                       viewConfig : {
                         stripeRows : true,
@@ -324,17 +328,17 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                             dataIndex : 'Name',
                             align : 'left',
                             hideable : false,
-                            fixed : true
+                            width : 120
                           }, {
                             header : 'ResourceType',
                             sortable : true,
                             dataIndex : 'ElementType',
                             align : 'left',
                             hideable : false,
-                            fixed : true
+                            width : 120
                           }, {
                             header : 'StatusType',
-                            width : 60,
+                            width : 120,
                             sortable : true,
                             dataIndex : 'StatusType',
                             align : 'left'
@@ -342,7 +346,8 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                             header : 'Status',
                             sortable : false,
                             dataIndex : 'Status',
-                            align : 'left'
+                            align : 'left',
+                            width : 60
                           }, {
                             header : 'Reason',
                             sortable : true,
