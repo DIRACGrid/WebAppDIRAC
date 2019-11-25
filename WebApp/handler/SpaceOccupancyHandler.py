@@ -15,7 +15,7 @@ import json
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
 from DIRAC import gLogger
-from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 
 class SpaceOccupancyHandler(WebHandler):
