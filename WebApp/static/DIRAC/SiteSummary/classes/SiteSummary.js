@@ -138,7 +138,7 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
           "None" : {
             "dataIndex" : "StatusIcon",
             "properties" : {
-              width : 26,
+              width : 36,
               sortable : false,
               hideable : false,
               fixed : true,

@@ -10,12 +10,10 @@ from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 from WebAppDIRAC.Lib.WebHandler import asyncGen
 from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import ResourceSummaryHandler
 
-ELEMENT_TYPE = 'Site'
-
-
 class SiteSummaryHandler(ResourceSummaryHandler):
 
   AUTH_PROPS = "all"
+  ELEMENT_TYPE = 'Site'
 
   @asyncGen
   def web_getSiteSummaryData(self):
@@ -109,9 +107,9 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     elementStatus["GGUS"] += 'show_columns_check[]=LAST_UPDATE&show_columns_check[]=TYPE_OF_PROBLEM&'
     elementStatus["GGUS"] += 'show_columns_check[]=SUBJECT&ticket=&supportunit=all&su_hierarchy=all&'
     elementStatus["GGUS"] += 'vo=all&user=&keyword=&involvedsupporter=&assignto=&'
-    elementStatus["GGUS"] += 'affectedsite=%s&specattrib=0&status=open&priority=all&'
+    elementStatus["GGUS"] += 'affectedsite=%s&specattrib=0&status=open&priority=all&' % gocdb_name
     elementStatus["GGUS"] += 'typeofproblem=all&ticketcategory=&mouarea=&technology_provider=&'
-    elementStatus["GGUS"] += 'date_type=creation+date&radiotf=1&timeframe=any&from_date=&to_date=&' % gocdb_name
+    elementStatus["GGUS"] += 'date_type=creation+date&radiotf=1&timeframe=any&from_date=&to_date=&'
     elementStatus["GGUS"] += 'untouched_date=&orderticketsby=GHD_INT_REQUEST_ID&'
     elementStatus["GGUS"] += 'orderhow=descending" target="_blank"> %s tickets</a>' % gocdb_name
 
