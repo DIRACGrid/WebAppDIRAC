@@ -504,8 +504,6 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
 
                 if (jsonData["success"] == "true") {
 
-                  //me.plotPanel.removeAll(); // remove the plots
-
                   var width = 99 / 2;
                   width = '.' + Math.round(width);
                   for (var i = 0; i < jsonData.result.length; i++) {
