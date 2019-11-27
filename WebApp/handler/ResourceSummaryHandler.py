@@ -260,7 +260,7 @@ class ResourceSummaryHandler(WebHandler):
       self.finish({'success': 'false', 'error': 'error getting history'})
 
     history = [[r[0], str(r[1]), r[2]] for r in res['Value']]
-    
+
     self.finish({'success': 'true', 'result': history, 'total': len(history)})
 
   def _getPolicies(self, requestParams):

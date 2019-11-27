@@ -306,7 +306,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                               load : function(evt, ele, opts) {
                                 me.setLoading(false);
                               }
-                            })
+                            });
                       }
                     }
                   }, {
@@ -321,7 +321,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                               load : function(evt, ele, opts) {
                                 me.setLoading(false);
                               }
-                            })
+                            });
                       }
                     }
                   }, {
@@ -336,7 +336,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                               load : function(evt, ele, opts) {
                                 me.setLoading(false);
                               }
-                            })
+                            });
                       }
                     }
                   }, {
@@ -351,7 +351,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                               load : function(evt, ele, opts) {
                                 me.setLoading(false);
                               }
-                            })
+                            });
                       }
                     }
                   }, {
@@ -366,7 +366,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                               load : function(evt, ele, opts) {
                                 me.setLoading(false);
                               }
-                            })
+                            });
                       }
                     }
                   }, {
@@ -381,7 +381,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                               load : function(evt, ele, opts) {
                                 me.setLoading(false);
                               }
-                            })
+                            });
                       }
                     }
                   }],

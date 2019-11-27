@@ -239,12 +239,12 @@ class SiteSummaryHandler(ResourceSummaryHandler):
                                  'FailedTransfers', 'DataOperation')
     image6 = codeRequestInFileId(plotDict6)['Value']['plot']
 
-    self.finish({'success': 'true', 'result': [{'Type':'Accounting', 'src':image1}, 
-                                               {'Type':'Accounting', 'src':image2}, 
-                                               {'Type':'Accounting', 'src':image3},
-                                               {'Type':'Monitoring', 'src':image4},
-                                               {'Type':'Accounting', 'src':image5},
-                                               {'Type':'Accounting', 'src':image6}], 
+    self.finish({'success': 'true', 'result': [{'Type': 'Accounting', 'src': image1}, 
+                                               {'Type': 'Accounting', 'src': image2}, 
+                                               {'Type': 'Accounting', 'src': image3},
+                                               {'Type': 'Monitoring', 'src': image4},
+                                               {'Type': 'Accounting', 'src': image5},
+                                               {'Type': 'Accounting', 'src': image6}], 
                                                'total': 6})
 
   def getPlotDict(self, siteName, grouping, reportName, typeName,
