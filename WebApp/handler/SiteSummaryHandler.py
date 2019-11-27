@@ -244,8 +244,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
                                                {'Type': 'Accounting', 'src': image3},
                                                {'Type': 'Monitoring', 'src': image4},
                                                {'Type': 'Accounting', 'src': image5},
-                                               {'Type': 'Accounting', 'src': image6}],
-                                               'total': 6})
+                                               {'Type': 'Accounting', 'src': image6}], 'total': 6})
 
   def getPlotDict(self, siteName, grouping, reportName, typeName,
                   plotTitle=None,
