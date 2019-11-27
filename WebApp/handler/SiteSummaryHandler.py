@@ -215,7 +215,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     image2 = codeRequestInFileId(plotDict2)['Value']['plot']
 
     plotDict3 = self.getPlotDict(elementStatus['Name'], 'JobType',
-                                 'RunningJobs', 'Job', plotTitle='Jobs by job type')
+                                 'Job execution rate', 'Job', plotTitle='Jobs execution rate by job type')
     image3 = codeRequestInFileId(plotDict3)['Value']['plot']
 
     plotDict4 = self.getPlotDict(elementStatus['Name'], 'JobSplitType',
@@ -230,7 +230,13 @@ class SiteSummaryHandler(ResourceSummaryHandler):
                                  'FailedTransfers', 'DataOperation')
     image6 = codeRequestInFileId(plotDict6)['Value']['plot']
 
-    return {'success': 'true', 'result': [image1, image2, image3, image4, image5, image6], 'total': 6}
+    return {'success': 'true', 'result': [{'Type':'Accounting', 'src':image1}, 
+                                          {'Type':'Accounting', 'src':image2}, 
+                                          {'Type':'Accounting', 'src':image3},
+                                          {'Type':'Monitoring', 'src':image4},
+                                          {'Type':'Accounting', 'src':image5},
+                                          {'Type':'Accounting', 'src':image6}], 
+                                          'total': 6}
 
   def getPlotDict(self, siteName, grouping, reportName, typeName,
                   plotTitle=None,
@@ -241,7 +247,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
         'grouping': [grouping]
     },
         'extraArgs': {
-        'lastSeconds': 43200
+        'lastSeconds': 86400
     },
         'grouping': grouping,
         'reportName': reportName,
@@ -251,7 +257,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     if plotTitle is not None:
       plotDict['extraArgs']['plotTitle'] = plotTitle
     if status is not None:
-      plotDict['condDict']['Status'] = status
+      plotDict['condDict']['Status'] = [status]
 
     return plotDict
 
