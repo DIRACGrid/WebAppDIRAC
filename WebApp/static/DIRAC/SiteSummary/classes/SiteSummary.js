@@ -309,7 +309,9 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
 
     me.overviewPanel = Ext.create("DIRAC.SiteSummary.classes.OverviewPanel", {
           applicationName : me.applicationName,
-          parentWidget : me
+          parentWidget : me,
+          width : 900,
+          height : 300
         });
 
     me.add([me.leftPanel, me.grid, me.overviewPanel]);

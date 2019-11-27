@@ -139,7 +139,12 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     pub = PublisherClient()
 
     elementName = requestParams['name'][0]
-    storageElements = getSEsForSite(elementName)
+    retVal = getSEsForSite(elementName)
+    if retVal['OK']:
+      storageElements = retVal['Value']
+    else:
+      self.finish({'success': 'false', 'error': retVal['Message']})
+
     storageElementsStatus = []
     gLogger.info('storageElements = ' + str(storageElements))
 
