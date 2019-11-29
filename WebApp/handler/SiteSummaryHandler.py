@@ -10,12 +10,10 @@ from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 from WebAppDIRAC.Lib.WebHandler import asyncGen
 from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import ResourceSummaryHandler
 
-ELEMENT_TYPE = 'Site'
-
-
 class SiteSummaryHandler(ResourceSummaryHandler):
 
   AUTH_PROPS = "all"
+  ELEMENT_TYPE = 'Site'
 
   @asyncGen
   def web_getSiteSummaryData(self):
@@ -59,12 +57,13 @@ class SiteSummaryHandler(ResourceSummaryHandler):
 
     pub = PublisherClient()
 
-    elementStatuses = pub.getElementStatuses('Site',
-                                             str(elementName),
-                                             None,
-                                             'all',
-                                             None,
-                                             None)
+    elementStatuses = yield self.threadTask(pub.getElementStatuses,
+                                            'Site',
+                                            str(elementName),
+                                            None,
+                                            'all',
+                                            None,
+                                            None)
 
     if not elementStatuses['OK']:
       gLogger.error(elementStatuses['Message'])
@@ -109,9 +108,9 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     elementStatus["GGUS"] += 'show_columns_check[]=LAST_UPDATE&show_columns_check[]=TYPE_OF_PROBLEM&'
     elementStatus["GGUS"] += 'show_columns_check[]=SUBJECT&ticket=&supportunit=all&su_hierarchy=all&'
     elementStatus["GGUS"] += 'vo=all&user=&keyword=&involvedsupporter=&assignto=&'
-    elementStatus["GGUS"] += 'affectedsite=%s&specattrib=0&status=open&priority=all&'
+    elementStatus["GGUS"] += 'affectedsite=%s&specattrib=0&status=open&priority=all&' % gocdb_name
     elementStatus["GGUS"] += 'typeofproblem=all&ticketcategory=&mouarea=&technology_provider=&'
-    elementStatus["GGUS"] += 'date_type=creation+date&radiotf=1&timeframe=any&from_date=&to_date=&' % gocdb_name
+    elementStatus["GGUS"] += 'date_type=creation+date&radiotf=1&timeframe=any&from_date=&to_date=&'
     elementStatus["GGUS"] += 'untouched_date=&orderticketsby=GHD_INT_REQUEST_ID&'
     elementStatus["GGUS"] += 'orderhow=descending" target="_blank"> %s tickets</a>' % gocdb_name
 
@@ -129,40 +128,46 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     elementStatus['Elog'] = '<a href="https://lblogbook.cern.ch/Operations/?Site=^' + \
         elog + '%24&mode=summary" target="_blank">' + elog + '</a>'
 
-    return {'success': 'true', 'result': elementStatus, 'total': len(elementStatus)}
+    self.finish({'success': 'true', 'result': elementStatus, 'total': len(elementStatus)})
 
   def _getStorages(self, requestParams):
 
     if not requestParams['name']:
       gLogger.warn('No name given')
-      return {'success': 'false', 'error': 'We need a Site Name to generate an Overview'}
+      self.finish({'success': 'false', 'error': 'We need a Site Name to generate an Overview'})
 
     pub = PublisherClient()
 
     elementName = requestParams['name'][0]
-    storageElements = getSEsForSite(elementName)
+    retVal = getSEsForSite(elementName)
+    if retVal['OK']:
+      storageElements = retVal['Value']
+    else:
+      self.finish({'success': 'false', 'error': retVal['Message']})
+
     storageElementsStatus = []
     gLogger.info('storageElements = ' + str(storageElements))
 
     # FIXME: use properly RSS
     for se in storageElements:
-      sestatuses = pub.getElementStatuses('Resource',
-                                          se,
-                                          None,
-                                          None,
-                                          None,
-                                          None)
+      sestatuses = yield self.threadTask(pub.getElementStatuses,
+                                         'Resource',
+                                         se,
+                                         None,
+                                         None,
+                                         None,
+                                         None)
 
       for sestatus in sestatuses['Value']:
         storageElementsStatus.append([sestatus[0], sestatus[2], sestatus[6]])
 
-    return {'success': 'true', 'result': storageElementsStatus, 'total': len(storageElementsStatus)}
+    self.finish({'success': 'true', 'result': storageElementsStatus, 'total': len(storageElementsStatus)})
 
   def _getComputingElements(self, requestParams):
 
     if not requestParams['name']:
       gLogger.warn('No name given')
-      return {'success': 'false', 'error': 'We need a Site Name to generate an Overview'}
+      self.finish({'success': 'false', 'error': 'We need a Site Name to generate an Overview'})
 
     pub = PublisherClient()
 
@@ -173,38 +178,40 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     gLogger.info('computing_elements = ' + str(computing_elements))
 
     for ce in computing_elements:
-      cestatuses = pub.getElementStatuses('Resource',
-                                          ce,
-                                          None,
-                                          'all',
-                                          None,
-                                          None)
+      cestatuses = yield self.threadTask(pub.getElementStatuses,
+                                         'Resource',
+                                         ce,
+                                         None,
+                                         'all',
+                                         None,
+                                         None)
       gLogger.info('cestatus = ' + str(cestatuses))
 
       for cestatus in cestatuses['Value']:
         computing_elements_status.append([cestatus[0], cestatus[2], cestatus[6]])
 
-    return {'success': 'true', 'result': computing_elements_status, 'total': len(computing_elements_status)}
+    self.finish({'success': 'true', 'result': computing_elements_status, 'total': len(computing_elements_status)})
 
   def _getImages(self, requestParams):
 
     if not requestParams['name']:
       gLogger.warn('No name given')
-      return {'success': 'false', 'error': 'We need a Site Name to generate an Overview'}
+      self.finish({'success': 'false', 'error': 'We need a Site Name to generate an Overview'})
 
     elementName = requestParams['name'][0]
     pub = PublisherClient()
 
-    elementStatuses = pub.getElementStatuses('Site',
-                                             str(elementName),
-                                             None,
-                                             'all',
-                                             None,
-                                             None)
+    elementStatuses = yield self.threadTask(pub.getElementStatuses,
+                                            'Site',
+                                            str(elementName),
+                                            None,
+                                            'all',
+                                            None,
+                                            None)
 
     if not elementStatuses['Value']:
       gLogger.error('element "%s" not found' % elementName)
-      return {'success': 'false', 'error': 'element "%s" not found' % elementName}
+      self.finish({'success': 'false', 'error': 'element "%s" not found' % elementName})
 
     elementStatus = [dict(zip(elementStatuses['Columns'], element)) for element in elementStatuses['Value']][0]
 
@@ -217,7 +224,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     image2 = codeRequestInFileId(plotDict2)['Value']['plot']
 
     plotDict3 = self.getPlotDict(elementStatus['Name'], 'JobType',
-                                 'RunningJobs', 'Job', plotTitle='Jobs by job type')
+                                 'Job execution rate', 'Job', plotTitle='Jobs execution rate by job type')
     image3 = codeRequestInFileId(plotDict3)['Value']['plot']
 
     plotDict4 = self.getPlotDict(elementStatus['Name'], 'JobSplitType',
@@ -232,7 +239,12 @@ class SiteSummaryHandler(ResourceSummaryHandler):
                                  'FailedTransfers', 'DataOperation')
     image6 = codeRequestInFileId(plotDict6)['Value']['plot']
 
-    return {'success': 'true', 'result': [image1, image2, image3, image4, image5, image6], 'total': 6}
+    self.finish({'success': 'true', 'result': [{'Type': 'Accounting', 'src': image1},
+                                               {'Type': 'Accounting', 'src': image2},
+                                               {'Type': 'Accounting', 'src': image3},
+                                               {'Type': 'Monitoring', 'src': image4},
+                                               {'Type': 'Accounting', 'src': image5},
+                                               {'Type': 'Accounting', 'src': image6}], 'total': 6})
 
   def getPlotDict(self, siteName, grouping, reportName, typeName,
                   plotTitle=None,
@@ -243,7 +255,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
         'grouping': [grouping]
     },
         'extraArgs': {
-        'lastSeconds': 43200
+        'lastSeconds': 86400
     },
         'grouping': grouping,
         'reportName': reportName,
@@ -253,7 +265,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     if plotTitle is not None:
       plotDict['extraArgs']['plotTitle'] = plotTitle
     if status is not None:
-      plotDict['condDict']['Status'] = status
+      plotDict['condDict']['Status'] = [status]
 
     return plotDict
 

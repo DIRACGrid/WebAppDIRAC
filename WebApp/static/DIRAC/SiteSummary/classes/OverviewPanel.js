@@ -128,7 +128,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
             });
 
         var ceStore = new Ext.data.ArrayStore({
-              fields : ["Status", "Name", "StatusType"],
+              fields : ["Name", "Status", "Type"],
               data : []
             });
 
@@ -149,14 +149,14 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
 
         me.ceGrid = Ext.create("Ext.grid.Panel", {
               title : 'Computing elements',
+              columnWidth : 1 / 2,
               layout : 'fit',
               stateful : true,
               stateId : "SiteSummaryCeGrid",
               store : ceStore,
               columns : [{
-                    text : 'Status',
                     sortable : false,
-                    width : 26,
+                    width : 36,
                     sortable : false,
                     hideable : false,
                     fixed : true,
@@ -193,10 +193,10 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                     sortable : false,
                     dataIndex : 'Name'
                   }, {
-                    text : 'Status Type',
+                    text : 'Type',
                     flex : 1,
                     sortable : false,
-                    dataIndex : 'StatusType'
+                    dataIndex : 'Type'
                   }],
               width : '100%',
               height : '50%',
@@ -216,18 +216,20 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
             });
 
         var stotageStore = new Ext.data.ArrayStore({
-              fields : ["Status", "Name", "StatusType"],
+              fields : ["Name", "Status", "Type"],
               data : []
             });
 
         me.storageGrid = Ext.create("Ext.grid.Panel", {
               title : "Storage elements",
+              columnWidth : 1 / 2,
               layout : 'fit',
               store : stotageStore,
+              stateful : true,
+              stateId : "SiteSummary-se-grid",
               columns : [{
-                    text : 'Status',
                     sortable : false,
-                    width : 26,
+                    width : 36,
                     sortable : false,
                     hideable : false,
                     fixed : true,
@@ -264,10 +266,10 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                     sortable : false,
                     dataIndex : 'Name'
                   }, {
-                    text : 'Status Type',
+                    text : 'Type',
                     flex : 1,
                     sortable : false,
-                    dataIndex : 'StatusType'
+                    dataIndex : 'Type'
                   }],
               width : '100%',
               height : '50%',
@@ -286,41 +288,122 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               }
 
             });
-        me.leftPanel = Ext.create("Ext.panel.Panel", {
-              columnWidth : 1 / 2,
-              items : [me.ceGrid, me.storageGrid],
-              height : '50%',
-              resizable : true
+        var width = 99 / 2;
+        width = '.' + Math.round(width);
+        me.plotPanel = Ext.create("Ext.panel.Panel", {
+              title : 'Plots',
+              columnWidth : 3,
+              resizable : false,
+              items : [{
+                    xtype : 'image',
+                    columnWidth : width,
+                    width : 216,
+                    height : 216,
+                    src : '',
+                    listeners : {
+                      afterrender : function(me) {
+                        me.el.on({
+                              load : function(evt, ele, opts) {
+                                me.setLoading(false);
+                              }
+                            });
+                      }
+                    }
+                  }, {
+                    xtype : 'image',
+                    columnWidth : width,
+                    width : 216,
+                    height : 216,
+                    src : '',
+                    listeners : {
+                      afterrender : function(me) {
+                        me.el.on({
+                              load : function(evt, ele, opts) {
+                                me.setLoading(false);
+                              }
+                            });
+                      }
+                    }
+                  }, {
+                    xtype : 'image',
+                    columnWidth : width,
+                    width : 216,
+                    height : 216,
+                    src : '',
+                    listeners : {
+                      afterrender : function(me) {
+                        me.el.on({
+                              load : function(evt, ele, opts) {
+                                me.setLoading(false);
+                              }
+                            });
+                      }
+                    }
+                  }, {
+                    xtype : 'image',
+                    columnWidth : width,
+                    width : 216,
+                    height : 216,
+                    src : '',
+                    listeners : {
+                      afterrender : function(me) {
+                        me.el.on({
+                              load : function(evt, ele, opts) {
+                                me.setLoading(false);
+                              }
+                            });
+                      }
+                    }
+                  }, {
+                    xtype : 'image',
+                    columnWidth : width,
+                    width : 216,
+                    height : 216,
+                    src : '',
+                    listeners : {
+                      afterrender : function(me) {
+                        me.el.on({
+                              load : function(evt, ele, opts) {
+                                me.setLoading(false);
+                              }
+                            });
+                      }
+                    }
+                  }, {
+                    xtype : 'image',
+                    columnWidth : width,
+                    width : 216,
+                    height : 216,
+                    src : '',
+                    listeners : {
+                      afterrender : function(me) {
+                        me.el.on({
+                              load : function(evt, ele, opts) {
+                                me.setLoading(false);
+                              }
+                            });
+                      }
+                    }
+                  }],
+              layout : 'column'
             });
-        me.callParent(arguments);
 
         me.rightPanel = Ext.create("Ext.panel.Panel", {
               columnWidth : 1 / 2,
-              items : [],
+              items : [me.plotPanel],
               resizable : false,
               layout : 'fit'
             });
 
-        me.plotPanel = Ext.create("Ext.panel.Panel", {
-              title : 'Plots',
-              columnWidth : 3,
-              items : [],
-              resizable : false,
-              layout : 'column'
-            });
-
-        me.rightPanel.add(me.plotPanel);
-        me.viewPanel.add(me.leftPanel);
-
-        me.add([me.viewPanel, me.rightPanel]);
+        me.callParent(arguments);
+        me.add([me.viewPanel, me.rightPanel, me.ceGrid, me.storageGrid]);
         me.viewPanel.setLoading(true);
 
       },
       loadData : function(selection) {
         var me = this;
 
-        me.viewPanel.body.mask("Loading ...");
-        // me.leftPanel.body.mask("Loading ...");
+        me.viewPanel.setLoading("Loading ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
               method : 'POST',
@@ -343,14 +426,14 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                 if (jsonData["success"] == "true") {
                   me.setTitle(jsonData["result"]["Name"]);
                   me.view.getStore().loadData([jsonData["result"]]);
-                  me.viewPanel.body.unmask();
+                  me.viewPanel.setLoading(false);
                 } else {
                   GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
               }
             });
 
-        me.ceGrid.body.mask("Loading ...");
+        me.ceGrid.setLoading("Loading ....");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
               method : 'POST',
@@ -361,7 +444,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               scope : me,
               failure : function(response) {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                me.ceGrid.body.unmask();
+                me.ceGrid.setLoading(false);
               },
               success : function(response) {
 
@@ -369,14 +452,14 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
 
                 if (jsonData["success"] == "true") {
                   me.ceGrid.getStore().loadData(jsonData["result"]);
-                  me.ceGrid.body.unmask();
+                  me.ceGrid.setLoading(false);
                 } else {
                   GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
               }
             });
 
-        me.storageGrid.body.mask("Loading ...");
+        me.storageGrid.setLoading("Loading ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
               method : 'POST',
@@ -395,13 +478,13 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
 
                 if (jsonData["success"] == "true") {
                   me.storageGrid.getStore().loadData(jsonData["result"]);
-                  me.storageGrid.body.unmask();
+                  me.storageGrid.setLoading(false);
                 } else {
                   GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
               }
             });
-        me.rightPanel.body.mask("Loading ...");
+        me.rightPanel.setLoading("Loading ...");
         Ext.Ajax.request({
               url : GLOBAL.BASE_URL + me.applicationName + '/action',
               method : 'POST',
@@ -412,25 +495,22 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
               scope : me,
               failure : function(response) {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                me.rightPanel.body.unmask();
+                me.rightPanel.setLoading(false);
               },
               success : function(response) {
-                me.rightPanel.body.unmask();
+                me.rightPanel.setLoading(false);
 
                 var jsonData = Ext.JSON.decode(response.responseText);
 
                 if (jsonData["success"] == "true") {
 
-                  me.plotPanel.removeAll(); // remove the plots
-
                   var width = 99 / 2;
                   width = '.' + Math.round(width);
                   for (var i = 0; i < jsonData.result.length; i++) {
-                    var src = GLOBAL.BASE_URL + "Accounting/getPlotImg?file=" + jsonData.result[i] + "&nocache=" + (new Date()).getTime();
-                    var img = Ext.create('Ext.Img', {
-                          columnWidth : width,
-                          src : src
-                        });
+                    var src = GLOBAL.BASE_URL + jsonData.result[i].Type + "/getPlotImg?file=" + jsonData.result[i].src + "&nocache=" + (new Date()).getTime();
+                    var img = me.plotPanel.items.getAt(i);
+                    img.setSrc(src);
+                    img.setLoading('Loading...');
                     img.on('click', function(e, t, eOpts, me) {
                           var me = this;
                           var img = me.plotPanel.getComponent(t.id);
@@ -439,7 +519,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
                           }
 
                         }, this);
-                    me.plotPanel.add(img);
+                        
                     img.getEl().on('click', function(e, t, eOpts, me) {
                           var me = this;
                           var img = me.plotPanel.getComponent(t.id);
@@ -449,12 +529,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
 
                         }, this);
                   }
-                  
-                  
-                  me.plotPanel.updateLayout();
-                  me.rightPanel.dorefresh();
-                  //me.plotPanel.dorefresh();
-                  //me.dorefresh();
+
                 } else {
                   GLOBAL.APP.CF.msg("error", jsonData["error"]);
                 }
