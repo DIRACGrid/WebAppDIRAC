@@ -121,10 +121,10 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           "None2" : {
             "dataIndex" : "Status",
             "properties" : {
-              width : 26,
+              width : 36,
               sortable : false,
               hideable : false,
-              fixed : false,
+              fixed : true,
               menuDisabled : true
             },
             "renderFunction" : "rendererStatus"
