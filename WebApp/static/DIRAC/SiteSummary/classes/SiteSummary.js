@@ -138,7 +138,7 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
           "None" : {
             "dataIndex" : "StatusIcon",
             "properties" : {
-              width : 26,
+              width : 36,
               sortable : false,
               hideable : false,
               fixed : true,
@@ -149,14 +149,14 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
           "Name" : {
             "dataIndex" : "Name",
             "properties" : {
-              fixed : true
+              fixed : false
             }
           },
           "Country" : {
             "dataIndex" : "Country",
             "properties" : {
               hideable : true,
-              ortable : true,
+              sortable : true,
               align : 'left'
             },
             renderer : function flag(code) {
@@ -288,29 +288,33 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
         };
 
         me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
-              menu : menuitems,
-              scope : me
-            });
+          menu : menuitems,
+          scope : me
+        });
 
-        me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
-              store : me.dataStore,
-              columnLines : true,
-              width : 600,
-              height : 300,
-              oColumns : oColumns,
-              contextMenu : me.contextGridMenu,
-              pagingToolbar : pagingToolbar,
-              scope : me
-            });
+    me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
+          store : me.dataStore,
+          columnLines : true,
+          width : 600,
+          height : 300,
+          oColumns : oColumns,
+          stateful : true,
+          stateId : "SiteSummary_grid",
+          contextMenu : me.contextGridMenu,
+          pagingToolbar : pagingToolbar,
+          scope : me
+        });
 
-        me.leftPanel.setGrid(me.grid);
+    me.leftPanel.setGrid(me.grid);
 
-        me.overviewPanel = Ext.create("DIRAC.SiteSummary.classes.OverviewPanel", {
-              applicationName : me.applicationName,
-              parentWidget : me
-            });
+    me.overviewPanel = Ext.create("DIRAC.SiteSummary.classes.OverviewPanel", {
+          applicationName : me.applicationName,
+          parentWidget : me,
+          width : 900,
+          height : 300
+        });
 
-        me.add([me.leftPanel, me.grid, me.overviewPanel]);
+    me.add([me.leftPanel, me.grid, me.overviewPanel]);
 
       },
       __oprOnSiteSummaryData : function(action) {

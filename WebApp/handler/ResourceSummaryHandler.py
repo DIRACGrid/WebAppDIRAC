@@ -8,12 +8,11 @@ from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
-ELEMENT_TYPE = 'Resource'
-
 
 class ResourceSummaryHandler(WebHandler):
 
   AUTH_PROPS = "all"
+  ELEMENT_TYPE = 'Resource'
 
   @asyncGen
   def web_getSelectionData(self):
@@ -30,8 +29,7 @@ class ResourceSummaryHandler(WebHandler):
     pub = PublisherClient()
 
     gLogger.info(self.request.arguments)
-
-    elementStatuses = yield self.threadTask(pub.getElementStatuses, ELEMENT_TYPE, None, None, None, None, None)
+    elementStatuses = yield self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE, None, None, None, None, None)
 
     if elementStatuses['OK']:
 
@@ -59,7 +57,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    elementStatuses = yield self.threadTask(pub.getElementStatuses, ELEMENT_TYPE,
+    elementStatuses = yield self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE,
                                             requestParams['name'],
                                             requestParams['elementType'],
                                             requestParams['statusType'],
@@ -155,7 +153,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    elements = yield self.threadTask(pub.getElementStatuses, ELEMENT_TYPE,
+    elements = yield self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE,
                                      requestParams['name'],
                                      None, None, None, None)
     if not elements['OK']:
@@ -185,13 +183,9 @@ class ResourceSummaryHandler(WebHandler):
       try:
         return getattr(self, methodName)(requestParams)
       except AttributeError:
-        result = {'success': 'false', 'error': 'bad action %s' % actionName}
-
+        self.finish({'success': 'false', 'error': 'bad action %s' % actionName})
     else:
-
-      result = {'success': 'false', 'error': 'Missing action'}
-
-    self.finish(result)
+      self.finish({'success': 'false', 'error': 'Missing action'})
 
   def setToken(self, requestParams):
 
@@ -205,7 +199,7 @@ class ResourceSummaryHandler(WebHandler):
       self.finish({'success': 'false', 'error': 'Not authorized'})
 
     pub = PublisherClient()
-    res = yield self.threadTask(pub.setToken, ELEMENT_TYPE,
+    res = yield self.threadTask(pub.setToken, self.ELEMENT_TYPE,
                                 str(requestParams['name'][0]),
                                 str(requestParams['statusType'][0]),
                                 str(requestParams['status'][0]),
@@ -231,7 +225,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    res = yield self.threadTask(pub.setStatus, ELEMENT_TYPE,
+    res = yield self.threadTask(pub.setStatus, self.ELEMENT_TYPE,
                                 str(requestParams['name'][0]),
                                 str(requestParams['statusType'][0]),
                                 str(requestParams['status'][0]),
@@ -256,7 +250,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
     res = yield self.threadTask(pub.getElementHistory,
-                                ELEMENT_TYPE,
+                                self.ELEMENT_TYPE,
                                 requestParams['name'],
                                 requestParams['elementType'],
                                 requestParams['statusType'])
@@ -266,8 +260,6 @@ class ResourceSummaryHandler(WebHandler):
       self.finish({'success': 'false', 'error': 'error getting history'})
 
     history = [[r[0], str(r[1]), r[2]] for r in res['Value']]
-
-    gLogger.debug("History:" + str(history))
 
     self.finish({'success': 'true', 'result': history, 'total': len(history)})
 
@@ -281,7 +273,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
     res = yield self.threadTask(pub.getElementPolicies,
-                                ELEMENT_TYPE,
+                                self.ELEMENT_TYPE,
                                 requestParams['name'],
                                 requestParams['statusType'])
 
@@ -332,7 +324,7 @@ class ResourceSummaryHandler(WebHandler):
     pub = PublisherClient()
 
     res = yield self.threadTask(pub.getElementHistory,
-                                ELEMENT_TYPE,
+                                self.ELEMENT_TYPE,
                                 str(requestParams['name'][-1]),
                                 str(requestParams['elementType'][-1]),
                                 str(requestParams['statusType'][-1]))
