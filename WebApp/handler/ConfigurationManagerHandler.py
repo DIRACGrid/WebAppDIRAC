@@ -622,7 +622,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     allData = processedData.get("diff")
     for line in allData:
       if line[0] in ('conflict', 'add', 'mod', 'del'):
-        diffList += [line]   
+        diffList += [line]
     return {"success": 1,
             "op": "showCommitDiff",
             "lines": processedData["lines"],
