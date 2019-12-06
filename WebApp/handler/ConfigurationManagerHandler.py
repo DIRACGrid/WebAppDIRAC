@@ -612,7 +612,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     """
     It returns only the modified CS content
     """
-    print('__showCommitDiff->djshdjshdjshdjsh')
+
     if not self.__authorizeAction():
       return {"success": 0, "op": "showCurrentDiff",
               "message": "You are not authorized to commit configurations!! Bad boy!"}
