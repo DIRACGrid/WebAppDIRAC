@@ -20,7 +20,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
   @asyncGen
   def on_message(self, msg):
 
-    self.log.info("RECEIVED", msg)
+    self.log.debug("RECEIVED", msg)
     try:
       params = json.loads(msg)
     except BaseException:
@@ -68,7 +68,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     elif params["op"] == "showCommitDiff":
       res = self.__showCommitDiff()
 
-    self.log.info("Sending back message", res)
+    self.log.debug("Sending back message", res)
     if res:
       self.write_message(res)
 
@@ -528,14 +528,14 @@ class ConfigurationManagerHandler(WebSocketHandler):
       return {"success": 0, "op": "showCurrentDiff", "message": "You are not authorized to commit configurations!"}
     diffGen = self.__configData['cfgData'].showCurrentDiff()
     processedData = self.__generateHTMLDiff(diffGen)
-    return self.write_message(json.dumps({"success": 1,
-                                          "op": "showCurrentDiff",
-                                          "lines": processedData["lines"],
-                                          "totalLines": processedData["totalLines"],
-                                          "html": self.render_string("ConfigurationManager/diffConfig.tpl",
-                                                                     titles=("Server's version",
-                                                                             "User's current version"),
-                                                                     diffList=processedData["diff"])}))
+    return {"success": 1,
+            "op": "showCurrentDiff",
+            "lines": processedData["lines"],
+            "totalLines": processedData["totalLines"],
+            "html": self.render_string("ConfigurationManager/diffConfig.tpl",
+                                       titles=("Server's version",
+                                               "User's current version"),
+                                       diffList=processedData["diff"])}
 
   def __showDiff(self, params):
     if not self.__authorizeAction():
@@ -545,26 +545,18 @@ class ConfigurationManagerHandler(WebSocketHandler):
       toDate = str(params['toVersion'])
     except Exception as e:
       raise WErr(500, "Can't decode params: %s" % e)
-
     rpcClient = RPCClient(gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
     modCfg = Modificator(rpcClient)
     diffGen = modCfg.getVersionDiff(fromDate, toDate)
     processedData = self.__generateHTMLDiff(diffGen)
-    return self.write_message(
-        json.dumps(
-            {
-                "success": 1,
-                "op": "showDiff",
-                "lines": processedData["lines"],
-                "totalLines": processedData["totalLines"],
-                "html": self.render_string(
-                    "ConfigurationManager/diffConfig.tpl",
-                    titles=(
-                        "From version %s" %
-                        fromDate,
-                        "To version %s" %
-                        toDate),
-                    diffList=processedData["diff"])}))
+    return {"success": 1,
+            "op": "showDiff",
+            "lines": processedData["lines"],
+            "totalLines": processedData["totalLines"],
+            "html": self.render_string("ConfigurationManager/diffConfig.tpl",
+                                       titles=("From version %s" % fromDate,
+                                               "To version %s" % toDate),
+                                       diffList=processedData["diff"])}
 
   def __rollback(self, params):
     rollbackVersion = ""
@@ -620,6 +612,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     """
     It returns only the modified CS content
     """
+    print('__showCommitDiff->djshdjshdjshdjsh')
     if not self.__authorizeAction():
       return {"success": 0, "op": "showCurrentDiff",
               "message": "You are not authorized to commit configurations!! Bad boy!"}
@@ -627,8 +620,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
     processedData = self.__generateHTMLDiff(diffGen)
     diffList = []
     allData = processedData.get("diff")
-    for mod, value in processedData.get('lines'):
-      diffList += allData[value:value + 1]
+    for line in allData:
+      if line[0] in ('conflict', 'add', 'mod', 'del'):
+        diffList += [line]   
     return {"success": 1,
             "op": "showCommitDiff",
             "lines": processedData["lines"],
