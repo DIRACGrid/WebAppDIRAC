@@ -20,7 +20,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                       GLOBAL.APP.MAIN_VIEW.createDefaultDesktop();
                     }
 
-                  },{
+                  }, {
                     text : "New Desktop",
                     iconCls : "dirac-icon-new-folder",
                     handler : function() {
@@ -100,10 +100,10 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                     iconCls : "dirac-icon-private",
                     value : 2,
                     handler : function() {
-                      
+
                       var me = this;
                       var app = 'desktop';
-                      
+
                       if (me.oSelectedMenuItem.data.type == 'app') {
                         app = me.oSelectedMenuItem.data.application;
                       }
@@ -258,32 +258,15 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                       }
 
                     }
-                  },{
+                  }, {
                     text : 'Delete',
                     iconCls : "dirac-icon-delete",
                     value : 7,
                     handler : function() {
-                      if (me.oSelectedMenuItem.data.type == "app") {// the
-                        // selected
-                        // menu item
-                        // is an
-                        // application
-
-                        if (me.oSelectedMenuItem.data.desktop == "") { // if
-                          // the
-                          // desktop
-                          // is
-                          // empty
-                          // it
-                          // means
-                          // the
-                          // application
-                          // is
-                          // belongs
-                          // to
-                          // the
-                          // default
-                          // desktop.
+                      // the selected menu item is an application
+                      if (me.oSelectedMenuItem.data.type == "app") {
+                        //if the desktop is empty it means the application is belongs to the default desktop.
+                        if (me.oSelectedMenuItem.data.desktop == "" || me.oSelectedMenuItem.data.desktop === undefined) { // 
                           GLOBAL.APP.MAIN_VIEW.SM.deleteState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
                                 GLOBAL.APP.MAIN_VIEW.removeNodeFormDefaultDesktop(me.oSelectedMenuItem.data.text);
                                 GLOBAL.APP.MAIN_VIEW.closeApplication(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.text); //close the application
