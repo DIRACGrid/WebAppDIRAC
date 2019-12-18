@@ -464,7 +464,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
                     me.leafMenu.hide();
                     me.sectionMenu.hide();
                     me.valuePanel.hide();
-                    me.btnCommitConfiguration.hide();
+                    if (me.changeMade) {
+                      me.__setChangeMade(true);
+                    } else {
+                      me.__setChangeMade(true);
+                    }
                   } else {
                     me.btnBrowseManage.setText("Browse");
                     me.btnBrowseManage.setIconCls("cm-to-browse-icon");
@@ -1091,6 +1095,11 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
         oWindow.show();
         oWindow.maximize();
         oWindow.getHeader().show();
+        oWindow.on('close', function() {
+              if (me.changeMade) {
+                me.__setChangeMade(true);
+              }
+            });
 
         var delta_pos = 1.0 * (oBlocksPanel.getHeight() - 10) / parseFloat(oResponse.totalLines);
 
@@ -1137,7 +1146,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
               });
 
         }
-
+	
        oBlocksPanel.add(oBlocksToAdd);
        
        /*if(cbFunction){
