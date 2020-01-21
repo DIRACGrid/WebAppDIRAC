@@ -41,7 +41,7 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
        */
       menuitems : null,
 
-      dynamicShow : true,
+      dynamicShow : false,
 
       constructor : function(oConfig) {
         var me = this;
