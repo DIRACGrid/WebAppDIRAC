@@ -52,7 +52,8 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               });
         }
         if (oConfig) {
-          me.dynamicShow = oConfig.dynamicShow;
+          if (oConfig.dynamicShow)
+            me.dynamicShow = oConfig.dynamicShow;
           if (oConfig.menu && "Visible" in oConfig.menu && oConfig.menu.Visible.length > 0) {
             for (var i = 0; i < oConfig.menu.Visible.length; i++) {
               var oMenuItem = null;
@@ -83,17 +84,20 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
           if (oConfig.menu && "Protected" in oConfig.menu && oConfig.menu.Protected.length > 0) {
             for (var i = 0; i < oConfig.menu.Protected.length; i++) {
               var oMenuItem = null;
+              var lDisable = ("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, oConfig.menu.Protected[i].property) != -1) == false ? true : false;
               if (oConfig.menu.Protected[i].text == "-") {
                 me.add(new Ext.menu.Separator());
               } else if ("handler" in oConfig.menu.Protected[i]) {
                 oMenuItem = new Ext.menu.Item({
                       text : oConfig.menu.Protected[i].text,
                       handler : Ext.bind(oConfig.menu.Protected[i].handler, me.scope, oConfig.menu.Protected[i].arguments, false),
-                      scope : me.scope
+                      scope : me.scope,
+                      disabled : lDisable
                     });
               } else if ("subMenu" in oConfig.menu.Protected[i]) {
                 oMenuItem = new Ext.menu.Item({
-                      text : oConfig.menu.Protected[i].text
+                      text : oConfig.menu.Protected[i].text,
+                      disabled : lDisable
                     });
                 me.__createSubmenu(oMenuItem, oConfig.menu.Protected[i].subMenu);
               }
