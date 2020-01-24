@@ -10,7 +10,7 @@
 Ext.define('Ext.dirac.views.desktop.Main', {
   extend : 'Ext.panel.Panel',
   alias : 'widget.desktop',
-  requires : ['Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.views.desktop.Window', 'Ext.dirac.views.desktop.TaskBar', 'Ext.dirac.views.desktop.Wallpaper', 'Ext.dirac.views.desktop.StateManagement', 'Ext.dirac.views.desktop.ShortcutModel'],
+  requires : ['Ext.util.MixedCollection', 'Ext.menu.Menu', 'Ext.view.View', 'Ext.dirac.views.desktop.Window', 'Ext.dirac.views.desktop.TaskBar', 'Ext.dirac.views.desktop.Wallpaper', 'Ext.dirac.views.desktop.StateManagement', 'Ext.dirac.views.desktop.ShortcutModel', 'Ext.dirac.utils.WelcomeWindow'],
   mixins : ["Ext.dirac.core.Stateful", "Ext.dirac.core.AppView", "Ext.dirac.views.desktop.TransformationData"],
   
   activeWindowCls : 'ux-desktop-active-win',
@@ -1778,12 +1778,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
     if (loadedObjectType == "app") {
 
       var oParts = moduleName.split(".");
-      var sStartClass = "";
-
-      if (oParts.length == 2)
-        sStartClass = moduleName + ".classes." + oParts[1];
-      else
-        sStartClass = moduleName;
+      var sStartClass = oParts.length == 2 ? sStartClass = moduleName + ".classes." + oParts[1] : sStartClass = moduleName;
 
       // if the development mod is off, we set up diffrent path to
       // load javascript
@@ -2350,7 +2345,7 @@ Ext.define('Ext.dirac.views.desktop.Main', {
 
     var me = this;
 
-    return [me.getWidth(), me.getHeight() - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight()];
+    return [me.getWidth(), me.getHeight() - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0];
 
   },
 
