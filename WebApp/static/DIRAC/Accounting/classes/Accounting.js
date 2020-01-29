@@ -1,5 +1,5 @@
-Ext.define('DIRAC.Accounting.classes.Accounting', {
-      extend : 'Ext.dirac.utils.PlotView',
+Ext.define("DIRAC.Accounting.classes.Accounting", {
+      extend : "Ext.dirac.utils.PlotView",
       timeout : 7200000, // 2 hours
       initComponent : function() {
         var me = this;
@@ -63,7 +63,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
           Monitoring: "Monitoring"
         };
         
-        me.title = 'Accounting';
+        me.title = "Accounting";
 
         
         

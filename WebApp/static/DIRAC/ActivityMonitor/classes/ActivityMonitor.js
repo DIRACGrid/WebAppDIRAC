@@ -1,7 +1,7 @@
-Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
-      extend : 'Ext.dirac.core.Module',
-      requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet",
-          "Ext.dirac.utils.DiracMultiSelect", "Ext.toolbar.Toolbar", "Ext.data.Record", 'Ext.Array', 'Ext.data.TreeStore', "Ext.ux.form.MultiSelect", "DIRAC.ActivityMonitor.classes.ActivityTreeModel"],
+Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
+      extend : "Ext.dirac.core.Module",
+      requires : ["Ext.util.*", "Ext.panel.Panel", "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.Date", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet",
+          "Ext.dirac.utils.DiracMultiSelect", "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.Array", "Ext.data.TreeStore", "Ext.ux.form.MultiSelect", "DIRAC.ActivityMonitor.classes.ActivityTreeModel"],
 
       expansionState : {},
       initComponent : function() {
@@ -20,7 +20,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
         }
 
         Ext.apply(me, {
-              layout : 'border',
+              layout : "border",
               bodyBorder : false,
               defaults : {
                 collapsible : true,
@@ -38,11 +38,11 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
         var me = this;
 
-        var oToolb = Ext.create('Ext.toolbar.Toolbar', {
-              dock : 'top',
+        var oToolb = Ext.create("Ext.toolbar.Toolbar", {
+              dock : "top",
               border : false,
               layout : {
-                pack : 'center'
+                pack : "center"
               },
               items : [{
                     xtype : "button",
@@ -81,9 +81,9 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
 
         oToolb.items.getAt(0).toggle();
 
-        me.mainPanel = new Ext.create('Ext.panel.Panel', {
+        me.mainPanel = new Ext.create("Ext.panel.Panel", {
               floatable : false,
-              layout : 'card',
+              layout : "card",
               region : "center",
               header : false,
               border : false,
@@ -106,28 +106,28 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
         me.activityMonitorDataStore = new Ext.data.JsonStore({
 
               proxy : {
-                type : 'ajax',
-                url : GLOBAL.BASE_URL + 'ActivityMonitor/getActivityData',
+                type : "ajax",
+                url : GLOBAL.BASE_URL + "ActivityMonitor/getActivityData",
                 reader : {
                   keepRawData : true,
-                  type : 'json',
-                  rootProperty : 'result'
+                  type : "json",
+                  rootProperty : "result"
                 },
                 timeout : 1800000
               },
               autoLoad : true,
               fields : [{
-                    name : 'sources_id',
-                    type : 'int'
-                  }, 'sources_site', 'sources_componentType', 'sources_componentLocation', 'sources_componentName', {
-                    name : 'activities_id',
-                    type : 'int'
-                  }, 'activities_name', 'activities_category', 'activities_unit', 'activities_type', 'activities_description', {
-                    name : 'activities_bucketLength',
-                    type : 'int'
-                  }, 'activities_filename', {
-                    name : 'activities_lastUpdate',
-                    type : 'float'
+                    name : "sources_id",
+                    type : "int"
+                  }, "sources_site", "sources_componentType", "sources_componentLocation", "sources_componentName", {
+                    name : "activities_id",
+                    type : "int"
+                  }, "activities_name", "activities_category", "activities_unit", "activities_type", "activities_description", {
+                    name : "activities_bucketLength",
+                    type : "int"
+                  }, "activities_filename", {
+                    name : "activities_lastUpdate",
+                    type : "float"
                   }],
               remoteSort : true,
               pageSize : 100,
@@ -168,12 +168,12 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                     oItems.push(oElems[i].value);
 
                 if (oItems.length < 1) {
-                  GLOBAL.APP.CF.alert('No jobs were selected', "error");
+                  GLOBAL.APP.CF.alert("No jobs were selected", "error");
                   return;
                 }
 
                 Ext.Ajax.request({
-                      url : GLOBAL.BASE_URL + 'ActivityMonitor/deleteActivities',
+                      url : GLOBAL.BASE_URL + "ActivityMonitor/deleteActivities",
                       params : {
                         "ids" : oItems.join(",")
                       },
@@ -188,15 +188,15 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
               tooltip : "Click to delete all selected proxies"
             });
 
-        me.activityMonitorToolbar = Ext.create('Ext.toolbar.Paging', {
+        me.activityMonitorToolbar = Ext.create("Ext.toolbar.Paging", {
               store : me.activityMonitorDataStore,
               displayInfo : true,
-              displayMsg : 'Displaying topics {0} - {1} of {2}',
+              displayMsg : "Displaying topics {0} - {1} of {2}",
               items : [oDeleteSelectedActivities, "->"],
               prependButtons : true,
               emptyMsg : "No topics to display",
               layout : {
-                overflowHandler : 'Scroller'
+                overflowHandler : "Scroller"
               }
             });
 
