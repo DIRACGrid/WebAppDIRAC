@@ -24,7 +24,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: Prepare environment
       run: |
-        conda env create -n python_${{ matrix.python }} python=${{ matrix.python }} environment.yml
+        conda env create -n python_${{ matrix.python }} python=${{ matrix.python }}
         git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b integration
     - name: Run linter
       run: |
