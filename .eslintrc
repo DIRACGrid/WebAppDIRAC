@@ -1,0 +1,27 @@
+{
+    "plugins": [
+        "@sencha/extjs"
+    ],
+    "extends": [
+        // "eslint:recommended",
+        "plugin:@sencha/extjs/recommended"
+    ],
+    "settings": {
+        "extjs": {
+            // "version": "4"
+            "fromVersion": "4.2.6",
+            "toVersion": "6.6.0"
+        }
+    },
+    "globals": {
+        "Ext": true,
+        "SimpleTasks": true,
+        "SimpleTasksSettings": true
+    },
+    "env": {
+        "browser": true
+    },
+    "rules": {
+        // "@sencha/extjs/no-removed-method-call": 2
+    }
+}

@@ -1,0 +1,32 @@
+name: Code quality
+
+on: [push, pull_request]
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - run: |
+          npm install eslint --save-dev
+          curl -O --insecure https://lhcb-portal-dirac.cern.ch/defaults/@sencha_eslint-plugin-extjs.7.0.0.tgz
+          npm install @sencha_eslint-plugin-extjs.7.0.0.tgz --save-dev
+          node_modules/.bin/eslint WebApp
+  pyLint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Prepare environment
+      run: |
+        conda env create --name webapp-testing environment.yml
+        git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b integration
+    - name: Run linter
+      run: |
+        source "${CONDA}/bin/activate"
+        conda activate webapp-testing
+        set -euxo pipefail
+        export PYTHONPATH=${PWD%/*}
+        find WebApp Lib Core scripts -name "*.py" -and -not -name 'pep8_*' -exec pylint -E --rcfile=.pylintrc --msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" --extension-pkg-whitelist=numpy {} +
+      env:
+        REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
