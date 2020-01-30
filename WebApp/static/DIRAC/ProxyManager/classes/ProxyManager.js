@@ -172,7 +172,9 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
             },
             "renderer" : function(value, metadata, record, rowIndex, colIndex, store) {
               var expEpoch = record.data.ExpirationTime.getTime();
+              /* eslint-disable */
               var nowEpoch = Ext.Date.now();
+              /* eslint-enable */
               var secsLeft = expEpoch - nowEpoch;
 
               var msDay = 60 * 60 * 24 * 1000;

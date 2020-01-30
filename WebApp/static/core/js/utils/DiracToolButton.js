@@ -78,7 +78,7 @@ Ext.define('Ext.dirac.utils.DiracToolButton', {
             me.menu.hide();
           }
 
-          me.menu.showBy(me.el, me.menuAlign, ((!Ext.isStrict && Ext.isIE) || Ext.isIE6) ? [-2, -2] : undefined);
+          me.menu.showBy(me.el, me.menuAlign, (!Ext.isStrict && Ext.ieVersion) ? [-2, -2] : undefined);
         }
         return me;
       },

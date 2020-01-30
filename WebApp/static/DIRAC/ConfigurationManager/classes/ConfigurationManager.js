@@ -1697,8 +1697,7 @@ Ext.define('DIRAC.ConfigurationManager.classes.ConfigurationManager', {
               margin : 10,
               width : 400,
               hidden : ((sType == "subsection") ? false : true),
-              anchor : '100%',
-              rows : 10
+              anchor : '100%'
             });
 
         // button for saving the state
