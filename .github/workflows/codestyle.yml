@@ -14,17 +14,22 @@ jobs:
           node_modules/.bin/eslint WebApp
   pyLint:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: False
+      matrix:
+        python:
+          - 2.7.13
 
     steps:
     - uses: actions/checkout@v1
     - name: Prepare environment
       run: |
-        conda env create --name webapp-testing environment.yml
+        conda env create -n python_${{ matrix.python }} python=${{ matrix.python }} environment.yml
         git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b integration
     - name: Run linter
       run: |
         source "${CONDA}/bin/activate"
-        conda activate webapp-testing
+        conda activate python_${{ matrix.python }}
         set -euxo pipefail
         export PYTHONPATH=${PWD%/*}
         find WebApp Lib Core scripts -name "*.py" -and -not -name 'pep8_*' -exec pylint -E --rcfile=.pylintrc --msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" --extension-pkg-whitelist=numpy {} +
