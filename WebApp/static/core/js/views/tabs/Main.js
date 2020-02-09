@@ -2050,7 +2050,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
 
         if (data.length == 0)
           return;
+         /* eslint-disable */
         var newState = Ext.Object.chain(state);
+         /* eslint-enable */
         newState.data = data;
         me.loadState(newState, tab);
 

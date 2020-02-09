@@ -20,7 +20,9 @@ Ext.define('Ext.dirac.utils.Notification', {
       autoClose : true,
       autoHeight : true,
       plain : false,
+       /* eslint-disable */
       draggable : false,
+       /* eslint-enable */
       shadow : false,
       focus : Ext.emptyFn,
 

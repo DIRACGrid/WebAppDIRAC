@@ -1,0 +1,27 @@
+name: dirac-development
+
+channels:
+  - conda-forge
+
+dependencies:
+  # runtime
+  - pip
+  - certifi
+  # testing and development
+  - autopep8
+  - caniusepython3
+  - coverage
+  - hypothesis
+  - ipython
+  - mock
+  - parameterized
+  - pylint >=1.6.5
+  - pyparsing >=2.0.6
+  - pytest >=3.6
+  - pytest-cov >=2.2.0
+  - pytest-mock
+  - shellcheck
+  # - readline >=6.2.4 in the standard library
+  - simplejson >=3.8.1
+  - tornado >=5.0.0,<6.0.0
+  - typing >=3.6.6

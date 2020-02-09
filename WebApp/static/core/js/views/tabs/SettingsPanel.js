@@ -86,12 +86,12 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
         return form;
       },
 
-      getAuthCFG : function(Auth = '',Value = ''){
+      getAuthCFG : function(Auth,Value){
         var req = Ext.Ajax.request({
           url: GLOBAL.BASE_URL + 'Authentication/getAuthCFG',
           params: {
-            typeauth: Auth,
-            value: Value
+            typeauth: Auth === undefined ? "" : Auth,
+            value: Value === undefined ? "" : Value
           },
           async: false
         }).responseText;

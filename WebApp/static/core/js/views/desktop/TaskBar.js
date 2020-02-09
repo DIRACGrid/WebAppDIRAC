@@ -127,12 +127,12 @@ Ext.define('Ext.dirac.views.desktop.TaskBar', {
             });
 
         me.items.push(button_views);
-        var getAuthCFG = function(Auth = '',Value = ''){
+        var getAuthCFG = function(Auth,Value){
       var req = Ext.Ajax.request({
         url: GLOBAL.BASE_URL + 'Authentication/getAuthCFG',
         params: {
-          typeauth: Auth,
-          value: Value
+          typeauth: Auth === undefined ? "": Auth,
+          value: Value === undefined ? "": Value
         },
         async: false
       }).responseText;
