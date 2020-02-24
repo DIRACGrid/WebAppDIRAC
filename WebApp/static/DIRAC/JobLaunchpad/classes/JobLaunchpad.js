@@ -3,6 +3,21 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
       requires : ['Ext.panel.Panel', 'Ext.form.FieldSet', "Ext.menu.CheckItem", 'Ext.button.Button', 'Ext.toolbar.Toolbar', 'Ext.form.Panel', 'Ext.tree.Panel', 'Ext.data.TreeStore', 'Ext.menu.Menu'],
 
+      loadState : function(data) {
+
+        var me = this;
+
+        for (var key in data) {
+          if (key in me.textualFields) {
+            me.__destroyJdlField(key);
+          }
+          me.textualFields[key] = {};
+          me.textualFields[key].value = data[key];
+          me.__createJdlField(key, data[key], true);
+        }
+
+      },
+
       initComponent : function() {
 
         var me = this;
@@ -537,76 +552,88 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
         }
       },
 
+      processResponse : function(response) {
+        var me = this;
+
+        for (var sKey in response["result"]) {
+
+          me.textualFields[sKey] = {};
+          me.textualFields[sKey].value = response["result"][sKey][1];
+
+          // special treatment of the case JobName
+          if (sKey == "JobName") {
+
+            me.textualFields[sKey].value = me.textualFields[sKey].value + '_' + GLOBAL.USER_CREDENTIALS.username + '_' + Math.floor(Math.random() * 1000001);
+
+          }
+
+          if (parseInt(response["result"][sKey][0], 10) == 1) {
+
+            me.textualFields[sKey].mandatory = true;
+
+            me.textualFields[sKey].object = new Ext.create('Ext.form.field.Text', {
+                  fieldLabel : sKey,
+                  anchor : '100%',
+                  labelAlign : 'left',
+                  value : me.textualFields[sKey].value,
+                  name : sKey
+                });
+
+          } else {
+
+            me.textualFields[sKey].mandatory = false;
+
+            me.btnAddParameters.menu.add({
+                  xtype : 'menucheckitem',
+                  text : sKey,
+                  relatedCmbField : sKey,
+                  checked : false,
+                  handler : function(item, e) {
+
+                    var me = this;
+
+                    if (item.checked)
+                      me.__createJdlField(item.relatedCmbField);
+                    else
+                      me.__destroyJdlField(item.relatedCmbField);
+
+                  },
+                  scope : me
+                });
+
+          }
+
+          me.fsetJdlSection.add(me.textualFields[sKey].object);
+
+        }
+
+        me.__createPrededinedSetsTree(response["predefinedSets"]);
+
+      },
+
       setUpParametersAndPredefinedConfig : function() {
 
         var me = this;
 
-        Ext.Ajax.request({
-              url : GLOBAL.BASE_URL + 'JobLaunchpad/getLaunchpadOpts',
-              method : 'POST',
-              success : function(response) {
+        if ( typeof me.launcher.oResponse == "undefined"){
 
-                var response = Ext.JSON.decode(response.responseText);
+          Ext.Ajax.request({
+                url : GLOBAL.BASE_URL + 'JobLaunchpad/getLaunchpadOpts',
+                method : 'POST',
+                success : function(response) {
 
-                for (var sKey in response["result"]) {
+                  var response = Ext.JSON.decode(response.responseText);
 
-                  me.textualFields[sKey] = {};
-                  me.textualFields[sKey].value = response["result"][sKey][1];
+                  me.processResponse(response);
 
-                  // special treatment of the case JobName
-                  if (sKey == "JobName") {
-
-                    me.textualFields[sKey].value = me.textualFields[sKey].value + '_' + GLOBAL.USER_CREDENTIALS.username + '_' + Math.floor(Math.random() * 1000001);
-
-                  }
-
-                  if (parseInt(response["result"][sKey][0], 10) == 1) {
-
-                    me.textualFields[sKey].mandatory = true;
-
-                    me.textualFields[sKey].object = new Ext.create('Ext.form.field.Text', {
-                          fieldLabel : sKey,
-                          anchor : '100%',
-                          labelAlign : 'left',
-                          value : me.textualFields[sKey].value,
-                          name : sKey
-                        });
-
-                  } else {
-
-                    me.textualFields[sKey].mandatory = false;
-
-                    me.btnAddParameters.menu.add({
-                          xtype : 'menucheckitem',
-                          text : sKey,
-                          relatedCmbField : sKey,
-                          checked : false,
-                          handler : function(item, e) {
-
-                            var me = this;
-
-                            if (item.checked)
-                              me.__createJdlField(item.relatedCmbField);
-                            else
-                              me.__destroyJdlField(item.relatedCmbField);
-
-                          },
-                          scope : me
-                        });
-
-                  }
-
-                  me.fsetJdlSection.add(me.textualFields[sKey].object);
-
+                },
+                failure : function(response) {
+                  me.showProxyStatus('neutral');
                 }
-
-                me.__createPrededinedSetsTree(response["predefinedSets"]);
-
-              },
-              failure : function(response) {
-                me.showProxyStatus('neutral');
-              }
-            });
+              });
+        } else {
+          me.processResponse(me.launcher.oResponse);
+        }
       },
 
       __createPrededinedSetsTree : function(oPredefinedSets) {
@@ -626,7 +653,9 @@ Ext.define('DIRAC.JobLaunchpad.classes.JobLaunchpad', {
 
           me.predefinedSetsTreeStore = Ext.create('Ext.data.TreeStore', {
                 proxy : {
-                  type : 'localstorage'
+                  type : 'localstorage',
+                  // A unique ID is now required
+                  id : 'Available Sets'
                 },
                 root : {
                   text : 'Available Sets'
