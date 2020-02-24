@@ -537,9 +537,9 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
         if (GLOBAL.APP.configData.configuration.hasOwnProperty('FileCatalog') && GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar) {
           var items = GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar.replace(/, /g, ',').split(',');
           for (var i = 0; i < items.length; i++) {
-            const element = items[i];
+            var element = items[i];
             pagingToolbarItems.push(me.pagingToolbar.hasOwnProperty(element) ? me.pagingToolbar[element] : element);
-          } 
+          }
         } else {
           pagingToolbarItems = [me.pagingToolbar.btnGrouping, me.pagingToolbar.btnSaveFile, me.pagingToolbar.btnShowQuery, '-', '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-'];
         }
