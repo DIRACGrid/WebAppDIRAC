@@ -12,6 +12,8 @@ from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
 from WebAppDIRAC.Lib.CompilerHelper import CompilerHelper
 from DIRAC.Core.Utilities.Decorators import deprecated
 
+__RCSID__ = "$Id$"
+
 
 class Compiler(object):
 

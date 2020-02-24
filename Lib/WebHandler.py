@@ -1,29 +1,29 @@
-import requests
+import sys
 import ssl
-import functools
-import types
 import json
+import types
+import functools
 import traceback
 import tornado.web
-import tornado.ioloop
 import tornado.gen
-import tornado.stack_context
+import tornado.ioloop
 import tornado.websocket
-import sys
+import tornado.stack_context
 
 from concurrent.futures import ThreadPoolExecutor
 
-from DIRAC import gLogger
-from DIRAC.Core.Utilities.Decorators import deprecated
-from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Security import Properties
-from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC.Core.DISET.AuthManager import AuthManager
+from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.Core.Utilities.Decorators import deprecated
+from DIRAC.Core.Utilities.JEncode import encode
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
+from DIRAC.Resources.IdProvider.IdProviderFactory import IdProviderFactory
 
-from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
+from WebAppDIRAC.Lib.SessionData import SessionData
 
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
@@ -44,7 +44,7 @@ class WErr(tornado.web.HTTPError):
 
   @classmethod
   def fromSERROR(cls, result):
-    # Prevent major fuckups with % in the message
+    """ Prevent major problem with % in the message """
     return cls(500, result['Message'].replace("%", ""))
 
 
@@ -88,9 +88,8 @@ class WebHandler(tornado.web.RequestHandler):
   # Helper function to create threaded gen.Tasks with automatic callback and execption handling
   @deprecated("Only for Tornado 4.x.x and DIRAC v6r20")
   def threadTaskOld(self, method, *args, **kwargs):
-    """
-    Helper method to generate a gen.Task and automatically call the callback when the real
-    method ends. THIS IS SPARTAAAAAAAAAA. SPARTA has improved using futures ;)
+    """ Helper method to generate a gen.Task and automatically call the callback when the real
+        method ends. THIS IS SPARTAAAAAAAAAA. SPARTA has improved using futures ;)
     """
     # Save the task to access the runner
     genTask = False
@@ -139,8 +138,7 @@ class WebHandler(tornado.web.RequestHandler):
     return wrapper
 
   def __init__(self, *args, **kwargs):
-    """
-    Initialize the handler
+    """ Initialize the handler
     """
     super(WebHandler, self).__init__(*args, **kwargs)
     if not WebHandler.__log:
@@ -156,10 +154,8 @@ class WebHandler(tornado.web.RequestHandler):
     self.__sessionData = SessionData(self.__credDict, self.__setup)
 
   def __processCredentials(self):
+    """ Extract the user credentials based on the certificate or what comes from the balancer
     """
-    Extract the user credentials based on the certificate or what comes from the balancer
-    """
-
     if not self.request.protocol == "https":
       return
 
@@ -237,8 +233,9 @@ class WebHandler(tornado.web.RequestHandler):
       pass
 
   def _request_summary(self):
-    """
-    Return a string returning the summary of the request
+    """ Return a string returning the summary of the request
+
+        :return: str
     """
     summ = super(WebHandler, self)._request_summary()
     cl = []
@@ -277,8 +274,11 @@ class WebHandler(tornado.web.RequestHandler):
     return self.__sessionData.getData()
 
   def actionURL(self, action=""):
-    """
-    Given an action name for the handler, return the URL
+    """ Given an action name for the handler, return the URL
+
+        :param str action: action
+
+        :return: str
     """
     if action == "index":
       action = ""
@@ -295,12 +295,13 @@ class WebHandler(tornado.web.RequestHandler):
     return self.URLSCHEMA % ats
 
   def __auth(self, handlerRoute, group, method):
-    """
-    Authenticate request
-    :param str handlerRoute: the name of the handler
-    :param str group: DIRAC group
-    :param str method: the name of the method
-    :return: bool
+    """ Authenticate request
+    
+        :param str handlerRoute: the name of the handler
+        :param str group: DIRAC group
+        :param str method: the name of the method
+
+        :return: bool
     """
     userDN = self.getUserDN()
     if group:
@@ -333,10 +334,10 @@ class WebHandler(tornado.web.RequestHandler):
     return ok
 
   def isTrustedHost(self, dn):
-    """
-    Check if the request coming from a TrustedHost
-    :param str dn: certificate DN
-    :return: bool if the host is Trusrted it return true otherwise false
+    """ Check if the request coming from a TrustedHost
+        :param str dn: certificate DN
+
+        :return: bool if the host is Trusrted it return true otherwise false
     """
     retVal = Registry.getHostnameForDN(dn)
     if retVal['OK']:
@@ -346,8 +347,13 @@ class WebHandler(tornado.web.RequestHandler):
     return False
 
   def __checkPath(self, setup, group, route):
-    """
-    Check the request, auth, credentials and DISET config
+    """ Check the request, auth, credentials and DISET config
+
+        :param str setup: setup name
+        :param str group: group name
+        :param str route: route
+
+        :return: WOK()/WErr()
     """
     if route[-1] == "/":
       methodName = "index"
