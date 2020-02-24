@@ -41,7 +41,8 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
           }, {
             name : 'UserDN'
           }, {
-            name : 'UserGroup'
+            name : 'UserGroup',
+            type : 'auto'
           }, {
             name : 'ExpirationTime',
             type : 'date',
@@ -117,7 +118,8 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
               proxy : oProxy,
               fields : me.dataFields,
               groupField : 'UserName',
-              scope : me
+              scope : me,
+              remoteSort : false
             });
 
         var pagingToolbar = null;
