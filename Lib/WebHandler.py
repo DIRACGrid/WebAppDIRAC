@@ -416,9 +416,8 @@ class WebHandler(tornado.web.RequestHandler):
     ID = self.getID()
     if ID:
       self.__disetConfig.setID(ID)
-    group = self.getUserGroup()
-    if group:
-      self.__disetConfig.setGroup(group)
+    if self.getUserGroup():
+      self.__disetConfig.setGroup(self.getUserGroup())
     self.__disetConfig.setSetup(setup)
     self.__disetDump = self.__disetConfig.dump()
 
