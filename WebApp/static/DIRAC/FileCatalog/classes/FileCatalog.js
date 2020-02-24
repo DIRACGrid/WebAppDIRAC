@@ -536,7 +536,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
         var pagingToolbarItems = [];
         if (GLOBAL.APP.configData.configuration.hasOwnProperty('FileCatalog') && GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar) {
           var items = GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar.replace(/, /g, ',').split(',');
-          for (let i = 0; i < items.length; i++) {
+          for (var i = 0; i < items.length; i++) {
             const element = items[i];
             pagingToolbarItems.push(me.pagingToolbar.hasOwnProperty(element) ? me.pagingToolbar[element] : element);
           } 

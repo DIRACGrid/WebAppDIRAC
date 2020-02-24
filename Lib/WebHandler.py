@@ -416,6 +416,7 @@ class WebHandler(tornado.web.RequestHandler):
     ID = self.getID()
     if ID:
       self.__disetConfig.setID(ID)
+    # pylint: disable=no-value-for-parameter
     if self.getUserGroup():
       self.__disetConfig.setGroup(self.getUserGroup())
     self.__disetConfig.setSetup(setup)
