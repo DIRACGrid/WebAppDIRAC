@@ -38,12 +38,9 @@ class SpaceOccupancyHandler(WebHandler):
   @asyncGen
   def web_getSpaceOccupancyData(self):
 
-    requestParams = self.__requestParams()
-    gLogger.info(requestParams)
-
     rmc = ResourceManagementClient()
 
-    res = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache, None, requestParams['token'])
+    res = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache, None, self.__requestParams())
 
     if not res['OK']:
       raise WErr.fromSERROR(res)
@@ -91,14 +88,9 @@ class SpaceOccupancyHandler(WebHandler):
       but it can be certainly more complex.
     '''
 
-    gLogger.always("!!!  PARAMS: ", str(self.request.arguments))
+    gLogger.debug("!!!  PARAMS: ", str(self.request.arguments))
 
-    responseParams = {
-        'token': None,
-    }
-
-    for key in responseParams:
-      if key in self.request.arguments and str(self.request.arguments[key][-1]):
-        responseParams[key] = list(json.loads(self.request.arguments[key][-1]))
-
-    return responseParams
+    if 'StorageElement' in self.request.arguments:
+      se = list(json.loads(self.request.arguments['StorageElement'][-1]))
+      return se
+    return None
