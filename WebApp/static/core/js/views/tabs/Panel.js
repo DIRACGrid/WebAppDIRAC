@@ -117,7 +117,8 @@ Ext.define('Ext.dirac.views.tabs.Panel', {
       initComponent : function() {
         var me = this;
 
-        me.loadMask = new Ext.LoadMask(me, {
+        me.loadMask = new Ext.LoadMask({
+              target : me,
               msg : "Loading ..."
             });
 

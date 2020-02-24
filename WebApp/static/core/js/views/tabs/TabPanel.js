@@ -44,7 +44,7 @@ Ext.define('Ext.dirac.views.tabs.TabPanel', {
        
         me.callParent(arguments);
         /*
-         * me.loadMask = new Ext.LoadMask(me, { msg : "Loading ..." });
+         * me.loadMask = new Ext.LoadMask(target: me, msg : "Loading ..." });
          */
       },
       loadState : function(data) {

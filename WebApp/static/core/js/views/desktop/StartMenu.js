@@ -102,11 +102,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
         } else {
           if (item[0] == "app") {
             var oParts = item[2].split(".");
-            var sStartClass = "";
-            if (oParts.length == 2)
-              sStartClass = item[2] + ".classes." + oParts[1];
-            else
-              sStartClass = item[2];
+            var sStartClass = oParts.length == 2 ? item[2] + ".classes." + oParts[1] : item[2];
 
             return {
               text : item[1],

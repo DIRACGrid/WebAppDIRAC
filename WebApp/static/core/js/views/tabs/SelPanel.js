@@ -18,7 +18,8 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
       split : true,
       initComponent : function() {
         var me = this;
-        me.loadMask = new Ext.LoadMask(me, {
+        me.loadMask = new Ext.LoadMask({
+              target : me,
               msg : "Loading menu..."
             });
         Ext.apply(me, {
@@ -55,7 +56,7 @@ Ext.define('Ext.dirac.views.tabs.SelPanel', {
                     return;
                   }
                   /*
-                   * this.loadMask = new Ext.LoadMask(node, { msg : "Loading
+                   * this.loadMask = new Ext.LoadMask({target: node, msg : "Loading
                    * ..." });
                    */
                   var activeDesktop = GLOBAL.APP.MAIN_VIEW.getActiveDesktop(); // do
