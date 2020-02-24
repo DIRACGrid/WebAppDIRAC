@@ -1,9 +1,16 @@
+import os
+import time
+import random
+import shutil
+import zipfile
+
 from hashlib import md5
 
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -20,12 +27,84 @@ class FileCatalogHandler(WebHandler):
     self.vo = getVOForGroup(self.group)
     self.fc = FileCatalog(vo=self.vo)
 
-  '''
-    Method to read all the available fields possible for defining a query
-  '''
+  @asyncGen
+  def web_getSelectedFiles(self):
+    """ Method to get the selected file(s)
+    """
+    arguments=self.request.arguments
+    gLogger.always("getSelectedFiles: incoming arguments %s" % arguments)
+
+    # First pass: download files and check for the success
+    if "archivePath" not in arguments:
+      tmpdir = '/tmp/' + str(time.time()) + str(random.random())
+      dataMgr = DataManager(vo=self.vo)
+      lfnStr = str(arguments['path'][0])
+      if not os.path.isdir(tmpdir):
+        os.makedirs(tmpdir)
+      os.chdir(tmpdir)
+      for lfn in lfnStr.split(','):
+        gLogger.always("Data manager get file %s" % lfn)
+        last_slash = lfn.rfind("/")
+        pos_relative = lfn.find("/")
+        pos_relative = lfn.find("/", pos_relative + 1)
+        pos_relative = lfn.find("/", pos_relative + 1)
+        pos_relative = pos_relative
+        pathInZip = lfn[pos_relative:last_slash]
+        tmpPathInZip = tmpdir + pathInZip
+        gLogger.always("path in zip %s" % tmpPathInZip)
+        if not os.path.isdir(tmpPathInZip):
+          os.makedirs(tmpPathInZip)
+        result = dataMgr.getFile(str(lfn), destinationDir=str(tmpPathInZip))
+        if not result["OK"]:
+          gLogger.error("Error getting while getting files", result["Message"])
+          self.finish({"success": "false",
+                       'error': result["Message"],
+                       'lfn': lfn})
+          shutil.rmtree(tmpdir)
+          return
+
+      # make zip file
+      zipname = tmpdir.split('/')[-1] + '.zip'
+      archivePath = '/tmp/' + zipname
+      zFile = zipfile.ZipFile(archivePath, "w")
+      gLogger.always("zip file %s" % archivePath)
+      gLogger.always("start walk in tmpdir %s" % tmpdir)
+      for absolutePath, dirs, files in os.walk(tmpdir):
+        gLogger.always("absolute path %s" % absolutePath)
+        gLogger.always("files %s" % files)
+        for filename in files:
+          # relative path form tmpdir current chdir
+          pos_relative = absolutePath.find("/")
+          pos_relative = absolutePath.find("/", pos_relative + 1)
+          pos_relative = absolutePath.find("/", pos_relative + 1)
+          pos_relative = absolutePath.find("/", pos_relative + 1)
+          pos_relative = pos_relative + 1
+          relativePath = absolutePath[pos_relative:]
+          gLogger.always("relativePath %s, file %s" % (relativePath, filename))
+          zFile.write(os.path.join(absolutePath, filename))
+      zFile.close()
+      shutil.rmtree(tmpdir)
+      self.finish({"success": "true", 'archivePath': archivePath})
+
+    else:
+      # Second pass: deliver the requested archive
+      archivePath = arguments['archivePath'][0]
+      # read zip file
+      with open(archivePath, "rb") as archive:
+        data = archive.read()
+      # cleanup
+      os.remove(archivePath)
+
+      self.set_header('Content-type', 'text/plain')
+      self.set_header('Content-Length', len(data))
+      self.set_header('Content-Disposition', 'attachment; filename="' + os.path.basename(archivePath))
+
+      self.finish(data)
+
   @asyncGen
   def web_getMetadataFields(self):
-
+    """ Method to read all the available fields possible for defining a query
+    """
     self.L_NUMBER = 0
     self.S_NUMBER = 0
     result = yield self.threadTask(self.fc.getMetadataFields)
@@ -58,12 +137,10 @@ class FileCatalogHandler(WebHandler):
     gLogger.debug("getSelectorGrid: Resulting callback %s" % callback)
     self.finish({"success": "true", "result": callback})
 
-  '''
-    Method to read all the available options for a metadata field
-  '''
   @asyncGen
   def web_getQueryData(self):
-
+    """ Method to read all the available options for a metadata field
+    """
     try:
       compat = dict()
       for key in self.request.arguments:
