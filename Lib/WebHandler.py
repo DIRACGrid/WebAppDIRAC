@@ -156,7 +156,18 @@ class WebHandler(tornado.web.RequestHandler):
     self._pathResult = self.__checkPath(*pathItems[:3])
     self.overpath = pathItems[3:] and pathItems[3] or ''
     self.__sessionData = SessionData(self.__credDict, self.__setup)
+    self.__forceRefreshCS()
 
+  def __forceRefreshCS(self):
+    """ Force refresh configuration from master configuration server
+    """
+    if self.request.headers.get('X-RefreshConfiguration') == 'True':
+      self.log.debug('Initialize force refresh..')
+      if not AuthManager('').authQuery("", dict(self.__credDict), "CSAdministrator"):
+        raise WErr(401, 'Cannot initialize force refresh, request not authenticated')
+      result = gConfig.forceRefresh()
+      if not result['OK']:
+        raise WErr(501, result['Message'])
 
   def __processCredentials(self):
     """ Extract the user credentials based on the certificate or what comes from the balancer
