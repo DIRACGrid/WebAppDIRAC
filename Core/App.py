@@ -1,13 +1,13 @@
-
+import os
 import ssl
 import imp
-import os
+import sys
+import signal
 import tornado.web
+import tornado.process
 import tornado.httpserver
 import tornado.autoreload
-import tornado.process
-import signal
-import sys
+
 import DIRAC
 
 from DIRAC import gLogger, gConfig
@@ -18,11 +18,13 @@ from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
 
+__RCSID__ = "$Id$"
+
 
 class App(object):
 
-  def __init__(self):
-    self.__handlerMgr = HandlerMgr(Conf.rootURL())
+  def __init__(self, handlersLoc='WebApp.handler'):
+    self.__handlerMgr = HandlerMgr(handlersLoc, Conf.rootURL())
     self.__servers = {}
     self.log = gLogger.getSubLogger("Web")
 
@@ -137,9 +139,9 @@ class App(object):
     self.log.always("\n ====== Starting DIRAC web app ====== \n")
 
     # Load required CFG files
-    # if we have a web.cfg under etc directory we use it,
-    # otherwise we use the configuration file defined by the developer
     if not self._loadDefaultWebCFG():
+      # if we have a web.cfg under etc directory we use it, otherwise
+      # we use the configuration file defined by the developer
       self._loadWebAppCFGFiles()
     # Calculating routes
     result = self.__handlerMgr.getRoutes()
@@ -189,8 +191,8 @@ class App(object):
         if (sslprotocol in aviableProtocols):
           sslops['ssl_version'] = getattr(ssl, sslprotocol)
         else:
-          message = "%s protocol is not provided. The following protocols are provided: %s" % (
-              sslprotocol, str(aviableProtocols))
+          message = "%s protocol is not provided." % sslprotocol
+          message += "The following protocols are provided: %s" % str(aviableProtocols)
           gLogger.warn(message)
 
       self.log.debug(" - %s" % "\n - ".join(["%s = %s" % (k, sslops[k]) for k in sslops]))
