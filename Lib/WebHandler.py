@@ -274,6 +274,15 @@ class WebHandler(tornado.web.RequestHandler):
   def getUserDN(self):
     return self.__credDict.get('DN', '')
 
+  def getID(self):
+    return self.__credDict.get('ID', '')
+  
+  def getIdP(self):
+    return self.__idp
+  
+  def getSession(self):
+    return self.__session
+
   def getUserName(self):
     return self.__credDict.get('username', '')
 
@@ -284,10 +293,13 @@ class WebHandler(tornado.web.RequestHandler):
     return self.__setup
 
   def isRegisteredUser(self):
-    return self.__credDict.get('validDN', "") and self.__credDict.get('validGroup', "")
+    return self.__credDict.get('username', "") and self.__credDict.get('group', "")
 
   def getSessionData(self):
     return self.__sessionData.getData()
+  
+  def getAppSettings(self, app=None):
+    return Conf.getAppSettings(app or self.__class__.__name__.replace('Handler', '')).get('Value') or {}
 
   def actionURL(self, action=""):
     """ Given an action name for the handler, return the URL
