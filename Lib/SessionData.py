@@ -18,6 +18,7 @@ class SessionData(object):
   __groupMenu = {}
   __extensions = []
   __extVersion = "ext-6.2.0"
+  __configuration = {}
 
   @classmethod
   def setHandlers(cls, handlers):
@@ -132,24 +133,38 @@ class SessionData(object):
       cls.__extVersion = sorted(extVersionPath)[-1]
     return cls.__extVersion
 
+  @classmethod
+  def getWebConfiguration(cls):
+    """ Get WebApp configuration
+
+        :return: dict
+    """
+    result = gConfig.getOptionsDictRecursively("/WebApp")
+    if not cls.__configuration and result['OK']:
+      cls.__configuration = result['Value']
+    return cls.__configuration
+
   def getData(self):
     """ Return session data
 
         :return: dict
     """
-    data = {'menu': self.__getGroupMenu(),
+    data = {'configuration': self.getWebConfiguration(),
+            'menu': self.__getGroupMenu(),
             'user': self.__credDict,
             'validGroups': [],
+            'groupsStatuses': {},
             'setup': self.__setup,
             'validSetups': gConfig.getSections("/DIRAC/Setups")['Value'],
             'extensions': self.__extensions,
             'extVersion': self.getExtJSVersion()}
     # Add valid groups if known
-    DN = self.__credDict.get("DN", "")
-    if DN:
-      result = Registry.getGroupsForDN(DN)
+    username = self.__credDict.get("username", "")
+    if username and username != 'anonymous':
+      result = Registry.getGroupsStatusByUsername(username)  # pylint: disable=no-member
       if result['OK']:
-        data['validGroups'] = result['Value']
+        data['validGroups'] = result['Value'].keys()
+        data['groupsStatuses'] = result['Value']
     # Calculate baseURL
     baseURL = [Conf.rootURL().strip("/"),
                "s:%s" % data['setup'],
