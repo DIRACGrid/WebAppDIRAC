@@ -259,13 +259,23 @@ def SSLProrocol():
   return getCSValue("SSLProtcol", "")
 
 
+def getDefaultStaticDirs():
+  """ Get default static directories
+
+      :return: list
+  """
+  defDirs = getCSValue("DefaultStaticDirs", ['defaults', 'demo'])
+  if defDirs == ['None']:
+    return []
+  return defDirs
+
 
 def getStaticDirs():
   """ Get static directories
 
       :return: str
   """
-  return getCSValue("StaticDirs", [])
+  return list(set(getCSValue("StaticDirs", []) + getDefaultStaticDirs()))
 
 
 def getLogo():
@@ -298,3 +308,21 @@ def bugReportURL():
       :return: str
   """
   return getCSValue("bugReportURL", "")
+
+
+def getAuthNames():
+  """ Get enabled id providers
+
+      :return: S_OK(list)/S_ERROR()
+  """
+  return getCSSections("TypeAuths")
+
+
+def getAppSettings(app):
+  """ Get applications options
+
+      :param str app: application name
+
+      :return: S_OK(dict)/S_ERROR
+  """
+  return gConfig.getOptionsDictRecursively("%s/%s" % (BASECS, app))
