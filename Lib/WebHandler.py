@@ -78,6 +78,8 @@ class WebHandler(tornado.web.RequestHandler):
   URLSCHEMA = ""
   # RE to extract group and setup
   PATH_RE = None
+  # If need to use request path for declare some value/option
+  OVERPATH = False
 
   def threadTask(self, method, *args, **kwargs):
     if tornado.version < '5.0.0':
@@ -150,8 +152,11 @@ class WebHandler(tornado.web.RequestHandler):
     self.__disetConfig.setDecorator(self.__disetBlockDecor)
     self.__disetDump = self.__disetConfig.dump()
     match = self.PATH_RE.match(self.request.path)
-    self._pathResult = self.__checkPath(*match.groups())
+    pathItems = match.groups()
+    self._pathResult = self.__checkPath(*pathItems[:3])
+    self.overpath = pathItems[3:] and pathItems[3] or ''
     self.__sessionData = SessionData(self.__credDict, self.__setup)
+
 
   def __processCredentials(self):
     """ Extract the user credentials based on the certificate or what comes from the balancer
@@ -378,7 +383,7 @@ class WebHandler(tornado.web.RequestHandler):
 
     return WOK(methodName)
 
-  def get(self, setup, group, route):
+  def get(self, setup, group, route, overpath=None):
     if not self._pathResult.ok:
       raise self._pathResult
     methodName = "web_%s" % self._pathResult.data
@@ -390,6 +395,9 @@ class WebHandler(tornado.web.RequestHandler):
     return mObj()
 
   def post(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
+
+  def delete(self, *args, **kwargs):
     return self.get(*args, **kwargs)
 
   def write_error(self, status_code, **kwargs):
@@ -411,6 +419,10 @@ class WebHandler(tornado.web.RequestHandler):
     self.set_header('Content-Type', cType)
     self.finish(data)
 
+  def finishJEncode(self, o):
+    """ Encode data before finish
+    """
+    self.finish(encode(o))
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
 
