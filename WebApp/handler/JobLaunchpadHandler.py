@@ -1,8 +1,10 @@
+import pprint
 import tempfile
 
 from DIRAC import gConfig, gLogger
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -10,10 +12,32 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 class JobLaunchpadHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
+  defaultParams = {"JobName":         [1, "DIRAC"],
+                   "Executable":      [1, "/bin/ls"],
+                   "Arguments":       [1, "-ltrA"],
+                   "OutputSandbox":   [1, "std.out, std.err"],
+                   "JobGroup":        [0, "Unknown"],
+                   "InputData":       [0, ""],
+                   "OutputData":      [0, ""],
+                   "OutputSE":        [0, "DIRAC-USER"],
+                   "OutputPath":      [0, ""],
+                   "CPUTime":         [0, "86400"],
+                   "Site":            [0, ""],
+                   "BannedSite":      [0, ""],
+                   "Platform":        [0, "Linux_x86_64_glibc-2.5"],
+                   "Priority":        [0, "5"],
+                   "StdError":        [0, "std.err"],
+                   "StdOutput":       [0, "std.out"],
+                   "Parameters":      [0, "0"],
+                   "ParameterStart":  [0, "0"],
+                   "ParameterStep":   [0, "1"],
+                   "ParameterFactor": [0, "0"]}
 
   def __init__(self, *args, **kwargs):
     super(JobLaunchpadHandler, self).__init__(*args, **kwargs)
     sessionData = self.getSessionData()
+    for opt, value in (self.getAppSettings().get("Options") or {}).items():
+      self.defaultParams[opt] = value.replace(', ', ',').split(',')
     self.user = sessionData['user'].get('username', '')
     self.group = sessionData['user'].get('group', '')
     self.vo = getVOForGroup(self.group)
@@ -33,14 +57,14 @@ class JobLaunchpadHandler(WebHandler):
     if group == "visitor":
       return {"success": "false", "error": "User is anonymous or is not registered in the system"}
 
-    userDN = str(userData["user"]["DN"])
+    userName = str(userData["user"]["username"])
 
     defaultSeconds = 24 * 3600 + 60  # 24H + 1min
     validSeconds = gConfig.getValue("/Registry/DefaultProxyLifeTime", defaultSeconds)
 
-    gLogger.info("\033[0;31m userHasProxy(%s, %s, %s) \033[0m" % (userDN, group, validSeconds))
+    gLogger.info("\033[0;31m userHasProxy(%s, %s, %s) \033[0m" % (userName, group, validSeconds))
 
-    result = proxyManager.userHasProxy(userDN, group, validSeconds)
+    result = proxyManager.userHasProxy(userName, group, validSeconds)
 
     if result["OK"]:
       if result["Value"]:
@@ -70,82 +94,33 @@ class JobLaunchpadHandler(WebHandler):
     gLogger.info("end __getPlatform")
     return platform
 
-  def __getOptionsFromCS(self, path="/WebApp/Launchpad/Options", delimiter=","):
-    gLogger.info("start __getOptionsFromCS")
+  @asyncGen
+  def web_getLaunchpadSetupWithLFNs(self):
+    """ Method obtain launchpad setup with pre-selected LFNs as input data parameter,
+        the caller js client will use setup to open an new Launchpad
+    """
+    # On the fly file catalog for advanced launchpad
+    if not hasattr(self, 'fc'):
+      userData = self.getSessionData()
+      group = str(userData["user"]["group"])
+      vo = getVOForGroup(group)
+      self.fc = FileCatalog(vo=vo)
 
-    result = gConfig.getOptionsDict(path)
+    self.set_header('Content-type', 'text/plain')
+    arguments = self.request.arguments
+    gLogger.always("submit: incoming arguments %s to getLaunchpadSetupWithLFNs" % arguments)
+    lfnList = str(arguments['path'][0]).split(',')
 
-    gLogger.always(result)
-    if not result["OK"]:
-      return []
+    ptlfn = ''
+    for lfn in lfnList:
+      ptlfn += (', ' + lfn) if ptlfn else lfn
 
-    options = result["Value"]
-    for i in options.keys():
-      options[i] = options[i].split(delimiter)
+    params = self.defaultParams.copy()
+    params["InputData"] = [1, ptlfn]
 
-    result = gConfig.getSections(path)
-    if result["OK"]:
-      sections = result["Value"]
-
-    if len(sections) > 0:
-      for i in sections:
-        options[i] = self.__getOptionsFromCS(path + '/' + i, delimiter)
-
-    gLogger.always("options: %s" % options)
-    gLogger.info("end __getOptionsFromCS")
-    return options
-
-  def web_getLaunchpadOpts(self):
-
-    defaultParams = {"JobName": [1, 'DIRAC'],
-                     "Executable": [1, "/bin/ls"],
-                     "Arguments": [1, "-ltrA"],
-                     "OutputSandbox": [1, "std.out, std.err"],
-                     "JobGroup": [0, "Unknown"],
-                     "InputData": [0, ""],
-                     "OutputData": [0, ""],
-                     "OutputSE": [0, "DIRAC-USER"],
-                     "OutputPath": [0, ""],
-                     "CPUTime": [0, "86400"],
-                     "Site": [0, ""],
-                     "BannedSite": [0, ""],
-                     "Platform": [0, "Linux_x86_64_glibc-2.12"],
-                     "Priority": [0, "5"],
-                     "StdError": [0, "std.err"],
-                     "StdOutput": [0, "std.out"],
-                     "Parameters": [0, "0"],
-                     "ParameterStart": [0, "0"],
-                     "ParameterStep": [0, "1"],
-                     "ParameterFactor": [0, "0"]}
-
-    delimiter = gConfig.getValue("/WebApp/Launchpad/ListSeparator", ',')
-    options = self.__getOptionsFromCS(delimiter=delimiter)
-#     platform = self.__getPlatform()
-#     if platform and options:
-#       if not options.has_key("Platform"):
-#         options[ "Platform" ] = platform
-#       else:
-#         csPlatform = list(options[ "Platform" ])
-#         allPlatforms = csPlatform + platform
-#         platform = uniqueElements(allPlatforms)
-#         options[ "Platform" ] = platform
-    gLogger.debug("Combined options from CS: %s" % options)
-    gLogger.info("end __getLaunchpadOpts")
-
-#    Updating the default values from OptionsOverride configuration branch
-
-    for key in options:
-      if key not in defaultParams:
-        defaultParams[key] = [0, ""]
-      defaultParams[key][1] = options[key][0]
-
-#    Reading of the predefined sets of launchpad parameters values
-
-    obj = Operations(vo=self.vo)
+    obj = Operations(vo=vo)
     predefinedSets = {}
-
     launchpadSections = obj.getSections("Launchpad")
-    import pprint
     if launchpadSections['OK']:
       for section in launchpadSections["Value"]:
         predefinedSets[section] = {}
@@ -154,7 +129,21 @@ class JobLaunchpadHandler(WebHandler):
         if sectionOptions['OK']:
           predefinedSets[section] = sectionOptions["Value"]
 
-    self.write({"success": "true", "result": defaultParams, "predefinedSets": predefinedSets})
+    self.write({"success": "true", "result": params, "predefinedSets": predefinedSets})
+
+  def web_getLaunchpadOpts(self):
+    # Reading of the predefined sets of launchpad parameters values
+    obj = Operations(vo=self.vo)
+    predefinedSets = {}
+    launchpadSections = obj.getSections("Launchpad")
+    if launchpadSections['OK']:
+      for section in launchpadSections["Value"]:
+        predefinedSets[section] = {}
+        sectionOptions = obj.getOptionsDict("Launchpad/" + section)
+        pprint.pprint(sectionOptions)
+        if sectionOptions['OK']:
+          predefinedSets[section] = sectionOptions["Value"]
+    self.write({"success": "true", "result": self.defaultParams, "predefinedSets": predefinedSets})
 
   def __canRunJobs(self):
     data = self.getSessionData()
@@ -166,7 +155,6 @@ class JobLaunchpadHandler(WebHandler):
 
   @asyncGen
   def web_jobSubmit(self):
-
     # self.set_header('Content-type', "text/html")  # Otherwise the browser would offer you to download a JobSubmit file
     if not self.__canRunJobs():
       self.finish({"success": "false", "error": "You are not allowed to run the jobs"})
@@ -177,9 +165,8 @@ class JobLaunchpadHandler(WebHandler):
       return
 
     jdl = ""
-    params = {}
     lfns = []
-
+    params = {}
     for tmp in self.request.arguments:
       try:
         if len(self.request.arguments[tmp][0]) > 0:
@@ -192,18 +179,18 @@ class JobLaunchpadHandler(WebHandler):
         pass
     for item in params:
       if item == "OutputSandbox":
-        jdl = jdl + str(item) + " = {" + str(params[item]) + "};"
+        jdl += str(item) + " = {" + str(params[item]) + "};"
       if item == "Parameters":
         try:
           parameters = int(params[item])
-          jdl = jdl + str(item) + " = \"" + str(parameters) + "\";"
+          jdl += str(item) + " = \"" + str(parameters) + "\";"
         except BaseException:
           parameters = str(params[item])
           if parameters.find("{") >= 0 and parameters.find("}") >= 0:
             parameters = parameters.rstrip("}")
             parameters = parameters.lstrip("{")
             if len(parameters) > 0:
-              jdl = jdl + str(item) + " = {" + parameters + "};"
+              jdl += str(item) + " = {" + parameters + "};"
             else:
               self.finish({"success": "false", "error": "Parameters vector has zero length"})
               return
@@ -212,7 +199,7 @@ class JobLaunchpadHandler(WebHandler):
                          "error": "Parameters must be an integer or a vector. Example: 4 or {1,2,3,4}"})
             return
       else:
-        jdl = jdl + str(item) + " = \"" + str(params[item]) + "\";"
+        jdl += str(item) + " = \"" + str(params[item]) + "\";"
 
     store = []
     for key in self.request.files:
@@ -248,13 +235,12 @@ class JobLaunchpadHandler(WebHandler):
         exception_counter = 1
         callback = {"success": "false", "error": "An EXCEPTION happens during saving your sandbox file(s): %s" % str(x)}
 
+    sndBox = ""
     if ((len(fileNameList) > 0) or (len(lfns) > 0)) and exception_counter == 0:
-      sndBox = "InputSandbox = {\"" + "\",\"".join(fileNameList + lfns) + "\"};"
-    else:
-      sndBox = ""
+      sndBox = "InputSandbox = {\"" + "\",\"".join(fileNameList + lfns) + "\"};"      
 
     if exception_counter == 0:
-      jdl = jdl + sndBox
+      jdl += sndBox
       from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
 
       jobManager = WMSClient(useCertificates=True, timeout=1800)

@@ -18,9 +18,14 @@ class SessionData(object):
   __groupMenu = {}
   __extensions = []
   __extVersion = "ext-6.2.0"
+  __configuration = {}
 
   @classmethod
   def setHandlers(cls, handlers):
+    """ Set handlers
+
+        :param dict handlers: handlers
+    """
     cls.__handlers = {}
     for k in handlers:
       handler = handlers[k]
@@ -39,12 +44,11 @@ class SessionData(object):
     self.__setup = setup
 
   def __isGroupAuthApp(self, appLoc):
-    """
-    The method checks if the application is authorized for a certain user group
+    """ The method checks if the application is authorized for a certain user group
 
-    :param str appLoc It is the application name for example: DIRAC.JobMonitor
-    :return bool if the handler is authorized to the user returns True otherwise False
-
+        :param str appLoc It is the application name for example: DIRAC.JobMonitor
+        
+        :return bool -- if the handler is authorized to the user returns True otherwise False
     """
     handlerLoc = "/".join(List.fromChar(appLoc, ".")[1:])
     if not handlerLoc:
@@ -59,8 +63,12 @@ class SessionData(object):
     return auth.authQuery("", dict(self.__credDict), handler.AUTH_PROPS)
 
   def __generateSchema(self, base, path):
-    """
-    Generate a menu schema based on the user credentials
+    """ Generate a menu schema based on the user credentials
+
+        :param str base: base
+        :param str path: path
+
+        :return: list
     """
     # Calculate schema
     schema = []
@@ -87,8 +95,11 @@ class SessionData(object):
     return schema
 
   def __getGroupMenu(self):
-    """
-    Load the schema from the CS and filter based on the group
+    """ Load the schema from the CS and filter based on the group
+
+        :param dict cfg: dictionary with current configuration
+
+        :return: list
     """
     # Somebody coming from HTTPS and not with a valid group
     group = self.__credDict.get("group", "")
@@ -100,10 +111,18 @@ class SessionData(object):
 
   @classmethod
   def getWebAppPath(cls):
+    """ Get WebApp path
+
+        :return: str
+    """
     return os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "WebApp")
 
   @classmethod
   def getExtJSVersion(cls):
+    """ Get ExtJS version
+
+        :return: str
+    """
     if not cls.__extVersion:
       extPath = os.path.join(cls.getWebAppPath(), "static", "extjs")
       extVersionPath = []
@@ -114,20 +133,38 @@ class SessionData(object):
       cls.__extVersion = sorted(extVersionPath)[-1]
     return cls.__extVersion
 
+  @classmethod
+  def getWebConfiguration(cls):
+    """ Get WebApp configuration
+
+        :return: dict
+    """
+    result = gConfig.getOptionsDictRecursively("/WebApp")
+    if not cls.__configuration and result['OK']:
+      cls.__configuration = result['Value']
+    return cls.__configuration
+
   def getData(self):
-    data = {'menu': self.__getGroupMenu(),
+    """ Return session data
+
+        :return: dict
+    """
+    data = {'configuration': self.getWebConfiguration(),
+            'menu': self.__getGroupMenu(),
             'user': self.__credDict,
             'validGroups': [],
+            'groupsStatuses': {},
             'setup': self.__setup,
             'validSetups': gConfig.getSections("/DIRAC/Setups")['Value'],
             'extensions': self.__extensions,
             'extVersion': self.getExtJSVersion()}
     # Add valid groups if known
-    DN = self.__credDict.get("DN", "")
-    if DN:
-      result = Registry.getGroupsForDN(DN)
+    username = self.__credDict.get("username", "")
+    if username and username != 'anonymous':
+      result = Registry.getGroupsStatusByUsername(username)  # pylint: disable=no-member
       if result['OK']:
-        data['validGroups'] = result['Value']
+        data['validGroups'] = result['Value'].keys()
+        data['groupsStatuses'] = result['Value']
     # Calculate baseURL
     baseURL = [Conf.rootURL().strip("/"),
                "s:%s" % data['setup'],

@@ -49,7 +49,7 @@ Ext.define('DIRAC.ApplicationWizard.classes.ApplicationWizard', {
           var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
           me.launcher.width = oDimensions[0];
-          me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar.getHeight();
+          me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
 
           me.launcher.x = 0;
           me.launcher.y = 0;

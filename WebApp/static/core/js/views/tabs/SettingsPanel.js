@@ -89,17 +89,17 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
       /**
        * Helper function to submit authentication flow and read status of it
        */
-      auth : function(AuthType) {
+      auth : function(AuthType){
         Ext.Ajax.request({
-          url: GLOBAL.BASE_URL + 'Authentication/auth',
-          params: {
-            typeauth: AuthType
-          },
-          success: function(response) {
-            if (!response.status == 200) {
-              return GLOBAL.APP.CF.alert(response.statusText, 'error');
-            } else {
-              var result = Ext.decode(response.responseText);
+            url: GLOBAL.BASE_URL + 'Authentication/auth',
+            params: {
+              typeauth: AuthType
+            },
+            success: function(response){
+              if (!response.status == 200) {
+                return GLOBAL.APP.CF.alert(response.statusText, 'error');
+              } else {
+                var result = Ext.decode(response.responseText);
               if (!result.OK) {
                 return GLOBAL.APP.CF.alert("Authentication was ended with error: \n" + result.Message, 'error');
               } else if (result.Value.Action == 'reload') {
@@ -110,12 +110,12 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
                 } else {
                   authorizationURL = result.Value.URL;
                   session = result.Value.Session;
-                  
-                  //Open popup
+
+                  // Open popup
                   GLOBAL.APP.CF.log("debug", 'Open authorization URL: "' + authorizationURL + '"');
                   var oAuthReqWin = open(authorizationURL, "popupWindow", "hidden=yes,height=570,width=520,scrollbars=yes,status=yes");
                   oAuthReqWin.focus();
-                  
+
                   // Send request to redirect URL about success authorization
                   Ext.get("app-dirac-loading").show();
                   Ext.get("app-dirac-loading-msg").setHtml("Waiting when authentication will be finished...");
@@ -124,31 +124,33 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
                     if (r==='closed') {
                       return Ext.Ajax.request({
                         url: GLOBAL.BASE_URL + 'Authentication/waitOAuthStatus',
-                        params: { 
+                        params: {
                           typeauth: AuthType,
                           session: session
                         },
                         async: false,
                         success: function(response) {
-                          var msg, title;
-                          var icon = Ext.Msg.INFO;
-                          var result = Ext.decode(response.responseText);
+                          var msg, title = 'Authentication error.',
+                              icon = Ext.Msg.INFO,
+                              result = Ext.decode(response.responseText);
                           if (!result.OK) {
                             icon = Ext.Msg.ERROR;
-                            title = 'Authentication error.';
                             msg = result.Message.replace(/\n/g, "<br>");
                           } else {
                             title = 'Authenticated successfully.';
                             msg = result.Value.Comment ? result.Value.Comment.replace(/\n/g, "<br>") : "";
                             if (result.Value.Status == 'failed') {
                               icon = Ext.Msg.ERROR;
-                              title = 'Authentication error.';
                             } else if (result.Value.Status == 'authed') {
                               return location.protocol = "https:";
                             } else if (result.Value.Status == 'visitor') {
                               msg = 'You have permissions as Visitor.\n' + msg;
                             } else if (result.Value.Status == 'authed and reported') {
                               msg = 'Admins was notified about you.\n' + msg;
+                            } else {
+                              icon = Ext.Msg.ERROR;
+                              title = 'Authentication error.';
+                              msg = 'Authentication thread discontinued.\n' + msg;
                             }
                           }
                           // Hide load icon
@@ -208,7 +210,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
       },
 
       // Generate list of login buttons
-      getListAuth : function() { 
+      getListAuth : function() {
         req = Ext.Ajax.request({
           url: GLOBAL.BASE_URL + 'Authentication/getAuthNames',
           async: false
@@ -222,7 +224,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
 
       addAuthsButton : function() {
         var me = this;
-        
+
         // Generate list of login buttons
         var oListAuth = me.getListAuth();
         var currentAuth = Ext.util.Cookies.get('TypeAuth');
@@ -238,13 +240,9 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
             text : 'Log in (switch to https://)',
             handler: function() {location.protocol = "https:";}
           });
+        // HTTPS
+        // Log in section
         } else {
-          if (Array.isArray(oListAuth) || (currentAuth == "Visitor")) {
-            button_usrname.menu.push({
-              xtype: 'tbtext',
-              text : 'Log in:'
-            });
-          }
           // List of IdPs
           for (var i = 0; i < oListAuth.length; i++) {
             if (oListAuth[i] != currentAuth) {
@@ -273,46 +271,58 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
             button_usrname.menu.push();
           }
         }
-        
-        // If the user is registered
+
         if (GLOBAL.APP.configData.user.username) {
+          /**
+           * If the user is registered
+           */
           button_usrname.text = GLOBAL.APP.configData["user"]["username"];
-        }  
+        };
         return new Ext.button.Button(button_usrname);
 
       },
 
-      addGroupsButton : function() {
-        var me = this;
-
-        var button_data = {
+      addGroupsButton : function(){
+        var button_group = {
           "text" : GLOBAL.APP.configData["user"]["group"],
           "menu" : []
         };
 
-        for (var i = 0; i < GLOBAL.APP.configData["validGroups"].length; i++)
-          button_data.menu.push({
-                text : GLOBAL.APP.configData["validGroups"][i],
+        for (var i = 0; i < Object.keys(GLOBAL.APP.configData["groupsStatuses"]).length; i++) {
+          if (Object.values(GLOBAL.APP.configData["groupsStatuses"])[i]['Status'] == 'ready') {
+            button_group.menu.push({
+              text : Object.keys(GLOBAL.APP.configData["groupsStatuses"])[i],
                 handler : function() {
-
                   var me = this;
-
                   var oHref = location.href;
-
                   var oQPosition = oHref.indexOf("?");
-
                   if (oQPosition != -1) {
-
                     location.href = oHref.substr(0, oQPosition) + 'changeGroup?to=' + me.text;
                   } else {
-
                     location.href = oHref + 'changeGroup?to=' + me.text;
                   }
-
                 }
               });
-        return new Ext.button.Button(button_data);
-      },
+            } else {
+              button_group.menu.push({
+                title : Object.values(GLOBAL.APP.configData["groupsStatuses"])[i]['Status'],
+                msg : Object.values(GLOBAL.APP.configData["groupsStatuses"])[i]['Comment'],
+                text : Object.keys(GLOBAL.APP.configData["groupsStatuses"])[i],
+                iconCls : 'dirac-icon-logout',
+                handler : function() {
+                  Ext.Msg.show({
+                    closeAction: 'destroy',
+                    title: this.title,
+                    message: this.msg,
+                    icon: Ext.Msg.INFO
+                  });
+                }
+              });
+            };
+          };
+
+          return new Ext.button.Button(button_group);
+        },
       addSetupButton : function() {
         var setup_data = {
           "text" : GLOBAL.APP.configData["setup"],
@@ -343,10 +353,10 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
 
         if (GLOBAL.WEB_THEME == "classic")
           sButtonThemeText = "Classic";
-        
+
         if (GLOBAL.WEB_THEME == "triton")
           sButtonThemeText = "Triton";
-        
+
         if (GLOBAL.WEB_THEME == "gray")
           sButtonThemeText = "Gray";
 
@@ -425,7 +435,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
         }
         return new Ext.button.Button(button_views);
       },
-      
+
       getDesktopSettingsPanel : function() {
         var me = this;
         return me.desktopSettings;

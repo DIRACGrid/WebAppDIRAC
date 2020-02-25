@@ -33,7 +33,7 @@ class HandlerMgr(object):
     self.__baseURL = baseURL.strip("/")
     if sysService and not isinstance(sysService, list):
       sysService = sysService.replace(' ', '').split(',')
-    self.__sysService = sysService
+    self.__sysServices = sysService
     self.__routes = []
     self.__handlers = []
     self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w.-]*))?"
@@ -73,8 +73,8 @@ class HandlerMgr(object):
     """
     ol = ObjectLoader()
     hendlerList = []
-    self.log.debug(" self.__sysService: %s" % str(self.__sysService))
-    for origin in self.__sysService:
+    self.log.debug("Added services: %s" % ','.join(self.__sysServices))
+    for origin in self.__sysServices:
       result = ol.getObjects(origin, parentClass=WebHandler, recurse=True)
       if not result['OK']:
         return result

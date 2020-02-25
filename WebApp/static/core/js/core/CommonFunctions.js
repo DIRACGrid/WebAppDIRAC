@@ -191,10 +191,10 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
         }
         return sVal;
       },
-      msg : function(type, message, autoClose = null) {
+      msg : function(type, message, autoClose) {
         var me = this;
 
-        if (message == null)
+        if (message === undefined)
           return;
 
         message = message.replace(new RegExp("\n", 'g'), "<br/>");
@@ -212,7 +212,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           case "Notification" :
             config = {
-              autoClose : autoClose === null ? true : autoClose,
+              autoClose : autoClose === undefined ? true : autoClose,
               title : 'Notification',
               position : 'tl',
               manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
@@ -225,7 +225,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           case "Error Notification" :
             config = {
-              autoClose : autoClose === null ? false : autoClose,
+              autoClose : autoClose === undefined ? false : autoClose,
               title : 'Error Notification',
               position : 'tl',
               manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
@@ -238,7 +238,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           case "info" :
             config = {
-              autoClose : autoClose === null ? true : autoClose,
+              autoClose : autoClose === undefined ? true : autoClose,
               title : 'Notification',
               position : 'tl',
               manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
@@ -251,7 +251,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           case "Error" :
             config = {
-              autoClose : autoClose === null ? false : autoClose,
+              autoClose : autoClose === undefined ? false : autoClose,
               title : 'Error Notification',
               position : 'tl',
               manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),
@@ -264,7 +264,7 @@ Ext.define('Ext.dirac.core.CommonFunctions', {
 
           default :
             config = {
-              autoClose : autoClose === null ? false : autoClose,
+              autoClose : autoClose === undefined ? false : autoClose,
               title : 'Error Notification',
               position : 'tl',
               manager : (GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null),

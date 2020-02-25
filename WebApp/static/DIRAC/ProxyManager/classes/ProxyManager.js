@@ -41,7 +41,8 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
           }, {
             name : 'UserDN'
           }, {
-            name : 'UserGroup'
+            name : 'UserGroup',
+            type : 'auto'
           }, {
             name : 'ExpirationTime',
             type : 'date',
@@ -117,7 +118,8 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
               proxy : oProxy,
               fields : me.dataFields,
               groupField : 'UserName',
-              scope : me
+              scope : me,
+              remoteSort : false
             });
 
         var pagingToolbar = null;
@@ -172,7 +174,9 @@ Ext.define('DIRAC.ProxyManager.classes.ProxyManager', {
             },
             "renderer" : function(value, metadata, record, rowIndex, colIndex, store) {
               var expEpoch = record.data.ExpirationTime.getTime();
+              /* eslint-disable */
               var nowEpoch = Ext.Date.now();
+              /* eslint-enable */
               var secsLeft = expEpoch - nowEpoch;
 
               var msDay = 60 * 60 * 24 * 1000;

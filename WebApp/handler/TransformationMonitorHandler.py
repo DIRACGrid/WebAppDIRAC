@@ -266,7 +266,7 @@ class TransformationMonitorHandler(WebHandler):
           resList.append((status, str(count), percent))
         resList.append(('Total', total, '-'))
         callback = {"success": "true", "result": resList}
-    gLogger.info("#######", res)
+    gLogger.debug("#######", res)
     return callback
 
   ################################################################################
@@ -274,7 +274,7 @@ class TransformationMonitorHandler(WebHandler):
     callback = {}
     tsClient = TransformationClient()
     res = tsClient.getTransformationInputDataQuery(prodid)
-    gLogger.info("-= #######", res)
+    gLogger.debug("-= #######", res)
     if not res['OK']:
       callback = {"success": "false", "error": res["Message"]}
     else:
@@ -341,7 +341,6 @@ class TransformationMonitorHandler(WebHandler):
         callback = {"success": "false", "error": "Nothing to display"}
     else:
       callback = {"success": "false", "error": result["Message"]}
-    gLogger.info("PRODUCTION LOG:", id)
     return callback
 
   ################################################################################
@@ -363,7 +362,7 @@ class TransformationMonitorHandler(WebHandler):
           resList.append((status, str(count), percent))
         resList.append(('Total', total, '-'))
         callback = {"success": "true", "result": resList}
-    gLogger.info("#######", res)
+    gLogger.debug("#######", res)
     return callback
 
   ################################################################################
@@ -381,7 +380,7 @@ class TransformationMonitorHandler(WebHandler):
         callback = {"success": "true", "result": res['Value']}
       else:
         callback = {"success": "false", "error": "Production does not have parameter 'DetailedInfo'"}
-    gLogger.info("#######", res)
+    gLogger.debug("#######", res)
     return callback
 
   ################################################################################
@@ -403,7 +402,7 @@ class TransformationMonitorHandler(WebHandler):
     else:
       resString = "%s failed to extend: %s" % (transid, res["Message"])
     callback = {"success": "true", "showResult": [resString], "result": resString}
-    gLogger.info("#######", res)
+    gLogger.debug("#######", res)
     return callback
 
   ################################################################################
@@ -563,5 +562,5 @@ class TransformationMonitorHandler(WebHandler):
 
     if 'date' in self.request.arguments and len(self.request.arguments["date"][0]) > 0:
       req["LastUpdate"] = str(self.request.arguments["date"][0])
-    gLogger.info("REQUEST:", req)
+    gLogger.verbose("REQUEST:", req)
     return req
