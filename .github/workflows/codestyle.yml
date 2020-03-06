@@ -12,6 +12,15 @@ jobs:
           curl -O http://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
           npm install @sencha_eslint-plugin-extjs.7.0.0.tgz --save-dev
           node_modules/.bin/eslint WebApp
+
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - run: |
+          npm install --save-dev --save-exact prettier
+          prettier --check WebApp
+
   pyLint:
     runs-on: ubuntu-latest
     strategy:
