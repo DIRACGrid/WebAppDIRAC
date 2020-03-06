@@ -4,7 +4,7 @@ from DIRAC import gLogger
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping import getGOCSiteName, getDIRACSiteName
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.Core.Utilities.Plotting.FileCoding import codeRequestInFileId
-from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSiteComputingElements
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getSitesCEsMapping
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 
 from WebAppDIRAC.Lib.WebHandler import asyncGen
@@ -173,7 +173,10 @@ class SiteSummaryHandler(ResourceSummaryHandler):
 
     elementName = requestParams['name'][0]
 
-    computing_elements = getSiteComputingElements(elementName)
+    res = getSitesCEsMapping()
+    if not res['OK']:
+      return res
+    computing_elements = res['Value'][elementName]
     computing_elements_status = []
     gLogger.info('computing_elements = ' + str(computing_elements))
 
