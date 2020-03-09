@@ -10,12 +10,7 @@ Ext.define("Ext.dirac.core.App", {
     fileLoader: "Ext.dirac.utils.DiracFileLoad"
   },
 
-  requires: [
-    "Ext.container.Viewport",
-    "Ext.window.MessageBox",
-    "Ext.dirac.core.CommonFunctions",
-    "Ext.dirac.core.StateManagement"
-  ],
+  requires: ["Ext.container.Viewport", "Ext.window.MessageBox", "Ext.dirac.core.CommonFunctions", "Ext.dirac.core.StateManagement"],
 
   /**
    * @property {boolean} isReady
@@ -46,10 +41,7 @@ Ext.define("Ext.dirac.core.App", {
               true
             );
           }
-          var s = Ext.String.format.apply(
-            String,
-            Array.prototype.slice.call(arguments, 1)
-          );
+          var s = Ext.String.format.apply(String, Array.prototype.slice.call(arguments, 1));
           var m = Ext.DomHelper.append(msgCt, createBox(title, s), true);
           m.hide();
           m.slideIn("t").ghost("t", {
@@ -169,8 +161,7 @@ Ext.define("Ext.dirac.core.App", {
   __readValidApplication: function() {
     var me = this;
 
-    for (var i = 0; i < me.configData["menu"].length; i++)
-      me.__getAppRecursivelyFromConfig(GLOBAL.APP.configData["menu"][i]);
+    for (var i = 0; i < me.configData["menu"].length; i++) me.__getAppRecursivelyFromConfig(GLOBAL.APP.configData["menu"][i]);
   },
 
   /**
@@ -221,16 +212,12 @@ Ext.define("Ext.dirac.core.App", {
       paths: {}
     };
 
-    oConfig["paths"]["Ext.dirac.views." + GLOBAL.VIEW_ID] =
-      "static/core/js/views/" + GLOBAL.VIEW_ID;
+    oConfig["paths"]["Ext.dirac.views." + GLOBAL.VIEW_ID] = "static/core/js/views/" + GLOBAL.VIEW_ID;
 
     Ext.Loader.setConfig(oConfig);
 
     Ext.require("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", function() {
-      me.MAIN_VIEW = Ext.create(
-        "Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main",
-        {}
-      );
+      me.MAIN_VIEW = Ext.create("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", {});
 
       me.viewport = new Ext.container.Viewport({
         layout: "fit",
