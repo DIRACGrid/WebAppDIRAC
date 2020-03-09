@@ -1,8 +1,8 @@
 /*******************************************************************************
  * It creates an Dirac specific ArrayStore. It can be used to see the different
  * in a grid panel.
- * 
- * 
+ *
+ *
  * <pre>
  * var dataStore = Ext.create(&quot;Ext.dirac.utils.DiracArrayStore&quot;, {
  *       fields : [&quot;key&quot;, &quot;value&quot;, &quot;code&quot;, &quot;color&quot;],
@@ -13,7 +13,7 @@
  *       scope : me
  *     });
  * </pre>
- * 
+ *
  * The dataStore is used by {@link Ext.dirac.utils.DiracGridPanel} oDiffFields
  * has two keys. The Id is the row identifier while the Fields a list which
  * contains a list of columns... -scope: it is a pointer to the application.
