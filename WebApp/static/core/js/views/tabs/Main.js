@@ -67,15 +67,9 @@ Ext.define('Ext.dirac.views.tabs.Main', {
       },
       constructor : function(config) {
         var me = this;
-        // //////////////////////////HACK TO BE
-        // REMOVED///////////////////////////
-        me.taskbar = {};
-        me.taskbar.getHeight = function() {
-          return 0;
-        }// hack
-        // ///////////////////////////END///////////////////////////
         me.rightContainer = Ext.create('Ext.dirac.views.tabs.RightContainer');
-        me.loadRightContainer = new Ext.LoadMask(me.rightContainer, {
+        me.loadRightContainer = new Ext.LoadMask({
+              target : me.rightContainer,
               msg : "Loading desktops and applications...",
               iCode : 1
             });
@@ -85,7 +79,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.leftConatiner = Ext.create('Ext.dirac.views.tabs.LeftContainer', {
               menu : menu
             });
-        me.loadleftContainer = new Ext.LoadMask(me.leftConatiner, {
+        me.loadleftContainer = new Ext.LoadMask({
+              target : me.leftConatiner,
               msg : "Loading menu ...",
               iCode : 1
             });
@@ -631,11 +626,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         } else {
           if (item[0] == "app") {
             var oParts = item[2].split(".");
-            var sStartClass = "";
-            if (oParts.length == 2)
-              sStartClass = item[2] + ".classes." + oParts[1];
-            else
-              sStartClass = item[2];
+            var sStartClass = oParts.length == 2 ? item[2] + ".classes." + oParts[1] : item[2];
             me.applications.push(sStartClass); // we have to save a list of
             // applications which can
             // used.
@@ -862,12 +853,7 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         if (loadedObjectType == "app") {
 
           var oParts = moduleName.split(".");
-          var sStartClass = "";
-
-          if (oParts.length == 2)
-            sStartClass = moduleName + ".classes." + oParts[1];
-          else
-            sStartClass = moduleName;
+          var sStartClass = oParts.length == 2 ? moduleName + ".classes." + oParts[1] : moduleName;
 
           // if the development mod is off, we set up diffrent path to
           // load javascript

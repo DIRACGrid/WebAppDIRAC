@@ -1,7 +1,9 @@
-
 import urlparse
 import tornado.web
+
 from WebAppDIRAC.Lib import Conf
+
+__RCSID__ = "$Id$"
 
 
 class CoreHandler(tornado.web.RequestHandler):

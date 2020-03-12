@@ -27,6 +27,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.log.exception("No op defined")
 
     res = False
+    if params["op"] == "forceRefresh":
+      self.log.info('Initialize force refresh..')
+      res = gConfig.forceRefresh(fromMaster=True)
     if params["op"] == "init":
       res = yield self.threadTask(self.__getRemoteConfiguration, "init")
     elif params["op"] == "getSubnodes":

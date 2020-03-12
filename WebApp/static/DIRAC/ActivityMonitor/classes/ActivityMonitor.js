@@ -729,7 +729,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                           oNode = oNode.parentNode;
                         }
 
-                        var sType = oNode.raw.text;
+                        var sType = oNode.data.text;
 
                         me.restrictByFieldCreator.store.add({
                               "value" : me.viewDefinitionData[sType].value,
@@ -772,7 +772,7 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
                 beforeitemcontextmenu : function(oView, oNode, item, index, e, eOpts) {
 
                   e.preventDefault();
-                  if (oNode.raw.id != "root") {
+                  if (oNode.data.id != "root") {
                     me.contextTreeMenu.node = oNode;
                     me.contextTreeMenu.showAt(e.getXY());
                   }
@@ -1378,8 +1378,8 @@ Ext.define('DIRAC.ActivityMonitor.classes.ActivityMonitor', {
         var sPath = "";
         var oCopyRefNode = oNode;
         while (oCopyRefNode) {
-          if (oCopyRefNode.raw.id)
-            sPath = "/" + oCopyRefNode.raw.id + sPath;
+          if (oCopyRefNode.data.id)
+            sPath = "/" + oCopyRefNode.data.id + sPath;
           else
             break;
           oCopyRefNode = oCopyRefNode.parentNode;

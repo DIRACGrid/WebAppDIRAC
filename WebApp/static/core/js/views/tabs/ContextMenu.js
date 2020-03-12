@@ -266,7 +266,7 @@ Ext.define('Ext.dirac.views.tabs.ContextMenu', {
                       // the selected menu item is an application
                       if (me.oSelectedMenuItem.data.type == "app") {
                         //if the desktop is empty it means the application is belongs to the default desktop.
-                        if (me.oSelectedMenuItem.data.desktop == "" || me.oSelectedMenuItem.data.desktop === undefined) { // 
+                        if (me.oSelectedMenuItem.data.desktop == "" || me.oSelectedMenuItem.data.desktop === undefined) {
                           GLOBAL.APP.MAIN_VIEW.SM.deleteState(me.oSelectedMenuItem.data.application, me.oSelectedMenuItem.data.text, function(returnCode, appName, stateType, stateName) {
                                 GLOBAL.APP.MAIN_VIEW.removeNodeFormDefaultDesktop(me.oSelectedMenuItem.data.text);
                                 GLOBAL.APP.MAIN_VIEW.closeApplication(me.oSelectedMenuItem.data.desktop, me.oSelectedMenuItem.data.text); //close the application

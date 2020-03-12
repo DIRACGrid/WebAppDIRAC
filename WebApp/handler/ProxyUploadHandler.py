@@ -3,6 +3,7 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.FrameworkSystem.Client import ProxyUpload
 from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC import gLogger
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getGroupsForDN
 
 
 class ProxyUploadHandler(WebHandler):
@@ -31,8 +32,7 @@ class ProxyUploadHandler(WebHandler):
       return
 
     groupList = userData["validGroups"]
-    groups = ", ".join(groupList)
-    gLogger.info("Available groups for the user %s: %s" % (username, groups))
+    gLogger.info("Available groups for the user %s: %s" % (username, ", ".join(groupList)))
 
     if not len(groupList) > 0:
       gLogger.error("User is not registered in any group")
@@ -137,74 +137,40 @@ class ProxyUploadHandler(WebHandler):
         self.finish({"success": "false", "error": error})
         return
 
-    for group in groupList:
-      #         gLogger.info("Uploading proxy for group: %s" % group)
-      #         cmd = "cat %s | dirac-proxy-init -U -g %s -C %s -K %s -p" % (key["pem"],group,key["pub"],key["private"])
-      #         result = result = yield self.threadTask(Subprocess.shellCall,900,cmd)
-      #         gLogger.debug("Command is: %s" % cmd)
-      #         gLogger.debug("Result is: %s" % result)
-      #         gLogger.info("Command is: %s" % cmd)
-      #         gLogger.info("Result is: %s" % result)
-      #
-      #         if not result[ 'OK' ]:
-      #           shutil.rmtree(storePath)
-      #           error = "".join(result["Message"])
-      #           gLogger.error(error)
-      #           if len(resultList) > 0:
-      #             success = "\nHowever some operations has finished successfully:\n"
-      #             success = success + "\n".join(resultList)
-      #             error = error + success
-      #           error = error + disclaimer
-      #           gLogger.debug("Service response: %s" % error)
-      #           self.finish({"success":"false","error":error})
-      #           return
-      #         code = result["Value"][0]
-      #         stdout = result["Value"][1]
-      #         error = result["Value"][2]
-      #         if len(error) > 0:
-      #           error = error.replace(">","")
-      #           error = error.replace("<","")
-      #         if not code == 0:
-      #           if len(resultList) > 0:
-      #             success = "\nHowever some operations has finished successfully:\n"
-      #             success = success + "\n".join(resultList)
-      #             error = error + success
-      #           error = error + disclaimer
-      #           gLogger.debug("Service response: %s" % error)
-      #           self.finish({"success":"false","error":error})
-      #           return
-      #         resultList.append(stdout)
-      proxyChain = X509Chain()
+    proxyChain = X509Chain()
 
-      result = proxyChain.loadChainFromFile(keyDict["pub"])
+    result = proxyChain.loadChainFromFile(keyDict["pub"])
+    if not result['OK']:
+      self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
+      return
 
-      if not result['OK']:
-        self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
-        return
+    result = proxyChain.getIssuerCert()
+    if not result['OK']:
+      self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
+      return
+    issuerCert = result['Value']
 
-      result = proxyChain.getIssuerCert()
+    upParams = ProxyUpload.CLIParams()
+    upParams.onTheFly = True
+    upParams.proxyLifeTime = issuerCert.getRemainingSecs()['Value'] - 300
+    upParams.certLoc = keyDict["pub"]
+    upParams.keyLoc = keyDict["private"]
+    upParams.userPasswd = pemPassword
+    result = ProxyUpload.uploadProxy(upParams)
 
-      if not result['OK']:
-        self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
-        return
-      issuerCert = result['Value']
+    if not result['OK']:
+      self.finish({"error": result['Message'], "success": "false"})
+      return
 
-      upParams = ProxyUpload.CLIParams()
-
-      upParams.onTheFly = True
-      upParams.proxyLifeTime = issuerCert.getRemainingSecs()['Value'] - 300
-      upParams.diracGroup = group
-      upParams.certLoc = keyDict["pub"]
-      upParams.keyLoc = keyDict["private"]
-      upParams.userPasswd = pemPassword
-      result = ProxyUpload.uploadProxy(upParams)
-
-      if not result['OK']:
-        self.finish({"error": result['Message'], "success": "false"})
-        return
     shutil.rmtree(storePath)
 
-    groups = ", ".join(groupList)
+    result = issuerCert.getSubjectDN()
+    if result['OK']:
+      result = getGroupsForDN(result['Value'])
+    if not result['OK']:
+      self.finish({"error": result['Message'], "success": "false"})
+      return
+    groups = ", ".join(result['Value'])
     result = "Operation finished successfully\n"
     result += "Proxy uploaded for user: %s \n" % username
     if len(groupList) > 0:
