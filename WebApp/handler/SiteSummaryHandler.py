@@ -1,14 +1,17 @@
+""" Get Site Summary page content
+"""
+
 import json
 
 from DIRAC import gLogger
-from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping import getGOCSiteName, getDIRACSiteName
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.Core.Utilities.Plotting.FileCoding import codeRequestInFileId
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getSitesCEsMapping
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getSiteCEMapping, getGOCSiteName, getDIRACSiteName
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 
 from WebAppDIRAC.Lib.WebHandler import asyncGen
 from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import ResourceSummaryHandler
+
 
 class SiteSummaryHandler(ResourceSummaryHandler):
 
@@ -173,7 +176,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
 
     elementName = requestParams['name'][0]
 
-    res = getSitesCEsMapping()
+    res = getSiteCEMapping()
     if not res['OK']:
       return res
     computing_elements = res['Value'][elementName]
