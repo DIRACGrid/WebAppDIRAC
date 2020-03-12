@@ -1,179 +1,194 @@
-Ext.define('DIRAC.ComponentHistory.classes.ComponentHistory', {
-  extend : 'Ext.dirac.core.Module',
+Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
+  extend: "Ext.dirac.core.Module",
 
-  requires :
-    ["Ext.dirac.utils.DiracGridPanel", "Ext.dirac.utils.DiracPagingToolbar",
-     "Ext.dirac.utils.DiracApplicationContextMenu","Ext.dirac.utils.DiracBaseSelector","Ext.dirac.utils.DiracAjaxProxy"],
+  requires: [
+    "Ext.dirac.utils.DiracGridPanel",
+    "Ext.dirac.utils.DiracPagingToolbar",
+    "Ext.dirac.utils.DiracApplicationContextMenu",
+    "Ext.dirac.utils.DiracBaseSelector",
+    "Ext.dirac.utils.DiracAjaxProxy"
+  ],
 
-     loadState : function(data) {
+  loadState: function(data) {
+    var me = this;
 
-       var me = this;
+    me.grid.loadState(data);
 
-       me.grid.loadState(data);
+    me.leftPanel.loadState(data);
 
-       me.leftPanel.loadState(data);
+    if (data.leftPanelCollapsed) {
+      if (data.leftPanelCollapsed) me.leftPanel.collapse();
+    }
+  },
 
-       if (data.leftPanelCollapsed) {
+  getStateData: function() {
+    var me = this;
+    var oReturn = {};
 
-         if (data.leftPanelCollapsed)
-           me.leftPanel.collapse();
+    // data for grid columns
+    oReturn.grid = me.grid.getStateData();
+    // show/hide for selectors and their selected data (including NOT
+    // button)
+    oReturn.leftMenu = me.leftPanel.getStateData();
 
-       }
-     },
+    oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
 
-     getStateData : function() {
+    return oReturn;
+  },
+  dataFields: [
+    { name: "Name" },
+    { name: "Module" },
+    { name: "Host" },
+    { name: "System" },
+    { name: "Type" },
+    { name: "Installed" },
+    { name: "Uninstalled" },
+    { name: "InstalledBy" },
+    { name: "UninstalledBy" }
+  ],
 
-       var me = this;
-       var oReturn = {};
+  initComponent: function() {
+    var me = this;
 
-       // data for grid columns
-       oReturn.grid = me.grid.getStateData();
-       // show/hide for selectors and their selected data (including NOT
-       // button)
-       oReturn.leftMenu = me.leftPanel.getStateData();
+    if (GLOBAL.VIEW_ID == "desktop") {
+      me.launcher.title = "Component history";
+      me.launcher.maximized = false;
 
-       oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
+      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-       return oReturn;
+      me.launcher.width = oDimensions[0];
+      me.launcher.height = oDimensions[1];
 
-     },
-     dataFields : [
-       { name : 'Name' },
-       { name : 'Module' },
-       { name : 'Host' },
-       { name : 'System' },
-       { name : 'Type' },
-       { name : 'Installed' },
-       { name : 'Uninstalled' },
-       { name : 'InstalledBy' },
-       { name : 'UninstalledBy' }
-     ],
+      me.launcher.x = 0;
+      me.launcher.y = 0;
+    }
 
+    if (GLOBAL.VIEW_ID == "tabs") {
+      me.launcher.title = "Component history";
+      me.launcher.maximized = false;
 
-     initComponent : function() {
+      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-       var me = this;
+      me.launcher.width = oDimensions[0];
+      me.launcher.height = oDimensions[1];
 
-       if (GLOBAL.VIEW_ID == "desktop") {
+      me.launcher.x = 0;
+      me.launcher.y = 0;
+    }
 
-         me.launcher.title = "Component history";
-         me.launcher.maximized = false;
+    Ext.apply(me, {
+      layout: "border",
+      bodyBorder: false,
+      defaults: {
+        collapsible: true,
+        split: true
+      }
+    });
 
-         var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    me.callParent(arguments);
+  },
 
-         me.launcher.width = oDimensions[0];
-         me.launcher.height = oDimensions[1];
+  buildUI: function() {
+    var me = this;
 
-         me.launcher.x = 0;
-         me.launcher.y = 0;
+    /*
+     * -----------------------------------------------------------------------------------------------------------
+     * DEFINITION OF THE LEFT PANEL
+     * -----------------------------------------------------------------------------------------------------------
+     */
 
-       }
+    var selectors = {
+      name: "Name",
+      host: "Host",
+      system: "System",
+      module: "Module",
+      type: "Type"
+    };
 
-       if (GLOBAL.VIEW_ID == "tabs") {
+    var textFields = {};
 
-         me.launcher.title = "Component history";
-         me.launcher.maximized = false;
+    var map = [
+      ["name", "name"],
+      ["host", "host"],
+      ["system", "system"],
+      ["module", "module"],
+      ["type", "type"]
+    ];
 
-         var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
+      scope: me,
+      cmbSelectors: selectors,
+      textFields: textFields,
+      datamap: map,
+      hasTimeSearchPanel: true,
+      url: "ComponentHistory/getSelectionData"
+    });
 
-         me.launcher.width = oDimensions[0];
-         me.launcher.height = oDimensions[1];
+    /*
+     * -----------------------------------------------------------------------------------------------------------
+     * DEFINITION OF THE GRID
+     * -----------------------------------------------------------------------------------------------------------
+     */
 
-         me.launcher.x = 0;
-         me.launcher.y = 0;
+    var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
+      url: GLOBAL.BASE_URL + "ComponentHistory/getInstallationData"
+    });
 
-       }
+    me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
+      autoLoad: false,
+      proxy: oProxy,
+      fields: me.dataFields,
+      scope: me,
+      remoteSort: false,
+      autoLoad: true
+    });
 
-       Ext.apply(me, {
-         layout : 'border',
-         bodyBorder : false,
-         defaults : {
-           collapsible : true,
-           split : true
-         }
-       });
+    var pagingToolbar = {};
 
-       me.callParent(arguments);
+    pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
+      store: me.dataStore,
+      scope: me
+    });
 
-     },
+    var oColumns = {
+      Name: { dataIndex: "Name", properties: { width: 180, align: "center" } },
+      Module: {
+        dataIndex: "Module",
+        properties: { width: 180, align: "center" }
+      },
+      Host: { dataIndex: "Host", properties: { width: 180, align: "center" } },
+      System: {
+        dataIndex: "System",
+        properties: { width: 180, align: "center" }
+      },
+      Type: { dataIndex: "Type", properties: { width: 100, align: "center" } },
+      Installed: {
+        dataIndex: "Installed",
+        properties: { width: 120, align: "center" }
+      },
+      Uninstalled: {
+        dataIndex: "Uninstalled",
+        properties: { width: 120, align: "center" }
+      },
+      "Installed by": {
+        dataIndex: "InstalledBy",
+        properties: { width: 120, align: "center" }
+      },
+      "Uninstalled by": {
+        dataIndex: "UninstalledBy",
+        properties: { width: 120, align: "center" }
+      }
+    };
 
-     buildUI : function() {
+    me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
+      store: me.dataStore,
+      oColumns: oColumns,
+      pagingToolbar: pagingToolbar,
+      scope: me
+    });
 
-       var me = this;
+    me.leftPanel.setGrid(me.grid);
 
-       /*
-        * -----------------------------------------------------------------------------------------------------------
-        * DEFINITION OF THE LEFT PANEL
-        * -----------------------------------------------------------------------------------------------------------
-        */
-
-       var selectors = {
-           name : "Name",
-           host : "Host",
-           system : "System",
-           module : "Module",
-           type : "Type"
-       };
-
-       var textFields = {};
-
-       var map = [ [ "name", "name" ], [ "host", "host" ], [ "system", "system" ], [ "module", "module" ], [ "type", "type" ] ];
-
-       me.leftPanel = Ext.create('Ext.dirac.utils.DiracBaseSelector',{
-         scope : me,
-         cmbSelectors : selectors,
-         textFields : textFields,
-         datamap : map,
-         hasTimeSearchPanel : true,
-         url : "ComponentHistory/getSelectionData"
-       });
-
-       /*
-        * -----------------------------------------------------------------------------------------------------------
-        * DEFINITION OF THE GRID
-        * -----------------------------------------------------------------------------------------------------------
-        */
-
-       var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy',{
-         url : GLOBAL.BASE_URL + 'ComponentHistory/getInstallationData'
-       });
-
-       me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore",{
-         autoLoad : false,
-         proxy : oProxy,
-         fields : me.dataFields,
-         scope : me,
-         remoteSort : false,
-         autoLoad : true});
-
-       var pagingToolbar = {};
-
-       pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar",{
-         store : me.dataStore,
-         scope : me
-       });
-
-       var oColumns = {
-           "Name" : { "dataIndex" : "Name", "properties" : { "width" : 180, "align" : "center" } },
-           "Module" : { "dataIndex" : "Module", "properties" : { "width" : 180, "align" : "center" } },
-           "Host" : { "dataIndex" : "Host", "properties" : { "width" : 180, "align" : "center" } },
-           "System" : { "dataIndex" : "System", "properties" : { "width" : 180, "align" : "center" } },
-           "Type" : { "dataIndex" : "Type", "properties" : { "width" : 100, "align" : "center" } },
-           "Installed" : { "dataIndex" : "Installed", "properties" : { "width" : 120, "align" : "center" } },
-           "Uninstalled" : { "dataIndex" : "Uninstalled", "properties" : { "width" : 120, "align" : "center" } },
-           "Installed by" : { "dataIndex" : "InstalledBy", "properties" : { "width" : 120, "align" : "center" } },
-           "Uninstalled by" : { "dataIndex" : "UninstalledBy", "properties" : { "width" : 120, "align" : "center" } }
-       };
-
-       me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
-         store : me.dataStore,
-         oColumns : oColumns,
-         pagingToolbar : pagingToolbar,
-         scope : me
-       });
-
-       me.leftPanel.setGrid(me.grid);
-
-       me.add([ me.leftPanel, me.grid ]);
-     }
+    me.add([me.leftPanel, me.grid]);
+  }
 });
