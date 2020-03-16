@@ -684,8 +684,6 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           me.textFields[field].setValue("");
         }
 
-        me.oprLoadGridData();
-
       },
       /**
        * It is used to refresh the selectors.
