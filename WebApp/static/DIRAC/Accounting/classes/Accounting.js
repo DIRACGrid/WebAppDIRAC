@@ -20,12 +20,10 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
             WMSHistory : {
               title : "WMS History",
               selectionConditions : [["User", "User"], ["UserGroup", "User Group"], ["Status", "Major Status"], ["MinorStatus", "Minor Status"], ["ApplicationStatus", "Application Status"], ["Site", "Site"], ["JobGroup", "Job Group"], ["JobSplitType", "Job Split Type"]]
-
             },
             Pilot : {
               title : "Pilot",
               selectionConditions : [["User", "User"], ["UserGroup", "User Group"], ["Site", "Site"], ["GridCE", "Grid CE"], ["GridMiddleware", "Grid Middleware"], ["GridResourceBroker", "Grid Resource Broker"], ["GridStatus", "Grid Status"]]
-
             },
             PilotSubmission : {
               title : "Pilot Submission",
@@ -34,19 +32,20 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
             Network : {
               title : "Network",
               selectionConditions : [["Source", "Source Site"], ["Destination", "Destination Site"], ["SourceHostName", "Source Host"], ["DestinationHostName", "Destination Host"]]
+            },
+            StorageOccupancy : {
+              title : "Storage Occupancy",
+              selectionConditions : [["Endpoint", "Endpoint"], ["Site", "Site"], ["StorageElement", "StorageElement"]]
             }
           },
           Monitoring : {
             WMSHistory : {
               title : "WMS History",
               selectionConditions : [["User", "User"], ["UserGroup", "User Group"], ["Status", "Major Status"], ["MinorStatus", "Minor Status"], ["ApplicationStatus", "Application Status"], ["Site", "Site"], ["JobGroup", "Job Group"], ["JobSplitType", "Job Split Type"]]
-
             },
-
             ComponentMonitoring : {
               title : "Component Monitoring",
               selectionConditions : [["host", "Host"], ["component", "Component"], ["pid", "PID"], ["status", "Status"]]
-
             }
           }
 
@@ -54,7 +53,7 @@ Ext.define('DIRAC.Accounting.classes.Accounting', {
       
                 
         me.reports = {
-          Accounting: [["DataOperation", "Data Operation"], ["Job", "Job"], ["WMSHistory", "WMS History"], ["Pilot", "Pilot"], ["PilotSubmission","Pilot Submission"], ["Network", "Network"]],
+          Accounting: [["DataOperation", "Data Operation"], ["Job", "Job"], ["WMSHistory", "WMS History"], ["Pilot", "Pilot"], ["PilotSubmission","Pilot Submission"], ["Network", "Network"], ["StorageOccupancy", "Storage Occupancy"]],
           Monitoring: [["WMSHistory", "WMS Monitoring"], ["ComponentMonitoring", "Component Monitoring"]]
         };
         
