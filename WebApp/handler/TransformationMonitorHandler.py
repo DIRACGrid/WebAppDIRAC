@@ -278,9 +278,8 @@ class TransformationMonitorHandler(WebHandler):
     tsClient = TransformationClient()
 
     # FIXME: getTransformationInputDataQuery has been replaced by getTransformationMetaQuery in DIRAC v7r0
-    try:
-      res = tsClient.getTransformationMetaQuery(prodid, 'Input')
-    except:
+    res = tsClient.getTransformationMetaQuery(prodid, 'Input')
+    if not res['OK'] and 'Unknown method' in res['Message']:
       res = tsClient.getTransformationInputDataQuery(prodid)
 
     gLogger.debug("-= #######", res)
