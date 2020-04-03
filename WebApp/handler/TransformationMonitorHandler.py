@@ -1,3 +1,6 @@
+""" Handler for TransformationMonitor page
+"""
+
 import json
 
 from DIRAC import gConfig, gLogger
@@ -79,7 +82,7 @@ class TransformationMonitorHandler(WebHandler):
       result = yield self.threadTask(tsClient.getDistinctAttributeValues, "Type", {})
       if result["OK"]:
         transType = []
-        if len(result["Value"]) > 0:
+        if result["Value"]:
           for i in result["Value"]:
             transType.append([str(i)])
         else:
@@ -260,7 +263,7 @@ class TransformationMonitorHandler(WebHandler):
       if total == 0:
         callback = {"success": "false", "error": "No files found"}
       else:
-        for status in sorted(res['Value'].keys()):
+        for status in sorted(res['Value']):
           count = res['Value'][status]
           percent = "%.1f" % ((count * 100.0) / total)
           resList.append((status, str(count), percent))
@@ -286,7 +289,7 @@ class TransformationMonitorHandler(WebHandler):
     else:
       result = res["Value"]
       back = []
-      for i in sorted(result.keys()):
+      for i in sorted(result):
         back.append([i, result[i]])
       callback = {"success": "true", "result": back}
     return callback
@@ -302,7 +305,7 @@ class TransformationMonitorHandler(WebHandler):
     else:
       result = res["Value"]
       back = []
-      for i in sorted(result.keys()):
+      for i in sorted(result):
         back.append([i, result[i]])
       callback = {"success": "true", "result": back}
     return callback
@@ -362,7 +365,7 @@ class TransformationMonitorHandler(WebHandler):
       if total == 0:
         callback = {"success": "false", "error": "No files found"}
       else:
-        for status in sorted(res['Value'].keys()):
+        for status in sorted(res['Value']):
           count = res['Value'][status]
           percent = "%.1f" % ((count * 100.0) / total)
           resList.append((status, str(count), percent))
@@ -522,51 +525,51 @@ class TransformationMonitorHandler(WebHandler):
 
     if 'agentType' in self.request.arguments:
       agentType = list(json.loads(self.request.arguments["agentType"][-1]))
-      if len(agentType) > 0:
+      if agentType:
         req['agentType'] = agentType
 
     if 'status' in self.request.arguments:
       status = list(json.loads(self.request.arguments["status"][-1]))
-      if len(status) > 0:
+      if status:
         req['Status'] = status
 
     if 'plugin' in self.request.arguments:
       plugin = list(json.loads(self.request.arguments["plugin"][-1]))
-      if len(plugin) > 0:
+      if plugin:
         req["Plugin"] = plugin
 
     if 'type' in self.request.arguments:
       transtype = list(json.loads(self.request.arguments["type"][-1]))
-      if len(transtype) > 0:
+      if transtype:
         req['Type'] = transtype
 
     if 'transformationGroup' in self.request.arguments:
       group = list(json.loads(self.request.arguments["transformationGroup"][-1]))
-      if len(group) > 0:
+      if group:
         req['TransformationGroup'] = group
 
     if 'sort' in self.request.arguments:
       sort = json.loads(self.request.arguments['sort'][-1])
-      if len(sort) > 0:
+      if sort:
         self.globalSort = [["TransformationFamily", "ASC"]]
         for i in sort:
           self.globalSort += [[i['property'], i['direction']]]
     else:
       self.globalSort = [["TransformationID", "DESC"]]
 
-    if 'startDate' in self.request.arguments and len(self.request.arguments["startDate"][0]) > 0:
-      if 'startTime' in self.request.arguments and len(self.request.arguments["startTime"][0]) > 0:
+    if 'startDate' in self.request.arguments and self.request.arguments["startDate"][0]:
+      if 'startTime' in self.request.arguments and self.request.arguments["startTime"][0]:
         req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
       else:
         req["FromDate"] = str(self.request.arguments["startDate"][0])
 
-    if 'endDate' in self.request.arguments and len(self.request.arguments["endDate"][0]) > 0:
-      if 'endTime' in self.request.arguments and len(self.request.arguments["endTime"][0]) > 0:
+    if 'endDate' in self.request.arguments and self.request.arguments["endDate"][0]:
+      if 'endTime' in self.request.arguments and self.request.arguments["endTime"][0]:
         req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
       else:
         req["ToDate"] = str(self.request.arguments["endDate"][0])
 
-    if 'date' in self.request.arguments and len(self.request.arguments["date"][0]) > 0:
+    if 'date' in self.request.arguments and self.request.arguments["date"][0]:
       req["LastUpdate"] = str(self.request.arguments["date"][0])
     gLogger.verbose("REQUEST:", req)
     return req
