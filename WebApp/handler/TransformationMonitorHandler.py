@@ -273,7 +273,13 @@ class TransformationMonitorHandler(WebHandler):
   def __dataQuery(self, prodid):
     callback = {}
     tsClient = TransformationClient()
-    res = tsClient.getTransformationInputDataQuery(prodid)
+
+    # FIXME: getTransformationInputDataQuery has been replaced by getTransformationMetaQuery in DIRAC v7r0
+    try:
+      res = tsClient.getTransformationMetaQuery(prodid, 'Input')
+    except:
+      res = tsClient.getTransformationInputDataQuery(prodid)
+
     gLogger.debug("-= #######", res)
     if not res['OK']:
       callback = {"success": "false", "error": res["Message"]}
