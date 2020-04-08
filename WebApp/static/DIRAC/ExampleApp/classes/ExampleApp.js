@@ -36,192 +36,184 @@
  *    NOTE: You can see the Source by clicking on the page title: DIRAC.ExampleApp.classes.ExampleApp.
  *
  */
-Ext.define('DIRAC.ExampleApp.classes.ExampleApp', {
-  extend : 'Ext.dirac.core.Module',
+Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
+  extend: "Ext.dirac.core.Module",
 
-  requires :
-    ["Ext.dirac.utils.DiracGridPanel", "Ext.dirac.utils.DiracPagingToolbar",
-     "Ext.dirac.utils.DiracApplicationContextMenu","Ext.dirac.utils.DiracBaseSelector","Ext.dirac.utils.DiracAjaxProxy"],
+  requires: [
+    "Ext.dirac.utils.DiracGridPanel",
+    "Ext.dirac.utils.DiracPagingToolbar",
+    "Ext.dirac.utils.DiracApplicationContextMenu",
+    "Ext.dirac.utils.DiracBaseSelector",
+    "Ext.dirac.utils.DiracAjaxProxy"
+  ],
 
-     /***
-      * @param{Object} data
-      * It loads the data from the User Profile to the widget.
-      */
-     loadState : function(data) {
+  /***
+   * @param{Object} data
+   * It loads the data from the User Profile to the widget.
+   */
+  loadState: function(data) {
+    var me = this;
 
-       var me = this;
+    //loads the saved data related to the Grid Panel
+    me.grid.loadState(data);
 
-       //loads the saved data related to the Grid Panel
-       me.grid.loadState(data);
+    //it loads the selector data
+    me.leftPanel.loadState(data);
 
-       //it loads the selector data
-       me.leftPanel.loadState(data);
+    //it loads the selector panel status.
+    if (data.leftPanelCollapsed) {
+      if (data.leftPanelCollapsed) me.leftPanel.collapse();
+    }
+  },
+  /**
+   * @return{Object}
+   * It returns the data which will be saved in the User Profile.
+   */
+  getStateData: function() {
+    var me = this;
+    var oReturn = {};
 
-       //it loads the selector panel status.
-       if (data.leftPanelCollapsed) {
+    // data for grid columns
+    oReturn.grid = me.grid.getStateData();
+    // show/hide for selectors and their selected data (including NOT
+    // button)
+    oReturn.leftMenu = me.leftPanel.getStateData();
 
-         if (data.leftPanelCollapsed)
-           me.leftPanel.collapse();
+    oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
 
-       }
-     },
-     /**
-      * @return{Object}
-      * It returns the data which will be saved in the User Profile.
-      */
-     getStateData : function() {
+    return oReturn;
+  },
+  dataFields: [{ name: "ExampleId", type: "int" }, { name: "ExampleValue" }],
 
-       var me = this;
-       var oReturn = {};
+  initComponent: function() {
+    var me = this;
 
-       // data for grid columns
-       oReturn.grid = me.grid.getStateData();
-       // show/hide for selectors and their selected data (including NOT
-       // button)
-       oReturn.leftMenu = me.leftPanel.getStateData();
+    if (GLOBAL.VIEW_ID == "desktop") {
+      me.launcher.title = "Example Application";
+      me.launcher.maximized = false;
 
-       oReturn.leftPanelCollapsed = me.leftPanel.collapsed;
+      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-       return oReturn;
+      me.launcher.width = oDimensions[0];
+      me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
 
-     },
-     dataFields : [ { name : 'ExampleId', type : 'int'},{ name : 'ExampleValue'}],
+      me.launcher.x = 0;
+      me.launcher.y = 0;
+    }
 
+    if (GLOBAL.VIEW_ID == "tabs") {
+      me.launcher.title = "Example Application";
+      me.launcher.maximized = false;
 
-     initComponent : function() {
+      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-       var me = this;
+      me.launcher.width = oDimensions[0];
+      me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
 
-       if (GLOBAL.VIEW_ID == "desktop") {
+      me.launcher.x = 0;
+      me.launcher.y = 0;
+    }
 
-         me.launcher.title = "Example Application";
-         me.launcher.maximized = false;
+    Ext.apply(me, {
+      layout: "border",
+      bodyBorder: false,
+      defaults: {
+        collapsible: true,
+        split: true
+      }
+    });
 
-         var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    me.callParent(arguments);
+  },
+  /**
+   * It build the widget.
+   */
+  buildUI: function() {
+    var me = this;
 
-         me.launcher.width = oDimensions[0];
-         me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
+    /*
+     * -----------------------------------------------------------------------------------------------------------
+     * DEFINITION OF THE LEFT PANEL
+     * -----------------------------------------------------------------------------------------------------------
+     */
 
-         me.launcher.x = 0;
-         me.launcher.y = 0;
+    var selectors = {
+      firstName: "First Name",
+      lastName: "Last Name"
+    };
 
-       }
+    var textFields = {
+      ids: "PersonalId"
+    };
 
-       if (GLOBAL.VIEW_ID == "tabs") {
+    var map = [
+      ["firstName", "firstName"],
+      ["lastName", "lastName"]
+    ];
 
-         me.launcher.title = "Example Application";
-         me.launcher.maximized = false;
+    me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
+      scope: me,
+      cmbSelectors: selectors,
+      textFields: textFields,
+      datamap: map,
+      url: "ExampleApp/getSelectionData"
+    });
 
-         var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    /*
+     * -----------------------------------------------------------------------------------------------------------
+     * DEFINITION OF THE GRID
+     * -----------------------------------------------------------------------------------------------------------
+     */
 
-         me.launcher.width = oDimensions[0];
-         me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
+    var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
+      url: GLOBAL.BASE_URL + "ExampleApp/getJobData"
+    });
 
-         me.launcher.x = 0;
-         me.launcher.y = 0;
+    me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
+      proxy: oProxy,
+      fields: me.dataFields,
+      scope: me
+    });
 
-       }
+    var pagingToolbar = {};
 
-       Ext.apply(me, {
-         layout : 'border',
-         bodyBorder : false,
-         defaults : {
-           collapsible : true,
-           split : true
-         }
-       });
+    var toolButtons = {
+      Visible: [
+        { text: "", handler: me.__executeAction, arguments: ["example", ""], properties: { tooltip: "Example", iconCls: "dirac-icon-reschedule" } }
+      ]
+    };
 
-       me.callParent(arguments);
+    pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
+      toolButtons: toolButtons,
+      store: me.dataStore,
+      scope: me
+    });
 
-     },
-     /**
-      * It build the widget.
-      */
-     buildUI : function() {
+    var oColumns = {
+      ExampleId: { dataIndex: "ExampleId" },
+      ExampleValue: { dataIndex: "ExampleValue" }
+    };
 
-       var me = this;
+    var menuitems = {
+      Visible: [{ text: "Get info", handler: me.__executeAction, arguments: ["Get info"], properties: { tooltip: "Click to show...." } }]
+    };
 
-       /*
-        * -----------------------------------------------------------------------------------------------------------
-        * DEFINITION OF THE LEFT PANEL
-        * -----------------------------------------------------------------------------------------------------------
-        */
+    me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({ menu: menuitems, scope: me });
 
-       var selectors = {
-           firstName : "First Name",
-           lastName : "Last Name"
-       };
+    me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
+      store: me.dataStore,
+      oColumns: oColumns,
+      contextMenu: me.contextGridMenu,
+      pagingToolbar: pagingToolbar,
+      scope: me
+    });
 
-       var textFields = {
-           'ids' : "PersonalId"
-       };
+    me.leftPanel.setGrid(me.grid);
 
-       var map = [ [ "firstName", "firstName" ], [ "lastName", "lastName" ]];
-
-       me.leftPanel = Ext.create('Ext.dirac.utils.DiracBaseSelector',{
-         scope : me,
-         cmbSelectors : selectors,
-         textFields : textFields,
-         datamap : map,
-         url : "ExampleApp/getSelectionData"
-       });
-
-       /*
-        * -----------------------------------------------------------------------------------------------------------
-        * DEFINITION OF THE GRID
-        * -----------------------------------------------------------------------------------------------------------
-        */
-
-       var oProxy = Ext.create('Ext.dirac.utils.DiracAjaxProxy',{
-         url : GLOBAL.BASE_URL + 'ExampleApp/getJobData'
-       });
-
-       me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore",{
-         proxy : oProxy,
-         fields : me.dataFields,
-         scope: me});
-
-       var pagingToolbar = {};
-
-       var toolButtons = {
-           'Visible':[
-                      {"text":"", "handler":me.__executeAction, "arguments":["example", ""],"properties":{tooltip : "Example", iconCls : "dirac-icon-reschedule"}}
-                      ]
-       };
-
-       pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar",{
-         toolButtons : toolButtons,
-         store : me.dataStore,
-         scope : me
-       });
-
-       var oColumns = {
-           "ExampleId" : {"dataIndex" : "ExampleId"},
-           "ExampleValue" : {"dataIndex":"ExampleValue"}
-       };
-
-
-       var menuitems = {
-           'Visible':[
-                      {"text":"Get info", "handler":me.__executeAction, "arguments":["Get info"], "properties":{tooltip:'Click to show....'}}
-                      ]};
-
-       me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({menu:menuitems,scope:me});
-
-       me.grid = Ext.create('Ext.dirac.utils.DiracGridPanel', {
-         store : me.dataStore,
-         oColumns : oColumns,
-         contextMenu : me.contextGridMenu,
-         pagingToolbar : pagingToolbar,
-         scope : me
-       });
-       
-       me.leftPanel.setGrid(me.grid);
-       
-       me.add([ me.leftPanel, me.grid ]);
-     },
-     __executeAction : function(action){
-       var me = this;
-       GLOBAL.APP.CF.alert(action+" button pressed","info");
-     }
+    me.add([me.leftPanel, me.grid]);
+  },
+  __executeAction: function(action) {
+    var me = this;
+    GLOBAL.APP.CF.alert(action + " button pressed", "info");
+  }
 });
