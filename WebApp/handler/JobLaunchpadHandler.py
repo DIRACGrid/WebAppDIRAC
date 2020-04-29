@@ -137,7 +137,7 @@ class JobLaunchpadHandler(WebHandler):
     predefinedSets = {}
     launchpadSections = obj.getSections("Launchpad")
     if launchpadSections['OK']:
-      for section in launchpadSections["Value"]:
+      for section in obj.getValue("Launchpad/ApplicationList", launchpadSections["Value"]):
         predefinedSets[section] = {}
         sectionOptions = obj.getOptionsDict("Launchpad/" + section)
         pprint.pprint(sectionOptions)
