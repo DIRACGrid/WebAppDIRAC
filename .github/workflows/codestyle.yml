@@ -6,7 +6,7 @@ jobs:
   eslint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - run: |
           npm install eslint --save-dev
           curl -O http://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
@@ -21,11 +21,27 @@ jobs:
           - 2.7.13
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Prepare environment
       run: |
         conda env create -n python_${{ matrix.python }} python=${{ matrix.python }}
-        git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b integration
+
+        # get the DIRAC releases.cfg to know what to test against
+        curl -O https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/releases.cfg
+        # get the base WebApp tag (e.g. for rel-v4r0 branch it will be v4r0)
+        WebAppTag=$(echo $"{REFERENCE_BRANCH}" | echo $(sed "s/rel-//g"))
+        echo "{WebAppTag}"
+        # Now find the DIRAC release (tag) to checkout
+        for x in ${allreleases}; do
+          rel=$(echo ${x} | sed "s/\"//g" | sed "s/\]//g" | sed "s/,//g")
+          modules=$(diraccfg as-json ../DIRAC/releases.cfg | jq '.Releases' | jq ."${rel}" | jq .Modules)
+          if [[ "${modules}" == *"WebAppDIRAC:${WebAppTag}"* ]]; then
+            echo "${rel}"
+            break
+          fi
+        done
+
+        git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${rel}"
     - name: Run linter
       run: |
         source "${CONDA}/bin/activate"
