@@ -1,4 +1,4 @@
-name: dirac-development
+name: dirac-web-development
 
 channels:
   - conda-forge
