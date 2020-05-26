@@ -1,4 +1,4 @@
-name: Code quality
+name: Basic tests
 
 on: [push, pull_request]
 
@@ -14,6 +14,8 @@ jobs:
           node_modules/.bin/eslint WebApp
   pyLint:
     runs-on: ubuntu-latest
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
+
     strategy:
       fail-fast: False
       matrix:
@@ -25,13 +27,19 @@ jobs:
     - name: Prepare environment
       run: |
         conda env create -n python_${{ matrix.python }} python=${{ matrix.python }}
-
+    - name: Get DIRAC
+      run: |
+        source "${CONDA}/bin/activate"
+        conda activate python_${{ matrix.python }}
+        set -euxo pipefail
         # get the DIRAC releases.cfg to know what to test against
         curl -O https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/releases.cfg
         # get the base WebApp tag (e.g. for rel-v4r0 branch it will be v4r0)
         WebAppTag=$(echo "${REFERENCE_BRANCH}" | echo $(sed "s/rel-//g"))
         echo "${WebAppTag}"
         # Now find the DIRAC release (tag) to checkout
+        allreleases=$(diraccfg as-json releases.cfg | jq '.Releases' | diraccfg sort-versions --allow-pre-releases)
+        echo "${allreleases}"
         for x in ${allreleases}; do
           rel=$(echo ${x} | sed "s/\"//g" | sed "s/\]//g" | sed "s/,//g")
           modules=$(diraccfg as-json ../DIRAC/releases.cfg | jq '.Releases' | jq ."${rel}" | jq .Modules)
@@ -40,9 +48,10 @@ jobs:
             break
           fi
         done
-
         git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${rel}"
-    - name: Run linter
+      env:
+        REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
+    - name: Run tests
       run: |
         source "${CONDA}/bin/activate"
         conda activate python_${{ matrix.python }}
