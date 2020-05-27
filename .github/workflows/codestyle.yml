@@ -24,6 +24,13 @@ jobs:
         command:
           - tests/runPylint.sh
           - CHECK=pylintPY3K tests/runPylint.sh
+          - |
+            if [[ "${REFERENCE_BRANCH}" != "" ]]; then
+                git remote add upstream https://github.com/DIRACGrid/WebAppDIRAC.git
+                git fetch --no-tags upstream "${REFERENCE_BRANCH}"
+                git branch -vv
+                git diff -U0 "upstream/${REFERENCE_BRANCH}" | pycodestyle --diff
+            fi
 
     steps:
     - uses: actions/checkout@v2
