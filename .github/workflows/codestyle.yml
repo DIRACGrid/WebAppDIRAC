@@ -56,7 +56,7 @@ jobs:
         source "${CONDA}/bin/activate"
         conda activate python_${{ matrix.python }}
         set -euxo pipefail
-        export PYTHONPATH=${PWD%/*}
+        echo "${PWD}" > "${CONDA}/envs/python_${{ matrix.python }}/lib/python2.7/site-packages/conda.pth"
         ${{ matrix.command }}
       env:
         REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
