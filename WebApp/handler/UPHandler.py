@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import base64
 import zlib
@@ -156,7 +159,7 @@ class UPHandler(WebHandler):
       if not result['OK']:
         raise WErr.fromSERROR(result)
       if result['Value']['ReadAccess'] == 'ALL':
-        print i['UserName'], i['Group'], i
+        print(i['UserName'], i['Group'], i)
         result = yield self.threadTask(up.retrieveVarFromUser, i['UserName'], i['Group'], i['desktop'])
         if not result['OK']:
           raise WErr.fromSERROR(result)

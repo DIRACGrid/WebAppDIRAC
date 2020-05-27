@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import tempfile
 import os
 import subprocess
@@ -115,7 +119,7 @@ class Compiler(object):
       if os.path.isfile(zipPath):
         if os.stat(zipPath).st_mtime > os.stat(ePath).st_mtime:
           continue
-      print "%s%s\r" % (n, " " * (20 - len(n))),
+      print("%s%s\r" % (n, " " * (20 - len(n))))
       c += 1
       inf = gzip.open(zipPath, "wb", 9)
       with open(ePath, "rb") as outf:
@@ -200,7 +204,7 @@ class Compiler(object):
       depPath = dependency.split(".")
       for staticPath in self.__staticPaths:
         expectedJS = os.path.join(staticPath, depPath[0], depPath[1], "classes")
-        print expectedJS
+        print(expectedJS)
         if not os.path.isdir(expectedJS):
           continue
         classPath = expectedJS

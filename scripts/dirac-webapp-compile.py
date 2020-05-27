@@ -9,7 +9,7 @@ from DIRAC.Core.Base import Script
 newCompiler = False  # we have to keep the backward compatibility...
 
 from DIRAC import gLogger, S_ERROR, S_OK
-from DIRAC.FrameworkSystem.Client.WebAppCompiler import WebAppCompiler
+from DIRAC.FrameworkSystem.Client.WebAppCompiler import WebAppCompiler  # pylint: disable=no-name-in-module,import-error
 
 try:
   from WebAppDIRAC.Lib.Compiler import Compiler
