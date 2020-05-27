@@ -5,6 +5,7 @@ channels:
 
 dependencies:
   # runtime
+  - python =2.7
   - pip
   - certifi
   # testing and development
