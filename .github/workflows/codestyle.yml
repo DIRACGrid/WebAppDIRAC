@@ -18,8 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - run: |
-          npm install --save-dev --save-exact prettier
-          node_modules/.bin/prettier --check "WebApp/static/**/*.js"
+          npm install --save-dev --save-exact prettier@1.19.1
+          node_modules/.bin/prettier --check WebApp/static/**/*.js
 
   pyLint:
     runs-on: ubuntu-latest
