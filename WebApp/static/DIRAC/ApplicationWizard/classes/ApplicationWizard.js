@@ -79,24 +79,6 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
         name: "Image url",
         type: "originalText"
       },
-
-      initComponent : function() {
-
-        var me = this;
-
-        if (GLOBAL.VIEW_ID == "desktop") {
-
-          me.launcher.title = "Application Wizard";
-          me.launcher.maximized = false;
-
-          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-          me.launcher.width = oDimensions[0];
-          me.launcher.height = oDimensions[1];
-
-          me.launcher.x = 0;
-          me.launcher.y = 0;
-
       title: {
         name: "Title",
         type: "originalText",
@@ -114,18 +96,6 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
       collapseDirection: "left"
     });
 
-        if (GLOBAL.VIEW_ID == "tabs") {
-
-          me.launcher.title = "Application Wizard";
-          me.launcher.maximized = false;
-
-          var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-          me.launcher.width = oDimensions[0];
-          me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
-
-          me.launcher.x = 0;
-          me.launcher.y = 0;
     // Buttons at the bottom of the panel
     var leftPanelButtons = new Ext.create("Ext.toolbar.Toolbar", {
       dock: "bottom",
