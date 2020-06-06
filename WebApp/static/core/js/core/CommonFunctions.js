@@ -10,7 +10,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
 
   messages: [],
 
-  getFieldValueFromSelectedRow: function (oGrid, oFieldName) {
+  getFieldValueFromSelectedRow: function(oGrid, oFieldName) {
     var oVal = "";
     if (oGrid) {
       var oSelectedRecords = oGrid.getSelectionModel().getSelection();
@@ -20,11 +20,11 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     return oVal;
   },
 
-  getSelectedRecords: function (oGrid) {
+  getSelectedRecords: function(oGrid) {
     return oGrid.getSelectionModel().getSelection();
   },
 
-  doubleItemValue: function (oList) {
+  doubleItemValue: function(oList) {
     for (var i = 0; i < oList.length; i++) oList[i] = [oList[i], oList[i]];
 
     return oList;
@@ -35,7 +35,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
    *
    * @param {text} text
    */
-  copyToClipboard: function (text) {
+  copyToClipboard: function(text) {
     var me = this;
     var textArea = document.createElement("textarea");
 
@@ -129,7 +129,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       msg: sMessage,
       icon: icon,
       buttonText: btns,
-      fn: function (oButton) {
+      fn: function(oButton) {
         if (oButton == "cancel") {
           // copy
           if (me.copyToClipboard(sMessage)) {
@@ -207,7 +207,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
    * @param{Object} loggedObject An object what we want to log in the
    *                debugger of the browser.
    */
-  log: function (logLevel, message, loggedObject) {
+  log: function(logLevel, message, loggedObject) {
     var config = null;
 
     if (loggedObject) {
@@ -224,7 +224,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     Ext.log(config, message);
     // </debug>
   },
-  zfill: function (number, zeros) {
+  zfill: function(number, zeros) {
     if (zeros > 0) {
       var str = "";
       nbzeros = zeros - number.toString().length;
@@ -236,7 +236,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       return number;
     }
   },
-  getSelectedValue: function (oGrid) {
+  getSelectedValue: function(oGrid) {
     var sVal = "";
     var oSelectedRecords = oGrid.getSelectionModel().getSelection();
 
@@ -248,7 +248,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     }
     return sVal;
   },
-  msg: function (type, message, autoClose) {
+  msg: function(type, message, autoClose) {
     var me = this;
 
     if (message === undefined) return;
@@ -330,12 +330,12 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     }
 
     var notificationobj = Ext.create("widget.uxNotification", config);
-    notificationobj.on("beforeclose", function (notification) {
+    notificationobj.on("beforeclose", function(notification) {
       Ext.Array.remove(me.messages, notification.message);
     });
     notificationobj.show();
   },
-  showAjaxErrorMessage: function (response) {
+  showAjaxErrorMessage: function(response) {
     var me = this;
 
     if (response.statusText == "transaction aborted") return;
@@ -372,7 +372,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       }
     }
   },
-  chunkString: function (str, chunksize) {
+  chunkString: function(str, chunksize) {
     return str.match(new RegExp("[\\s\\S]{1," + +chunksize + "}", "g"));
   },
 });
