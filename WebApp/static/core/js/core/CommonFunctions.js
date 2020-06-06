@@ -92,7 +92,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     return done;
   },
 
-  alert: function(sMessage, sType, btnCopy=true) {
+  alert: function(sMessage, sType, btnCopy = true) {
     var me = this,
       btns = { yes: "OK" };
 
@@ -142,7 +142,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         } else if (oButton == "yes") {
           // agree and ignore
         }
-      },
+      }
     });
   },
 
@@ -158,7 +158,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     Done: "#238802",
     Failed: "#FF0000",
     failed: "#FF0000",
-    Killed: "#111111",
+    Killed: "#111111"
   },
 
   job_minor_status_palette: {
@@ -195,7 +195,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     "Socket read timeout exceeded": "#B400FE",
     Stalled: "#FF655E",
     "Uploading Job Outputs": "#FE8420",
-    "Watchdog identified this job as stalled": "#FFCC99",
+    "Watchdog identified this job as stalled": "#FFCC99"
   },
   /*************************************************************************
    * It uses the browser provided infrastructure to log the message. It is
@@ -213,11 +213,11 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     if (loggedObject) {
       config = {
         level: logLevel,
-        dump: loggedObject,
+        dump: loggedObject
       };
     } else {
       config = {
-        level: logLevel,
+        level: logLevel
       };
     }
     // <debug>
@@ -274,7 +274,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           stickWhileHover: false,
           iconCls: "ux-notification-icon-information",
           html: message,
-          message: message,
+          message: message
         };
         break;
 
@@ -286,7 +286,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           manager: GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null,
           iconCls: "ux-notification-icon-error",
           html: message,
-          message: message,
+          message: message
         };
 
         break;
@@ -300,7 +300,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           stickWhileHover: false,
           iconCls: "ux-notification-icon-information",
           html: message,
-          message: message,
+          message: message
         };
         break;
 
@@ -312,7 +312,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           manager: GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null,
           iconCls: "ux-notification-icon-error",
           html: message,
-          message: message,
+          message: message
         };
 
         break;
@@ -325,7 +325,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           manager: GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null,
           iconCls: "ux-notification-icon-error",
           html: message,
-          message: message,
+          message: message
         };
     }
 
@@ -374,5 +374,5 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   },
   chunkString: function(str, chunksize) {
     return str.match(new RegExp("[\\s\\S]{1," + +chunksize + "}", "g"));
-  },
+  }
 });
