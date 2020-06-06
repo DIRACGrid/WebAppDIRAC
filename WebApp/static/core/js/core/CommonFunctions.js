@@ -92,7 +92,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     return done;
   },
 
-  alert: function (sMessage, sType, btnCopy=true) {
+  alert: function(sMessage, sType, btnCopy=true) {
     var me = this,
       btns = { yes: "OK" };
 
