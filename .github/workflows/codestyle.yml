@@ -18,8 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - run: |
-          npm install --save-dev --save-exact prettier
-          node_modules/.bin/prettier --check "WebApp/static/**/*.js"
+          npm install --save-dev --save-exact prettier@1.19.1
+          node_modules/.bin/prettier --check WebApp/static/**/*.js
 
   pyLint:
     runs-on: ubuntu-latest
@@ -55,16 +55,18 @@ jobs:
         # get the base WebApp tag (e.g. for rel-v4r0 branch it will be v4r0)
         WebAppTag=$(echo "${REFERENCE_BRANCH}" | echo $(sed "s/rel-//g"))
         # Now find the DIRAC release (tag) to checkout
+        relToCheckout=integration
         allreleases=$(diraccfg as-json releases.cfg | jq '.Releases' | diraccfg sort-versions --allow-pre-releases 2>/dev/null)
         for x in ${allreleases}; do
           rel=$(echo ${x} | sed "s/\"//g" | sed "s/\]//g" | sed "s/,//g")
           modules=$(diraccfg as-json releases.cfg | jq '.Releases' | jq ."${rel}" | jq .Modules)
           if [[ "${modules}" == *"WebAppDIRAC:${WebAppTag}"* ]]; then
             echo "${rel}"
+            relToCheckout="${rel}"
             break
           fi
         done
-        git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${rel}"
+        git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${relToCheckout}"
       env:
         REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
     - name: Run tests
