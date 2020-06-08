@@ -1309,7 +1309,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
                         oDropDown.bindStore(oNewStore);
                         break;
                       case "string" :
-                        oDropDown.refreshStore(oNewStore);
+                        oDropDown.setStore(oNewStore);
                         break;
 
                     }
@@ -1350,7 +1350,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
               oDropDown.bindStore(oNewStore);
               break;
             case "string" :
-              oDropDown.refreshStore(oNewStore);
+              oDropDown.setStore(oNewStore);
               break;
 
           }
