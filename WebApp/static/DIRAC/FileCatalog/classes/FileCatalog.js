@@ -1441,7 +1441,31 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         if (bNot) {
           sSign = "!=";
         } else {
-          sSign = "=";
+
+          oDropDown.suspendEvents(false);
+
+          var oNewStore = new Ext.data.ArrayStore({
+                fields : ['value', 'text'],
+                data : me.__getFieldOptions(oThisBlock.fieldName)
+              });
+
+          switch (sBlockType) {
+
+            case "value" :
+              oDropDown.bindStore(oNewStore);
+              break;
+            case "string" :
+              oDropDown.setStore(oNewStore);
+              break;
+
+          }
+
+          oDropDown.collapse();
+          oDropDown.expand();
+
+          oDropDown.resumeEvents();
+          me.queryPanel.body.unmask();
+
         }
         break;
       case "meta-gequal-icon":
