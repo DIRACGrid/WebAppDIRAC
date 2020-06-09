@@ -33,7 +33,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   /**
    * More info: https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
    *
-   * @param {text} text
+   * @param {String} text
    */
   copyToClipboard: function(text) {
     var me = this;
