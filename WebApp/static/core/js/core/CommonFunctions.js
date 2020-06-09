@@ -86,15 +86,17 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
 
     try {
       done = document.execCommand("copy");
-    } catch (err) {};
+    } catch (err) {}
 
     document.body.removeChild(textArea);
     return done;
   },
 
   alert: function(sMessage, sType, btnCopy) {
-    var me = this,
-      btns = { yes: "OK" };
+    var me = this;
+    var btns = {
+      yes: "OK"
+    };
 
     if (sMessage == null) return;
     sMessage = sMessage.replace(new RegExp("\n", "g"), "<br/>");
