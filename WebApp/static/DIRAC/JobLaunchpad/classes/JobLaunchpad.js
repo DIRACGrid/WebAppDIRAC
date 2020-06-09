@@ -127,7 +127,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
           success: function(form, action) {
             me.getContainer().body.unmask();
             if (action.result.success == "false") {
-              GLOBAL.APP.CF.alert("Error: " + action.result.error, "error");
+              GLOBAL.APP.CF.alert("Error: " + action.result.error);
             } else {
               var sIds = "";
 

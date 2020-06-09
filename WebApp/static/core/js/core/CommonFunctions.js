@@ -86,7 +86,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
 
     try {
       done = document.execCommand("copy");
-    } catch (err) {}
+    } catch (err) {};
 
     document.body.removeChild(textArea);
     return done;
