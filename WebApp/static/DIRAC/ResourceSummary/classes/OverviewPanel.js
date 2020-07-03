@@ -452,6 +452,12 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
 
                   var width = me.timeline.getWidth() - 20;
                   document.getElementById(me.id + "-timeline-plot").style.width = "" + width + "px";
+                  if (typeof google === 'undefined') {
+                    Ext.dirac.system_info.msg(
+                      "Error", "Failed to load Google visualization libraries, " +
+                      "some content will be missing. Is googleapis.com blocked?");
+                      return;
+                  }
                   var chart = new google.visualization.AnnotatedTimeLine(document.getElementById(me.id + "-timeline-plot"));
                   var data = new google.visualization.DataTable();
                   data.addColumn('datetime', 'DateTime');
