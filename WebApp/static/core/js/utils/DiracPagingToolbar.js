@@ -131,7 +131,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
               } else {
                 me.pagingToolbarButtons[nbOfButtons] = Ext.create('Ext.Button', {
                       text : config.toolButtons.Visible[i].text,
-                      handler : Ext.bind(config.toolButtons.Visible[i].handler, config.scope, config.toolButtons.Visible[i].arguments, false)
+                      handler : config.toolButtons.Visible[i].handler.bind(config.scope, ...(config.toolButtons.Visible[i].arguments || []))
                     });
                 if ("properties" in config.toolButtons.Visible[i]) {
                   Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Visible[i].properties);
@@ -148,7 +148,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
                 } else {
                   me.pagingToolbarButtons[nbOfButtons] = Ext.create('Ext.Button', {
                         text : config.toolButtons.Protected[i].text,
-                        handler : Ext.bind(config.toolButtons.Protected[i].handler, config.scope, config.toolButtons.Protected[i].arguments, false)
+                        handler : config.toolButtons.Protected[i].handler.bind(config.scope, ...(config.toolButtons.Protected[i].arguments || []))
                       });
                   if ("properties" in config.toolButtons.Protected[i]) {
                     Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Protected[i].properties);

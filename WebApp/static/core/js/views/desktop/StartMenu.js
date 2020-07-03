@@ -156,7 +156,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
                 activate : function(oMenuItem, eOpts) {
 
                 },
-                click : Ext.bind(GLOBAL.APP.MAIN_VIEW.createWindow, GLOBAL.APP.MAIN_VIEW, [item[0], item[2], null]),
+                click : GLOBAL.APP.MAIN_VIEW.createWindow.bind(GLOBAL.APP.MAIN_VIEW, item[0], item[2], null),
                 focus : function(cmp, e, eOpts) {
 
                   if (!GLOBAL.STATE_MANAGEMENT_ENABLED)
@@ -239,9 +239,13 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
                   oNewItem = Ext.create('Ext.menu.Item', {
                         text : stateName,
-                        handler : Ext.bind(GLOBAL.APP.MAIN_VIEW.createWindow, GLOBAL.APP.MAIN_VIEW, ["app", oThisMenu.appClassName, {
-                                  stateToLoad : stateName
-                                }], false),
+                        handler : GLOBAL.APP.MAIN_VIEW.createWindow.bind(
+                          GLOBAL.APP.MAIN_VIEW,
+                          "app",
+                          oThisMenu.appClassName, {
+                            stateToLoad : stateName
+                          }
+                        ),
                         scope : me,
                         iconCls : "dirac-icon-state",
                         stateType : stateType,
@@ -288,7 +292,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
                   oNewItem = Ext.create('Ext.menu.Item', {
                         text : stateName,
                         minWidth : 200,
-                        handler : Ext.bind(GLOBAL.APP.MAIN_VIEW.loadSharedStateByName, GLOBAL.APP.MAIN_VIEW, [oThisMenu.appClassName, stateName], false),
+                        handler : GLOBAL.APP.MAIN_VIEW.loadSharedStateByName.bind(GLOBAL.APP.MAIN_VIEW, oThisMenu.appClassName, stateName),
                         scope : me,
                         iconCls : "dirac-icon-link",
                         stateType : stateType
@@ -357,9 +361,13 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
                   var newItem = Ext.create('Ext.menu.Item', {
                         text : stateName,
                         minWidth : 200,
-                        handler : Ext.bind(GLOBAL.APP.MAIN_VIEW.createWindow, GLOBAL.APP.MAIN_VIEW, ["app", oThisMenu.appClassName, {
-                                  stateToLoad : stateName
-                                }], false),
+                        handler : GLOBAL.APP.MAIN_VIEW.createWindow.bind(
+                          GLOBAL.APP.MAIN_VIEW,
+                          "app",
+                          oThisMenu.appClassName, {
+                            stateToLoad : stateName
+                          }
+                        ),
                         scope : me,
                         iconCls : "dirac-icon-state",
                         stateType : "application",
@@ -415,7 +423,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
                   var newItem = Ext.create('Ext.menu.Item', {
                         text : stateName,
-                        handler : Ext.bind(GLOBAL.APP.MAIN_VIEW.loadSharedStateByName, GLOBAL.APP.MAIN_VIEW, [oThisMenu.appClassName, stateName], false),
+                        handler : GLOBAL.APP.MAIN_VIEW.loadSharedStateByName.bind(GLOBAL.APP.MAIN_VIEW, oThisMenu.appClassName, stateName),
                         scope : me,
                         iconCls : "dirac-icon-link",
                         minWidth : 200,
@@ -433,9 +441,7 @@ Ext.define('Ext.dirac.views.desktop.StartMenu', {
 
             return {
               text : item[1],
-              handler : Ext.bind(GLOBAL.APP.MAIN_VIEW.createWindow, GLOBAL.APP.MAIN_VIEW, [item[0], item[2], {
-                        title : item[1]
-                      }]),
+              handler : GLOBAL.APP.MAIN_VIEW.createWindow.bind(GLOBAL.APP.MAIN_VIEW, item[0], item[2], {title : item[1]}),
               minWidth : 200,
               iconCls : "system_web_window"
             };

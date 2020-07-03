@@ -79,7 +79,7 @@ Ext.define('Ext.dirac.core.Container', {
           for (var i in menu) {
             oMenu.add({
                   'text' : menu[i].text,
-                  handler : Ext.bind(menu[i].handler, oGrid, menu[i].arguments, false)
+                  handler : menu[i].handler.bind(oGrid, ...(menu[i].arguments || []))
                 });
           }
           oGrid.menu = oMenu;
