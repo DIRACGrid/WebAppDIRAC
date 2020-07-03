@@ -12,9 +12,6 @@ Ext.define('Ext.dirac.core.App', {
 
       requires : ['Ext.container.Viewport', 'Ext.window.MessageBox', 'Ext.dirac.core.CommonFunctions', 'Ext.dirac.core.StateManagement',
         'Ext.dirac.utils.WelcomeWindow',
-        'Ext.dirac.views.tabs.ContextMenu',
-        'Ext.dirac.views.tabs.SettingsPanel',
-        'Ext.dirac.views.tabs.DesktopSettings',
       ],
 
       /**

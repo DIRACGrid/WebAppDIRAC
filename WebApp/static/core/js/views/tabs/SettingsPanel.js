@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
       extend : 'Ext.panel.Panel',
-      required : ['Ext.form.Panel', 'Ext.dirac.views.tabs.DesktopSettings'],
+      requires : ['Ext.form.Panel', 'Ext.dirac.views.tabs.DesktopSettings'],
       title : 'Settings',
       frame : false,
       width : 200,

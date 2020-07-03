@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.dirac.views.tabs.SelPanel', {
       extend : 'Ext.panel.Panel',
-      requies : ['Ext.dirac.views.tabs.ContextMenu', 'Ext.dirac.views.tabs.TreeMenuModel', 'Ext.tree.plugin.TreeViewDragDrop', 'Ext.dirac.views.tabs.SettingsPanel', 'Ext.LoadMask', 'Ext.dirac.views.tabs.StateManagerMenu'],
+      requires : ['Ext.dirac.views.tabs.ContextMenu', 'Ext.dirac.views.tabs.TreeMenuModel', 'Ext.tree.plugin.TreeViewDragDrop', 'Ext.dirac.views.tabs.SettingsPanel', 'Ext.LoadMask', 'Ext.dirac.views.tabs.StateManagerMenu'],
       xtype : 'menuselpanel',
       alias : 'widget.selPanel',
       /**
