@@ -89,7 +89,8 @@ Ext.define('Ext.dirac.views.desktop.Window', {
           minimized : false
         };
 
-        me.loadMask = new Ext.LoadMask(me, {
+        me.loadMask = new Ext.LoadMask({
+              target : me,
               msg : "Loading ..."
             });
 

@@ -75,7 +75,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         }// hack
         // ///////////////////////////END///////////////////////////
         me.rightContainer = Ext.create('Ext.dirac.views.tabs.RightContainer');
-        me.loadRightContainer = new Ext.LoadMask(me.rightContainer, {
+        me.loadRightContainer = new Ext.LoadMask({
+              target: me.rightContainer,
               msg : "Loading desktops and applications...",
               iCode : 1
             });
@@ -85,7 +86,8 @@ Ext.define('Ext.dirac.views.tabs.Main', {
         me.leftConatiner = Ext.create('Ext.dirac.views.tabs.LeftContainer', {
               menu : menu
             });
-        me.loadleftContainer = new Ext.LoadMask(me.leftConatiner, {
+        me.loadleftContainer = new Ext.LoadMask({
+              target : me.leftConatiner,
               msg : "Loading menu ...",
               iCode : 1
             });
