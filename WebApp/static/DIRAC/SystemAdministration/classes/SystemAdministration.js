@@ -312,7 +312,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     sortable : true
                   }, {
                     align : 'left',
-                    dataIndex : 'Disk',
+                    dataIndex : 'DiskOccupancy',
                     header : 'Disk',
                     sortable : true
                   }, {
