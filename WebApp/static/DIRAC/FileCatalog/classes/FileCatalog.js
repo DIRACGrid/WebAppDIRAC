@@ -1441,23 +1441,20 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         if (bNot) {
           sSign = "!=";
         } else {
-
           oDropDown.suspendEvents(false);
 
           var oNewStore = new Ext.data.ArrayStore({
-                fields : ['value', 'text'],
-                data : me.__getFieldOptions(oThisBlock.fieldName)
-              });
+            fields: ["value", "text"],
+            data: me.__getFieldOptions(oThisBlock.fieldName)
+          });
 
           switch (sBlockType) {
-
-            case "value" :
+            case "value":
               oDropDown.bindStore(oNewStore);
               break;
-            case "string" :
+            case "string":
               oDropDown.setStore(oNewStore);
               break;
-
           }
 
           oDropDown.collapse();
@@ -1465,7 +1462,6 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
 
           oDropDown.resumeEvents();
           me.queryPanel.body.unmask();
-
         }
         break;
       case "meta-gequal-icon":
