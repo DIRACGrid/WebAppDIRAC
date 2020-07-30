@@ -7,11 +7,11 @@ import tornado.web
 import tornado.process
 import tornado.httpserver
 import tornado.autoreload
+from diraccfg import CFG
 
 import DIRAC
 
 from DIRAC import gLogger, gConfig
-from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader

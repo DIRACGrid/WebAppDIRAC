@@ -266,6 +266,9 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         stripeRows: true,
         enableTextSelection: true
       },
+      selModel: {
+        mode: "MULTI"
+      },
       dockedItems: [oGridButtonsToolbar],
       columns: [
         {
@@ -663,7 +666,9 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     me.hostGrid = Ext.create("Ext.grid.Panel", {
       region: "center",
       collapsible: false,
-
+      selModel: {
+        mode: "MULTI"
+      },
       store: me.hostGridStore,
       header: false,
       moduleObject: me,
@@ -1323,6 +1328,9 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       store: oStore,
       columns: oColumns,
       width: "100%",
+      selModel: {
+        mode: "MULTI"
+      },
       viewConfig: {
         stripeRows: true,
         enableTextSelection: true,
