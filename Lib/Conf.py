@@ -166,6 +166,10 @@ def SSLProrocol():
   return getCSValue("SSLProtcol", "")
 
 
+def SSLProtocol():
+  return getCSValue("SSLProtocol", getCSValue("SSLProtcol", ""))
+
+
 def getStaticDirs():
   return getCSValue("StaticDirs", [])
 
