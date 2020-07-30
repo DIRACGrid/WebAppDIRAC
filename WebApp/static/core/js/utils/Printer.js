@@ -251,7 +251,7 @@ Ext.define("Ext.dirac.utils.Printer", {
          */
         bodyTpl: [
             '<tpl for=".">',
-                '<td>\{{[Ext.String.createVarName(values.text)]}\}</td>',
+                '<td>{{[Ext.String.createVarName(values.text)]}}</td>',
             '</tpl>'
         ]
     }

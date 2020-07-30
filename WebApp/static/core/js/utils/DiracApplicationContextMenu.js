@@ -62,7 +62,7 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               } else if ("handler" in oConfig.menu.Visible[i]) {
                 oMenuItem = new Ext.menu.Item({
                       text : oConfig.menu.Visible[i].text,
-                      handler : Ext.bind(oConfig.menu.Visible[i].handler, me.scope, oConfig.menu.Visible[i].arguments, false),
+                      handler : oConfig.menu.Visible[i].handler.bind(me.scope, ...(oConfig.menu.Visible[i].arguments || [])),
                       scope : me.scope
                     });
               } else if ("subMenu" in oConfig.menu.Visible[i]) {
@@ -90,7 +90,7 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               } else if ("handler" in oConfig.menu.Protected[i]) {
                 oMenuItem = new Ext.menu.Item({
                       text : oConfig.menu.Protected[i].text,
-                      handler : Ext.bind(oConfig.menu.Protected[i].handler, me.scope, oConfig.menu.Protected[i].arguments, false),
+                      handler : oConfig.menu.Protected[i].handler.bind(me.scope, ...(oConfig.menu.Protected[i].arguments || [])),
                       scope : me.scope,
                       disabled : lDisable
                     });
@@ -133,7 +133,7 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               } else if ("handler" in subMenu.Visible[i]) {
                 var oMenuItem = new Ext.menu.Item({
                       text : subMenu.Visible[i].text,
-                      handler : Ext.bind(subMenu.Visible[i].handler, me.scope, subMenu.Visible[i].arguments, false),
+                      handler : subMenu.Visible[i].handler.bind(me.scope, ...(subMenu.Visible[i].arguments || [])),
                       scope : me.scope
                     });
               } else if ("subMenu" in subMenu.Visible[i]) {
@@ -160,7 +160,7 @@ Ext.define('Ext.dirac.utils.DiracApplicationContextMenu', {
               } else if ("handler" in subMenu.Protected[i]) {
                 var oMenuItem = new Ext.menu.Item({
                       text : subMenu.Protected[i].text,
-                      handler : Ext.bind(subMenu.Protected[i].handler, me.scope, subMenu.Protected[i].arguments, false),
+                      handler : subMenu.Protected[i].handler.bind(me.scope, ...(subMenu.Protected[i].arguments || [])),
                       scope : me.scope,
                       disabled : lDisable
                     });

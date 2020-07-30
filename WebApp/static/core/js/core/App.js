@@ -10,7 +10,9 @@ Ext.define('Ext.dirac.core.App', {
         fileLoader : 'Ext.dirac.utils.DiracFileLoad'
       },
 
-      requires : ['Ext.container.Viewport', 'Ext.window.MessageBox', 'Ext.dirac.core.CommonFunctions', 'Ext.dirac.core.StateManagement'],
+      requires : ['Ext.container.Viewport', 'Ext.window.MessageBox', 'Ext.dirac.core.CommonFunctions', 'Ext.dirac.core.StateManagement',
+        'Ext.dirac.utils.WelcomeWindow',
+      ],
 
       /**
        * @property {boolean} isReady
@@ -115,12 +117,7 @@ Ext.define('Ext.dirac.core.App', {
         /*
          * Starting capturing the X, Y coordinates of the mouse cursor
          */
-        // If NS -- that is, !IE -- then set up for mouse capture
-        if (!GLOBAL.IS_IE)
-          document.captureEvents(Event.MOUSEMOVE);
-
-        // Set-up to use getMouseXY function onMouseMove
-        document.onmousemove = me.__getMouseXY;
+        document.addEventListener("mousemove", me.__getMouseXY);
 
         Ext.dirac.system_info = me.CF;
 

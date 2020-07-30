@@ -47,8 +47,10 @@
     
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
-      google.load("visualization", "1", {packages:["corechart","annotatedtimeline"]});
-      
+      if (typeof google !== 'undefined') { // google is blocked in some locations
+        google.load("visualization", "1", {packages:["corechart","annotatedtimeline"]});
+      }
+
       //Wrap console.log if it does not exist
       if (typeof console == "undefined") {
         window.console = {
