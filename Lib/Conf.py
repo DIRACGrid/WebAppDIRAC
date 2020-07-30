@@ -111,10 +111,10 @@ def generateCAFile():
       continue
     for caFile in os.listdir(caDir):
       caFile = os.path.join(caDir, caFile)
-      result = X509Chain.X509Chain.instanceFromFile(caFile)
+      chain = X509Chain.X509Chain()
+      result = chain.loadChainFromFile(caFile)
       if not result['OK']:
         continue
-      chain = result['Value']
       expired = chain.hasExpired()
       if not expired['OK'] or expired['Value']:
         continue
@@ -140,10 +140,10 @@ def generateRevokedCertsFile():
       continue
     for caFile in os.listdir(caDir):
       caFile = os.path.join(caDir, caFile)
-      result = X509CRL.X509CRL.instanceFromFile(caFile)
+      chain = X509CRL.X509CRL()
+      result = chain.loadChainFromFile(caFile)
       if not result['OK']:
         continue
-      chain = result['Value']
       fd.write(chain.dumpAllToString()['Value'])
     fd.close()
     return fn
