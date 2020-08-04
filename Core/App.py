@@ -183,9 +183,9 @@ class App(object):
                     keyfile=Conf.HTTPSKey(),
                     cert_reqs=ssl.CERT_OPTIONAL,
                     ca_certs=Conf.generateCAFile(),
-                    ssl_version=ssl.PROTOCOL_TLSv1)
+                    ssl_version=ssl.PROTOCOL_TLSv1_2)
 
-      sslprotocol = str(Conf.SSLProrocol())
+      sslprotocol = str(Conf.SSLProtocol())
       aviableProtocols = [i for i in dir(ssl) if i.find('PROTOCOL') == 0]
       if sslprotocol and sslprotocol != "":
         if (sslprotocol in aviableProtocols):

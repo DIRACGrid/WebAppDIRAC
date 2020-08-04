@@ -80,7 +80,7 @@ Ext.define("Ext.dirac.core.Container", {
       for (var i in menu) {
         oMenu.add({
           text: menu[i].text,
-          handler: Ext.bind(menu[i].handler, oGrid, menu[i].arguments, false)
+          handler: menu[i].handler.bind(oGrid, ...(menu[i].arguments || []))
         });
       }
       oGrid.menu = oMenu;
@@ -143,24 +143,11 @@ Ext.define("Ext.dirac.core.Container", {
   },
 
   oprShowInNewTab: function(url, title) {
-    if (Ext.isSafari) {
-      var panelContent = new Ext.panel.Panel({
-        region: "center",
-        margins: "0 0 0 0",
-        scrollable: true,
-        html: '<iframe style="overflow:auto;width:100%;height:100%;" frameborder="0"  src="' + url + '"></iframe>'
-      });
-
-      var win = this.createChildWindow(title, false, 700, 500);
-      win.add(panelContent);
-      win.show().removeCls("x-unselectable"); // Todo: this can be removed after ext-6.2.0;
+    var win = window.open(url, "_blank");
+    if (win == null || typeof win == "undefined") {
+      Ext.dirac.system_info.msg("Error Notification", 'Please disable your pop-up blocker and click the "same component" again.');
     } else {
-      var win = window.open(url, "_blank");
-      if (win == null || typeof win == "undefined") {
-        Ext.dirac.system_info.msg("Error Notification", 'Please disable your pop-up blocker and click the "same component" again.');
-      } else {
-        win.focus();
-      }
+      win.focus();
     }
   },
   oprPrepareAndShowWindowTpl: function(tplMarkup, tplData, sTitle) {
