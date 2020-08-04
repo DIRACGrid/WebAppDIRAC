@@ -1,6 +1,7 @@
 import json
 import tempfile
 import datetime
+import os
 
 from hashlib import md5
 
@@ -191,6 +192,8 @@ class MonitoringHandler(WebHandler):
       self.finish(callback)
       return
     plotImageFile = str(self.request.arguments['file'][0])
+    # Prevent directory traversal
+    plotImageFile = os.path.normpath( '/' + plotImageFile ).lstrip( '/' )
 
     if plotImageFile.find(".png") < -1:
       callback = {"success": "false", "error": "Not a valid image!"}
