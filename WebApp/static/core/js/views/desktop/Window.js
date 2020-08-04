@@ -552,25 +552,13 @@ Ext.define("Ext.dirac.views.desktop.Window", {
           {
             text: "Save",
             iconCls: "dirac-icon-save",
-            handler: me.desktop.SM.oprSaveAppState.bind(
-              me.desktop.SM,
-              "application",
-              me.loadedObject.self.getName(),
-              me.loadedObject,
-              funcAfterSave
-            ),
+            handler: me.desktop.SM.oprSaveAppState.bind(me.desktop.SM, "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave),
             scope: me
           },
           {
             text: "Save As ...",
             iconCls: "dirac-icon-save",
-            handler: me.desktop.SM.formSaveState.bind(
-              me.desktop.SM,
-              "application",
-              me.loadedObject.self.getName(),
-              me.loadedObject,
-              funcAfterSave
-            ),
+            handler: me.desktop.SM.formSaveState.bind(me.desktop.SM, "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave),
             scope: me
           },
           {
@@ -582,11 +570,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
           {
             text: "Manage states ...",
             iconCls: "toolbar-other-manage",
-            handler: me.desktop.SM.formManageStates.bind(
-              me.desktop.SM, 
-              me.loadedObject.self.getName(),
-              funcAfterRemove
-            ),
+            handler: me.desktop.SM.formManageStates.bind(me.desktop.SM, me.loadedObject.self.getName(), funcAfterRemove),
             scope: me
           }
         ]
