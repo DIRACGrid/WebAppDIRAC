@@ -24,7 +24,7 @@ ul.x-boxselect-list.x-boxselect-singleselect {
 	display: inline-block;
 	position: relative;
 	*display:inline; /* IE7 */
-	zoom:1; /* IE */
+	transform: scale(1); /* IE */
 }
 .x-boxselect-stacked .x-boxselect-item {
 	display: block;

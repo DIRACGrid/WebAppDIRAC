@@ -552,23 +552,13 @@ Ext.define("Ext.dirac.views.desktop.Window", {
           {
             text: "Save",
             iconCls: "dirac-icon-save",
-            handler: Ext.bind(
-              me.desktop.SM.oprSaveAppState,
-              me.desktop.SM,
-              ["application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave],
-              false
-            ),
+            handler: me.desktop.SM.oprSaveAppState.bind(me.desktop.SM, "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave),
             scope: me
           },
           {
             text: "Save As ...",
             iconCls: "dirac-icon-save",
-            handler: Ext.bind(
-              me.desktop.SM.formSaveState,
-              me.desktop.SM,
-              ["application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave],
-              false
-            ),
+            handler: me.desktop.SM.formSaveState.bind(me.desktop.SM, "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave),
             scope: me
           },
           {
@@ -580,7 +570,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
           {
             text: "Manage states ...",
             iconCls: "toolbar-other-manage",
-            handler: Ext.bind(me.desktop.SM.formManageStates, me.desktop.SM, [me.loadedObject.self.getName(), funcAfterRemove], false),
+            handler: me.desktop.SM.formManageStates.bind(me.desktop.SM, me.loadedObject.self.getName(), funcAfterRemove),
             scope: me
           }
         ]
@@ -646,7 +636,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
     if (stateType == "application") {
       var newItem = Ext.create("Ext.menu.Item", {
         text: stateName,
-        handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
+        handler: me.oprLoadAppStateFromCache.bind(me, stateName),
         scope: me,
         iconCls: "dirac-icon-state",
         stateType: stateType,
@@ -689,7 +679,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
     } else if (stateType == "reference") {
       var newItem = Ext.create("Ext.menu.Item", {
         text: stateName,
-        handler: Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [me.appClassName, stateName], false),
+        handler: me.desktop.loadSharedStateByName.bind(me.desktop, me.appClassName, stateName),
         scope: me,
         iconCls: "dirac-icon-link",
         stateType: stateType
@@ -757,7 +747,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
 
       var oNewItem = Ext.create("Ext.menu.Item", {
         text: stateName,
-        handler: Ext.bind(me.oprLoadAppStateFromCache, me, [stateName], false),
+        handler: me.oprLoadAppStateFromCache.bind(me, stateName),
         scope: me,
         iconCls: "dirac-icon-state",
         stateType: "application",
@@ -800,7 +790,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
 
       var oNewItem = Ext.create("Ext.menu.Item", {
         text: stateName,
-        handler: Ext.bind(me.desktop.loadSharedStateByName, me.desktop, [me.appClassName, stateName], false),
+        handler: me.desktop.loadSharedStateByName.bind(me.desktop, me.appClassName, stateName),
         scope: me,
         iconCls: "dirac-icon-link",
         stateType: "reference"

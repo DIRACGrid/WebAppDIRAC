@@ -1,8 +1,4 @@
-import json
 import time
-import pprint
-
-from tornado.web import HTTPError, RequestHandler
 
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
