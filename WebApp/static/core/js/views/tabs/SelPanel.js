@@ -3,7 +3,7 @@
  */
 Ext.define("Ext.dirac.views.tabs.SelPanel", {
   extend: "Ext.panel.Panel",
-  requies: [
+  requires: [
     "Ext.dirac.views.tabs.ContextMenu",
     "Ext.dirac.views.tabs.TreeMenuModel",
     "Ext.tree.plugin.TreeViewDragDrop",

@@ -7,11 +7,11 @@ import tornado.web
 import tornado.process
 import tornado.httpserver
 import tornado.autoreload
+from diraccfg import CFG
 
 import DIRAC
 
 from DIRAC import gLogger, gConfig
-from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
@@ -183,9 +183,9 @@ class App(object):
                     keyfile=Conf.HTTPSKey(),
                     cert_reqs=ssl.CERT_OPTIONAL,
                     ca_certs=Conf.generateCAFile(),
-                    ssl_version=ssl.PROTOCOL_TLSv1)
+                    ssl_version=ssl.PROTOCOL_TLSv1_2)
 
-      sslprotocol = str(Conf.SSLProrocol())
+      sslprotocol = str(Conf.SSLProtocol())
       aviableProtocols = [i for i in dir(ssl) if i.find('PROTOCOL') == 0]
       if sslprotocol and sslprotocol != "":
         if (sslprotocol in aviableProtocols):

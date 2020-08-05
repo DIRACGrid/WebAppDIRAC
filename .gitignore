@@ -51,3 +51,7 @@ __pycache__
 pytests.xml
 nosetests.xml
 coverage.xml
+
+# Compiliation output
+WebApp/static/extjs/
+*.gz

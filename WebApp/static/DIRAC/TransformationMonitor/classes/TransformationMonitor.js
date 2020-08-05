@@ -1151,8 +1151,8 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
 
     /*
      * var oMenu = new Ext.menu.Menu({ items : [{ text : 'Show value',
-     * handler : Ext.bind(parent.getContainer().showValue, oGrid, [oGrid],
-     * false) }] }); oGrid.menu = oMenu;
+     * handler : parent.getContainer().showValue.bind(oGrid, oGrid)
+     * }] }); oGrid.menu = oMenu;
      */
     parent.getContainer().showInWindow("Files with status " + oStatus + " for production:" + oId, oGrid);
     parent.grid.body.unmask();
