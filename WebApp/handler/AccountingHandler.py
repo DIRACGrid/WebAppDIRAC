@@ -193,7 +193,7 @@ class AccountingHandler(WebHandler):
       return
     plotImageFile = str(self.request.arguments['file'][0])
     # Prevent directory traversal
-    plotImageFile = os.path.normpath('/'+plotImageFile).lstrip('/')
+    plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 
     if not plotImageFile.endswith(".png"):
       callback = {"success": "false", "error": "Not a valid image!"}
