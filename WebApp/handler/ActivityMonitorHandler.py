@@ -1,6 +1,7 @@
 import tempfile
 import json
 import tornado
+import os
 
 from DIRAC import gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -113,7 +114,9 @@ class ActivityMonitorHandler(WebHandler):
       self.finish(callback)
       return
     plotImageFile = str(self.request.arguments['file'][0])
-    if plotImageFile.find(".png") < -1:
+    # Prevent directory traversal
+    plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
+    if not plotImageFile.endswith(".png"):
       callback = {"success": "false", "error": "Not a valid image!"}
       self.finish(callback)
       return
