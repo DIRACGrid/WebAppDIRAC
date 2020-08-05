@@ -218,7 +218,7 @@ def generateRevokedCertsFile():
     for caFile in os.listdir(caDir):
       caFile = os.path.join(caDir, caFile)
       chain = X509CRL.X509CRL()
-      result = chain.loadChainFromFile(caFile)
+      result = chain.loadCRLFromFile(caFile)
       if not result['OK']:
         continue
       fd.write(chain.dumpAllToString()['Value'])
