@@ -8,7 +8,7 @@ import platform
 
 majorVersion = 4
 minorVersion = 1
-patchLevel = 17
+patchLevel = 18
 preVersion = 0
 
 version = "v%sr%s" % (majorVersion, minorVersion)
