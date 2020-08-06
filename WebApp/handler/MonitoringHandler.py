@@ -195,10 +195,10 @@ class MonitoringHandler(WebHandler):
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 
-    if not plotImageFile.endswith(".png"):
-      callback = {"success": "false", "error": "Not a valid image!"}
-      self.finish(callback)
-      return
+#    if not plotImageFile.endswith(".png"):
+#      callback = {"success": "false", "error": "Not a valid image!"}
+#      self.finish(callback)
+#      return
 
     transferClient = TransferClient("Monitoring/Monitoring")
     tempFile = tempfile.TemporaryFile()
