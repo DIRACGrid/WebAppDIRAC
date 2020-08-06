@@ -325,7 +325,7 @@ class WebHandler(tornado.web.RequestHandler):
       else:
         self.__credDict['validDN'] = False
         self.log.info("AUTH OK: %s by visitor" % (handlerRoute))
-    elif self.isTrustedHost(self.__credDict.get('DN')):
+    elif self.isTrustedHost(self.__credDict.get('DN', '')):
       self.log.info("Request is coming from Trusted host")
       return True
     else:
