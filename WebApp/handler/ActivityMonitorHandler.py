@@ -116,10 +116,10 @@ class ActivityMonitorHandler(WebHandler):
     plotImageFile = str(self.request.arguments['file'][0])
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
-    if not plotImageFile.endswith(".png"):
-      callback = {"success": "false", "error": "Not a valid image!"}
-      self.finish(callback)
-      return
+#    if not plotImageFile.endswith(".png"):
+#      callback = {"success": "false", "error": "Not a valid image!"}
+#      self.finish(callback)
+#      return
     transferClient = TransferClient("Framework/Monitoring")
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
