@@ -332,7 +332,7 @@ class WebHandler(tornado.web.RequestHandler):
     else:
       self.log.info("AUTH KO: %s by %s@%s" % (handlerRoute, self.__credDict['username'], self.__credDict['group']))
 
-    if self.isTrustedHost(self.__credDict.get('DN')):
+    if self.isTrustedHost(self.__credDict.get('DN', '')):
       self.log.info("Request is coming from Trusted host")
       return True
 
