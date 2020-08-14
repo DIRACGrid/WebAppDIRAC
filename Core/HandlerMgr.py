@@ -1,10 +1,11 @@
 """ Basic modules for loading handlers
 """
 
-import inspect
-import imp
 import os
 import re
+import imp
+import inspect
+import collections
 
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
@@ -12,17 +13,27 @@ from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 
 import WebAppDIRAC
-from WebAppDIRAC.Core.CoreHandler import CoreHandler
-from WebAppDIRAC.Core.StaticHandler import StaticHandler
+
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
+from WebAppDIRAC.Core.CoreHandler import CoreHandler
+from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
+__RCSID__ = "$Id$"
 
 class HandlerMgr(object):
   __metaclass__ = DIRACSingleton
 
-  def __init__(self, baseURL=""):
+  def __init__(self, sysService=[], baseURL="/"):
+    """ Constructor
+
+        :param list sysService: DIRAC system services
+        :param str baseURL: base URL
+    """
     self.__baseURL = baseURL.strip("/")
+    if sysService and not isinstance(sysService, list):
+      sysService = sysService.replace(' ', '').split(',')
+    self.__sysServices = sysService
     self.__routes = []
     self.__handlers = []
     self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w.-]*))?"
@@ -30,8 +41,11 @@ class HandlerMgr(object):
     self.log = gLogger.getSubLogger("Routing")
 
   def getPaths(self, dirName):
-    """
-    Get lists of paths for all installed and enabled extensions
+    """ Get lists of paths for all installed and enabled extensions
+
+        :param str dirName: path to handlers
+
+        :return: list
     """
     pathList = []
     for extName in CSGlobals.getCSExtensions():
@@ -53,21 +67,26 @@ class HandlerMgr(object):
     return pathList
 
   def __calculateRoutes(self):
-    """
-    Load all handlers and generate the routes
+    """ Load all handlers and generate the routes
+
+        :return: S_OK()/S_ERROR()
     """
     ol = ObjectLoader()
-    origin = "WebApp.handler"
-    result = ol.getObjects(origin, parentClass=WebHandler, recurse=True)
-    if not result['OK']:
-      return result
-    self.__handlers = result['Value']
+    hendlerList = []
+    self.log.debug("Added services: %s" % ','.join(self.__sysServices))
+    for origin in self.__sysServices:
+      result = ol.getObjects(origin, parentClass=WebHandler, recurse=True)
+      if not result['OK']:
+        return result
+      hendlerList += list(result['Value'].items())
+    self.__handlers = collections.OrderedDict(hendlerList)
+
     staticPaths = self.getPaths("static")
     self.log.verbose("Static paths found:\n - %s" % "\n - ".join(staticPaths))
     self.__routes = []
 
     # Add some standard paths for static files
-    statDirectories = ['defaults', 'demo'] + Conf.getStaticDirs()
+    statDirectories = Conf.getStaticDirs()
     self.log.info("The following static directories are used:%s" % str(statDirectories))
     for stdir in statDirectories:
       pattern = '/%s/(.*)' % stdir
@@ -88,17 +107,18 @@ class HandlerMgr(object):
         return S_ERROR("Handler %s does not have AUTH_PROPS defined. Fix it!" % hn)
       # Get the root for the handler
       if handler.LOCATION:
-        handlerRoute = handler.LOCATION.strip("/")
+        handlerRoute = handler.LOCATION.strip("/") and "/%s" % handler.LOCATION.strip("/") or ''
       else:
-        handlerRoute = hn[len(origin):].replace(".", "/").replace("Handler", "")
+        handlerRoute = hn[len(re.sub(r".[A-z]+$", "", hn)):].replace(".", "/").replace("Handler", "")
       # Add the setup group RE before
       baseRoute = self.__setupGroupRE
       # IF theres a base url like /DIRAC add it
-      if self.__baseURL:
-        baseRoute = "/%s%s" % (self.__baseURL, baseRoute)
+      baseRoute = "/%s%s" % (self.__baseURL or '', baseRoute)
       # Set properly the LOCATION after calculating where it is with helpers to add group and setup later
       handler.LOCATION = handlerRoute
-      handler.PATH_RE = re.compile("%s(%s/.*)" % (baseRoute, handlerRoute))
+      handler.PATH_RE = re.compile("%s(%s/[A-z]+|.)" % (baseRoute, handlerRoute))
+      if handler.OVERPATH:
+        handler.PATH_RE = re.compile(handler.PATH_RE.pattern + '(/[A-z0-9=-_/|]+)?')
       handler.URLSCHEMA = "/%s%%(setup)s%%(group)s%%(location)s/%%(action)s" % (self.__baseURL)
       if issubclass(handler, WebSocketHandler):
         handler.PATH_RE = re.compile("%s(%s)" % (baseRoute, handlerRoute))
@@ -120,6 +140,9 @@ class HandlerMgr(object):
             # Normal methods get the method appended without web_
             self.log.verbose(" - Route %s/%s ->  %s.%s" % (handlerRoute, mName[4:], hn, mName))
             route = "%s(%s/%s)" % (baseRoute, handlerRoute, mName[4:])
+            # Use request path as options/values, for ex. ../method/<option>/<file path>?<option>=..
+            if handler.OVERPATH:
+              route += '(/[A-z0-9=-_/|]+)?'
             self.__routes.append((route, handler))
           self.log.debug("  * %s" % route)
     # Send to root
@@ -130,6 +153,10 @@ class HandlerMgr(object):
     return S_OK()
 
   def getHandlers(self):
+    """ Get handlers
+
+        :return: S_OK()/S_ERROR()
+    """
     if not self.__handlers:
       result = self.__calculateRoutes()
       if not result['OK']:
@@ -137,6 +164,10 @@ class HandlerMgr(object):
     return S_OK(self.__handlers)
 
   def getRoutes(self):
+    """ Get routes
+
+        :return: S_OK()/S_ERROR()
+    """
     if not self.__routes:
       result = self.__calculateRoutes()
       if not result['OK']:

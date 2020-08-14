@@ -10,7 +10,6 @@
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/StackBlur.js"></script>
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/canvg.js"></script>
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/FileSaver/FileSaver.js"></script>
-    <script type="text/javascript" src="{{base_url}}/static/oidc/oidc-client/dist/oidc-client.js"></script>
 	  
 	  {% if bugReportURL!='' %}
 	  {% for item in bugReportURL.split(',') %}
@@ -29,7 +28,7 @@
 
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
-	
+
     {% if _dev %}
        {% if debug_level=='debug' %}
           <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all-debug.js"></script>
@@ -50,7 +49,7 @@
       if (typeof google !== 'undefined') { // google is blocked in some locations
         google.load("visualization", "1", {packages:["corechart","annotatedtimeline"]});
       }
-
+      
       //Wrap console.log if it does not exist
       if (typeof console == "undefined") {
         window.console = {

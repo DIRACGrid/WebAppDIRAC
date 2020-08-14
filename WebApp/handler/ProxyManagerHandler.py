@@ -1,7 +1,7 @@
 import json
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.FrameworkSystem.Client.ProxyManagerClient import ProxyManagerClient
 from DIRAC.Core.Utilities.List import uniqueElements
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
@@ -19,7 +19,7 @@ class ProxyManagerHandler(WebHandler):
     callback = {}
 
     user = sData["user"]["username"]
-    if user == "Anonymous":
+    if user in ["Anonymous", "anonymous"]:
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
 
     if len(self.request.arguments) > 0:
@@ -27,16 +27,15 @@ class ProxyManagerHandler(WebHandler):
       for i in self.request.arguments:
         tmp[i] = str(self.request.arguments[i])
       callback["extra"] = tmp
-    rpcClient = RPCClient("Framework/ProxyManager")
-    retVal = yield self.threadTask(rpcClient.getContents, {}, [], 0, 0)
-    if not retVal["OK"]:
-      self.finish({"success": "false", "error": retVal["Message"]})
-    data = retVal["Value"]
+    result = yield self.threadTask(ProxyManagerClient().getUploadedProxiesDetails)  # pylint: disable=no-member
+    if not result["OK"]:
+      self.finish({"success": "false", "error": result["Message"]})
+    data = result["Value"]
     users = []
     groups = []
-    for record in data["Records"]:
-      users.append(str(record[0]))
-      groups.append(str(record[2]))
+    for record in data["Dictionaries"]:
+      users.append(record['user'])
+      groups += record['groups']
     users = uniqueElements(users)
     groups = uniqueElements(groups)
     users.sort()
@@ -70,24 +69,26 @@ class ProxyManagerHandler(WebHandler):
     callback = {}
 
     user = sData["user"]["username"]
-    if user == "Anonymous":
+    if user in ["Anonymous", "anonymous"]:
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
     start, limit, sort, req = self.__request()
-    rpcClient = RPCClient("Framework/ProxyManager")
-    retVal = yield self.threadTask(rpcClient.getContents, req, sort, start, limit)
-    gLogger.info("*!*!*!  RESULT: \n%s" % retVal)
-    if not retVal['OK']:
-      self.finish({"success": "false", "error": retVal["Message"]})
-    svcData = retVal['Value']
+    # pylint: disable=no-member
+    result = yield self.threadTask(ProxyManagerClient().getUploadedProxiesDetails, None, None, req, start, limit)
+    gLogger.info("*!*!*!  RESULT: \n%s" % result)
+    if not result['OK']:
+      self.finish({"success": "false", "error": result["Message"]})
+    svcData = result['Value']
     proxies = []
     dnMap = {}
-    for record in svcData['Records']:
-      proxies.append({'proxyid': "%s@%s" % (record[1], record[2]),
-                      'UserName': str(record[0]),
-                      'UserDN': record[1],
-                      'UserGroup': record[2],
-                      'ExpirationTime': str(record[3]),
-                      'PersistentFlag': str(record[4])})
+    for record in svcData['Dictionaries']:
+      proxies.append({'proxyid': "%s@%s" % (record["DN"],
+                                            record['groups'] if record['groups'] > 1 else record['groups'][0]),
+                      'UserName': record['user'],
+                      'UserDN': record['DN'],
+                      'UserGroup': record['groups'],
+                      'ExpirationTime': str(record['expirationtime']),
+                      'PersistentFlag': str(record['persistent']),
+                      'ProxyProvider': record['provider']})
     timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
     data = {"success": "true", "result": proxies, "total": svcData['TotalRecords'], "date": timestamp}
     self.finish(data)
@@ -105,8 +106,7 @@ class ProxyManagerHandler(WebHandler):
       dn = "@".join(spl[:-1])
       group = spl[-1]
       idList.append((dn, group))
-    rpcClient = RPCClient("Framework/ProxyManager")
-    retVal = rpcClient.deleteProxyBundle(idList)
+    retVal = yield self.threadTask(ProxyManagerClient().deleteProxy, None, None, idList)  # pylint: disable=no-member
     callback = {}
     if retVal['OK']:
       callback = {"success": "true", "result": retVal['Value']}

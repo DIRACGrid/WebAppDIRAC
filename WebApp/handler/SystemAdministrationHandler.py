@@ -797,6 +797,6 @@ class SystemAdministrationHandler(WebHandler):
 
       result = {"success": "true", "result": records}
     else:
-      result = {"success": "false", "error": result['Message']}
+      result = {"success": "false", "error": retVal['Message']}
 
     self.finish(result)

@@ -1,79 +1,106 @@
-import requests
+import time
 
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID
+from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
+try:
+  from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import gSessionManager  # pylint:disable=import-error
+except ImportError:
+  gSessionManager = None
 
 class AuthenticationHandler(WebHandler):
 
   AUTH_PROPS = "all"
 
-  # Send mail to administrators
+  def initialize(self):
+    super(AuthenticationHandler, self).initialize()
+    return S_OK()
+
   @asyncGen
   def web_sendRequest(self):
+    """ Send mail to administrators
+    """
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"]
     addresses = Conf.getCSValue('AdminsEmails')
-    NotificationClient().sendMail(
-        addresses, subject="Request from %s %s" %
-        (loadValue[0], loadValue[1]), body='Type auth: %s, details: %s' %
-        (typeAuth, loadValue))
+    subject = "Request from %s %s" % (loadValue[0], loadValue[1])
+    body = 'Typeauth: %s, details: %s' % (typeAuth, loadValue)
+    self.log.verbose('Send mail to', addresses)
+    result = NotificationClient().sendMail(addresses, subject=subject, body=body)
+    self.finish(result)
 
-  # Get information from web.cfg about auth types
   @asyncGen
-  def web_getAuthCFG(self):
+  def web_getAuthNames(self):
+    """ Get list of enable authentication types
+    """
+    self.finish(Conf.getAuthNames())
+
+  @asyncGen
+  def web_waitOAuthStatus(self):
+    """ Listen authentication status on OAuthDB
+    """
+    session = str(self.request.arguments["session"][0])
     typeAuth = str(self.request.arguments["typeauth"][0])
-    loadValue = self.request.arguments["value"][0]
-    res = {}
-    if Conf.getCSSections("TypeAuths")['OK']:
-      if typeAuth:
-        if loadValue:
-          if loadValue == 'all':
-            res = Conf.getCSOptionsDict("TypeAuths/%s" % typeAuth).get('Value')
-          else:
-            res = Conf.getCSValue("TypeAuths/%s/%s" % (typeAuth, loadValue), None)
-        else:
-          res = Conf.getCSOptions("TypeAuths/%s" % typeAuth)
-      else:
-        res = Conf.getCSSections("TypeAuths")
-    self.write(res)
+    self.log.verbose(session, 'session, waiting "%s" authentication status' % typeAuth)
 
-  # Get current auth type
-  @asyncGen
-  def web_getCurrentAuth(self):
-    if self.get_secure_cookie("TypeAuth"):
-      current = self.get_secure_cookie("TypeAuth")
+    result = S_ERROR('Timeout')
+    for i in range(4):
+      if not gSessionManager:
+        result = S_ERROR('Not session manager found.')
+        break
+      result = gSessionManager.getSessionStatus(session)
+      if not result['OK']:
+        break
+      status = result['Value']['Status']
+      gLogger.verbose('%s session' % session, status)
+      if status not in ['prepared','in progress','finishing', 'redirect']:
+        break
+      if status == 'prepared' and i > 2:
+        result = S_ERROR('Waiting authentication response to long.')
+        break
+      time.sleep(5)
+
+    if not result['OK']:
+      gSessionManager.killSession(session)
+      self.log.error(session, 'session, %s ' % result['Message'])
     else:
-      current = 'default'
-    self.write(current)
+      self.log.verbose(session, 'session, authentication status: %s' % status)
+      if status == 'authed':
+        self.set_cookie("TypeAuth", typeAuth)
+        self.set_cookie(typeAuth, result['Value']['Session'])
+      else:
+        self.clear_cookie(typeAuth)
 
-  # Python part in auth process
+    self.finish(result)
+
   @asyncGen
   def web_auth(self):
+    """ Set authentication type
+    """
+    result = S_OK({'Action': 'reload'})
     typeAuth = str(self.request.arguments["typeauth"][0])
-    loadValue = self.request.arguments["value"][0]
-    method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth)
-    auths = ['Certificate']
-    if Conf.getCSSections("TypeAuths")['OK']:
-      auths.extend(Conf.getCSSections("TypeAuths").get("Value"))
-    if (typeAuth == 'Logout') or (typeAuth not in auths):
-      typeAuth = self.get_secure_cookie("TypeAuth")
-      self.set_secure_cookie("TypeAuth", 'Visitor')
-    elif method == 'oAuth2':
-      accessToken = loadValue
-      url = Conf.getCSValue('TypeAuths/%s/authority' % typeAuth) + '/userinfo'
-      access = 'Bearer ' + accessToken
-      heads = {'Authorization': access, 'Content-Type': 'application/json'}
-      oJson = requests.get(url, headers=heads, verify=False).json()
-      res = getUsernameForID(oJson['sub'])
-      if res['OK']:
-        self.set_secure_cookie("TypeAuth", typeAuth)
-        self.set_secure_cookie("AccessToken", accessToken)
-        self.write({"value": 'Done'})
-      else:
-        self.write({"value": 'NotRegistred', "profile": oJson})
+    if typeAuth == 'Log out':
+      self.clear_all_cookies()
+      self.set_cookie("TypeAuth", 'Visitor')
+
+    elif typeAuth == 'Certificate':
+      self.set_cookie("TypeAuth", typeAuth)
+
+    elif not gSessionManager:
+      result = S_ERROR('Not session manager found.')
+
     else:
-      self.set_secure_cookie("TypeAuth", typeAuth)
+      result = gSessionManager.submitAuthorizeFlow(typeAuth, self.get_cookie(typeAuth))
+      if result['OK']:
+        if result['Value']['Status'] == 'ready':
+          self.set_cookie("TypeAuth", typeAuth)
+          result['Value']['Action'] = 'reload'
+        elif result['Value']['Status'] == 'needToAuth':
+          result['Value']['Action'] = 'popup'
+        else:
+          result = S_ERROR('Not correct status "%s" of %s' % (result['Value']['Status'], typeAuth))
+
+    self.finishJEncode(result)

@@ -1,29 +1,35 @@
-import requests
+""" Main module
+"""
+
 import ssl
-import functools
-import types
 import json
+import functools
 import traceback
-import tornado.web
-import tornado.ioloop
-import tornado.gen
-import tornado.stack_context
-import tornado.websocket
-import sys
 
 from concurrent.futures import ThreadPoolExecutor
 
-from DIRAC import gLogger
-from DIRAC.Core.Utilities.Decorators import deprecated
-from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
-from DIRAC.Core.Security import Properties
-from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.Core.DISET.AuthManager import AuthManager
-from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
+import tornado.web
+import tornado.gen
+import tornado.ioloop
+import tornado.websocket
+import tornado.stack_context
 
-from WebAppDIRAC.Lib.SessionData import SessionData
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC.Core.Security import Properties
+from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
+from DIRAC.Core.DISET.AuthManager import AuthManager
+from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.Core.Utilities.JEncode import encode
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry
+
 from WebAppDIRAC.Lib import Conf
+from WebAppDIRAC.Lib.SessionData import SessionData
+
+try:
+  from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import gSessionManager
+except ImportError:
+  pass
+
 
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
@@ -44,7 +50,7 @@ class WErr(tornado.web.HTTPError):
 
   @classmethod
   def fromSERROR(cls, result):
-    # Prevent major fuckups with % in the message
+    """ Prevent major problem with % in the message """
     return cls(500, result['Message'].replace("%", ""))
 
 
@@ -78,52 +84,10 @@ class WebHandler(tornado.web.RequestHandler):
   URLSCHEMA = ""
   # RE to extract group and setup
   PATH_RE = None
+  # If need to use request path for declare some value/option
+  OVERPATH = False
 
   def threadTask(self, method, *args, **kwargs):
-    if tornado.version < '5.0.0':
-      return self.threadTaskOld(method, *args, **kwargs)
-    else:
-      return self.threadTaskExecutor(method, *args, **kwargs)
-
-  # Helper function to create threaded gen.Tasks with automatic callback and execption handling
-  @deprecated("Only for Tornado 4.x.x and DIRAC v6r20")
-  def threadTaskOld(self, method, *args, **kwargs):
-    """
-    Helper method to generate a gen.Task and automatically call the callback when the real
-    method ends. THIS IS SPARTAAAAAAAAAA. SPARTA has improved using futures ;)
-    """
-    # Save the task to access the runner
-    genTask = False
-
-    # This runs in the separate thread, calls the callback on finish and takes into account exceptions
-    def cbMethod(*cargs, **ckwargs):
-      cb = ckwargs.pop('callback')
-      method = cargs[0]
-      disetConf = cargs[1]
-      cargs = cargs[2]
-      self.__disetConfig.reset()
-      self.__disetConfig.load(disetConf)
-      ioloop = tornado.ioloop.IOLoop.instance()
-      try:
-        result = method(*cargs, **ckwargs)
-        ioloop.add_callback(functools.partial(cb, result))
-      except Exception as excp:
-        gLogger.error("Following exception occured %s" % excp)
-        exc_info = sys.exc_info()
-        genTask.set_exc_info(exc_info)
-        ioloop.add_callback(lambda: genTask.exception())
-
-    # Put the task in the thread :)
-    def threadJob(tmethod, *targs, **tkwargs):
-      tkwargs['callback'] = tornado.stack_context.wrap(tkwargs['callback'])
-      targs = (tmethod, self.__disetDump, targs)
-      gThreadPool.submit(cbMethod, *targs, **tkwargs)
-
-    # Return a YieldPoint
-    genTask = tornado.gen.Task(threadJob, method, *args, **kwargs)
-    return genTask
-
-  def threadTaskExecutor(self, method, *args, **kwargs):
     def threadJob(*targs, **tkwargs):
       args = targs[0]
       disetConf = targs[1]
@@ -139,106 +103,82 @@ class WebHandler(tornado.web.RequestHandler):
     return wrapper
 
   def __init__(self, *args, **kwargs):
-    """
-    Initialize the handler
+    """ Initialize the handler
     """
     super(WebHandler, self).__init__(*args, **kwargs)
     if not WebHandler.__log:
       WebHandler.__log = gLogger.getSubLogger(self.__class__.__name__)
+    # Look idetity provider and session
+    self.__idp = self.get_cookie("TypeAuth") or "Certificate"
+    self.__session = self.get_cookie(self.__idp) or None
+    # Fill credentials
     self.__credDict = {}
     self.__setup = Conf.setup()
-    self.__processCredentials()
+    result = self.__processCredentials()
+    if not result['OK']:
+      self.__idp = "Visitor"
+      self.log.error(result['Message'], 'Continue as Visitor.')
+    self.log.verbose("%s authentication" % self.__idp,
+                     'with %s session' % self.__session if self.__session else '')
+    # Restore identity provider
+    self.set_cookie("TypeAuth", self.__idp)
+    # Setup diset
     self.__disetConfig.reset()
     self.__disetConfig.setDecorator(self.__disetBlockDecor)
     self.__disetDump = self.__disetConfig.dump()
     match = self.PATH_RE.match(self.request.path)
-    self._pathResult = self.__checkPath(*match.groups())
+    pathItems = match.groups()
+    self._pathResult = self.__checkPath(*pathItems[:3])
+    self.overpath = pathItems[3:] and pathItems[3] or ''
     self.__sessionData = SessionData(self.__credDict, self.__setup)
+    self.__forceRefreshCS()
+
+  def __forceRefreshCS(self):
+    """ Force refresh configuration from master configuration server
+    """
+    if self.request.headers.get('X-RefreshConfiguration') == 'True':
+      self.log.debug('Initialize force refresh..')
+      if not AuthManager('').authQuery("", dict(self.__credDict), "CSAdministrator"):
+        raise WErr(401, 'Cannot initialize force refresh, request not authenticated')
+      result = gConfig.forceRefresh()
+      if not result['OK']:
+        raise WErr(501, result['Message'])
 
   def __processCredentials(self):
+    """ Extract the user credentials based on the certificate or what comes from the balancer
     """
-    Extract the user credentials based on the certificate or what comes from the balancer
-    """
+    # Unsecure protocol only for visitors
+    if self.request.protocol != "https" or self.__idp == "Visitor":
+      return S_OK()
 
-    if not self.request.protocol == "https":
-      return
+    # For certificate
+    if self.__idp == 'Certificate':
+      return self.__readCertificate()
 
-    # OIDC auth method
-    def oAuth2():
-      if self.get_secure_cookie("AccessToken"):
-        access_token = self.get_secure_cookie("AccessToken")
-        url = Conf.getCSValue("TypeAuths/%s/authority" % typeAuth) + '/userinfo'
-        heads = {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
-        if 'error' in requests.get(url, headers=heads, verify=False).json():
-          self.log.error('OIDC request error: %s' % requests.get(url, headers=heads, verify=False).json()['error'])
-          return
-        ID = requests.get(url, headers=heads, verify=False).json()['sub']
-        result = getUsernameForID(ID)
-        if result['OK']:
-          self.__credDict['username'] = result['Value']
-        result = getDNForUsername(self.__credDict['username'])
-        if result['OK']:
-          self.__credDict['validDN'] = True
-          self.__credDict['DN'] = result['Value'][0]
-        result = getCAForUsername(self.__credDict['username'])
-        if result['OK']:
-          self.__credDict['issuer'] = result['Value'][0]
-        return
-
-    # Type of Auth
-    if not self.get_secure_cookie("TypeAuth"):
-      self.set_secure_cookie("TypeAuth", 'Certificate')
-    typeAuth = self.get_secure_cookie("TypeAuth")
-    self.log.info("Type authentication: %s" % str(typeAuth))
-    if typeAuth == "Visitor":
-      return
-    retVal = Conf.getCSSections("TypeAuths")
-    if retVal['OK']:
-      if typeAuth in retVal.get("Value"):
-        method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth, 'default')
-        if method == "oAuth2":
-          oAuth2()
-
-    # NGINX
-    if Conf.balancer() == "nginx":
-      headers = self.request.headers
-      if headers['X-Scheme'] == "https" and headers['X-Ssl_client_verify'] == 'SUCCESS':
-        DN = headers['X-Ssl_client_s_dn']
-        if not DN.startswith('/'):
-          items = DN.split(',')
-          items.reverse()
-          DN = '/' + '/'.join(items)
-        self.__credDict['DN'] = DN
-        self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
-        result = Registry.getUsernameForDN(DN)
-        if not result['OK']:
-          self.__credDict['validDN'] = False
-        else:
-          self.__credDict['validDN'] = True
-          self.__credDict['username'] = result['Value']
-      return
-
-    # TORNADO
-    derCert = self.request.get_ssl_certificate(binary_form=True)
-    if not derCert:
-      return
-    pemCert = ssl.DER_cert_to_PEM_cert(derCert)
-    chain = X509Chain()
-    chain.loadChainFromString(pemCert)
-    result = chain.getCredentials()
+    # Look enabled authentication types in CS
+    result = Conf.getCSSections("TypeAuths")
     if not result['OK']:
-      self.log.error("Could not get client credentials %s" % result['Message'])
-      return
-    self.__credDict = result['Value']
-    # Hack. Data coming from OSSL directly and DISET difer in DN/subject
+      self.log.warn('To enable idenyity provider need to use "TypeAuths" section, but %s' % result['Message'])
+    if self.__idp not in (result.get('Value') or []):
+      return S_ERROR(self.__idp, "is absent in configuration.")
+
+    if not self.__session:
+      return S_ERROR('No found session in cookies.')
+
     try:
-      self.__credDict['DN'] = self.__credDict['subject']
-    except KeyError:
-      pass
+      result = gSessionManager.getIDForSession(self.__session)
+    except Exception as e:
+      return S_ERROR('AuthManager extension absent:', e)
+    if not result['OK']:
+      self.set_cookie(self.__idp, '')
+    else:
+      self.__credDict['ID'] = result['Value']
+    return result
 
   def _request_summary(self):
-    """
-    Return a string returning the summary of the request
+    """ Return a string returning the summary of the request
+
+        :return: str
     """
     summ = super(WebHandler, self)._request_summary()
     cl = []
@@ -250,6 +190,51 @@ class WebHandler(tornado.web.RequestHandler):
     summ = "%s %s" % (summ, "".join(cl))
     return summ
 
+  def __readCertificate(self):
+    """ Fill credentional from certificate and check is registred
+
+        :return: S_OK()/S_ERROR()
+    """
+    if Conf.balancer() == "nginx":
+      # NGINX
+      headers = self.request.headers
+      if not headers:
+        return S_ERROR('No headers found.')
+      if headers.get('X-Scheme') == "https" and headers.get('X-Ssl_client_verify') == 'SUCCESS':
+        DN = headers['X-Ssl_client_s_dn']
+        if not DN.startswith('/'):
+          items = DN.split(',')
+          items.reverse()
+          DN = '/' + '/'.join(items)
+        self.__credDict['DN'] = DN
+        self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
+      else:
+        return S_ERROR('No certificate upload to browser.')
+
+    else:
+      # TORNADO
+      derCert = self.request.get_ssl_certificate(binary_form=True)
+      if not derCert:
+        return S_ERROR('No certificate found.')
+      pemCert = ssl.DER_cert_to_PEM_cert(derCert)
+      chain = X509Chain()
+      chain.loadChainFromString(pemCert)
+      result = chain.getCredentials()
+      if not result['OK']:
+        return S_ERROR("Could not get client credentials %s" % result['Message'])
+      self.__credDict = result['Value']
+      # Hack. Data coming from OSSL directly and DISET difer in DN/subject
+      try:
+        self.__credDict['DN'] = self.__credDict['subject']
+      except KeyError:
+        pass
+
+    result = Registry.getUsernameForDN(self.__credDict['DN'])
+    if not result['OK']:
+      return result
+    self.__credDict['username'] = result['Value']
+    return S_OK()
+
   @property
   def log(self):
     return self.__log
@@ -258,8 +243,17 @@ class WebHandler(tornado.web.RequestHandler):
   def getLog(cls):
     return cls.__log
 
-  def getUserDN(self):
+  def getDN(self):
     return self.__credDict.get('DN', '')
+
+  def getID(self):
+    return self.__credDict.get('ID', '')
+
+  def getIdP(self):
+    return self.__idp
+
+  def getSession(self):
+    return self.__session
 
   def getUserName(self):
     return self.__credDict.get('username', '')
@@ -271,14 +265,20 @@ class WebHandler(tornado.web.RequestHandler):
     return self.__setup
 
   def isRegisteredUser(self):
-    return self.__credDict.get('validDN', "") and self.__credDict.get('validGroup', "")
+    return self.__credDict.get('username', "") and self.__credDict.get('group', "")
 
   def getSessionData(self):
     return self.__sessionData.getData()
 
+  def getAppSettings(self, app=None):
+    return Conf.getAppSettings(app or self.__class__.__name__.replace('Handler', '')).get('Value') or {}
+
   def actionURL(self, action=""):
-    """
-    Given an action name for the handler, return the URL
+    """ Given an action name for the handler, return the URL
+
+        :param str action: action
+
+        :return: str
     """
     if action == "index":
       action = ""
@@ -295,48 +295,54 @@ class WebHandler(tornado.web.RequestHandler):
     return self.URLSCHEMA % ats
 
   def __auth(self, handlerRoute, group, method):
-    """
-    Authenticate request
-    :param str handlerRoute: the name of the handler
-    :param str group: DIRAC group
-    :param str method: the name of the method
-    :return: bool
-    """
-    userDN = self.getUserDN()
-    if group:
-      self.__credDict['group'] = group
-    else:
-      if userDN:
-        result = Registry.findDefaultGroupForDN(userDN)
-        if result['OK']:
-          self.__credDict['group'] = result['Value']
-    self.__credDict['validGroup'] = False
+    """ Authenticate request
 
-    if type(self.AUTH_PROPS) not in (types.ListType, types.TupleType):
+        :param str handlerRoute: the name of the handler
+        :param str group: DIRAC group
+        :param str method: the name of the method
+
+        :return: bool
+    """
+    if not isinstance(self.AUTH_PROPS, (list, tuple)):
       self.AUTH_PROPS = [p.strip() for p in self.AUTH_PROPS.split(",") if p.strip()]
 
+    self.__credDict['validGroup'] = False
+    self.__credDict['group'] = group
     auth = AuthManager(Conf.getAuthSectionForHandler(handlerRoute))
     ok = auth.authQuery(method, self.__credDict, self.AUTH_PROPS)
     if ok:
-      if userDN:
-        self.__credDict['validGroup'] = True
-        self.log.info("AUTH OK: %s by %s@%s (%s)" %
-                      (handlerRoute, self.__credDict['username'], self.__credDict['group'], userDN))
-      else:
-        self.__credDict['validDN'] = False
-        self.log.info("AUTH OK: %s by visitor" % (handlerRoute))
-    elif self.isTrustedHost(self.__credDict.get('DN', '')):
+      self.__credDict['validGroup'] = True
+      # WARN: __credDict['properties'] already defined in AuthManager in the last version of DIRAC
+      self.__credDict['properties'] = Registry.getPropertiesForGroup(self.__credDict['group'], [])
+      msg = ' - '
+      if self.__credDict.get('DN'):
+        msg = '%s' % self.__credDict['DN']
+      elif self.__credDict.get('ID'):
+        result = Registry.getProviderForID(self.__credDict['ID'])  # pylint: disable=no-member
+        if not result['OK']:
+          self.log.error(result['Message'])
+          return False
+        msg = 'IdP: %s, ID: %s' % (result['Value'], self.__credDict['ID'])
+      self.log.info(
+          "AUTH OK: %s by %s@%s (%s)" %
+          (handlerRoute,
+           self.__credDict['username'],
+           self.__credDict['group'],
+           msg))
+    else:
+      self.log.info("AUTH KO: %s by %s@%s" % (handlerRoute, self.__credDict['username'], self.__credDict['group']))
+
+    if self.isTrustedHost(self.__credDict.get('DN', '')):
       self.log.info("Request is coming from Trusted host")
       return True
-    else:
-      self.log.info("AUTH KO: %s by %s@%s" % (handlerRoute, userDN, group))
+
     return ok
 
   def isTrustedHost(self, dn):
-    """
-    Check if the request coming from a TrustedHost
-    :param str dn: certificate DN
-    :return: bool if the host is Trusrted it return true otherwise false
+    """ Check if the request coming from a TrustedHost
+        :param str dn: certificate DN
+
+        :return: bool if the host is Trusrted it return true otherwise false
     """
     retVal = Registry.getHostnameForDN(dn)
     if retVal['OK']:
@@ -346,8 +352,13 @@ class WebHandler(tornado.web.RequestHandler):
     return False
 
   def __checkPath(self, setup, group, route):
-    """
-    Check the request, auth, credentials and DISET config
+    """ Check the request, auth, credentials and DISET config
+
+        :param str setup: setup name
+        :param str group: group name
+        :param str route: route
+
+        :return: WOK()/WErr()
     """
     if route[-1] == "/":
       methodName = "index"
@@ -359,20 +370,24 @@ class WebHandler(tornado.web.RequestHandler):
     if setup:
       self.__setup = setup
     if not self.__auth(handlerRoute, group, methodName):
-      return WErr(401, "Unauthorized.")
+      return WErr(401, "Unauthorized. %s" % methodName)
 
-    DN = self.getUserDN()
+    DN = self.getDN()
     if DN:
       self.__disetConfig.setDN(DN)
-    group = self.getUserGroup()
-    if group:
-      self.__disetConfig.setGroup(group)
+    ID = self.getID()
+    if ID:
+      self.__disetConfig.setID(ID, None)
+
+    # pylint: disable=no-value-for-parameter
+    if self.getUserGroup():  # pylint: disable=no-value-for-parameter
+      self.__disetConfig.setGroup(self.getUserGroup())  # pylint: disable=no-value-for-parameter
     self.__disetConfig.setSetup(setup)
     self.__disetDump = self.__disetConfig.dump()
 
     return WOK(methodName)
 
-  def get(self, setup, group, route):
+  def get(self, setup, group, route, overpath=None):
     if not self._pathResult.ok:
       raise self._pathResult
     methodName = "web_%s" % self._pathResult.data
@@ -384,6 +399,9 @@ class WebHandler(tornado.web.RequestHandler):
     return mObj()
 
   def post(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
+
+  def delete(self, *args, **kwargs):
     return self.get(*args, **kwargs)
 
   def write_error(self, status_code, **kwargs):
@@ -404,6 +422,11 @@ class WebHandler(tornado.web.RequestHandler):
           data = json.dumps(data)
     self.set_header('Content-Type', cType)
     self.finish(data)
+
+  def finishJEncode(self, o):
+    """ Encode data before finish
+    """
+    self.finish(encode(o))
 
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
