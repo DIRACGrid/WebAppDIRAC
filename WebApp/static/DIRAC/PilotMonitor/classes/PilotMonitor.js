@@ -276,50 +276,25 @@ Ext.define('DIRAC.PilotMonitor.classes.PilotMonitor', {
             });
 
         var showJobshandler = function() {
-          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "CurrentJobID");
-          if (oId != '-') {
-            var oSetupData = {};
-            if (GLOBAL.VIEW_ID == "desktop") { // we needs these
-              // information only
-              // for the desktop
-              // layout.
+          var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "PilotJobReference");
 
-              var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-              oSetupData.x = 0;
-              oSetupData.y = 0;
-              oSetupData.width = oDimensions[0];
-              oSetupData.height = oDimensions[1];
-              oSetupData.currentState = "";
-
-              oSetupData.desktopStickMode = 0;
-              oSetupData.hiddenHeader = 1;
-              oSetupData.i_x = 0;
-              oSetupData.i_y = 0;
-              oSetupData.ic_x = 0;
-              oSetupData.ic_y = 0;
-
-            }
-
-            oSetupData.data = {
-
-              leftMenu : {
-                JobID : oId
-              }
-            };
-
-            GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
-                  objectType : "app",
-                  moduleName : me.applicationsToOpen["JobMonitor"],
-                  setupData : oSetupData
-                });
-          }
+          var setupdata = {};
+          setupdata.data = {};
+          setupdata.currentState = oId;
+          setupdata.data.leftMenu = {};
+          setupdata.data.leftMenu.PilotJobReference = oId;
+          GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+            objectType: "app",
+            moduleName: me.applicationsToOpen["JobMonitor"],
+            setupData: setupdata
+          });
         };
         var menuitems = {
           'Visible' : [{
                 "text" : "Show Jobs",
                 "handler" : showJobshandler,
                 "properties" : {
-                  tooltip : 'Click to show the jobs which belong to the selected transformation(s).'
+                  tooltip: "Click to show the jobs bound to the selected pilot job reference(s)."
                 }
               }, {
                 "text" : "-"
