@@ -266,9 +266,11 @@ class WebHandler(tornado.web.RequestHandler):
 
   def __auth(self, handlerRoute, group, method):
     """ Authenticate request
+
         :param str handlerRoute: the name of the handler
         :param str group: DIRAC group
         :param str method: the name of the method
+
         :return: bool
     """
     userDN = self.getUserDN()
@@ -281,7 +283,7 @@ class WebHandler(tornado.web.RequestHandler):
           self.__credDict['group'] = result['Value']
     self.__credDict['validGroup'] = False
 
-    if type(self.AUTH_PROPS) not in (types.ListType, types.TupleType):
+    if not isinstance(self.AUTH_PROPS, (list, tuple)):
       self.AUTH_PROPS = [p.strip() for p in self.AUTH_PROPS.split(",") if p.strip()]
 
     auth = AuthManager(Conf.getAuthSectionForHandler(handlerRoute))
@@ -338,9 +340,9 @@ class WebHandler(tornado.web.RequestHandler):
     DN = self.getUserDN()
     if DN:
       self.__disetConfig.setDN(DN)
-    group = self.getUserGroup()
-    if group:
-      self.__disetConfig.setGroup(group)
+
+    if self.getUserGroup():
+      self.__disetConfig.setGroup(self.getUserGroup())
     self.__disetConfig.setSetup(setup)
     self.__disetDump = self.__disetConfig.dump()
 
