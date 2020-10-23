@@ -453,6 +453,24 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       scope: me
     });
 
+    me.pagingToolbar.btnSaveFiles = new Ext.Button({
+      tooltip: "Download selected<br>files in a .zip archive",
+      iconCls: "dirac-icon-save",
+      handler: function() {
+        me.__getSelectedFiles();
+      },
+      scope: me
+    });
+
+    me.pagingToolbar.btnSelectedFiles2Launchpad = new Ext.Button({
+      tooltip: "Open job launchpad<br>with selected files",
+      iconCls: "dirac-icon-submit",
+      handler: function() {
+        me.__getSelectedFiles2Launchpad();
+      },
+      scope: me
+    });
+
     me.pagingToolbar.btnShowQuery = new Ext.Button({
       tooltip: "Show Query",
       iconCls: "meta-query-icon",
@@ -470,7 +488,31 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       scope: me
     });
 
-        var pagingToolbarItems = [me.pagingToolbar.btnGrouping, me.pagingToolbar.btnSaveFile, me.pagingToolbar.btnShowQuery, '-', '-', '->', me.pagingToolbar.updateStamp, '-', 'Items per page: ', me.pagingToolbar.pageSizeCombo, '-'];
+    /*
+     * Read application settings from web.cfg to build panel
+     */
+    var pagingToolbarItems = [];
+    if (GLOBAL.APP.configData.configuration.hasOwnProperty("FileCatalog") && GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar) {
+      var items = GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar.replace(/, /g, ",").split(",");
+      for (var i = 0; i < items.length; i++) {
+        var element = items[i];
+        pagingToolbarItems.push(me.pagingToolbar.hasOwnProperty(element) ? me.pagingToolbar[element] : element);
+      }
+    } else {
+      pagingToolbarItems = [
+        me.pagingToolbar.btnGrouping,
+        me.pagingToolbar.btnSaveFile,
+        me.pagingToolbar.btnShowQuery,
+        "-",
+        "-",
+        "->",
+        me.pagingToolbar.updateStamp,
+        "-",
+        "Items per page: ",
+        me.pagingToolbar.pageSizeCombo,
+        "-"
+      ];
+    }
 
     me.pagingToolbar.toolbar = Ext.create("Ext.toolbar.Paging", {
       store: me.filesDataStore,
@@ -480,35 +522,6 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       emptyMsg: "No topics to display",
       prependButtons: true
     });
-
-        for (var i = 0; i < me.pagingToolbar.toolbar.items.length; i++) {
-
-          if (me.pagingToolbar.toolbar.items.getAt(i).itemId == "refresh") {
-
-            me.pagingToolbar.toolbar.items.getAt(i).setIconCls("dirac-icon-submit");
-            me.pagingToolbar.toolbar.items.getAt(i).setTooltip("Submit");
-            me.pagingToolbar.toolbar.items.getAt(i).handler = function() {
-              if (me.__isEveryBlockBlured()) {
-
-                me.oprLoadFilesGridData();
-
-              } else {
-
-                me.funcAfterEveryBlockGetsBlured = function() {
-
-                  me.oprLoadFilesGridData();
-
-                };
-
-                me.btnSubmitLeftPanel.focus();
-              }
-            };
-
-            break;
-
-          }
-
-        }
 
     me.pagingToolbar.toolbar.items.insert(4, me.pagingToolbar.toolbar.items.items[21]);
     me.pagingToolbar.toolbar.items.insert(24, me.pagingToolbar.toolbar.items.items[7]);
@@ -593,20 +606,6 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       features: [me.groupingFeature],
       columns: [
         {
-                    header : me.checkboxFunctionDefinition,
-                    name : 'checkBox',
-                    width : 26,
-                    sortable : false,
-                    dataIndex : 'fullfilename',
-                    renderer : function(value, metaData, record, row, col, store, gridView) {
-                      return this.rendererChkBox(value);
-                    },
-                    hideable : false,
-                    fixed : true,
-                    menuDisabled : true,
-                    align : "center"
-        }, 
-        {
           header: "Directory",
           sortable: true,
           dataIndex: "dirname",
@@ -641,9 +640,6 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           flex: 2
         }
       ],
-              rendererChkBox : function(val) {
-                return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
-              },
       tbar: me.pagingToolbar.toolbar
     });
 
@@ -1245,6 +1241,76 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       oDropDown.resumeEvents();
       me.queryPanel.body.unmask();
     }
+  },
+
+  __getSelectedFiles: function() {
+    var me = this;
+    var oSendData = [];
+
+    var selection = me.filesGrid.getSelectionModel().getSelection();
+
+    for (var i = 0; i < selection.length; i++) {
+      oSendData.push(selection[i].get("fullfilename"));
+    }
+
+    Ext.Ajax.request({
+      url: GLOBAL.BASE_URL + "FileCatalog/getSelectedFiles",
+      params: {
+        path: oSendData.join(",")
+      },
+      scope: me,
+      success: function(response) {
+        var me = this;
+        var response = Ext.JSON.decode(response.responseText);
+
+        if (response["success"] == "true") {
+          archivePath = response["archivePath"];
+          var sUrl = GLOBAL.BASE_URL + "FileCatalog/getSelectedFiles?archivePath=" + encodeURIComponent(archivePath);
+          window.open(sUrl, "Data zip archive", "width=400,height=200");
+        } else {
+          GLOBAL.APP.CF.alert(response["lfn"] + ":\n  " + response["error"], "error");
+        }
+      },
+      failure: function(response) {
+        GLOBAL.APP.CF.showAjaxErrorMessage(response);
+      }
+    });
+  },
+
+  __getSelectedFiles2Launchpad: function() {
+    var me = this;
+
+    var oSendData = [];
+
+    var selection = me.filesGrid.getSelectionModel().getSelection();
+
+    for (var i = 0; i < selection.length; i++) {
+      oSendData.push(selection[i].get("fullfilename"));
+    }
+
+    Ext.Ajax.request({
+      url: GLOBAL.BASE_URL + "JobLaunchpad/getLaunchpadSetupWithLFNs?path=" + encodeURIComponent(oSendData.join(",")),
+      success: function(response) {
+        if (response.status == 200) {
+          var data = {};
+          data = Ext.JSON.decode(response.responseText);
+
+          var oSetupData = { data: {} };
+          oSetupData.data.InputData = data["result"]["InputData"][1];
+
+          GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
+            objectType: "app",
+            moduleName: "DIRAC.JobLaunchpad.classes.JobLaunchpad",
+            setupData: oSetupData
+          });
+        } else {
+          GLOBAL.APP.CF.showAjaxErrorMessage(response);
+        }
+      },
+      failure: function(response) {
+        GLOBAL.APP.CF.showAjaxErrorMessage(response);
+      }
+    });
   },
 
   __getMetadataFile: function() {

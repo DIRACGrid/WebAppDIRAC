@@ -312,3 +312,12 @@ def bugReportURL():
   """
   return getCSValue("bugReportURL", "")
 
+
+def getAppSettings(app):
+  """ Get applications options
+
+      :param str app: application name
+
+      :return: S_OK(dict)/S_ERROR
+  """
+  return gConfig.getOptionsDictRecursively("%s/%s" % (BASECS, app))

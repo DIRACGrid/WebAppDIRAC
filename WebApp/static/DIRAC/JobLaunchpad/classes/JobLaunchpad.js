@@ -13,6 +13,19 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     "Ext.menu.Menu"
   ],
 
+  loadState: function(data) {
+    var me = this;
+
+    for (var key in data) {
+      if (key in me.textualFields) {
+        me.__destroyJdlField(key);
+      }
+      me.textualFields[key] = {};
+      me.textualFields[key].value = data[key];
+      me.__createJdlField(key, data[key], true);
+    }
+  },
+
   initComponent: function() {
     var me = this;
 
@@ -520,6 +533,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
   setUpParametersAndPredefinedConfig: function() {
     var me = this;
 
+    if (typeof me.launcher.oResponse == "undefined") {
       Ext.Ajax.request({
         url: GLOBAL.BASE_URL + "JobLaunchpad/getLaunchpadOpts",
         method: "POST",
@@ -532,6 +546,9 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
           me.showProxyStatus("neutral");
         }
       });
+    } else {
+      me.processResponse(me.launcher.oResponse);
+    }
   },
 
   __createPrededinedSetsTree: function(oPredefinedSets) {

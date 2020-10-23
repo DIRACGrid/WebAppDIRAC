@@ -1,6 +1,8 @@
+import pprint
 import tempfile
 
 from DIRAC import gConfig, gLogger
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
@@ -10,10 +12,32 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 class JobLaunchpadHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
+  defaultParams = {"JobName": [1, 'DIRAC'],
+                   "Executable": [1, "/bin/ls"],
+                   "Arguments": [1, "-ltrA"],
+                   "OutputSandbox": [1, "std.out, std.err"],
+                   "JobGroup": [0, "Unknown"],
+                   "InputData": [0, ""],
+                   "OutputData": [0, ""],
+                   "OutputSE": [0, "DIRAC-USER"],
+                   "OutputPath": [0, ""],
+                   "CPUTime": [0, "86400"],
+                   "Site": [0, ""],
+                   "BannedSite": [0, ""],
+                   "Platform": [0, "Linux_x86_64_glibc-2.12"],
+                   "Priority": [0, "5"],
+                   "StdError": [0, "std.err"],
+                   "StdOutput": [0, "std.out"],
+                   "Parameters": [0, "0"],
+                   "ParameterStart": [0, "0"],
+                   "ParameterStep": [0, "1"],
+                   "ParameterFactor": [0, "0"]}
 
   def __init__(self, *args, **kwargs):
     super(JobLaunchpadHandler, self).__init__(*args, **kwargs)
     sessionData = self.getSessionData()
+    for opt, value in (self.getAppSettings().get("Options") or {}).items():
+      self.defaultParams[opt] = value.replace(', ', ',').split(',')
     self.user = sessionData['user'].get('username', '')
     self.group = sessionData['user'].get('group', '')
     self.vo = getVOForGroup(self.group)
@@ -70,82 +94,33 @@ class JobLaunchpadHandler(WebHandler):
     gLogger.info("end __getPlatform")
     return platform
 
-  def __getOptionsFromCS(self, path="/WebApp/Launchpad/Options", delimiter=","):
-    gLogger.info("start __getOptionsFromCS")
+  @asyncGen
+  def web_getLaunchpadSetupWithLFNs(self):
+    """ Method obtain launchpad setup with pre-selected LFNs as input data parameter,
+        the caller js client will use setup to open an new Launchpad
+    """
+    # On the fly file catalog for advanced launchpad
+    if not hasattr(self, 'fc'):
+      userData = self.getSessionData()
+      group = str(userData["user"]["group"])
+      vo = getVOForGroup(group)
+      self.fc = FileCatalog(vo=vo)
 
-    result = gConfig.getOptionsDict(path)
+    self.set_header('Content-type', 'text/plain')
+    arguments = self.request.arguments
+    gLogger.always("submit: incoming arguments %s to getLaunchpadSetupWithLFNs" % arguments)
+    lfnList = str(arguments['path'][0]).split(',')
 
-    gLogger.always(result)
-    if not result["OK"]:
-      return []
+    ptlfn = ''
+    for lfn in lfnList:
+      ptlfn += (', ' + lfn) if ptlfn else lfn
 
-    options = result["Value"]
-    for i in options.keys():
-      options[i] = options[i].split(delimiter)
+    params = self.defaultParams.copy()
+    params["InputData"] = [1, ptlfn]
 
-    result = gConfig.getSections(path)
-    if result["OK"]:
-      sections = result["Value"]
-
-    if len(sections) > 0:
-      for i in sections:
-        options[i] = self.__getOptionsFromCS(path + '/' + i, delimiter)
-
-    gLogger.always("options: %s" % options)
-    gLogger.info("end __getOptionsFromCS")
-    return options
-
-  def web_getLaunchpadOpts(self):
-
-    defaultParams = {"JobName": [1, 'DIRAC'],
-                     "Executable": [1, "/bin/ls"],
-                     "Arguments": [1, "-ltrA"],
-                     "OutputSandbox": [1, "std.out, std.err"],
-                     "JobGroup": [0, "Unknown"],
-                     "InputData": [0, ""],
-                     "OutputData": [0, ""],
-                     "OutputSE": [0, "DIRAC-USER"],
-                     "OutputPath": [0, ""],
-                     "CPUTime": [0, "86400"],
-                     "Site": [0, ""],
-                     "BannedSite": [0, ""],
-                     "Platform": [0, "Linux_x86_64_glibc-2.12"],
-                     "Priority": [0, "5"],
-                     "StdError": [0, "std.err"],
-                     "StdOutput": [0, "std.out"],
-                     "Parameters": [0, "0"],
-                     "ParameterStart": [0, "0"],
-                     "ParameterStep": [0, "1"],
-                     "ParameterFactor": [0, "0"]}
-
-    delimiter = gConfig.getValue("/WebApp/Launchpad/ListSeparator", ',')
-    options = self.__getOptionsFromCS(delimiter=delimiter)
-#     platform = self.__getPlatform()
-#     if platform and options:
-#       if not options.has_key("Platform"):
-#         options[ "Platform" ] = platform
-#       else:
-#         csPlatform = list(options[ "Platform" ])
-#         allPlatforms = csPlatform + platform
-#         platform = uniqueElements(allPlatforms)
-#         options[ "Platform" ] = platform
-    gLogger.debug("Combined options from CS: %s" % options)
-    gLogger.info("end __getLaunchpadOpts")
-
-#    Updating the default values from OptionsOverride configuration branch
-
-    for key in options:
-      if key not in defaultParams:
-        defaultParams[key] = [0, ""]
-      defaultParams[key][1] = options[key][0]
-
-#    Reading of the predefined sets of launchpad parameters values
-
-    obj = Operations(vo=self.vo)
+    obj = Operations(vo=vo)
     predefinedSets = {}
-
     launchpadSections = obj.getSections("Launchpad")
-    import pprint
     if launchpadSections['OK']:
       for section in launchpadSections["Value"]:
         predefinedSets[section] = {}
@@ -154,7 +129,22 @@ class JobLaunchpadHandler(WebHandler):
         if sectionOptions['OK']:
           predefinedSets[section] = sectionOptions["Value"]
 
-    self.write({"success": "true", "result": defaultParams, "predefinedSets": predefinedSets})
+    self.write({"success": "true", "result": params, "predefinedSets": predefinedSets})
+
+  def web_getLaunchpadOpts(self):
+    """ Reading of the predefined sets of launchpad parameters values
+    """
+    obj = Operations(vo=self.vo)
+    predefinedSets = {}
+    launchpadSections = obj.getSections("Launchpad")
+    if launchpadSections['OK']:
+      for section in obj.getValue("Launchpad/ApplicationList", launchpadSections["Value"]):
+        predefinedSets[section] = {}
+        sectionOptions = obj.getOptionsDict("Launchpad/" + section)
+        pprint.pprint(sectionOptions)
+        if sectionOptions['OK']:
+          predefinedSets[section] = sectionOptions["Value"]
+    self.write({"success": "true", "result": self.defaultParams, "predefinedSets": predefinedSets})
 
   def __canRunJobs(self):
     data = self.getSessionData()

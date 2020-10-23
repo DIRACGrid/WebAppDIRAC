@@ -137,59 +137,20 @@ class ProxyUploadHandler(WebHandler):
         return
 
     for group in groupList:
-      #         gLogger.info("Uploading proxy for group: %s" % group)
-      #         cmd = "cat %s | dirac-proxy-init -U -g %s -C %s -K %s -p" % (key["pem"],group,key["pub"],key["private"])
-      #         result = result = yield self.threadTask(Subprocess.shellCall,900,cmd)
-      #         gLogger.debug("Command is: %s" % cmd)
-      #         gLogger.debug("Result is: %s" % result)
-      #         gLogger.info("Command is: %s" % cmd)
-      #         gLogger.info("Result is: %s" % result)
-      #
-      #         if not result[ 'OK' ]:
-      #           shutil.rmtree(storePath)
-      #           error = "".join(result["Message"])
-      #           gLogger.error(error)
-      #           if len(resultList) > 0:
-      #             success = "\nHowever some operations has finished successfully:\n"
-      #             success = success + "\n".join(resultList)
-      #             error = error + success
-      #           error = error + disclaimer
-      #           gLogger.debug("Service response: %s" % error)
-      #           self.finish({"success":"false","error":error})
-      #           return
-      #         code = result["Value"][0]
-      #         stdout = result["Value"][1]
-      #         error = result["Value"][2]
-      #         if len(error) > 0:
-      #           error = error.replace(">","")
-      #           error = error.replace("<","")
-      #         if not code == 0:
-      #           if len(resultList) > 0:
-      #             success = "\nHowever some operations has finished successfully:\n"
-      #             success = success + "\n".join(resultList)
-      #             error = error + success
-      #           error = error + disclaimer
-      #           gLogger.debug("Service response: %s" % error)
-      #           self.finish({"success":"false","error":error})
-      #           return
-      #         resultList.append(stdout)
       proxyChain = X509Chain()
 
       result = proxyChain.loadChainFromFile(keyDict["pub"])
-
       if not result['OK']:
         self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
         return
 
       result = proxyChain.getIssuerCert()
-
       if not result['OK']:
         self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
         return
       issuerCert = result['Value']
 
       upParams = ProxyUpload.CLIParams()
-
       upParams.onTheFly = True
       upParams.proxyLifeTime = issuerCert.getRemainingSecs()['Value'] - 300
       upParams.diracGroup = group

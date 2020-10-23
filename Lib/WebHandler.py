@@ -243,6 +243,9 @@ class WebHandler(tornado.web.RequestHandler):
   def getSessionData(self):
     return self.__sessionData.getData()
 
+  def getAppSettings(self, app=None):
+    return Conf.getAppSettings(app or self.__class__.__name__.replace('Handler', '')).get('Value') or {}
+
   def actionURL(self, action=""):
     """
     Given an action name for the handler, return the URL
