@@ -101,15 +101,27 @@ class WebHandler(tornado.web.RequestHandler):
     super(WebHandler, self).__init__(*args, **kwargs)
     if not WebHandler.__log:
       WebHandler.__log = gLogger.getSubLogger(self.__class__.__name__)
+    # Fill credentials
     self.__credDict = {}
     self.__setup = Conf.setup()
     self.__processCredentials()
+    # Setup diset
     self.__disetConfig.reset()
     self.__disetConfig.setDecorator(self.__disetBlockDecor)
     self.__disetDump = self.__disetConfig.dump()
     match = self.PATH_RE.match(self.request.path)
     self._pathResult = self.__checkPath(*match.groups())
     self.__sessionData = SessionData(self.__credDict, self.__setup)
+  def __forceRefreshCS( self ):
+    """ Force refresh configuration from master configuration server
+    """
+    if self.request.headers.get( 'X-RefreshConfiguration' ) == 'True':
+      self.log.debug( 'Initialize force refresh..' )
+      if not AuthManager( '' ).authQuery( "", dict( self.__credDict ), "CSAdministrator" ):
+        raise WErr( 401, 'Cannot initialize force refresh, request not authenticated' )
+      result = gConfig.forceRefresh()
+      if not result['OK']:
+        raise WErr( 501, result['Message'] )
 
   def __processCredentials(self):
     """ Extract the user credentials based on the certificate or what comes from the balancer
@@ -318,7 +330,7 @@ class WebHandler(tornado.web.RequestHandler):
     if setup:
       self.__setup = setup
     if not self.__auth(handlerRoute, group, methodName):
-      return WErr(401, "Unauthorized.")
+      return WErr(401, "Unauthorized. %s" % methodName)
 
     DN = self.getUserDN()
     if DN:
