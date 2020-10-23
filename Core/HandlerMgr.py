@@ -1,10 +1,10 @@
 """ Basic modules for loading handlers
 """
 
-import inspect
-import imp
 import os
 import re
+import imp
+import inspect
 
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
@@ -12,16 +12,22 @@ from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 
 import WebAppDIRAC
-from WebAppDIRAC.Core.CoreHandler import CoreHandler
-from WebAppDIRAC.Core.StaticHandler import StaticHandler
+
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
+from WebAppDIRAC.Core.CoreHandler import CoreHandler
+from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
+__RCSID__ = "$Id$"
 
 class HandlerMgr(object):
   __metaclass__ = DIRACSingleton
 
   def __init__(self, baseURL=""):
+    """ Constructor
+
+        :param str baseURL: base URL
+    """
     self.__baseURL = baseURL.strip("/")
     self.__routes = []
     self.__handlers = []
@@ -30,8 +36,11 @@ class HandlerMgr(object):
     self.log = gLogger.getSubLogger("Routing")
 
   def getPaths(self, dirName):
-    """
-    Get lists of paths for all installed and enabled extensions
+    """ Get lists of paths for all installed and enabled extensions
+
+        :param str dirName: path to handlers
+
+        :return: list
     """
     pathList = []
     for extName in CSGlobals.getCSExtensions():
@@ -53,8 +62,9 @@ class HandlerMgr(object):
     return pathList
 
   def __calculateRoutes(self):
-    """
-    Load all handlers and generate the routes
+    """ Load all handlers and generate the routes
+
+        :return: S_OK()/S_ERROR()
     """
     ol = ObjectLoader()
     origin = "WebApp.handler"
@@ -130,6 +140,10 @@ class HandlerMgr(object):
     return S_OK()
 
   def getHandlers(self):
+    """ Get handlers
+
+        :return: S_OK()/S_ERROR()
+    """
     if not self.__handlers:
       result = self.__calculateRoutes()
       if not result['OK']:
@@ -137,6 +151,10 @@ class HandlerMgr(object):
     return S_OK(self.__handlers)
 
   def getRoutes(self):
+    """ Get routes
+
+        :return: S_OK()/S_ERROR()
+    """
     if not self.__routes:
       result = self.__calculateRoutes()
       if not result['OK']:

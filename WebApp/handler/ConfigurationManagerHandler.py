@@ -1,10 +1,10 @@
 import json
 import types
+from diraccfg import CFG
 
 from DIRAC import gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities import Time, List
-from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
 from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, WErr, asyncGen
@@ -27,6 +27,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.log.exception("No op defined")
 
     res = False
+    if params["op"] == "forceRefresh":
+      self.log.info('Initialize force refresh..')
+      res = gConfig.forceRefresh(fromMaster=True)
     if params["op"] == "init":
       res = yield self.threadTask(self.__getRemoteConfiguration, "init")
     elif params["op"] == "getSubnodes":

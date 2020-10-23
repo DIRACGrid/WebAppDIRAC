@@ -2,8 +2,8 @@ from hashlib import md5
 
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -20,11 +20,10 @@ class FileCatalogHandler(WebHandler):
     self.vo = getVOForGroup(self.group)
     self.fc = FileCatalog(vo=self.vo)
 
-  '''
-    Method to read all the available fields possible for defining a query
-  '''
   @asyncGen
   def web_getMetadataFields(self):
+    """ Method to get the selected file(s)
+    """
 
     self.L_NUMBER = 0
     self.S_NUMBER = 0
@@ -58,12 +57,10 @@ class FileCatalogHandler(WebHandler):
     gLogger.debug("getSelectorGrid: Resulting callback %s" % callback)
     self.finish({"success": "true", "result": callback})
 
-  '''
-    Method to read all the available options for a metadata field
-  '''
   @asyncGen
   def web_getQueryData(self):
-
+    """ Method to read all the available options for a metadata field
+    """
     try:
       compat = dict()
       for key in self.request.arguments:

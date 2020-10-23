@@ -1,8 +1,8 @@
 import tempfile
 
 from DIRAC import gConfig, gLogger
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -166,7 +166,6 @@ class JobLaunchpadHandler(WebHandler):
 
   @asyncGen
   def web_jobSubmit(self):
-
     # self.set_header('Content-type', "text/html")  # Otherwise the browser would offer you to download a JobSubmit file
     if not self.__canRunJobs():
       self.finish({"success": "false", "error": "You are not allowed to run the jobs"})
@@ -177,9 +176,8 @@ class JobLaunchpadHandler(WebHandler):
       return
 
     jdl = ""
-    params = {}
     lfns = []
-
+    params = {}
     for tmp in self.request.arguments:
       try:
         if len(self.request.arguments[tmp][0]) > 0:
@@ -192,18 +190,18 @@ class JobLaunchpadHandler(WebHandler):
         pass
     for item in params:
       if item == "OutputSandbox":
-        jdl = jdl + str(item) + " = {" + str(params[item]) + "};"
+        jdl += str(item) + " = {" + str(params[item]) + "};"
       if item == "Parameters":
         try:
           parameters = int(params[item])
-          jdl = jdl + str(item) + " = \"" + str(parameters) + "\";"
+          jdl += str(item) + " = \"" + str(parameters) + "\";"
         except BaseException:
           parameters = str(params[item])
           if parameters.find("{") >= 0 and parameters.find("}") >= 0:
             parameters = parameters.rstrip("}")
             parameters = parameters.lstrip("{")
             if len(parameters) > 0:
-              jdl = jdl + str(item) + " = {" + parameters + "};"
+              jdl += str(item) + " = {" + parameters + "};"
             else:
               self.finish({"success": "false", "error": "Parameters vector has zero length"})
               return
@@ -212,7 +210,7 @@ class JobLaunchpadHandler(WebHandler):
                          "error": "Parameters must be an integer or a vector. Example: 4 or {1,2,3,4}"})
             return
       else:
-        jdl = jdl + str(item) + " = \"" + str(params[item]) + "\";"
+        jdl += str(item) + " = \"" + str(params[item]) + "\";"
 
     store = []
     for key in self.request.files:
@@ -248,13 +246,12 @@ class JobLaunchpadHandler(WebHandler):
         exception_counter = 1
         callback = {"success": "false", "error": "An EXCEPTION happens during saving your sandbox file(s): %s" % str(x)}
 
+    sndBox = ""
     if ((len(fileNameList) > 0) or (len(lfns) > 0)) and exception_counter == 0:
       sndBox = "InputSandbox = {\"" + "\",\"".join(fileNameList + lfns) + "\"};"
-    else:
-      sndBox = ""
 
     if exception_counter == 0:
-      jdl = jdl + sndBox
+      jdl += sndBox
       from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
 
       jobManager = WMSClient(useCertificates=True, timeout=1800)

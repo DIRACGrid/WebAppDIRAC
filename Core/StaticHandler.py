@@ -1,8 +1,9 @@
-
 import os
 from tornado.web import StaticFileHandler, HTTPError
 
 from DIRAC import rootPath
+
+__RCSID__ = "$Id$"
 
 
 class StaticHandler(StaticFileHandler):

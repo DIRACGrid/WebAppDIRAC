@@ -19,7 +19,7 @@ class ProxyManagerHandler(WebHandler):
     callback = {}
 
     user = sData["user"]["username"]
-    if user == "Anonymous":
+    if user.lower() == "anonymous":
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
 
     if len(self.request.arguments) > 0:
@@ -70,7 +70,7 @@ class ProxyManagerHandler(WebHandler):
     callback = {}
 
     user = sData["user"]["username"]
-    if user == "Anonymous":
+    if user.lower() == "anonymous":
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
     start, limit, sort, req = self.__request()
     rpcClient = RPCClient("Framework/ProxyManager")

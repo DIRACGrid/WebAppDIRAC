@@ -31,8 +31,7 @@ class ProxyUploadHandler(WebHandler):
       return
 
     groupList = userData["validGroups"]
-    groups = ", ".join(groupList)
-    gLogger.info("Available groups for the user %s: %s" % (username, groups))
+    gLogger.info("Available groups for the user %s: %s" % (username, ", ".join(groupList)))
 
     if not len(groupList) > 0:
       gLogger.error("User is not registered in any group")
@@ -202,6 +201,7 @@ class ProxyUploadHandler(WebHandler):
       if not result['OK']:
         self.finish({"error": result['Message'], "success": "false"})
         return
+
     shutil.rmtree(storePath)
 
     groups = ", ".join(groupList)

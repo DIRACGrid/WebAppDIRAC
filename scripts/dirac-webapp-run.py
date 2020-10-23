@@ -7,7 +7,10 @@ from DIRAC import gConfig, S_OK
 from DIRAC.Core.Base import Script
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 from DIRAC.FrameworkSystem.Client.Logger import gLogger
+
 from WebAppDIRAC.Core.App import App
+
+__RCSID__ = "$Id$"
 
 if __name__ == "__main__":
 

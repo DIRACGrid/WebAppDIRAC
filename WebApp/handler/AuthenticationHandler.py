@@ -14,6 +14,8 @@ class AuthenticationHandler(WebHandler):
   # Send mail to administrators
   @asyncGen
   def web_sendRequest(self):
+    """ Send mail to administrators
+    """
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"]
     addresses = Conf.getCSValue('AdminsEmails')
@@ -53,6 +55,8 @@ class AuthenticationHandler(WebHandler):
   # Python part in auth process
   @asyncGen
   def web_auth(self):
+    """ Set authentication type
+    """
     typeAuth = str(self.request.arguments["typeauth"][0])
     loadValue = self.request.arguments["value"][0]
     method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth)
