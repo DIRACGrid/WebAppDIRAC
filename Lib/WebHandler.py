@@ -20,7 +20,7 @@ from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-er
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername, getCAForUsername
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -147,9 +147,6 @@ class WebHandler(tornado.web.RequestHandler):
         if result['OK']:
           self.__credDict['validDN'] = True
           self.__credDict['DN'] = result['Value'][0]
-        result = getCAForUsername(self.__credDict['username'])
-        if result['OK']:
-          self.__credDict['issuer'] = result['Value'][0]
         return
 
     # Type of Auth
