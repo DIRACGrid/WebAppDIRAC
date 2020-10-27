@@ -3,7 +3,6 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import ProxyManagerClient
 from DIRAC.Core.Utilities.List import uniqueElements
-from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -67,20 +66,16 @@ class ProxyManagerHandler(WebHandler):
   def web_getProxyManagerData(self):
     sData = self.getSessionData()
 
-    callback = {}
-
     user = sData["user"]["username"]
     if user.lower() == "anonymous":
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
     start, limit, sort, req = self.__request()
-    rpcClient = RPCClient("Framework/ProxyManager")
-    result = yield self.threadTask(rpcClient.getContents, req, sort, start, limit)
+    result = yield self.threadTask(ProxyManagerClient().getContents, req, sort, start, limit)
     gLogger.info("*!*!*!  RESULT: \n%s" % result)
     if not result['OK']:
       self.finish({"success": "false", "error": result["Message"]})
     svcData = result['Value']
     proxies = []
-    dnMap = {}
     for record in svcData['Records']:
       proxies.append({'proxyid': "%s@%s" % (record[1], record[2]),
                       'UserName': str(record[0]),
@@ -105,8 +100,7 @@ class ProxyManagerHandler(WebHandler):
       dn = "@".join(spl[:-1])
       group = spl[-1]
       idList.append((dn, group))
-    rpcClient = RPCClient("Framework/ProxyManager")
-    retVal = rpcClient.deleteProxyBundle(idList)
+    retVal = ProxyManagerClient().deleteProxyBundle(idList)
     callback = {}
     if retVal['OK']:
       callback = {"success": "true", "result": retVal['Value']}

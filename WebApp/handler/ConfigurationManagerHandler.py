@@ -1,5 +1,6 @@
 import json
-import types
+import six
+
 from diraccfg import CFG
 
 from DIRAC import gConfig
@@ -356,7 +357,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
           "oldIndex": params["oldIndex"]}
     oldParentDict = cfgData.getRecursive(nodePath, -1)
     newParentDict = cfgData.getRecursive(destinationParentPath)
-    if isinstance(newParentDict, types.StringType):
+    if isinstance(newParentDict, six.string_types):
       return {
           "success": 0,
           "op": "moveNode",
@@ -432,7 +433,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     if not nodeDict:
       return {"success": 0, "op": "copyKey", "message": "Moving entity does not exist"}
     newParentDict = cfgData.getRecursive(destinationParentPath)
-    if isinstance(newParentDict, types.StringType):
+    if isinstance(newParentDict, six.string_types):
       return {"success": 0, "op": "copyKey", "message": "Destination is not a section"}
     if not newParentDict:
       return {"success": 0, "op": "copyKey", "message": "Destination does not exist"}

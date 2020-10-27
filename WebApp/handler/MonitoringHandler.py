@@ -6,7 +6,6 @@ import os
 from hashlib import md5
 
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
@@ -177,7 +176,7 @@ class MonitoringHandler(WebHandler):
     if not retVal['OK']:
       return retVal
     params = retVal['Value']
-    repClient = MonitoringClient(rpcClient=RPCClient("Monitoring/Monitoring"))
+    repClient = MonitoringClient()
     retVal = repClient.generateDelayedPlot(*params)
     return retVal
 
@@ -276,7 +275,7 @@ class MonitoringHandler(WebHandler):
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
     params = retVal['Value']
-    repClient = MonitoringClient(rpcClient=RPCClient("Monitoring/Monitoring"))
+    repClient = MonitoringClient()
     retVal = yield self.threadTask(repClient.getReport, *params)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
@@ -314,7 +313,7 @@ class MonitoringHandler(WebHandler):
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
     params = retVal['Value']
-    repClient = MonitoringClient(rpcClient=RPCClient("Monitoring/Monitoring"))
+    repClient = MonitoringClient()
     retVal = yield self.threadTask(repClient.getReport, *params)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}

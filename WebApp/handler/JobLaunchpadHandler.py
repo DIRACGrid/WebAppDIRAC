@@ -88,7 +88,7 @@ class JobLaunchpadHandler(WebHandler):
       return False
 
     platformDict = result["Value"]
-    platform = platformDict.keys()
+    platform = list(platformDict)
 
     gLogger.debug("platform: %s" % platform)
     gLogger.info("end __getPlatform")
