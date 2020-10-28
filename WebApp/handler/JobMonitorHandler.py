@@ -232,6 +232,11 @@ class JobMonitorHandler(WebHandler):
       if jobids:
         req['JobID'] = jobids
 
+    if "PilotJobReference" in self.request.arguments:
+      pilotids = list(json.loads(self.request.arguments['PilotJobReference'][-1]))
+      if pilotids:
+        req['PilotJobReference'] = pilotids
+
     if "jobGroup" in self.request.arguments:
       prodids = list(json.loads(self.request.arguments['jobGroup'][-1]))
       if prodids:
@@ -449,7 +454,7 @@ class JobMonitorHandler(WebHandler):
     elif self.request.arguments["data_kind"][0] == "getPilotLoggingInfo":
       retVal = yield self.threadTask(PilotManagerClient().getPilots, int(jobId))
       if retVal['OK']:
-        pilotReference = retVal['Value'].keys()[0]
+        pilotReference = list(retVal['Value'])[0]
         retVal = yield self.threadTask(PilotManagerClient().getPilotLoggingInfo, pilotReference)
         if retVal["OK"]:
           callback = {"success": "true", "result": retVal["Value"]}
@@ -485,7 +490,7 @@ class JobMonitorHandler(WebHandler):
     if result["OK"]:
       callback = []
       result = dict(result["Value"])
-      keylist = sorted(result.keys())
+      keylist = sorted(result)
       if selector == "Site":
         tier1 = gConfig.getValue("/WebApp/PreferredSites", [])
         if tier1:

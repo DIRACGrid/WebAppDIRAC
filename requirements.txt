@@ -1,4 +1,5 @@
 # From pypi
+diraccfg
 autopep8==1.3.3
 coverage
 requests>=2.9.1

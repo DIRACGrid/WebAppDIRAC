@@ -44,7 +44,7 @@ class ProxyUploadHandler(WebHandler):
 
     fileObject = None
     gLogger.debug("Request's body:")
-    key = self.request.files.keys()[0]
+    key = list(self.request.files)[0]
     try:
       if self.request.files[key][0].filename:
         name = self.request.files[key][0].filename

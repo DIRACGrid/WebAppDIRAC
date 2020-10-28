@@ -289,6 +289,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       JobID: {
         name: "JobID(s)",
         type: "number"
+      },
+      PilotJobReference: {
+        name: "Pilot Job Reference(s)",
+        type: "originalText"
       }
     };
 

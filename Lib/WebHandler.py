@@ -47,9 +47,10 @@ class WErr( tornado.web.HTTPError ):
     return super( WErr, self ).__str__()
 
   @classmethod
-  def fromSERROR( cls, result ):
+  def fromSERROR(cls, result):
     """ Prevent major problem with % in the message """
-    return cls( 500, result['Message'].replace( "%", "" ) )
+    return cls(500, result['Message'].replace("%", ""))
+
 
 class WOK( object ):
 
@@ -293,7 +294,7 @@ class WebHandler( tornado.web.RequestHandler ):
     ats = dict( action = action, group = group, setup = setup, location = location )
     return self.URLSCHEMA % ats
 
-  def __auth( self, handlerRoute, group, method ):
+  def __auth(self, handlerRoute, group, method):
     """ Authenticate request
 
         :param str handlerRoute: the name of the handler
@@ -337,7 +338,7 @@ class WebHandler( tornado.web.RequestHandler ):
 
     return ok
 
-  def isTrustedHost( self, dn ):
+  def isTrustedHost(self, dn):
     """ Check if the request coming from a TrustedHost
         :param str dn: certificate DN
 
@@ -350,7 +351,7 @@ class WebHandler( tornado.web.RequestHandler ):
         return True
     return False
 
-  def __checkPath( self, setup, group, route ):
+  def __checkPath(self, setup, group, route):
     """ Check the request, auth, credentials and DISET config
 
         :param str setup: setup name
@@ -368,8 +369,8 @@ class WebHandler( tornado.web.RequestHandler ):
       handlerRoute = route[:iP]
     if setup:
       self.__setup = setup
-    if not self.__auth( handlerRoute, group, methodName ):
-      return WErr( 401, "Unauthorized. %s" % methodName )
+    if not self.__auth(handlerRoute, group, methodName):
+      return WErr(401, "Unauthorized. %s" % methodName)
 
     DN = self.getDN()
     if DN:

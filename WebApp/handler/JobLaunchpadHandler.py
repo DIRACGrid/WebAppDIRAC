@@ -12,25 +12,25 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 class JobLaunchpadHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
-  defaultParams = {"JobName":         [1, "DIRAC"],
-                   "Executable":      [1, "/bin/ls"],
-                   "Arguments":       [1, "-ltrA"],
-                   "OutputSandbox":   [1, "std.out, std.err"],
-                   "JobGroup":        [0, "Unknown"],
-                   "InputData":       [0, ""],
-                   "OutputData":      [0, ""],
-                   "OutputSE":        [0, "DIRAC-USER"],
-                   "OutputPath":      [0, ""],
-                   "CPUTime":         [0, "86400"],
-                   "Site":            [0, ""],
-                   "BannedSite":      [0, ""],
-                   "Platform":        [0, "Linux_x86_64_glibc-2.5"],
-                   "Priority":        [0, "5"],
-                   "StdError":        [0, "std.err"],
-                   "StdOutput":       [0, "std.out"],
-                   "Parameters":      [0, "0"],
-                   "ParameterStart":  [0, "0"],
-                   "ParameterStep":   [0, "1"],
+  defaultParams = {"JobName": [1, 'DIRAC'],
+                   "Executable": [1, "/bin/ls"],
+                   "Arguments": [1, "-ltrA"],
+                   "OutputSandbox": [1, "std.out, std.err"],
+                   "JobGroup": [0, "Unknown"],
+                   "InputData": [0, ""],
+                   "OutputData": [0, ""],
+                   "OutputSE": [0, "DIRAC-USER"],
+                   "OutputPath": [0, ""],
+                   "CPUTime": [0, "86400"],
+                   "Site": [0, ""],
+                   "BannedSite": [0, ""],
+                   "Platform": [0, "Linux_x86_64_glibc-2.12"],
+                   "Priority": [0, "5"],
+                   "StdError": [0, "std.err"],
+                   "StdOutput": [0, "std.out"],
+                   "Parameters": [0, "0"],
+                   "ParameterStart": [0, "0"],
+                   "ParameterStep": [0, "1"],
                    "ParameterFactor": [0, "0"]}
 
   def __init__(self, *args, **kwargs):
@@ -88,7 +88,7 @@ class JobLaunchpadHandler(WebHandler):
       return False
 
     platformDict = result["Value"]
-    platform = platformDict.keys()
+    platform = list(platformDict)
 
     gLogger.debug("platform: %s" % platform)
     gLogger.info("end __getPlatform")
@@ -132,7 +132,8 @@ class JobLaunchpadHandler(WebHandler):
     self.write({"success": "true", "result": params, "predefinedSets": predefinedSets})
 
   def web_getLaunchpadOpts(self):
-    # Reading of the predefined sets of launchpad parameters values
+    """ Reading of the predefined sets of launchpad parameters values
+    """
     obj = Operations(vo=self.vo)
     predefinedSets = {}
     launchpadSections = obj.getSections("Launchpad")

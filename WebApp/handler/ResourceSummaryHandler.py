@@ -360,7 +360,7 @@ class ResourceSummaryHandler(WebHandler):
       self.finish({'success': 'false', 'error': 'error getting tree'})
     res = res['Value']
 
-    siteName = res.keys()[0]
+    siteName = list(res)[0]
 
     tree = [[siteName, None, None, None]]
     for k, v in res[siteName]['statusTypes'].items():

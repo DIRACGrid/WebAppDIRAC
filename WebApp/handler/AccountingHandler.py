@@ -284,7 +284,7 @@ class AccountingHandler(WebHandler):
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
     rawData = retVal['Value']
-    groupKeys = sorted(rawData['data'].keys())
+    groupKeys = sorted(rawData['data'])
 #     print rawData['data']
     if 'granularity' in rawData:
       granularity = rawData['granularity']

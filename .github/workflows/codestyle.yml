@@ -54,12 +54,15 @@ jobs:
         curl -O https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/releases.cfg
         # get the base WebApp tag (e.g. for rel-v4r0 branch it will be v4r0)
         WebAppTag=$(echo "${REFERENCE_BRANCH}" | echo $(sed "s/rel-//g"))
+        echo "WebAppTag = ${WebAppTag}"
         # Now find the DIRAC release (tag) to checkout
         relToCheckout=integration
         allreleases=$(diraccfg as-json releases.cfg | jq '.Releases' | diraccfg sort-versions --allow-pre-releases 2>/dev/null)
         for x in ${allreleases}; do
-          rel=$(echo ${x} | sed "s/\"//g" | sed "s/\]//g" | sed "s/,//g")
-          modules=$(diraccfg as-json releases.cfg | jq '.Releases' | jq ."${rel}" | jq .Modules)
+          rel=$(echo ${x} | sed "s/\"//g" | sed "s/\[//g" | sed "s/\]//g" | sed "s/,//g")
+          echo "Looking for rel = ${rel}"
+          modules=$(diraccfg as-json releases.cfg | jq ".Releases".\"${rel}\" | jq .Modules)
+          echo "With modules = ${modules}"
           if [[ "${modules}" == *"WebAppDIRAC:${WebAppTag}"* ]]; then
             echo "${rel}"
             relToCheckout="${rel}"

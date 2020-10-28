@@ -100,9 +100,17 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
 
     if (sMessage == null) return;
     sMessage = sMessage.replace(new RegExp("\n", "g"), "<br/>");
+<<<<<<< HEAD
     sMessage = me.chunkString(sMessage, 150).join("<br/>");
 
     if (Object.is(btnCopy, undefined) || btnCopy) btns["cancel"] = "Copy";
+=======
+
+    if (Object.is(btnCopy, undefined) || btnCopy) {
+      btns["cancel"] = "Copy";
+      closable = false;
+    }
+>>>>>>> rel-v4r2
 
     var title, icon;
     switch (sType) {
@@ -131,6 +139,10 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       msg: sMessage,
       icon: icon,
       buttonText: btns,
+<<<<<<< HEAD
+=======
+      closable: closable,
+>>>>>>> rel-v4r2
       fn: function(oButton) {
         if (oButton == "cancel") {
           // copy
