@@ -73,6 +73,7 @@ class ProxyManagerHandler(WebHandler):
     if user.lower() == "anonymous":
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
     start, limit, sort, req = self.__request()
+    rpcClient = RPCClient("Framework/ProxyManager")
     result = yield self.threadTask(rpcClient.getContents, req, sort, start, limit)
     gLogger.info("*!*!*!  RESULT: \n%s" % result)
     if not result['OK']:
@@ -103,6 +104,7 @@ class ProxyManagerHandler(WebHandler):
       dn = "@".join(spl[:-1])
       group = spl[-1]
       idList.append((dn, group))
+    rpcClient = RPCClient("Framework/ProxyManager")
     retVal = rpcClient.deleteProxyBundle(idList)
     callback = {}
     if retVal['OK']:
