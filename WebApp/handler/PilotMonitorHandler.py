@@ -30,7 +30,10 @@ class PilotMonitorHandler(WebHandler):
       return
 
     if not (result["TotalRecords"] > 0):
-      self.finish({"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"})
+      self.finish({"success": "false",
+                   "result": [],
+                   "total": 0,
+                   "error": "There were no data matching your selection"})
       return
 
     if not ("ParameterNames" in result and "Records" in result):
@@ -301,7 +304,7 @@ class PilotMonitorHandler(WebHandler):
     if result["OK"]:
       callback = []
       result = dict(result["Value"])
-      keylist = sorted(result.keys())
+      keylist = sorted(result)
       if selector == "Site":
         tier1 = gConfig.getValue("/WebApp/PreferredSites", [])
         if len(tier1) > 0:

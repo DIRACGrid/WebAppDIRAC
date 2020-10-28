@@ -1,15 +1,20 @@
+""" WebAppDIRAC
+"""
+
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 __RCSID__ = "$Id$"
 
-import sys
 import os
-import platform
 
 # Define Version
 
 majorVersion = 4
-minorVersion = 0
-patchLevel = 30
-preVersion = 0
+minorVersion = 2
+patchLevel = 0
+preVersion = 1
 
 version = "v%sr%s" % (majorVersion, minorVersion)
 buildVersion = "v%dr%d" % (majorVersion, minorVersion)

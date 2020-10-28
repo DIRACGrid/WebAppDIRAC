@@ -1,9 +1,7 @@
-import sys
 import ssl
 import json
 import requests
 import functools
-import types
 import traceback
 import tornado.web
 import tornado.gen
@@ -15,7 +13,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 from DIRAC import gLogger
 from DIRAC.Core.Security import Properties
-from DIRAC.Core.Utilities.Decorators import deprecated
 from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
@@ -112,16 +109,6 @@ class WebHandler(tornado.web.RequestHandler):
     match = self.PATH_RE.match(self.request.path)
     self._pathResult = self.__checkPath(*match.groups())
     self.__sessionData = SessionData(self.__credDict, self.__setup)
-  def __forceRefreshCS( self ):
-    """ Force refresh configuration from master configuration server
-    """
-    if self.request.headers.get( 'X-RefreshConfiguration' ) == 'True':
-      self.log.debug( 'Initialize force refresh..' )
-      if not AuthManager( '' ).authQuery( "", dict( self.__credDict ), "CSAdministrator" ):
-        raise WErr( 401, 'Cannot initialize force refresh, request not authenticated' )
-      result = gConfig.forceRefresh()
-      if not result['OK']:
-        raise WErr( 501, result['Message'] )
 
   def __processCredentials(self):
     """ Extract the user credentials based on the certificate or what comes from the balancer
