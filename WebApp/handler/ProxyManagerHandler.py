@@ -4,9 +4,6 @@ from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
-# TODO: REMOVE IT FOR DIRAC v7r2+
-from DIRAC.Core.DISET.RPCClient import RPCClient
-
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
 
@@ -73,8 +70,7 @@ class ProxyManagerHandler(WebHandler):
     if user.lower() == "anonymous":
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
     start, limit, sort, req = self.__request()
-    rpcClient = RPCClient("Framework/ProxyManager")
-    result = yield self.threadTask(rpcClient.getContents, req, sort, start, limit)
+    result = yield self.threadTask(gProxyManager.getDBContents, req, sort, start, limit)
     gLogger.info("*!*!*!  RESULT: \n%s" % result)
     if not result['OK']:
       self.finish({"success": "false", "error": result["Message"]})
@@ -104,8 +100,7 @@ class ProxyManagerHandler(WebHandler):
       dn = "@".join(spl[:-1])
       group = spl[-1]
       idList.append((dn, group))
-    rpcClient = RPCClient("Framework/ProxyManager")
-    retVal = rpcClient.deleteProxyBundle(idList)
+    retVal = gProxyManager.deleteProxyBundle(idList)
     callback = {}
     if retVal['OK']:
       callback = {"success": "true", "result": retVal['Value']}
