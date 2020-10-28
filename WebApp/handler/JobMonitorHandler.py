@@ -232,6 +232,11 @@ class JobMonitorHandler(WebHandler):
       if jobids:
         req['JobID'] = jobids
 
+    if "PilotJobReference" in self.request.arguments:
+      pilotids = list(json.loads(self.request.arguments['PilotJobReference'][-1]))
+      if pilotids:
+        req['PilotJobReference'] = pilotids
+
     if "jobGroup" in self.request.arguments:
       prodids = list(json.loads(self.request.arguments['jobGroup'][-1]))
       if prodids:
