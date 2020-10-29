@@ -2153,7 +2153,7 @@ Ext.define("Ext.dirac.views.desktop.Main", {
   getViewMainDimensions: function() {
     var me = this;
 
-    return [me.getWidth(), me.getHeight() - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0];
+    return [me.getWidth(), me.getHeight() - (GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0)];
   },
 
   /**
