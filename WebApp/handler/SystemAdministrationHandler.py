@@ -22,11 +22,8 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getSysInfo(self):
-
-    userData = self.getSessionData()
-
-    DN = str(userData["user"]["DN"])
-    group = str(userData["user"]["group"])
+    DN = self.getUserDN()
+    group = self.getUserGroup()
     #  self.finish( { "success" : "false" , "error" : "No system information found" } )
     # return
     """
@@ -90,12 +87,8 @@ class SystemAdministrationHandler(WebHandler):
     Returns flatten list of components (services, agents) installed on hosts
     returned by getHosts function
     """
-
-    # checkUserCredentials()
-    userData = self.getSessionData()
-
-    DN = str(userData["user"]["DN"])
-    group = str(userData["user"]["group"])
+    DN = self.getUserDN()
+    group = self.getUserGroup()
 
     callback = list()
 
@@ -138,11 +131,8 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getHostErrors(self):
-
-    userData = self.getSessionData()
-
-    DN = str(userData["user"]["DN"])
-    group = str(userData["user"]["group"])
+    DN = self.getUserDN()
+    group = self.getUserGroup()
 
     if "host" not in self.request.arguments:
       self.finish({"success": "false", "error": "Name of the host is missing or not defined"})
@@ -173,11 +163,8 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getHostLog(self):
-
-    userData = self.getSessionData()
-
-    DN = str(userData["user"]["DN"])
-    group = str(userData["user"]["group"])
+    DN = self.getUserDN()
+    group = self.getUserGroup()
 
     if "host" not in self.request.arguments:
       self.finish({"success": "false", "error": "Name of the host is missing or not defined"})
@@ -233,10 +220,8 @@ class SystemAdministrationHandler(WebHandler):
     hosts = self.request.arguments["host"][0].split(",")
     version = self.request.arguments["version"][0]
 
-    userData = self.getSessionData()
-
-    DN = str(userData["user"]["DN"])
-    group = str(userData["user"]["group"])
+    DN = self.getUserDN()
+    group = self.getUserGroup()
 
     actionSuccess = list()
     actionFailed = list()
@@ -280,11 +265,8 @@ class SystemAdministrationHandler(WebHandler):
     Returns standard JSON response structure with with service response
     or error messages
     """
-
-    userData = self.getSessionData()
-
-    DN = str(userData["user"]["DN"])
-    group = str(userData["user"]["group"])
+    DN = self.getUserDN()
+    group = self.getUserGroup()
 
     if not (("action" in self.request.arguments) and (len(self.request.arguments["action"][0]) > 0)):
       self.finish({"success": "false", "error": "No action defined"})
@@ -417,8 +399,7 @@ class SystemAdministrationHandler(WebHandler):
 
   def getUserEmail(self):
 
-    userData = self.getSessionData()
-    user = userData["user"]["username"]
+    user = self.getUserName()
 
     if not user:
       gLogger.debug("user value is empty")
@@ -619,9 +600,7 @@ class SystemAdministrationHandler(WebHandler):
 
     result = None
 
-    userData = self.getSessionData()
-
-    setup = userData['setup'].split('-')[-1]
+    setup = self.getUserSetup().split('-')[-1]
     systemList = []
     componentTypes = ['Services', 'Agents']
     if "ComponentType" in self.request.arguments:
@@ -650,9 +629,7 @@ class SystemAdministrationHandler(WebHandler):
 
     data = {}
 
-    userData = self.getSessionData()
-
-    setup = userData['setup'].split('-')[-1]
+    setup = self.getUserSetup().split('-')[-1]
 
     hosts = []
     result = Registry.getHosts()
@@ -703,9 +680,8 @@ class SystemAdministrationHandler(WebHandler):
 
     rpcClient = RPCClient("Framework/Monitoring")
 
-    userData = self.getSessionData()
-
-    setup = userData['setup'].split('-')[-1]
+    _setup = self.getUserSetup()
+    setup = _setup.split('-')[-1]
 
     hosts = []
     result = Registry.getHosts()
@@ -759,13 +735,13 @@ class SystemAdministrationHandler(WebHandler):
 
     records = []
     if fullNames:
-      condDict = {'Setup': userData['setup'], 'ComponentName': fullNames}
+      condDict = {'Setup': _setup, 'ComponentName': fullNames}
     else:
       if len(componentTypes) < 2:
         cType = 'agent' if componentTypes[-1] == 'Agents' else 'service'
-        condDict = {'Setup': userData['setup'], 'Type': cType}
+        condDict = {'Setup': _setup, 'Type': cType}
       else:
-        condDict = {'Setup': userData['setup']}
+        condDict = {'Setup': _setup}
 
     gLogger.debug("condDict" + str(condDict))
     retVal = rpcClient.getComponentsStatus(condDict)

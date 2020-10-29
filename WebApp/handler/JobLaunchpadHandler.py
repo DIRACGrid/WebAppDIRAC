@@ -35,11 +35,10 @@ class JobLaunchpadHandler(WebHandler):
 
   def __init__(self, *args, **kwargs):
     super(JobLaunchpadHandler, self).__init__(*args, **kwargs)
-    sessionData = self.getSessionData()
     for opt, value in (self.getAppSettings().get("Options") or {}).items():
       self.defaultParams[opt] = value.replace(', ', ',').split(',')
-    self.user = sessionData['user'].get('username', '')
-    self.group = sessionData['user'].get('group', '')
+    self.user = self.getUserName()
+    self.group = self.getUserGroup()
     self.vo = getVOForGroup(self.group)
 
   def web_getProxyStatus(self):
@@ -50,14 +49,12 @@ class JobLaunchpadHandler(WebHandler):
 
     proxyManager = ProxyManagerClient()
 
-    userData = self.getSessionData()
-
-    group = str(userData["user"]["group"])
+    group = self.getUserGroup()
 
     if group == "visitor":
       return {"success": "false", "error": "User is anonymous or is not registered in the system"}
 
-    userDN = str(userData["user"]["DN"])
+    userDN = self.getUserDN()
 
     defaultSeconds = 24 * 3600 + 60  # 24H + 1min
     validSeconds = gConfig.getValue("/Registry/DefaultProxyLifeTime", defaultSeconds)
@@ -101,8 +98,7 @@ class JobLaunchpadHandler(WebHandler):
     """
     # On the fly file catalog for advanced launchpad
     if not hasattr(self, 'fc'):
-      userData = self.getSessionData()
-      group = str(userData["user"]["group"])
+      group = self.getUserGroup()
       vo = getVOForGroup(group)
       self.fc = FileCatalog(vo=vo)
 
@@ -146,18 +142,10 @@ class JobLaunchpadHandler(WebHandler):
           predefinedSets[section] = sectionOptions["Value"]
     self.write({"success": "true", "result": self.defaultParams, "predefinedSets": predefinedSets})
 
-  def __canRunJobs(self):
-    data = self.getSessionData()
-    isAuth = False
-    if "properties" in data["user"]:
-      if "NormalUser" in data["user"]["properties"]:
-        isAuth = True
-    return isAuth
-
   @asyncGen
   def web_jobSubmit(self):
     # self.set_header('Content-type', "text/html")  # Otherwise the browser would offer you to download a JobSubmit file
-    if not self.__canRunJobs():
+    if "NormalUser" not in self.getProperties():
       self.finish({"success": "false", "error": "You are not allowed to run the jobs"})
       return
     proxy = yield self.threadTask(self.__getProxyStatus, 86460)

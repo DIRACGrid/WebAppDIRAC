@@ -1,7 +1,7 @@
-import tempfile
+import os
 import json
 import tornado
-import os
+import tempfile
 
 from DIRAC import gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -228,6 +228,7 @@ class ActivityMonitorHandler(WebHandler):
       viewName = str(self.request.arguments['viewName'][0])
     except Exception as e:
       self.finish({"success": "false", "error": "Error while processing plot parameters: %s" % str(e)})
+      return
     rpcClient = RPCClient("Framework/Monitoring")
     requestStub = DEncode.encode(plotRequest)
     result = yield self.threadTask(rpcClient.saveView, viewName, requestStub)
@@ -240,12 +241,10 @@ class ActivityMonitorHandler(WebHandler):
 
     result = []
 
-    userData = self.getSessionData()
-
     retVal = gConfig.getSections('/DIRAC/Setups')
     if retVal['OK']:
       setups = [i.split('-')[-1] for i in retVal['Value']]
-    setup = userData['setup'].split('-')[-1]
+    setup = self.getUserSetup().split('-')[-1]
     leaf = True if path.find('Agents') != -1 or path.find('Services') != -1 else False
     retVal = gConfig.getSections(path)
 
@@ -267,8 +266,6 @@ class ActivityMonitorHandler(WebHandler):
           else:
             componentName = i
           result += [{'text': i, 'qtip': "Systems", "leaf": leaf, 'component': componentName, 'id': id}]
-    else:
-      result = []
 
     return result
 
