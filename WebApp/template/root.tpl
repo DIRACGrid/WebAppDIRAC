@@ -11,7 +11,6 @@
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/canvg.js"></script>
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/FileSaver/FileSaver.js"></script>
     <script type="text/javascript" src="{{base_url}}/static/oidc/oidc-client/dist/oidc-client.js"></script>
-	  
 	  {% if bugReportURL!='' %}
 	  {% for item in bugReportURL.split(',') %}
          <script type="text/javascript" src="{{escape(item)}}"></script>
@@ -29,7 +28,7 @@
 
     <!-- <x-compile> -->
     <!-- <x-bootstrap> -->
-	
+
     {% if _dev %}
        {% if debug_level=='debug' %}
           <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all-debug.js"></script>
@@ -57,109 +56,66 @@
           log: function () {}
         };
       }
-     {% if _dev %}
-       Ext.Loader.setConfig({
-                   disableCaching: false
-       });
-       Ext.Loader.setPath({
-       {% for extName in extensions %}
+
+      {% import json %}
+
+      var GLOBAL = {};
+      GLOBAL.APP = null;
+      GLOBAL.BASE_URL = "{{base_url}}/";
+      GLOBAL.ROOT_URL = "{{root_url}}/";
+      GLOBAL.EXTJS_VERSION = "{{ext_version}}";
+      GLOBAL.DEV = 0;
+      GLOBAL.URL_STATE = "{{url_state}}";
+      GLOBAL.MOUSE_X = 0;
+      GLOBAL.MOUSE_Y = 0;
+      GLOBAL.IS_IE = false;
+      GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
+      GLOBAL.WEB_THEME = "{{theme}}";
+      GLOBAL.STATE_MANAGEMENT_ENABLED = true;
+      GLOBAL.VIEW_ID = "{{view}}";
+      GLOBAL.VALID_VIEWS = ["desktop","tabs"];
+      GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
+      GLOBAL.OPEN_APP = "{{open_app}}";
+      GLOBAL.BACKGROUND = "{{backgroundImage}}";
+
+      {% if _dev %}
+        Ext.Loader.setConfig({ disableCaching: false });
+        Ext.Loader.setPath({
+        {% for extName in extensions %}
           {% if extName != 'WebAppDIRAC' %}
             {{ escape( extName ) }}: "{{ escape( '%s/static/%s' % ( base_url, extName ) ) }}",
           {% end %}
-       {% end %}
+        {% end %}
             'Ext.dirac.core': '{{base_url}}/static/core/js/core',
             'Ext.dirac.views': '{{base_url}}/static/core/js/views',
             'Ext.dirac.utils': '{{base_url}}/static/core/js/utils',
             'Ext.ux.form':'{{base_url}}/static/extjs/{{ext_version}}/packages/ux/classic/src/form',
             'Ext.ux':'{{base_url}}/static/extjs/{{ext_version}}/packages/ux/classic/src'            
-          });
+        });
+        Ext.require(['Ext.dirac.core.App','Ext.*']);
+        GLOBAL.DEV = 1;
 
-          Ext.require(['Ext.dirac.core.App','Ext.*']);
-
-          var GLOBAL = {};
-
-          GLOBAL.APP = null;
-          GLOBAL.BASE_URL = "{{base_url}}/";
-          GLOBAL.ROOT_URL = "{{root_url}}/";
-          GLOBAL.EXTJS_VERSION = "{{ext_version}}";
-          GLOBAL.DEV = 1;
-          GLOBAL.URL_STATE = "{{url_state}}";
-          GLOBAL.MOUSE_X = 0;
-          GLOBAL.MOUSE_Y = 0;
-          GLOBAL.IS_IE = false;
-          {% import json %}
-          GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
-          GLOBAL.WEB_THEME = "{{theme}}";
-          GLOBAL.STATE_MANAGEMENT_ENABLED = true;
-          GLOBAL.VIEW_ID = "{{view}}";
-          GLOBAL.VALID_VIEWS = ["desktop","tabs"];
-          GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
-          GLOBAL.OPEN_APP = "{{open_app}}";
-          GLOBAL.BACKGROUND = "{{backgroundImage}}";
-
-          Ext.onReady(function () {
-          				Ext.Ajax.setTimeout(600000);
-						Ext.override(Ext.data.Connection, { timeout:600000 });
-            GLOBAL.APP = new Ext.dirac.core.App();
-            Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
-            setTimeout(function(){
-              Ext.get("app-dirac-loading").hide();
-              Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-            },1000);
-            if (location.protocol === 'http:') {
-              var https_url = location.href.replace('http:', 'https:');
-              https_url = https_url.replace(":{{ http_port }}/", ":{{ https_port }}/");
-              Ext.dirac.system_info.msg(
-                "Notification",
-                'Running without authentication, did you mean: '+
-                '<a href="'+https_url+'">'+https_url+'</a>?',
-                false
-              );
-            };
-          });
-      {% else %}
-          var GLOBAL = {};
-
-          GLOBAL.APP = null;
-          GLOBAL.BASE_URL = "{{base_url}}/";
-          GLOBAL.ROOT_URL = "{{root_url}}/";
-          GLOBAL.EXTJS_VERSION = "{{ext_version}}";
-          GLOBAL.DEV = 0;
-          GLOBAL.URL_STATE = "{{url_state}}";
-          GLOBAL.MOUSE_X = 0;
-          GLOBAL.MOUSE_Y = 0;
-          GLOBAL.IS_IE = false;
-          {% import json %}
-          GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
-          GLOBAL.WEB_THEME = "{{theme}}";
-          GLOBAL.STATE_MANAGEMENT_ENABLED = true;
-          GLOBAL.VIEW_ID = "{{view}}";
-          GLOBAL.VALID_VIEWS = ["desktop","tabs"];
-          GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION = 1;
-          GLOBAL.OPEN_APP = "{{open_app}}";
-          GLOBAL.BACKGROUND = "{{backgroundImage}}";
-
-          Ext.onReady(function () {
-              Ext.override(Ext.data.Connection, { timeout:600000 });
-				      Ext.Ajax.setTimeout(600000);
-              GLOBAL.APP = new Ext.dirac.core.App();
-              Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
-              setTimeout(function(){
-                Ext.get("app-dirac-loading").hide();
-                Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-              },1000);
-              if (location.protocol === 'http:') {
-                var https_url = location.href.replace('http:', 'https:');
-                https_url = https_url.replace(":{{ http_port }}/", ":{{ https_port }}/");
-                Ext.dirac.system_info.msg(
-                  "Notification",
-                  'Running without authentication, did you mean: '+
-                  '<a href="'+https_url+'">'+https_url+'</a>?',
-                  false
-                );
-              };
-          });
       {% end %}
+      Ext.onReady(function () {
+        Ext.Ajax.setTimeout(600000);
+        Ext.override(Ext.data.Connection, { timeout:600000 });
+        GLOBAL.APP = new Ext.dirac.core.App();
+        Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
+        setTimeout(function(){
+          Ext.get("app-dirac-loading").hide();
+          Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+        },1000);
+        if (location.protocol === 'http:') {
+          var https_url = location.href.replace('http:', 'https:');
+          https_url = https_url.replace(":{{ http_port }}/", ":{{ https_port }}/");
+          Ext.dirac.system_info.msg(
+            "Notification",
+            'Running without authentication, did you mean: '+
+            '<a href="'+https_url+'">'+https_url+'</a>?',
+            false
+          );
+        };
+      });
     </script>
     <!-- </x-compile> -->
 </head>

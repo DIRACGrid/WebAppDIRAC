@@ -219,9 +219,7 @@ class UPHandler(WebHandler):
   @asyncGen
   def web_listPublicStates(self):
 
-    session = self.getSessionData()
-
-    user = session["user"]["username"]
+    user = self.getUserName()
 
     up = self.__getUP()
     retVal = yield self.threadTask(up.getUserProfileNames, {'PublishAccess': 'ALL'})
