@@ -63,9 +63,7 @@ class ComponentHistoryHandler(WebHandler):
     req = self.__request()
 
     data = {}
-    userData = self.getSessionData()
-
-    setup = userData['setup'].split('-')[-1]
+    setup = self.getUserSetup().split('-')[-1]
     systemList = []
     system = None
 

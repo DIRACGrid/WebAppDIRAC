@@ -86,10 +86,9 @@ class PilotSummaryHandler(WebHandler):
 
   @asyncGen
   def web_getSelectionData(self):
-    sData = self.getSessionData()
     callback = {}
-    group = sData["user"]["group"]
-    user = sData["user"]["username"]
+    group = self.getUserGroup()
+    user = self.getUserName()
     if user == "Anonymous":
       self.finish({"success": "false", "result": [], "total": 0, "error": "Insufficient rights"})
     else:
@@ -128,10 +127,9 @@ class PilotSummaryHandler(WebHandler):
     self.pageNumber = 0
     self.numberOfJobs = 25
     self.globalSort = [["GridSite", "ASC"]]
-    sData = self.getSessionData()
     req = {}
-    group = sData["user"]["group"]
-    user = sData["user"]["username"]
+    group = self.getUserGroup()
+    user = self.getUserName()
 
     if "limit" in self.request.arguments:
       self.numberOfJobs = int(self.request.arguments["limit"][-1])

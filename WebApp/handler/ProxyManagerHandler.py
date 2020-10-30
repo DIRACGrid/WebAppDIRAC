@@ -18,7 +18,7 @@ class ProxyManagerHandler(WebHandler):
 
     callback = {}
 
-    user = sData["user"]["username"]
+    user = self.getUserName()
     if user.lower() == "anonymous":
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
 
@@ -64,10 +64,8 @@ class ProxyManagerHandler(WebHandler):
 
   @asyncGen
   def web_getProxyManagerData(self):
-    sData = self.getSessionData()
-
-    user = sData["user"]["username"]
-    if user in ["Anonymous", "anonymous"]:
+    user = self.getUserName()
+    if user.lower() == "anonymous":
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
     start, limit, sort, req = self.__request()
     # pylint: disable=no-member

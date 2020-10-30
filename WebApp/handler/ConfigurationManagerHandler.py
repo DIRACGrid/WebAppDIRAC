@@ -1,5 +1,5 @@
-import json
 import six
+import json
 
 from diraccfg import CFG
 
@@ -469,27 +469,16 @@ class ConfigurationManagerHandler(WebSocketHandler):
         "parentNodeToId": params["parentNodeToId"]}
 
   def __commitConfiguration(self):
-    data = self.getSessionData()
-    isAuth = False
-    if "properties" in data["user"]:
-      if "CSAdministrator" in data["user"]["properties"]:
-        isAuth = True
-    if not isAuth:
+    if not self.__authorizeAction():
       return {"success": 0, "op": "commitConfiguration", "message": "You are not authorized to commit configurations!"}
-    self.log.always("User is commiting a new configuration version",
-                    "(%s)" % data["user"]["DN"])
+    self.log.always("User is commiting a new configuration version", "(%s)" % self.getUserDN())
     retDict = self.__configData['cfgData'].commit()
     if not retDict['OK']:
       return {"success": 0, "op": "commitConfiguration", "message": retDict['Message']}
     return {"success": 1, "op": "commitConfiguration"}
 
   def __authorizeAction(self):
-    data = self.getSessionData()
-    isAuth = False
-    if "properties" in data["user"]:
-      if "CSAdministrator" in data["user"]["properties"]:
-        isAuth = True
-    return isAuth
+    return "CSAdministrator" in self.getProperties()
 
   def __generateHTMLDiff(self, diffGen):
     diffList = []
@@ -579,11 +568,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       return {"success": 0, "op": "rollback", "message": retVal['Value']}
 
   def __setCommiter(self):
-
-    sessionData = self.getSessionData()
-
-    commiter = "%s@%s - %s" % (sessionData["user"]["username"],
-                               sessionData["user"]["group"],
+    commiter = "%s@%s - %s" % (self.getUserName(), self.getUserGroup(),
                                Time.dateTime().strftime("%Y-%m-%d %H:%M:%S"))
     self.__configData['cfgData'].commiterId = commiter
 

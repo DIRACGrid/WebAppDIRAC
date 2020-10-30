@@ -21,9 +21,8 @@ class FileCatalogHandler(WebHandler):
 
   def __init__(self, *args, **kwargs):
     super(FileCatalogHandler, self).__init__(*args, **kwargs)
-    sessionData = self.getSessionData()
-    self.user = sessionData['user'].get('username', '')
-    self.group = sessionData['user'].get('group', '')
+    self.user = self.getUserName()
+    self.group = self.getUserGroup()
     self.vo = getVOForGroup(self.group)
     self.fc = FileCatalog(vo=self.vo)
 

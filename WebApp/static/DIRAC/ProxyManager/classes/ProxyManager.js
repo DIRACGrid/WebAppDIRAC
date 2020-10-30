@@ -5,7 +5,6 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
   extend: "Ext.dirac.core.Module",
   requires: [
     "Ext.panel.Panel",
-    "Ext.panel.Panel",
     "Ext.dirac.utils.DiracBoxSelect",
     "Ext.form.field.TextArea",
     "Ext.dirac.utils.DiracGridPanel",
