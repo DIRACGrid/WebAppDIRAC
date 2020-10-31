@@ -531,7 +531,7 @@ class JobMonitorHandler(WebHandler):
       sbType = str(self.request.arguments['sandbox'][0])
 
     client = SandboxStoreClient(useCertificates=True,
-                                delegatedDN=self.getUserDN(),
+                                delegatedDN=self.getDN(),
                                 delegatedGroup=self.getUserGroup(),
                                 setup=self.getUserSetup())
 

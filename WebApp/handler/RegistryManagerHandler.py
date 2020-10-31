@@ -360,7 +360,7 @@ class RegistryManagerHandler(WebSocketHandler):
   def __commitChanges(self):
     if "CSAdministrator" not in self.getProperties():
       return {"success":0, "op":"commitChanges", "message":"You are not authorized to commit changes!!"}
-    gLogger.always("User %s is commiting a new configuration version" % self.getUserDN())
+    gLogger.always("User %s is commiting a new configuration version" % self.getDN())
     retDict = self.__configData[ 'cfgData' ].commit()
     if not retDict[ 'OK' ]:
       return {"success":0, "op":"commitChanges", "message":retDict[ 'Message' ]}

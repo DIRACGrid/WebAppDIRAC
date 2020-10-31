@@ -33,6 +33,7 @@ except ImportError:
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
 
+
 class WErr(tornado.web.HTTPError):
 
   def __init__(self, code, msg="", **kwargs):
@@ -54,17 +55,20 @@ class WErr(tornado.web.HTTPError):
 
 class WOK(object):
 
-  def __init__(self, data = False, **kwargs):
+  def __init__(self, data=False, **kwargs):
     for k in kwargs:
       setattr(self, k, kwargs[k])
     self.ok = True
     self.data = data
 
+
 def asyncWithCallback(method):
   return tornado.web.asynchronous(method)
 
+
 def asyncGen(method):
   return tornado.gen.coroutine(method)
+
 
 class WebHandler(tornado.web.RequestHandler):
   __disetConfig = ThreadConfig()
