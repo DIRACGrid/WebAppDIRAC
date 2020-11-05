@@ -363,7 +363,7 @@ Ext.define('Ext.dirac.utils.Presenter', {
         var me = this;
         var img = me.getComponent(oldImage.id);
         img.plotParams = newImage['params'];
-        img.setSrc(newImage['src']);
+        img.updateSrc(newImage['src']);
       },
       setColumnWidth : function(column) {
         var me = this;
