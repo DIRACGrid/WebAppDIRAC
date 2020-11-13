@@ -25,7 +25,7 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.title = "Application Wizzard";
+      me.launcher.title = "Application Wizard";
       me.launcher.maximized = false;
 
       var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
@@ -38,7 +38,7 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
     }
 
     if (GLOBAL.VIEW_ID == "tabs") {
-      me.launcher.title = "Application Wizzard";
+      me.launcher.title = "Application Wizard";
       me.launcher.maximized = false;
 
       var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
