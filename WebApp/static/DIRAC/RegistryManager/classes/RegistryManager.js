@@ -698,6 +698,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         enableTextSelection: true
       },
       columns: me.gridColumns["users"],
+      bufferedRenderer: false,
       listeners: {
         cellclick: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           switch (me.getSelectedType()) {
