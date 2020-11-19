@@ -24,7 +24,7 @@ class AuthenticationHandler(WebHandler):
         (loadValue[0], loadValue[1]), body='Type auth: %s, details: %s' %
         (typeAuth, loadValue))
 
-  # Get information from web.cfg about auth types
+  # Get information from CS about auth types
   @asyncGen
   def web_getAuthCFG(self):
     typeAuth = str(self.request.arguments["typeauth"][0])
