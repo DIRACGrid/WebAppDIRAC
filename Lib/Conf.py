@@ -5,6 +5,8 @@ import tempfile
 import tornado.process
 from DIRAC import gConfig
 from DIRAC.Core.Security import Locations, X509Chain, X509CRL
+from DIRAC.Core.Utilities.Decorators import deprecated
+
 
 __RCSID__ = "$Id$"
 
@@ -251,8 +253,9 @@ def getIcon():
   return getCSValue("Icon", "/static/core/img/icons/system/favicon.ico")
 
 
+@deprecated("Please, use SSLProtocol instead.")
 def SSLProrocol():
-  return getCSValue("SSLProtcol", "")
+  return SSLProtocol()
 
 
 def SSLProtocol():
