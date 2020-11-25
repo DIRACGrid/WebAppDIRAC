@@ -358,14 +358,9 @@ class RegistryManagerHandler(WebSocketHandler):
       return {"success":0, "op":"deleteItem", "message":"Entity doesn't exist"}
 
   def __commitChanges(self):
-    data = self.getSessionData()
-    isAuth = False
-    if "properties" in data["user"]:
-      if "CSAdministrator" in data["user"]["properties"]:
-        isAuth = True
-    if not isAuth:
+    if "CSAdministrator" not in self.getProperties():
       return {"success":0, "op":"commitChanges", "message":"You are not authorized to commit changes!!"}
-    gLogger.always("User %s is commiting a new configuration version" % data["user"]["DN"])
+    gLogger.always("User %s is commiting a new configuration version" % self.getUserDN())
     retDict = self.__configData[ 'cfgData' ].commit()
     if not retDict[ 'OK' ]:
       return {"success":0, "op":"commitChanges", "message":retDict[ 'Message' ]}

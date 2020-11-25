@@ -2,7 +2,7 @@
  * This is a simple example which describes how to use predefined widgets and how to create a new application. We used the following steps to create the first application:
  *
  *    - We called our first application ExampleApp.
- *    - We added the following line to the web.cfg: ExampleApp = DIRAC.ExampleApp
+ *    - We added the following line to the CS in the WebApp section: ExampleApp = DIRAC.ExampleApp
  *    - We created ExampleApp directory under DIRAC. We created two directories under ExampleApp called: classes and css.
  *    - classes directory contains the ExampleApp.js while the css directory contains the ExampleApp.css
  *    - We implemented the ExampleApp.js class

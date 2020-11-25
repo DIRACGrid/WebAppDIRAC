@@ -65,6 +65,7 @@ class ResourceSummaryHandler(WebHandler):
                                             requestParams['tokenOwner'])
     if not elementStatuses['OK']:
       self.finish({'success': 'false', 'error': elementStatuses['Message']})
+      return
 
     elementTree = collections.defaultdict(list)
 
@@ -158,6 +159,7 @@ class ResourceSummaryHandler(WebHandler):
                                      None, None, None, None)
     if not elements['OK']:
       self.finish({'success': 'false', 'error': elements['Message']})
+      return
 
     elementList = [dict(zip(elements['Columns'], element)) for element in elements['Value']]
     for element in elementList:
@@ -188,15 +190,14 @@ class ResourceSummaryHandler(WebHandler):
       self.finish({'success': 'false', 'error': 'Missing action'})
 
   def setToken(self, requestParams):
-
-    sData = self.getSessionData()
-
-    username = sData["user"]["username"]
+    username = self.getUserName()
 
     if username == 'anonymous':
       self.finish({'success': 'false', 'error': 'Cannot perform this operation as anonymous'})
-    elif 'SiteManager' not in sData['user']['properties']:
+      return
+    if 'SiteManager' not in self.getProperties():
       self.finish({'success': 'false', 'error': 'Not authorized'})
+      return
 
     pub = PublisherClient()
     res = yield self.threadTask(pub.setToken, self.ELEMENT_TYPE,
@@ -209,19 +210,18 @@ class ResourceSummaryHandler(WebHandler):
 
     if not res['OK']:
       self.finish({'success': 'false', 'error': res['Message']})
-
-    self.finish({'success': 'true', 'result': res['Value']})
+    else:
+      self.finish({'success': 'true', 'result': res['Value']})
 
   def setStatus(self, requestParams):
-
-    sData = self.getSessionData()
-
-    username = sData["user"]["username"]
+    username = self.getUserName()
 
     if username == 'anonymous':
       self.finish({'success': 'false', 'error': 'Cannot perform this operation as anonymous'})
-    elif 'SiteManager' not in sData['user']['properties']:
+      return
+    if 'SiteManager' not in self.getProperties():
       self.finish({'success': 'false', 'error': 'Not authorized'})
+      return
 
     pub = PublisherClient()
 
@@ -234,9 +234,10 @@ class ResourceSummaryHandler(WebHandler):
                                 str(requestParams['lastCheckTime'][0]))
 
     if not res['OK']:
-      self.finish({'success': 'false', 'error': res['Message']})
-
-    self.finish({'success': 'true', 'result': res['Value']})
+      self.write({'success': 'false', 'error': res['Message']})
+    else:
+      self.write({'success': 'true', 'result': res['Value']})
+    self.finish()
 
   def _getHistory(self, requestParams):
 

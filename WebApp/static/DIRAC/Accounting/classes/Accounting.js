@@ -106,6 +106,17 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["host", "Host"],
             ["component", "Component"],
             ["pid", "PID"],
+            ["status", "Status"],
+            ["componentType", "Component Type"],
+            ["componentLocation", "Component Location"]
+          ]
+        },
+        RMSMonitoring: {
+          title: "RMS Monitoring",
+          selectionConditions: [
+            ["host", "Host"],
+            ["objectType", "Object Type"],
+            ["operationType", "Operation Type"],
             ["status", "Status"]
           ]
         }
@@ -124,7 +135,8 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
       ],
       Monitoring: [
         ["WMSHistory", "WMS Monitoring"],
-        ["ComponentMonitoring", "Component Monitoring"]
+        ["ComponentMonitoring", "Component Monitoring"],
+        ["RMSMonitoring", "RMS Monitoring"]
       ]
     };
 

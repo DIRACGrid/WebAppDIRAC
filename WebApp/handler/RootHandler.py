@@ -15,27 +15,6 @@ class RootHandler(WebHandler):
   AUTH_PROPS = "all"
   LOCATION = "/"
 
-  def web_upload(self):
-
-    if 'filename' not in self.request.arguments:
-      raise WErr(400, "Please provide a file name!")
-    data = self.request.arguments.get("data", "")[0]
-    filename = self.request.arguments.get("filename", "")[0]
-
-    if re.match("(?!\.)^[\w\d_\.\-]*$", filename):
-      filepath = "%s/webRoot/www/pilot/%s" % (rootPath, filename)
-    else:
-      raise WErr(400, "Please provide a valid file name!")
-
-    try:
-      tmpfile = "%s.tmp" % filepath
-      with open(tmpfile, 'w') as tmp:
-        tmp.write(data)
-      os.rename(tmpfile, filepath)
-    except OSError as e:
-      raise WErr(400, "Cannot create the file: %s; %s" % (filename, repr(e)))
-    self.finish('File has created')
-
   def web_changeGroup(self):
     try:
       to = self.request.arguments['to'][-1]

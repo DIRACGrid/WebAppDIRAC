@@ -42,81 +42,6 @@ class App(object):
   def __reloadAppCB(self):
     gLogger.notice("\n !!!!!! Reloading web app...\n")
 
-  def _loadWebAppCFGFiles(self):
-    """
-    Load WebApp/web.cfg definitions
-    """
-    exts = []
-    for ext in CSGlobals.getCSExtensions():
-      if ext == "DIRAC":
-        continue
-      if ext[-5:] != "DIRAC":
-        ext = "%sDIRAC" % ext
-      if ext != "WebAppDIRAC":
-        exts.append(ext)
-    exts.append("DIRAC")
-    exts.append("WebAppDIRAC")
-    webCFG = CFG()
-    for modName in reversed(exts):
-      try:
-        modPath = imp.find_module(modName)[1]
-      except ImportError:
-        continue
-      gLogger.verbose("Found module %s at %s" % (modName, modPath))
-      cfgPath = os.path.join(modPath, "WebApp", "web.cfg")
-      if not os.path.isfile(cfgPath):
-        gLogger.verbose("Inexistant %s" % cfgPath)
-        continue
-      try:
-        modCFG = CFG().loadFromFile(cfgPath)
-      except Exception as excp:
-        gLogger.error("Could not load %s: %s" % (cfgPath, excp))
-        continue
-      gLogger.verbose("Loaded %s" % cfgPath)
-      expl = [Conf.BASECS]
-      while len(expl):
-        current = expl.pop(0)
-        if not modCFG.isSection(current):
-          continue
-        if modCFG.getOption("%s/AbsoluteDefinition" % current, False):
-          gLogger.verbose("%s:%s is an absolute definition" % (modName, current))
-          try:
-            webCFG.deleteKey(current)
-          except BaseException:
-            pass
-          modCFG.deleteKey("%s/AbsoluteDefinition" % current)
-        else:
-          for sec in modCFG[current].listSections():
-            expl.append("%s/%s" % (current, sec))
-      # Add the modCFG
-      webCFG = webCFG.mergeWith(modCFG)
-    gConfig.loadCFG(webCFG)
-
-  def _loadDefaultWebCFG(self):
-    """ This method reloads the web.cfg file from etc/web.cfg """
-    modCFG = None
-    cfgPath = os.path.join(DIRAC.rootPath, 'etc', 'web.cfg')
-    isLoaded = True
-    if not os.path.isfile(cfgPath):
-      isLoaded = False
-    else:
-      try:
-        modCFG = CFG().loadFromFile(cfgPath)
-      except Exception as excp:
-        isLoaded = False
-        gLogger.error("Could not load %s: %s" % (cfgPath, excp))
-
-    if modCFG:
-      if modCFG.isSection("/Website"):
-        gLogger.warn("%s configuration file is not correct. It is used by the old portal!" % (cfgPath))
-        isLoaded = False
-      else:
-        gConfig.loadCFG(modCFG)
-    else:
-      isLoaded = False
-
-    return isLoaded
-
   def stopChildProcesses(self, sig, frame):
     """
     It is used to properly stop tornado when more than one process is used.
@@ -138,11 +63,6 @@ class App(object):
     """
     self.log.always("\n ====== Starting DIRAC web app ====== \n")
 
-    # Load required CFG files
-    if not self._loadDefaultWebCFG():
-      # if we have a web.cfg under etc directory we use it, otherwise
-      # we use the configuration file defined by the developer
-      self._loadWebAppCFGFiles()
     # Calculating routes
     result = self.__handlerMgr.getRoutes()
     if not result['OK']:

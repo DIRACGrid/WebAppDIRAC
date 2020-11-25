@@ -1,8 +1,7 @@
+import os
+import json
 import tempfile
 import datetime
-import json
-import os
-
 from hashlib import md5
 
 from DIRAC import gConfig, S_OK, S_ERROR
@@ -19,11 +18,8 @@ class AccountingHandler(WebHandler):
   __keysCache = DictCache.DictCache()
 
   def __getUniqueKeyValues(self, typeName):
-    sessionData = self.getSessionData()
-    cacheKey = (sessionData["user"].get("username", ""),
-                sessionData["user"].get("group", ""),
-                sessionData["setup"],
-                typeName)
+    cacheKey = (self.getUserName(), self.getUserGroup(),
+                self.getUserSetup(), typeName)
     data = AccountingHandler.__keysCache.get(cacheKey)
     if not data:
       retVal = ReportsClient().listUniqueKeyValues(typeName)
@@ -278,11 +274,13 @@ class AccountingHandler(WebHandler):
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
+      return
     params = retVal['Value']
     retVal = yield self.threadTask(ReportsClient().getReport, *params)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
+      return
     rawData = retVal['Value']
     groupKeys = sorted(rawData['data'])
 #     print rawData['data']
@@ -315,10 +313,12 @@ class AccountingHandler(WebHandler):
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
+      return
     params = retVal['Value']
     retVal = yield self.threadTask(ReportsClient().getReport, *params)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
+      return
     rawData = retVal['Value']
     self.finish(rawData['data'])

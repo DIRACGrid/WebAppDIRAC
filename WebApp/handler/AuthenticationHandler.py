@@ -32,6 +32,7 @@ class AuthenticationHandler(WebHandler):
     result = NotificationClient().sendMail(addresses, subject=subject, body=body)
     self.finish(result)
 
+  # Get information from CS about auth types
   @asyncGen
   def web_getAuthNames(self):
     """ Get list of enable authentication types

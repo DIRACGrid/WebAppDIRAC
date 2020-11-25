@@ -19,10 +19,9 @@ class TransformationMonitorHandler(WebHandler):
 
   @asyncGen
   def web_getSelectionData(self):
-    sData = self.getSessionData()
     callback = {}
-    group = sData["user"]["group"]
-    user = sData["user"]["username"]
+    group = self.getUserGroup()
+    user = self.getUserName()
     if user == "Anonymous":
       callback["prod"] = [["Insufficient rights"]]
     else:
@@ -96,9 +95,8 @@ class TransformationMonitorHandler(WebHandler):
   def web_getTransformationData(self):
 
     pagestart = Time.time()
-    sData = self.getSessionData()
     callback = {}
-    user = sData["user"]["username"]
+    user = self.getUserName()
 
     tsClient = TransformationClient(timeout=3600)
 

@@ -489,7 +489,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     });
 
     /*
-     * Read application settings from web.cfg to build panel
+     * Read application settings from CS(WebApp section) to build panel
      */
     var pagingToolbarItems = [];
     if (GLOBAL.APP.configData.configuration.hasOwnProperty("FileCatalog") && GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar) {
@@ -1198,7 +1198,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
                 oDropDown.bindStore(oNewStore);
                 break;
               case "string":
-                oDropDown.refreshStore(oNewStore);
+                oDropDown.setStore(oNewStore);
                 break;
             }
 
@@ -1231,7 +1231,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           oDropDown.bindStore(oNewStore);
           break;
         case "string":
-          oDropDown.refreshStore(oNewStore);
+          oDropDown.setStore(oNewStore);
           break;
       }
 
