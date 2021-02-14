@@ -170,8 +170,7 @@ class MonitoringHandler(WebHandler):
     if not retVal['OK']:
       return retVal
     params = retVal['Value']
-    repClient = MonitoringClient()
-    retVal = repClient.generateDelayedPlot(*params)
+    retVal = MonitoringClient().generateDelayedPlot(*params)
     return retVal
 
   @asyncGen

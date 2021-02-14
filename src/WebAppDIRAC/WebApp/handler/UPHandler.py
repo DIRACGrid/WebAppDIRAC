@@ -20,6 +20,7 @@ class UPHandler(WebHandler):
   __tc = ThreadConfig()
 
   def prepare(self):
+    super(UPHandler, self).prepare()
     if not self.isRegisteredUser():
       raise WErr(401, "Not a registered user")
     self.set_header("Pragma", "no-cache")
@@ -100,6 +101,8 @@ class UPHandler(WebHandler):
     data, count = DEncode.decode(zlib.decompress(base64.b64decode(data)))
     self.finish(data)
 
+  auth_listAppState = ['all']
+
   @asyncGen
   def web_listAppState(self):
     up = self.__getUP()
@@ -120,6 +123,8 @@ class UPHandler(WebHandler):
     if not result['OK']:
       raise WErr.fromSERROR(result)
     self.finish()
+
+  auth_listPublicDesktopStates = ['all']
 
   @asyncGen
   def web_listPublicDesktopStates(self):
@@ -180,6 +185,8 @@ class UPHandler(WebHandler):
       raise WErr.fromSERROR(result)
     self.set_status(200)
     self.finish()
+
+  auth_listPublicStates = ['all']
 
   @asyncGen
   def web_listPublicStates(self):

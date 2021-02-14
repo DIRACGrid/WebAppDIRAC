@@ -30,6 +30,265 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     return oList;
   },
 
+  getAuthorizationServerMetadata: function() {
+    var meta = Ext.JSON.decode(sessionStorage.getItem("AuthServerMetadata"));
+    if (meta == null) {
+      console.log(GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration');
+      Ext.Ajax.request({
+        url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration',
+        success: function(response) {
+          meta = Ext.JSON.decode(response.responseText);
+          Ext.Ajax.request({
+            url: meta.jwks_uri,
+            success: function(response){
+              meta.jwks = Ext.JSON.decode(response.responseText);
+              sessionStorage.setItem("AuthServerMetadata", Ext.JSON.encode(meta));
+              return meta
+            }
+          });
+        }
+      });
+    } else {
+      return meta
+    };
+  },
+
+  fetchToken: function(access_token) {
+    var me = this;
+    var meta = me.getAuthorizationServerMetadata();
+    // var keys = KJUR.jws.JWS.readSafeJSONString(meta.jwks.toString());
+    var key = KEYUTIL.getKey(meta.jwks.keys[0]);
+    if (key.verify(null, access_token) == true) {
+      return access_token
+    };
+    Ext.Ajax.request({
+      method: 'GET',
+      url: GLOBAL.BASE_URL + 'fetchToken',
+      params: {
+        access_token: access_token
+      },
+      success: function(response) {
+        sessionStorage.setItem("access_token", response.responseText);
+        return response.responseText;
+      }
+    })
+  },
+
+  rpcCall: function(url, method, args) {
+    var me = this;
+    // var meta = await getAuthorizationServerMetadata();
+    var access_token = sessionStorage.getItem("access_token");
+    if (access_token == null) {
+      GLOBAL.APP.CF.alert('RPC call inpossible without access token. You need authorize through IdP.', "info");
+      return
+    };
+    access_token = me.fetchToken(access_token);
+    Ext.Ajax.request({
+      url: url,
+      method: 'POST',
+      params: {
+        method: method,
+        args: args
+      },
+      headers: {'Authorization': 'Bearer ' + access_token},
+      success: function(response) {
+        return Ext.JSON.decode(response.responseText);
+      }
+    });
+  },
+
+  /**
+   * Helper function to submit authentication flow and read status of it
+   */
+  auth: function(authProvider, inthread) {
+
+    window.location = GLOBAL.BASE_URL + 'login?provider=' + authProvider
+    
+    // GLOBAL.USERMANAGER.signinRedirect().catch(function(error){
+    //   console.log(error);
+    //   console.log("error: " + error && error.message);
+    // });
+    // // OIDC login method
+    // // var oAuth2LogIn = function(settings,name) {
+    // var settings = GLOBAL.APP.configData.configuration.AuthorizationClient;
+    // Oidc.Log.logger = console;
+    // var manager = new Oidc.UserManager(GLOBAL.APP.configData.configuration.AuthorizationClient);
+    // manager.events.addUserLoaded(function (loadedUser) { console.log(loadedUser); });
+    // manager.events.addSilentRenewError(function (error) {
+    //   GLOBAL.APP.CF.log("error", "error while renewing the access token");
+    // });
+    // manager.events.addUserSignedOut(function () {
+    //   GLOBAL.APP.CF.alert('The user has signed out',"info");
+    // });
+    // manager.events.addUserLoaded(function(loadedUser) {
+    //   if (loadedUser && typeof loadedUser === 'string') {
+    //     loadedUser = JSON.parse(data);
+    //   }
+    //   if (loadedUser) {
+    //     loadedUser = JSON.stringify(loadedUser, null, 2);
+    //   }
+    //   var aJson = JSON.parse(loadedUser);
+    //   console.log(aJson);
+    //     // var access_token = aJson["access_token"];
+    //     // Ext.Ajax.request({
+    //     //   url: GLOBAL.BASE_URL + 'Authentication/auth',
+    //     //   params: { 
+    //     //     typeauth: name,
+    //     //     value: access_token
+    //     //   },
+    //     //   success: function(response){
+    //     //     var response = Ext.JSON.decode(response.responseText);
+    //     //     if (response.value == 'Done') {location.protocol = "https:";} 
+    //     //     else { 
+    //     //       Ext.create('Ext.window.Window', {
+    //     //         title: 'Welcome',
+    //     //         layout: 'fit',
+    //     //         preventBodyReset: true,
+    //     //         closable: true,
+    //     //         html: '<br><b>Welcome to the DIRAC service '+ response.profile['given_name'] +'!</b><br><br>Sorry, but You are not registred as a DIRAC user.<br>',
+    //     //         buttons : [
+    //     //           {
+    //     //             text    : 'Registration',
+    //     //             handler : function() {
+    //     //               Ext.Ajax.request({
+    //     //                 url: GLOBAL.BASE_URL + 'Authentication/sendRequest',
+    //     //                 params: { 
+    //     //                   typeauth: name,
+    //     //                   value: response.profile
+    //     //                 },
+    //     //                 success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info');  }
+    //     //               });
+    //     //               this.up('window').close();
+    //     //             }
+    //     //           }
+    //     //         ]
+    //     //       }).show();
+    //     //     }
+    //     //   }
+    //     // });
+    // });
+    // manager.signinRedirect().catch(function(error){
+    //   console.log(error);
+    //   console.log("error: " + error && error.message);
+    // });
+    // // }; 
+    // //
+    // // var me = this;
+    // // Ext.Ajax.request({
+    // //   method: 'GET',
+    // //   url: GLOBAL.BASE_URL + "auth/authorization/" + authProvider, //"Authentication/auth",
+    // //   params: {
+    // //     group: GLOBAL.APP.configData.user.group != 'visitor' ? GLOBAL.APP.configData.user.group : '',
+    // //     response_type: 'code',
+    // //     client_id: 'OPo63zLr7okSO6yh1FTZWZwqXzQB7cirM60b6BpY73',
+    // //     redirect_uri: 'https://marosvn32.in2p3.fr/DIRAC/'
+    // //     // typeauth: authProvider,
+    // //     // inthread: inthread ?? null
+    // //   },
+    // //   scope: me,
+    // //   success: function(response) {
+    // //     var me = this;
+    // //     me.log("debug", 'RESPONSE: "' + response.responseText + '"');
+    // //     console.log(response)
+    // //     if (!response.status == 200) {
+    // //       return me.alert(response.statusText, "error");
+    // //     } else {
+    // //       var result = Ext.decode(response.responseText);
+    // //       if (!result.OK) {
+    // //         return me.alert("Authentication was ended with error: \n" + result.Message, "error");
+    // //       } else if (result.Value.Action == "reload") {
+    // //         return (location.protocol = "https:");
+    // //       } else if (result.Value.Action == "popup") {
+    // //         if (!result.Value.URL || !result.Value.Session) {
+    // //           return me.alert("We cannot get authorization URL.", "error");
+    // //         } else {
+    // //           authorizationURL = result.Value.URL;
+    // //           session = result.Value.Session;
+
+    // //           // Open popup
+    // //           me.log("debug", 'Open authorization URL: "' + authorizationURL + '"');
+    // //           var oAuthReqWin = open(authorizationURL, "popupWindow", "hidden=yes,height=570,width=520,scrollbars=yes,status=yes");
+    // //           oAuthReqWin.focus();
+
+    // //           // Send request to redirect URL about success authorization
+    // //           Ext.get("app-dirac-loading").show();
+    // //           Ext.get("app-dirac-loading-msg").setHtml("Waiting when authentication will be finished...");
+    // //           me.log("debug", "Watch when popup window will be close");
+    // //           var res = (function waitPopupClosed(i, r) {
+    // //             if (r === "closed") {
+    // //               return Ext.Ajax.request({
+    // //                 url: GLOBAL.BASE_URL + "Authentication/waitOAuthStatus",
+    // //                 params: {
+    // //                   typeauth: authProvider,
+    // //                   inthread: inthread ?? null,
+    // //                   session: session
+    // //                 },
+    // //                 async: false,
+    // //                 success: function(response) {
+    // //                   var result = Ext.decode(response.responseText);
+    // //                   var msg = result.Comment ? result.Comment.replace(/\n/g, "<br>") : "";
+    // //                   if (result.Status == "authed") {
+    // //                     return (location.protocol = "https:");  
+    // //                   } else if (result.Status != "failed") {
+    // //                     msg = "Authentication thread discontinued.\n" + msg;
+    // //                   }
+                      
+    // //                   // Hide load icon
+    // //                   Ext.get("app-dirac-loading").hide();
+    // //                   Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+    // //                   return Ext.Msg.show({
+    // //                     closeAction: "destroy",
+    // //                     title: "Authentication error.",
+    // //                     message: msg,
+    // //                     icon: Ext.Msg.ERROR
+    // //                   });
+    // //                 },
+    // //                 failure: function(form, action) {
+    // //                   // Hide load icon
+    // //                   Ext.get("app-dirac-loading").hide();
+    // //                   Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+    // //                   return me.alert("Request was ended with error: " + form + action, "error");
+    // //                 }
+    // //               });
+    // //             } else {
+    // //               setTimeout(function() {
+    // //                 if (--i) {
+    // //                   if (oAuthReqWin === undefined) {
+    // //                     me.log("debug", "Popup window was closed.");
+    // //                     return waitPopupClosed(0, "closed");
+    // //                   }
+    // //                   if (oAuthReqWin) {
+    // //                     if (oAuthReqWin.closed) {
+    // //                       me.log("debug", "Popup window was closed.");
+    // //                       return waitPopupClosed(0, "closed");
+    // //                     } else {
+    // //                       oAuthReqWin.focus();
+    // //                       return waitPopupClosed(i);
+    // //                     }
+    // //                   } else {
+    // //                     return waitPopupClosed(i);
+    // //                   }
+    // //                 } else {
+    // //                   return waitPopupClosed(120);
+    // //                 }
+    // //               }, 1000);
+    // //             }
+    // //           })(120, "opened");
+    // //         }
+    // //       } else {
+    // //         return me.alert("Cannot submit authorization flow.", "error");
+    // //       }
+    // //     }
+    // //   },
+    // //   failure: function(form, action) {
+    // //     // Hide load icon
+    // //     Ext.get("app-dirac-loading").hide();
+    // //     Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+    // //     return me.alert("Request was ended with error: " + form + action, "error");
+    // //   }
+    // // });
+  },
+
   /**
    * More info: https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
    *
@@ -151,6 +410,28 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     });
   },
 
+  action: function(aType, aOptns) {
+    var me = this;
+
+    if (aType == null) return;
+    
+    switch (aType) {
+      case "auth":
+        me.auth.apply(me, aOptns);
+        break;
+
+      case "openURL":
+        window.open(aOptns[0], '_blank');
+        break;
+
+      case "send mail":
+        break;
+
+      default:
+        break;
+    }
+  },
+
   job_status_palette: {
     Received: "#D9E7F8",
     Checking: "#FAFAFA",
@@ -259,8 +540,6 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     if (message === undefined) return;
 
     message = message.replace(new RegExp("\n", "g"), "<br/>");
-
-    message = me.chunkString(message, 150).join("<br/>");
 
     if (Ext.Array.contains(me.messages, message)) {
       return;

@@ -470,7 +470,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
   def __commitConfiguration(self):
     if not self.__authorizeAction():
       return {"success": 0, "op": "commitConfiguration", "message": "You are not authorized to commit configurations!"}
-    self.log.always("User is commiting a new configuration version", "(%s)" % self.getUserDN())
+    self.log.always("User is commiting a new configuration version", "(%s)" % self.getDN())
     retDict = self.__configData['cfgData'].commit()
     if not retDict['OK']:
       return {"success": 0, "op": "commitConfiguration", "message": retDict['Message']}

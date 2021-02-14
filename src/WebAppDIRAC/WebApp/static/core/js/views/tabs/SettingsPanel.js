@@ -95,13 +95,10 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     return form;
   },
 
-  getAuthCFG: function(Auth, Value) {
-    var req = Ext.Ajax.request({
-      url: GLOBAL.BASE_URL + "Authentication/getAuthCFG",
-      params: {
-        typeauth: Auth === undefined ? "" : Auth,
-        value: Value === undefined ? "" : Value
-      },
+  // Generate list of login buttons
+  getListAuth: function() {
+    req = Ext.Ajax.request({
+      url: GLOBAL.BASE_URL + "Authentication/getAuthNames",
       async: false
     }).responseText;
     res = JSON.parse(req);
@@ -184,12 +181,12 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     var me = this;
 
     // Generate list of login buttons
-    var oListAuth = me.getAuthCFG();
-    var currentAuth = Ext.Ajax.request({
-      url: GLOBAL.BASE_URL + "Authentication/getCurrentAuth",
-      perams: {},
-      async: false
-    }).responseText;
+    var oListAuth = me.getListAuth();
+    var currentAuth = Ext.util.Cookies.get("authGrant");
+    if (currentAuth == null) {
+      currentAuth = 'Certificate';
+    }
+
     var button_usrname = {
       text: "Visitor",
       menu: []
@@ -206,81 +203,54 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       // HTTPS
       // Log in section
     } else {
-      // List of IdPs
-      if (Array.isArray(oListAuth) || currentAuth == "Visitor") {
-        button_usrname.menu.push({
-          xtype: "tbtext",
-          text: "Log in:"
-        });
-      }
-      for (var i = 0; i < oListAuth.length; i++) {
-        var name = oListAuth[i];
-        var settings = me.getAuthCFG(name, "all");
-        if (name != currentAuth) {
-          button_usrname.menu.push({
-            text: name,
-            settings: settings,
-            handler: function() {
-              if (this.settings.method == "oAuth2") {
-                me.oAuth2LogIn(this.settings, this.text);
-              } else if (settings.method) {
-                GLOBAL.APP.CF.alert("Authentication method " + settings.method + " is not supported.", "error");
-              } else {
-                GLOBAL.APP.CF.alert("Authentication method is not set.", "error");
+      if (currentAuth != 'Session')  {
+        // List of IdPs
+        for (var i = 0; i < oListAuth.length; i++) {
+          // if (oListAuth[i] != currentAuth) {
+            button_usrname.menu.push({
+              text: oListAuth[i],
+              handler: function() {
+                window.location = GLOBAL.BASE_URL + 'login?provider=' + this.text + '&next=' + window.location.href;
               }
-            }
-          });
+            });
+          // }
         }
       }
       // Default authentication method
-      if (currentAuth != "Certificate") {
+      if (currentAuth != 'Certificate') {
         button_usrname.menu.push({
           text: "Certificate",
           handler: function() {
-            Ext.Ajax.request({
-              url: GLOBAL.BASE_URL + "Authentication/auth",
-              params: {
-                typeauth: "Certificate",
-                value: ""
-              },
-              success: function() {
-                location.protocol = "https:";
-              }
-            });
+            Ext.util.Cookies.set("authGrant", this.text);
+            window.location.protocol = 'https'
           }
         });
       }
       // Log out section
       if (currentAuth != "Visitor") {
-        if (Array.isArray(oListAuth)) {
-          button_usrname.menu.push({ xtype: "menuseparator" });
-        }
+        button_usrname.menu.push({ xtype: "menuseparator" });
         button_usrname.menu.push({
           text: "Log out",
           handler: function() {
-            Ext.Ajax.request({
-              url: GLOBAL.BASE_URL + "Authentication/auth",
-              params: {
-                typeauth: "Logout",
-                value: "None"
-              },
-              success: function(response) {
-                console.log(response.responseText);
-                location.protocol = "https:";
-              }
-            });
+            sessionStorage.removeItem("access_token");
+            Ext.util.Cookies.set("authGrant", 'Visitor');
+            if (currentAuth == 'Certificate') {
+              window.location.protocol = 'https'
+            } else {
+              window.location = GLOBAL.BASE_URL + 'logout';
+            }
           }
         });
         button_usrname.menu.push();
       }
-    }
+    };
 
     if (GLOBAL.APP.configData.user.username) {
       /**
        * If the user is registered
        */
       button_usrname.text = GLOBAL.APP.configData["user"]["username"];
-    }
+    };
     return new Ext.button.Button(button_usrname);
   },
 
@@ -289,21 +259,48 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       text: GLOBAL.APP.configData["user"]["group"],
       menu: []
     };
-
-    for (var i = 0; i < GLOBAL.APP.configData["validGroups"].length; i++)
-      button_group.menu.push({
-        text: GLOBAL.APP.configData["validGroups"][i],
-        handler: function() {
-          var me = this;
-          var oHref = location.href;
-          var oQPosition = oHref.indexOf("?");
-          if (oQPosition != -1) {
-            location.href = oHref.substr(0, oQPosition) + "changeGroup?to=" + me.text;
-          } else {
-            location.href = oHref + "changeGroup?to=" + me.text;
+    var data = GLOBAL.APP.configData["groupsStatuses"];
+    for (group in data){
+      const status = data[group].Status;
+      const dn = data[group].DN;
+      const comment = data[group].Comment;
+      const action = data[group].Action;
+      if (status == 'ready') {
+        button_group.menu.push({
+          group: group,
+          text: group,
+          handler: function() {
+            var me = this;
+            var oHref = location.href;
+            var oQPosition = oHref.indexOf("?");
+            if (oQPosition != -1) {
+              location.href = oHref.substr(0, oQPosition) + "changeGroup?to=" + me.group;
+            } else {
+              location.href = oHref + "changeGroup?to=" + me.group;
+            }
           }
+        });
+      } else {
+        if (group == GLOBAL.APP.configData["user"]["group"]) {
+          GLOBAL.APP.CF.alert(comment, 'warning', true, action)
         }
-      });
+        button_group.menu.push({
+          title: status,
+          msg: comment,
+          group: group,
+          text: group,
+          iconCls: "dirac-icon-logout",
+          handler: function() {
+            Ext.Msg.show({
+              closeAction: "destroy",
+              title: this.title,
+              message: this.msg,
+              icon: Ext.Msg.INFO
+            });
+          }
+        });
+      }
+    }
     return new Ext.button.Button(button_group);
   },
   addSetupButton: function() {
