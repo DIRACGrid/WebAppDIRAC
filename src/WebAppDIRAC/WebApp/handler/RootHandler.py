@@ -17,6 +17,30 @@ class RootHandler(WebHandler):
   AUTH_PROPS = "all"
   LOCATION = "/"
 
+  @classmethod
+  def initializeHandler(cls, serviceInfo):
+    """
+      This may be overwritten when you write a DIRAC service handler
+      And it must be a class method. This method is called only one time,
+      at the first request
+
+      :param dict ServiceInfoDict: infos about services, it contains
+                                    'serviceName', 'serviceSectionPath',
+                                    'csPaths' and 'URL'
+    """
+    # Add WebClient
+    result = gConfig.getOptionsDictRecursively("/WebApp/AuthorizationClient")
+    if not result['OK']:
+      raise Exception("Can't load web portal settings.")
+    config = result['Value']
+    result = gConfig.getOptionsDictRecursively('/Systems/Framework/Production/Services/AuthManager/AuthorizationServer')
+    if not result['OK']:
+      raise Exception("Can't load authorization server settings.")
+    serverMetadata = result['Value']
+    config.update(serverMetadata)
+    config = dict((k, v.replace(', ', ',').split(',') if ',' in v else v) for k, v in config.items())
+    cls._authClient = OAuth2IdProvider(**config)
+
   def web_changeGroup(self):
     to = self.get_argument("to")
     self.__change(group=to)
