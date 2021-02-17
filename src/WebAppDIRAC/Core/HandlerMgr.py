@@ -1,5 +1,8 @@
 """ Basic modules for loading handlers
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
 import re
@@ -8,6 +11,10 @@ import inspect
 
 import six
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
+# from DIRAC.Core.Tornado.Web import Conf
+# from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, WebSocketHandler
+# from DIRAC.Core.Tornado.Web.CoreHandler import CoreHandler
+# from DIRAC.Core.Tornado.Web.StaticHandler import StaticHandler
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMetadata
@@ -37,6 +44,8 @@ class HandlerMgr(object):
     self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w.-]*))?"
     self.__shySetupGroupRE = r"(?:/s:(?:[\w-]*)/g:(?:[\w.-]*))?"
     self.log = gLogger.getSubLogger("Routing")
+    self.__isAuthServer = False
+    self.__isPortal = True
 
   def getPaths(self, dirName):
     """ Get lists of paths for all installed and enabled extensions
@@ -68,11 +77,16 @@ class HandlerMgr(object):
         :return: S_OK()/S_ERROR()
     """
     ol = ObjectLoader()
-    self.log.debug("Add handles from: %s", self.__handlersLocation)
-    result = ol.getObjects(self.__handlersLocation, parentClass=WebHandler, recurse=True, continueOnError=True)
-    if not result['OK']:
-      return result
-    self.__handlers = result['Value']
+    handlerList = []
+    self.log.debug("Added services: %s" % ','.join(self.__sysServices))
+    for origin in self.__sysServices:
+      result = ol.getObjects(origin, parentClass=WebHandler, recurse=True, continueOnError=True)
+      if not result['OK']:
+        return result
+      handlerList += list(result['Value'].items())
+    self.__handlers = collections.OrderedDict(hendlerList)
+
+    # ['/opt/dirac/pro/WebAppExt/WebApp/static', ...]
     staticPaths = self.getPaths("static")
     self.log.verbose("Static paths found:\n - %s" % "\n - ".join(staticPaths))
     self.__routes = []
@@ -94,6 +108,8 @@ class HandlerMgr(object):
     for hn in self.__handlers:
       self.log.info("Found handler %s" % hn)
       handler = self.__handlers[hn]
+      if handler.__name__ == 'AuthHandler':
+        self.__isAuthServer = True
       # CHeck it has AUTH_PROPS
       if isinstance(handler.AUTH_PROPS, type(None)):
         return S_ERROR("Handler %s does not have AUTH_PROPS defined. Fix it!" % hn)
@@ -109,6 +125,8 @@ class HandlerMgr(object):
       # Set properly the LOCATION after calculating where it is with helpers to add group and setup later
       handler.LOCATION = handlerRoute
       handler.PATH_RE = re.compile("%s(%s/[A-z]+|.)" % (baseRoute, handlerRoute))
+      # if handler.OVERPATH:
+      #   handler.PATH_RE = re.compile(handler.PATH_RE.pattern + '(/[A-z0-9=-_/|]+)?')
       handler.URLSCHEMA = "/%s%%(setup)s%%(group)s%%(location)s/%%(action)s" % (self.__baseURL)
       if issubclass(handler, WebSocketHandler):
         handler.PATH_RE = re.compile("%s(%s)" % (baseRoute, handlerRoute))
@@ -129,7 +147,10 @@ class HandlerMgr(object):
           else:
             # Normal methods get the method appended without web_
             self.log.verbose(" - Route %s/%s ->  %s.%s" % (handlerRoute, mName[4:], hn, mName))
-            route = "%s(%s/%s)" % (baseRoute, handlerRoute, mName[4:])
+            route = "%s(%s%s)" % (baseRoute, handlerRoute, '' if methodName == 'index' else ('/%s' % methodName))
+            # Use request path as options/values, for ex. ../method/<option>/<file path>?<option>=..
+            if args:
+              route += '[\/]?%s' % '/'.join(args)
             self.__routes.append((route, handler))
           self.log.debug("  * %s" % route)
     # Send to root
@@ -160,3 +181,9 @@ class HandlerMgr(object):
       if not result['OK']:
         return result
     return S_OK(self.__routes)
+
+  def isAuthServer(self):
+    return self.__isAuthServer
+  
+  def isPortal(self):
+    return self.__isPortal

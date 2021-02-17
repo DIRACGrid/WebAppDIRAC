@@ -13,6 +13,7 @@ import DIRAC
 
 from DIRAC import gLogger, gConfig, S_OK
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
+
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
 from WebAppDIRAC.Lib.SessionData import SessionData

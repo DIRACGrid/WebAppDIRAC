@@ -5,11 +5,14 @@ from __future__ import print_function
 import os
 
 from DIRAC import gConfig, gLogger
-from DIRAC.Core.Utilities import List
+# from DIRAC.Core.Tornado.Web import Conf
+from DIRAC.Core.Utilities import List, ThreadSafe
+from DIRAC.Core.Utilities.DictCache import DictCache
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.Core.Utilities.Extensions import extensionsByPriority
+from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
+from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
 from WebAppDIRAC.Lib import Conf
 
@@ -78,7 +81,7 @@ class SessionData(object):
     """ The method checks if the application is authorized for a certain user group
 
         :param str appLoc It is the application name for example: DIRAC.JobMonitor
-        
+
         :return bool -- if the handler is authorized to the user returns True otherwise False
     """
     handlerLoc = "/".join(List.fromChar(appLoc, ".")[1:])
@@ -203,11 +206,15 @@ class SessionData(object):
             'extensions': self.__extensions,
             'extVersion': self.getExtJSVersion()}
     # Add valid groups if known
-    DN = self.__credDict.get("DN", "")
-    if DN:
-      result = Registry.getGroupsForDN(DN)
+    username = self.__credDict.get("username", "anonymous")
+    if username != 'anonymous':
+      result = Registry.getGroupsForUser(username)
+      if not result['OK']:
+        return result
+      data['validGroups'] = result['Value']
+      result = gProxyManager.getGroupsStatusByUsername(username)  # pylint: disable=no-member
       if result['OK']:
-        data['validGroups'] = result['Value']
+        data['groupsStatuses'] = result['Value']
     # Calculate baseURL
     baseURL = [Conf.rootURL().strip("/"),
                "s:%s" % data['setup'],

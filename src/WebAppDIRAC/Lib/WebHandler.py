@@ -20,6 +20,9 @@ from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
 
+from WebAppDIRAC.Lib import Conf
+from WebAppDIRAC.Lib.SessionData import SessionData
+
 
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
@@ -67,9 +70,12 @@ def defaultEncoder(data):
 
 class WebHandler(tornado.web.RequestHandler):
 
-class WebHandler(BaseRequestHandler):
+#class WebHandler(BaseRequestHandler):
+class WebHandler(TornadoREST):
   __disetConfig = ThreadConfig()
 
+  # Auth requirements
+  AUTH_PROPS = None
   # Location of the handler in the URL
   LOCATION = ""
   # URL Schema with holders to generate handler urls
