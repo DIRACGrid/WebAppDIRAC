@@ -105,7 +105,6 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
           selectionConditions: [
             ["host", "Host"],
             ["component", "Component"],
-            ["pid", "PID"],
             ["status", "Status"],
             ["componentType", "Component Type"],
             ["componentLocation", "Component Location"]
