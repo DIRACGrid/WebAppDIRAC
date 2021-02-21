@@ -58,7 +58,9 @@ jobs:
             break
           fi
         done
+        echo "Clone DIRAC ${rel} to $(pwd)"
         git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${rel}"
+        ls -al
       env:
         REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
     - name: Run tests
