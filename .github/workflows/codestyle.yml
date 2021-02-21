@@ -60,8 +60,8 @@ jobs:
         done
         echo "Clone DIRAC ${rel} to $(pwd)"
         git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${rel}"
+        # Align with v7r2+ DIRAC versions (with src path)
         cp -r DIRAC/src/DIRAC/* DIRAC/
-        ls -al
       env:
         REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
     - name: Run tests
