@@ -8,8 +8,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          npm install eslint --save-dev
-          curl --fail -O -L http://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
+          npm install -g npm
+          npm install eslint@5.0.0 --save-dev
+          curl -O http://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
           npm install @sencha_eslint-plugin-extjs.7.0.0.tgz --save-dev
           node_modules/.bin/eslint src/WebAppDIRAC/WebApp
 
@@ -69,10 +70,18 @@ jobs:
             break
           fi
         done
+<<<<<<< HEAD
         echo "Clone DIRAC ${rel} to $(pwd)"
         git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${relToCheckout}"
         # Align with v7r2+ DIRAC versions (with src path)
         cp -r DIRAC/src/DIRAC/* DIRAC/
+=======
+        echo "Let`s clone ${relToCheckout} DIRAC version:"
+        git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${relToCheckout}"
+        pwd
+        ls -al
+        env
+>>>>>>> c3dcc7f (add debug)
       env:
         REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
     - name: Run tests
