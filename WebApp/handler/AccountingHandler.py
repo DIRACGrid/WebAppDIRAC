@@ -4,7 +4,6 @@ import tempfile
 import datetime
 from hashlib import md5
 
-import DIRAC
 from DIRAC import gConfig, S_OK, S_ERROR
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities import Time, List, DictCache
