@@ -243,6 +243,48 @@ Ext.define("Ext.dirac.core.App", {
   },
 
   /**
+   * Function to get all application settings
+   *
+   * @param {String}
+   *          sAppName The class name of the application
+   * @return {}
+   */
+  getApplicationSettings: function(sAppName) {
+    if (GLOBAL.APP.configData.configuration.Apps && sAppName in GLOBAL.APP.configData.configuration.Apps) {
+      return GLOBAL.APP.configData.configuration.Apps[sAppName]
+    } else {
+      return {}
+    }
+  },
+
+  /**
+   * Function that check application downtime settings
+   *
+   * @param {String}
+   *          sAppName The class name of the application
+   * @return {}
+   */
+  applicationInDowntime: function(sAppName) {
+    if (!this.isValidApplication(sAppName)) {
+      return {};
+    }
+    var now = Date.now();
+    var sAppName = this.validApplications[sAppName];
+    var app = this.getApplicationSettings(sAppName).Downtime;
+
+    if (app) {
+      app.message = app.message || "Sorry, " + sAppName + " application is in downtime";
+      app.message += "\n\n From: " + app.start;
+      app.message += "\n To:   " + app.end;
+
+      // Check time
+      return !app.end ? {} : ((!app.start || now > Date.parse(app.start)) && now < Date.parse(app.end)) ? app : {};
+    } else {
+      return {}
+    }
+  },
+
+  /**
    * Function that is used to get the title of an application
    *
    * @param {String}
