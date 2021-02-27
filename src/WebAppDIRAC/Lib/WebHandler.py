@@ -467,5 +467,5 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
       raise self._pathResult
     return self.on_open()
 
-  # def on_open(self):
-  #   pass
+  def on_open(self):
+    pass
