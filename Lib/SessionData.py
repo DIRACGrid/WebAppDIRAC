@@ -48,7 +48,7 @@ class SessionData(object):
     """ The method checks if the application is authorized for a certain user group
 
         :param str appLoc It is the application name for example: DIRAC.JobMonitor
-        
+
         :return bool -- if the handler is authorized to the user returns True otherwise False
     """
     handlerLoc = "/".join(List.fromChar(appLoc, ".")[1:])
