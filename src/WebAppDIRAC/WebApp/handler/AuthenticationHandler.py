@@ -11,7 +11,7 @@ class AuthenticationHandler(WebHandler):
 
   AUTH_PROPS = "all"
 
-  # Send mail to administrators
+  # Send mail to administrators.
   @asyncGen
   def web_sendRequest(self):
     """ Send mail to administrators

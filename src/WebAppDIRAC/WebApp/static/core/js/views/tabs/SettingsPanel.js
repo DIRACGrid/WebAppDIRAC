@@ -95,93 +95,11 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     return form;
   },
 
-  // Generate list of login buttons
-  getListAuth: function() {
-    req = Ext.Ajax.request({
-      url: GLOBAL.BASE_URL + "Authentication/getAuthNames",
-      async: false
-    }).responseText;
-    res = JSON.parse(req);
-    if (Object.keys(res).includes("Value")) {
-      res = res.Value;
-    }
-    return res;
-  },
-
-  // OIDC login method
-  oAuth2LogIn: function(settings, name) {
-    var manager = new Oidc.UserManager(settings);
-    manager.events.addUserLoaded(function(loadedUser) {
-      console.log(loadedUser);
-    });
-    manager.events.addSilentRenewError(function(error) {
-      GLOBAL.APP.CF.log("error", "error while renewing the access token");
-    });
-    manager.events.addUserSignedOut(function() {
-      GLOBAL.APP.CF.alert("The user has signed out", "info");
-    });
-    manager.events.addUserLoaded(function(loadedUser) {
-      if (loadedUser && typeof loadedUser === "string") {
-        loadedUser = JSON.parse(data);
-      }
-      if (loadedUser) {
-        loadedUser = JSON.stringify(loadedUser, null, 2);
-      }
-      var aJson = JSON.parse(loadedUser);
-      var access_token = aJson["access_token"];
-      Ext.Ajax.request({
-        url: GLOBAL.BASE_URL + "Authentication/auth",
-        params: {
-          typeauth: name,
-          value: access_token
-        },
-        success: function(response) {
-          var response = Ext.JSON.decode(response.responseText);
-          if (response.value == "Done") {
-            location.protocol = "https:";
-          } else {
-            Ext.create("Ext.window.Window", {
-              title: "Welcome",
-              layout: "fit",
-              preventBodyReset: true,
-              closable: true,
-              html:
-                "<br><b>Welcome to the DIRAC service " +
-                response.profile["given_name"] +
-                "!</b><br><br>Sorry, but You are not registred as a DIRAC user.<br>",
-              buttons: [
-                {
-                  text: "Registration",
-                  handler: function() {
-                    Ext.Ajax.request({
-                      url: GLOBAL.BASE_URL + "Authentication/sendRequest",
-                      params: {
-                        typeauth: name,
-                        value: response.profile
-                      },
-                      success: function() {
-                        GLOBAL.APP.CF.alert("Your request was sent.", "info");
-                      }
-                    });
-                    this.up("window").close();
-                  }
-                }
-              ]
-            }).show();
-          }
-        }
-      });
-    });
-    manager.signinPopup().catch(function(error) {
-      GLOBAL.APP.CF.log("error", "error while logging in through the popup");
-    });
-  },
-
   addAuthsButton: function() {
     var me = this;
 
     // Generate list of login buttons
-    var oListAuth = me.getListAuth();
+    var oListAuth = Object.keys(GLOBAL.APP.configData.configuration.TypeAuths);
     var currentAuth = Ext.util.Cookies.get("authGrant");
     if (currentAuth == null) {
       currentAuth = 'Certificate';
@@ -210,7 +128,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
             button_usrname.menu.push({
               text: oListAuth[i],
               handler: function() {
-                window.location = GLOBAL.BASE_URL + 'login?provider=' + this.text + '&next=' + window.location.href;
+                GLOBAL.APP.CF.auth(this.text);
               }
             });
           // }
