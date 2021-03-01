@@ -75,12 +75,21 @@ Ext.define("Ext.dirac.core.App", {
     })();
     
     // Check if the authentification grant type is chenged every 3 seconds
-    const current_cookie = Ext.util.Cookies.get('authGrant')
-    setInterval(function() {
-      if (current_cookie !== Ext.util.Cookies.get('authGrant')) {
-        location.href="/DIRAC"
-      }
-    }, 3000);
+    const authGrant = Ext.util.Cookies.get('authGrant')
+    if (authGrant == 'Session') {
+      setInterval(function() {
+        if (Ext.util.Cookies.get('session_id') == 'expired') {
+          // if (confirm('Your session expired, do you want to login again?')) {
+          //   // Login
+          // } else {
+          //   // Reboot
+          // }
+          Ext.util.Cookies.clear('authGrant')
+          Ext.util.Cookies.clear('session_id')
+          location.href="/DIRAC"
+        }
+      }, 3000);
+    }
 
     // //read auth
     // var listener = new ListenerObject(); 

@@ -114,7 +114,8 @@ class RootHandler(WebHandler):
                                                                        scope='changeGroup')
     self.application.addSession(state, code_verifier=code_verifier, provider=provider,
                                 next=self.get_argument('next', '/DIRAC'))
-    self.set_cookie('authGrant', 'Session')
+    #self.set_cookie('authGrant', 'Session')
+    self.set_cookie('authGrant', 'Visitor')
     # Redirect to authorization server
     self.redirect(uri)
 

@@ -291,6 +291,7 @@ class WebHandler(TornadoREST):
     session = self.application.getSession(sessionID)
     if not session or not session.token:
       self.clear_cookie('session_id')
+      self.set_cookie('session_id', 'expired')
       self.clear_cookie('authGrant')
       raise Exception('%s session expired.' % sessionID)
 
