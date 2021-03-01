@@ -73,6 +73,13 @@ Ext.define("Ext.dirac.core.App", {
         }
       };
     })();
+    
+    // Check if the authentification grant type is chenged every 3 seconds
+    setInterval(function() {
+      if (current_cookie !== Ext.util.Cookies.get('authGrant')) {
+        location.href="/DIRAC"
+      }
+    }, 3000);
 
     // //read auth
     // var listener = new ListenerObject(); 
