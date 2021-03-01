@@ -75,6 +75,7 @@ Ext.define("Ext.dirac.core.App", {
     })();
     
     // Check if the authentification grant type is chenged every 3 seconds
+    const current_cookie = Ext.util.Cookies.get('authGrant')
     setInterval(function() {
       if (current_cookie !== Ext.util.Cookies.get('authGrant')) {
         location.href="/DIRAC"
