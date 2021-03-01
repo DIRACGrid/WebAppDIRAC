@@ -74,6 +74,28 @@ Ext.define("Ext.dirac.core.App", {
       };
     })();
 
+    // //read auth
+    // var listener = new ListenerObject(); 
+    // async function update() {
+    //   const t1 = new Date();
+    //   await wait_for_response();
+    //   setTimeout(update, Math.max(0, 1000 - new Date + t1));
+    // }
+    // update();
+    // cache.getRuntimeConfiguration().registerCacheEventListener(listener, EventOrdering.ORDERED,
+    //     EventFiring.ASYNCHRONOUS, EnumSet.of(EventType.CREATED, EventType.REMOVED)); 
+
+    // cache.put(1L, "one");
+    // cache.put(2L, "two");
+    // cache.remove(1L);
+    // cache.remove(2L);
+
+    // cache.getRuntimeConfiguration().deregisterCacheEventListener(listener); 
+
+    // cache.put(1L, "one again");
+    // cache.remove(1L);
+
+
     /*
      * Getting the configuration data from the server
      */

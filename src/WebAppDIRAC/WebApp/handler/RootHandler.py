@@ -33,6 +33,7 @@ class RootHandler(WebHandler):
     if not result['OK']:
       raise Exception("Can't load web portal settings.")
     config = result['Value']
+    # TODO: move to utility
     result = gConfig.getOptionsDictRecursively('/Systems/Framework/Production/Services/AuthManager/AuthorizationServer')
     if not result['OK']:
       raise Exception("Can't load authorization server settings.")
@@ -141,6 +142,7 @@ class RootHandler(WebHandler):
     sessionID = generate_token(30)
     self.application.addSession(dict(session.update(id=sessionID)))
     self.set_secure_cookie('session_id', sessionID, secure=True, httponly=True)
+    self.set_cookie('authGrant', 'Session')
 
     t = template.Template('''<!DOCTYPE html>
       <html>
