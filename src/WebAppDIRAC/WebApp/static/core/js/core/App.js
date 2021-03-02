@@ -74,44 +74,26 @@ Ext.define("Ext.dirac.core.App", {
       };
     })();
     
-    // Check if the authentification grant type is chenged every 3 seconds
+    /*
+     * Check if the authentification session is expired (every 3 seconds)
+     */
     const authGrant = Ext.util.Cookies.get('authGrant')
     if (authGrant == 'Session') {
       setInterval(function() {
         if (Ext.util.Cookies.get('session_id') == 'expired') {
-          // if (confirm('Your session expired, do you want to login again?')) {
-          //   // Login
-          // } else {
-          //   // Reboot
-          // }
+          /* 
+           * if (confirm('Your session expired, do you want to login again?')) {
+           *   Login..
+           * } else {
+           *   Reboot..
+           * }
+           */
           Ext.util.Cookies.clear('authGrant')
           Ext.util.Cookies.clear('session_id')
           location.href="/DIRAC"
         }
       }, 3000);
     }
-
-    // //read auth
-    // var listener = new ListenerObject(); 
-    // async function update() {
-    //   const t1 = new Date();
-    //   await wait_for_response();
-    //   setTimeout(update, Math.max(0, 1000 - new Date + t1));
-    // }
-    // update();
-    // cache.getRuntimeConfiguration().registerCacheEventListener(listener, EventOrdering.ORDERED,
-    //     EventFiring.ASYNCHRONOUS, EnumSet.of(EventType.CREATED, EventType.REMOVED)); 
-
-    // cache.put(1L, "one");
-    // cache.put(2L, "two");
-    // cache.remove(1L);
-    // cache.remove(2L);
-
-    // cache.getRuntimeConfiguration().deregisterCacheEventListener(listener); 
-
-    // cache.put(1L, "one again");
-    // cache.remove(1L);
-
 
     /*
      * Getting the configuration data from the server
