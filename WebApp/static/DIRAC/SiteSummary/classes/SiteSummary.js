@@ -460,6 +460,54 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
   __oprSetSite: function(action, newStatus) {
     var me = this;
     var selectedValues = me.__getSelectedValues();
+    me.getContainer().body.mask("Wait ...");
+    Ext.Ajax.request({
+      url: GLOBAL.BASE_URL + me.applicationName + "/action",
+      method: "POST",
+      params: {
+        action: Ext.JSON.encode([action]),
+        name: Ext.JSON.encode([selectedValues.name]),
+        elementType: Ext.JSON.encode([selectedValues.elementType]),
+        statusType: Ext.JSON.encode([selectedValues.statusType]),
+        status: Ext.JSON.encode([newStatus])
+      },
+      scope: me,
+      failure: function(response) {
+        GLOBAL.APP.CF.showAjaxErrorMessage(response);
+      },
+      success: function(response) {
+        me.getContainer().body.unmask();
+        var jsonData = Ext.JSON.decode(response.responseText);
+
+        if (jsonData["success"] == "true") {
+          var rowid = null;
+          Ext.dirac.system_info.msg("info", jsonData["result"]);
+          var selectedRows = me.grid.getSelectionModel().getSelection();
+          // we assume that we only select one row...
+          me.grid.getStore().load();
+          me.grid.expandedGridPanel.destroy();
+          delete me.grid.expandedGridPanel;
+
+          Ext.defer(function() {
+            var records = me.grid.getStore().getRange();
+            var record = null;
+            for (var i = 0; i < records.length; i++) {
+              if (records[i].get("Name") == selectedRows[0].get("Name")) {
+                var record = me.grid.getView().getRecord(records[i]);
+                rowid = record.index;
+                me.grid.getSelectionModel().select(record);
+                break;
+              }
+            }
+
+            me.grid.getPlugin().toggleRow(rowid, record);
+          }, 400);
+        } else {
+          me.getContainer().body.unmask();
+          Ext.dirac.system_info.msg("error", jsonData["error"]);
+        }
+      }
+    });
   },
   __oprShowEditor: function() {
     var me = this;
