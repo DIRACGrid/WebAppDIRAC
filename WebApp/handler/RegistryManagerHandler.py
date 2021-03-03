@@ -2,7 +2,7 @@ import json
 from diraccfg import CFG
 
 from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, asyncGen
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.ConfigurationSystem.Client.ConfigurationClient import ConfigurationClient
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
@@ -53,7 +53,7 @@ class RegistryManagerHandler(WebSocketHandler):
       self.write_message(res)
 
   def __getRemoteConfiguration(self, funcName):
-    rpcClient = RPCClient(gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
+    rpcClient = ConfigurationClient(url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
     modCfg = Modificator(rpcClient)
     retVal = modCfg.loadFromRemote()
 

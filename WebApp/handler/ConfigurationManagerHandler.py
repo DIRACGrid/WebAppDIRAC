@@ -4,7 +4,7 @@ import json
 from diraccfg import CFG
 
 from DIRAC import gConfig
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.ConfigurationSystem.Client.ConfigurationClient import ConfigurationClient
 from DIRAC.Core.Utilities import Time, List
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
@@ -77,7 +77,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       self.write_message(res)
 
   def __getRemoteConfiguration(self, funcName):
-    rpcClient = RPCClient(gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
+    rpcClient = ConfigurationClient(url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
     modCfg = Modificator(rpcClient)
     retVal = modCfg.loadFromRemote()
 
@@ -538,7 +538,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       toDate = str(params['toVersion'])
     except Exception as e:
       raise WErr(500, "Can't decode params: %s" % e)
-    rpcClient = RPCClient(gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
+    rpcClient = ConfigurationClient(url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
     modCfg = Modificator(rpcClient)
     diffGen = modCfg.getVersionDiff(fromDate, toDate)
     processedData = self.__generateHTMLDiff(diffGen)
@@ -559,7 +559,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
       rollbackVersion = str(params['rollbackToVersion'])
     except Exception as e:
       raise WErr(500, "Can't decode params: %s" % e)
-    rpcClient = RPCClient(gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
+    rpcClient = ConfigurationClient(url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
     modCfg = Modificator(rpcClient)
     retVal = modCfg.rollbackToVersion(rollbackVersion)
     if retVal['OK']:
@@ -575,7 +575,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
   def __history(self):
     if not self.__authorizeAction():
       raise WErr(500, "You are not authorized to commit configurations!")
-    rpcClient = RPCClient(gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
+    rpcClient = ConfigurationClient(url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
     retVal = rpcClient.getCommitHistory()
     if retVal['OK']:
       cDict = {'numVersions': 0, 'versions': []}
