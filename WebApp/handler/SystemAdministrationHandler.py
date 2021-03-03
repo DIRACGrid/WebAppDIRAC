@@ -23,7 +23,9 @@ class SystemAdministrationHandler(WebHandler):
   def web_getSysInfo(self):
     """ Provide information about hosts state from database
     """
-    client = ComponentMonitoringClient(delegatedDN=self.getUserDN(), delegatedGroup=self.getUserGroup())
+    DN = self.getUserDN()
+    group = self.getUserGroup()
+    client = ComponentMonitoringClient(delegatedDN=DN, delegatedGroup=group)
     result = yield self.threadTask(client.getLogs)
     if not result['OK'] or not len(result['Value']) > 0:
       self.finish({"success": "false", "error": result.get('Message', "No system information found")})
@@ -47,6 +49,9 @@ class SystemAdministrationHandler(WebHandler):
     Returns flatten list of components (services, agents) installed on hosts
     returned by getHosts function
     """
+    DN = self.getUserDN()
+    group = self.getUserGroup()
+    
     callback = list()
 
     if "hostname" not in self.request.arguments and not self.request.arguments["hostname"][0]:
@@ -54,8 +59,7 @@ class SystemAdministrationHandler(WebHandler):
       return
 
     host = self.request.arguments["hostname"][0]
-    client = SystemAdministratorClient(host, None, delegatedDN=self.getUserDN(),
-                                       delegatedGroup=self.getUserGroup())
+    client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
     result = yield self.threadTask(client.getOverallStatus)
     gLogger.debug("Result of getOverallStatus(): %s" % result)
 
