@@ -1,3 +1,7 @@
+[v4r2-pre5]
+
+CHANGE: (#439) Use ConfigurationClient instead of RPCClient
+
 [v4r2-pre4]
 
 FIX: (#436) delete the missing key from the ComponentMonitoring response
