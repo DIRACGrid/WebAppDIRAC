@@ -68,7 +68,7 @@ class HandlerMgr(object):
     """
     ol = ObjectLoader()
     origin = "WebApp.handler"
-    result = ol.getObjects(origin, parentClass=WebHandler, recurse=True)
+    result = ol.getObjects(origin, parentClass=WebHandler, recurse=True, continueOnError=True)
     if not result['OK']:
       return result
     self.__handlers = result['Value']
