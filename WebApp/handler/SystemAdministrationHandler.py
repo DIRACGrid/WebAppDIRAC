@@ -51,7 +51,7 @@ class SystemAdministrationHandler(WebHandler):
     """
     DN = self.getUserDN()
     group = self.getUserGroup()
-    
+
     callback = list()
 
     if "hostname" not in self.request.arguments and not self.request.arguments["hostname"][0]:
