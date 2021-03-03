@@ -1,3 +1,24 @@
+[v4r2-pre3]
+
+FIX: (#436) delete the missing key from the ComponentMonitoring response
+CHANGE: (#424) don't read web.cfg, use WebApp section in driac.cfg instead
+CHANGE: (#423) remove upload method from the RootHandler
+NEW: (#422) add new Selection Fields and Group By clauses for Activity Monitoring in the Accounting
+NEW: (#412) add getProperties helper method to the WebHandler
+FIX: (#412) fix bugs, change refreshStore to setStore in the js part of code, use getUserName, etc.. instead getSessionData
+FIX: (#406) add diraccfg to the requirements, minor fixes
+
+[v4r0p33]
+
+FIX: (#437) use updateSrc instead setSrc to update plots
+FIX: (#434) use -L curl flag to fix tests
+FIX: (#420) sort alphabetically menus in webapp
+FIX: (#419) Disable bufferedRenderer in RegistryManager to allow better searching
+FIX: (#417) use raw instead data property
+FIX: (#415) use updateSrc instead setSrc for replaceImage method
+FIX: (#411) resove pyLint errors
+CHANGE: (#408) add diraccfg to the requirements
+
 [v4r0p32]
 
 FIX: (#405) PilotMonitor showJobs feature now provide all the jobs bound to a pilot-job reference
