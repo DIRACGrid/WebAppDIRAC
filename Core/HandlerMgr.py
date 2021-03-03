@@ -72,13 +72,13 @@ class HandlerMgr(object):
         :return: S_OK()/S_ERROR()
     """
     ol = ObjectLoader()
-    hendlerList = []
+    handlerList = []
     self.log.debug("Added services: %s" % ','.join(self.__sysServices))
     for origin in self.__sysServices:
-      result = ol.getObjects(origin, parentClass=WebHandler, recurse=True)
+      result = ol.getObjects(origin, parentClass=WebHandler, recurse=True, continueOnError=True)
       if not result['OK']:
         return result
-      hendlerList += list(result['Value'].items())
+      handlerList += list(result['Value'].items())
     self.__handlers = collections.OrderedDict(hendlerList)
 
     staticPaths = self.getPaths("static")
