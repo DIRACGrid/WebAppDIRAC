@@ -8,9 +8,8 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import uniqueElements
 import DIRAC.ConfigurationSystem.Client.Helpers.Registry as Registry
-
-from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
@@ -22,64 +21,25 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getSysInfo(self):
-    DN = self.getUserDN()
-    group = self.getUserGroup()
-    #  self.finish( { "success" : "false" , "error" : "No system information found" } )
-    # return
+    """ Provide information about hosts state from database
     """
-    client = SystemAdministratorIntegrator( delegatedDN = DN ,
-                                          delegatedGroup = group )
-    resultHosts = yield self.threadTask( client.getHostInfo )
-    if resultHosts[ "OK" ]:
-      hosts = resultHosts['Value']
-      for i in hosts:
-        if hosts[i]['OK']:
-          host = hosts[i]['Value']
-          host['Host'] = i
-          callback.append( host )
-        else:
-          callback.append( {'Host':i} )
-    else:
-      self.finish( { "success" : "false" , "error" :  resultHosts['Message']} )
-    """
-
-    callback = []
-
-    client = ComponentMonitoringClient()
-    result = client.getHosts({}, False, False)
-    if result['OK']:
-      hosts = result['Value']
-
-      for obj in hosts:
-        host = obj['HostName']
-        client = SystemAdministratorClient(host, None, delegatedDN=DN,
-                                           delegatedGroup=group)
-        resultHost = yield self.threadTask(client.getHostInfo)
-        if resultHost["OK"]:
-          resultHost["Value"]["Host"] = host
-          if "Timestamp" in resultHost["Value"]:
-            resultHost["Value"]["Timestamp"] = str(resultHost["Value"]["Timestamp"])
-          callback.append(resultHost["Value"])
-        else:
-          callback.append({"Host": host})
-
-    total = len(callback)
-    if not total > 0:
-      self.finish({"success": "false", "error": "No system information found"})
+    client = ComponentMonitoringClient(delegatedDN=self.getUserDN(), delegatedGroup=self.getUserGroup())
+    result = yield self.threadTask(client.getLogs)
+    if not result['OK'] or not len(result['Value']) > 0:
+      self.finish({"success": "false", "error": result.get('Message', "No system information found")})
       return
 
-    callback = sorted(callback, key=lambda i: i['Host'])
+    callback = result['Value']
 
     # Add the information about the extensions' versions, if available, to display along with the DIRAC version
     for i in range(len(callback)):
-      if 'Extension' in callback[i]:
-        # We have to keep the backward compatibility (this can heppen when we do not update one host to v6r15 ...
-        callback[i]['DIRAC'] = '%s,%s' % (
-            callback[i].get('DIRACVersion', callback[i].get('DIRAC')), callback[i]['Extension'])
-      elif 'Extensions' in callback[i]:
-        callback[i]['DIRAC'] = '%s,%s' % (callback[i].get('DIRAC', callback[i].get('DIRAC')), callback[i]['Extensions'])
+      callback[i]["Host"] = callback[i]["HostName"]
+      callback[i]["Timestamp"] = str(callback[i].get("Timestamp", "unknown"))
+      # We have to keep the backward compatibility (this can heppen when we do not update one host to v6r15 ...
+      callback[i]['DIRAC'] = '%s,%s' % (callback[i].get('DIRACVersion', callback[i].get('DIRAC', '')),
+                                        callback[i].get('Extension', callback[i].get('Extensions', '')))
 
-    self.finish({"success": "true", "result": callback, "total": total})
+    self.finish({"success": "true", "result": sorted(callback, key=lambda i: i['Host']), "total": len(callback)})
 
   @asyncGen
   def web_getHostData(self):
@@ -87,9 +47,6 @@ class SystemAdministrationHandler(WebHandler):
     Returns flatten list of components (services, agents) installed on hosts
     returned by getHosts function
     """
-    DN = self.getUserDN()
-    group = self.getUserGroup()
-
     callback = list()
 
     if "hostname" not in self.request.arguments and not self.request.arguments["hostname"][0]:
@@ -97,8 +54,8 @@ class SystemAdministrationHandler(WebHandler):
       return
 
     host = self.request.arguments["hostname"][0]
-    client = SystemAdministratorClient(host, None, delegatedDN=DN,
-                                       delegatedGroup=group)
+    client = SystemAdministratorClient(host, None, delegatedDN=self.getUserDN(),
+                                       delegatedGroup=self.getUserGroup())
     result = yield self.threadTask(client.getOverallStatus)
     gLogger.debug("Result of getOverallStatus(): %s" % result)
 
