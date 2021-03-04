@@ -178,7 +178,8 @@ class SiteSummaryHandler(ResourceSummaryHandler):
 
     res = getSiteCEMapping()
     if not res['OK']:
-      return self.finish({'success': 'false', 'error': res['Message']})
+      self.finish({'success': 'false', 'error': res['Message']})
+      return
     computing_elements = res['Value'][elementName]
     computing_elements_status = []
     gLogger.info('computing_elements = ' + str(computing_elements))
