@@ -1,10 +1,15 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
+
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import List
-from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry
+from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 
 from WebAppDIRAC.Lib import Conf
 
@@ -30,13 +35,10 @@ class SessionData(object):
       handler = handlers[k]
       cls.__handlers[handler.LOCATION.strip("/")] = handler
     # Calculate extensions
-    cls.__extensions = []
-    for ext in CSGlobals.getInstalledExtensions():
-      if ext in ("WebAppDIRAC", "DIRAC"):
-        continue
-      cls.__extensions.append(ext)
-    cls.__extensions.append("DIRAC")
-    cls.__extensions.append("WebAppDIRAC")
+    cls.__extensions = CSGlobals.getInstalledExtensions()
+    for ext in ['DIRAC', 'WebAppDIRAC']:
+      if ext in cls.__extensions:
+        cls.__extensions.append(cls.__extensions.pop(cls.__extensions.index(ext)))
 
   def __init__(self, credDict, setup):
     self.__credDict = credDict
@@ -132,12 +134,24 @@ class SessionData(object):
       cls.__extVersion = sorted(extVersionPath)[-1]
     return cls.__extVersion
 
+  @classmethod
+  def getWebConfiguration(cls):
+    """ Get WebApp configuration
+
+        :return: dict
+    """
+    result = gConfig.getOptionsDictRecursively("/WebApp")
+    if not cls.__configuration and result['OK']:
+      cls.__configuration = result['Value']
+    return cls.__configuration
+
   def getData(self):
     """ Return session data
 
         :return: dict
     """
-    data = {'menu': self.__getGroupMenu(),
+    data = {'configuration': self.getWebConfiguration(),
+            'menu': self.__getGroupMenu(),
             'user': self.__credDict,
             'validGroups': [],
             'setup': self.__setup,
