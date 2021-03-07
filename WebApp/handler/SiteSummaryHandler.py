@@ -257,7 +257,8 @@ class SiteSummaryHandler(ResourceSummaryHandler):
                   status=None):
 
     plotDict = {'condDict': {
-        'Site': [siteName],
+        # DIRAC.AccountingSystem.Client.Types.DataOperation class use 'ExecutionSite' key instead 'Site'
+        'ExecutionSite' if typeName == 'DataOperation' else 'Site': [siteName],
         'grouping': [grouping]
     },
         'extraArgs': {

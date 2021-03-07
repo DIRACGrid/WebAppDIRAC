@@ -451,9 +451,25 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
 
     var values = {};
 
-    values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
-    values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
-    values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+    if (me.grid.expandedGridPanel) {
+      if (!me.grid.expandedGridPanel.isExpanded) {
+        values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
+        values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
+        values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+        values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
+      } else {
+        me.grid.expandedGridPanel.isExpanded = false;
+        values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "Name");
+        values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "ElementType");
+        values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "StatusType");
+        values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "LastCheckTime"), "Y-m-d H:i:s");
+      }
+    } else {
+      values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
+      values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
+      values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+      values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
+    }
 
     return values;
   },
@@ -469,7 +485,8 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
         name: Ext.JSON.encode([selectedValues.name]),
         elementType: Ext.JSON.encode([selectedValues.elementType]),
         statusType: Ext.JSON.encode([selectedValues.statusType]),
-        status: Ext.JSON.encode([newStatus])
+        status: Ext.JSON.encode([newStatus]),
+        lastCheckTime: Ext.JSON.encode([selectedValues.lastCheckTime])
       },
       scope: me,
       failure: function(response) {
@@ -485,8 +502,10 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
           var selectedRows = me.grid.getSelectionModel().getSelection();
           // we assume that we only select one row...
           me.grid.getStore().load();
-          me.grid.expandedGridPanel.destroy();
-          delete me.grid.expandedGridPanel;
+          if (me.grid.expandedGridPanel) {
+            me.grid.expandedGridPanel.destroy();
+            delete me.grid.expandedGridPanel;
+          }
 
           Ext.defer(function() {
             var records = me.grid.getStore().getRange();
