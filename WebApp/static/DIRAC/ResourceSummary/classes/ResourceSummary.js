@@ -602,10 +602,6 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
             me.grid.expandedGridPanel.destroy();
             delete me.grid.expandedGridPanel;
           }
-<<<<<<< HEAD
-
-=======
->>>>>>> c2060d8 (fix sitesummary)
 
           Ext.defer(function() {
             var records = me.grid.getStore().getRange();

@@ -470,10 +470,6 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
       values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
       values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> 4c87b22 (fix sitesummary)
     return values;
   },
   __oprSetSite: function(action, newStatus) {
