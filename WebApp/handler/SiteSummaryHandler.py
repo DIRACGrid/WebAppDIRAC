@@ -11,8 +11,6 @@ from WebAppDIRAC.Lib.WebHandler import asyncGen
 from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import ResourceSummaryHandler
 
 class SiteSummaryHandler(ResourceSummaryHandler):
-  """ SiteSummaryHandler 
-  """
   AUTH_PROPS = "all"
   ELEMENT_TYPE = 'Site'
 
