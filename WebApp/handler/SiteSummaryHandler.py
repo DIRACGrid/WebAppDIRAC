@@ -14,6 +14,7 @@ from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import ResourceSummaryHan
 
 
 class SiteSummaryHandler(ResourceSummaryHandler):
+
   AUTH_PROPS = "all"
   ELEMENT_TYPE = 'Site'
 

@@ -502,8 +502,10 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
           var selectedRows = me.grid.getSelectionModel().getSelection();
           // we assume that we only select one row...
           me.grid.getStore().load();
-          me.grid.expandedGridPanel.destroy();
-          delete me.grid.expandedGridPanel;
+          if (me.grid.expandedGridPanel) {
+            me.grid.expandedGridPanel.destroy();
+            delete me.grid.expandedGridPanel;
+          }
 
           Ext.defer(function() {
             var records = me.grid.getStore().getRange();
