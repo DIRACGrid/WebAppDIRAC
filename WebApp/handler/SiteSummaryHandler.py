@@ -14,7 +14,6 @@ from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import ResourceSummaryHan
 
 
 class SiteSummaryHandler(ResourceSummaryHandler):
-
   AUTH_PROPS = "all"
   ELEMENT_TYPE = 'Site'
 
@@ -257,7 +256,8 @@ class SiteSummaryHandler(ResourceSummaryHandler):
                   status=None):
 
     plotDict = {'condDict': {
-        'Site': [siteName],
+        # DIRAC.AccountingSystem.Client.Types.DataOperation class use 'ExecutionSite' key instead 'Site'
+        'ExecutionSite' if typeName == 'DataOperation' else 'Site': [siteName],
         'grouping': [grouping]
     },
         'extraArgs': {
