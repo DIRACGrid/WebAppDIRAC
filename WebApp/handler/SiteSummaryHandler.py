@@ -34,6 +34,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
                                             requestParams['tokenOwner'])
     if not elementStatuses['OK']:
       self.finish({'success': 'false', 'error': elementStatuses['Message']})
+      return
 
     elementList = [dict(zip(elementStatuses['Columns'], site)) for site in elementStatuses['Value']]
 
@@ -55,6 +56,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     if not requestParams['name']:
       gLogger.warn('No name given')
       self.finish({'success': 'false', 'error': 'We need a Site Name to generate an Overview'})
+      return
 
     elementName = requestParams['name'][0]
 
@@ -71,10 +73,12 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     if not elementStatuses['OK']:
       gLogger.error(elementStatuses['Message'])
       self.finish({'success': 'false', 'error': 'Error getting ElementStatus information'})
+      return
 
     if not elementStatuses['Value']:
       gLogger.error('element "%s" not found' % elementName)
       self.finish({'success': 'false', 'error': 'element "%s" not found' % elementName})
+      return
 
     elementStatus = [dict(zip(elementStatuses['Columns'], element)) for element in elementStatuses['Value']][0]
     elementStatus['DateEffective'] = str(elementStatus['DateEffective'])
@@ -138,6 +142,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     if not requestParams['name']:
       gLogger.warn('No name given')
       self.finish({'success': 'false', 'error': 'We need a Site Name to generate an Overview'})
+      return
 
     pub = PublisherClient()
 
@@ -147,6 +152,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
       storageElements = retVal['Value']
     else:
       self.finish({'success': 'false', 'error': retVal['Message']})
+      return
 
     storageElementsStatus = []
     gLogger.info('storageElements = ' + str(storageElements))
@@ -171,6 +177,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     if not requestParams['name']:
       gLogger.warn('No name given')
       self.finish({'success': 'false', 'error': 'We need a Site Name to generate an Overview'})
+      return
 
     pub = PublisherClient()
 
@@ -204,6 +211,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     if not requestParams['name']:
       gLogger.warn('No name given')
       self.finish({'success': 'false', 'error': 'We need a Site Name to generate an Overview'})
+      return
 
     elementName = requestParams['name'][0]
     pub = PublisherClient()
@@ -219,6 +227,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     if not elementStatuses['Value']:
       gLogger.error('element "%s" not found' % elementName)
       self.finish({'success': 'false', 'error': 'element "%s" not found' % elementName})
+      return
 
     elementStatus = [dict(zip(elementStatuses['Columns'], element)) for element in elementStatuses['Value']][0]
 
