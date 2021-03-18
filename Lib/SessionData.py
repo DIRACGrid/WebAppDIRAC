@@ -1,11 +1,15 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
+
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import List
-from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry
+from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 
 from WebAppDIRAC.Lib import Conf
 
@@ -31,13 +35,10 @@ class SessionData(object):
       handler = handlers[k]
       cls.__handlers[handler.LOCATION.strip("/")] = handler
     # Calculate extensions
-    cls.__extensions = []
-    for ext in CSGlobals.getInstalledExtensions():
-      if ext in ("WebAppDIRAC", "DIRAC"):
-        continue
-      cls.__extensions.append(ext)
-    cls.__extensions.append("DIRAC")
-    cls.__extensions.append("WebAppDIRAC")
+    cls.__extensions = CSGlobals.getInstalledExtensions()
+    for ext in ['DIRAC', 'WebAppDIRAC']:
+      if ext in cls.__extensions:
+        cls.__extensions.append(cls.__extensions.pop(cls.__extensions.index(ext)))
 
   def __init__(self, credDict, setup):
     self.__credDict = credDict

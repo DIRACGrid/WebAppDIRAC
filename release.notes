@@ -2,6 +2,7 @@
 
 CHANGE: (#439) Use ConfigurationClient instead of RPCClient
 CHANGE: (#440) optimize sysadmin getSysInfo method to use directly query ComponentMonitoring
+FIX: (#442) Site Summary fixes
 
 [v4r2-pre4]
 

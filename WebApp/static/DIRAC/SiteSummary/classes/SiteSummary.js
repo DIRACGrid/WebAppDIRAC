@@ -451,15 +451,81 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
 
     var values = {};
 
-    values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
-    values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
-    values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
-
+    if (me.grid.expandedGridPanel) {
+      if (!me.grid.expandedGridPanel.isExpanded) {
+        values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
+        values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
+        values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+        values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
+      } else {
+        me.grid.expandedGridPanel.isExpanded = false;
+        values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "Name");
+        values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "ElementType");
+        values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "StatusType");
+        values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid.expandedGridPanel, "LastCheckTime"), "Y-m-d H:i:s");
+      }
+    } else {
+      values.name = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Name");
+      values.elementType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "ElementType");
+      values.statusType = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "StatusType");
+      values.lastCheckTime = Ext.Date.format(GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "LastCheckTime"), "Y-m-d H:i:s");
+    }
     return values;
   },
   __oprSetSite: function(action, newStatus) {
     var me = this;
     var selectedValues = me.__getSelectedValues();
+    me.getContainer().body.mask("Wait ...");
+    Ext.Ajax.request({
+      url: GLOBAL.BASE_URL + me.applicationName + "/action",
+      method: "POST",
+      params: {
+        action: Ext.JSON.encode([action]),
+        name: Ext.JSON.encode([selectedValues.name]),
+        elementType: Ext.JSON.encode([selectedValues.elementType]),
+        statusType: Ext.JSON.encode([selectedValues.statusType]),
+        status: Ext.JSON.encode([newStatus]),
+        lastCheckTime: Ext.JSON.encode([selectedValues.lastCheckTime])
+      },
+      scope: me,
+      failure: function(response) {
+        GLOBAL.APP.CF.showAjaxErrorMessage(response);
+      },
+      success: function(response) {
+        me.getContainer().body.unmask();
+        var jsonData = Ext.JSON.decode(response.responseText);
+
+        if (jsonData["success"] == "true") {
+          var rowid = null;
+          Ext.dirac.system_info.msg("info", jsonData["result"]);
+          var selectedRows = me.grid.getSelectionModel().getSelection();
+          // we assume that we only select one row...
+          me.grid.getStore().load();
+          if (me.grid.expandedGridPanel) {
+            me.grid.expandedGridPanel.destroy();
+            delete me.grid.expandedGridPanel;
+          }
+
+          Ext.defer(function() {
+            var records = me.grid.getStore().getRange();
+            var record = null;
+            for (var i = 0; i < records.length; i++) {
+              if (records[i].get("Name") == selectedRows[0].get("Name")) {
+                var record = me.grid.getView().getRecord(records[i]);
+                rowid = record.index;
+                me.grid.getSelectionModel().select(record);
+                break;
+              }
+            }
+
+            me.grid.getPlugin().toggleRow(rowid, record);
+          }, 400);
+        } else {
+          me.getContainer().body.unmask();
+          Ext.dirac.system_info.msg("error", jsonData["error"]);
+        }
+      }
+    });
   },
   __oprShowEditor: function() {
     var me = this;
