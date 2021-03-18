@@ -70,18 +70,10 @@ jobs:
             break
           fi
         done
-<<<<<<< HEAD
         echo "Clone DIRAC ${rel} to $(pwd)"
         git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${relToCheckout}"
         # Align with v7r2+ DIRAC versions (with src path)
         cp -r DIRAC/src/DIRAC/* DIRAC/
-=======
-        echo "Let`s clone ${relToCheckout} DIRAC version:"
-        git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${relToCheckout}"
-        pwd
-        ls -al
-        env
->>>>>>> c3dcc7f (add debug)
       env:
         REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
     - name: Run tests

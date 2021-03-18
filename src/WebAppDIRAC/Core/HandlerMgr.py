@@ -85,7 +85,7 @@ class HandlerMgr(object):
       if not result['OK']:
         return result
       handlerList += list(result['Value'].items())
-    self.__handlers = collections.OrderedDict(hendlerList)
+    self.__handlers = collections.OrderedDict(handlerList)
 
     # ['/opt/dirac/pro/WebAppExt/WebApp/static', ...]
     staticPaths = self.getPaths("static")
