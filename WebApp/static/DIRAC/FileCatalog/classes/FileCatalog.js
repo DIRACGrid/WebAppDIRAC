@@ -492,7 +492,11 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
      * Read application settings from CS(WebApp section) to build panel
      */
     var pagingToolbarItems = [];
-    if (GLOBAL.APP.configData.hasOwnProperty("configuration") && GLOBAL.APP.configData.configuration.hasOwnProperty("FileCatalog") && GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar) {
+    if (
+      GLOBAL.APP.configData.hasOwnProperty("configuration") &&
+      GLOBAL.APP.configData.configuration.hasOwnProperty("FileCatalog") &&
+      GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar
+    ) {
       var items = GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar.replace(/, /g, ",").split(",");
       for (var i = 0; i < items.length; i++) {
         var element = items[i];
