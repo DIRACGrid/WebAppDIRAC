@@ -402,6 +402,9 @@ class ResourceSummaryHandler(WebHandler):
 
     if not res['OK']:
       self.finish({'success': 'false', 'error': res["Message"]})
+    elif not res['Value']:
+      self.finish({'success': 'false', 'error': 'Nothing found.'})
+
     else:
 
       columns = res['Columns']
