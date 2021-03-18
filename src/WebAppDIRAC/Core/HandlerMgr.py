@@ -185,6 +185,6 @@ class HandlerMgr(object):
 
   def isAuthServer(self):
     return self.__isAuthServer
-  
+
   def isPortal(self):
     return self.__isPortal

@@ -107,11 +107,11 @@ class RootHandler(WebHandler):
     if provider:
       url += '/%s' % provider
     uri, state = self._authClient.create_authorization_url(url, code_challenge=code_challenge,
-                                                                       code_challenge_method='S256',
-                                                                       scope='changeGroup')
+                                                           code_challenge_method='S256',
+                                                           scope='changeGroup')
     self.application.addSession(state, code_verifier=code_verifier, provider=provider,
                                 next=self.get_argument('next', '/DIRAC'))
-    #self.set_cookie('authGrant', 'Session')
+    # self.set_cookie('authGrant', 'Session')
     self.set_cookie('authGrant', 'Visitor')
     # Redirect to authorization server
     self.redirect(uri)

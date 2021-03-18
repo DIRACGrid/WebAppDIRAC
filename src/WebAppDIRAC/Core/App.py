@@ -77,8 +77,8 @@ class App(object):
     # Create the app
     tLoader = TemplateLoader(self.__handlerMgr.getPaths("template"))
     app['settings'] = dict(debug=Conf.devMode(), template_loader=tLoader,
-                                 cookie_secret=str(Conf.cookieSecret()),
-                                 log_function=self._logRequest)
+                           cookie_secret=str(Conf.cookieSecret()),
+                           log_function=self._logRequest)
     return S_OK(app)
 
   def bootstrap(self):
