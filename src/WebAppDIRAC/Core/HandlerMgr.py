@@ -4,6 +4,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+__RCSID__ = "$Id$"
+
 import os
 import re
 import imp
@@ -26,7 +28,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
-__RCSID__ = "$Id$"
 
 class HandlerMgr(object):
   __metaclass__ = DIRACSingleton

@@ -9,8 +9,8 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           npm install -g npm
-          npm install eslint@5.0.0 --save-dev
-          curl -O http://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
+          npm install eslint --save-dev
+          curl --fail -O -L http://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
           npm install @sencha_eslint-plugin-extjs.7.0.0.tgz --save-dev
           node_modules/.bin/eslint src/WebAppDIRAC/WebApp
 

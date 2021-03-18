@@ -3,8 +3,6 @@ from six.moves import urllib_parse as urlparse
 
 from WebAppDIRAC.Lib import Conf
 
-__RCSID__ = "$Id$"
-
 
 class CoreHandler(tornado.web.RequestHandler):
 

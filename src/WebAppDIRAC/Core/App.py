@@ -1,3 +1,9 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+__RCSID__ = "$Id$"
+
 import os
 import ssl
 import imp
@@ -13,13 +19,10 @@ import DIRAC
 
 from DIRAC import gLogger, gConfig, S_OK
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
-
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
-
-__RCSID__ = "$Id$"
 
 
 class App(object):

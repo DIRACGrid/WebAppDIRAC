@@ -2,6 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+__RCSID__ = "$Id$"
+
 import os
 
 from DIRAC import gConfig, gLogger
@@ -16,7 +18,6 @@ from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
 from WebAppDIRAC.Lib import Conf
 
-__RCSID__ = "$Id$"
 
 DEFAULT_SCHEMA = [
     ["Tools", [

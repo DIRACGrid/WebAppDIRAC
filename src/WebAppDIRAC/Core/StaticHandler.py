@@ -2,12 +2,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+__RCSID__ = "$Id$"
+
 import os
 from tornado.web import StaticFileHandler, HTTPError
 
 from DIRAC import rootPath
-
-__RCSID__ = "$Id$"
 
 
 class StaticHandler(StaticFileHandler):
