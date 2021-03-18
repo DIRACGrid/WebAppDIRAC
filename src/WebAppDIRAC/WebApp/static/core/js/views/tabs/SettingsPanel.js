@@ -102,7 +102,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     var oListAuth = Object.keys(GLOBAL.APP.configData.configuration.TypeAuths);
     var currentAuth = Ext.util.Cookies.get("authGrant");
     if (currentAuth == null) {
-      currentAuth = 'Certificate';
+      currentAuth = "Certificate";
     }
 
     var button_usrname = {
@@ -121,26 +121,26 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       // HTTPS
       // Log in section
     } else {
-      if (currentAuth != 'Session')  {
+      if (currentAuth != "Session") {
         // List of IdPs
         for (var i = 0; i < oListAuth.length; i++) {
           // if (oListAuth[i] != currentAuth) {
-            button_usrname.menu.push({
-              text: oListAuth[i],
-              handler: function() {
-                GLOBAL.APP.CF.auth(this.text);
-              }
-            });
+          button_usrname.menu.push({
+            text: oListAuth[i],
+            handler: function() {
+              GLOBAL.APP.CF.auth(this.text);
+            }
+          });
           // }
         }
       }
       // Default authentication method
-      if (currentAuth != 'Certificate') {
+      if (currentAuth != "Certificate") {
         button_usrname.menu.push({
           text: "Certificate",
           handler: function() {
             Ext.util.Cookies.set("authGrant", this.text);
-            window.location.protocol = 'https'
+            window.location.protocol = "https";
           }
         });
       }
@@ -151,24 +151,24 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           text: "Log out",
           handler: function() {
             sessionStorage.removeItem("access_token");
-            Ext.util.Cookies.set("authGrant", 'Visitor');
-            if (currentAuth == 'Certificate') {
-              window.location.protocol = 'https'
+            Ext.util.Cookies.set("authGrant", "Visitor");
+            if (currentAuth == "Certificate") {
+              window.location.protocol = "https";
             } else {
-              window.location = GLOBAL.BASE_URL + 'logout';
+              window.location = GLOBAL.BASE_URL + "logout";
             }
           }
         });
         button_usrname.menu.push();
       }
-    };
+    }
 
     if (GLOBAL.APP.configData.user.username) {
       /**
        * If the user is registered
        */
       button_usrname.text = GLOBAL.APP.configData["user"]["username"];
-    };
+    }
     return new Ext.button.Button(button_usrname);
   },
 
@@ -178,12 +178,12 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       menu: []
     };
     var data = GLOBAL.APP.configData["groupsStatuses"];
-    for (group in data){
+    for (group in data) {
       const status = data[group].Status;
       const dn = data[group].DN;
       const comment = data[group].Comment;
       const action = data[group].Action;
-      if (status == 'ready') {
+      if (status == "ready") {
         button_group.menu.push({
           group: group,
           text: group,
@@ -200,7 +200,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
         });
       } else {
         if (group == GLOBAL.APP.configData["user"]["group"]) {
-          GLOBAL.APP.CF.alert(comment, 'warning', true, action)
+          GLOBAL.APP.CF.alert(comment, "warning", true, action);
         }
         button_group.menu.push({
           title: status,

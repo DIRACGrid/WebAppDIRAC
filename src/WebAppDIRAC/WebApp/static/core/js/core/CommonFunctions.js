@@ -33,24 +33,24 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   getAuthorizationServerMetadata: function() {
     var meta = Ext.JSON.decode(sessionStorage.getItem("AuthServerMetadata"));
     if (meta == null) {
-      console.log(GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration');
+      console.log(GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + "/.well-known/openid-configuration");
       Ext.Ajax.request({
-        url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration',
+        url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + "/.well-known/openid-configuration",
         success: function(response) {
           meta = Ext.JSON.decode(response.responseText);
           Ext.Ajax.request({
             url: meta.jwks_uri,
-            success: function(response){
+            success: function(response) {
               meta.jwks = Ext.JSON.decode(response.responseText);
               sessionStorage.setItem("AuthServerMetadata", Ext.JSON.encode(meta));
-              return meta
+              return meta;
             }
           });
         }
       });
     } else {
-      return meta
-    };
+      return meta;
+    }
   },
 
   fetchToken: function(access_token) {
@@ -59,11 +59,11 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     // var keys = KJUR.jws.JWS.readSafeJSONString(meta.jwks.toString());
     var key = KEYUTIL.getKey(meta.jwks.keys[0]);
     if (key.verify(null, access_token) == true) {
-      return access_token
-    };
+      return access_token;
+    }
     Ext.Ajax.request({
-      method: 'GET',
-      url: GLOBAL.BASE_URL + 'fetchToken',
+      method: "GET",
+      url: GLOBAL.BASE_URL + "fetchToken",
       params: {
         access_token: access_token
       },
@@ -71,7 +71,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         sessionStorage.setItem("access_token", response.responseText);
         return response.responseText;
       }
-    })
+    });
   },
 
   rpcCall: function(url, method, args) {
@@ -79,18 +79,18 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     // var meta = await getAuthorizationServerMetadata();
     var access_token = sessionStorage.getItem("access_token");
     if (access_token == null) {
-      GLOBAL.APP.CF.alert('RPC call inpossible without access token. You need authorize through IdP.', "info");
-      return
-    };
+      GLOBAL.APP.CF.alert("RPC call inpossible without access token. You need authorize through IdP.", "info");
+      return;
+    }
     access_token = me.fetchToken(access_token);
     Ext.Ajax.request({
       url: url,
-      method: 'POST',
+      method: "POST",
       params: {
         method: method,
         args: args
       },
-      headers: {'Authorization': 'Bearer ' + access_token},
+      headers: { Authorization: "Bearer " + access_token },
       success: function(response) {
         return Ext.JSON.decode(response.responseText);
       }
@@ -101,7 +101,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
    * Helper function to submit authentication flow and read status of it
    */
   auth: function(authProvider) {
-    window.location = GLOBAL.BASE_URL + 'login?provider=' + authProvider + '&next=' + window.location.href;
+    window.location = GLOBAL.BASE_URL + "login?provider=" + authProvider + "&next=" + window.location.href;
   },
 
   /**
@@ -229,14 +229,14 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     var me = this;
 
     if (aType == null) return;
-    
+
     switch (aType) {
       case "auth":
         me.auth.apply(me, aOptns);
         break;
 
       case "openURL":
-        window.open(aOptns[0], '_blank');
+        window.open(aOptns[0], "_blank");
         break;
 
       case "send mail":
