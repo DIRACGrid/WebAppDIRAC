@@ -1,3 +1,10 @@
+[v4r0p35]
+
+NEW: (#449) Add columns to SiteSummary overview tables.
+FIX: (#444) fix SiteSummary plots and setter
+FIX: (#437) use updateSrc instead setSrc to update plots
+FIX: (#434) use -L curl flag to fix tests
+
 [v4r0p32]
 
 FIX: (#405) PilotMonitor showJobs feature now provide all the jobs bound to a pilot-job reference
