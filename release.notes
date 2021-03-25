@@ -1,3 +1,7 @@
+[v4r0p37]
+
+FIX: (#453) use setSrc to replaceImage
+
 [v4r0p36]
 
 NEW: (#449) Add columns to SiteSummary overview tables.
