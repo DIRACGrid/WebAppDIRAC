@@ -1,6 +1,9 @@
-[v4r0p35]
+[v4r0p36]
 
 NEW: (#449) Add columns to SiteSummary overview tables.
+
+[v4r0p35]
+
 FIX: (#444) fix SiteSummary plots and setter
 FIX: (#437) use updateSrc instead setSrc to update plots
 FIX: (#434) use -L curl flag to fix tests
