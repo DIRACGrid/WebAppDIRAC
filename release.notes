@@ -9,8 +9,17 @@ NEW: (#449) Add columns to SiteSummary overview tables.
 [v4r0p35]
 
 FIX: (#444) fix SiteSummary plots and setter
+
+[v4r0p33]
+
 FIX: (#437) use updateSrc instead setSrc to update plots
 FIX: (#434) use -L curl flag to fix tests
+FIX: (#420) sort alphabetically menus in webapp
+FIX: (#419) Disable bufferedRenderer in RegistryManager to allow better searching
+FIX: (#417) use raw instead data property
+FIX: (#415) use updateSrc instead setSrc for replaceImage method
+FIX: (#411) resove pyLint errors
+CHANGE: (#408) add diraccfg to the requirements
 
 [v4r0p32]
 
