@@ -359,11 +359,12 @@ Ext.define('Ext.dirac.utils.Presenter', {
         var me = this;
         return me.lastClickedImage;
       },
+      // When you apply new input data for example, need to update image
       replaceImage : function(oldImage, newImage) {
         var me = this;
         var img = me.getComponent(oldImage.id);
         img.plotParams = newImage['params'];
-        img.updateSrc(newImage['src']);
+        img.setSrc(newImage['src']);
       },
       setColumnWidth : function(column) {
         var me = this;

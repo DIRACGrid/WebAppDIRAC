@@ -529,6 +529,7 @@ Ext.define('Ext.dirac.utils.PlotView', {
                         });
                   },
 
+                  // When new plot added on the wall generate image
                   added : function(container, pos, eOpts) {
                     var me = this;
                     me.setLoading(true);
