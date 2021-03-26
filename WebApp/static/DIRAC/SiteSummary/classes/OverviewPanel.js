@@ -157,7 +157,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
     });
 
     var ceStore = new Ext.data.ArrayStore({
-      fields: ["Name", "Status", "Type"],
+      fields: ["Name", "StatusType", "Status", "Type"],
       data: []
     });
 
@@ -231,6 +231,16 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
           flex: 1,
           sortable: false,
           dataIndex: "Type"
+        }, {
+          text : 'StatusType',
+          flex : 1,
+          sortable : false,
+          dataIndex : 'StatusType'
+        }, {
+          text : 'Status',
+          flex : 1,
+          sortable : false,
+          dataIndex : 'Status'
         }
       ],
       width: "100%",
@@ -250,7 +260,7 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
     });
 
     var stotageStore = new Ext.data.ArrayStore({
-      fields: ["Name", "Status", "Type"],
+      fields: ["Name", "StatusType", "Status", "Type"],
       data: []
     });
 
@@ -307,6 +317,16 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
           flex: 1,
           sortable: false,
           dataIndex: "Type"
+        }, {
+          text : 'StatusType',
+          flex : 1,
+          sortable : false,
+          dataIndex : 'StatusType'
+        }, {
+          text : 'Status',
+          flex : 1,
+          sortable : false,
+          dataIndex : 'Status'
         }
       ],
       width: "100%",
