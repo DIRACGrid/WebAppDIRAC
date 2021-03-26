@@ -54,7 +54,7 @@ class JobLaunchpadHandler(WebHandler):
     if group == "visitor":
       return {"success": "false", "error": "User is anonymous or is not registered in the system"}
 
-    userName = str(userData["user"]["username"])
+    userName = str(self.getUserName())
 
     defaultSeconds = 24 * 3600 + 60  # 24H + 1min
     validSeconds = gConfig.getValue("/Registry/DefaultProxyLifeTime", defaultSeconds)

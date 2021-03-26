@@ -31,20 +31,20 @@ except ImportError:
   pass
 
 global gThreadPool
-gThreadPool = ThreadPoolExecutor( 100 )
+gThreadPool = ThreadPoolExecutor100)
 
-class WErr( tornado.web.HTTPError ):
+class WErr(tornado.web.HTTPError):
 
-  def __init__( self, code, msg = "", **kwargs ):
-    super( WErr, self ).__init__( code, str( msg ) or None )
+  def __init__(self, code, msg = "", **kwargs):
+    super(WErr, self).__init__(code, str(msg) or None)
     for k in kwargs:
-      setattr( self, k, kwargs[k] )
+      setattr(self, k, kwargs[k])
     self.ok = False
     self.msg = msg
     self.kwargs = kwargs
 
-  def __str__( self ):
-    return super( WErr, self ).__str__()
+  def __str__(self):
+    return super(WErr, self).__str__()
 
   @classmethod
   def fromSERROR(cls, result):
@@ -52,21 +52,21 @@ class WErr( tornado.web.HTTPError ):
     return cls(500, result['Message'].replace("%", ""))
 
 
-class WOK( object ):
+class WOK(object):
 
-  def __init__( self, data = False, **kwargs ):
+  def __init__(self, data=False, **kwargs):
     for k in kwargs:
-      setattr( self, k, kwargs[k] )
+      setattr(self, k, kwargs[k])
     self.ok = True
     self.data = data
 
-def asyncWithCallback( method ):
-  return tornado.web.asynchronous( method )
+def asyncWithCallback(method):
+  return tornado.web.asynchronous(method)
 
-def asyncGen( method ):
-  return tornado.gen.coroutine( method )
+def asyncGen(method):
+  return tornado.gen.coroutine(method)
 
-class WebHandler( tornado.web.RequestHandler ):
+class WebHandler(tornado.web.RequestHandler):
   __disetConfig = ThreadConfig()
   __log = False
 
@@ -86,62 +86,62 @@ class WebHandler( tornado.web.RequestHandler ):
       args = targs[0]
       disetConf = targs[1]
       self.__disetConfig.reset()
-      self.__disetConfig.load( disetConf )
-      return method( *args, **tkwargs )
+      self.__disetConfig.load(disetConf)
+      return method(*args, **tkwargs)
 
     targs = (args, self.__disetDump)
-    return tornado.ioloop.IOLoop.current().run_in_executor( gThreadPool,
-                                                            functools.partial( threadJob, *targs, **kwargs ) )
+    return tornado.ioloop.IOLoop.current().run_in_executor(gThreadPool,
+                                                           functools.partial(threadJob, *targs, **kwargs))
 
-  def __disetBlockDecor( self, func ):
-    def wrapper( *args, **kwargs ):
-      raise RuntimeError( "All DISET calls must be made from inside a Threaded Task!" )
+  def __disetBlockDecor(self, func):
+    def wrapper(*args, **kwargs):
+      raise RuntimeError("All DISET calls must be made from inside a Threaded Task!")
 
     return wrapper
 
-  def __init__( self, *args, **kwargs ):
+  def __init__(self, *args, **kwargs):
     """ Initialize the handler
     """
-    super( WebHandler, self ).__init__( *args, **kwargs )
+    super(WebHandler, self).__init__(*args, **kwargs)
     if not WebHandler.__log:
-      WebHandler.__log = gLogger.getSubLogger( self.__class__.__name__ )
+      WebHandler.__log = gLogger.getSubLogger(self.__class__.__name__)
     # Look idetity provider and session
-    self.__idp = self.get_cookie( "TypeAuth" ) or "Certificate"
-    self.__session = self.get_cookie( self.__idp ) or None
+    self.__idp = self.get_cookie("TypeAuth") or "Certificate"
+    self.__session = self.get_cookie(self.__idp) or None
     # Fill credentials
-    self.__credDict = { }
+    self.__credDict = {}
     self.__setup = Conf.setup()
     result = self.__processCredentials()
     if not result['OK']:
       self.__idp = "Visitor"
-      self.log.error( result['Message'], 'Continue as Visitor.' )
-    self.log.verbose( "%s authentication" % self.__idp,
-                      'with %s session' % self.__session if self.__session else '' )
+      self.log.error(result['Message'], 'Continue as Visitor.')
+    self.log.verbose("%s authentication" % self.__idp,
+                     'with %s session' % self.__session if self.__session else '')
     # Restore identity provider
     self.set_cookie("TypeAuth", self.__idp)
     # Setup diset
     self.__disetConfig.reset()
-    self.__disetConfig.setDecorator( self.__disetBlockDecor )
+    self.__disetConfig.setDecorator(self.__disetBlockDecor)
     self.__disetDump = self.__disetConfig.dump()
-    match = self.PATH_RE.match( self.request.path )
+    match = self.PATH_RE.match(self.request.path)
     pathItems = match.groups()
-    self._pathResult = self.__checkPath( *pathItems[:3] )
+    self._pathResult = self.__checkPath(*pathItems[:3])
     self.overpath = pathItems[3:] and pathItems[3] or ''
-    self.__sessionData = SessionData( self.__credDict, self.__setup )
+    self.__sessionData = SessionData(self.__credDict, self.__setup)
     self.__forceRefreshCS()
 
-  def __forceRefreshCS( self ):
+  def __forceRefreshCS(self):
     """ Force refresh configuration from master configuration server
     """
-    if self.request.headers.get( 'X-RefreshConfiguration' ) == 'True':
-      self.log.debug( 'Initialize force refresh..' )
-      if not AuthManager( '' ).authQuery( "", dict( self.__credDict ), "CSAdministrator" ):
-        raise WErr( 401, 'Cannot initialize force refresh, request not authenticated' )
+    if self.request.headers.get('X-RefreshConfiguration') == 'True':
+      self.log.debug('Initialize force refresh..')
+      if not AuthManager('').authQuery("", dict(self.__credDict), "CSAdministrator"):
+        raise WErr(401, 'Cannot initialize force refresh, request not authenticated')
       result = gConfig.forceRefresh()
       if not result['OK']:
-        raise WErr( 501, result['Message'] )
+        raise WErr(501, result['Message'])
 
-  def __processCredentials( self ):
+  def __processCredentials(self):
     """ Extract the user credentials based on the certificate or what comes from the balancer
     """
     # Unsecure protocol only for visitors
@@ -153,41 +153,41 @@ class WebHandler( tornado.web.RequestHandler ):
       return self.__readCertificate()
 
     # Look enabled authentication types in CS
-    result = Conf.getCSSections( "TypeAuths" )
+    result = Conf.getCSSections("TypeAuths")
     if not result['OK']:
-      self.log.warn( 'To enable idenyity provider need to use "TypeAuths" section, but %s' % result['Message'] )
-    if self.__idp not in (result.get( 'Value' ) or []):
-      return S_ERROR( self.__idp, "is absent in configuration." )
+      self.log.warn('To enable idenyity provider need to use "TypeAuths" section, but %s' % result['Message'])
+    if self.__idp not in (result.get('Value') or []):
+      return S_ERROR(self.__idp, "is absent in configuration.")
 
     if not self.__session:
-      return S_ERROR( 'No found session in cookies.' )
+      return S_ERROR('No found session in cookies.')
 
     try:
-      result = gSessionManager.getIDForSession( self.__session )
+      result = gSessionManager.getIDForSession(self.__session)
     except Exception as e:
-      return S_ERROR( 'AuthManager extension absent:', e )
+      return S_ERROR('AuthManager extension absent:', e)
     if not result['OK']:
-      self.set_cookie( self.__idp, '' )
+      self.set_cookie(self.__idp, '')
     else:
       self.__credDict['ID'] = result['Value']
     return result
 
-  def _request_summary( self ):
+  def _request_summary(self):
     """ Return a string returning the summary of the request
 
         :return: str
     """
-    summ = super( WebHandler, self )._request_summary()
+    summ = super(WebHandler, self)._request_summary()
     cl = []
-    if self.__credDict.get( 'validDN', False ):
-      cl.append( self.__credDict['username'] )
-      if self.__credDict.get( 'validGroup', False ):
-        cl.append( "@%s" % self.__credDict['group'] )
-      cl.append( " (%s)" % self.__credDict['DN'] )
-    summ = "%s %s" % (summ, "".join( cl ))
+    if self.__credDict.get('validDN', False):
+      cl.append(self.__credDict['username'])
+      if self.__credDict.get('validGroup', False):
+        cl.append("@%s" % self.__credDict['group'])
+      cl.append(" (%s)" % self.__credDict['DN'])
+    summ = "%s %s" % (summ, "".join(cl))
     return summ
 
-  def __readCertificate( self ):
+  def __readCertificate(self):
     """ Fill credentional from certificate and check is registred
 
         :return: S_OK()/S_ERROR()
@@ -197,28 +197,28 @@ class WebHandler( tornado.web.RequestHandler ):
       headers = self.request.headers
       if not headers:
         return S_ERROR( 'No headers found.' )
-      if headers.get( 'X-Scheme' ) == "https" and headers.get( 'X-Ssl_client_verify' ) == 'SUCCESS':
+      if headers.get('X-Scheme') == "https" and headers.get('X-Ssl_client_verify') == 'SUCCESS':
         DN = headers['X-Ssl_client_s_dn']
-        if not DN.startswith( '/' ):
-          items = DN.split( ',' )
+        if not DN.startswith('/'):
+          items = DN.split(',')
           items.reverse()
-          DN = '/' + '/'.join( items )
+          DN = '/' + '/'.join(items)
         self.__credDict['DN'] = DN
         self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
       else:
-        return S_ERROR( 'No certificate upload to browser.' )
+        return S_ERROR('No certificate upload to browser.')
 
     else:
       # TORNADO
-      derCert = self.request.get_ssl_certificate( binary_form = True )
+      derCert = self.request.get_ssl_certificate(binary_form=True)
       if not derCert:
-        return S_ERROR( 'No certificate found.' )
-      pemCert = ssl.DER_cert_to_PEM_cert( derCert )
+        return S_ERROR('No certificate found.')
+      pemCert = ssl.DER_cert_to_PEM_cert(derCert)
       chain = X509Chain()
-      chain.loadChainFromString( pemCert )
+      chain.loadChainFromString(pemCert)
       result = chain.getCredentials()
       if not result['OK']:
-        return S_ERROR( "Could not get client credentials %s" % result['Message'] )
+        return S_ERROR("Could not get client credentials %s" % result['Message'])
       self.__credDict = result['Value']
       # Hack. Data coming from OSSL directly and DISET difer in DN/subject
       try:
@@ -233,15 +233,15 @@ class WebHandler( tornado.web.RequestHandler ):
     return S_OK()
 
   @property
-  def log( self ):
+  def log(self):
     return self.__log
 
   @classmethod
-  def getLog( cls ):
+  def getLog(cls):
     return cls.__log
 
-  def getUserDN( self ):
-    return self.__credDict.get( 'DN', '' )
+  def getUserDN(self):
+    return self.__credDict.get('DN', '')
 
   def getID(self):
     return self.__credDict.get('ID', '')
@@ -253,10 +253,10 @@ class WebHandler( tornado.web.RequestHandler ):
     return self.__session
 
   def getUserName(self):
-    return self.__credDict.get( 'username', '' )
+    return self.__credDict.get('username', '')
 
   def getUserGroup(self):
-    return self.__credDict.get( 'group', '' )
+    return self.__credDict.get('group', '')
 
   def getUserSetup(self):
     return self.__setup
@@ -266,7 +266,7 @@ class WebHandler( tornado.web.RequestHandler ):
 
   def getSessionData(self):
     return self.__sessionData.getData()
-  
+
   def getProperties(self):
     return self.__credDict.get('properties')
 
@@ -372,7 +372,7 @@ class WebHandler( tornado.web.RequestHandler ):
     if not self.__auth(handlerRoute, group, methodName):
       return WErr(401, "Unauthorized. %s" % methodName)
 
-    DN = self.getDN()
+    DN = self.getUserDN()
     if DN:
       self.__disetConfig.setDN( DN )
     ID = self.getID()
@@ -398,46 +398,46 @@ class WebHandler( tornado.web.RequestHandler ):
       raise tornado.web.HTTPError( 404 )
     return mObj()
 
-  def post( self, *args, **kwargs ):
-    return self.get( *args, **kwargs )
+  def post(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
 
-  def delete( self, *args, **kwargs ):
-    return self.get( *args, **kwargs )
+  def delete(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
 
-  def write_error( self, status_code, **kwargs ):
-    self.set_status( status_code )
+  def write_error(self, status_code, **kwargs):
+    self.set_status(status_code)
     cType = "text/plain"
     data = self._reason
     if 'exc_info' in kwargs:
       ex = kwargs['exc_info'][1]
-      trace = traceback.format_exception( *kwargs["exc_info"] )
-      if not isinstance( ex, WErr ):
-        data += "\n".join( trace )
+      trace = traceback.format_exception(*kwargs["exc_info"])
+      if not isinstance(ex, WErr):
+        data += "\n".join(trace)
       else:
-        if self.settings.get( "debug" ):
-          self.log.error( "Request ended in error:\n  %s" % "\n  ".join( trace ) )
+        if self.settings.get("debug"):
+          self.log.error("Request ended in error:\n  %s" % "\n  ".join(trace))
         data = ex.msg
-        if isinstance( data, dict ):
+        if isinstance(data, dict):
           cType = "application/json"
-          data = json.dumps( data )
-    self.set_header( 'Content-Type', cType )
-    self.finish( data )
+          data = json.dumps(data)
+    self.set_header('Content-Type', cType)
+    self.finish(data)
 
-  def finishJEncode( self, o ):
+  def finishJEncode(self, o):
     """ Encode data before finish
     """
-    self.finish( encode( o ) )
+    self.finish(encode(o))
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
 
-  def __init__( self, *args, **kwargs ):
-    WebHandler.__init__( self, *args, **kwargs )
-    tornado.websocket.WebSocketHandler.__init__( self, *args, **kwargs )
+  def __init__(self, *args, **kwargs):
+    WebHandler.__init__(self, *args, **kwargs)
+    tornado.websocket.WebSocketHandler.__init__(self, *args, **kwargs)
 
-  def open( self, setup, group, route ):
+  def open(self, setup, group, route):
     if not self._pathResult.ok:
       raise self._pathResult
     return self.on_open()
 
-  def on_open( self ):
+  def on_open(self):
     pass
