@@ -1,11 +1,15 @@
-[v4r2-pre5]
+[v4r2p1]
 
+FIX: (#456) fix System, Module --> DIRACSystem, DIRACModule
+
+[v4r2]
+
+FIX: (#443) return in case of error in SiteSummary
+FIX: (#443) additional configuration check in FileCatalog application
+NEW: (#443) a SessionData will accumulate the WebApp configuration completely
 CHANGE: (#439) Use ConfigurationClient instead of RPCClient
 CHANGE: (#440) optimize sysadmin getSysInfo method to use directly query ComponentMonitoring
 FIX: (#442) Site Summary fixes
-
-[v4r2-pre4]
-
 FIX: (#436) delete the missing key from the ComponentMonitoring response
 CHANGE: (#424) don't read web.cfg, use WebApp section in driac.cfg instead
 CHANGE: (#423) remove upload method from the RootHandler
@@ -13,6 +17,18 @@ NEW: (#422) add new Selection Fields and Group By clauses for Activity Monitorin
 NEW: (#412) add getProperties helper method to the WebHandler
 FIX: (#412) fix bugs, change refreshStore to setStore in the js part of code, use getUserName, etc.. instead getSessionData
 FIX: (#406) add diraccfg to the requirements, minor fixes
+
+[v4r0p37]
+
+FIX: (#453) use setSrc to replaceImage
+
+[v4r0p36]
+
+NEW: (#449) Add columns to SiteSummary overview tables.
+
+[v4r0p35]
+
+FIX: (#444) fix SiteSummary plots and setter
 
 [v4r0p33]
 
