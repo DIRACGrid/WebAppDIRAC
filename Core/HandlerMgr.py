@@ -79,7 +79,7 @@ class HandlerMgr(object):
       if not result['OK']:
         return result
       handlerList += list(result['Value'].items())
-    self.__handlers = collections.OrderedDict(hendlerList)
+    self.__handlers = collections.OrderedDict(handlerList)
 
     staticPaths = self.getPaths("static")
     self.log.verbose("Static paths found:\n - %s" % "\n - ".join(staticPaths))

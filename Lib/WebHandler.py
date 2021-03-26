@@ -240,7 +240,7 @@ class WebHandler( tornado.web.RequestHandler ):
   def getLog( cls ):
     return cls.__log
 
-  def getDN( self ):
+  def getUserDN( self ):
     return self.__credDict.get( 'DN', '' )
 
   def getID(self):
@@ -252,26 +252,26 @@ class WebHandler( tornado.web.RequestHandler ):
   def getSession(self):
     return self.__session
 
-  def getUserName( self ):
+  def getUserName(self):
     return self.__credDict.get( 'username', '' )
 
-  def getUserGroup( self ):
+  def getUserGroup(self):
     return self.__credDict.get( 'group', '' )
 
-  def getUserSetup( self ):
+  def getUserSetup(self):
     return self.__setup
 
-  def isRegisteredUser( self ):
-    return self.__credDict.get( 'username', "" ) and self.__credDict.get( 'group', "" )
+  def isRegisteredUser(self):
+    return self.__credDict.get('username', "") and self.__credDict.get('group', "")
 
-  def getSessionData( self ):
+  def getSessionData(self):
     return self.__sessionData.getData()
+  
+  def getProperties(self):
+    return self.__credDict.get('properties')
 
   def getAppSettings(self, app=None):
     return Conf.getAppSettings(app or self.__class__.__name__.replace('Handler', '')).get('Value') or {}
-
-  def getAppSettings( self, app = None ):
-    return Conf.getAppSettings( app or self.__class__.__name__.replace( 'Handler', '' ) ).get( 'Value' ) or { }
 
   def actionURL( self, action = "" ):
     """ Given an action name for the handler, return the URL
