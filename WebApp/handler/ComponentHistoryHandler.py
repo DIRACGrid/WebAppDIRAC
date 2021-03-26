@@ -38,9 +38,9 @@ class ComponentHistoryHandler(WebHandler):
         if installation['UnInstalledBy']:
           uninstalledBy = installation['UnInstalledBy']
         values.append({'Name': installation['Instance'],
-                       'Module': installation['Component']['Module'],
+                       'Module': installation['Component']['DIRACModule'],
                        'Host': installation['Host']['HostName'],
-                       'System': installation['Component']['System'],
+                       'System': installation['Component']['DIRACSystem'],
                        'Type': installation['Component']['Type'],
                        'Installed': installation['InstallationTime'].strftime('%Y-%m-%d %H:%M'),
                        'Uninstalled': uninstalled,
@@ -77,8 +77,8 @@ class ComponentHistoryHandler(WebHandler):
       for installation in result['Value']:
         data['name'].add(installation['Instance'])
         data['host'].add(installation['Host']['HostName'])
-        data['module'].add(installation['Component']['Module'])
-        data['system'].add(installation['Component']['System'])
+        data['module'].add(installation['Component']['DIRACModule'])
+        data['system'].add(installation['Component']['DIRACSystem'])
         data['type'].add(installation['Component']['Type'])
 
       # Order and format the results
