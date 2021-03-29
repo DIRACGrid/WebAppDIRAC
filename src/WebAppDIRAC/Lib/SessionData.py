@@ -7,7 +7,6 @@ __RCSID__ = "$Id$"
 import os
 
 from DIRAC import gConfig, gLogger
-# from DIRAC.Core.Tornado.Web import Conf
 from DIRAC.Core.Utilities import List, ThreadSafe
 from DIRAC.Core.Utilities.DictCache import DictCache
 from DIRAC.Core.DISET.AuthManager import AuthManager

@@ -13,6 +13,7 @@ from DIRAC import rootPath
 class StaticHandler(StaticFileHandler):
 
   def initialize(self, pathList, default_filename=None):
+    # pathList:  ['/opt/dirac/pro/WebAppExt/WebApp/static', ...]
     self.pathList = [os.path.abspath(path) + os.path.sep for path in pathList]
     self.default_filename = default_filename
     self.root = rootPath

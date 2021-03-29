@@ -6,6 +6,7 @@ __RCSID__ = "$Id$"
 
 import os
 from tornado.template import BaseLoader, Template
+from io import open
 
 
 class TemplateLoader(BaseLoader):

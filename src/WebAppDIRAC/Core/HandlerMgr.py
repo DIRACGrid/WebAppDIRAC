@@ -8,15 +8,12 @@ __RCSID__ = "$Id$"
 
 import os
 import re
+import six
 import imp
 import inspect
 
 import six
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
-# from DIRAC.Core.Tornado.Web import Conf
-# from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, WebSocketHandler
-# from DIRAC.Core.Tornado.Web.CoreHandler import CoreHandler
-# from DIRAC.Core.Tornado.Web.StaticHandler import StaticHandler
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMetadata
@@ -28,9 +25,8 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
-
+@six.add_metaclass(DIRACSingleton)
 class HandlerMgr(object):
-  __metaclass__ = DIRACSingleton
 
   def __init__(self, handlersLocation, baseURL="/"):
     """ Constructor
@@ -151,7 +147,7 @@ class HandlerMgr(object):
             route = "%s(%s%s)" % (baseRoute, handlerRoute, '' if methodName == 'index' else ('/%s' % methodName))
             # Use request path as options/values, for ex. ../method/<option>/<file path>?<option>=..
             if args:
-              route += '[\/]?%s' % '/'.join(args)
+              route += r'[\/]?%s' % '/'.join(args)
             self.__routes.append((route, handler))
           self.log.debug("  * %s" % route)
     # Send to root
