@@ -12,9 +12,9 @@ import os
 # Define Version
 
 majorVersion = 4
-minorVersion = 2
-patchLevel = 1
-preVersion = 0
+minorVersion = 3
+patchLevel = 0
+preVersion = 1
 
 version = "v%sr%s" % (majorVersion, minorVersion)
 buildVersion = "v%dr%d" % (majorVersion, minorVersion)
