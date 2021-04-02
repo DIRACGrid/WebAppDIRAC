@@ -168,7 +168,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
                                          None)
 
       for sestatus in sestatuses['Value']:
-        storageElementsStatus.append([sestatus[0], sestatus[2], sestatus[6]])
+        storageElementsStatus.append([sestatus[0], sestatus[1], sestatus[2], sestatus[6]])
 
     self.finish({'success': 'true', 'result': storageElementsStatus, 'total': len(storageElementsStatus)})
 
@@ -202,7 +202,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
       gLogger.info('cestatus = ' + str(cestatuses))
 
       for cestatus in cestatuses['Value']:
-        computing_elements_status.append([cestatus[0], cestatus[2], cestatus[6]])
+        computing_elements_status.append([cestatus[0], cestatus[1], cestatus[2], cestatus[6]])
 
     self.finish({'success': 'true', 'result': computing_elements_status, 'total': len(computing_elements_status)})
 
