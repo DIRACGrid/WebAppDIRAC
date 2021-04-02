@@ -231,16 +231,18 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
           flex: 1,
           sortable: false,
           dataIndex: "Type"
-        }, {
-          text : 'StatusType',
-          flex : 1,
-          sortable : false,
-          dataIndex : 'StatusType'
-        }, {
-          text : 'Status',
-          flex : 1,
-          sortable : false,
-          dataIndex : 'Status'
+        },
+        {
+          text: "StatusType",
+          flex: 1,
+          sortable: false,
+          dataIndex: "StatusType"
+        },
+        {
+          text: "Status",
+          flex: 1,
+          sortable: false,
+          dataIndex: "Status"
         }
       ],
       width: "100%",
@@ -317,16 +319,18 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
           flex: 1,
           sortable: false,
           dataIndex: "Type"
-        }, {
-          text : 'StatusType',
-          flex : 1,
-          sortable : false,
-          dataIndex : 'StatusType'
-        }, {
-          text : 'Status',
-          flex : 1,
-          sortable : false,
-          dataIndex : 'Status'
+        },
+        {
+          text: "StatusType",
+          flex: 1,
+          sortable: false,
+          dataIndex: "StatusType"
+        },
+        {
+          text: "Status",
+          flex: 1,
+          sortable: false,
+          dataIndex: "Status"
         }
       ],
       width: "100%",

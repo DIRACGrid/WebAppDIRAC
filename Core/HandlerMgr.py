@@ -70,7 +70,7 @@ class HandlerMgr(object):
     """
     ol = ObjectLoader()
     self.log.debug("Add handles from: %s", self.__handlersLocation)
-    result = ol.getObjects(origin, parentClass=WebHandler, recurse=True, continueOnError=True)
+    result = ol.getObjects(self.__handlersLocation, parentClass=WebHandler, recurse=True, continueOnError=True)
     if not result['OK']:
       return result
     self.__handlers = result['Value']
