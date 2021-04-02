@@ -154,18 +154,16 @@ class SessionData(object):
             'menu': self.__getGroupMenu(),
             'user': self.__credDict,
             'validGroups': [],
-            'groupsStatuses': {},
             'setup': self.__setup,
             'validSetups': gConfig.getSections("/DIRAC/Setups")['Value'],
             'extensions': self.__extensions,
             'extVersion': self.getExtJSVersion()}
     # Add valid groups if known
-    username = self.__credDict.get("username", "")
-    if username and username != 'anonymous':
-      result = Registry.getGroupsStatusByUsername(username)  # pylint: disable=no-member
+    DN = self.__credDict.get("DN", "")
+    if DN:
+      result = Registry.getGroupsForDN(DN)
       if result['OK']:
-        data['validGroups'] = result['Value'].keys()
-        data['groupsStatuses'] = result['Value']
+        data['validGroups'] = result['Value']
     # Calculate baseURL
     baseURL = [Conf.rootURL().strip("/"),
                "s:%s" % data['setup'],

@@ -100,150 +100,93 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     return form;
   },
 
-  /**
-   * Helper function to submit authentication flow and read status of it
-   */
-  auth: function(AuthType) {
-    Ext.Ajax.request({
-      url: GLOBAL.BASE_URL + "Authentication/auth",
-      params: {
-        typeauth: AuthType
-      },
-      success: function(response) {
-        if (!response.status == 200) {
-          return GLOBAL.APP.CF.alert(response.statusText, "error");
-        } else {
-          var result = Ext.decode(response.responseText);
-          if (!result.OK) {
-            return GLOBAL.APP.CF.alert("Authentication was ended with error: \n" + result.Message, "error");
-          } else if (result.Value.Action == "reload") {
-            return (location.protocol = "https:");
-          } else if (result.Value.Action == "popup") {
-            if (!result.Value.URL || !result.Value.Session) {
-              return GLOBAL.APP.CF.alert("We cannot get authorization URL.", "error");
-            } else {
-              authorizationURL = result.Value.URL;
-              session = result.Value.Session;
-
-              // Open popup
-              GLOBAL.APP.CF.log("debug", 'Open authorization URL: "' + authorizationURL + '"');
-              var oAuthReqWin = open(authorizationURL, "popupWindow", "hidden=yes,height=570,width=520,scrollbars=yes,status=yes");
-              oAuthReqWin.focus();
-
-              // Send request to redirect URL about success authorization
-              Ext.get("app-dirac-loading").show();
-              Ext.get("app-dirac-loading-msg").setHtml("Waiting when authentication will be finished...");
-              GLOBAL.APP.CF.log("debug", "Watch when popup window will be close");
-              var res = (function waitPopupClosed(i, r) {
-                if (r === "closed") {
-                  return Ext.Ajax.request({
-                    url: GLOBAL.BASE_URL + "Authentication/waitOAuthStatus",
-                    params: {
-                      typeauth: AuthType,
-                      session: session
-                    },
-                    async: false,
-                    success: function(response) {
-                      var msg,
-                        title = "Authentication error.",
-                        icon = Ext.Msg.INFO,
-                        result = Ext.decode(response.responseText);
-                      if (!result.OK) {
-                        icon = Ext.Msg.ERROR;
-                        msg = result.Message.replace(/\n/g, "<br>");
-                      } else {
-                        title = "Authenticated successfully.";
-                        msg = result.Value.Comment ? result.Value.Comment.replace(/\n/g, "<br>") : "";
-                        if (result.Value.Status == "failed") {
-                          icon = Ext.Msg.ERROR;
-                        } else if (result.Value.Status == "authed") {
-                          return (location.protocol = "https:");
-                        } else if (result.Value.Status == "visitor") {
-                          msg = "You have permissions as Visitor.\n" + msg;
-                        } else if (result.Value.Status == "authed and reported") {
-                          msg = "Admins was notified about you.\n" + msg;
-                        } else {
-                          icon = Ext.Msg.ERROR;
-                          title = "Authentication error.";
-                          msg = "Authentication thread discontinued.\n" + msg;
-                        }
-                      }
-                      // Hide load icon
-                      Ext.get("app-dirac-loading").hide();
-                      Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-                      return Ext.Msg.show({
-                        closeAction: "destroy",
-                        title: title,
-                        message: msg,
-                        icon: icon
-                      });
-                    },
-                    failure: function(form, action) {
-                      // Hide load icon
-                      Ext.get("app-dirac-loading").hide();
-                      Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-                      return GLOBAL.APP.CF.alert("Request was ended with error: " + form + action, "error");
-                    }
-                  });
-                } else {
-                  setTimeout(function() {
-                    if (--i) {
-                      if (oAuthReqWin === undefined) {
-                        GLOBAL.APP.CF.log("debug", "Popup window was closed.");
-                        return waitPopupClosed(0, "closed");
-                      }
-                      if (oAuthReqWin) {
-                        if (oAuthReqWin.closed) {
-                          GLOBAL.APP.CF.log("debug", "Popup window was closed.");
-                          return waitPopupClosed(0, "closed");
-                        } else {
-                          oAuthReqWin.focus();
-                          return waitPopupClosed(i);
-                        }
-                      } else {
-                        return waitPopupClosed(i);
-                      }
-                    } else {
-                      return waitPopupClosed(120);
-                    }
-                  }, 1000);
-                }
-              })(120, "opened");
-            }
-          } else {
-            return GLOBAL.APP.CF.alert("Cannot submit authorization flow.", "error");
-          }
+      getAuthCFG : function(Auth,Value){
+        var req = Ext.Ajax.request({
+          url: GLOBAL.BASE_URL + 'Authentication/getAuthCFG',
+          params: {
+            typeauth: Auth === undefined ? "" : Auth,
+            value: Value === undefined ? "" : Value
+          },
+          async: false
+        }).responseText;
+        res = JSON.parse(req);
+        if (Object.keys(res).includes('Value')) {
+          res = res.Value;
         }
+        return res;
       },
-      failure: function(form, action) {
-        // Hide load icon
-        Ext.get("app-dirac-loading").hide();
-        Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
-        return GLOBAL.APP.CF.alert("Request was ended with error: " + form + action, "error");
-      }
-    });
-  },
-
-  // Generate list of login buttons
-  getListAuth: function() {
-    req = Ext.Ajax.request({
-      url: GLOBAL.BASE_URL + "Authentication/getAuthNames",
-      async: false
-    }).responseText;
-    var res = Ext.decode(req);
-    if (Object.keys(res).includes("Value")) {
-      res = res.Value;
-    }
-    return res;
-  },
+  
+      // OIDC login method
+      oAuth2LogIn : function(settings,name) {
+        var manager = new Oidc.UserManager(settings);
+        manager.events.addUserLoaded(function (loadedUser) { console.log(loadedUser); });
+        manager.events.addSilentRenewError(function (error) {
+          GLOBAL.APP.CF.log("error", "error while renewing the access token");
+        });
+        manager.events.addUserSignedOut(function () {
+          GLOBAL.APP.CF.alert('The user has signed out',"info");
+        });
+        manager.events.addUserLoaded(function(loadedUser) {
+          if (loadedUser && typeof loadedUser === 'string') {
+            loadedUser = JSON.parse(data);
+          }
+          if (loadedUser) {
+            loadedUser = JSON.stringify(loadedUser, null, 2);
+          }
+          var aJson = JSON.parse(loadedUser);
+          var access_token = aJson["access_token"];
+          Ext.Ajax.request({
+            url: GLOBAL.BASE_URL + 'Authentication/auth',
+            params: { 
+              typeauth: name,
+              value: access_token
+            },
+            success: function(response){
+              var response = Ext.JSON.decode(response.responseText);
+              if (response.value == 'Done') {location.protocol = "https:";} 
+              else { 
+                Ext.create('Ext.window.Window', {
+                  title: 'Welcome',
+                  layout: 'fit',
+                  preventBodyReset: true,
+                  closable: true,
+                  html: '<br><b>Welcome to the DIRAC service '+ response.profile['given_name'] +'!</b><br><br>Sorry, but You are not registred as a DIRAC user.<br>',
+                  buttons : [
+                    {
+                      text    : 'Registration',
+                      handler : function() {
+                        Ext.Ajax.request({
+                          url: GLOBAL.BASE_URL + 'Authentication/sendRequest',
+                          params: { 
+                            typeauth: name,
+                            value: response.profile
+                          },
+                          success: function() { GLOBAL.APP.CF.alert('Your request was sent.','info');	}
+                        });
+                        this.up('window').close();
+                      }
+                    }
+                  ]
+                }).show();
+              }
+            }
+          });
+        });
+        manager.signinPopup().catch(function(error){
+          GLOBAL.APP.CF.log("error", 'error while logging in through the popup');
+        });
+      },
 
   addAuthsButton: function() {
     var me = this;
 
     // Generate list of login buttons
-    var oListAuth = me.getListAuth();
-    var currentAuth = Ext.util.Cookies.get("TypeAuth");
-
+    var oListAuth = me.getAuthCFG();
+    var currentAuth = Ext.Ajax.request({
+          url: GLOBAL.BASE_URL + 'Authentication/getCurrentAuth',
+          perams: {},
+          async: false
+        }).responseText;
     var button_usrname = {
       text: "Visitor",
       menu: []
@@ -261,12 +204,27 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       // Log in section
     } else {
       // List of IdPs
+      if (Array.isArray(oListAuth) || (currentAuth == "Visitor")) {
+            button_usrname.menu.push({
+              xtype: 'tbtext',
+              text : 'Log in:'
+            });
+          }
       for (var i = 0; i < oListAuth.length; i++) {
-        if (oListAuth[i] != currentAuth) {
-          button_usrname.menu.push({
-            text: oListAuth[i],
+            var name = oListAuth[i];
+            var settings = me.getAuthCFG(name,'all');
+            if (name != currentAuth) {
+              button_usrname.menu.push({
+                'text' : name,
+                'settings': settings,
             handler: function() {
-              me.auth(this.text);
+                  if (this.settings.method == 'oAuth2') { me.oAuth2LogIn(this.settings,this.text); }
+                  else if (settings.method) {
+                    GLOBAL.APP.CF.alert("Authentication method " + settings.method + " is not supported." ,'error');
+                  }
+                  else {
+                    GLOBAL.APP.CF.alert("Authentication method is not set." ,'error');
+                  }
             }
           });
         }
@@ -276,7 +234,14 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
         button_usrname.menu.push({
           text: "Certificate",
           handler: function() {
-            me.auth("Certificate");
+                Ext.Ajax.request({
+                    url: GLOBAL.BASE_URL + 'Authentication/auth',
+                    params: {
+                      typeauth: 'Certificate',
+                      value: ''
+                    },
+                    success: function() { location.protocol = "https:"; }
+                });
           }
         });
       }
@@ -288,7 +253,17 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
         button_usrname.menu.push({
           text: "Log out",
           handler: function() {
-            me.auth("Log out");
+                Ext.Ajax.request({
+                  url: GLOBAL.BASE_URL + 'Authentication/auth',
+                  params: {
+                    typeauth: 'Logout',
+                    value: 'None'
+                  },
+                  success: function(response){
+                    console.log(response.responseText);
+                    location.protocol = "https:";
+              }
+            });
           }
         });
         button_usrname.menu.push();
@@ -310,10 +285,9 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       menu: []
     };
 
-    for (var i = 0; i < Object.keys(GLOBAL.APP.configData["groupsStatuses"]).length; i++) {
-      if (Object.values(GLOBAL.APP.configData["groupsStatuses"])[i]["Status"] == "ready") {
+    for (var i = 0; i < GLOBAL.APP.configData["validGroups"].length; i++)
         button_group.menu.push({
-          text: Object.keys(GLOBAL.APP.configData["groupsStatuses"])[i],
+          text : GLOBAL.APP.configData["validGroups"][i],
           handler: function() {
             var me = this;
             var oHref = location.href;
@@ -325,24 +299,6 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
             }
           }
         });
-      } else {
-        button_group.menu.push({
-          title: Object.values(GLOBAL.APP.configData["groupsStatuses"])[i]["Status"],
-          msg: Object.values(GLOBAL.APP.configData["groupsStatuses"])[i]["Comment"],
-          text: Object.keys(GLOBAL.APP.configData["groupsStatuses"])[i],
-          iconCls: "dirac-icon-logout",
-          handler: function() {
-            Ext.Msg.show({
-              closeAction: "destroy",
-              title: this.title,
-              message: this.msg,
-              icon: Ext.Msg.INFO
-            });
-          }
-        });
-      }
-    }
-
     return new Ext.button.Button(button_group);
   },
   addSetupButton: function() {

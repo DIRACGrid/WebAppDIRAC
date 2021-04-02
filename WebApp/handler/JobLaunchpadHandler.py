@@ -54,14 +54,14 @@ class JobLaunchpadHandler(WebHandler):
     if group == "visitor":
       return {"success": "false", "error": "User is anonymous or is not registered in the system"}
 
-    userName = str(userData["user"]["username"])
+    userDN = self.getUserDN()
 
     defaultSeconds = 24 * 3600 + 60  # 24H + 1min
     validSeconds = gConfig.getValue("/Registry/DefaultProxyLifeTime", defaultSeconds)
 
-    gLogger.info("\033[0;31m userHasProxy(%s, %s, %s) \033[0m" % (userName, group, validSeconds))
+    gLogger.info("\033[0;31m userHasProxy(%s, %s, %s) \033[0m" % (userDN, group, validSeconds))
 
-    result = proxyManager.userHasProxy(userName, group, validSeconds)
+    result = proxyManager.userHasProxy(userDN, group, validSeconds)
 
     if result["OK"]:
       if result["Value"]:
@@ -226,7 +226,7 @@ class JobLaunchpadHandler(WebHandler):
 
     sndBox = ""
     if ((len(fileNameList) > 0) or (len(lfns) > 0)) and exception_counter == 0:
-      sndBox = "InputSandbox = {\"" + "\",\"".join(fileNameList + lfns) + "\"};"      
+      sndBox = "InputSandbox = {\"" + "\",\"".join(fileNameList + lfns) + "\"};"
 
     if exception_counter == 0:
       jdl += sndBox
