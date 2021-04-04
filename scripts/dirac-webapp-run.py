@@ -32,7 +32,7 @@ if __name__ == "__main__":
   localCfg.addDefaultEntry("LogLevel", "INFO")
   localCfg.addDefaultEntry("LogColor", True)
   localCfg.registerCmdOpt("p", "production", "Enable production mode", disableDevMode)
-  localCfg.registerCmdOpt("S:", "service_api_path=",
+  localCfg.registerCmdOpt("S:", "set_handlers_location=",
                           "Specify path(s) to handlers, for ex. 'OAuthDIRAC.FrameworkSystem.Utilities'",
                           setHandlers)
 

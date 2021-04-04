@@ -5,7 +5,6 @@ import os
 import re
 import imp
 import inspect
-import collections
 
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
@@ -24,16 +23,14 @@ __RCSID__ = "$Id$"
 class HandlerMgr(object):
   __metaclass__ = DIRACSingleton
 
-  def __init__(self, sysService=[], baseURL="/"):
+  def __init__(self, handlersLocation, baseURL="/"):
     """ Constructor
 
-        :param list sysService: DIRAC system services
+        :param str handlersLocation: handlers location
         :param str baseURL: base URL
     """
     self.__baseURL = baseURL.strip("/")
-    if sysService and not isinstance(sysService, list):
-      sysService = sysService.replace(' ', '').split(',')
-    self.__sysServices = sysService
+    self.__handlersLocation = handlersLocation
     self.__routes = []
     self.__handlers = []
     self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w.-]*))?"
@@ -72,15 +69,11 @@ class HandlerMgr(object):
         :return: S_OK()/S_ERROR()
     """
     ol = ObjectLoader()
-    handlerList = []
-    self.log.debug("Added services: %s" % ','.join(self.__sysServices))
-    for origin in self.__sysServices:
-      result = ol.getObjects(origin, parentClass=WebHandler, recurse=True, continueOnError=True)
-      if not result['OK']:
-        return result
-      handlerList += list(result['Value'].items())
-    self.__handlers = collections.OrderedDict(hendlerList)
-
+    self.log.debug("Add handles from: %s", self.__handlersLocation)
+    result = ol.getObjects(self.__handlersLocation, parentClass=WebHandler, recurse=True, continueOnError=True)
+    if not result['OK']:
+      return result
+    self.__handlers = result['Value']
     staticPaths = self.getPaths("static")
     self.log.verbose("Static paths found:\n - %s" % "\n - ".join(staticPaths))
     self.__routes = []
@@ -117,8 +110,6 @@ class HandlerMgr(object):
       # Set properly the LOCATION after calculating where it is with helpers to add group and setup later
       handler.LOCATION = handlerRoute
       handler.PATH_RE = re.compile("%s(%s/[A-z]+|.)" % (baseRoute, handlerRoute))
-      if handler.OVERPATH:
-        handler.PATH_RE = re.compile(handler.PATH_RE.pattern + '(/[A-z0-9=-_/|]+)?')
       handler.URLSCHEMA = "/%s%%(setup)s%%(group)s%%(location)s/%%(action)s" % (self.__baseURL)
       if issubclass(handler, WebSocketHandler):
         handler.PATH_RE = re.compile("%s(%s)" % (baseRoute, handlerRoute))
@@ -140,9 +131,6 @@ class HandlerMgr(object):
             # Normal methods get the method appended without web_
             self.log.verbose(" - Route %s/%s ->  %s.%s" % (handlerRoute, mName[4:], hn, mName))
             route = "%s(%s/%s)" % (baseRoute, handlerRoute, mName[4:])
-            # Use request path as options/values, for ex. ../method/<option>/<file path>?<option>=..
-            if handler.OVERPATH:
-              route += '(/[A-z0-9=-_/|]+)?'
             self.__routes.append((route, handler))
           self.log.debug("  * %s" % route)
     # Send to root
