@@ -90,7 +90,7 @@ Ext.define("Ext.dirac.core.App", {
            */
           Ext.util.Cookies.clear("authGrant");
           Ext.util.Cookies.clear("session_id");
-          location.href = "/DIRAC";
+          location.protocol = "https";
         }
       }, 3000);
     }

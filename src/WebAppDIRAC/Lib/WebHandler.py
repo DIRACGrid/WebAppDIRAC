@@ -289,6 +289,7 @@ class WebHandler(TornadoREST):
       return {}
 
     session = self.application.getSession(sessionID)
+    # Each session depends on the tokens
     if not session or not session.token:
       self.clear_cookie('session_id')
       self.set_cookie('session_id', 'expired')
@@ -301,6 +302,7 @@ class WebHandler(TornadoREST):
       # Is session active?
       if session.token.access_token != token.access_token:
         raise Exception('%s session invalid, token is not match.' % sessionID)
+
     token = ResourceProtector().validator(session.token.refresh_token, 'changeGroup', None, 'OR')
 
     # Update session expired time
