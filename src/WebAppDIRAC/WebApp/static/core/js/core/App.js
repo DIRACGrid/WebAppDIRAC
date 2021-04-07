@@ -81,16 +81,9 @@ Ext.define("Ext.dirac.core.App", {
     if (authGrant == "Session") {
       setInterval(function() {
         if (Ext.util.Cookies.get("session_id") == "expired") {
-          /*
-           * if (confirm('Your session expired, do you want to login again?')) {
-           *   Login..
-           * } else {
-           *   Reboot..
-           * }
-           */
           Ext.util.Cookies.clear("authGrant");
           Ext.util.Cookies.clear("session_id");
-          location.protocol = "https";
+          location.protocol = alert('Current session is expired, the page will reload, please login again.') ?? "https";
         }
       }, 3000);
     }

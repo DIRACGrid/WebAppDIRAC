@@ -8,11 +8,12 @@ from tornado import template
 from DIRAC import rootPath, gLogger, S_OK, gConfig
 
 from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WebHandlerNew, WErr, asyncGen
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
 
 
-class RootHandler(WebHandler):
+# class RootHandler(WebHandler):
+  class RootHandler(WebHandlerNew):
 
   AUTH_PROPS = "all"
   LOCATION = "/"
@@ -40,14 +41,15 @@ class RootHandler(WebHandler):
     serverMetadata = result['Value']
     config.update(serverMetadata)
     config = dict((k, v.replace(', ', ',').split(',') if ',' in v else v) for k, v in config.items())
+    config['ProviderName'] = 'DIRAC_AS'
     cls._authClient = OAuth2IdProvider(**config)
 
-  @asyncGen
+  # @asyncGen
   def web_changeGroup(self):
     to = self.get_argument("to")
     self.__change(group=to)
 
-  @asyncGen
+  # @asyncGen
   def web_changeSetup(self):
     to = self.get_argument("to")
     self.__change(setup=to)
@@ -64,29 +66,36 @@ class RootHandler(WebHandler):
     url = [Conf.rootURL().strip("/"), "s:%s" % setup, "g:%s" % group]
     self.redirect("/%s%s" % ("/".join(url), qs))
 
-  @asyncGen
+  # @asyncGen
   def web_getConfigData(self):
-    self.finish(self.getSessionData())
+    # self.finish(self.getSessionData())
+    return self.getSessionData()
 
-  @asyncGen
+  auth_fetchToken = ['authorized']
+
+  # @asyncGen
   def web_fetchToken(self):
     """ Fetch access token
     """
-    sessionID = self.getCurrentSession()
-    if self.application.getSession(sessionID)['access_token'] != self.get_argument('access_token'):
+    session = self.getCurrentSession()
+    if session.token.access_token != self.get_argument('access_token'):
       self.set_status(401)
-      self.finish('Unauthorize.')
+      # self.finish('Unauthorize.')
       return
 
     # Create PKCE things
     url = self._authClient.metadata['token_endpoint']
-    token = self._authClient.refresh_token(url, refresh_token=session['refresh_token'],
-                                           scope='%s changeGroup' % self.getUserGroup())
-    self.application.updateSession(sessionID, **token)
+    # token = self._authClient.refresh_token(url, refresh_token=session.token.refresh_token,
+    #                                        scope='g:%s changeGroup' % self.getUserGroup())
+    token = self._authClient.exchange_token(url, refresh_token=session.token.refresh_token,
+                                            access_token=session.token.access_token,
+                                            scope='g:%s' % self.getUserGroup())
+    self.application.updateSession(session, **token)
 
-    self.finish(token['access_token'])
+    # self.finish(token['access_token'])
+    return token['access_token']
 
-  @asyncGen
+  # @asyncGen
   def web_logout(self):
     """ Start authorization flow
     """
@@ -94,7 +103,7 @@ class RootHandler(WebHandler):
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
 
-  @asyncGen
+  # @asyncGen
   def web_login(self):
     """ Start authorization flow
     """
@@ -107,8 +116,8 @@ class RootHandler(WebHandler):
     if provider:
       url += '/%s' % provider
     uri, state = self._authClient.create_authorization_url(url, code_challenge=code_challenge,
-                                                           code_challenge_method='S256',
-                                                           scope='changeGroup')
+                                                           code_challenge_method='S256')
+                                                          #  scope='changeGroup')
     self.application.addSession(state, code_verifier=code_verifier, provider=provider,
                                 next=self.get_argument('next', '/DIRAC'))
     # self.set_cookie('authGrant', 'Session')
@@ -116,7 +125,7 @@ class RootHandler(WebHandler):
     # Redirect to authorization server
     self.redirect(uri)
 
-  @asyncGen
+  # @asyncGen
   def web_loginComplete(self):
     """ Finishing authoriation flow
     """
@@ -125,13 +134,13 @@ class RootHandler(WebHandler):
 
     # Parse response
     self._authClient.store_token = None
-    result = yield self.threadTask(self._authClient.parseAuthResponse, self.request,
-                                   self.application.getSession(state))
+    result = self._authClient.parseAuthResponse, self.request,
+                                   self.application.getSession(state)
 
     self.application.removeSession(state)
     if not result['OK']:
-      self.finish(result['Message'])
-      return
+      # self.finish(result['Message'])
+      return result
     # FINISHING with IdP auth result
     username, userProfile, session = result['Value']
 
@@ -155,9 +164,10 @@ class RootHandler(WebHandler):
           </script>
         </body>
       </html>''')
-    self.finish(t.generate(next=session['next'], access_token=session.token.access_token))
+    # self.finish(t.generate(next=session['next'], access_token=session.token.access_token))
+    return t.generate(next=session['next'], access_token=session.token.access_token)
 
-  @asyncGen
+  # @asyncGen
   def web_index(self):
     # Render base template
     data = self.getSessionData()

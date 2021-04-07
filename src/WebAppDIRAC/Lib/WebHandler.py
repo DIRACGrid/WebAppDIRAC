@@ -307,6 +307,7 @@ class WebHandler(TornadoREST):
 
     # Update session expired time
     self.application.updateSession(session)
+    self.__session = session
     return {'ID': token.sub, 'issuer': token.issuer, 'group': self.__group, 'validGroup': False}
 
   def _readToken(self, scope=None):
