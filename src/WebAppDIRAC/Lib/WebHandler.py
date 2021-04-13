@@ -159,6 +159,15 @@ class _WebHandler(TornadoREST):
       regardless of the HTTP method used
 
     """
+    # Reset session before authorization
+    self.__session = None
+    # Parse request URI
+    self.__parseURI()
+    # Reset DISET settings
+    self.__disetConfig.reset()
+    self.__disetConfig.setDecorator(self.__disetBlockDecor)
+    self.__disetDump = self.__disetConfig.dump()
+
     super(_WebHandler, self)._prepare()
 
     # Configure DISET with user creds
@@ -286,7 +295,7 @@ class _WebHandler(TornadoREST):
     sessionID = self.get_secure_cookie('session_id')
     if not sessionID:
       self.clear_cookie('authGrant')
-      return {}
+      return S_OK({})
 
     session = self.application.getSession(sessionID)
     # Each session depends on the tokens
@@ -309,7 +318,7 @@ class _WebHandler(TornadoREST):
     # Update session expired time
     self.application.updateSession(session)
     self.__session = session
-    return {'ID': token.sub, 'issuer': token.issuer, 'group': self.__group, 'validGroup': False}
+    return S_OK({'ID': token.sub, 'issuer': token.issuer, 'group': self.__group, 'validGroup': False})
 
   @property
   def log(self):
@@ -455,6 +464,11 @@ class _WebHandler(TornadoREST):
 
 
 class WebHandler(_WebHandler):
+  """ Old WebHandler """
+  def prepare(self):
+    super(WebHandler, self).prepare()
+    super(WebHandler, self)._prepare()
+
   def get(self, setup, group, route, *pathArgs):
     method = self._getMethod()
     return method(*pathArgs)
