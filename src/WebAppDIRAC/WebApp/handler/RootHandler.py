@@ -10,8 +10,7 @@ from DIRAC import rootPath, gLogger, S_OK, gConfig
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
-from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient
-from DIRAC.FrameworkSystem.private.authorization.AuthServer import AuthServer
+from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient, getAuthorisationServerMetadata
 
 
 class RootHandler(WebHandler):
