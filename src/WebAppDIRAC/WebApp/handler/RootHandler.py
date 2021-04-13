@@ -8,11 +8,13 @@ from tornado import template
 from DIRAC import rootPath, gLogger, S_OK, gConfig
 
 from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as Webhandler, WErr, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
 from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient
+from DIRAC.FrameworkSystem.private.authorization.AuthServer import AuthServer
 
-  class RootHandler(WebHandler):
+
+class RootHandler(WebHandler):
 
   AUTH_PROPS = "all"
   LOCATION = "/"
@@ -32,8 +34,13 @@ from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient
     # result = gConfig.getOptionsDictRecursively("/WebApp/AuthorizationClient")
     result = getWebClient()
     if not result['OK']:
-      raise Exception("Can't load web portal settings.")
+      raise Exception("Can't load web portal settings: %s" % result['Message'])
     config = result['Value']
+    result = getAuthorisationServerMetadata()
+    if not result['OK']:
+      raise Exception('Cannot prepare authorization server metadata. %s' % result['Message'])
+    # Verify metadata
+    config.update(result['Value'])
     # # TODO: move to utility
     # result = gConfig.getOptionsDictRecursively('/Systems/Framework/Production/Services/AuthManager/AuthorizationServer')
     # if not result['OK']:

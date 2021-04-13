@@ -19,10 +19,10 @@ class UPHandler(WebHandler):
   AUTH_PROPS = "authenticated"
   __tc = ThreadConfig()
 
-  def prepare(self):
-    super(UPHandler, self).prepare()
-    if not self.isRegisteredUser():
-      raise WErr(401, "Not a registered user")
+  def _prepare(self):
+    super(UPHandler, self)._prepare()
+    # if not self.isRegisteredUser():
+    #   raise WErr(401, "Not a registered user")
     self.set_header("Pragma", "no-cache")
     self.set_header("Cache-Control", "max-age=0, no-store, no-cache, must-revalidate")
     # Do not use the defined user setup. Use the web one to show the same profile independently of

@@ -72,8 +72,10 @@ def defaultEncoder(data):
 class WebHandler(tornado.web.RequestHandler):
 
 class _WebHandler(TornadoREST):
+  __session = None
   __disetConfig = ThreadConfig()
 
+  USE_AUTHZ_GRANTS = ['SSL', 'SESSION', 'VISITOR']
   # Auth requirements
   AUTH_PROPS = None
   # Location of the handler in the URL
@@ -150,21 +152,16 @@ class _WebHandler(TornadoREST):
     """
     return args[3:]
 
-  def prepare(self):
+  def _prepare(self):
     """
       Prepare the request. It reads certificates and check authorizations.
       We make the assumption that there is always going to be a ``method`` argument
       regardless of the HTTP method used
 
     """
-    self.__session = None
-    self.__parseURI()
-    self.__disetConfig.reset()
-    self.__disetConfig.setDecorator(self.__disetBlockDecor)
-    self.__disetDump = self.__disetConfig.dump()
+    super(_WebHandler, self)._prepare()
 
-    super(WebHandler, self).prepare()
-
+    # Configure DISET with user creds
     if self.getDN():
       self.__disetConfig.setDN(self.getDN())
     if self.getID():
