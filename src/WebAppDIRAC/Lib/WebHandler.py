@@ -302,8 +302,10 @@ class _WebHandler(TornadoREST):
     if not session or not session.token:
       self.clear_cookie('session_id')
       self.set_cookie('session_id', 'expired')
-      self.clear_cookie('authGrant')
-      raise Exception('%s session expired.' % sessionID)
+      self.set_cookie('authGrant', 'Visitor')
+      # self.clear_cookie('authGrant')
+      # raise Exception('%s session expired.' % sessionID)
+      return S_OK({})
 
     if self.request.headers.get("Authorization"):
       token = ResourceProtector().acquire_token(self.request)  # , 'changeGroup')
