@@ -21,7 +21,7 @@ from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMe
 import WebAppDIRAC
 
 from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler, _WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
@@ -78,6 +78,11 @@ class HandlerMgr(object):
     self.log.debug("Added services: %s" % ','.join(self.__sysServices))
     for origin in self.__sysServices:
       result = ol.getObjects(origin, parentClass=WebHandler, recurse=True, continueOnError=True)
+      if not result['OK']:
+        return result
+      handlerList += list(result['Value'].items())
+    for origin in self.__sysServices:
+      result = ol.getObjects(origin, parentClass=_WebHandler, recurse=True, continueOnError=True)
       if not result['OK']:
         return result
       handlerList += list(result['Value'].items())

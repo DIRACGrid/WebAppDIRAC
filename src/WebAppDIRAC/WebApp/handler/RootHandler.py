@@ -8,12 +8,11 @@ from tornado import template
 from DIRAC import rootPath, gLogger, S_OK, gConfig
 
 from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WebHandlerNew, WErr, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as Webhandler, WErr, asyncGen
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
+from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient
 
-
-# class RootHandler(WebHandler):
-  class RootHandler(WebHandlerNew):
+  class RootHandler(WebHandler):
 
   AUTH_PROPS = "all"
   LOCATION = "/"
@@ -30,18 +29,19 @@ from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
                                     'csPaths' and 'URL'
     """
     # Add WebClient
-    result = gConfig.getOptionsDictRecursively("/WebApp/AuthorizationClient")
+    # result = gConfig.getOptionsDictRecursively("/WebApp/AuthorizationClient")
+    result = getWebClient()
     if not result['OK']:
       raise Exception("Can't load web portal settings.")
     config = result['Value']
-    # TODO: move to utility
-    result = gConfig.getOptionsDictRecursively('/Systems/Framework/Production/Services/AuthManager/AuthorizationServer')
-    if not result['OK']:
-      raise Exception("Can't load authorization server settings.")
-    serverMetadata = result['Value']
-    config.update(serverMetadata)
-    config = dict((k, v.replace(', ', ',').split(',') if ',' in v else v) for k, v in config.items())
-    config['ProviderName'] = 'DIRAC_AS'
+    # # TODO: move to utility
+    # result = gConfig.getOptionsDictRecursively('/Systems/Framework/Production/Services/AuthManager/AuthorizationServer')
+    # if not result['OK']:
+    #   raise Exception("Can't load authorization server settings.")
+    # serverMetadata = result['Value']
+    # config.update(serverMetadata)
+    # config = dict((k, v.replace(', ', ',').split(',') if ',' in v else v) for k, v in config.items())
+    config['ProviderName'] = 'WebAppClient'
     cls._authClient = OAuth2IdProvider(**config)
 
   # @asyncGen
@@ -134,15 +134,14 @@ from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
 
     # Parse response
     self._authClient.store_token = None
-    result = self._authClient.parseAuthResponse, self.request,
-                                   self.application.getSession(state)
+    result = self._authClient.parseAuthResponse(self.request, self.application.getSession(state))
 
     self.application.removeSession(state)
     if not result['OK']:
       # self.finish(result['Message'])
       return result
     # FINISHING with IdP auth result
-    username, userProfile, session = result['Value']
+    username, userID, userProfile, session = result['Value']
 
     # Create session to work through portal
     sessionID = generate_token(30)

@@ -71,7 +71,7 @@ def defaultEncoder(data):
 
 class WebHandler(tornado.web.RequestHandler):
 
-class WebHandler(TornadoREST):
+class _WebHandler(TornadoREST):
   __disetConfig = ThreadConfig()
 
   # Auth requirements
@@ -142,6 +142,13 @@ class WebHandler(TornadoREST):
     groups = match.groups()
     route = groups[2]
     return "index" if route[-1] == "/" else route[route.rfind("/") + 1:]
+  
+  def _getMethodArgs(self, args):
+    """ Decode args.
+
+        :return: list
+    """
+    return args[3:]
 
   def prepare(self):
     """
@@ -157,11 +164,6 @@ class WebHandler(TornadoREST):
     self.__disetDump = self.__disetConfig.dump()
 
     super(WebHandler, self).prepare()
-
-    # TODO:
-    # if self.credDict.get('DN') and self.isTrustedHost(self.credDict['DN']):
-    #   self.log.info("Request is coming from Trusted host")
-    #   authorized = True
 
     if self.getDN():
       self.__disetConfig.setDN(self.getDN())
@@ -284,6 +286,7 @@ class WebHandler(TornadoREST):
 
   def _request_summary(self):
     """
+    sessionID = self.get_secure_cookie('session_id')
     if not sessionID:
       self.clear_cookie('authGrant')
       return {}
@@ -297,27 +300,19 @@ class WebHandler(TornadoREST):
       raise Exception('%s session expired.' % sessionID)
 
     if self.request.headers.get("Authorization"):
-      token = ResourceProtector().acquire_token(self.request, 'changeGroup')
+      token = ResourceProtector().acquire_token(self.request)  # , 'changeGroup')
 
       # Is session active?
       if session.token.access_token != token.access_token:
         raise Exception('%s session invalid, token is not match.' % sessionID)
 
-    token = ResourceProtector().validator(session.token.refresh_token, 'changeGroup', None, 'OR')
+    token = ResourceProtector().validator(session.token.refresh_token, None, #'changeGroup',
+                                          None, 'OR')
 
     # Update session expired time
     self.application.updateSession(session)
     self.__session = session
     return {'ID': token.sub, 'issuer': token.issuer, 'group': self.__group, 'validGroup': False}
-
-  def _readToken(self, scope=None):
-    """ Fill credentionals from session
-
-        :param str scope: scope
-
-        :return: dict
-    """
-    return super(WebHandler, self)._readToken(self.__group and ('g:%s' % self.__group))
 
   @property
   def log(self):
@@ -460,6 +455,18 @@ class WebHandler(TornadoREST):
       )
     # Return the data
     self.finish(data)
+
+
+class WebHandler(_WebHandler):
+  def get(self, setup, group, route, *pathArgs):
+    method = self._getMethod()
+    return method(*pathArgs)
+
+  def post(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
+
+  def delete(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
 
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
