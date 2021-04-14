@@ -29,8 +29,6 @@ class RootHandler(WebHandler):
                                     'serviceName', 'serviceSectionPath',
                                     'csPaths' and 'URL'
     """
-    # Add WebClient
-    # result = gConfig.getOptionsDictRecursively("/WebApp/AuthorizationClient")
     result = getWebClient()
     if not result['OK']:
       raise Exception("Can't load web portal settings: %s" % result['Message'])
@@ -38,15 +36,7 @@ class RootHandler(WebHandler):
     result = getAuthorisationServerMetadata()
     if not result['OK']:
       raise Exception('Cannot prepare authorization server metadata. %s' % result['Message'])
-    # Verify metadata
     config.update(result['Value'])
-    # # TODO: move to utility
-    # result = gConfig.getOptionsDictRecursively('/Systems/Framework/Production/Services/AuthManager/AuthorizationServer')
-    # if not result['OK']:
-    #   raise Exception("Can't load authorization server settings.")
-    # serverMetadata = result['Value']
-    # config.update(serverMetadata)
-    # config = dict((k, v.replace(', ', ',').split(',') if ',' in v else v) for k, v in config.items())
     config['ProviderName'] = 'WebAppClient'
     cls._authClient = OAuth2IdProvider(**config)
 
