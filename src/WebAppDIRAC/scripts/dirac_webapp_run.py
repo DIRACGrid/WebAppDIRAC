@@ -14,7 +14,7 @@ from WebAppDIRAC.Core.App import App
 __RCSID__ = "$Id$"
 
 
-@DiracScript()
+@DIRACScript()
 def main():
   def disableDevMode(op):
     gConfig.setOptionValue("/WebApp/DevelopMode", "False")
