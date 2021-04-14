@@ -14,7 +14,7 @@ import os
 majorVersion = 4
 minorVersion = 3
 patchLevel = 0
-preVersion = 1
+preVersion = 2
 
 version = "v%sr%s" % (majorVersion, minorVersion)
 buildVersion = "v%dr%d" % (majorVersion, minorVersion)
