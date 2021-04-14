@@ -5,4 +5,4 @@ from __future__ import print_function
 from setuptools import setup
 
 # This is required to allow editable pip installs while using the declarative configuration (setup.cfg)
-setup()
+setup(version='0.0.1')
