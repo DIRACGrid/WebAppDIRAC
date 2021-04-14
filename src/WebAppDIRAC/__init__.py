@@ -29,6 +29,7 @@ if preVersion:
 
 rootPath = os.path.realpath(os.path.dirname(__file__))
 
+
 def extension_metadata():
   return {
       "priority": 1
