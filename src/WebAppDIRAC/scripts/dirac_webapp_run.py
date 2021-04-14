@@ -15,7 +15,7 @@ __RCSID__ = "$Id$"
 
 
 @DiracScript()
-def main()
+def main():
   def disableDevMode(op):
     gConfig.setOptionValue("/WebApp/DevelopMode", "False")
     return S_OK()
