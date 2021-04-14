@@ -5,6 +5,7 @@ import tornado
 
 from DIRAC import gConfig, S_OK
 from DIRAC.Core.Base import Script
+from DIRAC.Core.Utilities.DIRACScript import DIRACScript
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 from DIRAC.FrameworkSystem.Client.Logger import gLogger
 
@@ -12,8 +13,9 @@ from WebAppDIRAC.Core.App import App
 
 __RCSID__ = "$Id$"
 
-if __name__ == "__main__":
 
+@DiracScript()
+def main()
   def disableDevMode(op):
     gConfig.setOptionValue("/WebApp/DevelopMode", "False")
     return S_OK()
@@ -49,3 +51,7 @@ if __name__ == "__main__":
     gLogger.fatal(result['Message'])
     sys.exit(1)
   app.run()
+
+
+if __name__ == "__main__":
+  main()
