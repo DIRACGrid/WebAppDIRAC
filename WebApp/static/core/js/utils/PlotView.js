@@ -438,12 +438,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
 
           if (response["success"]) {
             var src = GLOBAL.BASE_URL + requestHandler + "/getPlotImg?file=" + response["data"];
-
-            var params = {
-              src: src,
-              params: oParams
-            };
-            me.rightPanel.replaceImage(image, params);
+            me.rightPanel.replaceImage(image, src, oParams);
           } else {
             GLOBAL.APP.CF.alert(response["errors"], "error");
           }

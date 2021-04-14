@@ -1,3 +1,7 @@
+[v4r2p2]
+
+CHANGE: (#460) Use universal replaceImage instead setSrc or updateSrc
+
 [v4r2p1]
 
 FIX: (#456) fix System, Module --> DIRACSystem, DIRACModule
