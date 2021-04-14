@@ -387,7 +387,7 @@ Ext.define("Ext.dirac.utils.Presenter", {
   // When you apply new input data for example, need to update image
   replaceImage: function(image, src, plotParams) {
     var me = this;
-    if (typeof src === 'object') {
+    if (typeof src === "object") {
       plotParams = src.params;
       src = src.src;
     }
