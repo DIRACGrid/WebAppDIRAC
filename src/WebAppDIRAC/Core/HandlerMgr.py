@@ -11,6 +11,7 @@ import re
 import six
 import imp
 import inspect
+import collections
 
 import six
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
@@ -75,14 +76,9 @@ class HandlerMgr(object):
     """
     ol = ObjectLoader()
     handlerList = []
-    self.log.debug("Added services: %s" % ','.join(self.__sysServices))
-    for origin in self.__sysServices:
-      result = ol.getObjects(origin, parentClass=WebHandler, recurse=True, continueOnError=True)
-      if not result['OK']:
-        return result
-      handlerList += list(result['Value'].items())
-    for origin in self.__sysServices:
-      result = ol.getObjects(origin, parentClass=_WebHandler, recurse=True, continueOnError=True)
+    self.log.debug("Add handles from: %s", self.__handlersLocation)
+    for parentClass in [WebHandler, _WebHandler]:
+      result = ol.getObjects(self.__handlersLocation, parentClass=parentClass, recurse=True, continueOnError=True)
       if not result['OK']:
         return result
       handlerList += list(result['Value'].items())

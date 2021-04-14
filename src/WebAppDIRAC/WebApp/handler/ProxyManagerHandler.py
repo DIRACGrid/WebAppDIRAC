@@ -32,9 +32,9 @@ class ProxyManagerHandler(WebHandler):
     data = result["Value"]
     users = []
     groups = []
-    for record in data["Records"]:
-      users.append(str(record[0]))
-      groups.append(str(record[2]))
+    for record in data["Dictionaries"]:
+      users.append(record['user'])
+      groups += record['groups']
     users = uniqueElements(users)
     groups = uniqueElements(groups)
     users.sort()
