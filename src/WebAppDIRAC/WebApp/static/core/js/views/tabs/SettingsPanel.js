@@ -183,42 +183,43 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       const dn = data[group].DN;
       const comment = data[group].Comment;
       const action = data[group].Action;
-      if (status == "ready") {
-        button_group.menu.push({
-          group: group,
-          text: group,
-          handler: function() {
-            var me = this;
-            var oHref = location.href;
-            var oQPosition = oHref.indexOf("?");
-            if (oQPosition != -1) {
-              location.href = oHref.substr(0, oQPosition) + "changeGroup?to=" + me.group;
-            } else {
-              location.href = oHref + "changeGroup?to=" + me.group;
-            }
+      // if (status == "ready") {
+      button_group.menu.push({
+        group: group,
+        text: group,
+        handler: function() {
+          var me = this;
+          var oHref = location.href;
+          var oQPosition = oHref.indexOf("?");
+          if (oQPosition != -1) {
+            location.href = oHref.substr(0, oQPosition) + "changeGroup?to=" + me.group;
+          } else {
+            location.href = oHref + "changeGroup?to=" + me.group;
           }
-        });
-      } else {
-        if (group == GLOBAL.APP.configData["user"]["group"]) {
-          GLOBAL.APP.CF.alert(comment, "warning", true, action);
         }
-        button_group.menu.push({
-          title: status,
-          msg: comment,
-          group: group,
-          text: group,
-          iconCls: "dirac-icon-logout",
-          handler: function() {
-            Ext.Msg.show({
-              closeAction: "destroy",
-              title: this.title,
-              message: this.msg,
-              icon: Ext.Msg.INFO
-            });
-          }
-        });
-      }
+      });
+      // } else {
+      //   if (group == GLOBAL.APP.configData["user"]["group"]) {
+      //     GLOBAL.APP.CF.alert(comment, "warning", true, action);
+      //   }
+      //   button_group.menu.push({
+      //     title: status,
+      //     msg: comment,
+      //     group: group,
+      //     text: group,
+      //     iconCls: "dirac-icon-logout",
+      //     handler: function() {
+      //       Ext.Msg.show({
+      //         closeAction: "destroy",
+      //         title: this.title,
+      //         message: this.msg,
+      //         icon: Ext.Msg.INFO
+      //       });
+      //     }
+      //   });
+      // }
     }
+
     return new Ext.button.Button(button_group);
   },
   addSetupButton: function() {
