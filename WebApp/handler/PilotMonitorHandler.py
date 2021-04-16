@@ -272,9 +272,9 @@ class PilotMonitorHandler(WebHandler):
       selector = "GridSite"
     if selector == "Computing Element":
       selector = "DestinationSite"
-    elif selector == "Owner Group":
+    if selector == "Owner Group":
       selector = "OwnerGroup"
-    elif selector == "Owner":
+    if selector == "Owner":
       selector = "OwnerDN"
 
     result = yield self.threadTask(RPC.getPilotStatistics, selector, req)
