@@ -11,6 +11,7 @@ from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
 from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient, getAuthorisationServerMetadata
+from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 
 class RootHandler(WebHandler):
@@ -18,34 +19,10 @@ class RootHandler(WebHandler):
   AUTH_PROPS = "all"
   LOCATION = "/"
 
-  @classmethod
-  def initializeHandler(cls, serviceInfo):
-    """
-      This may be overwritten when you write a DIRAC service handler
-      And it must be a class method. This method is called only one time,
-      at the first request
-
-      :param dict ServiceInfoDict: infos about services, it contains
-                                    'serviceName', 'serviceSectionPath',
-                                    'csPaths' and 'URL'
-    """
-    result = getWebClient()
-    if not result['OK']:
-      raise Exception("Can't load web portal settings: %s" % result['Message'])
-    config = result['Value']
-    result = getAuthorisationServerMetadata()
-    if not result['OK']:
-      raise Exception('Cannot prepare authorization server metadata. %s' % result['Message'])
-    config.update(result['Value'])
-    config['ProviderName'] = 'WebAppClient'
-    cls._authClient = OAuth2IdProvider(**config)
-
-  # @asyncGen
   def web_changeGroup(self):
     to = self.get_argument("to")
     self.__change(group=to)
 
-  # @asyncGen
   def web_changeSetup(self):
     to = self.get_argument("to")
     self.__change(setup=to)
@@ -62,44 +39,17 @@ class RootHandler(WebHandler):
     url = [Conf.rootURL().strip("/"), "s:%s" % setup, "g:%s" % group]
     self.redirect("/%s%s" % ("/".join(url), qs))
 
-  # @asyncGen
   def web_getConfigData(self):
-    # self.finish(self.getSessionData())
     return self.getSessionData()
 
-  auth_fetchToken = ['authorized']
-
-  # @asyncGen
-  def web_fetchToken(self):
-    """ Fetch access token
-    """
-    session = self.getCurrentSession()
-    if session.token.access_token != self.get_argument('access_token'):
-      self.set_status(401)
-      # self.finish('Unauthorize.')
-      return
-
-    # Create PKCE things
-    url = self._authClient.metadata['token_endpoint']
-    # token = self._authClient.refresh_token(url, refresh_token=session.token.refresh_token,
-    #                                        scope='g:%s changeGroup' % self.getUserGroup())
-    token = self._authClient.exchange_token(url, refresh_token=session.token.refresh_token,
-                                            access_token=session.token.access_token,
-                                            scope='g:%s' % self.getUserGroup())
-    self.application.updateSession(session, **token)
-
-    # self.finish(token['access_token'])
-    return token['access_token']
-
-  # @asyncGen
   def web_logout(self):
     """ Start authorization flow
     """
-    self.application.removeSession(self.getCurrentSession())
+    # TODO: recoke token self._authClient.revoke()
+    self.clear_cookie('session_id')
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
 
-  # @asyncGen
   def web_login(self):
     """ Start authorization flow
     """
@@ -113,15 +63,16 @@ class RootHandler(WebHandler):
       url += '/%s' % provider
     uri, state = self._authClient.create_authorization_url(url, code_challenge=code_challenge,
                                                            code_challenge_method='S256')
-                                                          #  scope='changeGroup')
-    self.application.addSession(state, code_verifier=code_verifier, provider=provider,
-                                next=self.get_argument('next', '/DIRAC'))
-    # self.set_cookie('authGrant', 'Session')
+    authSession = {'state': state, 'code_verifier': code_verifier, 'provider': provider,
+                   'next': self.get_argument('next', '/DIRAC')}
+    self.set_secure_cookie('auth_session', json.dumps(authSession), secure=True, httponly=True)
     self.set_cookie('authGrant', 'Visitor')
     # Redirect to authorization server
     self.redirect(uri)
 
-  # @asyncGen
+  def storeToken(self, token, session=None)
+    return S_OK(self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True))
+
   def web_loginComplete(self):
     """ Finishing authoriation flow
     """
@@ -129,22 +80,31 @@ class RootHandler(WebHandler):
     state = self.get_argument('state')
 
     # Parse response
-    self._authClient.store_token = None
-    result = self._authClient.parseAuthResponse(self.request, self.application.getSession(state))
-
-    self.application.removeSession(state)
+    self._authClient.store_token = self.storeToken
+    authSession = json.loads(self.get_secure_cookie('auth_session'))
+    result = self._authClient.parseAuthResponse(self.request, authSession)
+    self.clear_cookie('auth_session')
     if not result['OK']:
-      # self.finish(result['Message'])
       return result
     # FINISHING with IdP auth result
     username, userID, userProfile, session = result['Value']
-
+    token = OAuth2Token(session['token'])
     # Create session to work through portal
-    sessionID = generate_token(30)
-    self.application.addSession(dict(session.update(id=sessionID)))
-    self.set_secure_cookie('session_id', sessionID, secure=True, httponly=True)
+    # self.set_secure_cookie('session_id', json.dumps(dict(session.token)), secure=True, httponly=True)
     self.set_cookie('authGrant', 'Session')
 
+    group = token.groups[0]
+    url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
+    nextURL = "/%s?%s" % (url, urlparse.urlparse(authSession['next']).query)
+    access_token = token.access_token
+
+    # Save token and go to main page
+    # with document('DIRAC authentication') as html:
+    #   dom.div('Authorization is done.',
+    #           style='display:flex;justify-content:center;align-items:center;padding:28px;font-size:28px;')
+    #   dom.script("sessionStorage.setItem('access_token','%s');window.location='%s'" % (access_token, nextURL),
+    #              type="text/javascript")
+    # return template.Template(html.render()).generate()
     t = template.Template('''<!DOCTYPE html>
       <html>
         <head>
@@ -159,10 +119,8 @@ class RootHandler(WebHandler):
           </script>
         </body>
       </html>''')
-    # self.finish(t.generate(next=session['next'], access_token=session.token.access_token))
-    return t.generate(next=session['next'], access_token=session.token.access_token)
+    return t.generate(next=nextURL, access_token=access_token)
 
-  # @asyncGen
   def web_index(self):
     # Render base template
     data = self.getSessionData()
