@@ -13,9 +13,6 @@ class ProxyManagerHandler(WebHandler):
 
   @asyncGen
   def web_getSelectionData(self):
-
-    sData = self.getSessionData()
-
     callback = {}
 
     user = self.getUserName()
@@ -27,15 +24,17 @@ class ProxyManagerHandler(WebHandler):
       for i in self.request.arguments:
         tmp[i] = str(self.request.arguments[i])
       callback["extra"] = tmp
-    result = yield self.threadTask(gProxyManager.getDBContents)
+    result = yield self.threadTask(gProxyManager.getUploadedProxiesDetails)  # pylint: disable=no-member
     if not result["OK"]:
+      if result.get('Errno', 0) == 1112:
+        raise WErr(503, "Connection error")
       self.finish({"success": "false", "error": result["Message"]})
     data = result["Value"]
     users = []
     groups = []
-    for record in data["Records"]:
-      users.append(str(record[0]))
-      groups.append(str(record[2]))
+    for record in data["Dictionaries"]:
+      users.append(record['user'])
+      groups += record['groups']
     users = uniqueElements(users)
     groups = uniqueElements(groups)
     users.sort()
@@ -68,19 +67,21 @@ class ProxyManagerHandler(WebHandler):
     if user.lower() == "anonymous":
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
     start, limit, sort, req = self.__request()
-    result = yield self.threadTask(gProxyManager.getDBContents, req, sort, start, limit)
+    # pylint: disable=no-member
+    result = yield self.threadTask(gProxyManager.getDBContents, None, None, req, start, limit)
     gLogger.info("*!*!*!  RESULT: \n%s" % result)
     if not result['OK']:
       self.finish({"success": "false", "error": result["Message"]})
     svcData = result['Value']
     proxies = []
-    for record in svcData['Records']:
-      proxies.append({'proxyid': "%s@%s" % (record[1], record[2]),
-                      'UserName': str(record[0]),
-                      'UserDN': record[1],
-                      'UserGroup': record[2],
-                      'ExpirationTime': str(record[3]),
-                      'PersistentFlag': str(record[4])})
+    for record in svcData['Dictionaries']:
+      proxies.append({'proxyid': "%s@%s" % (record["DN"],
+                                            record['groups'] if record['groups'] > 1 else record['groups'][0]),
+                      'UserName': record['user'],
+                      'UserDN': record['DN'],
+                      'UserGroups': record['groups'],
+                      'ExpirationTime': str(record['expirationtime']),
+                      'Provider': record['provider']})
     timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
     data = {"success": "true", "result": proxies, "total": svcData['TotalRecords'], "date": timestamp}
     self.finish(data)
@@ -93,12 +94,11 @@ class ProxyManagerHandler(WebHandler):
     except BaseException:
       self.finish({"success": "false", "error": "No valid id's specified"})
     idList = []
-    for id in webIds:
-      spl = id.split("@")
+    for uid in webIds:
+      spl = uid.split("@")
       dn = "@".join(spl[:-1])
-      group = spl[-1]
-      idList.append((dn, group))
-    retVal = gProxyManager.deleteProxyBundle(idList)
+      idList.append(dn)
+    retVal = yield self.threadTask(ProxyManagerClient().deleteProxy, idList)  # pylint: disable=no-member
     callback = {}
     if retVal['OK']:
       callback = {"success": "true", "result": retVal['Value']}
@@ -170,7 +170,7 @@ class ProxyManagerHandler(WebHandler):
     if "usergroup" in self.request.arguments:
       usersgroup = list(json.loads(self.request.arguments['usergroup'][-1]))
       if len(usersgroup) > 0:
-        req['UserGroup'] = usersgroup
+        req['UserGroups'] = usersgroup
 
     if "usersgroup" in self.request.arguments and len(self.request.arguments["persistent"]) > 0:
       if str(self.request.arguments["persistent"]) in ["True", "False"]:

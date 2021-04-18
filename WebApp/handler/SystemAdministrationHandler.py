@@ -21,9 +21,7 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getSysInfo(self):
-    """ Provide information about hosts state from database
-    """
-    DN = self.getUserDN()
+    DN = self.getDN()
     group = self.getUserGroup()
     client = ComponentMonitoringClient(delegatedDN=DN, delegatedGroup=group)
     result = yield self.threadTask(client.getLogs)
@@ -49,7 +47,7 @@ class SystemAdministrationHandler(WebHandler):
     Returns flatten list of components (services, agents) installed on hosts
     returned by getHosts function
     """
-    DN = self.getUserDN()
+    DN = self.getDN()
     group = self.getUserGroup()
 
     callback = list()
@@ -80,7 +78,6 @@ class SystemAdministrationHandler(WebHandler):
     Flatten dict of dicts structure returned by getOverallStatus() method of
     SystemAdministrator client
     """
-
     for kind, a in dataDict.items():
       for system, b in a.items():
         for name, c in b.items():
@@ -92,7 +89,7 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getHostErrors(self):
-    DN = self.getUserDN()
+    DN = self.getDN()
     group = self.getUserGroup()
 
     if "host" not in self.request.arguments:
@@ -124,7 +121,7 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getHostLog(self):
-    DN = self.getUserDN()
+    DN = self.getDN()
     group = self.getUserGroup()
 
     if "host" not in self.request.arguments:
@@ -181,7 +178,7 @@ class SystemAdministrationHandler(WebHandler):
     hosts = self.request.arguments["host"][0].split(",")
     version = self.request.arguments["version"][0]
 
-    DN = self.getUserDN()
+    DN = self.getDN()
     group = self.getUserGroup()
 
     actionSuccess = list()
@@ -226,7 +223,7 @@ class SystemAdministrationHandler(WebHandler):
     Returns standard JSON response structure with with service response
     or error messages
     """
-    DN = self.getUserDN()
+    DN = self.getDN()
     group = self.getUserGroup()
 
     if not (("action" in self.request.arguments) and (len(self.request.arguments["action"][0]) > 0)):

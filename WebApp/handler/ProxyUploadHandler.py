@@ -3,6 +3,7 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.FrameworkSystem.Client import ProxyUpload
 from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC import gLogger
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getGroupsForDN
 
 
 class ProxyUploadHandler(WebHandler):
@@ -136,36 +137,40 @@ class ProxyUploadHandler(WebHandler):
         self.finish({"success": "false", "error": error})
         return
 
-    for group in groupList:
-      proxyChain = X509Chain()
+    proxyChain = X509Chain()
 
-      result = proxyChain.loadChainFromFile(keyDict["pub"])
-      if not result['OK']:
-        self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
-        return
+    result = proxyChain.loadChainFromFile(keyDict["pub"])
+    if not result['OK']:
+      self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
+      return
 
-      result = proxyChain.getIssuerCert()
-      if not result['OK']:
-        self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
-        return
-      issuerCert = result['Value']
+    result = proxyChain.getIssuerCert()
+    if not result['OK']:
+      self.finish({"error": "Could not load the proxy: %s" % result['Message'], "success": "false"})
+      return
+    issuerCert = result['Value']
 
-      upParams = ProxyUpload.CLIParams()
-      upParams.onTheFly = True
-      upParams.proxyLifeTime = issuerCert.getRemainingSecs()['Value'] - 300
-      upParams.diracGroup = group
-      upParams.certLoc = keyDict["pub"]
-      upParams.keyLoc = keyDict["private"]
-      upParams.userPasswd = pemPassword
-      result = ProxyUpload.uploadProxy(upParams)
+    upParams = ProxyUpload.CLIParams()
+    upParams.onTheFly = True
+    upParams.proxyLifeTime = issuerCert.getRemainingSecs()['Value'] - 300
+    upParams.certLoc = keyDict["pub"]
+    upParams.keyLoc = keyDict["private"]
+    upParams.userPasswd = pemPassword
+    result = ProxyUpload.uploadProxy(upParams)
 
-      if not result['OK']:
-        self.finish({"error": result['Message'], "success": "false"})
-        return
+    if not result['OK']:
+      self.finish({"error": result['Message'], "success": "false"})
+      return
 
     shutil.rmtree(storePath)
 
-    groups = ", ".join(groupList)
+    result = issuerCert.getSubjectDN()
+    if result['OK']:
+      result = getGroupsForDN(result['Value'])
+    if not result['OK']:
+      self.finish({"error": result['Message'], "success": "false"})
+      return
+    groups = ", ".join(result['Value'])
     result = "Operation finished successfully\n"
     result += "Proxy uploaded for user: %s \n" % username
     if len(groupList) > 0:

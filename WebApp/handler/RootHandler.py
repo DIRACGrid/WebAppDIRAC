@@ -1,13 +1,21 @@
 import re
 import os
+import json
 import urlparse
+from dominate import document, tags as dom
+from authlib.common.security import generate_token
+from authlib.oauth2.rfc7636 import create_s256_code_challenge
 
 from tornado.escape import xhtml_escape
+from tornado import template
 
-from DIRAC import rootPath, gLogger
+from DIRAC import rootPath, gLogger, S_OK, gConfig
 
 from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
+from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
+from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient, getAuthorisationServerMetadata
+from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 
 class RootHandler(WebHandler):
@@ -15,11 +23,29 @@ class RootHandler(WebHandler):
   AUTH_PROPS = "all"
   LOCATION = "/"
 
+  def initializeRequest(self):
+    self._authClient = OAuth2IdProvider(**self._clientConfig)
+    self._authClient.store_token = self._storeToken
+
+  def _storeToken(self, token):
+    """ This method will be called after successful authorization
+        through the authorization server to store DIRAC tokens
+
+        :param dict token: dictionary with tokens
+    """
+    return S_OK(self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True))
+
   def web_changeGroup(self):
     try:
       to = self.request.arguments['to'][-1]
     except KeyError:
       raise WErr(400, "Missing 'to' argument")
+    tokens = self.getRemoteCredentials()['Tokens']
+    token = self._authClient.exchange_token(self._authClient.metadata['token_endpoint'],
+                                            refresh_token=tokens.refresh_token,
+                                            access_token=tokens.access_token,
+                                            scope='g:%s' % to)
+    self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
     self.__change(group=to)
 
   def web_changeSetup(self):
@@ -42,7 +68,86 @@ class RootHandler(WebHandler):
     self.redirect("/%s%s" % ("/".join(url), qs))
 
   def web_getConfigData(self):
-    self.finish(self.getSessionData())
+    return self.getSessionData()
+
+  def web_logout(self):
+    """ Start authorization flow
+    """
+    # TODO: recoke token self._authClient.revoke()
+    # TODO: add cache revoked ids self.get_secure_cookie('session_id')['id']
+    self.clear_cookie('session_id')
+    self.set_cookie('authGrant', 'Visitor')
+    self.redirect('/DIRAC')
+
+  def web_login(self):
+    """ Start authorization flow
+    """
+    provider = self.get_argument('provider')
+
+    # Create PKCE things
+    code_verifier = generate_token(48)
+    code_challenge = create_s256_code_challenge(code_verifier)
+    url = self._authClient.metadata['authorization_endpoint']
+    if provider:
+      url += '/%s' % provider
+    uri, state = self._authClient.create_authorization_url(url,
+                                                          #  code_verifier=code_verifier)
+                                                          code_challenge=code_challenge,
+                                                          code_challenge_method='S256')
+    authSession = {'state': state, 'code_verifier': code_verifier, 'provider': provider,
+                   'next': self.get_argument('next', '/DIRAC')}
+    self.set_secure_cookie('webauth_session', json.dumps(authSession), secure=True, httponly=True)
+    self.set_cookie('authGrant', 'Visitor')
+    # Redirect to authorization server
+    self.redirect(uri)
+
+  def web_loginComplete(self):
+    """ Finishing authoriation flow
+    """
+    code = self.get_argument('code')
+    state = self.get_argument('state')
+
+    # Parse response
+    authSession = json.loads(self.get_secure_cookie('webauth_session'))
+    result = self._authClient.parseAuthResponse(self.request, authSession)
+    self.clear_cookie('webauth_session')
+    if not result['OK']:
+      return result
+    # FINISHING with IdP auth result
+    username, userID, userProfile = result['Value']
+
+    token = OAuth2Token(self._authClient.token)
+    # Create session to work through portal
+    # self.set_secure_cookie('session_id', json.dumps(dict(session.token)), secure=True, httponly=True)
+    self.set_cookie('authGrant', 'Session')
+
+    group = token.groups[0]
+    url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
+    nextURL = "/%s?%s" % (url, urlparse.urlparse(authSession['next']).query)
+    access_token = token.access_token
+
+    # Save token and go to main page
+    # with document('DIRAC authentication') as html:
+    #   dom.div('Authorization is done.',
+    #           style='display:flex;justify-content:center;align-items:center;padding:28px;font-size:28px;')
+    #   dom.script("sessionStorage.setItem('access_token','%s');window.location='%s'" % (access_token, nextURL),
+    #              type="text/javascript")
+    # return template.Template(html.render()).generate()
+    t = template.Template('''<!DOCTYPE html>
+      <html>
+        <head>
+          <title>Authentication</title>
+          <meta charset="utf-8" />
+        </head>
+        <body>
+          Authorization is done.
+          <script>
+            sessionStorage.setItem("access_token", "{{access_token}}");
+            window.location = "{{next}}";
+          </script>
+        </body>
+      </html>''')
+    return t.generate(next=nextURL, access_token=access_token)
 
   def web_index(self):
     # Render base template
@@ -84,7 +189,7 @@ class RootHandler(WebHandler):
     level = str(gLogger.getLevel()).lower()
     self.render("root.tpl", iconUrl=icon, base_url=data['baseURL'], _dev=Conf.devMode(),
                 ext_version=data['extVersion'], url_state=url_state,
-                extensions=data['extensions'],
+                extensions=data['extensions'], auth_client_settings=data['configuration']['AuthorizationClient'],
                 credentials=data['user'], title=Conf.getTitle(),
                 theme=theme_name, root_url=Conf.rootURL(), view=view_name,
                 open_app=open_app, debug_level=level, welcome=welcome,
