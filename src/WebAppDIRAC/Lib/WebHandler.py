@@ -146,13 +146,12 @@ class _WebHandler(TornadoREST):
     result = getWebClient()
     if not result['OK']:
       raise Exception("Can't load web portal settings: %s" % result['Message'])
-    config = result['Value']
+    cls._clientConfig = result['Value']
     result = getAuthorisationServerMetadata()
     if not result['OK']:
       raise Exception('Cannot prepare authorization server metadata. %s' % result['Message'])
-    config.update(result['Value'])
-    config['ProviderName'] = 'WebAppClient'
-    cls._authClient = OAuth2IdProvider(**config)
+    cls._clientConfig.update(result['Value'])
+    cls._clientConfig['ProviderName'] = 'WebAppClient'
 
   def _getMethodName(self):
     """ Parse method name.

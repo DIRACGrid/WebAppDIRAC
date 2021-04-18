@@ -19,6 +19,18 @@ class RootHandler(WebHandler):
   AUTH_PROPS = "all"
   LOCATION = "/"
 
+  def initializeRequest(self):
+    self._authClient = OAuth2IdProvider(**self._clientConfig)
+    self._authClient.store_token = self._storeToken
+
+  def _storeToken(self, token):
+    """ This method will be called after successful authorization
+        through the authorization server to store DIRAC tokens
+
+        :param dict token: dictionary with tokens
+    """
+    return S_OK(self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True))
+
   def web_changeGroup(self):
     to = self.get_argument("to")
     self.__change(group=to)
@@ -46,6 +58,7 @@ class RootHandler(WebHandler):
     """ Start authorization flow
     """
     # TODO: recoke token self._authClient.revoke()
+    # TODO: add cache revoked ids self.get_secure_cookie('session_id')['id']
     self.clear_cookie('session_id')
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
@@ -61,17 +74,16 @@ class RootHandler(WebHandler):
     url = self._authClient.metadata['authorization_endpoint']
     if provider:
       url += '/%s' % provider
-    uri, state = self._authClient.create_authorization_url(url, code_challenge=code_challenge,
-                                                           code_challenge_method='S256')
+    uri, state = self._authClient.create_authorization_url(url,
+                                                          #  code_verifier=code_verifier)
+                                                          code_challenge=code_challenge,
+                                                          code_challenge_method='S256')
     authSession = {'state': state, 'code_verifier': code_verifier, 'provider': provider,
                    'next': self.get_argument('next', '/DIRAC')}
-    self.set_secure_cookie('auth_session', json.dumps(authSession), secure=True, httponly=True)
+    self.set_secure_cookie('webauth_session', json.dumps(authSession), secure=True, httponly=True)
     self.set_cookie('authGrant', 'Visitor')
     # Redirect to authorization server
     self.redirect(uri)
-
-  def storeToken(self, token, session=None)
-    return S_OK(self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True))
 
   def web_loginComplete(self):
     """ Finishing authoriation flow
@@ -80,15 +92,15 @@ class RootHandler(WebHandler):
     state = self.get_argument('state')
 
     # Parse response
-    self._authClient.store_token = self.storeToken
-    authSession = json.loads(self.get_secure_cookie('auth_session'))
+    authSession = json.loads(self.get_secure_cookie('webauth_session'))
     result = self._authClient.parseAuthResponse(self.request, authSession)
-    self.clear_cookie('auth_session')
+    self.clear_cookie('webauth_session')
     if not result['OK']:
       return result
     # FINISHING with IdP auth result
-    username, userID, userProfile, session = result['Value']
-    token = OAuth2Token(session['token'])
+    username, userID, userProfile = result['Value']
+
+    token = OAuth2Token(self._authClient.token)
     # Create session to work through portal
     # self.set_secure_cookie('session_id', json.dumps(dict(session.token)), secure=True, httponly=True)
     self.set_cookie('authGrant', 'Session')
