@@ -54,8 +54,8 @@ class SystemAdministrationHandler(WebHandler):
 
     callback = list()
 
-    if "hostname" not in self.request.arguments and not self.request.arguments["hostname"][0]:
-      self.finish({"success": "false", "error": "Name of the host is absent"})
+    if "hostname" not in self.request.arguments or not self.request.arguments["hostname"][0]:
+      self.finish({"success": "true", "result": callback})
       return
 
     host = self.request.arguments["hostname"][0]
