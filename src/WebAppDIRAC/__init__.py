@@ -28,3 +28,9 @@ if preVersion:
 # Check of python version
 
 rootPath = os.path.realpath(os.path.dirname(__file__))
+
+
+def extension_metadata():
+  return {
+      "priority": 1
+  }

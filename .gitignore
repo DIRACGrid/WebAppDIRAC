@@ -53,5 +53,6 @@ nosetests.xml
 coverage.xml
 
 # Compiliation output
-WebApp/static/extjs/
+src/WebAppDIRAC/WebApp/static/extjs/
+!src/WebAppDIRAC/Lib/
 *.gz
