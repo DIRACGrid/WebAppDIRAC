@@ -1,3 +1,13 @@
+[v4r3-pre3]
+
+CHANGE: (#467) move main source code to src
+NEW: (#467) add pyproject.toml, setup.py
+CHANGE: (#467) add project description to setup.cfg
+NEW: (#467) move tests things to tests
+CHANGE: (#467) rename README.md to README.rst
+FIX: (#466) fix selector of pilot stats
+FIX: (#465) return empty result instead error for no host request
+
 [v4r2p2]
 
 CHANGE: (#460) Use universal replaceImage instead setSrc or updateSrc
