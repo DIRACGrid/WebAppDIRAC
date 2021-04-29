@@ -15,6 +15,7 @@ from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import ResourceSummaryHan
 
 class SiteSummaryHandler(ResourceSummaryHandler):
 
+  LOCATION = None
   AUTH_PROPS = "all"
   ELEMENT_TYPE = 'Site'
 
