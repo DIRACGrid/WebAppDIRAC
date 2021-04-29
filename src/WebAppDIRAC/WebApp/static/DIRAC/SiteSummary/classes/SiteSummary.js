@@ -71,6 +71,9 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
       dateFormat: "Y-m-d H:i:s"
     },
     {
+      name: "VO"
+    },
+    {
       name: "TokenOwner"
     },
     {
@@ -114,6 +117,7 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
       elementType: "SiteType",
       status: "Status",
       statusType: "StatusType",
+      tokenOwner: "VO",
       tokenOwner: "TokenOwner"
     };
 
@@ -207,6 +211,12 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
       },
       LastCheckTime: {
         dataIndex: "LastCheckTime",
+        properties: {
+          sortable: true
+        }
+      },
+      VO: {
+        dataIndex: "VO",
         properties: {
           sortable: true
         }
