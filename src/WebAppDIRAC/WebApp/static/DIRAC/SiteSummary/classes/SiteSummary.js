@@ -117,7 +117,7 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
       elementType: "SiteType",
       status: "Status",
       statusType: "StatusType",
-      tokenOwner: "VO",
+      VO: "VO",
       tokenOwner: "TokenOwner"
     };
 
