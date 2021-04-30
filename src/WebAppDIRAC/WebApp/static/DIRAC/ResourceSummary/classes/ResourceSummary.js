@@ -59,6 +59,9 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       dateFormat: "Y-m-d H:i:s"
     },
     {
+      name: "VO"
+    },
+    {
       name: "TokenOwner"
     }
   ],
@@ -97,6 +100,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       elementType: "ResourceType",
       status: "Status",
       statusType: "StatusType",
+      VO: "VO",
       tokenOwner: "TokenOwner"
     };
 
@@ -179,6 +183,12 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       },
       LastCheckTime: {
         dataIndex: "LastCheckTime",
+        properties: {
+          sortable: true
+        }
+      },
+      VO: {
+        dataIndex: "VO",
         properties: {
           sortable: true
         }
@@ -405,6 +415,12 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
               header: "LastCheckTime",
               sortable: true,
               dataIndex: "LastCheckTime",
+              align: "left"
+            },
+            {
+              header: "VO",
+              sortable: true,
+              dataIndex: "VO",
               align: "left"
             },
             {
