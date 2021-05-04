@@ -19,6 +19,22 @@ class RootHandler(WebHandler):
   AUTH_PROPS = "all"
   LOCATION = "/"
 
+  @classmethod
+  def initializeHandler(cls, serviceInfo):
+    """ If you are writing your own framework that follows this class
+        and you need to add something before initializing the service,
+        such as initializing the OAuth client, then you need to change this method.
+    """
+    result = getWebClient()
+    if not result['OK']:
+      raise Exception("Can't load web portal settings: %s" % result['Message'])
+    cls._clientConfig = result['Value']
+    result = getAuthorisationServerMetadata()
+    if not result['OK']:
+      raise Exception('Cannot prepare authorization server metadata. %s' % result['Message'])
+    cls._clientConfig.update(result['Value'])
+    cls._clientConfig['ProviderName'] = 'WebAppClient'
+
   def initializeRequest(self):
     self._authClient = OAuth2IdProvider(**self._clientConfig)
     self._authClient.store_token = self._storeToken
