@@ -191,8 +191,8 @@ class _WebHandler(TornadoREST):
     # Configure DISET with user creds
     if self.getDN():
       self.__disetConfig.setDN(self.getDN())
-    if self.getID():
-      self.__disetConfig.setID(self.getID())
+    # if self.getID():
+    #   self.__disetConfig.setID(self.getID())
     # pylint: disable=no-value-for-parameter
     if self.getUserGroup():  # pylint: disable=no-value-for-parameter
       self.__disetConfig.setGroup(self.getUserGroup())  # pylint: disable=no-value-for-parameter
