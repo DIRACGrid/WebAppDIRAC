@@ -21,7 +21,6 @@ from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
-from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient, getAuthorisationServerMetadata
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -305,25 +304,39 @@ class _WebHandler(TornadoREST):
 
     # Each session depends on the tokens    
     try:
+      gLogger.debug('Load session tokens..')
       tokens = OAuth2Token(json.loads(sessionID))
+      gLogger.debug('Found session tokens:\n', pprint.pformat(dict(tokens)))
+      result = self._idps.getIdProvider('WebAppDIRAC')
+      if not result['OK']:
+        return result
+      cli = result['Value']
       try:
-        credDict = self.__getCredDictForToken(tokens.access_token)['Value']
+        payload = cli.verifyToken(tokens.access_token)
+        credDict = cli.researchGroup(payload, tokens.access_token)
       except Exception as e:
-        # Try to refresh access_token and refres  h_token
-        tokens = self._authClient.refresh_token(self._authClient.metadata['token_endpoint'], refresh_token=tokens.refresh_token)
-        credDict = self.__getCredDictForToken(tokens.access_token)
+        pprint.pprint(traceback.format_exc())
+        gLogger.debug('Cannot check access token %s, try to fetch..' % repr(e))
+        # Try to refresh access_token and refresh_token
+        tokens = cli.refreshToken(tokens.refresh_token)
+        payload = cli.verifyToken(tokens.access_token)
+        credDict = cli.researchGroup(payload, tokens.access_token)
         # store it to the secure cookie
         self.set_secure_cookie('session_id', json.dumps(tokens), secure=True, httponly=True)
+        credDict['Tokens'] = tokens
     except Exception as e:
+      gLogger.debug(repr(e))
       self.clear_cookie('session_id')
       self.set_cookie('session_id', 'expired')
       self.set_cookie('authGrant', 'Visitor')
-    credDict['Tokens'] = tokens
     return S_OK(credDict)
 
   def __getCredDictForToken(self, access_token):
     self.request.headers['Authorization'] = 'bearer %s' % access_token
-    return self._authzJWT()
+    result = self._authzJWT()
+    if not result['OK']:
+      raise Exception(result['Message'])
+    return result['Value']
 
   @property
   def log(self):

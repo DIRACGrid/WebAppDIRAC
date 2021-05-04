@@ -201,7 +201,7 @@ class SessionData(object):
             'menu': self.__getGroupMenu(),
             'user': self.__credDict,
             'validGroups': [],
-            'groupsStatuses': {},
+            # 'groupsStatuses': '',
             'setup': self.__setup,
             'validSetups': gConfig.getSections("/DIRAC/Setups")['Value'],
             'extensions': self.__extensions,
@@ -213,9 +213,9 @@ class SessionData(object):
       if not result['OK']:
         return result
       data['validGroups'] = result['Value']
-      result = gProxyManager.getGroupsStatusByUsername(username)  # pylint: disable=no-member
-      if result['OK']:
-        data['groupsStatuses'] = result['Value']
+      # result = gProxyManager.getGroupsStatusByUsername(username)  # pylint: disable=no-member
+      # if result['OK']:
+      #   data['groupsStatuses'] = result['Value']
     # Calculate baseURL
     baseURL = [Conf.rootURL().strip("/"),
                "s:%s" % data['setup'],

@@ -177,16 +177,17 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       text: GLOBAL.APP.configData["user"]["group"],
       menu: []
     };
-    var data = GLOBAL.APP.configData["groupsStatuses"];
-    for (group in data) {
-      const status = data[group].Status;
-      const dn = data[group].DN;
-      const comment = data[group].Comment;
-      const action = data[group].Action;
+    // var data = GLOBAL.APP.configData["groupsStatuses"];
+    for (i in GLOBAL.APP.configData.validGroups) {
+    // for (group in data) {
+    //   const status = data[group].Status;
+    //   const dn = data[group].DN;
+    //   const comment = data[group].Comment;
+    //   const action = data[group].Action;
       // if (status == "ready") {
       button_group.menu.push({
-        group: group,
-        text: group,
+        group: GLOBAL.APP.configData.validGroups[i],
+        text: GLOBAL.APP.configData.validGroups[i],
         handler: function() {
           var me = this;
           var oHref = location.href;

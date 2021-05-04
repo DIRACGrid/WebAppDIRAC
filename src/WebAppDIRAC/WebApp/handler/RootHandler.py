@@ -10,7 +10,6 @@ from DIRAC import rootPath, gLogger, S_OK, gConfig
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
-from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient, getAuthorisationServerMetadata
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 
@@ -18,34 +17,6 @@ class RootHandler(WebHandler):
 
   AUTH_PROPS = "all"
   LOCATION = "/"
-
-  @classmethod
-  def initializeHandler(cls, serviceInfo):
-    """ If you are writing your own framework that follows this class
-        and you need to add something before initializing the service,
-        such as initializing the OAuth client, then you need to change this method.
-    """
-    result = getWebClient()
-    if not result['OK']:
-      raise Exception("Can't load web portal settings: %s" % result['Message'])
-    cls._clientConfig = result['Value']
-    result = getAuthorisationServerMetadata()
-    if not result['OK']:
-      raise Exception('Cannot prepare authorization server metadata. %s' % result['Message'])
-    cls._clientConfig.update(result['Value'])
-    cls._clientConfig['ProviderName'] = 'WebAppClient'
-
-  def initializeRequest(self):
-    self._authClient = OAuth2IdProvider(**self._clientConfig)
-    self._authClient.store_token = self._storeToken
-
-  def _storeToken(self, token):
-    """ This method will be called after successful authorization
-        through the authorization server to store DIRAC tokens
-
-        :param dict token: dictionary with tokens
-    """
-    return S_OK(self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True))
 
   def web_changeGroup(self):
     to = self.get_argument("to")
@@ -63,7 +34,7 @@ class RootHandler(WebHandler):
     qs = False
     if 'Referer' in self.request.headers:
       o = urlparse.urlparse(self.request.headers['Referer'])
-      qs = '?%s' % o.query
+      qs = '/?%s' % o.query
     url = [Conf.rootURL().strip("/"), "s:%s" % setup, "g:%s" % group]
     self.redirect("/%s%s" % ("/".join(url), qs))
 
@@ -73,8 +44,15 @@ class RootHandler(WebHandler):
   def web_logout(self):
     """ Start authorization flow
     """
-    # TODO: recoke token self._authClient.revoke()
-    # TODO: add cache revoked ids self.get_secure_cookie('session_id')['id']
+    token = self.get_secure_cookie('session_id')
+    if token:
+      token = json.loads(token)
+      if token.get('refresh_token'):
+        result = self._idps.getIdProvider('WebAppDIRAC')
+        if result['OK']:
+          cli = result['Value']
+          cli.token = token
+          cli.revokeToken(token['refresh_token'])
     self.clear_cookie('session_id')
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
@@ -82,23 +60,21 @@ class RootHandler(WebHandler):
   def web_login(self):
     """ Start authorization flow
     """
+    result = self._idps.getIdProvider('WebAppDIRAC')
+    if not result['OK']:
+      return result
+    cli = result['Value']
     provider = self.get_argument('provider')
-
-    # Create PKCE things
-    code_verifier = generate_token(48)
-    code_challenge = create_s256_code_challenge(code_verifier)
-    url = self._authClient.metadata['authorization_endpoint']
     if provider:
-      url += '/%s' % provider
-    uri, state = self._authClient.create_authorization_url(url,
-                                                          #  code_verifier=code_verifier)
-                                                          code_challenge=code_challenge,
-                                                          code_challenge_method='S256')
-    authSession = {'state': state, 'code_verifier': code_verifier, 'provider': provider,
-                   'next': self.get_argument('next', '/DIRAC')}
-    self.set_secure_cookie('webauth_session', json.dumps(authSession), secure=True, httponly=True)
-    self.set_cookie('authGrant', 'Visitor')
+      cli.metadata['authorization_endpoint'] = '%s/%s' % (cli.get_metadata('authorization_endpoint'), provider)
+    uri, state, session = cli.submitNewSession()
+
+    # Save authorisation session
+    session.update(dict(state=state, provider=provider, next=self.get_argument('next', '/DIRAC')))
+    self.set_secure_cookie('webauth_session', json.dumps(session), secure=True, httponly=True)
+
     # Redirect to authorization server
+    self.set_cookie('authGrant', 'Visitor')
     self.redirect(uri)
 
   def web_loginComplete(self):
@@ -107,25 +83,26 @@ class RootHandler(WebHandler):
     code = self.get_argument('code')
     state = self.get_argument('state')
 
-    # Parse response
-    authSession = json.loads(self.get_secure_cookie('webauth_session'))
-    result = self._authClient.parseAuthResponse(self.request, authSession)
-    self.clear_cookie('webauth_session')
+    result = self._idps.getIdProvider('WebAppDIRAC')
     if not result['OK']:
       return result
-    # FINISHING with IdP auth result
-    username, userID, userProfile = result['Value']
+    cli = result['Value']
 
-    token = OAuth2Token(self._authClient.token)
+    # Parse response
+    authSession = json.loads(self.get_secure_cookie('webauth_session'))
+
+    token = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get('code_verifier'))
+    
+    # Remove authorisation session
+    self.clear_cookie('webauth_session')
+
     # Create session to work through portal
-    # self.set_secure_cookie('session_id', json.dumps(dict(session.token)), secure=True, httponly=True)
+    self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
     self.set_cookie('authGrant', 'Session')
 
     group = token.groups[0]
     url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
-    nextURL = "/%s?%s" % (url, urlparse.urlparse(authSession['next']).query)
-    access_token = token.access_token
-
+    nextURL = "/%s/?%s" % (url, urlparse.urlparse(authSession['next']).query)
     # Save token and go to main page
     # with document('DIRAC authentication') as html:
     #   dom.div('Authorization is done.',
@@ -147,7 +124,7 @@ class RootHandler(WebHandler):
           </script>
         </body>
       </html>''')
-    return t.generate(next=nextURL, access_token=access_token)
+    return t.generate(next=nextURL, access_token=token.access_token)
 
   def web_index(self):
     # Render base template
