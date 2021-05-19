@@ -1,5 +1,7 @@
-[v4r3-pre3]
+[v4r3-pre4]
 
+FIX: (#470) set default variable for LOCATION in a SiteSummary
+NEW: (#470) add VO selector for SiteSummary and ResourceSummary
 CHANGE: (#467) move main source code to src
 NEW: (#467) add pyproject.toml, setup.py
 CHANGE: (#467) add project description to setup.cfg
