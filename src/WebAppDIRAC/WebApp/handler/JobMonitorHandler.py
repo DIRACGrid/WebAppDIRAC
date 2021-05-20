@@ -29,29 +29,65 @@ class JobMonitorHandler(WebHandler):
                                    req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:
-      self.finish({"success": "false", "result": [], "total": 0, "error": result["Message"]})
+      self.finish(
+          {"success": "false", "result": [], "total": 0, "error": result["Message"]}
+      )
       return
-
     result = result["Value"]
 
     if "TotalRecords" not in result:
-      self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
+      self.finish(
+          {
+              "success": "false",
+              "result": [],
+              "total": -1,
+              "error": "Data structure is corrupted",
+          }
+      )
       return
 
     if not result["TotalRecords"]:
-      self.finish({"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"})
+      self.finish(
+          {
+              "success": "false",
+              "result": [],
+              "total": 0,
+              "error": "There were no data matching your selection",
+          }
+      )
       return
 
     if "ParameterNames" not in result or "Records" not in result:
-      self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
+      self.finish(
+          {
+              "success": "false",
+              "result": [],
+              "total": -1,
+              "error": "Data structure is corrupted",
+          }
+      )
       return
 
     if not result["ParameterNames"]:
-      self.finish({"success": "false", "result": [], "total": -1, "error": "ParameterNames field is missing"})
+      self.finish(
+          {
+              "success": "false",
+              "result": [],
+              "total": -1,
+              "error": "ParameterNames field is missing",
+          }
+      )
       return
 
     if not result["Records"]:
-      self.finish({"success": "false", "result": [], "total": 0, "Message": "There are no data to display"})
+      self.finish(
+          {
+              "success": "false",
+              "result": [],
+              "total": 0,
+              "Message": "There are no data to display",
+          }
+      )
       return
 
     callback = []
@@ -97,8 +133,7 @@ class JobMonitorHandler(WebHandler):
       callback = JobMonitorHandler.__dataCache.get(cacheKey)
       if not callback:
         callback = {}
-        RPC = JobMonitoringClient()
-        result = yield self.threadTask(RPC.getProductionIds)
+        result = yield self.threadTask(JobMonitoringClient().getJobGroups)
         if result["OK"]:
           prod = []
           prods = result["Value"]
@@ -108,12 +143,11 @@ class JobMonitorHandler(WebHandler):
           else:
             prod = [["Nothing to display"]]
         else:
-          gLogger.error("RPC.getProductionIds() return error: %s" % result["Message"])
+          gLogger.error("JobMonitoringClient().getJobGroups() return error: %s" % result["Message"])
           prod = [["Error happened on service side"]]
         callback["prod"] = prod
 
-        RPC = JobMonitoringClient()
-        result = yield self.threadTask(RPC.getSites)
+        result = yield self.threadTask(JobMonitoringClient().getSites)
         if result["OK"]:
           tier1 = gConfig.getValue("/WebApp/PreferredSites", [])  # Always return a list
           site = []
@@ -127,11 +161,11 @@ class JobMonitorHandler(WebHandler):
           else:
             site = [["Nothing to display"]]
         else:
-          gLogger.error("RPC.getSites() return error: %s" % result["Message"])
+          gLogger.error("JobMonitoringClient().getSites() return error: %s" % result["Message"])
           site = [["Error happened on service side"]]
         callback["site"] = site
     # ##
-        result = yield self.threadTask(RPC.getStates)
+        result = yield self.threadTask(JobMonitoringClient().getStates)
         if result["OK"]:
           stat = []
           if result["Value"]:
@@ -140,11 +174,11 @@ class JobMonitorHandler(WebHandler):
           else:
             stat = [["Nothing to display"]]
         else:
-          gLogger.error("RPC.getStates() return error: %s" % result["Message"])
+          gLogger.error("JobMonitoringClient().getStates() return error: %s" % result["Message"])
           stat = [["Error happened on service side"]]
         callback["status"] = stat
     # ##
-        result = yield self.threadTask(RPC.getMinorStates)
+        result = yield self.threadTask(JobMonitoringClient().getMinorStates)
         if result["OK"]:
           stat = []
           if result["Value"]:
@@ -153,11 +187,11 @@ class JobMonitorHandler(WebHandler):
           else:
             stat = [["Nothing to display"]]
         else:
-          gLogger.error("RPC.getMinorStates() return error: %s" % result["Message"])
+          gLogger.error("JobMonitoringClient().getMinorStates() return error: %s" % result["Message"])
           stat = [["Error happened on service side"]]
         callback["minorstat"] = stat
     # ##
-        result = yield self.threadTask(RPC.getApplicationStates)
+        result = yield self.threadTask(JobMonitoringClient().getApplicationStates)
         if result["OK"]:
           app = []
           if result["Value"]:
@@ -166,11 +200,11 @@ class JobMonitorHandler(WebHandler):
           else:
             app = [["Nothing to display"]]
         else:
-          gLogger.error("RPC.getApplicationstates() return error: %s" % result["Message"])
+          gLogger.error("JobMonitoringClient().getApplicationstates() return error: %s" % result["Message"])
           app = [["Error happened on service side"]]
         callback["app"] = app
     # ##
-        result = yield self.threadTask(RPC.getJobTypes)
+        result = yield self.threadTask(JobMonitoringClient().getJobTypes)
         if result["OK"]:
           types = []
           if result["Value"]:
@@ -179,7 +213,7 @@ class JobMonitorHandler(WebHandler):
           else:
             types = [["Nothing to display"]]
         else:
-          gLogger.error("RPC.getJobTypes() return error: %s" % result["Message"])
+          gLogger.error("JobMonitoringClient().getJobTypes() return error: %s" % result["Message"])
           types = [["Error happened on service side"]]
         callback["types"] = types
     # ##
@@ -187,7 +221,7 @@ class JobMonitorHandler(WebHandler):
         if user == "Anonymous":
           callback["owner"] = [["Insufficient rights"]]
         else:
-          result = yield self.threadTask(RPC.getOwners)
+          result = yield self.threadTask(JobMonitoringClient().getOwners)
           if result["OK"]:
             owner = []
             if result["Value"]:
@@ -199,11 +233,11 @@ class JobMonitorHandler(WebHandler):
             owner = [[user]]
             callback["owner"] = owner
           else:
-            gLogger.error("RPC.getOwners() return error: %s" % result["Message"])
+            gLogger.error("JobMonitoringClient().getOwners() return error: %s" % result["Message"])
             owner = [["Error happened on service side"]]
           callback["owner"] = owner
 
-        result = yield self.threadTask(RPC.getOwnerGroup)
+        result = yield self.threadTask(JobMonitoringClient().getOwnerGroup)
         if result['OK']:
           callback['OwnerGroup'] = [[group] for group in result['Value']]
 
