@@ -307,29 +307,37 @@ class _WebHandler(TornadoREST):
       gLogger.debug('Load session tokens..')
       tokens = OAuth2Token(json.loads(sessionID))
       gLogger.debug('Found session tokens:\n', pprint.pformat(dict(tokens)))
-      result = self._idps.getIdProvider('WebAppDIRAC')
-      if not result['OK']:
-        return result
-      cli = result['Value']
+      # result = self._idps.getIdProvider('WebAppDIRAC')
+      # if not result['OK']:
+      #   return result
+      # cli = result['Value']
       try:
-        payload = cli.verifyToken(tokens.access_token)
-        credDict = cli.researchGroup(payload, tokens.access_token)
+        return self._authzJWT(tokens.access_token)
+        # payload = cli.verifyToken(tokens.access_token, self._jwks[cli.issuer])
+        # credDict = cli.researchGroup(payload, tokens.access_token)
       except Exception as e:
         pprint.pprint(traceback.format_exc())
         gLogger.debug('Cannot check access token %s, try to fetch..' % repr(e))
         # Try to refresh access_token and refresh_token
+        result = self._idps.getIdProvider('WebAppDIRAC')
+        if not result['OK']:
+          return result
+        cli = result['Value']
         tokens = cli.refreshToken(tokens.refresh_token)
-        payload = cli.verifyToken(tokens.access_token)
-        credDict = cli.researchGroup(payload, tokens.access_token)
+        # payload = cli.verifyToken(tokens.access_token, self._jwks[cli.issuer])
+        # credDict = cli.researchGroup(payload, tokens.access_token)
         # store it to the secure cookie
         self.set_secure_cookie('session_id', json.dumps(tokens), secure=True, httponly=True)
-        credDict['Tokens'] = tokens
+        # credDict['Tokens'] = tokens
+        return self._authzJWT(tokens.access_token)
+
     except Exception as e:
       gLogger.debug(repr(e))
       self.clear_cookie('session_id')
       self.set_cookie('session_id', 'expired')
       self.set_cookie('authGrant', 'Visitor')
-    return S_OK(credDict)
+      return S_ERROR(repr(e))
+    # return S_OK(credDict)
 
   def __getCredDictForToken(self, access_token):
     self.request.headers['Authorization'] = 'bearer %s' % access_token
