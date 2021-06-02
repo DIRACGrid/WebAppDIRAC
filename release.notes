@@ -1,5 +1,6 @@
-[v4r3-pre4]
+[v4r3-pre5]
 
+FIX: (#472) use JobMonitoringClient().getJobGroups instead of deprecated getProductionIds
 FIX: (#470) set default variable for LOCATION in a SiteSummary
 NEW: (#470) add VO selector for SiteSummary and ResourceSummary
 CHANGE: (#467) move main source code to src
@@ -33,6 +34,10 @@ NEW: (#422) add new Selection Fields and Group By clauses for Activity Monitorin
 NEW: (#412) add getProperties helper method to the WebHandler
 FIX: (#412) fix bugs, change refreshStore to setStore in the js part of code, use getUserName, etc.. instead getSessionData
 FIX: (#406) add diraccfg to the requirements, minor fixes
+
+[v4r0p38]
+
+NEW: (#473) use listStatesForWeb endpoint to make the Public State Manager faster
 
 [v4r0p37]
 
