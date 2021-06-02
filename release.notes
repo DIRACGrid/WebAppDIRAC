@@ -1,3 +1,7 @@
+[v4r0p38]
+
+NEW: (#473) use listStatesForWeb endpoint to make the Public State Manager faster
+
 [v4r0p37]
 
 FIX: (#453) use setSrc to replaceImage
