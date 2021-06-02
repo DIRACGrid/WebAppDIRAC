@@ -222,17 +222,12 @@ class UPHandler(WebHandler):
     user = self.getUserName()
 
     up = self.__getUP()
-    retVal = yield self.threadTask(up.getUserProfileNames, {'PublishAccess': 'ALL'})
-
+    retVal = yield self.threadTask(up.listStatesForWeb, {'PublishAccess': 'ALL'})
     if not retVal['OK']:
       raise WErr.fromSERROR(retVal)
-
-    data = retVal['Value']
-
-    if data is None:
+    records = retVal['Value']
+    if not records:
       raise WErr(404, "There are no public states!")
-
-    paramNames = ['user', 'group', 'vo', 'name']
 
     mydesktops = {'name': 'My Desktops',
                   'group': '',
@@ -281,40 +276,25 @@ class UPHandler(WebHandler):
                                        }
                                   ]
     }
-    for i in data:
-      application = i.replace('Web/application/', '')
-      up = UserProfileClient(i)
-      retVal = up.listAvailableVars()
-      if not retVal['OK']:
-        raise WErr.fromSERROR(retVal)
-      else:
-        states = retVal['Value']
-
-        for state in states:
-          record = dict(zip(paramNames, state))
-          record['app'] = application
-          retVal = yield self.threadTask(up.getVarPermissions, record['name'])
-          if not retVal['OK']:
-            raise WErr.fromSERROR(retVal)
+    for record in records:
+      permissions = record["permissions"]
+      if permissions['PublishAccess'] == 'ALL':
+        if record["app"] == 'desktop':
+          record['type'] = 'desktop'
+          record['leaf'] = 'true'
+          record['iconCls'] = 'core-desktop-icon',
+          if record['user'] == user:
+            mydesktops['children'].append(record)
           else:
-            permissions = retVal['Value']
-            if permissions['PublishAccess'] == 'ALL':
-              if application == 'desktop':
-                record['type'] = 'desktop'
-                record['leaf'] = 'true'
-                record['iconCls'] = 'core-desktop-icon',
-                if record['user'] == user:
-                  mydesktops['children'].append(record)
-                else:
-                  shareddesktops['children'].append(record)
-              else:
-                record['type'] = 'application'
-                record['leaf'] = 'true'
-                record['iconCls'] = 'core-application-icon'
-                if record['user'] == user:
-                  myapplications['children'].append(record)
-                else:
-                  sharedapplications['children'].append(record)
+            shareddesktops['children'].append(record)
+        else:
+          record['type'] = 'application'
+          record['leaf'] = 'true'
+          record['iconCls'] = 'core-application-icon'
+          if record['user'] == user:
+            myapplications['children'].append(record)
+          else:
+            sharedapplications['children'].append(record)
 
     self.finish(desktopsApplications)
 
