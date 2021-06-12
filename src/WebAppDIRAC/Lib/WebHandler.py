@@ -62,22 +62,6 @@ def asyncGen(method):
   return tornado.gen.coroutine(method)
 
 
-class DJSONEncoder(object):
-  import datetime
-import json
-
-def default(o):
-    if isinstance(o, (datetime.date, datetime.datetime)):
-        return o.isoformat()
-
-return json.dumps(
-  item,
-  sort_keys=True,
-  indent=1,
-  default=default
-)
-
-
 class WebHandler(tornado.web.RequestHandler):
 
   __disetConfig = ThreadConfig()
