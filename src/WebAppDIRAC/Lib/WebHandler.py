@@ -1,5 +1,6 @@
 import ssl
 import json
+import datetime
 import requests
 import functools
 import traceback
@@ -16,6 +17,7 @@ from DIRAC.Core.Security import Properties
 from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
 
@@ -75,6 +77,18 @@ class WebHandler(tornado.web.RequestHandler):
   URLSCHEMA = ""
   # RE to extract group and setup
   PATH_RE = None
+
+  def encodeDatetime(self, data):
+    """ Encode datetime to ISO format string """
+    return data.strftime(DATETIME_DEFAULT_FORMAT) if isinstance(data, (datetime.date, datetime.datetime)) else data
+
+  def finish(self, data=None, *args, **kwargs):
+    """ Finishes this response, ending the HTTP request. More detailes:
+        https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
+    """
+    if data and isinstance(data, dict):
+      data = json.dumps(data, default=self.encodeDatetime(data))
+    return super(WebHandler, self).finish(data, *args, **kwargs)
 
   def threadTask(self, method, *args, **kwargs):
     def threadJob(*targs, **tkwargs):

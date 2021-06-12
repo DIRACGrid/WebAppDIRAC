@@ -42,7 +42,7 @@ class JobLaunchpadHandler(WebHandler):
     self.vo = getVOForGroup(self.group)
 
   def web_getProxyStatus(self):
-    self.write(self.__getProxyStatus())
+    self.finish(self.__getProxyStatus())
 
   def __getProxyStatus(self, secondsOverride=None):
     from DIRAC.FrameworkSystem.Client.ProxyManagerClient import ProxyManagerClient
@@ -125,7 +125,7 @@ class JobLaunchpadHandler(WebHandler):
         if sectionOptions['OK']:
           predefinedSets[section] = sectionOptions["Value"]
 
-    self.write({"success": "true", "result": params, "predefinedSets": predefinedSets})
+    self.finish({"success": "true", "result": params, "predefinedSets": predefinedSets})
 
   def web_getLaunchpadOpts(self):
     """ Reading of the predefined sets of launchpad parameters values
@@ -140,7 +140,7 @@ class JobLaunchpadHandler(WebHandler):
         pprint.pprint(sectionOptions)
         if sectionOptions['OK']:
           predefinedSets[section] = sectionOptions["Value"]
-    self.write({"success": "true", "result": self.defaultParams, "predefinedSets": predefinedSets})
+    self.finish({"success": "true", "result": self.defaultParams, "predefinedSets": predefinedSets})
 
   @asyncGen
   def web_jobSubmit(self):
