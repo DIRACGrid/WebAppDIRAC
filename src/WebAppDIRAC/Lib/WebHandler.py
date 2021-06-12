@@ -78,14 +78,16 @@ class WebHandler(tornado.web.RequestHandler):
   # RE to extract group and setup
   PATH_RE = None
 
+  def encodeDatetime(self, data):
+    """ Encode datetime to ISO format string """
+    return data.strftime(DATETIME_DEFAULT_FORMAT) if isinstance(data, (datetime.date, datetime.datetime)) else data
+
   def finish(self, data=None, *args, **kwargs):
     """ Finishes this response, ending the HTTP request. More detailes:
         https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
     """
-    # Encode datetime to ISO format string
-    default = lambda o: o.strftime(DATETIME_DEFAULT_FORMAT) if isinstance(o, (datetime.date, datetime.datetime)) else o
     if data and isinstance(data, dict):
-      data = json.dumps(data, default=default)
+      data = json.dumps(data, default=self.encodeDatetime(data))
     return super(WebHandler, self).finish(data, *args, **kwargs)
 
   def threadTask(self, method, *args, **kwargs):
