@@ -342,7 +342,7 @@ class SystemAdministrationHandler(WebHandler):
 
     result = gConfig.getSections("/Registry/Users")
     if not result["OK"]:
-      self.write({"success": "false", "error": result["Message"]})
+      self.finish({"success": "false", "error": result["Message"]})
       return
     result = result["Value"]
 
@@ -350,13 +350,13 @@ class SystemAdministrationHandler(WebHandler):
 
     result = gConfig.getSections("/Registry/Groups")
     if not result["OK"]:
-      self.write({"success": "false", "error": result["Message"]})
+      self.finish({"success": "false", "error": result["Message"]})
       return
     result = result["Value"]
 
     groups = map(lambda x: [x], result)
 
-    self.write({"success": "true", "users": users, "groups": groups, "email": self.getUserEmail()})
+    self.finish({"success": "true", "users": users, "groups": groups, "email": self.getUserEmail()})
 
   def getUserEmail(self):
 
@@ -388,7 +388,7 @@ class SystemAdministrationHandler(WebHandler):
     if "subject" not in self.request.arguments:
       result = "subject parameter is not in request... aborting"
       gLogger.debug(result)
-      self.write({"success": "false", "error": result})
+      self.finish({"success": "false", "error": result})
       return
 
     subject = self.checkUnicode(self.request.arguments["subject"][0])
@@ -398,14 +398,14 @@ class SystemAdministrationHandler(WebHandler):
     if "message" not in self.request.arguments:
       result = "msg parameter is not in request... aborting"
       gLogger.debug(result)
-      self.write({"success": "false", "error": result})
+      self.finish({"success": "false", "error": result})
       return
 
     body = self.checkUnicode(self.request.arguments["message"][0])
     if not len(body) > 0:
       result = "Message body has zero length... aborting"
       gLogger.debug(result)
-      self.write({"success": "false", "error": result})
+      self.finish({"success": "false", "error": result})
       return
 
     users = self.request.arguments["users"][0].split(",")
@@ -425,14 +425,14 @@ class SystemAdministrationHandler(WebHandler):
     if not len(users) > 0:
       error = "Length of list of recipients is zero size"
       gLogger.info(error)
-      self.write({"success": "false", "error": error})
+      self.finish({"success": "false", "error": error})
       return
 
     users = uniqueElements(users)
     gLogger.info("Final list of users to send message/mail: %s" % users)
 
     sendDict = self.getMailDict(users)
-    self.write(self.sendMail(sendDict, subject, body, email))
+    self.finish(self.sendMail(sendDict, subject, body, email))
 
   def checkUnicode(self, text=None):
     """

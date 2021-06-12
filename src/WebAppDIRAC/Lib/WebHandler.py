@@ -62,6 +62,22 @@ def asyncGen(method):
   return tornado.gen.coroutine(method)
 
 
+class DJSONEncoder(object):
+  import datetime
+import json
+
+def default(o):
+    if isinstance(o, (datetime.date, datetime.datetime)):
+        return o.isoformat()
+
+return json.dumps(
+  item,
+  sort_keys=True,
+  indent=1,
+  default=default
+)
+
+
 class WebHandler(tornado.web.RequestHandler):
 
   __disetConfig = ThreadConfig()
@@ -75,6 +91,12 @@ class WebHandler(tornado.web.RequestHandler):
   URLSCHEMA = ""
   # RE to extract group and setup
   PATH_RE = None
+
+  def finish(self, data):
+    """ Encode datetime to ISO format string """
+    super(WebHandler, self).finish(
+        json.dumps(data, default=lambda o: o.isoformat() if isinstance(o, (datetime.date, datetime.datetime)) else o)
+    )
 
   def threadTask(self, method, *args, **kwargs):
     def threadJob(*targs, **tkwargs):

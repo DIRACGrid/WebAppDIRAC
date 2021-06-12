@@ -234,10 +234,9 @@ class ResourceSummaryHandler(WebHandler):
                                 str(requestParams['lastCheckTime'][0]))
 
     if not res['OK']:
-      self.write({'success': 'false', 'error': res['Message']})
+      self.finish({'success': 'false', 'error': res['Message']})
     else:
-      self.write({'success': 'true', 'result': res['Value']})
-    self.finish()
+      self.finish({'success': 'true', 'result': res['Value']})
 
   def _getHistory(self, requestParams):
 
