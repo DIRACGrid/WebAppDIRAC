@@ -80,7 +80,7 @@ class WebHandler(tornado.web.RequestHandler):
     """ Encode datetime to ISO format string """
     if data and isinstance(data, dict):
       data = json.dumps(data, default=lambda o: o.isoformat() if isinstance(o, (datetime.date, datetime.datetime)) else o)
-    super(WebHandler, self).finish(data, *args, **kwargs)
+    return super(WebHandler, self).finish(data, *args, **kwargs)
 
   def threadTask(self, method, *args, **kwargs):
     def threadJob(*targs, **tkwargs):
