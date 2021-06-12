@@ -88,10 +88,10 @@ class App(object):
       self.log.info("Configuring in developer mode...")
     # Configure tornado app
     self.__app = tornado.web.Application(routes, **kw)
-    self.log.notice("Configuring HTTP on port %s" % (Conf.HTTPPort()))
+    port = Conf.HTTPPort()
+    self.log.notice("Configuring HTTP on port %s" % port)
     # Create the web servers
     srv = tornado.httpserver.HTTPServer(self.__app, xheaders=True)
-    port = Conf.HTTPPort()
     srv.listen(port)
     self.__servers[('http', port)] = srv
 
