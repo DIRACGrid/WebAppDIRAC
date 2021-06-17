@@ -64,6 +64,16 @@ def asyncGen(method):
   return tornado.gen.coroutine(method)
 
 
+def encodeDatetime(data):
+  """ Encode datetime to ISO format string
+
+      :param data: value to encode
+
+      :return: str if data is datetime else origin data value
+  """
+  return data.strftime(DATETIME_DEFAULT_FORMAT) if isinstance(data, (datetime.date, datetime.datetime)) else data
+
+
 class WebHandler(tornado.web.RequestHandler):
 
   __disetConfig = ThreadConfig()
@@ -78,16 +88,12 @@ class WebHandler(tornado.web.RequestHandler):
   # RE to extract group and setup
   PATH_RE = None
 
-  def encodeDatetime(self, data):
-    """ Encode datetime to ISO format string """
-    return data.strftime(DATETIME_DEFAULT_FORMAT) if isinstance(data, (datetime.date, datetime.datetime)) else data
-
   def finish(self, data=None, *args, **kwargs):
     """ Finishes this response, ending the HTTP request. More detailes:
         https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
     """
     if data and isinstance(data, dict):
-      data = json.dumps(data, default=self.encodeDatetime(data))
+      data = json.dumps(data, default=encodeDatetime)
     return super(WebHandler, self).finish(data, *args, **kwargs)
 
   def threadTask(self, method, *args, **kwargs):
