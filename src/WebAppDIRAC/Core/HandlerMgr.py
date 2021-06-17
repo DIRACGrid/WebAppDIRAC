@@ -9,7 +9,7 @@ import inspect
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
-from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
+from DIRAC.Core.Utilities.Extensions import extensionsByPriority
 
 import WebAppDIRAC
 
@@ -45,11 +45,8 @@ class HandlerMgr(object):
         :return: list
     """
     pathList = []
-    for extName in CSGlobals.getCSExtensions():
-      if not extName.endswith('DIRAC'):
-        extName = "%sDIRAC" % extName
-      if extName == "WebAppDIRAC":
-        continue
+    for extName in extensionsByPriority():
+      # TODO: Would be nicer to set these paths with setuptools metadata
       try:
         modFile, modPath, desc = imp.find_module(extName)
         # to match in the real root path to enabling module web extensions (static, templates...)
@@ -59,8 +56,6 @@ class HandlerMgr(object):
       staticPath = os.path.join(realModPath, "WebApp", dirName)
       if os.path.isdir(staticPath):
         pathList.append(staticPath)
-    # Add WebAppDirac to the end
-    pathList.append(os.path.join(WebAppDIRAC.rootPath, "WebApp", dirName))
     return pathList
 
   def __calculateRoutes(self):
