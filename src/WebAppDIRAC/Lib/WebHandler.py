@@ -357,7 +357,7 @@ class WebHandler(tornado.web.RequestHandler):
 
   def get(self, setup, group, route):
     if not self._pathResult.ok:
-      raise self._pathResult
+      raise Exception(self._pathResult)
     methodName = "web_%s" % self._pathResult.data
     try:
       mObj = getattr(self, methodName)
@@ -397,7 +397,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
 
   def open(self, setup, group, route):
     if not self._pathResult.ok:
-      raise self._pathResult
+      raise Exception(self._pathResult)
     return self.on_open()
 
   def on_open(self):

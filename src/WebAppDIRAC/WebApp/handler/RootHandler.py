@@ -1,6 +1,6 @@
 import re
 import os
-import urlparse
+from six.moves import urllib_parse as urlparse
 
 from tornado.escape import xhtml_escape
 
