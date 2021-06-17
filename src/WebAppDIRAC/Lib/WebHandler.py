@@ -63,14 +63,16 @@ def asyncWithCallback(method):
 def asyncGen(method):
   return tornado.gen.coroutine(method)
 
+
 def encodeDatetime(data):
   """ Encode datetime to ISO format string
-  
+
       :param data: value to encode
-      
+
       :return: str if data is datetime else origin data value
   """
   return data.strftime(DATETIME_DEFAULT_FORMAT) if isinstance(data, (datetime.date, datetime.datetime)) else data
+
 
 class WebHandler(tornado.web.RequestHandler):
 
