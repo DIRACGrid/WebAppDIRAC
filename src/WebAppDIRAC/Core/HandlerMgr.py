@@ -115,7 +115,7 @@ class HandlerMgr(object):
         continue
       # Look for methods that are exported
       for mName, mObj in inspect.getmembers(handler):
-        if inspect.ismethod(mObj) and mName.find("web_") == 0:
+        if inspect.isroutine(mObj) and mName.find("web_") == 0:
           if mName == "web_index":
             # Index methods have the bare url
             self.log.verbose(" - Route %s -> %s.web_index" % (handlerRoute, hn))
