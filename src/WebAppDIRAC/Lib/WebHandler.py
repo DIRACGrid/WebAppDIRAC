@@ -34,26 +34,13 @@ class WErr(tornado.web.HTTPError):
     super(WErr, self).__init__(code, str(msg) or None)
     for k in kwargs:
       setattr(self, k, kwargs[k])
-    self.ok = False
     self.msg = msg
     self.kwargs = kwargs
-
-  def __str__(self):
-    return super(WErr, self).__str__()
 
   @classmethod
   def fromSERROR(cls, result):
     """ Prevent major problem with % in the message """
     return cls(500, result['Message'].replace("%", ""))
-
-
-class WOK(object):
-
-  def __init__(self, data=False, **kwargs):
-    for k in kwargs:
-      setattr(self, k, kwargs[k])
-    self.ok = True
-    self.data = data
 
 
 def asyncWithCallback(method):
@@ -330,7 +317,7 @@ class WebHandler(tornado.web.RequestHandler):
         :param str group: group name
         :param str route: route
 
-        :return: WOK()/WErr()
+        :return: str/WErr()
     """
     if route[-1] == "/":
       methodName = "index"
@@ -353,12 +340,12 @@ class WebHandler(tornado.web.RequestHandler):
     self.__disetConfig.setSetup(setup)
     self.__disetDump = self.__disetConfig.dump()
 
-    return WOK(methodName)
+    return methodName
 
   def get(self, setup, group, route):
-    if not self._pathResult.ok:
-      raise Exception(self._pathResult)
-    methodName = "web_%s" % self._pathResult.data
+    if isinstance(self._pathResult, WErr):
+      raise self._pathResult
+    methodName = "web_%s" % self._pathResult
     try:
       mObj = getattr(self, methodName)
     except AttributeError as e:
@@ -396,8 +383,8 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
     tornado.websocket.WebSocketHandler.__init__(self, *args, **kwargs)
 
   def open(self, setup, group, route):
-    if not self._pathResult.ok:
-      raise Exception(self._pathResult)
+    if isinstance(self._pathResult, WErr):
+      raise self._pathResult
     return self.on_open()
 
   def on_open(self):
