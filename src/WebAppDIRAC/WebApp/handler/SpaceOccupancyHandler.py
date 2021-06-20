@@ -20,7 +20,7 @@ class SpaceOccupancyHandler(WebHandler):
 
     rmc = ResourceManagementClient()
 
-    gLogger.info(self.request.arguments)
+    gLogger.info("Arguments to web_getSelectionData", repr(self.request.arguments))
 
     spaces = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache)
 
@@ -87,10 +87,5 @@ class SpaceOccupancyHandler(WebHandler):
       We receive the request and we parse it, in this case, we are doing nothing,
       but it can be certainly more complex.
     '''
-
-    gLogger.debug("!!!  PARAMS: ", str(self.request.arguments))
-
-    if 'StorageElement' in self.request.arguments:
-      se = list(json.loads(self.request.arguments['StorageElement'][-1]))
-      return se
-    return None
+    gLogger.debug("!!!  PARAMS: ", repr(self.request.arguments))
+    return list(json.loads(self.get_argument("StorageElement", "null")))

@@ -124,81 +124,60 @@ class PilotSummaryHandler(WebHandler):
   ################################################################################
 
   def __request(self):
-    self.pageNumber = 0
-    self.numberOfJobs = 25
+    self.numberOfJobs = int(self.get_argument("limit", "25"))
+    self.pageNumber = int(self.get_argument("start", "0"))
     self.globalSort = [["GridSite", "ASC"]]
-    req = {}
     group = self.getUserGroup()
     user = self.getUserName()
 
-    if "limit" in self.request.arguments:
-      self.numberOfJobs = int(self.request.get_argument("limit"))
-      if "start" in self.request.arguments:
-        self.pageNumber = int(self.request.get_argument("start"))
-      else:
-        self.pageNumber = 0
-    else:
-      self.numberOfJobs = 25
-      self.pageNumber = 0
-
+    req = {}
     found = False
-    if 'id' in self.request.arguments:
-      jobids = list(json.loads(self.request.arguments['id'][-1]))
-      if len(jobids) > 0:
-        req['JobID'] = jobids
-        found = True
+    jobids = list(json.loads(self.get_argument("id", "[]")))
+    if jobids:
+      req['JobID'] = jobids
+      found = True
 
     elif 'expand' in self.request.arguments:
-      expand = list(json.loads(self.request.arguments['expand'][-1]))
-      if len(expand) > 0:
-        globalSort = [["GridSite", "ASC"]]
-        numberOfJobs = 500
-        pageNumber = 0
+      expand = list(json.loads(self.get_argument("expand", "[]")))
+      if expand:
+        self.numberOfJobs = 500
+        self.pageNumber = 0
         req["ExpandSite"] = expand[0]
         found = True
 
     if not found:
+      value = list(json.loads(self.get_argument("prod", "[]")))
+      if value:
+        req["JobGroup"] = value
 
-      if 'prod' in self.request.arguments:
-        value = list(json.loads(self.request.arguments["prod"][-1]))
-        if len(value) > 0:
-          req["JobGroup"] = value
+      value = list(json.loads(self.get_argument("site", "[]")))
+      if len(value) > 1:
+        req["GridSite"] = value
+      elif len(value) == 1:
+        req["ExpandSite"] = value[0]
 
-      if 'site' in self.request.arguments:
-        value = list(json.loads(self.request.arguments["site"][-1]))
-        if len(value) > 0:
-          if len(value) == 1:
-            req["ExpandSite"] = value[0]
-          else:
-            req["GridSite"] = value
-
-      if 'Status' in self.request.arguments:
-        value = list(json.loads(self.request.arguments["Status"][-1]))
-        if len(value) > 0:
-          req['Status'] = value
+      value = list(json.loads(self.get_argument("Status", "[]")))
+      if value:
+        req['Status'] = value
 
       if 'sort' in self.request.arguments:
-        sort = json.loads(self.request.arguments['sort'][-1])
+        sort = json.loads(self.get_argument("sort"))
         if len(sort) > 0:
-          self.globalSort = []
-          for i in sort:
-            self.globalSort += [[i['property'], i['direction']]]
+          self.globalSort = [[i['property'], i['direction']] for i in sort]
         else:
           self.globalSort = [["GridSite", "DESC"]]
 
-    if 'startDate' in self.request.arguments and len(self.request.get_argument("startDate")) > 0:
-      if 'startTime' in self.request.arguments and len(self.request.get_argument("startTime")) > 0:
-        req["FromDate"] = str(self.request.get_argument("startDate") + " " + self.request.get_argument("startTime"))
-      else:
-        req["FromDate"] = self.request.get_argument("startDate")
+    if self.get_argument("startDate", ""):
+      req["FromDate"] = self.get_argument("startDate")
+      if self.get_argument("startTime", ""):
+        req["FromDate"] += " " + self.get_argument("startTime")
 
-    if 'endDate' in self.request.arguments and len(self.request.get_argument("endDate")) > 0:
-      if 'endTime' in self.request.arguments and len(self.request.get_argument("endTime")) > 0:
-        req["ToDate"] = str(self.request.get_argument("endDate") + " " + self.request.get_argument("endTime"))
-      else:
-        req["ToDate"] = self.request.get_argument("endDate")
+    if self.get_argument("endDate", ""):
+      req["ToDate"] = self.get_argument("endDate")
+      if self.get_argument("endTime", ""):
+        req["ToDate"] += " " + self.get_argument("endTime")
 
-    if 'date' in self.request.arguments and len(self.request.get_argument("date")) > 0:
-      req["LastUpdate"] = self.request.get_argument("date")
+    if self.get_argument("date", ""):
+      req["LastUpdate"] = self.get_argument("date")
     gLogger.info("REQUEST:", req)
     return req

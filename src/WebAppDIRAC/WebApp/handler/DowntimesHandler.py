@@ -4,6 +4,7 @@
 import json
 from datetime import datetime
 
+import tornado
 from DIRAC import gLogger
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
@@ -21,7 +22,7 @@ class DowntimesHandler(WebHandler):
         'sites': set()
     }
 
-    gLogger.info(self.request.arguments)
+    gLogger.info("web_getSelectionData arguments", repr(self.request.arguments))
 
     downtimes = yield self.threadTask(PublisherClient().getCachedDowntimes, None, None, None, None)
 
@@ -100,8 +101,7 @@ class DowntimesHandler(WebHandler):
       We receive the request and we parse it, in this case, we are doing nothing,
       but it can be certainly more complex.
     '''
-
-    gLogger.always("!!!  PARAMS: ", str(self.request.arguments))
+    gLogger.always("!!!  PARAMS: ", repr(self.request.arguments))
 
     responseParams = {
         'name': [],
@@ -110,32 +110,21 @@ class DowntimesHandler(WebHandler):
     }
 
     for key in responseParams:
-      if key in self.request.arguments and str(self.request.arguments[key][-1]):
-        responseParams[key] = list(json.loads(self.request.arguments[key][-1]))
-
-    responseParams['startDate'] = None
-    responseParams['endDate'] = None
+      if self.get_argument(key, None):
+        responseParams[key] = list(json.loads(self.get_argument(key)))
 
     try:
-      startDate = '%s %s' % (self.request.arguments['startDate'], self.request.arguments['startTime'])
-      responseParams['startDate'] = datetime.strptime(startDate, '%Y-%m-%d %H:%M')
-    except KeyError:
-      pass
-    except ValueError:
-      pass
-
-    if responseParams['startDate'] is None:
-      responseParams['startDate'] = datetime.utcnow()
+      startDate = '%s %s' % (self.get_argument("startDate"), self.get_argument("startTime"))
+      startDate = datetime.strptime(startDate, '%Y-%m-%d %H:%M')
+    except (tornado.web.MissingArgumentError, ValueError):
+      startDate = datetime.utcnow()
+    responseParams['startDate'] = startDate
 
     try:
-      endDate = '%s %s' % (self.request.arguments['endDate'], self.request.arguments['endTime'])
-      responseParams['endDate'] = datetime.strptime(endDate, '%Y-%m-%d %H:%M')
-    except KeyError:
-      pass
-    except ValueError:
-      pass
-
-    if responseParams['endDate'] is None:
-      responseParams['endDate'] = datetime.utcnow()
+      endDate = '%s %s' % (self.get_argument("endDate"), self.get_argument("endTime"))
+      endDate = datetime.strptime(endDate, '%Y-%m-%d %H:%M')
+    except (tornado.web.MissingArgumentError, ValueError):
+      endDate = datetime.utcnow()
+    responseParams['endDate'] = endDate
 
     return responseParams

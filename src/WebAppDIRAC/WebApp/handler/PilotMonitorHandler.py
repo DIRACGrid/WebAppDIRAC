@@ -73,13 +73,10 @@ class PilotMonitorHandler(WebHandler):
 
   @asyncGen
   def web_getSelectionData(self):
-
     callback = {}
 
     if len(self.request.arguments) > 0:
-      tmp = {}
-      for i in self.request.arguments:
-        tmp[i] = str(self.request.arguments[i][0]).replace('"', '')
+      tmp = {self.get_argument(i).replace('"', "") for i in self.request.arguments}
       callback["extra"] = tmp
 
     result = yield self.threadTask(PilotManagerClient().getPilotMonitorSelectors)
@@ -150,97 +147,75 @@ class PilotMonitorHandler(WebHandler):
 
   ################################################################################
   def __request(self):
+    self.numberOfJobs = int(self.get_argument("limit", "25"))
+    self.pageNumber = int(self.get_argument("start", "0"))
+    self.globalSort = [["SubmissionTime", "DESC"]]
     req = {}
 
-    if "limit" in self.request.arguments:
-      self.numberOfJobs = int(self.request.get_argument("limit"))
-      if "start" in self.request.arguments:
-        self.pageNumber = int(self.request.get_argument("start"))
-      else:
-        self.pageNumber = 0
-    else:
-      self.numberOfJobs = 25
-      self.pageNumber = 0
+    site = list(json.loads(self.get_argument("site", "[]")))
+    if site:
+      req['GridSite'] = site
 
-    if 'site' in self.request.arguments:
-      site = list(json.loads(self.request.arguments['site'][-1]))
-      if len(site) > 0:
-        req['GridSite'] = site
+    taskQueueId = list(json.loads(self.get_argument("taskQueueId", "[]")))
+    if taskQueueId:
+      req['TaskQueueID'] = taskQueueId
 
-    if 'taskQueueId' in self.request.arguments:
-      taskQueueId = list(json.loads(self.request.arguments['taskQueueId'][-1]))
-      if len(taskQueueId) > 0:
-        req['TaskQueueID'] = taskQueueId
+    pilotId = list(json.loads(self.get_argument("pilotId", "[]")))
+    if pilotId:
+      req['PilotJobReference'] = pilotId
 
-    if 'pilotId' in self.request.arguments:
-      pilotId = list(json.loads(self.request.arguments['pilotId'][-1]))
-      if len(pilotId) > 0:
-        req['PilotJobReference'] = pilotId
+    broker = list(json.loads(self.get_argument("broker", "[]")))
+    if broker:
+      req['broker'] = broker
 
-    if 'broker' in self.request.arguments:
-      broker = list(json.loads(self.request.arguments["broker"][-1]))
-      if len(broker) > 0:
-        req['broker'] = broker
+    status = list(json.loads(self.get_argument("status", "[]")))
+    if status:
+      req['Status'] = status
 
-    if 'status' in self.request.arguments:
-      status = list(json.loads(self.request.arguments["status"][-1]))
-      if len(status) > 0:
-        req['Status'] = status
+    ce = list(json.loads(self.get_argument("computingElement", "[]")))
+    if ce:
+      req['DestinationSite'] = ce
 
-    if 'computingElement' in self.request.arguments:
-      ce = list(json.loads(self.request.arguments["computingElement"][-1]))
-      if len(ce) > 0:
-        req['DestinationSite'] = ce
+    owner = list(json.loads(self.get_argument("owner", "[]")))
+    if owner:
+      req['Owner'] = owner
 
-    if 'owner' in self.request.arguments:
-      owner = list(json.loads(self.request.arguments["owner"][-1]))
-      if len(owner) > 0:
-        req['Owner'] = owner
+    ownerGroup = list(json.loads(self.get_argument("ownerGroup", "[]")))
+    if ownerGroup:
+      req['OwnerGroup'] = ownerGroup
 
-    if 'ownerGroup' in self.request.arguments:
-      ownerGroup = list(json.loads(self.request.arguments["ownerGroup"][-1]))
-      if len(ownerGroup) > 0:
-        req['OwnerGroup'] = ownerGroup
+    sort = json.loads(self.get_argument("sort", "[]"))
+    if len(sort) > 0:
+      self.globalSort = [[i['property'], i['direction']] for i in sort]
 
-    if 'sort' in self.request.arguments:
-      sort = json.loads(self.request.arguments['sort'][-1])
-      if len(sort) > 0:
-        self.globalSort = []
-        for i in sort:
-          self.globalSort += [[i['property'], i['direction']]]
-    else:
-      self.globalSort = [["SubmissionTime", "DESC"]]
+    if self.get_argument("startDate", ""):
+      req["FromDate"] = self.get_argument("startDate")
+      if self.get_argument("startTime", ""):
+        req["FromDate"] += " " + self.get_argument("startTime")
 
-    if 'startDate' in self.request.arguments and len(self.request.get_argument("startDate")) > 0:
-      if 'startTime' in self.request.arguments and len(self.request.get_argument("startTime")) > 0:
-        req["FromDate"] = str(self.request.get_argument("startDate") + " " + self.request.get_argument("startTime"))
-      else:
-        req["FromDate"] = self.request.get_argument("startDate")
+    if self.get_argument("endDate", ""):
+      req["ToDate"] = self.get_argument("endDate")
+      if self.get_argument("endTime", ""):
+        req["ToDate"] += " " + self.get_argument("endTime")
 
-    if 'endDate' in self.request.arguments and len(self.request.get_argument("endDate")) > 0:
-      if 'endTime' in self.request.arguments and len(self.request.get_argument("endTime")) > 0:
-        req["ToDate"] = str(self.request.get_argument("endDate") + " " + self.request.get_argument("endTime"))
-      else:
-        req["ToDate"] = self.request.get_argument("endDate")
-
-    if 'date' in self.request.arguments and len(self.request.get_argument("date")) > 0:
-      req["LastUpdate"] = self.request.get_argument("date")
+    if self.get_argument("date", ""):
+      req["LastUpdate"] = self.get_argument("date")
     gLogger.info("REQUEST:", req)
     return req
 
   @asyncGen
   def web_getJobInfoData(self):
     callback = {}
-    data = self.request.get_argument("data")
+    data = self.get_argument("data")
 
     RPC = PilotManagerClient()
-    if self.request.get_argument("data_kind") == "getPilotOutput":
+    if self.get_argument("data_kind") == "getPilotOutput":
       result = yield self.threadTask(RPC.getPilotOutput, data)
       if result["OK"]:
         callback = {"success": "true", "result": result["Value"]["StdOut"]}
       else:
         callback = {"success": "false", "error": result["Message"]}
-    elif self.request.get_argument("data_kind") == "getPilotError":
+    elif self.get_argument("data_kind") == "getPilotError":
       result = yield self.threadTask(RPC.getPilotOutput, data)
       if result["OK"]:
         if len(result["Value"]["StdErr"]) > 0:
@@ -249,7 +224,7 @@ class PilotMonitorHandler(WebHandler):
           callback = {"success": "false", "error": "Pilot Error is empty"}
       else:
         callback = {"success": "false", "error": result["Message"]}
-    elif self.request.get_argument("data_kind") == "getLoggingInfo":
+    elif self.get_argument("data_kind") == "getLoggingInfo":
       result = yield self.threadTask(RPC.getPilotLoggingInfo, data)
       if result["OK"]:
         callback = {"success": "true", "result": result["Value"]}
@@ -266,7 +241,7 @@ class PilotMonitorHandler(WebHandler):
 
     RPC = PilotManagerClient()
 
-    selector = self.request.get_argument("statsField")
+    selector = self.get_argument("statsField")
 
     if selector == 'Site':
       selector = "GridSite"

@@ -51,7 +51,7 @@ class MonitoringHandler(WebHandler):
   @asyncGen
   def web_getSelectionData(self):
     callback = {}
-    typeName = self.request.get_argument("type")
+    typeName = self.get_argument("type")
     # Get unique key values
     retVal = yield self.threadTask(self.__getUniqueKeyValues, typeName)
     if not retVal['OK']:
@@ -85,17 +85,14 @@ class MonitoringHandler(WebHandler):
     self.finish({"success": "true", "result": callback})
 
   def __parseFormParams(self):
-    params = self.request.arguments
     pD = {}
     extraParams = {}
     pinDates = False
 
-    for name in params:
+    for name in self.request.arguments:
       if name.find("_") != 0:
         continue
-      value = params[name][0]
-      name = name[1:]
-      pD[name] = str(value)
+      pD[name[1:]] = self.get_argument(name)
 
     # Personalized title?
     if 'plotTitle' in pD:
@@ -187,7 +184,7 @@ class MonitoringHandler(WebHandler):
       callback = {"success": "false", "error": "Maybe you forgot the file?"}
       self.finish(callback)
       return
-    plotImageFile = self.request.get_argument("file")
+    plotImageFile = self.get_argument("file")
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 
@@ -221,7 +218,7 @@ class MonitoringHandler(WebHandler):
       callback = {"success": "false", "error": "Maybe you forgot the file?"}
       self.finish(callback)
       return
-    plotImageFile = self.request.get_argument("file")
+    plotImageFile = self.get_argument("file")
 
     retVal = extractRequestFromFileId(plotImageFile)
     if not retVal['OK']:

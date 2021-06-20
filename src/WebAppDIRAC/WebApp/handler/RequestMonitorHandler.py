@@ -156,80 +156,56 @@ class RequestMonitorHandler(WebHandler):
 
   ################################################################################
   def __request(self):
-    self.pageNumber = 0
-    self.numberOfJobs = 25
+    self.numberOfJobs = int(self.get_argument("limit", "25"))
+    self.pageNumber = int(self.get_argument("start", "0"))
     self.globalSort = [["JobID", "DESC"]]
-    req = {}
     group = self.getUserGroup()
     user = self.getUserName()
-
-    if "limit" in self.request.arguments:
-      self.numberOfJobs = int(self.request.get_argument("limit"))
-      if "start" in self.request.arguments:
-        self.pageNumber = int(self.request.get_argument("start"))
-      else:
-        self.pageNumber = 0
-    else:
-      self.numberOfJobs = 25
-      self.pageNumber = 0
-
+    req = {}
     found = False
-    if 'id' in self.request.arguments:
-      jobids = list(json.loads(self.request.arguments['id'][-1]))
-      if len(jobids) > 0:
-        req['JobID'] = jobids
-        found = True
 
-    if 'reqId' in self.request.arguments and not found:
-      reqids = list(json.loads(self.request.arguments['reqId'][-1]))
-      if len(reqids) > 0:
-        req['RequestID'] = reqids
-        found = True
+    jobids = list(json.loads(self.get_argument("id", "[]")))
+    if jobids:
+      req['JobID'] = jobids
+      found = True
+
+    reqids = list(json.loads(self.get_argument("reqId", "[]")))
+    if reqids and not found:
+      req['RequestID'] = reqids
+      found = True
 
     if not found:
+      value = list(json.loads(self.get_argument("operationType", "[]")))
+      if value:
+        req["Type"] = value
 
-      if 'operationType' in self.request.arguments:
-        value = list(json.loads(self.request.arguments["operationType"][-1]))
-        if len(value) > 0:
-          req["Type"] = value
+      value = list(json.loads(self.get_argument("ownerGroup", "[]")))
+      if value:
+        req["OwnerGroup"] = value
 
-      if 'ownerGroup' in self.request.arguments:
-        value = list(json.loads(self.request.arguments["ownerGroup"][-1]))
-        if len(value) > 0:
-          req["OwnerGroup"] = value
+      value = list(json.loads(self.get_argument("status", "[]")))
+      if value:
+        req["Status"] = value
 
-      if 'status' in self.request.arguments:
-        value = list(json.loads(self.request.arguments["status"][-1]))
-        if len(value) > 0:
-          req["Status"] = value
+      value = list(json.loads(self.get_argument("owner", "[]")))
+      if value:
+        req["OwnerDN"] = value
 
-      if 'owner' in self.request.arguments:
-        value = list(json.loads(self.request.arguments["owner"][-1]))
-        if len(value) > 0:
-          req["OwnerDN"] = value
+      sort = json.loads(self.get_argument("sort", "[]"))
+      if sort:
+        self.globalSort = [[i['property'], i['direction']] for i in sort]
 
-      if 'sort' in self.request.arguments:
-        sort = json.loads(self.request.arguments['sort'][-1])
-        if len(sort) > 0:
-          self.globalSort = []
-          for i in sort:
-            self.globalSort += [[i['property'], i['direction']]]
-        else:
-          self.globalSort = [["RequestID", "DESC"]]
+    if self.get_argument("startDate", ""):
+      req["FromDate"] = self.get_argument("startDate")
+      if self.get_argument("startTime", ""):
+        req["FromDate"] += " " + self.get_argument("startTime")
 
-    if 'startDate' in self.request.arguments and len(self.request.get_argument("startDate")) > 0:
-      if 'startTime' in self.request.arguments and len(self.request.get_argument("startTime")) > 0:
-        req["FromDate"] = str(self.request.get_argument("startDate") + " " + self.request.get_argument("startTime"))
-      else:
-        req["FromDate"] = self.request.get_argument("startDate")
+    if self.get_argument("endDate", ""):
+      req["ToDate"] = self.get_argument("endDate")
+      if self.get_argument("endTime", ""):
+        req["ToDate"] += " " + self.get_argument("endTime")
 
-    if 'endDate' in self.request.arguments and len(self.request.get_argument("endDate")) > 0:
-      if 'endTime' in self.request.arguments and len(self.request.get_argument("endTime")) > 0:
-        req["ToDate"] = str(self.request.get_argument("endDate") + " " + self.request.get_argument("endTime"))
-      else:
-        req["ToDate"] = self.request.get_argument("endDate")
-
-    if 'date' in self.request.arguments and len(self.request.get_argument("date")) > 0:
-      req["LastUpdate"] = self.request.get_argument("date")
+    if self.get_argument("date", ""):
+      req["LastUpdate"] = self.get_argument("date")
     gLogger.info("REQUEST:", req)
     return req

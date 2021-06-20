@@ -16,17 +16,11 @@ class RootHandler(WebHandler):
   LOCATION = "/"
 
   def web_changeGroup(self):
-    try:
-      to = self.request.arguments['to'][-1]
-    except KeyError:
-      raise WErr(400, "Missing 'to' argument")
+    to = self.get_argument("to")
     self.__change(group=to)
 
   def web_changeSetup(self):
-    try:
-      to = self.request.arguments['to'][-1]
-    except KeyError:
-      raise WErr(400, "Missing 'to' argument")
+    to = self.get_argument("to")
     self.__change(setup=to)
 
   def __change(self, setup=None, group=None):
@@ -49,8 +43,8 @@ class RootHandler(WebHandler):
     data = self.getSessionData()
 
     url_state = ""
-    if "url_state" in self.request.arguments and len(self.request.get_argument("url_state")) > 0:
-      url_state = xhtml_escape(self.request.get_argument("url_state"))
+    if "url_state" in self.request.arguments and len(self.get_argument("url_state")) > 0:
+      url_state = xhtml_escape(self.get_argument("url_state"))
 
     # Default theme/view settings
     theme_name = "crisp"
@@ -59,15 +53,15 @@ class RootHandler(WebHandler):
       view_name, theme_name = view_name.split(":", 1)
 
     # User selected theme/view
-    if "view" in self.request.arguments and len(self.request.get_argument("view")) > 0:
-      view_name = xhtml_escape(self.request.get_argument("view"))
+    if "view" in self.request.arguments and len(self.get_argument("view")) > 0:
+      view_name = xhtml_escape(self.get_argument("view"))
 
-    if "theme" in self.request.arguments and len(self.request.get_argument("theme")) > 0:
-      theme_name = xhtml_escape(self.request.get_argument("theme").lower())
+    if "theme" in self.request.arguments and len(self.get_argument("theme")) > 0:
+      theme_name = xhtml_escape(self.get_argument("theme").lower())
 
     open_app = ""
-    if "open_app" in self.request.arguments and len(self.request.get_argument("open_app")) > 0:
-      open_app = xhtml_escape(self.request.get_argument("open_app").strip())
+    if "open_app" in self.request.arguments and len(self.get_argument("open_app")) > 0:
+      open_app = xhtml_escape(self.get_argument("open_app").strip())
 
     icon = data['baseURL'] + Conf.getIcon()
     background = data['baseURL'] + Conf.getBackgroud()

@@ -24,24 +24,21 @@ class JobSummaryHandler(WebHandler):
     if result["OK"]:
       result = result["Value"]
       if len(result.get("Status", [])) > 0:
-        status = []
-        status.append([str("All")])
+        status = [[str("All")]]
         for i in result["Status"]:
           status.append([str(i)])
       else:
         status = [["Nothing to display"]]
       callback["status"] = status
       if len(result.get("GridType", [])) > 0:
-        gridtype = []
-        gridtype.append([str("All")])
+        gridtype = [[str("All")]]
         for i in result["GridType"]:
           gridtype.append([str(i)])
       else:
         gridtype = [["Nothing to display"]]
       callback["gridtype"] = gridtype
       if len(result.get("MaskStatus", [])) > 0:
-        maskstatus = []
-        maskstatus.append([str("All")])
+        maskstatus = [[str("All")]]
         for i in result["MaskStatus"]:
           maskstatus.append([str(i)])
       else:
@@ -50,8 +47,7 @@ class JobSummaryHandler(WebHandler):
       if len(result.get("Site", [])) > 0:
         s = list(result["Site"])
         tier1 = gConfig.getValue("/WebApp/PreferredSites", [])
-        site = list()
-        site.append(["All"])
+        site = [["All"]]
         for i in tier1:
           site.append([str(i)])
         for i in s:
@@ -61,8 +57,7 @@ class JobSummaryHandler(WebHandler):
         site = [["Error during RPC call"]]
       callback["site"] = site
       if len(result.get("Country", [])) > 0:
-        country = []
-        country.append(["All"])
+        country = [["All"]]
         countryCode = self.__getCountries()
         for i in result["Country"]:
           if i in countryCode:
@@ -100,13 +95,8 @@ class JobSummaryHandler(WebHandler):
               headLength = len(head)
               countryCode = self.__getCountries()
               for i in jobs:
-                tmp = {}
-                for j in range(0, headLength):
-                  tmp[head[j]] = i[j]
-                if i[2] in countryCode:
-                  tmp["FullCountry"] = countryCode[i[2]]
-                else:
-                  tmp["FullCountry"] = "Unknown"
+                tmp = {head[j]: i[j] for j in range(headLength)}
+                tmp["FullCountry"] = countryCode[i[2]] if i[2] in countryCode else "Unknown"
                 result.append(tmp)
               total = retVal["Value"]["TotalRecords"]
               if "Extras" in retVal["Value"]:
@@ -132,55 +122,45 @@ class JobSummaryHandler(WebHandler):
     req = {}
 
     if "id" in self.request.arguments:
-      jobids = list(json.loads(self.request.arguments['id'][-1]))
-      if len(jobids) > 0:
+      jobids = list(json.loads(self.get_argument("id")))
+      if jobids:
         req['JobID'] = jobids
 
-    elif len(self.request.arguments.get("expand", [])) > 0:
+    elif len(self.get_argument("expand", [])) > 0:
       self.globalSort = [["GridSite", "ASC"]]
       self.numberOfJobs = 500
       self.pageNumber = 0
-      req["ExpandSite"] = str(self.request.arguments.get("expand", ""))
+      req["ExpandSite"] = self.get_argument("expand", "")
     else:
       self.pageNumber = 0
       self.numberOfJobs = 500
-      if "country" in self.request.arguments:
-        countries = list(json.loads(self.request.arguments['country'][-1]))
-        if len(countries) > 0:
-          code = self.__getCountriesReversed()
-          newValue = []
-          for i in countries:
-            if i in code:
-              newValue.append(code[i])
-          req["Country"] = newValue
+      countries = list(json.loads(self.get_argument("country", "[]")))
+      if countries:
+        code = self.__getCountriesReversed()
+        newValue = [code[i] for i in countries if i in code]
+        req["Country"] = newValue
 
-      if "site" in self.request.arguments:
-        site = list(json.loads(self.request.arguments['site'][-1]))
-        if len(site) > 0:
-          req['Site'] = site
+      site = list(json.loads(self.get_argument("site", "[]")))
+      if site:
+        req['Site'] = site
 
-      if "status" in self.request.arguments:
-        status = list(json.loads(self.request.arguments['status'][-1]))
-        if len(status) > 0:
-          req['Status'] = status
+      status = list(json.loads(self.get_argument("status", "[]")))
+      if status:
+        req['Status'] = status
 
-      if "maskstatus" in self.request.arguments:
-        maskstatus = list(json.loads(self.request.arguments['maskstatus'][-1]))
-        if len(maskstatus) > 0:
-          req['MaskStatus'] = maskstatus
+      maskstatus = list(json.loads(self.get_argument("maskstatus", "[]")))
+      if maskstatus:
+        req['MaskStatus'] = maskstatus
 
-      if "gridtype" in self.request.arguments:
-        gridtype = list(json.loads(self.request.arguments['gridtype'][-1]))
-        if len(gridtype) > 0:
-          req['GridType'] = gridtype
-      else:
-        if "owner" in self.request.arguments:
-          owner = list(json.loads(self.request.arguments['owner'][-1]))
-          if len(owner) > 0:
-            req['Owner'] = owner
+      gridtype = list(json.loads(self.get_argument("gridtype", "[]")))
+      owner = list(json.loads(self.get_argument("owner", "[]")))
+      if gridtype:
+        req['GridType'] = gridtype
+      elif owner:
+          req['Owner'] = owner
 
-      if 'date' in self.request.arguments and len(self.request.get_argument("date")) > 0:
-        req["LastUpdate"] = self.request.get_argument("date")
+      if self.get_argument("date", ""):
+        req["LastUpdate"] = self.get_argument("date")
 
     gLogger.info("REQUEST:", req)
     return req
@@ -190,10 +170,8 @@ class JobSummaryHandler(WebHandler):
     Return the dictionary of country names and
     corresponding country code top-level domain (ccTLD)
     """
-
     result = self.__getCountries()
-    name = dict(zip(result.values(), result))
-    return name
+    return dict(zip(result.values(), result))
 
   @staticmethod
   def __getCountries():
@@ -201,8 +179,7 @@ class JobSummaryHandler(WebHandler):
     Return the dictionary of country code top-level domain (ccTLD) and
     corresponding country name
     """
-
-    countries = {
+    return {
         "af": "Afghanistan",
         "al": "Albania",
         "dz": "Algeria",
@@ -445,5 +422,3 @@ class JobSummaryHandler(WebHandler):
         "zw": "Zimbabwe",
         "su": "Soviet Union"
     }
-
-    return countries

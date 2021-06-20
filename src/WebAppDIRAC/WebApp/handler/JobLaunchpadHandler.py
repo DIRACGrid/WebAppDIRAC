@@ -103,9 +103,11 @@ class JobLaunchpadHandler(WebHandler):
       self.fc = FileCatalog(vo=vo)
 
     self.set_header('Content-type', 'text/plain')
-    arguments = self.request.arguments
-    gLogger.always("submit: incoming arguments %s to getLaunchpadSetupWithLFNs" % arguments)
-    lfnList = str(arguments['path'][0]).split(',')
+    gLogger.always(
+        "submit: incoming arguments to getLaunchpadSetupWithLFNs",
+        repr(self.request.arguments)
+    )
+    lfnList = self.get_argument("path").split(',')
 
     ptlfn = ''
     for lfn in lfnList:
@@ -157,15 +159,13 @@ class JobLaunchpadHandler(WebHandler):
     lfns = []
     params = {}
     for tmp in self.request.arguments:
-      try:
-        if len(self.request.arguments[tmp][0]) > 0:
-          if tmp[:8] == "lfnField":
-            if len(self.request.arguments[tmp][0].strip()) > 0:
-              lfns.append("LFN:" + self.request.arguments[tmp][0])
-          else:
-            params[tmp] = self.request.arguments[tmp][0]
-      except BaseException:
-        pass
+      value = self.get_argument(tmp)
+      if value:
+        if tmp.startswith("lfnField"):
+          lfns.append("LFN:" + value)
+        else:
+          params[tmp] = value
+
     for item in params:
       if item == "OutputSandbox":
         jdl += str(item) + " = {" + str(params[item]) + "};"
@@ -173,7 +173,7 @@ class JobLaunchpadHandler(WebHandler):
         try:
           parameters = int(params[item])
           jdl += str(item) + " = \"" + str(parameters) + "\";"
-        except BaseException:
+        except Exception:
           parameters = str(params[item])
           if parameters.find("{") >= 0 and parameters.find("}") >= 0:
             parameters = parameters.rstrip("}")
@@ -196,7 +196,7 @@ class JobLaunchpadHandler(WebHandler):
         if self.request.files[key][0].filename:
           gLogger.info("\033[0;31m file - %s \033[0m " % self.request.files[key][0].filename)
           store.append(self.request.files[key][0])
-      except BaseException:
+      except Exception:
         pass
 
     gLogger.info("\033[0;31m *** %s \033[0m " % params)

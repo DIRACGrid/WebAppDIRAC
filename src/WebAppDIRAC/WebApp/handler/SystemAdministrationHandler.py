@@ -54,11 +54,11 @@ class SystemAdministrationHandler(WebHandler):
 
     callback = list()
 
-    if "hostname" not in self.request.arguments or not self.request.get_argument("hostname"):
+    if "hostname" not in self.request.arguments or not self.get_argument("hostname"):
       self.finish({"success": "true", "result": callback})
       return
 
-    host = self.request.get_argument("hostname")
+    host = self.get_argument("hostname")
     client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
     result = yield self.threadTask(client.getOverallStatus)
     gLogger.debug("Result of getOverallStatus(): %s" % result)
@@ -99,7 +99,7 @@ class SystemAdministrationHandler(WebHandler):
       self.finish({"success": "false", "error": "Name of the host is missing or not defined"})
       return
 
-    host = self.request.get_argument("host")
+    host = self.get_argument("host")
 
     client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
 
@@ -130,18 +130,18 @@ class SystemAdministrationHandler(WebHandler):
     if "host" not in self.request.arguments:
       self.finish({"success": "false", "error": "Name of the host is missing or not defined"})
       return
-    host = self.request.get_argument("host")
+    host = self.get_argument("host")
 
     if "system" not in self.request.arguments:
       self.finish({"success": "false", "error": "Name of the system is missing or not defined"})
       return
-    system = self.request.get_argument("system")
+    system = self.get_argument("system")
 
     if "component" not in self.request.arguments:
       self.finish({"success": "false", "error": "Name of component is missing or not defined"})
       return
 
-    name = self.request.get_argument("component")
+    name = self.get_argument("component")
 
     client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
 
@@ -177,9 +177,9 @@ class SystemAdministrationHandler(WebHandler):
       self.finish({"success": "false", "error": "No action defined"})
       return
 
-    action = self.request.get_argument("action")
-    hosts = self.request.get_argument("host").split(",")
-    version = self.request.get_argument("version")
+    action = self.get_argument("action")
+    hosts = self.get_argument("host").split(",")
+    version = self.get_argument("version")
 
     DN = self.getUserDN()
     group = self.getUserGroup()
@@ -229,11 +229,11 @@ class SystemAdministrationHandler(WebHandler):
     DN = self.getUserDN()
     group = self.getUserGroup()
 
-    if not (("action" in self.request.arguments) and (len(self.request.get_argument("action")) > 0)):
+    if not (("action" in self.request.arguments) and (len(self.get_argument("action")) > 0)):
       self.finish({"success": "false", "error": "No action defined"})
       return
 
-    action = self.request.get_argument("action")
+    action = self.get_argument("action")
 
     if action not in ["restart", "start", "stop"]:
       error = "The request parameters action '%s' is unknown" % action
@@ -250,7 +250,7 @@ class SystemAdministrationHandler(WebHandler):
       if not len(target) == 2:
         continue
 
-      system = self.request.arguments[i][0]
+      system = self.get_argument(i)
       gLogger.always("System: %s" % system)
       host = target[1]
       gLogger.always("Host: %s" % host)
@@ -391,7 +391,7 @@ class SystemAdministrationHandler(WebHandler):
       self.finish({"success": "false", "error": result})
       return
 
-    subject = self.checkUnicode(self.request.get_argument("subject"))
+    subject = self.checkUnicode(self.get_argument("subject"))
     if not subject:
       subject = "Message from %s" % email
 
@@ -401,16 +401,16 @@ class SystemAdministrationHandler(WebHandler):
       self.finish({"success": "false", "error": result})
       return
 
-    body = self.checkUnicode(self.request.get_argument("message"))
+    body = self.checkUnicode(self.get_argument("message"))
     if not len(body) > 0:
       result = "Message body has zero length... aborting"
       gLogger.debug(result)
       self.finish({"success": "false", "error": result})
       return
 
-    users = self.request.get_argument("users").split(",")
+    users = self.get_argument("users").split(",")
 
-    groups = self.request.get_argument("groups").split(",")
+    groups = self.get_argument("groups").split(",")
 
     gLogger.info("List of groups from request: %s" % groups)
     if groups:
@@ -564,7 +564,7 @@ class SystemAdministrationHandler(WebHandler):
     setup = self.getUserSetup().split('-')[-1]
     systemList = []
     componentTypes = ['Services', 'Agents']
-    componentTypes = self.request.get_arguments("ComponentType") or componentTypes
+    componentTypes = self.get_arguments("ComponentType") or componentTypes
 
     retVal = gConfig.getSections('/Systems')
 
@@ -598,7 +598,7 @@ class SystemAdministrationHandler(WebHandler):
     data['Hosts'] = hosts
 
     componentTypes = ['Services', 'Agents', 'Executors']
-    componentTypes = self.request.get_arguments("ComponentType") or componentTypes
+    componentTypes = self.get_arguments("ComponentType") or componentTypes
 
     retVal = gConfig.getSections('/Systems')
 
@@ -648,23 +648,23 @@ class SystemAdministrationHandler(WebHandler):
       hosts = result['Value']
 
     componentTypes = ['Services', 'Agents']
-    componentTypes = self.request.get_arguments("ComponentType") or componentTypes
+    componentTypes = self.get_arguments("ComponentType") or componentTypes
 
     componentNames = []
     if "ComponentName" in self.request.arguments:
-      componentNames = list(json.loads(self.request.get_argument("ComponentName")))
+      componentNames = list(json.loads(self.get_argument("ComponentName")))
 
     componentModules = []
     if "ComponentModule" in self.request.arguments:
-      componentModules = list(json.loads(self.request.get_argument("ComponentModule")))
+      componentModules = list(json.loads(self.get_argument("ComponentModule")))
 
     showAll = 0
     if "showAll" in self.request.arguments:
-      showAll = int(self.request.get_argument("showAll"))
+      showAll = int(self.get_argument("showAll"))
 
     selectedHosts = []
     if "Hosts" in self.request.arguments:  # we only use the selected host(s)
-      selectedHosts = list(json.loads(self.request.get_argument("Hosts")))
+      selectedHosts = list(json.loads(self.get_argument("Hosts")))
     retVal = gConfig.getSections('/Systems')
 
     compMatching = {}

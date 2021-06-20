@@ -16,8 +16,8 @@ class AuthenticationHandler(WebHandler):
   def web_sendRequest(self):
     """ Send mail to administrators
     """
-    typeAuth = self.request.get_argument("typeauth")
-    loadValue = self.request.arguments["value"]
+    typeAuth = self.get_argument("typeauth")
+    loadValue = self.get_argument("value")
     addresses = Conf.getCSValue('AdminsEmails')
     NotificationClient().sendMail(
         addresses, subject="Request from %s %s" %
@@ -27,8 +27,8 @@ class AuthenticationHandler(WebHandler):
   # Get information from CS about auth types
   @asyncGen
   def web_getAuthCFG(self):
-    typeAuth = self.request.get_argument("typeauth")
-    loadValue = self.request.get_argument("value")
+    typeAuth = self.get_argument("typeauth")
+    loadValue = self.get_argument("value")
     res = {}
     if Conf.getCSSections("TypeAuths")['OK']:
       if typeAuth:
@@ -54,8 +54,8 @@ class AuthenticationHandler(WebHandler):
   def web_auth(self):
     """ Set authentication type
     """
-    typeAuth = self.request.get_argument("typeauth")
-    loadValue = self.request.get_argument("value")
+    typeAuth = self.get_argument("typeauth")
+    loadValue = self.get_argument("value")
     method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth)
     auths = ['Certificate']
     if Conf.getCSSections("TypeAuths")['OK']:
