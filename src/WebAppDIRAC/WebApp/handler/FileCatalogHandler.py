@@ -181,7 +181,7 @@ class FileCatalogHandler(WebHandler):
     path = "/"
 
     if "path" in self.request.arguments:
-      path = self.request.arguments["path"][0]
+      path = self.request.get_argument("path")
 
     gLogger.always(compat)
 
@@ -247,12 +247,12 @@ class FileCatalogHandler(WebHandler):
     req = {"selection": {}, "path": "/"}
 
     self.L_NUMBER = 25
-    if "limit" in self.request.arguments and len(self.request.arguments["limit"][0]) > 0:
-      self.L_NUMBER = int(self.request.arguments["limit"][0])
+    if "limit" in self.request.arguments and len(self.request.get_argument("limit")) > 0:
+      self.L_NUMBER = int(self.request.get_argument("limit"))
 
     self.S_NUMBER = 0
-    if "start" in self.request.arguments and len(self.request.arguments["start"][0]) > 0:
-      self.S_NUMBER = int(self.request.arguments["start"][0])
+    if "start" in self.request.arguments and len(self.request.get_argument("start")) > 0:
+      self.S_NUMBER = int(self.request.get_argument("start"))
 
     result = gConfig.getOption("/WebApp/ListSeparator")
     if result["OK"]:
@@ -319,7 +319,7 @@ class FileCatalogHandler(WebHandler):
         elif value[0] == "s":
           req["selection"][name][logic] += value[1].split(":::")
     if "path" in self.request.arguments:
-      req["path"] = self.request.arguments["path"][0]
+      req["path"] = self.request.get_argument("path")
     gLogger.always("REQ: ", req)
     return req
 
@@ -355,9 +355,9 @@ class FileCatalogHandler(WebHandler):
 
     gLogger.always("request: metafields: %s " % meta)
 
-    selectionElems = self.request.arguments["selection"][0].split("<|>")
+    selectionElems = self.request.get_argument("selection").split("<|>")
 
-    gLogger.always("request: THISSSS %s " % self.request.arguments["selection"][0])
+    gLogger.always("request: THISSSS %s " % self.request.get_argument("selection"))
 
     for param in selectionElems:
 
@@ -390,7 +390,7 @@ class FileCatalogHandler(WebHandler):
         elif tmp[2] == "s":
           req["selection"][name][logic] += tmp[3].split(":::")
     if "path" in self.request.arguments:
-      req["path"] = self.request.arguments["path"][0]
+      req["path"] = self.request.get_argument("path")
     gLogger.always("REQ: ", req)
     return req
 
@@ -424,7 +424,7 @@ class FileCatalogHandler(WebHandler):
 
   @asyncGen
   def web_getSubnodeFiles(self):
-    path = self.request.arguments["path"][0]
+    path = self.request.get_argument("path")
 
     result = yield self.threadTask(self.fc.listDirectory, path, False)
     if not result["OK"]:

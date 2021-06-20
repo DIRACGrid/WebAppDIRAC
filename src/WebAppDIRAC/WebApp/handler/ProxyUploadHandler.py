@@ -52,7 +52,7 @@ class ProxyUploadHandler(WebHandler):
           gLogger.info(".p12 in filename detected")
           if self.request.arguments["pass_p12"]:
             fileObject = self.request.files[key][0]
-            fileObject.p12 = str(self.request.arguments["pass_p12"][0])
+            fileObject.p12 = self.request.get_argument("pass_p12")
             gLogger.info(".p12 password detected")
 #             store.append(fileObject)
             gLogger.info("Certificate object is loaded")

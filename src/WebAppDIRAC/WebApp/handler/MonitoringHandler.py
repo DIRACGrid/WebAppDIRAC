@@ -51,7 +51,7 @@ class MonitoringHandler(WebHandler):
   @asyncGen
   def web_getSelectionData(self):
     callback = {}
-    typeName = self.request.arguments["type"][0]
+    typeName = self.request.get_argument("type")
     # Get unique key values
     retVal = yield self.threadTask(self.__getUniqueKeyValues, typeName)
     if not retVal['OK']:
@@ -187,7 +187,7 @@ class MonitoringHandler(WebHandler):
       callback = {"success": "false", "error": "Maybe you forgot the file?"}
       self.finish(callback)
       return
-    plotImageFile = str(self.request.arguments['file'][0])
+    plotImageFile = self.request.get_argument("file")
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 
@@ -221,7 +221,7 @@ class MonitoringHandler(WebHandler):
       callback = {"success": "false", "error": "Maybe you forgot the file?"}
       self.finish(callback)
       return
-    plotImageFile = str(self.request.arguments['file'][0])
+    plotImageFile = self.request.get_argument("file")
 
     retVal = extractRequestFromFileId(plotImageFile)
     if not retVal['OK']:

@@ -179,8 +179,8 @@ class JobSummaryHandler(WebHandler):
           if len(owner) > 0:
             req['Owner'] = owner
 
-      if 'date' in self.request.arguments and len(self.request.arguments["date"][0]) > 0:
-        req["LastUpdate"] = str(self.request.arguments["date"][0])
+      if 'date' in self.request.arguments and len(self.request.get_argument("date")) > 0:
+        req["LastUpdate"] = self.request.get_argument("date")
 
     gLogger.info("REQUEST:", req)
     return req

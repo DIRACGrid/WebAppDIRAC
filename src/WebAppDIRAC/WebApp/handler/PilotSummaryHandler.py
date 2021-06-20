@@ -132,9 +132,9 @@ class PilotSummaryHandler(WebHandler):
     user = self.getUserName()
 
     if "limit" in self.request.arguments:
-      self.numberOfJobs = int(self.request.arguments["limit"][-1])
+      self.numberOfJobs = int(self.request.get_argument("limit"))
       if "start" in self.request.arguments:
-        self.pageNumber = int(self.request.arguments["start"][-1])
+        self.pageNumber = int(self.request.get_argument("start"))
       else:
         self.pageNumber = 0
     else:
@@ -186,19 +186,19 @@ class PilotSummaryHandler(WebHandler):
         else:
           self.globalSort = [["GridSite", "DESC"]]
 
-    if 'startDate' in self.request.arguments and len(self.request.arguments["startDate"][0]) > 0:
-      if 'startTime' in self.request.arguments and len(self.request.arguments["startTime"][0]) > 0:
-        req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
+    if 'startDate' in self.request.arguments and len(self.request.get_argument("startDate")) > 0:
+      if 'startTime' in self.request.arguments and len(self.request.get_argument("startTime")) > 0:
+        req["FromDate"] = str(self.request.get_argument("startDate") + " " + self.request.get_argument("startTime"))
       else:
-        req["FromDate"] = str(self.request.arguments["startDate"][0])
+        req["FromDate"] = self.request.get_argument("startDate")
 
-    if 'endDate' in self.request.arguments and len(self.request.arguments["endDate"][0]) > 0:
-      if 'endTime' in self.request.arguments and len(self.request.arguments["endTime"][0]) > 0:
-        req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
+    if 'endDate' in self.request.arguments and len(self.request.get_argument("endDate")) > 0:
+      if 'endTime' in self.request.arguments and len(self.request.get_argument("endTime")) > 0:
+        req["ToDate"] = str(self.request.get_argument("endDate") + " " + self.request.get_argument("endTime"))
       else:
-        req["ToDate"] = str(self.request.arguments["endDate"][0])
+        req["ToDate"] = self.request.get_argument("endDate")
 
-    if 'date' in self.request.arguments and len(self.request.arguments["date"][0]) > 0:
-      req["LastUpdate"] = str(self.request.arguments["date"][0])
+    if 'date' in self.request.arguments and len(self.request.get_argument("date")) > 0:
+      req["LastUpdate"] = self.request.get_argument("date")
     gLogger.info("REQUEST:", req)
     return req

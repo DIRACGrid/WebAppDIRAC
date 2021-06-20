@@ -18,17 +18,17 @@ class ActivityMonitorHandler(WebHandler):
   @asyncGen
   def web_getActivityData(self):
     try:
-      start = int(self.request.arguments['start'][0])
+      start = int(self.request.get_argument("start"))
     except BaseException:
       start = 0
     try:
-      limit = int(self.request.arguments['limit'][0])
+      limit = int(self.request.get_argument("limit"))
     except BaseException:
       limit = 0
 
     try:
-      sortField = str(self.request.arguments['sortField'][0]).replace("_", ".")
-      sortDir = str(self.request.arguments['sortDirection'][0])
+      sortField = self.request.get_argument("sortField").replace("_", ".")
+      sortDir = self.request.get_argument("sortDirection")
       sort = [(sortField, sortDir)]
     except BaseException:
       sort = []
@@ -65,23 +65,23 @@ class ActivityMonitorHandler(WebHandler):
       if 'id' not in self.request.arguments:
         self.finish({'success': "false", 'error': "Missing viewID in plot request"})
         return
-      plotRequest['id'] = self.request.arguments['id'][0]
+      plotRequest['id'] = self.request.get_argument("id")
       if 'size' not in self.request.arguments:
         self.finish({'success': "false", 'error': "Missing plotsize in plot request"})
         return
-      plotRequest['size'] = int(self.request.arguments['size'][0])
+      plotRequest['size'] = int(self.request.get_argument("size"))
 
-      timespan = int(self.request.arguments['timespan'][0])
+      timespan = int(self.request.get_argument("timespan"))
       if timespan < 0:
-        toSecs = self.__dateToSecs(str(self.request.arguments['toDate'][0]))
-        fromSecs = self.__dateToSecs(str(self.request.arguments['fromDate'][0]))
+        toSecs = self.__dateToSecs(self.request.get_argument("toDate"))
+        fromSecs = self.__dateToSecs(self.request.get_argument("fromDate"))
       else:
         toSecs = int(Time.toEpoch())
         fromSecs = toSecs - timespan
       plotRequest['fromSecs'] = fromSecs
       plotRequest['toSecs'] = toSecs
       if 'varData' in self.request.arguments:
-        plotRequest['varData'] = dict(json.loads(self.request.arguments['varData'][0]))
+        plotRequest['varData'] = dict(json.loads(self.request.get_argument("varData")))
     except Exception as e:
       self.finish({'success': "false", 'error': "Error while processing plot parameters: %s" % str(e)})
       return
@@ -113,7 +113,7 @@ class ActivityMonitorHandler(WebHandler):
       callback = {"success": "false", "error": "Maybe you forgot the file?"}
       self.finish(callback)
       return
-    plotImageFile = str(self.request.arguments['file'][0])
+    plotImageFile = self.request.get_argument("file")
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 #    if not plotImageFile.endswith(".png"):
@@ -139,8 +139,8 @@ class ActivityMonitorHandler(WebHandler):
     """
     Query a value for a field
     """
-    fieldQuery = str(self.request.arguments['queryField'][0])
-    definedFields = json.loads(self.request.arguments['selectedFields'][0])
+    fieldQuery = self.request.get_argument("queryField")
+    definedFields = json.loads(self.request.get_argument("selectedFields"))
     rpcClient = RPCClient("Framework/Monitoring")
     result = yield self.threadTask(rpcClient.queryField, fieldQuery, definedFields)
     if 'rpcStub' in result:
@@ -154,7 +154,7 @@ class ActivityMonitorHandler(WebHandler):
   @asyncGen
   def web_deleteActivities(self):
     try:
-      webIds = str(self.request.arguments['ids'][0]).split(",")
+      webIds = self.request.get_argument("ids").split(",")
     except Exception as e:
       self.finish({"success": "false", "error": "No valid id's specified"})
       return
@@ -185,9 +185,9 @@ class ActivityMonitorHandler(WebHandler):
     Try plotting graphs for a view
     """
     try:
-      plotRequest = json.loads(self.request.arguments['plotRequest'][0])
+      plotRequest = json.loads(self.request.get_argument("plotRequest"))
       if 'timeLength' in self.request.arguments:
-        timeLength = str(self.request.arguments['timeLength'][0])
+        timeLength = self.request.get_argument("timeLength")
         toSecs = int(Time.toEpoch())
         if timeLength == "hour":
           fromSecs = toSecs - 3600
@@ -201,8 +201,8 @@ class ActivityMonitorHandler(WebHandler):
           self.finish({"success": "false", "error": "Time length value not valid"})
           return
       else:
-        fromDate = str(self.request.arguments['fromDate'][0])
-        toDate = str(self.request.arguments['toDate'][0])
+        fromDate = self.request.get_argument("fromDate")
+        toDate = self.request.get_argument("toDate")
         fromSecs = self.__dateToSecs(fromDate)
         toSecs = self.__dateToSecs(toDate)
     except Exception as e:
@@ -224,8 +224,8 @@ class ActivityMonitorHandler(WebHandler):
     Save a view
     """
     try:
-      plotRequest = json.loads(self.request.arguments['plotRequest'][0])
-      viewName = str(self.request.arguments['viewName'][0])
+      plotRequest = json.loads(self.request.get_argument("plotRequest"))
+      viewName = self.request.get_argument("viewName")
     except Exception as e:
       self.finish({"success": "false", "error": "Error while processing plot parameters: %s" % str(e)})
       return
@@ -275,7 +275,7 @@ class ActivityMonitorHandler(WebHandler):
     It retrieves the systems from the CS.
     """
     nodes = []
-    path = self.request.arguments['node'][0]
+    path = self.request.get_argument("node")
 
     result = self.__getSections(path)
     for i in result:

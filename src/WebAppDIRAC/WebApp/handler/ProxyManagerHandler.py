@@ -145,11 +145,11 @@ class ProxyManagerHandler(WebHandler):
     start = 0
     limit = 25
 
-    if "limit" in self.request.arguments and len(self.request.arguments["limit"][0]) > 0:
-      limit = int(self.request.arguments["limit"][0])
+    if "limit" in self.request.arguments and len(self.request.get_argument("limit")) > 0:
+      limit = int(self.request.get_argument("limit"))
 
-    if "start" in self.request.arguments and len(self.request.arguments["start"][0]) > 0:
-      start = int(self.request.arguments["start"][0])
+    if "start" in self.request.arguments and len(self.request.get_argument("start")) > 0:
+      start = int(self.request.get_argument("start"))
 
     try:
       sortDirection = str(self.request.arguments['sortDirection']).strip()
