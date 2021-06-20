@@ -564,8 +564,7 @@ class SystemAdministrationHandler(WebHandler):
     setup = self.getUserSetup().split('-')[-1]
     systemList = []
     componentTypes = ['Services', 'Agents']
-    if "ComponentType" in self.request.arguments:
-      componentTypes = self.request.arguments['ComponentType']
+    componentTypes = self.request.get_arguments("ComponentType") or componentTypes
 
     retVal = gConfig.getSections('/Systems')
 
@@ -599,8 +598,7 @@ class SystemAdministrationHandler(WebHandler):
     data['Hosts'] = hosts
 
     componentTypes = ['Services', 'Agents', 'Executors']
-    if "ComponentType" in self.request.arguments:
-      componentTypes = self.request.arguments['ComponentType']
+    componentTypes = self.request.get_arguments("ComponentType") or componentTypes
 
     retVal = gConfig.getSections('/Systems')
 
@@ -650,8 +648,7 @@ class SystemAdministrationHandler(WebHandler):
       hosts = result['Value']
 
     componentTypes = ['Services', 'Agents']
-    if "ComponentType" in self.request.arguments:
-      componentTypes = self.request.arguments['ComponentType']
+    componentTypes = self.request.get_arguments("ComponentType") or componentTypes
 
     componentNames = []
     if "ComponentName" in self.request.arguments:
