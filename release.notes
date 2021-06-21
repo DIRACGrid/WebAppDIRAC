@@ -1,5 +1,10 @@
-[v4r3-pre5]
+[v4r3-pre7]
 
+FIX: (#482) Mostly fixes bytes/str mix-ups in the code which are hard to spot without running it; optimization
+NEW: (#482) add git Python 3 tests
+FIX: (#481) Use a PEP-440 style version string if running with Python 3
+FIX: (#481) Miscellaneous Python 3 compatibility fixes
+FIX: (#479,#480) Convert datetime object to string for tornado finish method
 FIX: (#472) use JobMonitoringClient().getJobGroups instead of deprecated getProductionIds
 FIX: (#470) set default variable for LOCATION in a SiteSummary
 NEW: (#470) add VO selector for SiteSummary and ResourceSummary
