@@ -35,6 +35,7 @@ class SessionData(object):
       handler = handlers[k]
       cls.__handlers[handler.LOCATION.strip("/")] = handler
     # Calculate extensions
+    # TODO: Remove use of deprecated function
     cls.__extensions = CSGlobals.getInstalledExtensions()
     for ext in ['DIRAC', 'WebAppDIRAC']:
       if ext in cls.__extensions:
@@ -89,7 +90,7 @@ class SessionData(object):
     for opName in optionsList:
       opVal = gConfig.getValue("%s/%s" % (fullName, opName))
       if opVal.find("link|") == 0:
-        schema.append(("link", opName, opVal[5:]))
+        schema.append(("link", opName, opVal[5:]))  # pylint: disable=unsubscriptable-object
         continue
       if self.__isGroupAuthApp(opVal):
         schema.append(("app", opName, opVal))

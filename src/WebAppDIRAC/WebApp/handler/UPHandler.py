@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import base64
 import zlib
 import json
+import six
 
 from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
@@ -207,7 +208,7 @@ class UPHandler(WebHandler):
       raise WErr.fromSERROR(result)
     data = result['Value']
     oDesktop = json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data)))[0])
-    oDesktop[unicode('view')] = unicode(view)
+    oDesktop[six.text_type('view')] = six.text_type(view)
     oDesktop = json.dumps(oDesktop)
     data = base64.b64encode(zlib.compress(DEncode.encode(oDesktop), 9))
     result = yield self.threadTask(up.storeVar, desktopName, data)

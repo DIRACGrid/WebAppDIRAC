@@ -80,7 +80,7 @@ class ProxyUploadHandler(WebHandler):
     try:
       descriptionDict = dict()
       for i in "name", "p12", "pem":
-        tmp = "".join(random.choice(string.letters) for x in range(10))
+        tmp = "".join(random.choice(string.ascii_letters) for x in range(10))
         descriptionDict[i] = os.path.join(storePath, tmp)
 
       tmpFile = open(descriptionDict["name"], "w")
@@ -91,7 +91,7 @@ class ProxyUploadHandler(WebHandler):
       tmpFile.write(fileObject.p12)
       tmpFile.close()
 
-      pemPassword = "".join(random.choice(string.letters) for x in range(10))
+      pemPassword = "".join(random.choice(string.ascii_letters) for x in range(10))
 
       tmpFile = open(descriptionDict["pem"], "w")
       tmpFile.write(pemPassword)
@@ -116,7 +116,7 @@ class ProxyUploadHandler(WebHandler):
     keyDict["pem"] = descriptionDict["pem"]
 
     for j in "pub", "private":
-      tmp = "".join(random.choice(string.letters) for x in range(10))
+      tmp = "".join(random.choice(string.ascii_letters) for x in range(10))
       keyDict[j] = os.path.join(storePath, tmp)
 
     cmdCert = "openssl pkcs12 -clcerts -nokeys -in %s -out %s -password file:%s" % (name, keyDict["pub"], p12)

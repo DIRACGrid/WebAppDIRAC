@@ -187,7 +187,7 @@ class RegistryManagerHandler(WebSocketHandler):
       sectionCfg = self.__configData[ 'cfgData' ].getCFG()
       for section in [ section for section in sectionPath.split("/") if not section.strip() == "" ]:
         sectionCfg = sectionCfg[ section ]
-    except Exception, v:
+    except Exception as v:
       return False
     return sectionCfg
 

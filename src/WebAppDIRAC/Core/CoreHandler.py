@@ -1,5 +1,5 @@
-import urlparse
 import tornado.web
+from six.moves import urllib_parse as urlparse
 
 from WebAppDIRAC.Lib import Conf
 
