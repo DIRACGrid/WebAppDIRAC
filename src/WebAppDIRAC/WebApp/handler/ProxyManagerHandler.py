@@ -157,7 +157,7 @@ class ProxyManagerHandler(WebHandler):
       req['UserGroup'] = usersgroup
 
     persistent = self.get_argument("persistent", "")
-    if persistent in ["True", "False"]:
+    if usersgroup and persistent in ["True", "False"]:
       req["PersistentFlag"] = persistent
     before = int(self.get_argument("expiredBefore", "0"))
     after = int(self.get_argument("expiredAfter", "0"))
