@@ -1,0 +1,41 @@
+name: Python 3 tests
+
+on: [push, pull_request]
+
+jobs:
+  pyLint:
+    runs-on: ubuntu-latest
+    # if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
+    timeout-minutes: 30
+    defaults:
+      # Activate the conda environment automatically in each step
+      run:
+        shell: bash -l {0}
+
+    strategy:
+      fail-fast: False
+      matrix:
+        command:
+          - pylint -E src/
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: WebAppDIRACRepo
+        fetch-depth: 0
+    - uses: actions/checkout@v2
+      with:
+        repository: DIRACGrid/DIRAC
+        path: DIRACRepo
+        ref: integration
+        fetch-depth: 0
+    - uses: conda-incubator/setup-miniconda@master
+      with:
+        environment-file: DIRACRepo/environment-py3.yml
+        miniforge-variant: Mambaforge
+        use-mamba: true
+    - name: Run tests
+      run: |
+        pip install ./DIRACRepo/[server,testing] ./WebAppDIRACRepo
+        cd WebAppDIRACRepo
+        ${{ matrix.command }}
