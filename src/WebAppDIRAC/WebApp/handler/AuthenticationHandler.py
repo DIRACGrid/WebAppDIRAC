@@ -16,8 +16,8 @@ class AuthenticationHandler(WebHandler):
   def web_sendRequest(self):
     """ Send mail to administrators
     """
-    typeAuth = str(self.request.arguments["typeauth"][0])
-    loadValue = self.request.arguments["value"]
+    typeAuth = self.get_argument("typeauth")
+    loadValue = self.get_argument("value")
     addresses = Conf.getCSValue('AdminsEmails')
     NotificationClient().sendMail(
         addresses, subject="Request from %s %s" %
@@ -27,8 +27,8 @@ class AuthenticationHandler(WebHandler):
   # Get information from CS about auth types
   @asyncGen
   def web_getAuthCFG(self):
-    typeAuth = str(self.request.arguments["typeauth"][0])
-    loadValue = self.request.arguments["value"][0]
+    typeAuth = self.get_argument("typeauth")
+    loadValue = self.get_argument("value")
     res = {}
     if Conf.getCSSections("TypeAuths")['OK']:
       if typeAuth:
@@ -46,10 +46,7 @@ class AuthenticationHandler(WebHandler):
   # Get current auth type
   @asyncGen
   def web_getCurrentAuth(self):
-    if self.get_secure_cookie("TypeAuth"):
-      current = self.get_secure_cookie("TypeAuth")
-    else:
-      current = 'default'
+    current = (self.get_secure_cookie("TypeAuth") or b"default").decode()
     self.write(current)
 
   # Python part in auth process
@@ -57,14 +54,16 @@ class AuthenticationHandler(WebHandler):
   def web_auth(self):
     """ Set authentication type
     """
-    typeAuth = str(self.request.arguments["typeauth"][0])
-    loadValue = self.request.arguments["value"][0]
+    typeAuth = self.get_argument("typeauth")
+    loadValue = self.get_argument("value")
     method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth)
     auths = ['Certificate']
     if Conf.getCSSections("TypeAuths")['OK']:
       auths.extend(Conf.getCSSections("TypeAuths").get("Value"))
     if (typeAuth == 'Logout') or (typeAuth not in auths):
       typeAuth = self.get_secure_cookie("TypeAuth")
+      if typeAuth is not None:
+        typeAuth = typeAuth.decode()
       self.set_secure_cookie("TypeAuth", 'Visitor')
     elif method == 'oAuth2':
       accessToken = loadValue

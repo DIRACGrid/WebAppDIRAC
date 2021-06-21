@@ -126,8 +126,9 @@ class WebHandler(tornado.web.RequestHandler):
 
     # OIDC auth method
     def oAuth2():
-      if self.get_secure_cookie("AccessToken"):
-        access_token = self.get_secure_cookie("AccessToken")
+      access_token = self.get_secure_cookie("AccessToken")
+      if access_token is not None:
+        access_token = access_token.decode()
         url = Conf.getCSValue("TypeAuths/%s/authority" % typeAuth) + '/userinfo'
         heads = {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
         if 'error' in requests.get(url, headers=heads, verify=False).json():
@@ -147,7 +148,9 @@ class WebHandler(tornado.web.RequestHandler):
     if not self.get_secure_cookie("TypeAuth"):
       self.set_secure_cookie("TypeAuth", 'Certificate')
     typeAuth = self.get_secure_cookie("TypeAuth")
-    self.log.info("Type authentication: %s" % str(typeAuth))
+    if typeAuth is not None:
+      typeAuth = typeAuth.decode()
+    self.log.info("Type authentication: %s" % typeAuth)
     if typeAuth == "Visitor":
       return
     retVal = Conf.getCSSections("TypeAuths")

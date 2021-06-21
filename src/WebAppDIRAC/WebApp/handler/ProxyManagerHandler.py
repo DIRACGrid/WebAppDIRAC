@@ -23,10 +23,10 @@ class ProxyManagerHandler(WebHandler):
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
 
     if len(self.request.arguments) > 0:
-      tmp = {}
-      for i in self.request.arguments:
-        tmp[i] = str(self.request.arguments[i])
-      callback["extra"] = tmp
+      callback["extra"] = {
+          i: self.get_argument(i)
+          for i in self.request.arguments
+      }
     result = yield self.threadTask(gProxyManager.getDBContents)
     if not result["OK"]:
       self.finish({"success": "false", "error": result["Message"]})
@@ -87,10 +87,9 @@ class ProxyManagerHandler(WebHandler):
 
   @asyncGen
   def web_deleteProxies(self):
-
     try:
-      webIds = list(json.loads(self.request.arguments['idList'][-1]))
-    except BaseException:
+      webIds = list(json.loads(self.get_argument("idList")))
+    except Exception:
       self.finish({"success": "false", "error": "No valid id's specified"})
     idList = []
     for id in webIds:
@@ -108,93 +107,65 @@ class ProxyManagerHandler(WebHandler):
 
   def __humanize_time(self, sec=False):
     """
-    Converts number of seconds to human readble values. Max return value is
+    Converts number of seconds to human readable values. Max return value is
     "More then a year" year and min value is "One day"
     """
     if not sec:
       return "Time span is not specified"
     try:
       sec = int(sec)
-    except BaseException:
+    except ValueError:
       return "Value from CS is not integer"
+
     month, week = divmod(sec, 2592000)
-    if month > 0:
-      if month > 12:
-        return "More then a year"
-      elif month > 1:
-        return str(month) + " months"
-      else:
-        return "One month"
+    if month > 12:
+      return "More then a year"
+    elif month > 1:
+      return str(month) + " months"
+    elif month == 1:
+      return "One month"
+
     week, day = divmod(sec, 604800)
-    if week > 0:
-      if week == 1:
-        return "One week"
-      else:
-        return str(week) + " weeks"
+    if week == 1:
+      return "One week"
+    elif week > 1:
+      return str(week) + " weeks"
+
     day, hours = divmod(sec, 86400)
-    if day > 0:
-      if day == 1:
-        return "One day"
-      else:
-        return str(day) + " days"
+    if day == 1:
+      return "One day"
+    elif day > 0:
+      return str(day) + " days"
 
   def __request(self):
     gLogger.info("!!!  PARAMS: ", str(self.request.arguments))
+    start = int(self.get_argument("start", "0"))
+    limit = int(self.get_argument("limit", "25"))
     req = {}
 
-    start = 0
-    limit = 25
-
-    if "limit" in self.request.arguments and len(self.request.arguments["limit"][0]) > 0:
-      limit = int(self.request.arguments["limit"][0])
-
-    if "start" in self.request.arguments and len(self.request.arguments["start"][0]) > 0:
-      start = int(self.request.arguments["start"][0])
-
-    try:
-      sortDirection = str(self.request.arguments['sortDirection']).strip()
-    except BaseException:
-      sortDirection = "ASC"
-    try:
-      sortField = str(self.request.arguments['sortField']).strip()
-    except BaseException:
-      sortField = "UserName"
+    sortDirection = self.get_argument("sortDirection", "ASC")
+    sortField = self.get_argument("sortField", "UserName")
     sort = [[sortField, sortDirection]]
     gLogger.info("!!!  S O R T : ", sort)
 
-    if "username" in self.request.arguments:
-      users = list(json.loads(self.request.arguments['username'][-1]))
-      if len(users) > 0:
-        req['UserName'] = users
+    users = list(json.loads(self.get_argument("username", "[]")))
+    if users:
+      req['UserName'] = users
 
-    if "usergroup" in self.request.arguments:
-      usersgroup = list(json.loads(self.request.arguments['usergroup'][-1]))
-      if len(usersgroup) > 0:
-        req['UserGroup'] = usersgroup
+    usersgroup = list(json.loads(self.get_argument("usergroup", "[]")))
+    if usersgroup:
+      req['UserGroup'] = usersgroup
 
-    if "usersgroup" in self.request.arguments and len(self.request.arguments["persistent"]) > 0:
-      if str(self.request.arguments["persistent"]) in ["True", "False"]:
-        req["PersistentFlag"] = str(self.request.arguments["persistent"])
-    before = False
-    after = False
-    if "expiredBefore" in self.request.arguments and len(self.request.arguments["expiredBefore"]) > 0:
-      try:
-        before = int(self.request.arguments["expiredBefore"])
-      except BaseException:
-        pass
-    if "expiredAfter" in self.request.arguments and len(self.request.arguments["expiredAfter"]) > 0:
-      try:
-        after = int(self.request.arguments["expiredAfter"])
-      except BaseException:
-        pass
-    if before and after:
-      if before > after:
-        req["beforeDate"] = before
-        req["afterDate"] = after
-    else:
-      if before:
-        req["beforeDate"] = before
-      if after:
-        req["afterDate"] = after
+    persistent = self.get_argument("persistent", "")
+    if usersgroup and persistent in ["True", "False"]:
+      req["PersistentFlag"] = persistent
+    before = int(self.get_argument("expiredBefore", "0"))
+    after = int(self.get_argument("expiredAfter", "0"))
+    if before > after:
+      before, after = after, before
+    if before:
+      req["beforeDate"] = before
+    if after:
+      req["afterDate"] = after
     gLogger.always("REQUEST:", req)
     return (start, limit, sort, req)

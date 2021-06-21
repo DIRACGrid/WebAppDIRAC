@@ -28,7 +28,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    gLogger.info(self.request.arguments)
+    gLogger.info("Arguments to web_getSelectionData", repr(self.request.arguments))
     elementStatuses = yield self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE, None, None, None, None, None)
 
     if elementStatuses['OK']:
@@ -420,8 +420,7 @@ class ResourceSummaryHandler(WebHandler):
       We receive the request and we parse it, in this case, we are doing nothing,
       but it can be certainly more complex.
     '''
-
-    gLogger.always("!!!  PARAMS: ", str(self.request.arguments))
+    gLogger.always("!!!  PARAMS: ", repr(self.request.arguments))
 
     responseParams = {
         'element': None,
@@ -435,7 +434,8 @@ class ResourceSummaryHandler(WebHandler):
     }
 
     for key in responseParams:
-      if key in self.request.arguments and str(self.request.arguments[key][-1]):
-        responseParams[key] = list(json.loads(self.request.arguments[key][-1]))
+      value = self.get_argument(key, "")
+      if value:
+        responseParams[key] = list(json.loads(value))
 
     return responseParams

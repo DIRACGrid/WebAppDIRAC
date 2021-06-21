@@ -93,9 +93,7 @@ class TransformationMonitorHandler(WebHandler):
 
   @asyncGen
   def web_getTransformationData(self):
-
     pagestart = Time.time()
-    callback = {}
     user = self.getUserName()
 
     tsClient = TransformationClient(timeout=3600)
@@ -139,9 +137,7 @@ class TransformationMonitorHandler(WebHandler):
       head = result["ParameterNames"]
       headLength = len(head)
       for i in jobs:
-        tmp = {}
-        for j in range(0, headLength):
-          tmp[head[j]] = i[j]
+        tmp = {head[j]: i[j] for j in range(headLength)}
         callback.append(tmp)
       total = result["TotalRecords"]
       if "Extras" in result:
@@ -158,32 +154,26 @@ class TransformationMonitorHandler(WebHandler):
   ################################################################################
   @asyncGen
   def web_action(self):
-    try:
-      transid = int(self.request.arguments['id'][-1])
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
-
-    callback = {}
-
-    if self.request.arguments["data_kind"][0] == "getLoggingInfo":
+    transid = int(self.get_argument("id"))
+    if self.get_argument("data_kind") == "getLoggingInfo":
       callback = yield self.threadTask(self.__getLoggingInfo, transid)
-    elif self.request.arguments["data_kind"][0] == "fileStatus":
+    elif self.get_argument("data_kind") == "fileStatus":
       callback = yield self.threadTask(self.__transformationFileStatus, transid)
-    elif self.request.arguments["data_kind"][0] == "fileProcessed":
+    elif self.get_argument("data_kind") == "fileProcessed":
       callback = yield self.threadTask(self.__fileRetry, transid, 'proc')
-    elif self.request.arguments["data_kind"][0] == "fileNotProcessed":
+    elif self.get_argument("data_kind") == "fileNotProcessed":
       callback = yield self.threadTask(self.__fileRetry, transid, 'not')
-    elif self.request.arguments["data_kind"][0] == "fileAllProcessed":
+    elif self.get_argument("data_kind") == "fileAllProcessed":
       callback = yield self.threadTask(self.__fileRetry, transid, 'all')
-    elif self.request.arguments["data_kind"][0] == "dataQuery":
+    elif self.get_argument("data_kind") == "dataQuery":
       callback = yield self.threadTask(self.__dataQuery, transid)
-    elif self.request.arguments["data_kind"][0] == "additionalParams":
+    elif self.get_argument("data_kind") == "additionalParams":
       callback = yield self.threadTask(self.__additionalParams, transid)
-    elif self.request.arguments["data_kind"][0] == "transformationDetail":
+    elif self.get_argument("data_kind") == "transformationDetail":
       callback = yield self.threadTask(self.__transformationDetail, transid)
-    elif self.request.arguments["data_kind"][0] == "extend":
+    elif self.get_argument("data_kind") == "extend":
       callback = yield self.threadTask(self.__extendTransformation, transid)
-    elif self.request.arguments["data_kind"][0] == "workflowxml":
+    elif self.get_argument("data_kind") == "workflowxml":
       callback = yield self.threadTask(self.__workflowxml, transid)
     else:
       callback = {"success": "false", "error": "Action is unknown!!!"}
@@ -192,12 +182,9 @@ class TransformationMonitorHandler(WebHandler):
   ################################################################################
   @asyncGen
   def web_executeOperation(self):
-    try:
-      cmd = self.request.arguments['action'][-1]
-      ids = self.request.arguments["ids"][0].split(",")
-      ids = [int(i) for i in ids]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
+    cmd = self.get_argument("action")
+    ids = self.get_argument("ids").split(",")
+    ids = [int(i) for i in ids]
 
     tsClient = TransformationClient()
 
@@ -220,7 +207,6 @@ class TransformationMonitorHandler(WebHandler):
     callback = []
 
     for i in ids:
-
       try:
         transid = int(i)
 
@@ -233,7 +219,7 @@ class TransformationMonitorHandler(WebHandler):
             resString = "ProdID: %s failed to set to %s: %s" % (i, cmd, result["Message"])
         else:
           resString = "ProdID: %s failed due the reason: %s" % (i, result["Message"])
-      except BaseException:
+      except Exception:
         resString = "Unable to convert given ID %s to transformation ID" % i
       callback.append(resString)
     callback = {"success": "true", "showResult": callback}
@@ -242,10 +228,7 @@ class TransformationMonitorHandler(WebHandler):
 
   ################################################################################
   def __fileRetry(self, prodid, mode):
-    callback = {}
-
     tsClient = TransformationClient()
-
     if mode == "proc":
       res = tsClient.getTransformationFilesCount(prodid, "ErrorCount", {'Status': 'Processed'})
     elif mode == "not":
@@ -254,21 +237,18 @@ class TransformationMonitorHandler(WebHandler):
       res = tsClient.getTransformationFilesCount(prodid, "ErrorCount")
 
     if not res['OK']:
-      callback = {"success": "false", "error": res["Message"]}
-    else:
-      resList = []
-      total = res['Value'].pop('Total')
-      if total == 0:
-        callback = {"success": "false", "error": "No files found"}
-      else:
-        for status in sorted(res['Value']):
-          count = res['Value'][status]
-          percent = "%.1f" % ((count * 100.0) / total)
-          resList.append((status, str(count), percent))
-        resList.append(('Total', total, '-'))
-        callback = {"success": "true", "result": resList}
+      return {"success": "false", "error": res["Message"]}
+    resList = []
+    total = res['Value'].pop('Total')
+    if total == 0:
+      return {"success": "false", "error": "No files found"}
+    for status in sorted(res['Value']):
+      count = res['Value'][status]
+      percent = "%.1f" % ((count * 100.0) / total)
+      resList.append((status, str(count), percent))
+    resList.append(('Total', total, '-'))
     gLogger.debug("#######", res)
-    return callback
+    return {"success": "true", "result": resList}
 
   ################################################################################
   def __dataQuery(self, prodid):
@@ -282,14 +262,10 @@ class TransformationMonitorHandler(WebHandler):
 
     gLogger.debug("-= #######", res)
     if not res['OK']:
-      callback = {"success": "false", "error": res["Message"]}
-    else:
-      result = res["Value"]
-      back = []
-      for i in sorted(result):
-        back.append([i, result[i]])
-      callback = {"success": "true", "result": back}
-    return callback
+      return {"success": "false", "error": res["Message"]}
+    result = res["Value"]
+    back = [[i, result[i]] for i in sorted(result)]
+    return {"success": "true", "result": back}
 
   ################################################################################
   def __additionalParams(self, prodid):
@@ -298,14 +274,10 @@ class TransformationMonitorHandler(WebHandler):
 
     res = tsClient.getAdditionalParameters(prodid)
     if not res['OK']:
-      callback = {"success": "false", "error": res["Message"]}
-    else:
-      result = res["Value"]
-      back = []
-      for i in sorted(result):
-        back.append([i, result[i]])
-      callback = {"success": "true", "result": back}
-    return callback
+      return {"success": "false", "error": res["Message"]}
+    result = res["Value"]
+    back = [[i, result[i]] for i in sorted(result)]
+    return {"success": "true", "result": back}
 
   ################################################################################
   def __workflowxml(self, transid):
@@ -318,8 +290,6 @@ class TransformationMonitorHandler(WebHandler):
 
   ################################################################################
   def __getLoggingInfo(self, transid):
-
-    callback = {}
     tsClient = TransformationClient()
     result = tsClient.getTransformationLogging(transid)
     if result["OK"]:
@@ -327,19 +297,14 @@ class TransformationMonitorHandler(WebHandler):
       if len(result) > 0:
         callback = []
         resultUser = gConfig.getSections("/Security/Users")
+        dndb = {}
         if resultUser["OK"]:
           users = resultUser["Value"]
-          dndb = {}
           for j in users:
             dndb[gConfig.getValue("/Security/Users/%s/DN" % j)] = j
-        else:
-          dndb = {}
         for i in result:
           DN = i["AuthorDN"]
-          if DN in dndb:
-            i["AuthorDN"] = dndb[DN]
-          else:
-            i["AuthorDN"] = DN  # "Owner Unknown"
+          i["AuthorDN"] = dndb.get(DN, DN)
           date = Time.toString(i["MessageDate"])
           callback.append([i["Message"], date, i["AuthorDN"]])
         callback = {"success": "true", "result": callback}
@@ -351,25 +316,21 @@ class TransformationMonitorHandler(WebHandler):
 
   ################################################################################
   def __transformationFileStatus(self, transid):
-    callback = {}
     tsClient = TransformationClient()
     res = tsClient.getTransformationFilesCount(transid, "Status")
     if not res['OK']:
-      callback = {"success": "false", "error": res["Message"]}
-    else:
-      resList = []
-      total = res['Value'].pop('Total')
-      if total == 0:
-        callback = {"success": "false", "error": "No files found"}
-      else:
-        for status in sorted(res['Value']):
-          count = res['Value'][status]
-          percent = "%.1f" % ((count * 100.0) / total)
-          resList.append((status, str(count), percent))
-        resList.append(('Total', total, '-'))
-        callback = {"success": "true", "result": resList}
+      return {"success": "false", "error": res["Message"]}
+    resList = []
+    total = res['Value'].pop('Total')
+    if total == 0:
+      return {"success": "false", "error": "No files found"}
+    for status in sorted(res['Value']):
+      count = res['Value'][status]
+      percent = "%.1f" % ((count * 100.0) / total)
+      resList.append((status, str(count), percent))
+    resList.append(('Total', total, '-'))
     gLogger.debug("#######", res)
-    return callback
+    return {"success": "true", "result": resList}
 
   ################################################################################
   def __transformationDetail(self, prodid):
@@ -391,16 +352,9 @@ class TransformationMonitorHandler(WebHandler):
 
   ################################################################################
   def __extendTransformation(self, transid):
-
-    try:
-      tasks = int(self.request.arguments["tasks"][-1])
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
-
+    tasks = int(self.get_argument("tasks"))
     gLogger.info("extend %s" % transid)
-
     tsClient = TransformationClient()
-
     gLogger.info("extendTransformation(%s,%s)" % (transid, tasks))
     res = tsClient.extendTransformation(transid, tasks)
     if res["OK"]:
@@ -415,13 +369,10 @@ class TransformationMonitorHandler(WebHandler):
   @asyncGen
   def web_showFileStatus(self):
     callback = {}
-    start = int(self.request.arguments["start"][-1])
-    limit = int(self.request.arguments["limit"][-1])
-    try:
-      transid = self.request.arguments['transformationId'][-1]
-      status = self.request.arguments['status'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
+    start = int(self.get_argument("start"))
+    limit = int(self.get_argument("limit"))
+    transid = self.get_argument("transformationId")
+    status = self.get_argument("status")
 
     tsClient = TransformationClient()
     result = yield self.threadTask(tsClient.getTransformationFilesSummaryWeb,
@@ -442,9 +393,7 @@ class TransformationMonitorHandler(WebHandler):
               head = result["ParameterNames"]
               headLength = len(head)
               for i in jobs:
-                tmp = {}
-                for j in range(0, headLength):
-                  tmp[head[j]] = i[j]
+                tmp = {head[j]: i[j] for j in range(headLength)}
                 callback.append(tmp)
               total = result["TotalRecords"]
               timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
@@ -477,12 +426,9 @@ class TransformationMonitorHandler(WebHandler):
   @asyncGen
   def web_setSite(self):
     callback = {}
-    try:
-      transID = int(self.request.arguments['TransformationId'][-1])
-      runID = int(self.request.arguments['RunNumber'][-1])
-      site = self.request.arguments['Site'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
+    transID = int(self.get_argument("TransformationId"))
+    runID = int(self.get_argument("RunNumber"))
+    site = self.get_argument("Site")
 
     gLogger.info("\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % (transID, runID, site))
 
@@ -498,55 +444,42 @@ class TransformationMonitorHandler(WebHandler):
   ################################################################################
   def _request(self):
     req = {}
-    if "limit" in self.request.arguments:
-      self.numberOfJobs = int(self.request.arguments["limit"][-1])
-      if "start" in self.request.arguments:
-        self.pageNumber = int(self.request.arguments["start"][-1])
-      else:
-        self.pageNumber = 0
-    else:
-      self.numberOfJobs = 25
-      self.pageNumber = 0
-    if 'transformationId' in self.request.arguments:
-      prods = list(json.loads(self.request.arguments['transformationId'][-1]))
-      if len(prods) > 0:
-        req['TransformationID'] = prods
+    self.numberOfJobs = int(self.get_argument("limit", "25"))
+    self.pageNumber = int(self.get_argument("start", "0"))
 
-    if 'requestId' in self.request.arguments:
-      requests = list(json.loads(self.request.arguments['requestId'][-1]))
-      if len(requests) > 0:
-        req['TransformationFamily'] = requests
+    prods = list(json.loads(self.get_argument("transformationId", "[]")))
+    if prods:
+      req['TransformationID'] = prods
+
+    requests = list(json.loads(self.get_argument("requestId", "[]")))
+    if requests:
+      req['TransformationFamily'] = requests
 
     if 'TransformationFamily' in self.request.arguments:
-      req['TransformationFamily'] = self.request.arguments['TransformationFamily'][-1]
+      req['TransformationFamily'] = self.get_argument("TransformationFamily")
 
-    if 'agentType' in self.request.arguments:
-      agentType = list(json.loads(self.request.arguments["agentType"][-1]))
-      if agentType:
-        req['agentType'] = agentType
+    agentType = list(json.loads(self.get_argument("agentType", "[]")))
+    if agentType:
+      req['agentType'] = agentType
 
-    if 'status' in self.request.arguments:
-      status = list(json.loads(self.request.arguments["status"][-1]))
-      if status:
-        req['Status'] = status
+    status = list(json.loads(self.get_argument("status", "[]")))
+    if status:
+      req['Status'] = status
 
-    if 'plugin' in self.request.arguments:
-      plugin = list(json.loads(self.request.arguments["plugin"][-1]))
-      if plugin:
-        req["Plugin"] = plugin
+    plugin = list(json.loads(self.get_argument("plugin", "[]")))
+    if plugin:
+      req["Plugin"] = plugin
 
-    if 'type' in self.request.arguments:
-      transtype = list(json.loads(self.request.arguments["type"][-1]))
-      if transtype:
-        req['Type'] = transtype
+    transtype = list(json.loads(self.get_argument("type", "[]")))
+    if transtype:
+      req['Type'] = transtype
 
-    if 'transformationGroup' in self.request.arguments:
-      group = list(json.loads(self.request.arguments["transformationGroup"][-1]))
-      if group:
-        req['TransformationGroup'] = group
+    group = list(json.loads(self.get_argument("transformationGroup", "[]")))
+    if group:
+      req['TransformationGroup'] = group
 
     if 'sort' in self.request.arguments:
-      sort = json.loads(self.request.arguments['sort'][-1])
+      sort = json.loads(self.get_argument("sort"))
       if sort:
         self.globalSort = [["TransformationFamily", "ASC"]]
         for i in sort:
@@ -554,19 +487,17 @@ class TransformationMonitorHandler(WebHandler):
     else:
       self.globalSort = [["TransformationID", "DESC"]]
 
-    if 'startDate' in self.request.arguments and self.request.arguments["startDate"][0]:
-      if 'startTime' in self.request.arguments and self.request.arguments["startTime"][0]:
-        req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
-      else:
-        req["FromDate"] = str(self.request.arguments["startDate"][0])
+    if self.get_argument("startDate", None):
+      req["FromDate"] = self.get_argument("startDate")
+      if self.get_argument("startTime", None):
+        req["FromDate"] += " " + self.get_argument("startTime")
 
-    if 'endDate' in self.request.arguments and self.request.arguments["endDate"][0]:
-      if 'endTime' in self.request.arguments and self.request.arguments["endTime"][0]:
-        req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
-      else:
-        req["ToDate"] = str(self.request.arguments["endDate"][0])
+    if self.get_argument("endDate", None):
+      req["ToDate"] = self.get_argument("endDate")
+      if self.get_argument("endTime", None):
+        req["ToDate"] += " " + self.get_argument("endTime")
 
-    if 'date' in self.request.arguments and self.request.arguments["date"][0]:
-      req["LastUpdate"] = str(self.request.arguments["date"][0])
+    if self.get_argument("date", None):
+      req["LastUpdate"] = self.get_argument("date")
     gLogger.verbose("REQUEST:", req)
     return req

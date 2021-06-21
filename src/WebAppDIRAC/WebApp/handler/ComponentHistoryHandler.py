@@ -99,48 +99,39 @@ class ComponentHistoryHandler(WebHandler):
     selectors
     """
     req = {'installation': {}, 'component': {}, 'host': {}}
-
-    # Figure out what page we are at and how many results we are displaying
-    if 'limit' in self.request.arguments:
-      self.numberOfInstallations = int(self.request.arguments['limit'][-1])
-      if 'start' in self.request.arguments:
-        self.pageNumber = int(self.request.arguments['start'][-1])
-      else:
-        self.pageNumber = 0
-    else:
-      self.numberOfInstallations = 25
-      self.pageNumber = 0
+    self.numberOfInstallations = int(self.get_argument("limit", "25"))
+    self.pageNumber = int(self.get_argument("start", "0"))
 
     # Check every possible selector and get its value ( if any )
     if 'name' in self.request.arguments:
-      req['installation']['Instance'] = list(json.loads(self.request.arguments['name'][-1]))
+      req['installation']['Instance'] = list(json.loads(self.get_argument("name")))
 
     if 'host' in self.request.arguments:
-      req['host']['HostName'] = list(json.loads(self.request.arguments['host'][-1]))
+      req['host']['HostName'] = list(json.loads(self.get_argument("host")))
 
     if 'system' in self.request.arguments:
-      req['component']['System'] = list(json.loads(self.request.arguments['system'][-1]))
+      req['component']['System'] = list(json.loads(self.get_argument("system")))
 
     if 'module' in self.request.arguments:
-      req['component']['Module'] = list(json.loads(self.request.arguments['module'][-1]))
+      req['component']['Module'] = list(json.loads(self.get_argument("module")))
 
     if 'type' in self.request.arguments:
-      req['component']['Type'] = list(json.loads(self.request.arguments['type'][-1]))
+      req['component']['Type'] = list(json.loads(self.get_argument("type")))
 
-    if 'startDate' in self.request.arguments and len(self.request.arguments['startDate'][0]) > 0:
-      if len(self.request.arguments['startTime'][0]) > 0:
-        time = self.request.arguments['startTime'][0]
+    if 'startDate' in self.request.arguments and len(self.get_argument("startDate")) > 0:
+      if len(self.get_argument("startTime")) > 0:
+        time = self.get_argument("startTime")
       else:
         time = '00:00'
-      date = datetime.datetime.strptime('%s-%s' % (self.request.arguments['startDate'][0], time), '%Y-%m-%d-%H:%M')
+      date = datetime.datetime.strptime('%s-%s' % (self.get_argument("startDate"), time), '%Y-%m-%d-%H:%M')
       req['installation']['InstallationTime.bigger'] = date
 
-    if 'endDate' in self.request.arguments and len(self.request.arguments['endDate'][0]) > 0:
-      if len(self.request.arguments['endTime'][0]) > 0:
-        time = self.request.arguments['endTime'][0]
+    if 'endDate' in self.request.arguments and len(self.get_argument("endDate")) > 0:
+      if len(self.get_argument("endTime")) > 0:
+        time = self.get_argument("endTime")
       else:
         time = '00:00'
-      date = datetime.datetime.strptime('%s-%s' % (self.request.arguments['endDate'][0], time), '%Y-%m-%d-%H:%M')
+      date = datetime.datetime.strptime('%s-%s' % (self.get_argument("endDate"), time), '%Y-%m-%d-%H:%M')
       req['installation']['UnInstallationTime.smaller'] = date
 
     return req

@@ -246,110 +246,87 @@ class JobMonitorHandler(WebHandler):
     self.finish(callback)
 
   def _request(self):
-    self.pageNumber = 0
-    self.numberOfJobs = 25
+    self.numberOfJobs = int(self.get_argument("limit", "25"))
+    self.pageNumber = int(self.get_argument("start", "0"))
     self.globalSort = [["JobID", "DESC"]]
-
     req = {}
 
-    if "limit" in self.request.arguments and self.request.arguments["limit"][0]:
-      self.numberOfJobs = int(self.request.arguments["limit"][0])
-      if "start" in self.request.arguments and self.request.arguments["start"][0]:
-        self.pageNumber = int(self.request.arguments["start"][0])
-      else:
-        self.pageNumber = 0
+    jobids = list(json.loads(self.get_argument("JobID", "[]")))
+    if jobids:
+      req['JobID'] = jobids
 
-    if "JobID" in self.request.arguments:
-      jobids = list(json.loads(self.request.arguments['JobID'][-1]))
-      if jobids:
-        req['JobID'] = jobids
+    pilotids = list(json.loads(self.get_argument("PilotJobReference", "[]")))
+    if pilotids:
+      req['PilotJobReference'] = pilotids
 
-    if "PilotJobReference" in self.request.arguments:
-      pilotids = list(json.loads(self.request.arguments['PilotJobReference'][-1]))
-      if pilotids:
-        req['PilotJobReference'] = pilotids
+    prodids = list(json.loads(self.get_argument("jobGroup", "[]")))
+    if prodids:
+      req['JobGroup'] = prodids
 
-    if "jobGroup" in self.request.arguments:
-      prodids = list(json.loads(self.request.arguments['jobGroup'][-1]))
-      if prodids:
-        req['JobGroup'] = prodids
+    sites = list(json.loads(self.get_argument("site", "[]")))
+    if sites:
+      req["Site"] = sites
 
-    if "site" in self.request.arguments:
-      sites = list(json.loads(self.request.arguments['site'][-1]))
-      if sites:
-        req["Site"] = sites
+    status = list(json.loads(self.get_argument("status", "[]")))
+    if status:
+      req["Status"] = status
 
-    if "status" in self.request.arguments:
-      status = list(json.loads(self.request.arguments['status'][-1]))
-      if status:
-        req["Status"] = status
+    minorstat = list(json.loads(self.get_argument("minorStatus", "[]")))
+    if minorstat:
+      req["MinorStatus"] = minorstat
 
-    if "minorStatus" in self.request.arguments:
-      minorstat = list(json.loads(self.request.arguments['minorStatus'][-1]))
-      if minorstat:
-        req["MinorStatus"] = minorstat
+    apps = list(json.loads(self.get_argument("appStatus", "[]")))
+    if apps:
+      req["ApplicationStatus"] = apps
 
-    if "appStatus" in self.request.arguments:
-      apps = list(json.loads(self.request.arguments['appStatus'][-1]))
-      if apps:
-        req["ApplicationStatus"] = apps
+    types = list(json.loads(self.get_argument("jobType", "[]")))
+    if types:
+      req["JobType"] = types
 
-    if "jobType" in self.request.arguments:
-      types = list(json.loads(self.request.arguments['jobType'][-1]))
-      if types:
-        req["JobType"] = types
+    owner = list(json.loads(self.get_argument("owner", "[]")))
+    if owner:
+      req["Owner"] = owner
 
-    if "owner" in self.request.arguments:
-      owner = list(json.loads(self.request.arguments['owner'][-1]))
-      if owner:
-        req["Owner"] = owner
+    ownerGroup = list(json.loads(self.get_argument("OwnerGroup", "[]")))
+    if ownerGroup:
+      req["OwnerGroup"] = ownerGroup
 
-    if "OwnerGroup" in self.request.arguments:
-      ownerGroup = list(json.loads(self.request.arguments['OwnerGroup'][-1]))
-      if ownerGroup:
-        req["OwnerGroup"] = ownerGroup
+    if self.get_argument("startDate", ""):
+      req["FromDate"] = self.get_argument("startDate")
+      if self.get_argument("startTime", ""):
+        req["FromDate"] += " " + self.get_argument("startTime")
 
-    if 'startDate' in self.request.arguments and self.request.arguments["startDate"][0]:
-      if 'startTime' in self.request.arguments and self.request.arguments["startTime"][0]:
-        req["FromDate"] = str(self.request.arguments["startDate"][0] + " " + self.request.arguments["startTime"][0])
-      else:
-        req["FromDate"] = str(self.request.arguments["startDate"][0])
+    if self.get_argument("endDate", ""):
+      req["ToDate"] = self.get_argument("endDate")
+      if self.get_argument("endTime", ""):
+        req["ToDate"] += " " + self.get_argument("endTime")
 
-    if 'endDate' in self.request.arguments and self.request.arguments["endDate"][0]:
-      if 'endTime' in self.request.arguments and self.request.arguments["endTime"][0]:
-        req["ToDate"] = str(self.request.arguments["endDate"][0] + " " + self.request.arguments["endTime"][0])
-      else:
-        req["ToDate"] = str(self.request.arguments["endDate"][0])
+    if self.get_argument("date", ""):
+      req["LastUpdate"] = self.get_argument("date")
 
-    if 'date' in self.request.arguments and self.request.arguments["date"][0]:
-      req["LastUpdate"] = str(self.request.arguments["date"][0])
-
-    if 'sort' in self.request.arguments:
-      sort = json.loads(self.request.arguments['sort'][-1])
-      if sort:
-        self.globalSort = []
-        for i in sort:
-          if "LastSignOfLife" not in i['property']:
-            self.globalSort += [[str(i['property']), str(i['direction'])]]
-    else:
-      self.globalSort = [["JobID", "DESC"]]
+    sort = json.loads(self.get_argument("sort", "[]"))
+    if sort:
+      self.globalSort = []
+      for i in sort:
+        if "LastSignOfLife" not in i['property']:
+          self.globalSort += [[str(i['property']), str(i['direction'])]]
 
     gLogger.debug("Request", str(req))
     return req
 
   @asyncGen
   def web_jobAction(self):
-    ids = self.request.arguments["JobID"][0].split(",")
+    ids = self.get_argument("JobID").split(",")
     ids = [int(i) for i in ids]
 
     RPC = JobManagerClient()
-    if self.request.arguments["action"][0] == "delete":
+    if self.get_argument("action") == "delete":
       result = yield self.threadTask(RPC.deleteJob, ids)
-    elif self.request.arguments["action"][0] == "kill":
+    elif self.get_argument("action") == "kill":
       result = yield self.threadTask(RPC.killJob, ids)
-    elif self.request.arguments["action"][0] == "reschedule":
+    elif self.get_argument("action") == "reschedule":
       result = yield self.threadTask(RPC.rescheduleJob, ids)
-    elif self.request.arguments["action"][0] == "reset":
+    elif self.get_argument("action") == "reset":
       result = yield self.threadTask(RPC.resetJob, ids)
 
     callback = {}
@@ -360,24 +337,24 @@ class JobMonitorHandler(WebHandler):
         callback = {"success": "false", "error": "Invalid JobIDs: %s" % result["InvalidJobIDs"]}
       elif "NonauthorizedJobIDs" in result:
         callback = {"success": "false", "error": "You are nonauthorized to %s jobs with JobID: %s" %
-                    (self.request.arguments["action"][0], result["NonauthorizedJobIDs"])}
+                    (self.get_argument("action"), result["NonauthorizedJobIDs"])}
       else:
         callback = {"success": "false", "error": result["Message"]}
     self.finish(callback)
 
   @asyncGen
   def web_jobData(self):
-    jobId = int(self.request.arguments["id"][0])
+    jobId = int(self.get_argument("id"))
     callback = {}
 
-    if self.request.arguments["data_kind"][0] == "getJDL":
+    if self.get_argument("data_kind") == "getJDL":
       RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobJDL, jobId, False)
       if result["OK"]:
         callback = {"success": "true", "result": result["Value"]}
       else:
         callback = {"success": "false", "error": result["Message"]}
-    elif self.request.arguments["data_kind"][0] == "getBasicInfo":
+    elif self.get_argument("data_kind") == "getBasicInfo":
       RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobSummary, jobId)
       if result["OK"]:
@@ -387,7 +364,7 @@ class JobMonitorHandler(WebHandler):
         callback = {"success": "true", "result": items}
       else:
         callback = {"success": "false", "error": result["Message"]}
-    elif self.request.arguments["data_kind"][0] == "getParams":
+    elif self.get_argument("data_kind") == "getParams":
       RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
@@ -402,7 +379,7 @@ class JobMonitorHandler(WebHandler):
         callback = {"success": "true", "result": items}
       else:
         callback = {"success": "false", "error": result["Message"]}
-    elif self.request.arguments["data_kind"][0] == "getLoggingInfo":
+    elif self.get_argument("data_kind") == "getLoggingInfo":
       RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobLoggingInfo, jobId)
       if result["OK"]:
@@ -410,7 +387,7 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success": "false", "error": result["Message"]}
 
-    elif self.request.arguments["data_kind"][0] == "getStandardOutput":
+    elif self.get_argument("data_kind") == "getStandardOutput":
       RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobParameters, jobId)
       attr = result["Value"].get(jobId, {})
@@ -421,7 +398,7 @@ class JobMonitorHandler(WebHandler):
           callback = {"success": "false", "error": "Not accessible yet"}
       else:
         callback = {"success": "false", "error": result["Message"]}
-    elif self.request.arguments["data_kind"][0] == "getPending":
+    elif self.get_argument("data_kind") == "getPending":
 
       result = yield self.threadTask(ReqClient().readRequestsForJobs, [jobId])
 
@@ -441,7 +418,7 @@ class JobMonitorHandler(WebHandler):
       else:
         callback = {"success": "false", "error": result["Message"]}
 
-    elif self.request.arguments["data_kind"][0] == "getLogURL":
+    elif self.get_argument("data_kind") == "getLogURL":
       RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
@@ -458,7 +435,7 @@ class JobMonitorHandler(WebHandler):
           callback = {"success": "false", "error": "No URL found"}
       else:
         callback = {"success": "false", "error": result["Message"]}
-    elif self.request.arguments["data_kind"][0] == "getStagerReport":
+    elif self.get_argument("data_kind") == "getStagerReport":
       RPC = JobMonitoringClient()
       result = yield self.threadTask(RPC.getJobParameters, jobId)
       if result["OK"]:
@@ -469,21 +446,21 @@ class JobMonitorHandler(WebHandler):
           callback = {"success": "false", "error": "StagerReport not available"}
       else:
         callback = {"success": "false", "error": result["Message"]}
-    elif self.request.arguments["data_kind"][0] == "getPilotStdOut":
+    elif self.get_argument("data_kind") == "getPilotStdOut":
       result = yield self.threadTask(WMSAdministratorClient().getJobPilotOutput, jobId)
       if result["OK"]:
         if "StdOut" in result["Value"]:
           callback = {"success": "true", "result": result["Value"]["StdOut"]}
       else:
         callback = {"success": "false", "error": result["Message"]}
-    elif self.request.arguments["data_kind"][0] == "getPilotStdErr":
+    elif self.get_argument("data_kind") == "getPilotStdErr":
       result = yield self.threadTask(WMSAdministratorClient().getJobPilotOutput, jobId)
       if result["OK"]:
         if "StdErr" in result["Value"]:
           callback = {"success": "true", "result": result["Value"]["StdErr"]}
       else:
         callback = {"success": "false", "error": result["Message"]}
-    elif self.request.arguments["data_kind"][0] == "getPilotLoggingInfo":
+    elif self.get_argument("data_kind") == "getPilotLoggingInfo":
       retVal = yield self.threadTask(PilotManagerClient().getPilots, int(jobId))
       if retVal['OK']:
         pilotReference = list(retVal['Value'])[0]
@@ -504,7 +481,7 @@ class JobMonitorHandler(WebHandler):
 
     RPC = JobMonitoringClient()
 
-    selector = self.request.arguments["statsField"][0]
+    selector = self.get_argument("statsField")
 
     if selector == "Minor Status":
       selector = "MinorStatus"
@@ -559,10 +536,10 @@ class JobMonitorHandler(WebHandler):
     if 'jobID' not in self.request.arguments:
       self.finish({"success": "false", "error": "Maybe you forgot the jobID ?"})
       return
-    jobID = int(self.request.arguments['jobID'][0])
+    jobID = int(self.get_argument("jobID"))
     sbType = 'Output'
     if 'sandbox' in self.request.arguments:
-      sbType = str(self.request.arguments['sandbox'][0])
+      sbType = self.get_argument("sandbox")
 
     client = SandboxStoreClient(useCertificates=True,
                                 delegatedDN=self.getUserDN(),

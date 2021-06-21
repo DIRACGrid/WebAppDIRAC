@@ -293,7 +293,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
       but it can be certainly more complex.
     '''
 
-    gLogger.always("!!!  PARAMS: ", str(self.request.arguments))
+    gLogger.always("!!!  PARAMS: ", repr(self.request.arguments))
 
     responseParams = {
         'name': None,
@@ -305,7 +305,8 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     }
 
     for key in responseParams:
-      if key in self.request.arguments and str(self.request.arguments[key][-1]):
-        responseParams[key] = list(json.loads(self.request.arguments[key][-1]))
+      value = self.get_argument(key, None)
+      if value:
+        responseParams[key] = list(json.loads(value))
 
     return responseParams

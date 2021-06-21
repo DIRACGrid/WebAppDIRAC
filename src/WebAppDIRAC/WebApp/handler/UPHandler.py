@@ -29,21 +29,15 @@ class UPHandler(WebHandler):
     self.__tc.setSetup(False)
 
   def __getUP(self):
-    try:
-      obj = self.request.arguments['obj'][-1]
-      app = self.request.arguments['app'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
+    obj = self.get_argument("obj")
+    app = self.get_argument("app")
     return UserProfileClient("Web/%s/%s" % (obj, app))
 
   @asyncGen
   def web_saveAppState(self):
     up = self.__getUP()
-    try:
-      name = self.request.arguments['name'][-1]
-      state = self.request.arguments['state'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
+    name = self.get_argument("name")
+    state = self.get_argument("state")
     data = base64.b64encode(zlib.compress(DEncode.encode(state), 9))
     # before we save the state (modify the state) we have to remeber the actual access: ReadAccess and PublishAccess
     result = yield self.threadTask(up.getVarPermissions, name)
@@ -65,14 +59,8 @@ class UPHandler(WebHandler):
   @asyncGen
   def web_makePublicAppState(self):
     up = self.__getUP()
-    try:
-      name = self.request.arguments['name'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
-    try:
-      access = self.request.arguments['access'][-1].upper()
-    except KeyError as excp:
-      access = 'ALL'
+    name = self.get_argument("name")
+    access = self.get_argument("access", "ALL").upper()
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
 
@@ -91,10 +79,7 @@ class UPHandler(WebHandler):
   @asyncGen
   def web_loadAppState(self):
     up = self.__getUP()
-    try:
-      name = self.request.arguments['name'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
+    name = self.get_argument("name")
     result = yield self.threadTask(up.retrieveVar, name)
     if not result['OK']:
       raise WErr.fromSERROR(result)
@@ -105,12 +90,9 @@ class UPHandler(WebHandler):
   @asyncGen
   def web_loadUserAppState(self):
     up = self.__getUP()
-    try:
-      user = self.request.arguments['user'][-1]
-      group = self.request.arguments['group'][-1]
-      name = self.request.arguments['name'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
+    user = self.get_argument("user")
+    group = self.get_argument("group")
+    name = self.get_argument("name")
     result = yield self.threadTask(up.retrieveVarFromUser, user, group, name)
     if not result['OK']:
       raise WErr.fromSERROR(result)
@@ -133,10 +115,7 @@ class UPHandler(WebHandler):
   @asyncGen
   def web_delAppState(self):
     up = self.__getUP()
-    try:
-      name = self.request.arguments['name'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
+    name = self.get_argument("name")
     result = yield self.threadTask(up.deleteVar, name)
     if not result['OK']:
       raise WErr.fromSERROR(result)
@@ -151,9 +130,7 @@ class UPHandler(WebHandler):
     data = result['Value']
     paramNames = ['UserName', 'Group', 'VO', 'desktop']
 
-    records = []
-    for i in data:
-      records += [dict(zip(paramNames, i))]
+    records = [dict(zip(paramNames, i)) for i in data]
     sharedDesktops = {}
     for i in records:
       result = yield self.threadTask(up.getVarPermissions, i['desktop'])
@@ -166,26 +143,16 @@ class UPHandler(WebHandler):
           raise WErr.fromSERROR(result)
         if i['UserName'] not in sharedDesktops:
           sharedDesktops[i['UserName']] = {}
-          sharedDesktops[i['UserName']][i['desktop']] = json.loads(
-              DEncode.decode(zlib.decompress(base64.b64decode(result['Value'])))[0])
-          sharedDesktops[i['UserName']]['Metadata'] = i
-        else:
-          sharedDesktops[i['UserName']][i['desktop']] = json.loads(
-              DEncode.decode(zlib.decompress(base64.b64decode(result['Value'])))[0])
-          sharedDesktops[i['UserName']]['Metadata'] = i
+        sharedDesktops[i['UserName']][i['desktop']] = json.loads(
+            DEncode.decode(zlib.decompress(base64.b64decode(result['Value'])))[0])
+        sharedDesktops[i['UserName']]['Metadata'] = i
     self.finish(sharedDesktops)
 
   @asyncGen
   def web_makePublicDesktopState(self):
     up = UserProfileClient("Web/application/desktop")
-    try:
-      name = self.request.arguments['name'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
-    try:
-      access = self.request.arguments['access'][-1].upper()
-    except KeyError as excp:
-      access = 'ALL'
+    name = self.get_argument("name")
+    access = self.get_argument("access", "ALL").upper()
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
     # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
@@ -198,11 +165,8 @@ class UPHandler(WebHandler):
   @asyncGen
   def web_changeView(self):
     up = self.__getUP()
-    try:
-      desktopName = self.request.arguments['desktop'][-1]
-      view = self.request.arguments['view'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
+    desktopName = self.get_argument("desktop")
+    view = self.get_argument("view")
     result = yield self.threadTask(up.retrieveVar, desktopName)
     if not result['OK']:
       raise WErr.fromSERROR(result)
@@ -302,15 +266,8 @@ class UPHandler(WebHandler):
   @asyncGen
   def web_publishAppState(self):
     up = self.__getUP()
-    try:
-      name = self.request.arguments['name'][-1]
-    except KeyError as excp:
-      raise WErr(400, "Missing %s" % excp)
-    try:
-      access = self.request.arguments['access'][-1].upper()
-    except KeyError as excp:
-      access = 'ALL'
-
+    name = self.get_argument("name")
+    access = self.get_argument("access", "ALL").upper()
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
 
