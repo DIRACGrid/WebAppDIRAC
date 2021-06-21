@@ -46,10 +46,7 @@ class AuthenticationHandler(WebHandler):
   # Get current auth type
   @asyncGen
   def web_getCurrentAuth(self):
-    if self.get_secure_cookie("TypeAuth"):
-      current = self.get_secure_cookie("TypeAuth")
-    else:
-      current = 'default'
+    current = (self.get_secure_cookie("TypeAuth") or b"default").decode()
     self.write(current)
 
   # Python part in auth process
@@ -65,6 +62,8 @@ class AuthenticationHandler(WebHandler):
       auths.extend(Conf.getCSSections("TypeAuths").get("Value"))
     if (typeAuth == 'Logout') or (typeAuth not in auths):
       typeAuth = self.get_secure_cookie("TypeAuth")
+      if typeAuth is not None:
+        typeAuth = typeAuth.decode()
       self.set_secure_cookie("TypeAuth", 'Visitor')
     elif method == 'oAuth2':
       accessToken = loadValue

@@ -1,6 +1,6 @@
 Ext.define("Ext.dirac.views.tabs.DesktopSettings", {
   extend: "Ext.form.Panel",
-  title: "Activ desktop configuration",
+  title: "Active desktop configuration",
   layout: "fit",
   bodyPadding: 10,
   width: 400,
