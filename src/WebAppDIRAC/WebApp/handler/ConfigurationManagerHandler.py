@@ -20,11 +20,10 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
   @asyncGen
   def on_message(self, msg):
-
     self.log.debug("RECEIVED", msg)
     try:
       params = json.loads(msg)
-    except BaseException:
+    except Exception:
       self.log.exception("No op defined")
 
     res = False
@@ -528,7 +527,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             "html": self.render_string("ConfigurationManager/diffConfig.tpl",
                                        titles=("Server's version",
                                                "User's current version"),
-                                       diffList=processedData["diff"])}
+                                       diffList=processedData["diff"]).decode("utf-8")}
 
   def __showDiff(self, params):
     if not self.__authorizeAction():
@@ -549,7 +548,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             "html": self.render_string("ConfigurationManager/diffConfig.tpl",
                                        titles=("From version %s" % fromDate,
                                                "To version %s" % toDate),
-                                       diffList=processedData["diff"])}
+                                       diffList=processedData["diff"]).decode("utf-8")}
 
   def __rollback(self, params):
     rollbackVersion = ""
@@ -619,4 +618,4 @@ class ConfigurationManagerHandler(WebSocketHandler):
             "html": self.render_string("ConfigurationManager/diffConfig.tpl",
                                        titles=("Server's version",
                                                "User's current version"),
-                                       diffList=diffList)}
+                                       diffList=diffList).decode("utf-8")}
