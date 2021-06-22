@@ -346,7 +346,7 @@ class SystemAdministrationHandler(WebHandler):
       return
     result = result["Value"]
 
-    users = map(lambda x: [x], result)
+    users = [[x] for x in result]
 
     result = gConfig.getSections("/Registry/Groups")
     if not result["OK"]:
@@ -354,7 +354,7 @@ class SystemAdministrationHandler(WebHandler):
       return
     result = result["Value"]
 
-    groups = map(lambda x: [x], result)
+    groups = [[x] for x in result]
 
     self.finish({"success": "true", "users": users, "groups": groups, "email": self.getUserEmail()})
 

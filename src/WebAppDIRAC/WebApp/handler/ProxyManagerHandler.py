@@ -40,8 +40,8 @@ class ProxyManagerHandler(WebHandler):
     groups = uniqueElements(groups)
     users.sort()
     groups.sort()
-    users = map(lambda x: [x], users)
-    groups = map(lambda x: [x], groups)
+    users = [[x] for x in users]
+    groups = [[x] for x in groups]
 
     callback["username"] = users
     callback["usergroup"] = groups
