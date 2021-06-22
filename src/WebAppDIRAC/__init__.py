@@ -39,5 +39,5 @@ else:
 
 def extension_metadata():
   return {
-      "priority": 1
+      "priority": 10
   }
