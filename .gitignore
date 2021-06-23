@@ -45,6 +45,11 @@ pip-log.txt
 *.un~
 Session.vim
 
+# VSCode
+.vscode/*
+*.code-workspace
+.history/
+
 # test stuff
 .cache
 __pycache__
