@@ -49,7 +49,7 @@ jobs:
       # Need to do this after creating the PEP-440 style tag
       - name: Build distributions
         run: |
-          PIP_EXTRA_INDEX_URL=https://test.pypi.org/simple/ python -m build ./WebAppDIRACRepo/
+          python -m build ./WebAppDIRACRepo/
       - name: Publish package on PyPI
         if: steps.check-tag.outputs.create-release == 'true'
         uses: pypa/gh-action-pypi-publish@master
