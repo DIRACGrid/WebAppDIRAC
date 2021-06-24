@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+import imp
 import os
-import six
 import sys
-import tornado
 
+import six
+import tornado
 from DIRAC import gConfig, S_OK
 from DIRAC.Core.Base import Script
 from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMetadata
@@ -33,7 +34,7 @@ def _createStaticSymlinks(targetDir):
     else:
       staticDirs = []
       try:
-        modFile, modPath, desc = imp.find_module(extName)
+        modFile, modPath, desc = imp.find_module(extension)
         # to match in the real root path to enabling module web extensions (static, templates...)
         realModPath = os.path.realpath(modPath)
       except ImportError:
@@ -88,7 +89,7 @@ def main():
     gLogger.fatal("There were errors when loading configuration", result['Message'])
     sys.exit(1)
 
-  result = DIRAC.gConfig.getOption("/WebApp/StaticResourceLinkDir")
+  result = gConfig.getOption("/WebApp/StaticResourceLinkDir")
   if result["OK"]:
     gLogger.notice("Creating symlinks to static resources")
     _createStaticSymlinks(result["Value"])

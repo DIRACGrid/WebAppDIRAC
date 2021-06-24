@@ -6,10 +6,11 @@ import re
 import imp
 import inspect
 
+import six
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
-from DIRAC.Core.Utilities.Extensions import extensionsByPriority
+from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMetadata
 
 import WebAppDIRAC
 
@@ -47,7 +48,7 @@ class HandlerMgr(object):
     pathList = []
     for extName in extensionsByPriority():
       if six.PY3:
-        metadata = getExtensionMetadata(extension)
+        metadata = getExtensionMetadata(extName)
         pathList += metadata.get("web_resources", {}).get(dirName, [])
       else:
         # TODO: Would be nicer to set these paths with setuptools metadata

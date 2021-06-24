@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   pyLint:
     runs-on: ubuntu-latest
-    # if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     timeout-minutes: 30
     defaults:
       # Activate the conda environment automatically in each step
@@ -36,6 +36,6 @@ jobs:
         use-mamba: true
     - name: Run tests
       run: |
-        pip install ./DIRACRepo/[server,testing] ./WebAppDIRACRepo
+        pip install -v ./DIRACRepo/[server,testing] ./WebAppDIRACRepo
         cd WebAppDIRACRepo
         ${{ matrix.command }}
