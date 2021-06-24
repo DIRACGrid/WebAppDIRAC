@@ -265,6 +265,7 @@ def SSLProtocol():
   """
   return getCSValue("SSLProtocol", getCSValue("SSLProtcol", ""))
 
+
 def getDefaultStaticDirs():
   """ Get default static directories
 
