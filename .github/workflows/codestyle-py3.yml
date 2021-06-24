@@ -36,6 +36,6 @@ jobs:
         use-mamba: true
     - name: Run tests
       run: |
-        pip install -v ./DIRACRepo/[server,testing] ./WebAppDIRACRepo
+        PIP_EXTRA_INDEX_URL=https://test.pypi.org/simple/ pip install -v ./DIRACRepo/[server,testing] ./WebAppDIRACRepo
         cd WebAppDIRACRepo
         ${{ matrix.command }}

@@ -1,5 +1,6 @@
 [build-system]
-requires = ["dirac_webapp_packaging~=1.0", "setuptools_scm[toml]>=3.4"]
+# FIXME: Re-add constraints on DIRACWebAppResources and dirac_webapp_packaging
+requires = ["dirac_webapp_packaging", "setuptools_scm[toml]>=3.4"]
 build-backend = "setuptools.build_meta"
 
 # Enable setuptools_scm to compute the version number from the most recent tag
