@@ -46,16 +46,21 @@ class HandlerMgr(object):
     """
     pathList = []
     for extName in extensionsByPriority():
-      # TODO: Would be nicer to set these paths with setuptools metadata
-      try:
-        modFile, modPath, desc = imp.find_module(extName)
-        # to match in the real root path to enabling module web extensions (static, templates...)
-        realModPath = os.path.realpath(modPath)
-      except ImportError:
-        continue
-      staticPath = os.path.join(realModPath, "WebApp", dirName)
-      if os.path.isdir(staticPath):
-        pathList.append(staticPath)
+      if six.PY3:
+        metadata = getExtensionMetadata(extension)
+        pathList += metadata.get("web_resources", {}).get(dirName, [])
+      else:
+        # TODO: Would be nicer to set these paths with setuptools metadata
+        # FIXME: Use static_web_resources
+        try:
+          modFile, modPath, desc = imp.find_module(extName)
+          # to match in the real root path to enabling module web extensions (static, templates...)
+          realModPath = os.path.realpath(modPath)
+        except ImportError:
+          continue
+        staticPath = os.path.join(realModPath, "WebApp", dirName)
+        if os.path.isdir(staticPath):
+          pathList.append(staticPath)
     return pathList
 
   def __calculateRoutes(self):

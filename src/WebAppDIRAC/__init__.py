@@ -38,6 +38,12 @@ else:
 
 
 def extension_metadata():
+  import importlib.resources  # pylint: disable=no-name-in-module
+
   return {
-      "priority": 10
+      "priority": 10,
+      "web_resources": {
+          "static": [importlib.resources.files("WebAppDIRAC") / "WebApp" / "static"],
+          "template": [importlib.resources.files("WebAppDIRAC") / "WebApp" / "template"],
+      }
   }
