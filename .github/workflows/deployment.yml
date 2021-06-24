@@ -1,0 +1,59 @@
+name: Deployment
+
+on: [push, pull_request]
+
+jobs:
+  deploy-pypi:
+    name: PyPI deployment
+    runs-on: "ubuntu-latest"
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: WebAppDIRACRepo
+          fetch-depth: 0
+      - uses: actions/checkout@v2
+        with:
+          repository: DIRACGrid/DIRAC
+          path: DIRACRepo
+          ref: integration
+          fetch-depth: 0
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          pip install build readme_renderer diraccfg packaging requests
+      - name: Validate README for PyPI
+        run: |
+          python -m readme_renderer WebAppDIRACRepo/README.rst -o /tmp/README.html
+      - name: Check tag is for v4r3 or later
+        id: check-tag
+        # When v5 is released we can remove this check
+        run: |
+          if [[ "${{ github.event.ref }}" =~ ^refs/tags/v4r([3-9]|[0-9][0-9]+)(p[0-9]+)?(-pre[0-9]+)?$ ]]; then
+              echo ::set-output name=create-release::true
+          fi
+      - name: Make PEP-440 style release on GitHub
+        if: steps.check-tag.outputs.create-release == 'true'
+        run: |
+          OLD_STYLE=${GITHUB_REF##*/}
+          NEW_STYLE=$(python -c "import diraccfg; major, minor, patch, pre = diraccfg.parseVersion('${OLD_STYLE}'); print(f'{major}.{minor}.{patch}', f'a{pre}' if pre else '', sep='')")
+          echo "Converted ${OLD_STYLE} version to ${NEW_STYLE}"
+          DIRACRepo/.github/workflows/make_release.py \
+            --token="${{ secrets.GITHUB_TOKEN }}" \
+            --repo="WebAppDIRAC" \
+            --version="v${NEW_STYLE}" \
+            --rev="$(git rev-parse HEAD)"
+          git fetch --all --tags
+      # Need to do this after creating the PEP-440 style tag
+      - name: Build distributions
+        run: |
+          python -m build ./WebAppDIRACRepo/
+      - name: Publish package on PyPI
+        if: steps.check-tag.outputs.create-release == 'true'
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: WebAppDIRACRepo/dist/
