@@ -49,7 +49,7 @@ class HandlerMgr(object):
     for extName in extensionsByPriority():
       if six.PY3:
         metadata = getExtensionMetadata(extName)
-        pathList += metadata.get("web_resources", {}).get(dirName, [])
+        pathList.extend(map(str, metadata.get("web_resources", {}).get(dirName, [])))
       else:
         # TODO: Would be nicer to set these paths with setuptools metadata
         # FIXME: Use static_web_resources
