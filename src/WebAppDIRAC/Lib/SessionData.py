@@ -125,14 +125,6 @@ class SessionData(object):
 
         :return: str
     """
-    if not cls.__extVersion:
-      extPath = os.path.join(cls.getWebAppPath(), "static", "extjs")
-      extVersionPath = []
-      for entryName in os.listdir(extPath):
-        if entryName.find("ext-") == 0:
-          extVersionPath.append(entryName)
-
-      cls.__extVersion = sorted(extVersionPath)[-1]
     return cls.__extVersion
 
   @classmethod
