@@ -59,8 +59,39 @@ def _createStaticSymlinks(targetDir):
   # TODO: Check /etc/nginx/conf.d/site.conf and warn if it's inconsistent?
 
 
+def _checkDIRACVersion():
+  """Validate a compatible DIRAC version is installed
+
+  In order to build WebApp extensions it is necessary to install the vanilla
+  WebApp during the compilation of the javascrip sources. The dependency on DIRAC
+  makes this unreliable as M2Crypto and gfal2 are both hard to install.
+
+  Instead, the DIRAC dependency is only included when installing the "server"
+  extra however this makes it possible to install incompatible version of DIRAC.
+  To avoid hard-to-debug failures we inspect the metadata when launching the
+  service and refuse to start if the DIRAC version is incompatible.
+  """
+  from importlib.metadata import requires, version  # pylint: disable=no-name-in-module
+  from packaging.requirements import Requirement  # pylint: disable=no-name-in-module
+
+  deps = [Requirement(x) for x in requires("WebAppDIRAC")]
+  deps = [x for x in deps if x.name.lower() == "dirac"]
+  if len(deps) != 1:
+    raise NotImplementedError("This shouldn't be possible: %r" % deps)
+  dirac_version = version("DIRAC")
+  dirac_spec = deps[0].specifier
+  if dirac_version not in dirac_spec:
+    raise RuntimeError(
+        "WebAppDIRAC %s requires %s but %s is incompatible" %
+        (version("WebAppDIRAC"), dirac_version, dirac_spec)
+    )
+
+
 @DIRACScript()
 def main():
+  if six.PY3:
+    _checkDIRACVersion()
+
   def disableDevMode(op):
     gConfig.setOptionValue("/WebApp/DevelopMode", "False")
     return S_OK()
