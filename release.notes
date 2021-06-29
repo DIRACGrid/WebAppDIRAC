@@ -1,5 +1,8 @@
-[v4r3-pre7]
+[v4r3-pre8]
 
+NEW: (#484) Add PyPI deployment
+NEW: (#484) Use a diracweb_packaging package to provide extjs
+NEW: (#484) Make WebAppDIRAC update the symlinks in /opt/dirac/webRoot/resources each time it's launched
 FIX: (#482) Mostly fixes bytes/str mix-ups in the code which are hard to spot without running it; optimization
 NEW: (#482) add git Python 3 tests
 FIX: (#481) Use a PEP-440 style version string if running with Python 3
