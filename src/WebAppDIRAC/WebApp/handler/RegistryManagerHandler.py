@@ -201,47 +201,48 @@ class RegistryManagerHandler(WebSocketHandler):
 
     sectionPath = "/Registry/"
     configText = ""
+    params = {k: str(v).strip() if v else v for k, v in params.items()}
     if params["type"] == "users":
 
       sectionPath = sectionPath + "Users"
-      if params["dn"].strip() != "":
-        configText = "DN = " + params["dn"].strip() + "\n"
+      if params["dn"]:
+        configText = "DN = " + params["dn"] + "\n"
 
-      if params["ca"].strip() != "":
-        configText = configText + "CA = " + params["ca"].strip() + "\n"
+      if params["ca"]:
+        configText = configText + "CA = " + params["ca"] + "\n"
 
-      if params["email"].strip() != "":
-        configText = configText + "Email = " + params["email"].strip()
+      if params["email"]:
+        configText = configText + "Email = " + params["email"]
 
     elif params["type"] == "groups":
 
       sectionPath = sectionPath + "Groups"
-      if params["users"].strip() != "":
-        configText = "Users = " + params["users"].strip() + "\n"
+      if params["users"]:
+        configText = "Users = " + params["users"] + "\n"
 
-      if params["properties"].strip() != "":
-        configText = configText + "Properties = " + params["properties"].strip() + "\n"
+      if params["properties"]:
+        configText = configText + "Properties = " + params["properties"] + "\n"
 
-      if str(params["jobshare"]).strip() != "":
-        configText = configText + "JobShare = " + str(params["jobshare"]) + "\n"
+      if params["jobshare"]:
+        configText = configText + "JobShare = " + params["jobshare"] + "\n"
 
-      if params["autouploadproxy"].strip() != "":
-        configText = configText + "AutoUploadProxy = " + params["autouploadproxy"].strip() + "\n"
+      if params["autouploadproxy"]:
+        configText = configText + "AutoUploadProxy = " + params["autouploadproxy"] + "\n"
 
-      if params["autouploadpilotproxy"].strip() != "":
-        configText = configText + "AutoUploadPilotProxy = " + params["autouploadpilotproxy"].strip() + "\n"
+      if params["autouploadpilotproxy"]:
+        configText = configText + "AutoUploadPilotProxy = " + params["autouploadpilotproxy"] + "\n"
 
-      if params["autoaddvoms"].strip() != "":
-        configText = configText + "AutoAddVOMS = " + params["autoaddvoms"].strip()
+      if params["autoaddvoms"]:
+        configText = configText + "AutoAddVOMS = " + params["autoaddvoms"]
 
     elif params["type"] == "hosts":
 
       sectionPath = sectionPath + "Hosts"
-      if params["dn"].strip() != "":
-        configText = "DN = " + params["dn"].strip() + "\n"
+      if params["dn"]:
+        configText = "DN = " + params["dn"] + "\n"
 
-      if params["properties"].strip() != "":
-        configText = configText + "Properties = " + params["properties"].strip()
+      if params["properties"]:
+        configText = configText + "Properties = " + params["properties"]
 
     elif params["type"] == "voms":
 
@@ -250,14 +251,14 @@ class RegistryManagerHandler(WebSocketHandler):
     elif params["type"] == "servers":
 
       sectionPath = sectionPath + "VOMS/Servers/" + params["vom"]
-      if params["dn"].strip() != "":
-        configText = "DN = " + params["dn"].strip() + "\n"
+      if params["dn"]:
+        configText = "DN = " + params["dn"] + "\n"
 
-      if params["port"].strip() != "":
-        configText = configText + "Port = " + params["port"].strip() + "\n"
+      if params["port"]:
+        configText = configText + "Port = " + params["port"] + "\n"
 
-      if params["ca"].strip() != "":
-        configText = configText + "CA = " + params["ca"].strip()
+      if params["ca"]:
+        configText = configText + "CA = " + params["ca"]
 
     sectionPath = sectionPath + "/" + params["name"]
 
@@ -282,47 +283,48 @@ class RegistryManagerHandler(WebSocketHandler):
 
     sectionPath = "/Registry/"
     configText = ""
+    params = {k: str(v).strip() if v else v for k, v in params.items()}
     if params["type"] == "users":
 
       sectionPath = sectionPath + "Users"
-      if params["dn"].strip() != "":
-        configText = "DN = " + params["dn"].strip() + "\n"
+      if params["dn"]:
+        configText = "DN = " + params["dn"] + "\n"
 
-      if params["ca"].strip() != "":
-        configText = configText + "CA = " + params["ca"].strip() + "\n"
+      if params["ca"]:
+        configText = configText + "CA = " + params["ca"] + "\n"
 
-      if params["email"].strip() != "":
-        configText = configText + "Email = " + params["email"].strip()
+      if params["email"]:
+        configText = configText + "Email = " + params["email"]
 
     elif params["type"] == "groups":
 
       sectionPath = sectionPath + "Groups"
-      if params["users"].strip() != "":
-        configText = "Users = " + params["users"].strip() + "\n"
+      if params["users"]:
+        configText = "Users = " + params["users"] + "\n"
 
-      if params["properties"].strip() != "":
-        configText = configText + "Properties = " + params["properties"].strip() + "\n"
+      if params["properties"]:
+        configText = configText + "Properties = " + params["properties"] + "\n"
 
-      if str(params["jobshare"]).strip() != "":
-        configText = configText + "JobShare = " + str(params["jobshare"]) + "\n"
+      if params["jobshare"]:
+        configText = configText + "JobShare = " + params["jobshare"] + "\n"
 
-      if params["autouploadproxy"].strip() != "":
-        configText = configText + "AutoUploadProxy = " + params["autouploadproxy"].strip() + "\n"
+      if params["autouploadproxy"]:
+        configText = configText + "AutoUploadProxy = " + params["autouploadproxy"] + "\n"
 
-      if params["autouploadpilotproxy"].strip() != "":
-        configText = configText + "AutoUploadPilotProxy = " + params["autouploadpilotproxy"].strip() + "\n"
+      if params["autouploadpilotproxy"]:
+        configText = configText + "AutoUploadPilotProxy = " + params["autouploadpilotproxy"] + "\n"
 
-      if params["autoaddvoms"].strip() != "":
-        configText = configText + "AutoAddVOMS = " + params["autoaddvoms"].strip()
+      if params["autoaddvoms"]:
+        configText = configText + "AutoAddVOMS = " + params["autoaddvoms"]
 
     elif params["type"] == "hosts":
 
       sectionPath = sectionPath + "Hosts"
-      if params["dn"].strip() != "":
-        configText = "DN = " + params["dn"].strip() + "\n"
+      if params["dn"]:
+        configText = "DN = " + params["dn"] + "\n"
 
-      if params["properties"].strip() != "":
-        configText = configText + "Properties = " + params["properties"].strip()
+      if params["properties"]:
+        configText = configText + "Properties = " + params["properties"]
 
     sectionPath = sectionPath + "/" + params["name"]
 
