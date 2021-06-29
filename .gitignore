@@ -40,10 +40,15 @@ pip-log.txt
 .metadata
 .tern-project
 
-# Vim 
+# Vim
 .*.sw[a-z]
 *.un~
 Session.vim
+
+# VSCode
+.vscode/*
+*.code-workspace
+.history/
 
 # test stuff
 .cache

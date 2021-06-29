@@ -6,10 +6,11 @@ import re
 import imp
 import inspect
 
+import six
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
-from DIRAC.Core.Utilities.Extensions import extensionsByPriority
+from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMetadata
 
 import WebAppDIRAC
 
@@ -46,16 +47,19 @@ class HandlerMgr(object):
     """
     pathList = []
     for extName in extensionsByPriority():
-      # TODO: Would be nicer to set these paths with setuptools metadata
-      try:
-        modFile, modPath, desc = imp.find_module(extName)
-        # to match in the real root path to enabling module web extensions (static, templates...)
-        realModPath = os.path.realpath(modPath)
-      except ImportError:
-        continue
-      staticPath = os.path.join(realModPath, "WebApp", dirName)
-      if os.path.isdir(staticPath):
-        pathList.append(staticPath)
+      if six.PY3:
+        metadata = getExtensionMetadata(extName)
+        pathList.extend(map(str, metadata.get("web_resources", {}).get(dirName, [])))
+      else:
+        try:
+          modFile, modPath, desc = imp.find_module(extName)
+          # to match in the real root path to enabling module web extensions (static, templates...)
+          realModPath = os.path.realpath(modPath)
+        except ImportError:
+          continue
+        staticPath = os.path.join(realModPath, "WebApp", dirName)
+        if os.path.isdir(staticPath):
+          pathList.append(staticPath)
     return pathList
 
   def __calculateRoutes(self):

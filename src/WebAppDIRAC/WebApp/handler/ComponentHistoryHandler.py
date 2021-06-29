@@ -85,7 +85,7 @@ class ComponentHistoryHandler(WebHandler):
       for field in fields:
         data[field] = list(data[field])
         data[field].sort()
-        data[field] = map(lambda x: [x], data[field])
+        data[field] = [[x] for x in data[field]]
     else:
       raise WErr.fromSERROR(result)
 

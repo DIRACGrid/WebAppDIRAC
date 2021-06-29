@@ -1,10 +1,13 @@
 #!/usr/bin/env python
-
+import imp
+import os
 import sys
-import tornado
 
+import six
+import tornado
 from DIRAC import gConfig, S_OK
 from DIRAC.Core.Base import Script
+from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMetadata
 from DIRAC.Core.Utilities.DIRACScript import DIRACScript
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 from DIRAC.FrameworkSystem.Client.Logger import gLogger
@@ -14,8 +17,81 @@ from WebAppDIRAC.Core.App import App
 __RCSID__ = "$Id$"
 
 
+def _createStaticSymlinks(targetDir):
+  """Create symlinks to static web content
+
+  This method is used to populate the directory specified in the local
+  configuration under ``/WebApp/StaticResourceLinkDir`` so that nginx can
+  serve this content from a consistent location.
+
+  :params str targetDir: The directory in which to create the symlinks
+  """
+  extensions = extensionsByPriority()
+  for extension in extensions:
+    if six.PY3:
+      metadata = getExtensionMetadata(extension)
+      staticDirs = metadata.get("web_resources", {}).get("static", [])
+    else:
+      staticDirs = []
+      try:
+        modFile, modPath, desc = imp.find_module(extension)
+        # to match in the real root path to enabling module web extensions (static, templates...)
+        realModPath = os.path.realpath(modPath)
+      except ImportError:
+        continue
+      staticDirs = [os.path.join(realModPath, "WebApp", "static")]
+      if not os.path.isdir(staticDirs[0]):
+        continue
+
+    for i, path in enumerate(sorted(staticDirs)):
+      destination = os.path.join(targetDir, extension)
+      # If there is more than one suffix append a counter
+      if i >= 1:
+        destination += "-%s" % i
+      gLogger.notice("    creating symlink from", "%s to %s" % (path, destination))
+      if os.path.islink(destination):
+        if path == os.readlink(destination):
+          # The link is already up to date
+          continue
+        os.unlink(destination)
+      os.symlink(path, destination)
+
+  # TODO: Check /etc/nginx/conf.d/site.conf and warn if it's inconsistent?
+
+
+def _checkDIRACVersion():
+  """Validate a compatible DIRAC version is installed
+
+  In order to build WebApp extensions it is necessary to install the vanilla
+  WebApp during the compilation of the javascrip sources. The dependency on DIRAC
+  makes this unreliable as M2Crypto and gfal2 are both hard to install.
+
+  Instead, the DIRAC dependency is only included when installing the "server"
+  extra however this makes it possible to install incompatible version of DIRAC.
+  To avoid hard-to-debug failures we inspect the metadata when launching the
+  service and refuse to start if the DIRAC version is incompatible.
+  """
+  from importlib.metadata import requires, version  # pylint: disable=import-error,no-name-in-module
+  from packaging.requirements import Requirement  # pylint: disable=no-name-in-module
+
+  deps = [Requirement(x) for x in requires("WebAppDIRAC")]
+  deps = [x for x in deps if x.name.lower() == "dirac"]
+  if len(deps) != 1:
+    raise NotImplementedError("This shouldn't be possible: %r" % deps)
+  dirac_version = version("DIRAC")
+  dirac_spec = deps[0].specifier
+  if dirac_version not in dirac_spec:
+    raise RuntimeError(
+        "WebAppDIRAC %s requires %s but %s is incompatible" %
+        (version("WebAppDIRAC"), dirac_version, dirac_spec)
+    )
+
+
 @DIRACScript()
 def main():
+  if six.PY3:
+    _checkDIRACVersion()
+
   def disableDevMode(op):
     gConfig.setOptionValue("/WebApp/DevelopMode", "False")
     return S_OK()
@@ -43,6 +119,13 @@ def main():
     gLogger.initialize("WebApp", "/")
     gLogger.fatal("There were errors when loading configuration", result['Message'])
     sys.exit(1)
+
+  result = gConfig.getOption("/WebApp/StaticResourceLinkDir")
+  if result["OK"]:
+    gLogger.notice("Creating symlinks to static resources")
+    _createStaticSymlinks(result["Value"])
+  else:
+    gLogger.warn("Not creating symlinks to static resources", result["Message"])
 
   gLogger.notice("Set next path(s): ", localCfg.handlersLoc)
   app = App(handlersLoc=localCfg.handlersLoc)
