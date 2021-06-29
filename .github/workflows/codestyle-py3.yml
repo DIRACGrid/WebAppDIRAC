@@ -36,6 +36,7 @@ jobs:
         use-mamba: true
     - name: Run tests
       run: |
-        pip install -v ./DIRACRepo/[server,testing] ./WebAppDIRACRepo
+        export DIRAC_WEBAPP_NO_COMPILE=1
+        pip install -v ./DIRACRepo/[server] ./WebAppDIRACRepo[server]
         cd WebAppDIRACRepo
         ${{ matrix.command }}

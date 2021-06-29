@@ -51,8 +51,6 @@ class HandlerMgr(object):
         metadata = getExtensionMetadata(extName)
         pathList.extend(map(str, metadata.get("web_resources", {}).get(dirName, [])))
       else:
-        # TODO: Would be nicer to set these paths with setuptools metadata
-        # FIXME: Use static_web_resources
         try:
           modFile, modPath, desc = imp.find_module(extName)
           # to match in the real root path to enabling module web extensions (static, templates...)

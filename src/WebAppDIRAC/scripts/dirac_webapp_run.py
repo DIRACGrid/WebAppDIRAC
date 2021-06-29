@@ -71,7 +71,7 @@ def _checkDIRACVersion():
   To avoid hard-to-debug failures we inspect the metadata when launching the
   service and refuse to start if the DIRAC version is incompatible.
   """
-  from importlib.metadata import requires, version  # pylint: disable=no-name-in-module
+  from importlib.metadata import requires, version  # pylint: disable=import-error,no-name-in-module
   from packaging.requirements import Requirement  # pylint: disable=no-name-in-module
 
   deps = [Requirement(x) for x in requires("WebAppDIRAC")]
