@@ -1,5 +1,10 @@
-[v4r3-pre8]
+[v4r3-pre9]
 
+FIX: (#492) update encodeDatetime to defaultEncoder(issue #490)
+FIX: (#491) Return list in PilotMonitorHandler.web_getSelectionData
+FIX: (#489) Make RegistryManagerHandler tolerant of null values
+FIX: (#488) Fix typo in deployment workflow
+FIX: (#486) Remove unused dynamic discovery of ExtJS version
 NEW: (#484) Add PyPI deployment
 NEW: (#484) Use a diracweb_packaging package to provide extjs
 NEW: (#484) Make WebAppDIRAC update the symlinks in /opt/dirac/webRoot/resources each time it's launched
