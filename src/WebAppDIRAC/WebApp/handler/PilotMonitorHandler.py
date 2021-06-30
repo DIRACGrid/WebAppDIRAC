@@ -77,7 +77,7 @@ class PilotMonitorHandler(WebHandler):
 
     if len(self.request.arguments) > 0:
       tmp = {self.get_argument(i).replace('"', "") for i in self.request.arguments}
-      callback["extra"] = tmp
+      callback["extra"] = list(tmp)
 
     result = yield self.threadTask(PilotManagerClient().getPilotMonitorSelectors)
 
