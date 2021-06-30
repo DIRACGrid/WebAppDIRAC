@@ -58,7 +58,9 @@ def encodeDatetime(data):
 
       :return: str if data is datetime else origin data value
   """
-  return data.strftime(DATETIME_DEFAULT_FORMAT) if isinstance(data, (datetime.date, datetime.datetime)) else data
+  if isinstance(data, (datetime.date, datetime.datetime)):
+    return data.strftime(DATETIME_DEFAULT_FORMAT)  
+  raise TypeError(f'Object of type {data.__class__.__name__} is not JSON serializable')
 
 
 class WebHandler(tornado.web.RequestHandler):
