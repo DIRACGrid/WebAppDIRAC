@@ -65,7 +65,7 @@ def defaultEncoder(data):
     return data.strftime(DATETIME_DEFAULT_FORMAT)
   if isinstance(data, (set)):
     return list(data)
-  raise TypeError(f'Object of type {data.__class__.__name__} is not JSON serializable')
+  raise TypeError('Object of type {} is not JSON serializable'.format(data.__class__.__name__))
 
 
 class WebHandler(tornado.web.RequestHandler):
