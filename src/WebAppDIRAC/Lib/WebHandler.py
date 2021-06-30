@@ -51,15 +51,20 @@ def asyncGen(method):
   return tornado.gen.coroutine(method)
 
 
-def encodeDatetime(data):
-  """ Encode datetime to ISO format string
+def defaultEncoder(data):
+  """ Encode
+
+        - datetime to ISO format string
+        - set to list
 
       :param data: value to encode
 
-      :return: str if data is datetime else origin data value
+      :return: encoded value
   """
   if isinstance(data, (datetime.date, datetime.datetime)):
-    return data.strftime(DATETIME_DEFAULT_FORMAT)  
+    return data.strftime(DATETIME_DEFAULT_FORMAT)
+  if isinstance(data, (set)):
+    return list(data)
   raise TypeError(f'Object of type {data.__class__.__name__} is not JSON serializable')
 
 
@@ -82,7 +87,7 @@ class WebHandler(tornado.web.RequestHandler):
         https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
     """
     if data and isinstance(data, dict):
-      data = json.dumps(data, default=encodeDatetime)
+      data = json.dumps(data, default=defaultEncoder)
     return super(WebHandler, self).finish(data, *args, **kwargs)
 
   def threadTask(self, method, *args, **kwargs):
