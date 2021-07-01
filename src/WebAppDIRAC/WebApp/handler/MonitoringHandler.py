@@ -203,7 +203,10 @@ class MonitoringHandler(WebHandler):
     tempFile.seek(0)
     data = tempFile.read()
     self.set_header('Content-type', 'image/png')
-    self.set_header('Content-Disposition', 'attachment; filename="%s.png"' % md5(plotImageFile).hexdigest())
+    self.set_header(
+        'Content-Disposition',
+        'attachment; filename="%s.png"' % md5(plotImageFile.encode()).hexdigest()
+    )
     self.set_header('Content-Length', len(data))
     self.set_header('Content-Transfer-Encoding', 'Binary')
     self.finish(data)
@@ -252,7 +255,10 @@ class MonitoringHandler(WebHandler):
     tempFile.seek(0)
     data = tempFile.read()
     self.set_header('Content-type', 'image/png')
-    self.set_header('Content-Disposition', 'attachment; filename="%s.png"' % md5(plotImageFile).hexdigest())
+    self.set_header(
+        'Content-Disposition',
+        'attachment; filename="%s.png"' % md5(plotImageFile.encode()).hexdigest()
+    )
     self.set_header('Content-Length', len(data))
     self.set_header('Content-Transfer-Encoding', 'Binary')
     self.set_header('Cache-Control', "no-cache, no-store, must-revalidate, max-age=0")
