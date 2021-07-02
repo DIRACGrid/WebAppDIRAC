@@ -1,12 +1,10 @@
 import os
 import json
-import tempfile
 import datetime
 
 from hashlib import md5
 
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.MonitoringSystem.Client.MonitoringClient import MonitoringClient
@@ -193,23 +191,7 @@ class MonitoringHandler(WebHandler):
 #      self.finish(callback)
 #      return
 
-    transferClient = TransferClient("Monitoring/Monitoring")
-    tempFile = tempfile.TemporaryFile()
-    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
-    if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
-    tempFile.seek(0)
-    data = tempFile.read()
-    self.set_header('Content-type', 'image/png')
-    self.set_header(
-        'Content-Disposition',
-        'attachment; filename="%s.png"' % md5(plotImageFile.encode()).hexdigest()
-    )
-    self.set_header('Content-Length', len(data))
-    self.set_header('Content-Transfer-Encoding', 'Binary')
-    self.finish(data)
+    self.finishWithImage("Monitoring/Monitoring", plotImageFile)
 
   @asyncGen
   def web_getPlotImgFromCache(self):
@@ -245,27 +227,7 @@ class MonitoringHandler(WebHandler):
       return
     plotImageFile = retVal['Value']['plot']
 
-    transferClient = TransferClient("Monitoring/Monitoring")
-    tempFile = tempfile.TemporaryFile()
-    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
-    if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
-    tempFile.seek(0)
-    data = tempFile.read()
-    self.set_header('Content-type', 'image/png')
-    self.set_header(
-        'Content-Disposition',
-        'attachment; filename="%s.png"' % md5(plotImageFile.encode()).hexdigest()
-    )
-    self.set_header('Content-Length', len(data))
-    self.set_header('Content-Transfer-Encoding', 'Binary')
-    self.set_header('Cache-Control', "no-cache, no-store, must-revalidate, max-age=0")
-    self.set_header('Pragma', "no-cache")
-    self.set_header(
-        'Expires', (datetime.datetime.utcnow() - datetime.timedelta(minutes=-10)).strftime("%d %b %Y %H:%M:%S GMT"))
-    self.finish(data)
+    self.finishWithImage("Monitoring/Monitoring", plotImageFile, disableCaching=True)
 
   @asyncGen
   def web_getCsvPlotData(self):

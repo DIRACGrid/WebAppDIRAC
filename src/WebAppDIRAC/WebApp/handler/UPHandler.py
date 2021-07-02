@@ -24,7 +24,7 @@ class UPHandler(WebHandler):
       raise WErr(401, "Not a registered user")
     self.set_header("Pragma", "no-cache")
     self.set_header("Cache-Control", "max-age=0, no-store, no-cache, must-revalidate")
-    # Do not use the defined user setup. Use the web one to show the same profile independenly of
+    # Do not use the defined user setup. Use the web one to show the same profile independently of
     # user setup
     self.__tc.setSetup(False)
 
@@ -39,7 +39,7 @@ class UPHandler(WebHandler):
     name = self.get_argument("name")
     state = self.get_argument("state")
     data = base64.b64encode(zlib.compress(DEncode.encode(state), 9))
-    # before we save the state (modify the state) we have to remeber the actual access: ReadAccess and PublishAccess
+    # before we save the state (modify the state) we have to remember the actual access: ReadAccess and PublishAccess
     result = yield self.threadTask(up.getVarPermissions, name)
     if result['OK']:
       access = result['Value']
