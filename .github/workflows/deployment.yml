@@ -45,7 +45,7 @@ jobs:
             --repo="WebAppDIRAC" \
             --version="v${NEW_STYLE}" \
             --rev="$(git rev-parse HEAD)"
-          git --git-dir ./WebAppDIRAC/.git fetch --all --tags
+          git --git-dir ./WebAppDIRACRepo/.git fetch --all --tags
       # Need to do this after creating the PEP-440 style tag
       - name: Build distributions
         run: |

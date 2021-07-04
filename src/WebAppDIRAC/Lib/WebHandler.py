@@ -1,22 +1,25 @@
+from concurrent.futures import ThreadPoolExecutor
 import ssl
 import json
 import datetime
 import requests
 import functools
+import tempfile
 import traceback
+from hashlib import md5
+
 import tornado.web
 import tornado.gen
 import tornado.ioloop
 import tornado.websocket
 import tornado.stack_context
 
-from concurrent.futures import ThreadPoolExecutor
-
 from DIRAC import gLogger
 from DIRAC.Core.Security import Properties
 from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
@@ -383,6 +386,35 @@ class WebHandler(tornado.web.RequestHandler):
           cType = "application/json"
           data = json.dumps(data)
     self.set_header('Content-Type', cType)
+    self.finish(data)
+
+  def finishWithImage(self, serviceName, plotImageFile, disableCaching=False):
+    # Get the image
+    transferClient = TransferClient(serviceName)
+    tempFile = tempfile.TemporaryFile()
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    if not retVal['OK']:
+      callback = {"success": "false", "error": retVal['Message']}
+      self.finish(callback)
+      return
+    tempFile.seek(0)
+    data = tempFile.read()
+    # Set headers
+    self.set_header('Content-type', 'image/png')
+    self.set_header(
+        'Content-Disposition',
+        'attachment; filename="%s.png"' % md5(plotImageFile.encode()).hexdigest()
+    )
+    self.set_header('Content-Length', len(data))
+    self.set_header('Content-Transfer-Encoding', 'Binary')
+    if disableCaching:
+      self.set_header('Cache-Control', "no-cache, no-store, must-revalidate, max-age=0")
+      self.set_header('Pragma', "no-cache")
+      self.set_header(
+          'Expires',
+          (datetime.datetime.utcnow() - datetime.timedelta(minutes=-10)).strftime("%d %b %Y %H:%M:%S GMT")
+      )
+    # Return the data
     self.finish(data)
 
 
