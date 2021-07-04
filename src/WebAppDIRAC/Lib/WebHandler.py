@@ -1,12 +1,18 @@
-from concurrent.futures import ThreadPoolExecutor
-import ssl
+""" Main module
+"""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+__RCSID__ = "$Id$"
+
 import json
 import pprint
 import datetime
-import requests
 import functools
 import traceback
 from hashlib import md5
+from concurrent.futures import ThreadPoolExecutor
 
 import tornado.web
 import tornado.websocket
@@ -14,14 +20,12 @@ from tornado import gen
 from tornado.web import HTTPError
 from tornado.ioloop import IOLoop
 
-from DIRAC import gLogger
-from DIRAC.Core.Security import Properties
+from DIRAC import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
-from DIRAC.ConfigurationSystem.Client.Helpers import Registry
+from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
-from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -54,6 +58,7 @@ def asyncWithCallback(method):
 def asyncGen(method):
   return gen.coroutine(method)
 
+
 def defaultEncoder(data):
   """ Encode
 
@@ -70,8 +75,6 @@ def defaultEncoder(data):
     return list(data)
   raise TypeError('Object of type {} is not JSON serializable'.format(data.__class__.__name__))
 
-
-class WebHandler(tornado.web.RequestHandler):
 
 class _WebHandler(TornadoREST):
   __session = None
@@ -95,7 +98,7 @@ class _WebHandler(TornadoREST):
     """
     if data and isinstance(data, dict):
       data = json.dumps(data, default=defaultEncoder)
-    return super(WebHandler, self).finish(data, *args, **kwargs)
+    return super(_WebHandler, self).finish(data, *args, **kwargs)
 
   def threadTask(self, method, *args, **kwargs):
     def threadJob(*targs, **tkwargs):
@@ -170,7 +173,10 @@ class _WebHandler(TornadoREST):
     self.__disetConfig.setDecorator(self.__disetBlockDecor)
     self.__disetDump = self.__disetConfig.dump()
 
-    super(_WebHandler, self)._prepare()
+    try:
+      super(_WebHandler, self)._prepare()
+    except HTTPError as e:
+      raise WErr(e.status_code, e.log_message)
 
     # Configure DISET with user creds
     if self.getUserDN():
@@ -229,7 +235,7 @@ class _WebHandler(TornadoREST):
   def _authzSESSION(self):
     """ Fill credentionals from session
 
-  def _request_summary(self):
+        :return: S_OK(dict)
     """
     credDict = {}
 
@@ -246,9 +252,7 @@ class _WebHandler(TornadoREST):
       token = OAuth2Token(sessionID.decode())
       sLog.debug('Found session tokens:\n', pprint.pformat(token))
       try:
-        return self._authzJWT(tokens.access_token)
-        # payload = cli.verifyToken(tokens.access_token, self._jwks[cli.issuer])
-        # credDict = cli.researchGroup(payload, tokens.access_token)
+        return self._authzJWT(token['access_token'])
       except Exception as e:
         sLog.debug('Cannot check access token %s, try to fetch..' % repr(e))
         # Try to refresh access_token and refresh_token
@@ -256,13 +260,10 @@ class _WebHandler(TornadoREST):
         if not result['OK']:
           return result
         cli = result['Value']
-        tokens = cli.refreshToken(tokens.refresh_token)
-        # payload = cli.verifyToken(tokens.access_token, self._jwks[cli.issuer])
-        # credDict = cli.researchGroup(payload, tokens.access_token)
+        token = cli.refreshToken(token['refresh_token'])
         # store it to the secure cookie
-        self.set_secure_cookie('session_id', json.dumps(tokens), secure=True, httponly=True)
-        # credDict['Tokens'] = tokens
-        return self._authzJWT(tokens.access_token)
+        self.set_secure_cookie('session_id', json.dumps(token), secure=True, httponly=True)
+        return self._authzJWT(token['access_token'])
 
     except Exception as e:
       sLog.debug(repr(e))
@@ -270,14 +271,6 @@ class _WebHandler(TornadoREST):
       self.set_cookie('session_id', 'expired')
       self.set_cookie('authGrant', 'Visitor')
       return S_ERROR(repr(e))
-    # return S_OK(credDict)
-
-  def __getCredDictForToken(self, access_token):
-    self.request.headers['Authorization'] = 'bearer %s' % access_token
-    result = self._authzJWT()
-    if not result['OK']:
-      raise Exception(result['Message'])
-    return result['Value']
 
   @property
   def log(self):
@@ -298,90 +291,6 @@ class _WebHandler(TornadoREST):
 
   def getAppSettings(self, app=None):
     return Conf.getAppSettings(app or self.__class__.__name__.replace('Handler', '')).get('Value') or {}
-
-  def actionURL(self, action=""):
-    """ Given an action name for the handler, return the URL
-
-        :param str action: action
-
-        :return: str
-    """
-    if action == "index":
-      action = ""
-    group = self.getUserGroup()
-    if group:
-      group = "/g:%s" % group
-    setup = self.getUserSetup()
-    if setup:
-      setup = "/s:%s" % setup
-    location = self.LOCATION
-    if location:
-      location = "/%s" % location
-    ats = dict(action=action, group=group, setup=setup, location=location)
-    return self.URLSCHEMA % ats
-
-  # def isTrustedHost(self, dn):
-  #   """ Check if the request coming from a TrustedHost
-
-  #       :param str dn: certificate DN
-
-  #       :return: bool if the host is Trusrted it return true otherwise false
-  #   """
-  #   retVal = Registry.getHostnameForDN(dn)
-  #   if retVal['OK']:
-  #     hostname = retVal['Value']
-  #     if Properties.TRUSTED_HOST in Registry.getPropertiesForHost(hostname, []):
-  #       return True
-  #   return False
-
-  def __checkPath(self, setup, group, route):
-    """ Check the request, auth, credentials and DISET config
-
-        :param str setup: setup name
-        :param str group: group name
-        :param str route: route
-
-        :return: str/WErr()
-    """
-    if route[-1] == "/":
-      methodName = "index"
-      handlerRoute = route
-    else:
-      iP = route.rfind("/")
-      methodName = route[iP + 1:]
-      handlerRoute = route[:iP]
-    if setup:
-      self.__setup = setup
-    if not self.__auth(handlerRoute, group, methodName):
-      return WErr(401, "Unauthorized. %s" % methodName)
-
-    DN = self.getUserDN()
-    if DN:
-      self.__disetConfig.setDN(DN)
-
-    if self.getUserGroup():
-      self.__disetConfig.setGroup(self.getUserGroup())
-    self.__disetConfig.setSetup(setup)
-    self.__disetDump = self.__disetConfig.dump()
-
-    return methodName
-
-  def get(self, setup, group, route):
-    if isinstance(self._pathResult, WErr):
-      raise self._pathResult
-    methodName = "web_%s" % self._pathResult
-    try:
-      mObj = getattr(self, methodName)
-    except AttributeError as e:
-      self.log.fatal("This should not happen!! %s" % e)
-      raise tornado.web.HTTPError(404)
-    return mObj()
-
-  def post(self, *args, **kwargs):
-    return self.get(*args, **kwargs)
-
-  def delete(self, *args, **kwargs):
-    return self.get(*args, **kwargs)
 
   def write_error(self, status_code, **kwargs):
     self.set_status(status_code)
@@ -433,9 +342,6 @@ class WebHandler(_WebHandler):
   def post(self, *args, **kwargs):
     return self.get(*args, **kwargs)
 
-  def delete(self, *args, **kwargs):
-    return self.get(*args, **kwargs)
-
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
 
@@ -444,8 +350,9 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
     tornado.websocket.WebSocketHandler.__init__(self, *args, **kwargs)
 
   def open(self, setup, group, route):
-    if isinstance(self._pathResult, WErr):
-      raise self._pathResult
+    """ Invoked when a new WebSocket is opened, read more in tornado `docs.\
+        <https://www.tornadoweb.org/en/stable/websocket.html#tornado.websocket.WebSocketHandler.open>`_
+    """
     return self.on_open()
 
   def on_open(self):

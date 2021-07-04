@@ -97,6 +97,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
 
   addAuthsButton: function() {
     var me = this;
+    var oListAuth = [];
 
     // Generate list of login buttons
     if (GLOBAL.APP.configData.configuration.TypeAuths) {

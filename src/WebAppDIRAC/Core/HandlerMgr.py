@@ -13,7 +13,6 @@ import imp
 import inspect
 import collections
 
-import six
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
@@ -25,6 +24,7 @@ from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, _WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
+
 
 @six.add_metaclass(DIRACSingleton)
 class HandlerMgr(object):
@@ -42,8 +42,6 @@ class HandlerMgr(object):
     self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w.-]*))?"
     self.__shySetupGroupRE = r"(?:/s:(?:[\w-]*)/g:(?:[\w.-]*))?"
     self.log = gLogger.getSubLogger("Routing")
-    self.__isAuthServer = False
-    self.__isPortal = True
 
   def getPaths(self, dirName):
     """ Get lists of paths for all installed and enabled extensions
@@ -106,8 +104,6 @@ class HandlerMgr(object):
     for hn in self.__handlers:
       self.log.info("Found handler %s" % hn)
       handler = self.__handlers[hn]
-      if handler.__name__ == 'AuthHandler':
-        self.__isAuthServer = True
       # CHeck it has AUTH_PROPS
       if isinstance(handler.AUTH_PROPS, type(None)):
         return S_ERROR("Handler %s does not have AUTH_PROPS defined. Fix it!" % hn)
@@ -123,8 +119,6 @@ class HandlerMgr(object):
       # Set properly the LOCATION after calculating where it is with helpers to add group and setup later
       handler.LOCATION = handlerRoute
       handler.PATH_RE = re.compile("%s(%s/[A-z]+|.)" % (baseRoute, handlerRoute))
-      # if handler.OVERPATH:
-      #   handler.PATH_RE = re.compile(handler.PATH_RE.pattern + '(/[A-z0-9=-_/|]+)?')
       handler.URLSCHEMA = "/%s%%(setup)s%%(group)s%%(location)s/%%(action)s" % (self.__baseURL)
       if issubclass(handler, WebSocketHandler):
         handler.PATH_RE = re.compile("%s(%s)" % (baseRoute, handlerRoute))
@@ -135,13 +129,16 @@ class HandlerMgr(object):
         continue
       # Look for methods that are exported
       for mName, mObj in inspect.getmembers(handler):
-        if inspect.isroutine(mObj) and mName.find("web_") == 0:
-          if mName == "web_index":
+        if inspect.isroutine(mObj) and mName.find(handler.METHOD_PREFIX) == 0:
+          self.log.debug('  Find %s method' % mName)
+          methodName = mName[len(handler.METHOD_PREFIX):]
+          args = getattr(handler, 'path_%s' % methodName, [])
+          if mName == "web_index" and handler.__name__ == 'RootHandler':
             # Index methods have the bare url
             self.log.verbose(" - Route %s -> %s.web_index" % (handlerRoute, hn))
             route = "%s(%s/)" % (baseRoute, handlerRoute)
             self.__routes.append((route, handler))
-            # self.__routes.append(("%s(%s)" % (baseRoute, handlerRoute), CoreHandler, dict(action='addSlash')))
+            self.__routes.append(("%s(%s)" % (baseRoute, handlerRoute), CoreHandler, dict(action='addSlash')))
           else:
             # Normal methods get the method appended without web_
             self.log.verbose(" - Route %s/%s ->  %s.%s" % (handlerRoute, mName[4:], hn, mName))
@@ -179,9 +176,3 @@ class HandlerMgr(object):
       if not result['OK']:
         return result
     return S_OK(self.__routes)
-
-  def isAuthServer(self):
-    return self.__isAuthServer
-
-  def isPortal(self):
-    return self.__isPortal

@@ -8,11 +8,10 @@ from tornado.escape import xhtml_escape
 from tornado import template
 
 from DIRAC import rootPath, gLogger, S_OK, gConfig
+from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import TornadoResponse
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
-from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
-from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 
 class RootHandler(WebHandler):
@@ -69,7 +68,7 @@ class RootHandler(WebHandler):
     if token:
       token = json.loads(token)
       if token.get('refresh_token'):
-        result = self._idps.getIdProvider('WebAppDIRAC')
+        result = self._idps.getIdProvider('DIRACWeb')
         if result['OK']:
           cli = result['Value']
           cli.token = token
@@ -90,9 +89,9 @@ class RootHandler(WebHandler):
 
         :return: TornadoResponse()
     """
-    result = self._idps.getIdProvider('WebAppDIRAC')
+    result = self._idps.getIdProvider('DIRACWeb')
     if not result['OK']:
-      return result
+      raise WErr(500, result['Message'])
     cli = result['Value']
     cli.scope = ''
     if provider:
@@ -139,7 +138,7 @@ class RootHandler(WebHandler):
       return resp.redirect('/')  # pylint: disable=no-member
     authSession = json.loads(authSession)
 
-    result = self._idps.getIdProvider('WebAppDIRAC')
+    result = self._idps.getIdProvider('DIRACWeb')
     if not result['OK']:
       # pylint: disable=no-member
       resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
@@ -168,7 +167,6 @@ class RootHandler(WebHandler):
       return resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
     group = result['Value'].get('group')
 
-    group = token.groups[0]
     url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
     nextURL = "/%s/?%s" % (url, urlparse.urlparse(authSession['next']).query)
     # Save token and go to main page
@@ -193,11 +191,8 @@ class RootHandler(WebHandler):
     # Render base template
     data = self.getSessionData()
 
-    icon = data['baseURL'] + Conf.getIcon()
-    background = data['baseURL'] + Conf.getBackgroud()
-    logo = data['baseURL'] + Conf.getLogo()
-    welcomeFile = Conf.getWelcome()
     welcome = ''
+    welcomeFile = Conf.getWelcome()
     if welcomeFile:
       try:
         with open(welcomeFile, 'r') as f:

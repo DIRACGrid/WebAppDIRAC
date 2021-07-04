@@ -7,16 +7,13 @@ __RCSID__ = "$Id$"
 import os
 
 from DIRAC import gConfig, gLogger
-from DIRAC.Core.Utilities import List, ThreadSafe
-from DIRAC.Core.Utilities.DictCache import DictCache
+from DIRAC.Core.Utilities import List
 from DIRAC.Core.DISET.AuthManager import AuthManager
-from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
-from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
+from DIRAC.Core.Utilities.Extensions import extensionsByPriority
+# from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
 from WebAppDIRAC.Lib import Conf
-
 
 DEFAULT_SCHEMA = [
     ["Tools", [
@@ -48,9 +45,9 @@ DEFAULT_SCHEMA = [
     ]]
 ]
 
+
 class SessionData(object):
 
-  __disetConfig = ThreadConfig()
   __handlers = {}
   __groupMenu = {}
   __extensions = []
@@ -121,7 +118,7 @@ class SessionData(object):
     optionsList = result['Value']
     for opName in optionsList:
       opVal = gConfig.getValue("%s/%s" % (fullName, opName))
-      if opVal.find("link|") == 0:
+      if opVal.startswith("link|"):
         schema.append(("link", opName, opVal[5:]))  # pylint: disable=unsubscriptable-object
         continue
       if self.__isGroupAuthApp(opVal):

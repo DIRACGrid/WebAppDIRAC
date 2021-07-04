@@ -166,12 +166,8 @@ class MonitoringHandler(WebHandler):
     self.finish(callback)
 
   def __queryForPlot(self):
-    retVal = self.__parseFormParams()
-    if not retVal['OK']:
-      return retVal
-    params = retVal['Value']
-    retVal = MonitoringClient().generateDelayedPlot(*params)
-    return retVal
+    res = self.__parseFormParams()
+    return MonitoringClient().generateDelayedPlot(*res['Value']) if res['OK'] else res
 
   @asyncGen
   def web_getPlotImg(self):

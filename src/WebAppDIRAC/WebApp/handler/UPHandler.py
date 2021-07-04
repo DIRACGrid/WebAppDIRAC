@@ -22,12 +22,9 @@ class UPHandler(WebHandler):
 
   def _prepare(self):
     super(UPHandler, self)._prepare()
-    # if not self.isRegisteredUser():
-    #   raise WErr(401, "Not a registered user")
     self.set_header("Pragma", "no-cache")
     self.set_header("Cache-Control", "max-age=0, no-store, no-cache, must-revalidate")
-    # Do not use the defined user setup. Use the web one to show the same profile independently of
-    # user setup
+    # Do not use the defined user setup. Use the web one to show the same profile independently of user setup
     self.__tc.setSetup(False)
 
   def web_saveAppState(self, obj, app, name, state):
@@ -43,20 +40,16 @@ class UPHandler(WebHandler):
     up = UserProfileClient("Web/%s/%s" % (obj, app))
     data = base64.b64encode(zlib.compress(DEncode.encode(state), 9))
     # before we save the state (modify the state) we have to remember the actual access: ReadAccess and PublishAccess
-    result = yield self.threadTask(up.getVarPermissions, name)
+    result = up.getVarPermissions(name)
+    access = {'ReadAccess': 'USER', 'PublishAccess': 'USER'}  # this is when the application/desktop does not exists.
     if result['OK']:
       access = result['Value']
-    else:
-      access = {'ReadAccess': 'USER', 'PublishAccess': 'USER'}  # this is when the application/desktop does not exists.
-    result = up.storeVar(name, data)
-    if not result['OK']:
-      return result
-    # change the access to the application/desktop
-    result = up.setVarPermissions(name, access)
-    if not result['OK']:
-      return result
 
-    return S_OK()
+    result = up.storeVar(name, data)
+    if result['OK']:
+      # change the access to the application/desktop
+      result = up.setVarPermissions(name, access)
+    return S_OK() if result['OK'] else result
 
   def web_makePublicAppState(self, obj, app, name, access='ALL'):
     """ Make public application state
@@ -79,10 +72,7 @@ class UPHandler(WebHandler):
       revokeAccess['PublishAccess'] = 'USER'
 
     # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
-    result = up.setVarPermissions(name, revokeAccess)
-    if not result['OK']:
-      return result
-    return S_OK()
+    return up.setVarPermissions(name, revokeAccess)
 
   def web_loadAppState(self, obj, app, name):
     """ Load application state
@@ -97,8 +87,7 @@ class UPHandler(WebHandler):
     if not result['OK']:
       return result
     data = result['Value']
-    data, count = DEncode.decode(zlib.decompress(base64.b64decode(data)))
-    self.finish(data)
+    return DEncode.decode(zlib.decompress(base64.b64decode(data)))[0]
 
   def web_loadUserAppState(self, obj, app, user, group, name):
     """ Load user application state
@@ -116,8 +105,7 @@ class UPHandler(WebHandler):
     if not result['OK']:
       return result
     data = result['Value']
-    data, count = DEncode.decode(zlib.decompress(base64.b64decode(data)))
-    self.finish(data)
+    return DEncode.decode(zlib.decompress(base64.b64decode(data)))[0]
 
   auth_listAppState = ['all']
 
@@ -134,10 +122,8 @@ class UPHandler(WebHandler):
     if not result['OK']:
       return result
     data = result['Value']
-    for k in data:
-      # Unpack data
-      data[k] = json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data[k])))[0])
-    self.finish(data)
+    # Unpack data
+    return {k: json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data[k])))[0]) for k in data}
 
   def web_delAppState(self, obj, app, name):
     """ Delete application state
@@ -183,7 +169,7 @@ class UPHandler(WebHandler):
         sharedDesktops[i['UserName']][i['desktop']] = json.loads(
             DEncode.decode(zlib.decompress(base64.b64decode(result['Value'])))[0])
         sharedDesktops[i['UserName']]['Metadata'] = i
-    self.finish(sharedDesktops)
+    return sharedDesktops
 
   def web_makePublicDesktopState(self, obj, app, name, access='ALL'):
     """ Make public desktop state
@@ -200,10 +186,7 @@ class UPHandler(WebHandler):
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
     # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
-    result = up.setVarPermissions(name, {'ReadAccess': access})
-    if not result['OK']:
-      return result
-    return S_OK()
+    return up.setVarPermissions(name, {'ReadAccess': access})
 
   def web_changeView(self, obj, app, desktop, view):
     """ Change view
@@ -313,7 +296,7 @@ class UPHandler(WebHandler):
           else:
             sharedapplications['children'].append(record)
 
-    self.finish(desktopsApplications)
+    return desktopsApplications
 
   def web_publishAppState(self, obj, app, name, access='ALL'):
     """ Publish application state
@@ -330,7 +313,4 @@ class UPHandler(WebHandler):
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
 
-    result = up.setVarPermissions(name, {'PublishAccess': access, 'ReadAccess': access})
-    if not result['OK']:
-      return result
-    return S_OK()
+    return up.setVarPermissions(name, {'PublishAccess': access, 'ReadAccess': access})

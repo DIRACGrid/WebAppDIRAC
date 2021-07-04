@@ -19,8 +19,7 @@ class FileCatalogHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
 
-  def __init__(self, *args, **kwargs):
-    super(FileCatalogHandler, self).__init__(*args, **kwargs)
+  def initializeRequest(self):
     self.user = self.getUserName()
     self.group = self.getUserGroup()
     self.vo = getVOForGroup(self.group)

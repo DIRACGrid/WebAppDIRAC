@@ -61,7 +61,7 @@ class App(object):
     # gLogger.info('exit success')
     sys.exit(0)
 
-  def getAppToDict(self, name=None, port=None):
+  def getAppToDict(self, port=None):
     """ Load Web portals
 
         :return: S_OK(dict)/S_ERROR()

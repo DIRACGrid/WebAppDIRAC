@@ -12,7 +12,6 @@ import tornado.process
 from DIRAC import gConfig
 from DIRAC.Core.Security import Locations, X509Chain, X509CRL
 
-
 BASECS = "/WebApp"
 
 

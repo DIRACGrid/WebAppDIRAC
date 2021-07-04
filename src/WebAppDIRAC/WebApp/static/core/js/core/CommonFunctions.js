@@ -226,28 +226,6 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     });
   },
 
-  action: function(aType, aOptns) {
-    var me = this;
-
-    if (aType == null) return;
-
-    switch (aType) {
-      case "auth":
-        me.auth.apply(me, aOptns);
-        break;
-
-      case "openURL":
-        window.open(aOptns[0], "_blank");
-        break;
-
-      case "send mail":
-        break;
-
-      default:
-        break;
-    }
-  },
-
   job_status_palette: {
     Received: "#D9E7F8",
     Checking: "#FAFAFA",

@@ -33,8 +33,7 @@ class JobLaunchpadHandler(WebHandler):
                    "ParameterStep": [0, "1"],
                    "ParameterFactor": [0, "0"]}
 
-  def __init__(self, *args, **kwargs):
-    super(JobLaunchpadHandler, self).__init__(*args, **kwargs)
+  def initializeRequest(self):
     for opt, value in (self.getAppSettings().get("Options") or {}).items():
       self.defaultParams[opt] = value.replace(', ', ',').split(',')
     self.user = self.getUserName()

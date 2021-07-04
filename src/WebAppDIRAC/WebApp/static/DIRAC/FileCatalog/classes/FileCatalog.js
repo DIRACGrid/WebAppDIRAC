@@ -928,7 +928,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     me.__removeLastBlockIfEmpty();
 
     var oDropDown = Ext.create("Ext.dirac.utils.DiracBoxSelect", {
-      forceSelection: false,
+      //forceSelection: false,
       queryMode: "local",
       displayField: "text",
       valueField: "value",
