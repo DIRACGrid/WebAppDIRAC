@@ -1,3 +1,7 @@
+[v4r2p4]
+
+FIX: (#495) copy SettingsPanel.js to desktop folder
+
 [v4r2p2]
 
 CHANGE: (#460) Use universal replaceImage instead setSrc or updateSrc
