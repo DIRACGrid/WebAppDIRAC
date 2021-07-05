@@ -24,6 +24,10 @@ CHANGE: (#467) rename README.md to README.rst
 FIX: (#466) fix selector of pilot stats
 FIX: (#465) return empty result instead error for no host request
 
+[v4r2p4]
+
+FIX: (#495) copy SettingsPanel.js to desktop folder
+
 [v4r2p2]
 
 CHANGE: (#460) Use universal replaceImage instead setSrc or updateSrc
