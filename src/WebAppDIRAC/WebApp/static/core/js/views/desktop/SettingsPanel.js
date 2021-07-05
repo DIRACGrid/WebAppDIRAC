@@ -1,7 +1,7 @@
 /**
  * To be defined!!
  */
- Ext.define("Ext.dirac.views.desktop.SettingsPanel", {
+Ext.define("Ext.dirac.views.desktop.SettingsPanel", {
   extend: "Ext.panel.Panel",
   requires: ["Ext.form.Panel", "Ext.dirac.views.desktop.DesktopSettings"],
   title: "Settings",
