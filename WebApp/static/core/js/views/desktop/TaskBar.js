@@ -13,7 +13,7 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
     "Ext.menu.Menu",
     "Ext.dirac.views.desktop.StartMenu",
     "Ext.toolbar.TextItem",
-    "Ext.dirac.views.tabs.SettingsPanel"
+    "Ext.dirac.views.desktop.SettingsPanel"
   ],
 
   alias: "widget.taskbar",
@@ -37,11 +37,11 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
       menu: ["-"] // add a menu separator
     };
 
-    me.usrname_button = new Ext.dirac.views.tabs.SettingsPanel().addAuthsButton();
-    me.group_button = new Ext.dirac.views.tabs.SettingsPanel().addGroupsButton();
-    me.setup_button = new Ext.dirac.views.tabs.SettingsPanel().addSetupButton();
-    me.button_theme = new Ext.dirac.views.tabs.SettingsPanel().addThemeButton();
-    me.button_views = new Ext.dirac.views.tabs.SettingsPanel().addViewButton();
+    me.usrname_button = new Ext.dirac.views.desktop.SettingsPanel().addAuthsButton();
+    me.group_button = new Ext.dirac.views.desktop.SettingsPanel().addGroupsButton();
+    me.setup_button = new Ext.dirac.views.desktop.SettingsPanel().addSetupButton();
+    me.button_theme = new Ext.dirac.views.desktop.SettingsPanel().addThemeButton();
+    me.button_views = new Ext.dirac.views.desktop.SettingsPanel().addViewButton();
     me.windowBar = new Ext.toolbar.Toolbar(me.getWindowBarConfig());
     me.startMenu = new Ext.dirac.views.desktop.StartMenu(cfg);
 
