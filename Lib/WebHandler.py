@@ -227,11 +227,47 @@ class WebHandler(tornado.web.RequestHandler):
   def isRegisteredUser(self):
     return self.__credDict.get('validDN', "") and self.__credDict.get('validGroup', "")
 
-  def getSessionData(self):
-    return self.__sessionData.getData()
+  def getSessionData(self, opt=None):
+    return self.__sessionData.getData(opt)
 
   def getAppSettings(self, app=None):
-    return Conf.getAppSettings(app or self.__class__.__name__.replace('Handler', '')).get('Value') or {}
+    return self.getSessionData('configuration').get(app or self.__class__.__name__.replace('Handler', ''), {})
+
+  def getTheme(self):
+    """ Get theme
+
+        :return: str
+    """
+    return self.getSessionData('configuration').get("Theme", "tabs")
+
+  def getIcon(self):
+    """ Get icon path
+
+        :return: str
+    """
+    return self.getSessionData('configuration').get("Icon", "/static/core/img/icons/system/favicon.ico")
+
+  def getBackgroud(self):
+    """ Get background path
+
+        :return: str
+    """
+    return self.getSessionData('configuration').get("BackgroundImage",
+                                                    "/static/core/img/wallpapers/dirac_background_6.png")
+
+  def getLogo(self):
+    """ Get logo path
+
+        :return: str
+    """
+    return self.getSessionData('configuration').get("Logo", "/static/core/img/icons/system/_logo_waiting.gif")
+
+  def getWelcome(self):
+    """ Get welcome
+
+        :return: str
+    """
+    return self.getSessionData('configuration').get("WelcomeHTML", "")
 
   def actionURL(self, action=""):
     """

@@ -7,22 +7,21 @@ import os
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import List
 from DIRAC.Core.DISET.AuthManager import AuthManager
-from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+
 
 from WebAppDIRAC.Lib import Conf
 
 __RCSID__ = "$Id$"
 
-class SessionData(object):
 
-  __disetConfig = ThreadConfig()
+class SessionData(Operations):
   __handlers = {}
   __groupMenu = {}
   __extensions = []
   __extVersion = "ext-6.2.0"
-  __configuration = {}
 
   @classmethod
   def setHandlers(cls, handlers):
@@ -41,8 +40,13 @@ class SessionData(object):
         cls.__extensions.append(cls.__extensions.pop(cls.__extensions.index(ext)))
 
   def __init__(self, credDict, setup):
+    """ Discovers the vo and the setup
+
+        :param dict credDict: user crentials
+        :param str setup: requested setup
+    """
     self.__credDict = credDict
-    self.__setup = setup
+    super(SessionData, self).__init__(group=credDict.get("group"), setup=setup, mainSection='WebApp')
 
   def __isGroupAuthApp(self, appLoc):
     """ The method checks if the application is authorized for a certain user group
@@ -59,35 +63,29 @@ class SessionData(object):
       gLogger.error("Handler %s required by %s does not exist!" % (handlerLoc, appLoc))
       return False
     handler = self.__handlers[handlerLoc]
-    auth = AuthManager(Conf.getAuthSectionForHandler(handlerLoc))
+    auth = AuthManager(self.getSectionPath('Access/%s' % handlerLoc))
     gLogger.info("Authorization: %s -> %s" % (dict(self.__credDict), handler.AUTH_PROPS))
     return auth.authQuery("", dict(self.__credDict), handler.AUTH_PROPS)
 
-  def __generateSchema(self, base, path):
+  def __generateSchema(self, path=""):
     """ Generate a menu schema based on the user credentials
 
-        :param str base: base
         :param str path: path
 
         :return: list
     """
     # Calculate schema
     schema = []
-    fullName = "%s/%s" % (base, path)
-    result = gConfig.getSections(fullName)
+    result = self._getCFG(os.path.join(self.getValue("UseSchema", "Schema"), path))
     if not result['OK']:
       return schema
-    sectionsList = result['Value']
-    for sName in sectionsList:
-      subSchema = self.__generateSchema(base, "%s/%s" % (path, sName))
+    cfg = result['Value']
+    for sName in cfg.listSections():
+      subSchema = self.__generateSchema(os.path.join(path, sName))
       if subSchema:
         schema.append((sName, subSchema))
-    result = gConfig.getOptions(fullName)
-    if not result['OK']:
-      return schema
-    optionsList = result['Value']
-    for opName in optionsList:
-      opVal = gConfig.getValue("%s/%s" % (fullName, opName))
+    for opName in cfg.listOptions():
+      opVal = cfg.getOption(opName)
       if opVal.find("link|") == 0:
         schema.append(("link", opName, opVal[5:]))
         continue
@@ -102,21 +100,10 @@ class SessionData(object):
 
         :return: list
     """
-    # Somebody coming from HTTPS and not with a valid group
-    group = self.__credDict.get("group", "")
-    # Cache time!
-    if group not in self.__groupMenu:
-      base = "%s/Schema" % (Conf.BASECS)
-      self.__groupMenu[group] = self.__generateSchema(base, "")
-    return self.__groupMenu[group]
-
-  @classmethod
-  def getWebAppPath(cls):
-    """ Get WebApp path
-
-        :return: str
-    """
-    return os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "WebApp")
+    key = (self._group, self._setup)
+    if key not in self.__groupMenu or self._cacheExpired():
+      self.__groupMenu[key] = self.__generateSchema()
+    return self.__groupMenu[key]
 
   @classmethod
   def getExtJSVersion(cls):
@@ -124,29 +111,20 @@ class SessionData(object):
 
         :return: str
     """
-    if not cls.__extVersion:
-      extPath = os.path.join(cls.getWebAppPath(), "static", "extjs")
-      extVersionPath = []
-      for entryName in os.listdir(extPath):
-        if entryName.find("ext-") == 0:
-          extVersionPath.append(entryName)
-
-      cls.__extVersion = sorted(extVersionPath)[-1]
     return cls.__extVersion
 
-  @classmethod
-  def getWebConfiguration(cls):
+  def getWebConfiguration(self):
     """ Get WebApp configuration
 
         :return: dict
     """
-    result = gConfig.getOptionsDictRecursively("/WebApp")
-    if not cls.__configuration and result['OK']:
-      cls.__configuration = result['Value']
-    return cls.__configuration
+    result = self._getCFG()
+    return result['Value'].getAsDict() if result['OK'] else {}
 
-  def getData(self):
+  def getData(self, opt=None):
     """ Return session data
+
+        :param str opt: option
 
         :return: dict
     """
@@ -169,4 +147,4 @@ class SessionData(object):
                "s:%s" % data['setup'],
                "g:%s" % self.__credDict.get('group', '')]
     data['baseURL'] = "/%s" % "/".join(baseURL)
-    return data
+    return data[opt] if opt else data

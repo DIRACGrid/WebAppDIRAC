@@ -54,7 +54,7 @@ class RootHandler(WebHandler):
 
     # Default theme/view settings
     theme_name = "crisp"
-    view_name = Conf.getTheme()
+    view_name = self.getTheme()
     if ":" in view_name:
       view_name, theme_name = view_name.split(":", 1)
 
@@ -69,10 +69,10 @@ class RootHandler(WebHandler):
     if "open_app" in self.request.arguments and len(self.request.arguments["open_app"][0]) > 0:
       open_app = xhtml_escape(self.request.arguments["open_app"][0].strip())
 
-    icon = data['baseURL'] + Conf.getIcon()
-    background = data['baseURL'] + Conf.getBackgroud()
-    logo = data['baseURL'] + Conf.getLogo()
-    welcomeFile = Conf.getWelcome()
+    icon = data['baseURL'] + self.getIcon()
+    background = data['baseURL'] + self.getBackgroud()
+    logo = data['baseURL'] + self.getLogo()
+    welcomeFile = self.getWelcome()
     welcome = ''
     if welcomeFile:
       try:
