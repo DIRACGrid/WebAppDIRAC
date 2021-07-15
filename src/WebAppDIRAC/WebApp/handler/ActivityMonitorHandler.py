@@ -1,9 +1,11 @@
 import os
 import json
 import tornado
+import tempfile
 
 from DIRAC import gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities import Time, DEncode
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
@@ -114,11 +116,17 @@ class ActivityMonitorHandler(WebHandler):
     plotImageFile = self.get_argument("file")
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
-#    if not plotImageFile.endswith(".png"):
-#      callback = {"success": "false", "error": "Not a valid image!"}
-#      self.finish(callback)
-#      return
-    self.finishWithImage("Framework/Monitoring", plotImageFile)
+
+    transferClient = TransferClient("Framework/Monitoring")
+    tempFile = tempfile.TemporaryFile()
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    if not retVal['OK']:
+      callback = {"success": "false", "error": retVal['Message']}
+      self.finish(callback)
+      return
+    tempFile.seek(0)
+    data = tempFile.read()
+    self.finishWithImage(data, plotImageFile)
 
   @asyncGen
   def web_queryFieldValue(self):

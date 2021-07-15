@@ -4,7 +4,6 @@ import json
 import datetime
 import requests
 import functools
-import tempfile
 import traceback
 from hashlib import md5
 
@@ -19,7 +18,6 @@ from DIRAC.Core.Security import Properties
 from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
@@ -388,17 +386,7 @@ class WebHandler(tornado.web.RequestHandler):
     self.set_header('Content-Type', cType)
     self.finish(data)
 
-  def finishWithImage(self, serviceName, plotImageFile, disableCaching=False):
-    # Get the image
-    transferClient = TransferClient(serviceName)
-    tempFile = tempfile.TemporaryFile()
-    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
-    if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
-    tempFile.seek(0)
-    data = tempFile.read()
+  def finishWithImage(self, data, plotImageFile, disableCaching=False):
     # Set headers
     self.set_header('Content-type', 'image/png')
     self.set_header(
