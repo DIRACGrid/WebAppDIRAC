@@ -26,6 +26,8 @@ def _createStaticSymlinks(targetDir):
 
   :params str targetDir: The directory in which to create the symlinks
   """
+  if not os.path.isdir(targetDir):
+    os.makedirs(targetDir)
   extensions = extensionsByPriority()
   for extension in extensions:
     if six.PY3:
