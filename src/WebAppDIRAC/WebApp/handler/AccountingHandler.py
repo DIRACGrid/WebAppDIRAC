@@ -1,15 +1,15 @@
 import os
 import json
-import tempfile
 import datetime
 from hashlib import md5
 
 from DIRAC import gConfig, S_OK, S_ERROR
-from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.DISET.TransferClient import TransferClient
+import tempfile
 
 
 class AccountingHandler(WebHandler):
@@ -187,6 +187,11 @@ class AccountingHandler(WebHandler):
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 
+#    if not plotImageFile.endswith(".png"):
+#      callback = {"success": "false", "error": "Not a valid image!"}
+#      self.finish(callback)
+#      return
+
     transferClient = TransferClient("Accounting/ReportGenerator")
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
@@ -231,7 +236,6 @@ class AccountingHandler(WebHandler):
       self.finish(callback)
       return
     plotImageFile = retVal['Value']['plot']
-
     transferClient = TransferClient("Accounting/ReportGenerator")
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)

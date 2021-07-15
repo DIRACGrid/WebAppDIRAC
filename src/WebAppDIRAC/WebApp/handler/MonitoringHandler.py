@@ -188,7 +188,6 @@ class MonitoringHandler(WebHandler):
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 
-
     transferClient = TransferClient("Monitoring/Monitoring")
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
