@@ -1,10 +1,12 @@
 import os
 import json
+import tempfile
 import datetime
 
 from hashlib import md5
 
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.MonitoringSystem.Client.MonitoringClient import MonitoringClient
@@ -186,12 +188,16 @@ class MonitoringHandler(WebHandler):
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 
-#    if not plotImageFile.endswith(".png"):
-#      callback = {"success": "false", "error": "Not a valid image!"}
-#      self.finish(callback)
-#      return
-
-    self.finishWithImage("Monitoring/Monitoring", plotImageFile)
+    transferClient = TransferClient("Monitoring/Monitoring")
+    tempFile = tempfile.TemporaryFile()
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    if not retVal['OK']:
+      callback = {"success": "false", "error": retVal['Message']}
+      self.finish(callback)
+      return
+    tempFile.seek(0)
+    data = tempFile.read()
+    self.finishWithImage(data, plotImageFile)
 
   @asyncGen
   def web_getPlotImgFromCache(self):
@@ -227,7 +233,16 @@ class MonitoringHandler(WebHandler):
       return
     plotImageFile = retVal['Value']['plot']
 
-    self.finishWithImage("Monitoring/Monitoring", plotImageFile, disableCaching=True)
+    transferClient = TransferClient("Monitoring/Monitoring")
+    tempFile = tempfile.TemporaryFile()
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    if not retVal['OK']:
+      callback = {"success": "false", "error": retVal['Message']}
+      self.finish(callback)
+      return
+    tempFile.seek(0)
+    data = tempFile.read()
+    self.finishWithImage(data, plotImageFile, disableCaching=True)
 
   @asyncGen
   def web_getCsvPlotData(self):

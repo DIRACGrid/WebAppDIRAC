@@ -8,6 +8,8 @@ from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.DISET.TransferClient import TransferClient
+import tempfile
 
 
 class AccountingHandler(WebHandler):
@@ -190,7 +192,16 @@ class AccountingHandler(WebHandler):
 #      self.finish(callback)
 #      return
 
-    self.finishWithImage("Accounting/ReportGenerator", plotImageFile)
+    transferClient = TransferClient("Accounting/ReportGenerator")
+    tempFile = tempfile.TemporaryFile()
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    if not retVal['OK']:
+      callback = {"success": "false", "error": retVal['Message']}
+      self.finish(callback)
+      return
+    tempFile.seek(0)
+    data = tempFile.read()
+    self.finishWithImage(data, plotImageFile)
 
   @asyncGen
   def web_getPlotImgFromCache(self):
@@ -225,8 +236,16 @@ class AccountingHandler(WebHandler):
       self.finish(callback)
       return
     plotImageFile = retVal['Value']['plot']
-
-    self.finishWithImage("Accounting/ReportGenerator", plotImageFile, disableCaching=True)
+    transferClient = TransferClient("Accounting/ReportGenerator")
+    tempFile = tempfile.TemporaryFile()
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    if not retVal['OK']:
+      callback = {"success": "false", "error": retVal['Message']}
+      self.finish(callback)
+      return
+    tempFile.seek(0)
+    data = tempFile.read()
+    self.finishWithImage(data, plotImageFile, disableCaching=True)
 
   @asyncGen
   def web_getCsvPlotData(self):
