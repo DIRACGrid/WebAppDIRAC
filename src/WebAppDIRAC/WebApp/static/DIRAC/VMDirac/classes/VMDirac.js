@@ -1,20 +1,20 @@
-Ext.define("VMDIRAC.VMDirac.classes.VMDirac", {
+Ext.define("DIRAC.VMDirac.classes.VMDirac", {
   extend: "Ext.dirac.core.Module",
   requires: [
     "Ext.util.*",
     "Ext.layout.*",
     "Ext.panel.Panel",
-    "Ext.form.FieldSet",
-    "Ext.form.field.Date",
-    "Ext.form.field.Text",
-    "Ext.form.field.TextArea",
-    "Ext.form.field.Checkbox",
-    "Ext.form.field.ComboBox",
+    "Ext.toolbar.Toolbar",
     "Ext.Button",
     "Ext.button.Button",
     "Ext.menu.Menu",
+    "Ext.form.FieldSet",
+    "Ext.form.field.Date",
+    "Ext.form.field.Text",
+    "Ext.form.field.ComboBox",
+    "Ext.form.field.TextArea",
+    "Ext.form.field.Checkbox",
     "Ext.dirac.utils.DiracMultiSelect",
-    "Ext.toolbar.Toolbar",
     "Ext.data.Record"
   ],
 
@@ -35,31 +35,16 @@ Ext.define("VMDIRAC.VMDirac.classes.VMDirac", {
   initComponent: function() {
     var me = this;
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.title = "VMDirac";
-      me.launcher.maximized = true;
+    me.launcher.title = "VMDirac";
+    me.launcher.maximized = true;
 
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-      var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
-      me.launcher.width = 2 * iDim;
-      me.launcher.height = iDim;
+    var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
+    me.launcher.width = 2 * iDim;
+    me.launcher.height = iDim;
 
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-      me.launcher.title = "VMDirac";
-      me.launcher.maximized = true;
-
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-      var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
-      me.launcher.width = 2 * iDim;
-      me.launcher.height = iDim;
-
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
+    me.launcher.x = 0;
+    me.launcher.y = 0;
 
     Ext.apply(me, {
       layout: "border",
