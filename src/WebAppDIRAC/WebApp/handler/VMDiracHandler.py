@@ -10,6 +10,7 @@ import json
 from DIRAC.Core.Utilities import Time
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC.WorkloadManagementSystem.Client.VMClient import VMClient
 
 
 class VMDiracHandler(WebHandler):
@@ -56,8 +57,7 @@ class VMDiracHandler(WebHandler):
     except Exception:
       pass
 
-    rpcClient = RPCClient("WorkloadManagement/VirtualMachineManager")
-    result = rpcClient.getInstancesContent(condDict, sort, start, limit)
+    result = VMClient().getInstancesContent(condDict, sort, start, limit)
     if not result['OK']:
       callback = {"success": "false", "error": result["Message"]}
       self.write(callback)
@@ -78,15 +78,13 @@ class VMDiracHandler(WebHandler):
 
   def web_stopInstances(self):
     webIds = json.loads(self.get_argument('idList'))
-    rpcClient = RPCClient("WorkloadManagement/VirtualMachineManager")
-    result = rpcClient.declareInstancesStopping(webIds)
+    result = VMClient().declareInstancesStopping(webIds)
     callback = {"success": "true", "result": result}
     self.write(callback)
 
   def web_getHistoryForInstance(self):
     instanceID = int(self.get_argument('instanceID'))
-    rpcClient = RPCClient("WorkloadManagement/VirtualMachineManager")
-    result = rpcClient.getHistoryForInstanceID(instanceID)
+    result = VMClient().getHistoryForInstanceID(instanceID)
     if not result['OK']:
       return result
     svcData = result['Value']
@@ -105,8 +103,7 @@ class VMDiracHandler(WebHandler):
 
   def web_checkVmWebOperation(self):
     operation = str(self.get_argument('operation'))
-    rpcClient = RPCClient("WorkloadManagement/VirtualMachineManager")
-    result = rpcClient.checkVmWebOperation(operation)
+    result = VMClient().checkVmWebOperation(operation)
     if not result['OK']:
       callback = {"success": "false", "error": result['Message']}
       return self.write(callback)
@@ -123,8 +120,7 @@ class VMDiracHandler(WebHandler):
       timespan = int(self.get_argument('timespan'))
     except Exception:
       timespan = 86400
-    rpcClient = RPCClient("WorkloadManagement/VirtualMachineManager")
-    result = rpcClient.getHistoryValues(3600, {}, dbVars, timespan)
+    result = VMClient().getHistoryValues(3600, {}, dbVars, timespan)
     if not result['OK']:
       callback = {"success": "false", "error": result['Message']}
       return self.write(callback)
@@ -153,8 +149,7 @@ class VMDiracHandler(WebHandler):
       timespan = int(self.get_argument('timespan'))
     except Exception:
       timespan = 86400
-    rpcClient = RPCClient("WorkloadManagement/VirtualMachineManager")
-    result = rpcClient.getRunningInstancesHistory(timespan, bucketSize)
+    result = VMClient().getRunningInstancesHistory(timespan, bucketSize)
     if not result['OK']:
       callback = {"success": "false", "error": result['Message']}
       return self.write(callback)
@@ -179,8 +174,7 @@ class VMDiracHandler(WebHandler):
       timespan = int(self.get_argument('timespan'))
     except Exception:
       timespan = 86400
-    rpcClient = RPCClient("WorkloadManagement/VirtualMachineManager")
-    result = rpcClient.getRunningInstancesBEPHistory(timespan, bucketSize)
+    result = VMClient().getRunningInstancesBEPHistory(timespan, bucketSize)
     if not result['OK']:
       callback = {"success": "false", "error": result['Message']}
       return self.write(callback)
@@ -204,8 +198,7 @@ class VMDiracHandler(WebHandler):
       timespan = int(self.get_argument('timespan'))
     except Exception:
       timespan = 86400
-    rpcClient = RPCClient("WorkloadManagement/VirtualMachineManager")
-    result = rpcClient.getRunningInstancesByRunningPodHistory(timespan, bucketSize)
+    result = VMClient().getRunningInstancesByRunningPodHistory(timespan, bucketSize)
     if not result['OK']:
       callback = {"success": "false", "error": result['Message']}
       return self.write(callback)
@@ -229,8 +222,7 @@ class VMDiracHandler(WebHandler):
       timespan = int(self.get_argument('timespan'))
     except Exception:
       timespan = 86400
-    rpcClient = RPCClient("WorkloadManagement/VirtualMachineManager")
-    result = rpcClient.getRunningInstancesByImageHistory(timespan, bucketSize)
+    result = VMClient().getRunningInstancesByImageHistory(timespan, bucketSize)
     if not result['OK']:
       callback = {"success": "false", "error": result['Message']}
       return self.write(callback)
