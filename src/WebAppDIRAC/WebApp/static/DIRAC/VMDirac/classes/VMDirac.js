@@ -125,7 +125,12 @@ Ext.define("VMDIRAC.VMDirac.classes.VMDirac", {
     me.cbTimespan = Ext.create("Ext.form.ComboBox", {
       store: new Ext.data.SimpleStore({
         fields: ["value", "key"],
-        data: [[86400, "Last day"], [86400 * 7, "Last week"], [86400 * 30, "Last month"], [0, "All History"]]
+        data: [
+          [86400, "Last day"],
+          [86400 * 7, "Last week"],
+          [86400 * 30, "Last month"],
+          [0, "All History"]
+        ]
       }),
       displayField: "key",
       valueField: "value",
@@ -140,7 +145,12 @@ Ext.define("VMDIRAC.VMDirac.classes.VMDirac", {
     me.cbRotate = Ext.create("Ext.form.ComboBox", {
       store: new Ext.data.SimpleStore({
         fields: ["value", "key"],
-        data: [[0, "No Rotation"], [15, "15 sec."], [30, "30 sec."], [60, "1 min."]]
+        data: [
+          [0, "No Rotation"],
+          [15, "15 sec."],
+          [30, "30 sec."],
+          [60, "1 min."]
+        ]
       }),
       displayField: "key",
       valueField: "value",
