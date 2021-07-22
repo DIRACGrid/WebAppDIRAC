@@ -265,22 +265,21 @@ Ext.define("Ext.dirac.core.App", {
    * @return {}
    */
   applicationInDowntime: function(sAppName) {
-    if (!this.isValidApplication(sAppName)) {
-      return {};
-    }
-    var now = Date.now();
-    var sAppName = this.validApplications[sAppName];
-    var app = this.getApplicationSettings(sAppName).Downtime;
+    if (this.isValidApplication(sAppName)) {
+      var now = Date.now();
+      var sAppName = this.validApplications[sAppName];
+      var app = this.getApplicationSettings(sAppName).Downtime;
 
-    if (app) {
-      app.message = app.message || "Sorry, " + sAppName + " application is in downtime";
-      app.message += "\n\n From: " + app.start;
-      app.message += "\n To:   " + app.end;
+      if (app) {
+        app.message = app.message || "Sorry, " + sAppName + " application is in downtime";
+        app.message += "\n\n From: " + app.start;
+        app.message += "\n To:   " + app.end;
 
-      // Check time
-      return !app.end ? {} : ((!app.start || now > Date.parse(app.start)) && now < Date.parse(app.end)) ? app : {};
-    } else {
-      return {}
+        // Check time
+        return !app.end ? {} : ((!app.start || now > Date.parse(app.start)) && now < Date.parse(app.end)) ? app : {};
+      } else {
+        return {}
+      }
     }
   },
 
