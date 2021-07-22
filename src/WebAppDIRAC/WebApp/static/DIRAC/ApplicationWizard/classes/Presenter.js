@@ -189,10 +189,7 @@ Ext.define("DIRAC.ApplicationWizard.classes.Presenter", {
       tab.loadData();
 
       /*
-       * if (GLOBAL.APP.MAIN_VIEW.ID == 'tabs'){
        * GLOBAL.APP.MAIN_VIEW.createWindow("link", links[i], data, me);
-       * }else{ GLOBAL.APP.CF.msg("Error Notification", "You can add
-       * external links using tab view..."); }
        */
     }
   },
