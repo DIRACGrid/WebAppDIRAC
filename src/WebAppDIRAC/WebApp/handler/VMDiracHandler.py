@@ -8,7 +8,6 @@ import six
 import json
 
 from DIRAC.Core.Utilities import Time
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.WorkloadManagementSystem.Client.VMClient import VMClient
 
@@ -39,28 +38,18 @@ class VMDiracHandler(WebHandler):
     sort = [(sortField, sortDir)]
 
     condDict = {}
-    try:
-      if 'cond' in self.request.arguments:
-        dec = json.loads(self.get_argument("cond"))
-        for k in dec:
-          v = dec[k]
-          if isinstance(v, six.string_types):
-            v = [str(v)]
-          else:
-            v = [str(f) for f in v]
-          condDict[str(k).replace("_", ".")] = v
-    except Exception:
-      raise
-    try:
-      if 'statusSelector' in self.request.arguments:
-        condDict['inst.Status'] = [str(self.get_argument('statusSelector'))]
-    except Exception:
-      pass
+    if 'cond' in self.request.arguments:
+      dec = json.loads(self.get_argument("cond"))
+      for k in dec:
+        v = [str(dec[k])] if isinstance(dec[k], six.string_types) else [str(f) for f in dec[k]]
+        condDict[str(k).replace("_", ".")] = v
+    
+    if 'statusSelector' in self.request.arguments:
+      condDict['inst.Status'] = [str(self.get_argument('statusSelector'))]
 
     result = VMClient().getInstancesContent(condDict, sort, start, limit)
     if not result['OK']:
-      callback = {"success": "false", "error": result["Message"]}
-      self.write(callback)
+      self.finish({"success": "false", "error": result["Message"]})
       return
     svcData = result['Value']
     data = {'numRecords': svcData['TotalRecords'], 'instances': []}
@@ -68,48 +57,38 @@ class VMDiracHandler(WebHandler):
       rD = {}
       for iP in range(len(svcData['ParameterNames'])):
         param = svcData['ParameterNames'][iP].replace(".", "_")
-        if param == 'inst_LastUpdate':
-          rD[param] = record[iP].strftime("%Y-%m-%d %H:%M:%S")
-        else:
-          rD[param] = record[iP]
+        rD[param] = record[iP].strftime("%Y-%m-%d %H:%M:%S") if param == 'inst_LastUpdate' else record[iP]
       data['instances'].append(rD)
-    callback = {"success": "true", "result": data['instances'], "total": data['numRecords'], "date": None}
-    self.write(callback)
+    self.finish({"success": "true", "result": data['instances'], "total": data['numRecords'], "date": None})
 
   def web_stopInstances(self):
     webIds = json.loads(self.get_argument('idList'))
     result = VMClient().declareInstancesStopping(webIds)
-    callback = {"success": "true", "result": result}
-    self.write(callback)
+    self.finish({"success": "true", "result": result})
 
   def web_getHistoryForInstance(self):
     instanceID = int(self.get_argument('instanceID'))
     result = VMClient().getHistoryForInstanceID(instanceID)
     if not result['OK']:
-      return result
+      self.finish({"success": "false", "error": result["Message"]})
+      return
     svcData = result['Value']
     data = []
     for record in svcData['Records']:
       rD = {}
       for iP in range(len(svcData['ParameterNames'])):
         param = svcData['ParameterNames'][iP].replace(".", "_")
-        if param == 'Update':
-          rD[param] = record[iP].strftime("%Y-%m-%d %H:%M:%S")
-        else:
-          rD[param] = record[iP]
+        rD[param] = record[iP].strftime("%Y-%m-%d %H:%M:%S") if param == 'Update' else record[iP]
       data.append(rD)
-    callback = {"success": "true", "result": data, "total": len(data)}
-    self.write(callback)
+    self.finish({"success": "true", "result": data, "total": len(data)})
 
   def web_checkVmWebOperation(self):
     operation = str(self.get_argument('operation'))
     result = VMClient().checkVmWebOperation(operation)
     if not result['OK']:
-      callback = {"success": "false", "error": result['Message']}
-      return self.write(callback)
-    data = result['Value']
-    callback = {"success": "true", "data": data}
-    self.write(callback)
+      self.finish({"success": "false", "error": result['Message']})
+    else:
+      self.finish({"success": "true", "data": result['Value']})
 
   def web_getHistoryValues(self):
     try:
@@ -122,8 +101,8 @@ class VMDiracHandler(WebHandler):
       timespan = 86400
     result = VMClient().getHistoryValues(3600, {}, dbVars, timespan)
     if not result['OK']:
-      callback = {"success": "false", "error": result['Message']}
-      return self.write(callback)
+      self.finish({"success": "false", "error": result['Message']})
+      return
     svcData = result['Value']
     data = []
     olderThan = Time.toEpoch() - 400
@@ -131,14 +110,10 @@ class VMDiracHandler(WebHandler):
       rL = []
       for iP in range(len(svcData['ParameterNames'])):
         param = svcData['ParameterNames'][iP]
-        if param == 'Update':
-          rL.append(Time.toEpoch(record[iP]))
-        else:
-          rL.append(record[iP])
+        rL.append(Time.toEpoch(record[iP]) if param == 'Update' else record[iP])
       if rL[0] < olderThan:
         data.append(rL)
-    callback = {"success": "true", 'data': data, 'fields': svcData['ParameterNames']}
-    return self.write(callback)
+    self.finish({"success": "true", 'data': data, 'fields': svcData['ParameterNames']})
 
   def web_getRunningInstancesHistory(self):
     try:
@@ -151,8 +126,8 @@ class VMDiracHandler(WebHandler):
       timespan = 86400
     result = VMClient().getRunningInstancesHistory(timespan, bucketSize)
     if not result['OK']:
-      callback = {"success": "false", "error": result['Message']}
-      return self.write(callback)
+      self.finish({"success": "false", "error": result['Message']})
+      return
     svcData = result['Value']
     data = []
     olderThan = Time.toEpoch() - 400
@@ -162,8 +137,7 @@ class VMDiracHandler(WebHandler):
       if eTime < olderThan:
         rL = [eTime, int(record[1])]
       data.append(rL)
-    callback = {"success": "true", 'data': data, "timespan": timespan}
-    return self.write(callback)
+    self.finish({"success": "true", 'data': data, "timespan": timespan})
 
   def web_getRunningInstancesBEPHistory(self):
     try:
@@ -176,8 +150,8 @@ class VMDiracHandler(WebHandler):
       timespan = 86400
     result = VMClient().getRunningInstancesBEPHistory(timespan, bucketSize)
     if not result['OK']:
-      callback = {"success": "false", "error": result['Message']}
-      return self.write(callback)
+      self.finish({"success": "false", "error": result['Message']})
+      return
     svcData = result['Value']
     data = []
     olderThan = Time.toEpoch() - 400
@@ -186,8 +160,7 @@ class VMDiracHandler(WebHandler):
       if eTime < olderThan:
         rL = [eTime, record[1], int(record[2])]
       data.append(rL)
-    callback = {"success": "true", 'data': data}
-    return self.write(callback)
+    self.finish({"success": "true", 'data': data})
 
   def web_getRunningInstancesByRunningPodHistory(self):
     try:
@@ -200,8 +173,8 @@ class VMDiracHandler(WebHandler):
       timespan = 86400
     result = VMClient().getRunningInstancesByRunningPodHistory(timespan, bucketSize)
     if not result['OK']:
-      callback = {"success": "false", "error": result['Message']}
-      return self.write(callback)
+      self.finish({"success": "false", "error": result['Message']})
+      return
     svcData = result['Value']
     data = []
     olderThan = Time.toEpoch() - 400
@@ -210,8 +183,7 @@ class VMDiracHandler(WebHandler):
       if eTime < olderThan:
         rL = [eTime, record[1], int(record[2])]
       data.append(rL)
-    callback = {"success": "true", 'data': data}
-    return self.write(callback)
+    self.finish({"success": "true", 'data': data})
 
   def web_getRunningInstancesByImageHistory(self):
     try:
@@ -224,8 +196,8 @@ class VMDiracHandler(WebHandler):
       timespan = 86400
     result = VMClient().getRunningInstancesByImageHistory(timespan, bucketSize)
     if not result['OK']:
-      callback = {"success": "false", "error": result['Message']}
-      return self.write(callback)
+      self.finish({"success": "false", "error": result['Message']})
+      return
     svcData = result['Value']
     data = []
     olderThan = Time.toEpoch() - 400
@@ -234,5 +206,4 @@ class VMDiracHandler(WebHandler):
       if eTime < olderThan:
         rL = [eTime, record[1], int(record[2])]
       data.append(rL)
-    callback = {"success": "true", 'data': data}
-    return self.write(callback)
+    self.finish({"success": "true", 'data': data})
