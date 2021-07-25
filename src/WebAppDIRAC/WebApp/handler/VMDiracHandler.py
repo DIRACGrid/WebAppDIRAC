@@ -43,7 +43,7 @@ class VMDiracHandler(WebHandler):
       for k in dec:
         v = [str(dec[k])] if isinstance(dec[k], six.string_types) else [str(f) for f in dec[k]]
         condDict[str(k).replace("_", ".")] = v
-    
+
     if 'statusSelector' in self.request.arguments:
       condDict['inst.Status'] = [str(self.get_argument('statusSelector'))]
 
