@@ -24,16 +24,6 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     var me = this;
 
     me.launcher.title = "Registry Manager";
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.maximized = false;
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-      me.launcher.height = oDimensions[1] / 2;
-      me.launcher.width = oDimensions[0] / 2;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-    }
 
     Ext.apply(me, {
       layout: "border",

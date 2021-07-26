@@ -50,31 +50,16 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
   initComponent: function() {
     var me = this;
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.title = "Component history";
-      me.launcher.maximized = false;
+    me.launcher.title = "Component history";
+    me.launcher.maximized = false;
 
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-      me.launcher.width = oDimensions[0];
-      me.launcher.height = oDimensions[1];
+    me.launcher.width = oDimensions[0];
+    me.launcher.height = oDimensions[1];
 
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-      me.launcher.title = "Component history";
-      me.launcher.maximized = false;
-
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-      me.launcher.width = oDimensions[0];
-      me.launcher.height = oDimensions[1];
-
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
+    me.launcher.x = 0;
+    me.launcher.y = 0;
 
     Ext.apply(me, {
       layout: "border",

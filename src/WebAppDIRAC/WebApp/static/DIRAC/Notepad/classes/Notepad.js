@@ -11,19 +11,10 @@ Ext.define("DIRAC.Notepad.classes.Notepad", {
   initComponent: function() {
     var me = this;
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.title = "Notepad";
-      me.launcher.maximized = false;
-      me.launcher.width = 400;
-      me.launcher.height = 400;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-      me.launcher.title = "Notepad";
-      me.launcher.maximized = false;
-      me.launcher.width = 400;
-      me.launcher.height = 400;
-    }
+    me.launcher.title = "Notepad";
+    me.launcher.maximized = false;
+    me.launcher.width = 400;
+    me.launcher.height = 400;
 
     me.editor = new Ext.form.field.HtmlEditor({
       value: ['Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>', "Give it a try!"].join("")

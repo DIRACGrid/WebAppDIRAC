@@ -63,23 +63,12 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
   initComponent: function() {
     var me = this;
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.title = "Configuration Manager";
-      me.launcher.maximized = false;
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    me.launcher.title = "Configuration Manager";
+    me.launcher.maximized = false;
+    var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-      me.launcher.height = oDimensions[1] / 2;
-      me.launcher.width = oDimensions[0] / 2;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-      me.launcher.title = "Configuration Manager";
-      me.launcher.maximized = false;
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-      me.launcher.height = oDimensions[1] / 2;
-      me.launcher.width = oDimensions[0] / 2;
-    }
+    me.launcher.height = oDimensions[1] / 2;
+    me.launcher.width = oDimensions[0] / 2;
 
     /*
      * Ext.apply(me, { layout : 'border', bodyBorder : false, defaults : {

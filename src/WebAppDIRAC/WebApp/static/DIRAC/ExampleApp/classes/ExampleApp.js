@@ -88,31 +88,16 @@ Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
   initComponent: function() {
     var me = this;
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.title = "Example Application";
-      me.launcher.maximized = false;
+    me.launcher.title = "Example Application";
+    me.launcher.maximized = false;
 
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-      me.launcher.width = oDimensions[0];
-      me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
+    me.launcher.width = oDimensions[0];
+    me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
 
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-      me.launcher.title = "Example Application";
-      me.launcher.maximized = false;
-
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-      me.launcher.width = oDimensions[0];
-      me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
-
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
+    me.launcher.x = 0;
+    me.launcher.y = 0;
 
     Ext.apply(me, {
       layout: "border",

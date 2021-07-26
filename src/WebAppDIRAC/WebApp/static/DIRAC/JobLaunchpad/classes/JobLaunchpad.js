@@ -29,30 +29,14 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
   initComponent: function() {
     var me = this;
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.title = "Job Launchpad";
-      me.launcher.maximized = false;
+    me.launcher.title = "Job Launchpad";
+    me.launcher.maximized = false;
 
-      var viewDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-      var width = Math.floor(viewDimensions[0] / 2.5);
-      var height = Math.floor(viewDimensions[1] / 1.5);
-      me.launcher.width = width;
-      me.launcher.height = height;
+    me.launcher.width = 600;
+    me.launcher.height = 600;
 
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-      me.launcher.title = "Job Launchpad";
-      me.launcher.maximized = false;
-
-      me.launcher.width = 600;
-      me.launcher.height = 600;
-
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
+    me.launcher.x = 0;
+    me.launcher.y = 0;
 
     Ext.apply(me, {
       layout: "border",
@@ -153,38 +137,6 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
                 },
                 fn: function(oButton) {
                   oWarn.hide();
-
-                  if (oButton == "no") {
-                    if (GLOBAL.VIEW_ID == "desktop") {
-                      var oSetupData = {};
-
-                      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-                      oSetupData.x = 0;
-                      oSetupData.y = 0;
-                      oSetupData.width = oDimensions[0];
-                      oSetupData.height = oDimensions[1];
-                      oSetupData.currentState = "";
-
-                      oSetupData.desktopStickMode = 0;
-                      oSetupData.hiddenHeader = 1;
-                      oSetupData.i_x = 0;
-                      oSetupData.i_y = 0;
-                      oSetupData.ic_x = 0;
-                      oSetupData.ic_y = 0;
-
-                      oSetupData.data = {
-                        leftMenu: {
-                          JobID: action.result.result
-                        }
-                      };
-
-                      GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
-                        objectType: "app",
-                        moduleName: "DIRAC.JobMonitor.classes.JobMonitor",
-                        setupData: oSetupData
-                      });
-                    }
-                  }
                 },
                 animateTarget: "mb4",
                 icon: Ext.MessageBox.QUESTION

@@ -194,16 +194,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
     me.launcher.title = "Transformation Monitor";
     me.launcher.maximized = false;
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-      me.launcher.width = oDimensions[0];
-      me.launcher.height = oDimensions[1];
-
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
-
     Ext.apply(me, {
       layout: "border",
       bodyBorder: false,

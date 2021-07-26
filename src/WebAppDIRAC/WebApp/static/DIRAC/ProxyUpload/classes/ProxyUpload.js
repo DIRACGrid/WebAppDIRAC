@@ -6,31 +6,16 @@ Ext.define("DIRAC.ProxyUpload.classes.ProxyUpload", {
   initComponent: function() {
     var me = this;
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.title = "Proxy Upload";
-      me.launcher.maximized = false;
+    me.launcher.title = "Proxy Upload";
+    me.launcher.maximized = false;
 
-      me.launcher.width = 400;
-      me.launcher.height = 350;
+    me.launcher.width = 400;
+    me.launcher.height = 350;
 
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-      me.launcher.x = oDimensions[0] / 2 - me.launcher.width / 2;
-      me.launcher.y = oDimensions[1] / 2 - me.launcher.height / 2;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-      me.launcher.title = "Proxy Upload";
-      me.launcher.maximized = false;
-
-      me.launcher.width = 400;
-      me.launcher.height = 350;
-
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-      me.launcher.x = oDimensions[0] / 2 - me.launcher.width / 2;
-      me.launcher.y = oDimensions[1] / 2 - me.launcher.height / 2;
-    }
+    me.launcher.x = oDimensions[0] / 2 - me.launcher.width / 2;
+    me.launcher.y = oDimensions[1] / 2 - me.launcher.height / 2;
 
     Ext.apply(me, {
       layout: "border",

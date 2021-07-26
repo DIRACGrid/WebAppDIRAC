@@ -71,16 +71,6 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
     me.launcher.title = "Resource Summary";
     me.launcher.maximized = false;
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-      me.launcher.width = oDimensions[0];
-      me.launcher.height = oDimensions[1];
-
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
-
     Ext.apply(me, {
       layout: "border",
       bodyBorder: false,

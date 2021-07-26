@@ -26,13 +26,6 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
     var me = this;
     me.launcher.title = "Activity Monitor";
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.maximized = true;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-    }
-
     Ext.apply(me, {
       layout: "border",
       bodyBorder: false,
