@@ -50,31 +50,16 @@ Ext.define("Ext.dirac.utils.PlotView", {
 
     me.loadFile(["static/core/js/utils/css/PlotView.css"], function() {}, me);
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.title = me.title;
-      me.launcher.maximized = false;
+    me.launcher.title = me.title;
+    me.launcher.maximized = false;
 
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-      var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
-      me.launcher.width = 2 * iDim;
-      me.launcher.height = iDim;
+    var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
+    me.launcher.width = 2 * iDim;
+    me.launcher.height = iDim;
 
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-      me.launcher.title = me.title;
-      me.launcher.maximized = false;
-
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-      var iDim = Math.floor(Math.min(oDimensions[0], oDimensions[1]) / 2);
-      me.launcher.width = 2 * iDim;
-      me.launcher.height = iDim;
-
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
+    me.launcher.x = 0;
+    me.launcher.y = 0;
 
     Ext.apply(me, {
       layout: "border",

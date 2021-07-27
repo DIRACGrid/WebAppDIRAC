@@ -1,5 +1,5 @@
 /**
- * @class Ext.dirac.views.desktop.WelcomeWindow This is a welcome window widget
+ * @class Ext.dirac.utils.WelcomeWindow This is a welcome window widget
  * @extends Ext.Welcome.Window
  */
 Ext.define("Ext.dirac.utils.WelcomeWindow", {

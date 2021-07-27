@@ -1795,9 +1795,9 @@ Ext.define("Ext.dirac.views.tabs.Main", {
     }
 
     if (me._default_desktop_state.length > 0) {
-      sNewUrlState = "?view=" + GLOBAL.VIEW_ID + "&theme=" + sThemeText + url_prefix + default_State_url + "," + sState_related_url;
+      sNewUrlState = "?theme=" + sThemeText + url_prefix + default_State_url + "," + sState_related_url;
     } else {
-      sNewUrlState = "?view=" + GLOBAL.VIEW_ID + "&theme=" + sThemeText + url_prefix + default_State_url + sState_related_url;
+      sNewUrlState = "?theme=" + sThemeText + url_prefix + default_State_url + sState_related_url;
     }
 
     var oHref = location.href;

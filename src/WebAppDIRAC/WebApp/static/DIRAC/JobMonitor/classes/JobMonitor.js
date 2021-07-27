@@ -215,29 +215,15 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
 
     me.launcher.title = "Job Monitor";
 
-    if (GLOBAL.VIEW_ID == "desktop") {
-      me.launcher.maximized = false;
+    me.launcher.maximized = false;
 
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
+    var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
 
-      me.launcher.width = oDimensions[0];
-      me.launcher.height = oDimensions[1];
+    me.launcher.width = oDimensions[0];
+    me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
 
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
-
-    if (GLOBAL.VIEW_ID == "tabs") {
-      me.launcher.maximized = false;
-
-      var oDimensions = GLOBAL.APP.MAIN_VIEW.getViewMainDimensions();
-
-      me.launcher.width = oDimensions[0];
-      me.launcher.height = oDimensions[1] - GLOBAL.APP.MAIN_VIEW.taskbar ? GLOBAL.APP.MAIN_VIEW.taskbar.getHeight() : 0;
-
-      me.launcher.x = 0;
-      me.launcher.y = 0;
-    }
+    me.launcher.x = 0;
+    me.launcher.y = 0;
 
     Ext.apply(me, {
       layout: "border",

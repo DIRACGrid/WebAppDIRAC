@@ -89,12 +89,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           xtype: "label",
           text: "Theme:"
         },
-        me.addThemeButton(),
-        {
-          xtype: "label",
-          text: ""
-        },
-        me.addViewButton()
+        me.addThemeButton()
       ]
     });
     return form;
@@ -367,48 +362,14 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
             }
           }
           if (oQPosition != -1) {
-            location.href = oHref.substr(0, oQPosition) + "?theme=" + me.text + "&view=" + GLOBAL.VIEW_ID + sState_related_url;
+            location.href = oHref.substr(0, oQPosition) + "?theme=" + me.text + sState_related_url;
           } else {
-            location.href = oHref + "?theme=" + me.text + "&view=" + GLOBAL.VIEW_ID + sState_related_url;
+            location.href = oHref + "?theme=" + me.text + sState_related_url;
           }
         }
       });
     }
     return new Ext.button.Button(button_theme);
-  },
-  addViewButton: function() {
-    var sButtonThemeText = "Gray";
-
-    if (GLOBAL.WEB_THEME == "ext-all-neptune") sButtonThemeText = "Neptune";
-
-    if (GLOBAL.WEB_THEME == "ext-all") sButtonThemeText = "Classic";
-
-    var button_views = {
-      text: GLOBAL.VIEW_ID,
-      menu: []
-    };
-
-    var oListViews = ["desktop", "tabs"];
-
-    for (var i = 0; i < oListViews.length; i++) {
-      button_views.menu.push({
-        text: oListViews[i],
-        handler: function() {
-          var me = this;
-
-          var oHref = location.href;
-
-          var oQPosition = oHref.indexOf("?");
-
-          if (oQPosition != -1) {
-            location.href = oHref.substr(0, oQPosition) + "?view=" + me.text + "&theme=" + sButtonThemeText;
-          } else {
-            location.href = oHref + "?view=" + me.text + "&theme=" + sButtonThemeText;
-          }
-        }
-      });
-    }
-    return new Ext.button.Button(button_views);
   },
 
   getDesktopSettingsPanel: function() {

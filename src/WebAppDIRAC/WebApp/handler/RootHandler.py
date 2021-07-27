@@ -50,12 +50,9 @@ class RootHandler(WebHandler):
     theme_name = "crisp"
     view_name = Conf.getTheme()
     if ":" in view_name:
-      view_name, theme_name = view_name.split(":", 1)
+      _, theme_name = view_name.split(":", 1)
 
-    # User selected theme/view
-    if "view" in self.request.arguments and len(self.get_argument("view")) > 0:
-      view_name = xhtml_escape(self.get_argument("view"))
-
+    # User selected theme
     if "theme" in self.request.arguments and len(self.get_argument("theme")) > 0:
       theme_name = xhtml_escape(self.get_argument("theme").lower())
 
@@ -80,7 +77,7 @@ class RootHandler(WebHandler):
                 ext_version=data['extVersion'], url_state=url_state,
                 extensions=data['extensions'],
                 credentials=data['user'], title=Conf.getTitle(),
-                theme=theme_name, root_url=Conf.rootURL(), view=view_name,
+                theme=theme_name, root_url=Conf.rootURL(), view='tabs',
                 open_app=open_app, debug_level=level, welcome=welcome,
                 backgroundImage=background, logo=logo, bugReportURL=Conf.bugReportURL(),
                 http_port=Conf.HTTPPort(), https_port=Conf.HTTPSPort())
