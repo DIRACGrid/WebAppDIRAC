@@ -250,8 +250,8 @@ Ext.define("Ext.dirac.core.App", {
    * @return {}
    */
   getApplicationSettings: function(sAppName) {
-    if (GLOBAL.APP.configData.configuration.Apps && sAppName in GLOBAL.APP.configData.configuration.Apps) {
-      return GLOBAL.APP.configData.configuration.Apps[sAppName]
+    if (sAppName in GLOBAL.APP.configData.configuration) {
+      return GLOBAL.APP.configData.configuration[sAppName]
     } else {
       return {}
     }
@@ -267,16 +267,16 @@ Ext.define("Ext.dirac.core.App", {
   applicationInDowntime: function(sAppName) {
     if (this.isValidApplication(sAppName)) {
       var now = Date.now();
-      var sAppName = this.validApplications[sAppName];
-      var app = this.getApplicationSettings(sAppName).Downtime;
+      var app = this.validApplications[sAppName];
+      var downtime = this.getApplicationSettings(app).Downtime;
 
-      if (app) {
-        app.message = app.message || "Sorry, " + sAppName + " application is in downtime";
-        app.message += "\n\n From: " + app.start;
-        app.message += "\n To:   " + app.end;
+      if (downtime) {
+        downtime.message = downtime.message || "Sorry, " + app + " application is in downtime";
+        downtime.message += "\n\n From: " + downtime.start;
+        downtime.message += "\n To:   " + downtime.end;
 
         // Check time
-        return !app.end ? {} : ((!app.start || now > Date.parse(app.start)) && now < Date.parse(app.end)) ? app : {};
+        return !downtime.end ? {} : ((!downtime.start || now > Date.parse(downtime.start)) && now < Date.parse(downtime.end)) ? downtime : {};
       } else {
         return {}
       }
