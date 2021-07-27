@@ -1,5 +1,8 @@
-[v4r3-pre9]
+[v4r3-pre11]
 
+CHANGE: (#502) remove Desktop view
+FIX: (#500) move run_in_executor part to asyncGen decorated method
+FIX: (#499) Create the directory in /WebApp/StaticResourceLinkDir if it doesn't already exist
 FIX: (#494) Fix typo in deployment CI job
 NEW: (#494) provide finishWithImage method
 FIX: (#492) update encodeDatetime to defaultEncoder(issue #490)
