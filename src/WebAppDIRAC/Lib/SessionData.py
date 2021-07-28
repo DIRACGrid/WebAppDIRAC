@@ -9,7 +9,7 @@ from DIRAC.Core.Utilities import List
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
+from DIRAC.Core.Utilities.Extensions import extensionsByPriority
 
 from WebAppDIRAC.Lib import Conf
 
@@ -36,7 +36,7 @@ class SessionData(object):
       cls.__handlers[handler.LOCATION.strip("/")] = handler
     # Calculate extensions
     # TODO: Remove use of deprecated function
-    cls.__extensions = CSGlobals.getInstalledExtensions()
+    cls.__extensions = extensionsByPriority()
     for ext in ['DIRAC', 'WebAppDIRAC']:
       if ext in cls.__extensions:
         cls.__extensions.append(cls.__extensions.pop(cls.__extensions.index(ext)))
