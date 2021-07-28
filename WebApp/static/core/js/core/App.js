@@ -284,8 +284,6 @@ Ext.define("Ext.dirac.core.App", {
             The optional 'Z' part denotes the time zone in the format +-hh:mm. A single letter Z would mean UTC+0.
             Shorter variants are also possible, like YYYY-MM-DDTHH:mm, YYYY-MM-DD or YYYY-MM or even YYYY.
         */
-
-
         return !downtime.end ? {} : ((!downtime.start || now > Date.parse(downtime.start)) && now < Date.parse(downtime.end)) ? downtime : {};
       } else {
         return {}
