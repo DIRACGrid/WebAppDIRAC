@@ -243,6 +243,57 @@ Ext.define("Ext.dirac.core.App", {
   },
 
   /**
+   * Function to get all application settings
+   *
+   * @param {String}
+   *          sAppName The class name of the application
+   * @return {}
+   */
+  getApplicationSettings: function(sAppName) {
+    if (sAppName in GLOBAL.APP.configData.configuration) {
+      return GLOBAL.APP.configData.configuration[sAppName]
+    } else {
+      return {}
+    }
+  },
+
+  /**
+   * Function that check application downtime settings
+   *
+   * @param {String}
+   *          sAppName The class name of the application
+   * @return {}
+   */
+  applicationInDowntime: function(sAppName) {
+    if (this.isValidApplication(sAppName)) {
+      var now = Date.now();
+      var app = this.validApplications[sAppName];
+      var downtime = this.getApplicationSettings(app).Downtime;
+
+      if (downtime) {
+        downtime.message = downtime.message || "Sorry, " + app + " application is in downtime";
+        downtime.message += "\n\n From: " + downtime.start;
+        downtime.message += "\n To:   " + downtime.end;
+
+        // Check time
+        /*  The string format should be: YYYY-MM-DDTHH:mm:ss.sssZ, where:
+
+            YYYY-MM-DD – is the date: year-month-day.
+            The character "T" is used as the delimiter.
+            HH:mm:ss.sss – is the time: hours, minutes, seconds and milliseconds.
+            The optional 'Z' part denotes the time zone in the format +-hh:mm. A single letter Z would mean UTC+0.
+            Shorter variants are also possible, like YYYY-MM-DDTHH:mm, YYYY-MM-DD or YYYY-MM or even YYYY.
+        */
+
+
+        return !downtime.end ? {} : ((!downtime.start || now > Date.parse(downtime.start)) && now < Date.parse(downtime.end)) ? downtime : {};
+      } else {
+        return {}
+      }
+    }
+  },
+
+  /**
    * Function that is used to get the title of an application
    *
    * @param {String}
