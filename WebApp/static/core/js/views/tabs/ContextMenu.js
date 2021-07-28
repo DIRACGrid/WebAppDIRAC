@@ -297,6 +297,14 @@ Ext.define("Ext.dirac.views.tabs.ContextMenu", {
               });
             }
           }
+        },
+        {
+          text: "Create downtime for application",
+          iconCls: "core-desktop-icon",
+          value: 8,
+          handler: function() {
+            GLOBAL.APP.MAIN_VIEW.SM.formSetDowntime(me.oSelectedMenuItem.data.application)
+          }
         }
       ]
     });

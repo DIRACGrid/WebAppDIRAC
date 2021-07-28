@@ -333,6 +333,10 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
         var me = this;
         me.contextMenu.oSelectedMenuItem = record;
 
+        if (!('AdministratorCS' in GLOBAL.APP.configData.user.properties)) {
+          me.contextMenu.disableMenuItem(8);
+        }
+
         if (record.get("type") == "desktop") {
           me.contextMenu.enableMenuItem(0);
           me.contextMenu.disableMenuItem(1);

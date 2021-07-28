@@ -4,7 +4,8 @@
 import json
 from datetime import datetime
 
-from DIRAC import gLogger
+from DIRAC import gLogger, gConfig
+from DIRAC.ConfigurationSystem.Client.ConfigurationClient import ConfigurationClient
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
 
@@ -139,3 +140,20 @@ class DowntimesHandler(WebHandler):
       responseParams['endDate'] = datetime.utcnow()
 
     return responseParams
+
+  @asyncGen
+  def web_setApplicationDowntime(self):
+    start = self.get_argument('start')
+    end = self.get_argument('end')
+
+    basePath = '/WebApp/%s/Downtime/' % self.get_argument('app')
+
+    rpcClient = ConfigurationClient(url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server"))
+    modCfg = Modificator(rpcClient)
+
+    yield self.threadTask(modCfg.loadFromRemote)
+
+    for option, value in [('message', self.get_argument('message')), ('start', start), ('end', end)]
+      yield self.threadTask(modCfg.setOptionValue, basePath + option, value)
+
+    self.finish()
