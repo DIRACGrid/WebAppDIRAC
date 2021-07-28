@@ -2,14 +2,15 @@
  * This widget is used by the Ext.dirac.utils.DiracBaseSelector widget. It
  * allows to select time in the selector.
  */
- Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
+Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
   extend: "Ext.panel.Panel",
   requires: ["Ext.data.ArrayStore"],
   width: 200,
   autoHeight: true,
   border: true,
   bodyPadding: 5,
-  layout: "hbox",
+  layout: "anchor",
+  anchor: "100%",
   /*************************************************************************
    * @property{It is the time stamp widget which contains a list with Last hour, Last Day...}
    */
@@ -97,8 +98,6 @@
       anchor: "100%",
       onChange: function(newVal) {
         if (newVal == 5) {
-          console.log(newVal)
-          GLOBAL.ME = me;
           me.fromDate.items.forEach(e => e.show());
           me.toDate.items.forEach(e => e.show());
         } else {
