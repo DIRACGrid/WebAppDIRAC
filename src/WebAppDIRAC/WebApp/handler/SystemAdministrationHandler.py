@@ -5,9 +5,8 @@ import json
 import datetime
 
 from DIRAC import gConfig, gLogger
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import uniqueElements
-import DIRAC.ConfigurationSystem.Client.Helpers.Registry as Registry
+from DIRAC.FrameworkSystem.Client.MonitoringClient import gMonitor
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
@@ -592,7 +591,7 @@ class SystemAdministrationHandler(WebHandler):
     setup = self.getUserSetup().split('-')[-1]
 
     hosts = []
-    result = Registry.getHosts()
+    result = ComponentMonitoringClient().getHosts()
     if result['OK']:
       hosts = [[i] for i in result['Value']]
     data['Hosts'] = hosts
@@ -637,13 +636,11 @@ class SystemAdministrationHandler(WebHandler):
   @asyncGen
   def web_ComponentLocation(self):
 
-    rpcClient = RPCClient("Framework/Monitoring")
-
     _setup = self.getUserSetup()
     setup = _setup.split('-')[-1]
 
     hosts = []
-    result = Registry.getHosts()
+    result = ComponentMonitoringClient().getHosts()
     if result['OK']:
       hosts = result['Value']
 
@@ -702,7 +699,7 @@ class SystemAdministrationHandler(WebHandler):
         condDict = {'Setup': _setup}
 
     gLogger.debug("condDict" + str(condDict))
-    retVal = rpcClient.getComponentsStatus(condDict)
+    retVal = gMonitor.getComponentsStatus(condDict)
 
     today = datetime.datetime.today()
     if retVal['OK']:

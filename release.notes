@@ -1,5 +1,6 @@
-[v4r3-pre11]
+[v4r3-pre12]
 
+NEW: (#501) add VMDIRAC application
 CHANGE: (#502) remove Desktop view
 FIX: (#500) move run_in_executor part to asyncGen decorated method
 FIX: (#499) Create the directory in /WebApp/StaticResourceLinkDir if it doesn't already exist
@@ -28,6 +29,12 @@ NEW: (#467) move tests things to tests
 CHANGE: (#467) rename README.md to README.rst
 FIX: (#466) fix selector of pilot stats
 FIX: (#465) return empty result instead error for no host request
+
+[v4r2p5]
+
+CHANGE: (#506) change datetime field behavior in selector, use Time field
+CHANGE: (#505) get hosts from DB for SystemAdministrator
+NEW: (#503) declare downtime for the application
 
 [v4r2p4]
 
