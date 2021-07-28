@@ -812,7 +812,7 @@ Ext.define("Ext.dirac.views.tabs.Main", {
     if (downtime.message) {
       return GLOBAL.APP.CF.alert(downtime.message, "info");
     }
-    
+
     Ext.get("app-dirac-loading").show();
 
     if (loadedObjectType == "app") {
