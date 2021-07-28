@@ -116,10 +116,7 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
       hidden: true,
       onChange: function(newVal) {
         if (newVal) {
-          me.cmbTimeFrom.enable();
           me.resetDate.items.forEach(e => e.show());
-        } else {
-          me.cmbTimeFrom.disable();
         }
       }
     });
@@ -130,7 +127,11 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
       increment: 30,
       margin: "0 0 0 10",
       hidden: true,
-      disabled: true
+      onChange: function(newVal) {
+        if (!me.calenFrom.getValue()) {
+          me.calenFrom.setValue(new Date());
+        }
+      }
     });
 
     me.fromDate = {
@@ -153,10 +154,7 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
       hidden: true,
       onChange: function(newVal) {
         if (newVal) {
-          me.cmbTimeTo.enable();
           me.resetDate.items.forEach(e => e.show());
-        } else {
-          me.cmbTimeTo.disable();
         }
       }
     });
@@ -167,7 +165,11 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
       increment: 30,
       margin: "0 0 0 10",
       hidden: true,
-      disabled: true
+      onChange: function(newVal) {
+        if (!me.calenTo.getValue()) {
+          me.calenTo.setValue(new Date());
+        }
+      }
     });
 
     me.toDate = {
