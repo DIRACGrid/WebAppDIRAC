@@ -264,7 +264,7 @@ Ext.define("Ext.dirac.core.App", {
    *          sAppName The class name of the application
    * @return {}
    */
-   applicationInDowntime: function(sAppName) {
+  applicationInDowntime: function(sAppName) {
     if (this.isValidApplication(sAppName)) {
       var now = new Date.now();
       var app = this.validApplications[sAppName];
@@ -278,9 +278,9 @@ Ext.define("Ext.dirac.core.App", {
 
         var message = "Sorry, " + app + " application is in downtime";
         // Add reason description
-        message += downtime.reason ? (message + ':\n' + downtime.reason) : "";
-        message += start ? ("\n\n From: " + start.toUTCString()) : "";
-        message += end ? ("\n To:   " + end.toUTCString()) : "forever!";
+        message += downtime.reason ? message + ":\n" + downtime.reason : "";
+        message += start ? "\n\n From: " + start.toUTCString() : "";
+        message += end ? "\n To:   " + end.toUTCString() : "forever!";
 
         // Check time
         /*  The string format should be: YYYY-MM-DDTHH:mm:ss.sssZ, where:
