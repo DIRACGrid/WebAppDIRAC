@@ -30,6 +30,12 @@ CHANGE: (#467) rename README.md to README.rst
 FIX: (#466) fix selector of pilot stats
 FIX: (#465) return empty result instead error for no host request
 
+[v4r2p6]
+
+FIX: (#510) add arguments to getHosts in SystemAdministration
+FIX: (#511) downtime fix bug
+FIX: (#511) datetime field fix bug
+
 [v4r2p5]
 
 CHANGE: (#506) change datetime field behavior in selector, use Time field

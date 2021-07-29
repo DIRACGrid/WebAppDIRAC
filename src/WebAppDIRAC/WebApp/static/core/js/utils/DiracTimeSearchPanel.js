@@ -257,9 +257,9 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
 
     // Collect data for filtration
     data["startDate"] = sStartDate;
-    data["startTime"] = sStartTime ? sStartTime.getHours() + ":" + sStartTime.getMinutes() : sStartTime;
+    data["startTime"] = sStartTime && !(typeof sStartTime === "string") ? sStartTime.getHours() + ":" + sStartTime.getMinutes() : sStartTime;
     data["endDate"] = sEndDate;
-    data["endTime"] = sEndTime ? sEndTime.getHours() + ":" + sEndTime.getMinutes() : sEndTime;
+    data["endTime"] = sEndTime && !(typeof sEndTime === "string") ? sEndTime.getHours() + ":" + sEndTime.getMinutes() : sEndTime;
     return data;
   }
 });

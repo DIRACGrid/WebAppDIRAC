@@ -591,7 +591,7 @@ class SystemAdministrationHandler(WebHandler):
     setup = self.getUserSetup().split('-')[-1]
 
     hosts = []
-    result = ComponentMonitoringClient().getHosts()
+    result = ComponentMonitoringClient().getHosts({}, False, False)
     if result['OK']:
       hosts = [[i] for i in result['Value']]
     data['Hosts'] = hosts
@@ -640,7 +640,7 @@ class SystemAdministrationHandler(WebHandler):
     setup = _setup.split('-')[-1]
 
     hosts = []
-    result = ComponentMonitoringClient().getHosts()
+    result = ComponentMonitoringClient().getHosts({}, False, False)
     if result['OK']:
       hosts = result['Value']
 
