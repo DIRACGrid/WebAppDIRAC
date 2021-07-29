@@ -150,17 +150,16 @@ class SessionData(object):
 
         :return: list
     """
+    menuSection = "%s/Schema" % (Conf.BASECS)
     # Somebody coming from HTTPS and not with a valid group
     group = self.__credDict.get("group", "")
     # Cache time!
     if group not in self.__groupMenu:
-      result = gConfig.getSections(Conf.BASECS)
-      if not result['OK']:
-        return result
-      if "Schema" not in result['Value']:
+      result = gConfig.getSections(menuSection)
+      if not result['OK'] or not result['Value']:
         self.__groupMenu[group] = self.__generateDefaultSchema()
       else:
-        self.__groupMenu[group] = self.__generateSchema("%s/Schema" % (Conf.BASECS), "")
+        self.__groupMenu[group] = self.__generateSchema(menuSection, "")
     return self.__groupMenu[group]
 
   @classmethod
