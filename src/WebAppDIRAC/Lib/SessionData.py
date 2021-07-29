@@ -16,33 +16,33 @@ from WebAppDIRAC.Lib import Conf
 __RCSID__ = "$Id$"
 
 DEFAULT_SCHEMA = [
-  ["Tools", [
-    ["app", "Application Wizard", "DIRAC.ApplicationWizard"],
-    ["app", "Job Launchpad", "DIRAC.JobLaunchpad"],
-    ["app", "Notepad", "DIRAC.Notepad"],
-    ["app", "Proxy Upload", "DIRAC.ProxyUpload"]
-  ]],
-  ["Applications", [
-    ["app", "Accounting", "DIRAC.Accounting"],
-    ["app", "Activity Monitor", "DIRAC.ActivityMonitor"],
-    ["app", "Configuration Manager", "DIRAC.ConfigurationManager"],
-    ["app", "Job Monitor", "DIRAC.JobMonitor"],
-    ["app", "Downtimes", "DIRAC.Downtimes"],
-    ["app", "File Catalog", "DIRAC.FileCatalog"],
-    ["app", "Job Monitor", "DIRAC.JobMonitor"],
-    ["app", "Job Summary", "DIRAC.JobSummary"],
-    ["app", "Pilot Monitor", "DIRAC.PilotMonitor"],
-    ["app", "Pilot Summary", "DIRAC.PilotSummary"],
-    ["app", "Proxy Manager", "DIRAC.ProxyManager"],
-    ["app", "Public State Manager", "DIRAC.PublicStateManager"],
-    ["app", "Registry Manager", "DIRAC.RegistryManager"],
-    ["app", "Request Monitor", "DIRAC.RequestMonitor"],
-    ["app", "Resource Summary", "DIRAC.ResourceSummary"],
-    ["app", "Site Summary", "DIRAC.SiteSummary"],
-    ["app", "Space Occupancy", "DIRAC.SpaceOccupancy"],
-    ["app", "System Administration", "DIRAC.SystemAdministration"],
-    ["app", "Transformation Monitor", "DIRAC.TransformationMonitor"]
-  ]]
+    ["Tools", [
+        ["app", "Application Wizard", "DIRAC.ApplicationWizard"],
+        ["app", "Job Launchpad", "DIRAC.JobLaunchpad"],
+        ["app", "Notepad", "DIRAC.Notepad"],
+        ["app", "Proxy Upload", "DIRAC.ProxyUpload"]
+    ]],
+    ["Applications", [
+        ["app", "Accounting", "DIRAC.Accounting"],
+        ["app", "Activity Monitor", "DIRAC.ActivityMonitor"],
+        ["app", "Configuration Manager", "DIRAC.ConfigurationManager"],
+        ["app", "Job Monitor", "DIRAC.JobMonitor"],
+        ["app", "Downtimes", "DIRAC.Downtimes"],
+        ["app", "File Catalog", "DIRAC.FileCatalog"],
+        ["app", "Job Monitor", "DIRAC.JobMonitor"],
+        ["app", "Job Summary", "DIRAC.JobSummary"],
+        ["app", "Pilot Monitor", "DIRAC.PilotMonitor"],
+        ["app", "Pilot Summary", "DIRAC.PilotSummary"],
+        ["app", "Proxy Manager", "DIRAC.ProxyManager"],
+        ["app", "Public State Manager", "DIRAC.PublicStateManager"],
+        ["app", "Registry Manager", "DIRAC.RegistryManager"],
+        ["app", "Request Monitor", "DIRAC.RequestMonitor"],
+        ["app", "Resource Summary", "DIRAC.ResourceSummary"],
+        ["app", "Site Summary", "DIRAC.SiteSummary"],
+        ["app", "Space Occupancy", "DIRAC.SpaceOccupancy"],
+        ["app", "System Administration", "DIRAC.SystemAdministration"],
+        ["app", "Transformation Monitor", "DIRAC.TransformationMonitor"]
+    ]]
 ]
 
 class SessionData(object):
