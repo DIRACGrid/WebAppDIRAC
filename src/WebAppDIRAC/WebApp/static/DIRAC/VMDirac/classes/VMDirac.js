@@ -217,7 +217,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
         "inst_Uptime",
         "inst_Jobs"
       ],
-      sorters: 'inst_InstanceID',
+      sorters: "inst_InstanceID",
       remoteSort: true,
       autoLoad: true,
       pageSize: 100,
