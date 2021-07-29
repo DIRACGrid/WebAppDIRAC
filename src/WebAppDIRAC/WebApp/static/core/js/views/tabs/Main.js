@@ -808,9 +808,9 @@ Ext.define("Ext.dirac.views.tabs.Main", {
     var me = this;
 
     // Do not create new window if the application in downtime
-    var downtime = GLOBAL.APP.applicationInDowntime(moduleName);
-    if (downtime.message) {
-      return GLOBAL.APP.CF.alert(downtime.message, "info");
+    var message = GLOBAL.APP.applicationInDowntime(moduleName);
+    if (message) {
+      return GLOBAL.APP.CF.alert(message, "info");
     }
 
     Ext.get("app-dirac-loading").show();

@@ -266,14 +266,21 @@ Ext.define("Ext.dirac.core.App", {
    */
   applicationInDowntime: function(sAppName) {
     if (this.isValidApplication(sAppName)) {
-      var now = Date.now();
+      var now = new Date.now();
       var app = this.validApplications[sAppName];
       var downtime = this.getApplicationSettings(app).Downtime;
 
       if (downtime) {
-        downtime.message = downtime.message || "Sorry, " + app + " application is in downtime";
-        downtime.message += "\n\n From: " + downtime.start;
-        downtime.message += "\n To:   " + downtime.end;
+        var startDate = Date.parse(downtime.start);
+        var start = startDate ? new Date(startDate) : null;
+        var endDate = Date.parse(downtime.start);
+        var end = endDate ? new Date(endDate) : null;
+
+        var message = "Sorry, " + app + " application is in downtime";
+        // Add reason description
+        message += downtime.reason ? message + ":\n" + downtime.reason : "";
+        message += start ? "\n\n From: " + start.toUTCString() : "";
+        message += end ? "\n To:   " + end.toUTCString() : "forever!";
 
         // Check time
         /*  The string format should be: YYYY-MM-DDTHH:mm:ss.sssZ, where:
@@ -284,7 +291,7 @@ Ext.define("Ext.dirac.core.App", {
             The optional 'Z' part denotes the time zone in the format +-hh:mm. A single letter Z would mean UTC+0.
             Shorter variants are also possible, like YYYY-MM-DDTHH:mm, YYYY-MM-DD or YYYY-MM or even YYYY.
         */
-        return !downtime.end ? {} : (!downtime.start || now > Date.parse(downtime.start)) && now < Date.parse(downtime.end) ? downtime : {};
+        return !end ? {} : (!start || now > start) && now < end ? message : {};
       } else {
         return {};
       }
