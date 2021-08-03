@@ -1,5 +1,6 @@
-[v4r3-pre12]
+[v4r3-pre13]
 
+FIX: (#515) align VMDIRAC with ext6
 NEW: (#501) add VMDIRAC application
 CHANGE: (#502) remove Desktop view
 FIX: (#500) move run_in_executor part to asyncGen decorated method
