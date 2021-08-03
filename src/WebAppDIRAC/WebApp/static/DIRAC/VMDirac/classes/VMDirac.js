@@ -196,7 +196,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
         url: GLOBAL.BASE_URL + "VMDirac/getInstancesList",
         reader: {
           type: "json",
-          root: "result"
+          rootProperty: "result"
         },
         timeout: 1800000
       },
@@ -217,21 +217,12 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
         "inst_Uptime",
         "inst_Jobs"
       ],
+      sorters: "inst_InstanceID",
       remoteSort: true,
       autoLoad: true,
       pageSize: 100,
 
       listeners: {
-        beforeload: function(oStore, oOperation, eOpts) {
-          for (var i = 0; i < me.gridPanel.columns.length; i++) {
-            var col = me.gridPanel.columns[i];
-
-            if (col.dataIndex == "inst_InstanceID") {
-              col.setSortState("DESC");
-              break;
-            }
-          }
-        },
         load: function(oStore, records, successful, eOpts) {
           var bResponseOK = oStore.proxy.reader.rawData["success"] == "true";
 
@@ -607,7 +598,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           url: GLOBAL.BASE_URL + "VMDirac/getHistoryForInstance",
           reader: {
             type: "json",
-            root: "result"
+            rootProperty: "result"
           },
           timeout: 1800000,
           extraParams: {
