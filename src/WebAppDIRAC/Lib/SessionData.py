@@ -15,6 +15,36 @@ from WebAppDIRAC.Lib import Conf
 
 __RCSID__ = "$Id$"
 
+DEFAULT_SCHEMA = [
+    ["Tools", [
+        ["app", "Application Wizard", "DIRAC.ApplicationWizard"],
+        ["app", "Job Launchpad", "DIRAC.JobLaunchpad"],
+        ["app", "Notepad", "DIRAC.Notepad"],
+        ["app", "Proxy Upload", "DIRAC.ProxyUpload"]
+    ]],
+    ["Applications", [
+        ["app", "Accounting", "DIRAC.Accounting"],
+        ["app", "Activity Monitor", "DIRAC.ActivityMonitor"],
+        ["app", "Configuration Manager", "DIRAC.ConfigurationManager"],
+        ["app", "Job Monitor", "DIRAC.JobMonitor"],
+        ["app", "Downtimes", "DIRAC.Downtimes"],
+        ["app", "File Catalog", "DIRAC.FileCatalog"],
+        ["app", "Job Monitor", "DIRAC.JobMonitor"],
+        ["app", "Job Summary", "DIRAC.JobSummary"],
+        ["app", "Pilot Monitor", "DIRAC.PilotMonitor"],
+        ["app", "Pilot Summary", "DIRAC.PilotSummary"],
+        ["app", "Proxy Manager", "DIRAC.ProxyManager"],
+        ["app", "Public State Manager", "DIRAC.PublicStateManager"],
+        ["app", "Registry Manager", "DIRAC.RegistryManager"],
+        ["app", "Request Monitor", "DIRAC.RequestMonitor"],
+        ["app", "Resource Summary", "DIRAC.ResourceSummary"],
+        ["app", "Site Summary", "DIRAC.SiteSummary"],
+        ["app", "Space Occupancy", "DIRAC.SpaceOccupancy"],
+        ["app", "System Administration", "DIRAC.SystemAdministration"],
+        ["app", "Transformation Monitor", "DIRAC.TransformationMonitor"]
+    ]]
+]
+
 class SessionData(object):
 
   __disetConfig = ThreadConfig()
@@ -35,7 +65,6 @@ class SessionData(object):
       handler = handlers[k]
       cls.__handlers[handler.LOCATION.strip("/")] = handler
     # Calculate extensions
-    # TODO: Remove use of deprecated function
     cls.__extensions = extensionsByPriority()
     for ext in ['DIRAC', 'WebAppDIRAC']:
       if ext in cls.__extensions:
@@ -96,6 +125,24 @@ class SessionData(object):
         schema.append(("app", opName, opVal))
     return schema
 
+  def __generateDefaultSchema(self):
+    """ Generate a menu schema based on the user credentials
+
+        :param str base: base
+        :param str path: path
+
+        :return: list
+    """
+    schema = []
+    for section, apps in DEFAULT_SCHEMA:
+      appList = []
+      for app in apps:
+        if self.__isGroupAuthApp(app[-1]):
+          appList.append(app)
+      if appList:
+        schema.append((section, appList))
+    return schema
+
   def __getGroupMenu(self):
     """ Load the schema from the CS and filter based on the group
 
@@ -103,12 +150,16 @@ class SessionData(object):
 
         :return: list
     """
+    menuSection = "%s/Schema" % (Conf.BASECS)
     # Somebody coming from HTTPS and not with a valid group
     group = self.__credDict.get("group", "")
     # Cache time!
     if group not in self.__groupMenu:
-      base = "%s/Schema" % (Conf.BASECS)
-      self.__groupMenu[group] = self.__generateSchema(base, "")
+      result = gConfig.getSections(menuSection)
+      if not result['OK'] or not result['Value']:
+        self.__groupMenu[group] = self.__generateDefaultSchema()
+      else:
+        self.__groupMenu[group] = self.__generateSchema(menuSection, "")
     return self.__groupMenu[group]
 
   @classmethod
