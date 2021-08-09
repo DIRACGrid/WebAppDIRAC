@@ -140,7 +140,7 @@ class SessionData(object):
         if self.__isGroupAuthApp(app[-1]):
           appList.append(app)
       if appList:
-        schema.append(section, appList)
+        schema.append((section, appList))
     return schema
 
   def __getGroupMenu(self):
