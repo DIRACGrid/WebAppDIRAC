@@ -1,3 +1,8 @@
+[v4r2p7]
+
+FIX: (#522) fix downtime message
+FIX: (#520) fix bug in applicationInDowntime
+
 [v4r2p6]
 
 FIX: (#510) add arguments to getHosts in SystemAdministration
