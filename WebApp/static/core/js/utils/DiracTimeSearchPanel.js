@@ -84,6 +84,7 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
       store: new Ext.data.ArrayStore({
         fields: ["value", "text"],
         data: [
+          [0, "For all time"],
           [1, "Last Hour"],
           [2, "Last Day"],
           [3, "Last Week"],
@@ -100,6 +101,9 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
         if (newVal == 5) {
           me.fromDate.items.forEach(e => e.show());
           me.toDate.items.forEach(e => e.show());
+          if (me.calenFrom.getRawValue() || me.cmbTimeFrom.getValue() || me.calenTo.getRawValue() || me.cmbTimeTo.getValue()) {
+            me.resetDate.items.forEach(e => e.show());
+          }
         } else {
           me.fromDate.items.forEach(e => e.hide());
           me.toDate.items.forEach(e => e.hide());
@@ -227,14 +231,21 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
     var me = this;
     var data = {};
     // if a value in time span has been selected
-    var sStartDate = me.calenFrom.getRawValue();
-    var sStartTime = me.cmbTimeFrom.getValue();
-    var sEndDate = me.calenTo.getRawValue();
-    var sEndTime = me.cmbTimeTo.getValue();
+    var sStartDate, sStartTime, sEndDate, sEndTime;
 
     var iSpanValue = me.cmbTimeSpan.getValue();
 
-    if (iSpanValue != null && iSpanValue != 5) {
+    if (iSpanValue == null && iSpanValue == 0) {
+      sStartDate = null;
+      sStartTime = null;
+      sEndDate = null;
+      sEndTime = null;
+    } else if (iSpanValue == 5) {
+      sStartDate = me.calenFrom.getRawValue();
+      sStartTime = me.cmbTimeFrom.getValue();
+      sEndDate = me.calenTo.getRawValue();
+      sEndTime = me.cmbTimeTo.getValue();
+    } else {
       var oLocalNowJs = new Date();
       var oNowJs = Ext.Date.add(oLocalNowJs, Ext.Date.MINUTE, oLocalNowJs.getTimezoneOffset());
       var oBegin = null;
