@@ -266,7 +266,7 @@ Ext.define("Ext.dirac.core.App", {
    */
    applicationInDowntime: function(sAppName) {
     if (this.isValidApplication(sAppName)) {
-      var now = new Date.now();
+      var now = Date.now();
       var app = this.validApplications[sAppName];
       var downtime = this.getApplicationSettings(app).Downtime;
 
