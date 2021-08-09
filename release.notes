@@ -31,6 +31,11 @@ CHANGE: (#467) rename README.md to README.rst
 FIX: (#466) fix selector of pilot stats
 FIX: (#465) return empty result instead error for no host request
 
+[v4r2p7]
+
+FIX: (#522) fix downtime message
+FIX: (#520) fix bug in applicationInDowntime
+
 [v4r2p6]
 
 FIX: (#510) add arguments to getHosts in SystemAdministration

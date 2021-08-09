@@ -266,7 +266,7 @@ Ext.define("Ext.dirac.core.App", {
    */
   applicationInDowntime: function(sAppName) {
     if (this.isValidApplication(sAppName)) {
-      var now = new Date.now();
+      var now = Date.now();
       var app = this.validApplications[sAppName];
       var downtime = this.getApplicationSettings(app).Downtime;
 
@@ -291,9 +291,9 @@ Ext.define("Ext.dirac.core.App", {
             The optional 'Z' part denotes the time zone in the format +-hh:mm. A single letter Z would mean UTC+0.
             Shorter variants are also possible, like YYYY-MM-DDTHH:mm, YYYY-MM-DD or YYYY-MM or even YYYY.
         */
-        return !end ? {} : (!start || now > start) && now < end ? message : {};
+        return !end ? '' : (!start || now > start) && now < end ? message : '';
       } else {
-        return {};
+        return '';
       }
     }
   },
