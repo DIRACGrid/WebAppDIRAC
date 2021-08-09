@@ -18,31 +18,52 @@ class RootHandler(WebHandler):
   AUTH_PROPS = "all"
   LOCATION = "/"
 
-  def web_changeGroup(self):
-    to = self.get_argument("to")
-    self.__change(group=to)
+  def web_changeGroup(self, to):
+    """ Change group
 
-  def web_changeSetup(self):
-    to = self.get_argument("to")
-    self.__change(setup=to)
+        :param str to: group name
+
+        :return: TornadoResponse()
+    """
+    return TornadoResponse().redirect(self.__change(group=to or self.getUserGroup() or 'anon'))
+
+  def web_changeSetup(self, to):
+    """ Change setup
+
+        :param str to: setup name
+
+        :return: TornadoResponse()
+    """
+    return TornadoResponse().redirect(self.__change(setup=to or self.getUserSetup()))
 
   def __change(self, setup=None, group=None):
-    if not setup:
-      setup = self.getUserSetup()
-    if not group:
-      group = self.getUserGroup() or 'anon'
+    """ Generate URL to change setup/group
+
+        :param str setup: setup name
+        :param str group: group name
+
+        :return: str
+    """
+    url = [Conf.rootURL().strip("/")]
+    if setup:
+      url.append("s:%s" % setup)
+    if group:
+      url.append("g:%s" % group)
     qs = False
     if 'Referer' in self.request.headers:
       o = urlparse.urlparse(self.request.headers['Referer'])
-      qs = '/?%s' % o.query
-    url = [Conf.rootURL().strip("/"), "s:%s" % setup, "g:%s" % group]
-    self.redirect("/%s%s" % ("/".join(url), qs))
+      url.append('?%s' % o.query)
+    return "/%s" % "/".join(url)
 
   def web_getConfigData(self):
+    """ Get session data
+
+        :return: dict
+    """
     return self.getSessionData()
 
   def web_logout(self):
-    """ Start authorization flow
+    """ Logout
     """
     token = self.get_secure_cookie('session_id')
     if token:
@@ -53,35 +74,66 @@ class RootHandler(WebHandler):
           cli = result['Value']
           cli.token = token
           cli.revokeToken(token['refresh_token'])
+
+  def finish_logout(self):
+    """ Finish logout process
+    """
     self.clear_cookie('session_id')
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
 
-  def web_login(self):
+  def web_login(self, provider, nextURI='/DIRAC'):
     """ Start authorization flow
+
+        :param str provider: provider name
+        :param str nextURI: current URI
+
+        :return: TornadoResponse()
     """
     result = self._idps.getIdProvider('WebAppDIRAC')
     if not result['OK']:
       return result
     cli = result['Value']
-    provider = self.get_argument('provider')
+    cli.scope = ''
     if provider:
       cli.metadata['authorization_endpoint'] = '%s/%s' % (cli.get_metadata('authorization_endpoint'), provider)
+
     uri, state, session = cli.submitNewSession()
 
     # Save authorisation session
-    session.update(dict(state=state, provider=provider, next=self.get_argument('next', '/DIRAC')))
-    self.set_secure_cookie('webauth_session', json.dumps(session), secure=True, httponly=True)
+    session.update(dict(state=state, provider=provider, next=nextURI))
+
+    resp = TornadoResponse()
+    resp.set_secure_cookie('webauth_session', json.dumps(session), secure=True, httponly=True)
 
     # Redirect to authorization server
-    self.set_cookie('authGrant', 'Visitor')
-    self.redirect(uri)
+    resp.set_cookie('authGrant', 'Visitor')
+    return resp.redirect(uri)
 
-  def web_loginComplete(self):
+  def web_loginComplete(self, code, state):
     """ Finishing authoriation flow
+
+        :param str code: code
+        :param str state: state
+
+        :return: TornadoResponse()
     """
-    code = self.get_argument('code')
-    state = self.get_argument('state')
+    t = template.Template('''<!DOCTYPE html>
+    <html>
+      <head>
+        <title>Authentication</title>
+        <meta charset="utf-8" />
+      </head>
+      <body>
+        {{message}}
+        <script>
+          sessionStorage.setItem("access_token", "{{access_token}}");
+          window.location = "{{next}}";
+        </script>
+      </body>
+    </html>''')
+    resp = TornadoResponse()
+    authSession = json.loads(self.get_secure_cookie('webauth_session'))
 
     result = self._idps.getIdProvider('WebAppDIRAC')
     if not result['OK']:
@@ -126,27 +178,16 @@ class RootHandler(WebHandler):
       </html>''')
     return t.generate(next=nextURL, access_token=token.access_token)
 
-  def web_index(self):
+  def web_index(self, url_state="", theme="crisp", open_app=""):
+    """ Index method
+
+        :param str url_state: url state
+        :param str theme: selected theme name, default "crisp"
+
+        :return: TornadoResponse()
+    """
     # Render base template
     data = self.getSessionData()
-
-    url_state = ""
-    if "url_state" in self.request.arguments and len(self.get_argument("url_state")) > 0:
-      url_state = xhtml_escape(self.get_argument("url_state"))
-
-    # Default theme/view settings
-    theme_name = "crisp"
-    view_name = Conf.getTheme()
-    if ":" in view_name:
-      _, theme_name = view_name.split(":", 1)
-
-    # User selected theme
-    if "theme" in self.request.arguments and len(self.get_argument("theme")) > 0:
-      theme_name = xhtml_escape(self.get_argument("theme").lower())
-
-    open_app = ""
-    if "open_app" in self.request.arguments and len(self.get_argument("open_app")) > 0:
-      open_app = xhtml_escape(self.get_argument("open_app").strip())
 
     icon = data['baseURL'] + Conf.getIcon()
     background = data['baseURL'] + Conf.getBackgroud()
@@ -157,15 +198,28 @@ class RootHandler(WebHandler):
       try:
         with open(welcomeFile, 'r') as f:
           welcome = f.read().replace('\n', '')
-      except BaseException:
+      except Exception:
         gLogger.warn('Welcome page not found here: %s' % welcomeFile)
 
-    level = str(gLogger.getLevel()).lower()
-    self.render("root.tpl", iconUrl=icon, base_url=data['baseURL'], _dev=Conf.devMode(),
-                ext_version=data['extVersion'], url_state=url_state,
-                extensions=data['extensions'], auth_client_settings=data['configuration']['AuthorizationClient'],
-                credentials=data['user'], title=Conf.getTitle(),
-                theme=theme_name, root_url=Conf.rootURL(), view='tabs',
-                open_app=open_app, debug_level=level, welcome=welcome,
-                backgroundImage=background, logo=logo, bugReportURL=Conf.bugReportURL(),
-                http_port=Conf.HTTPPort(), https_port=Conf.HTTPSPort())
+    return TornadoResponse().render(
+        "root.tpl",
+        _dev=Conf.devMode(),
+        logo=data['baseURL'] + Conf.getLogo(),
+        view='tabs',
+        theme=theme_name.lower(),
+        title=Conf.getTitle(),
+        welcome=welcome,
+        iconUrl=data['baseURL'] + Conf.getIcon(),
+        open_app=open_app.strip(),
+        base_url=data['baseURL'],
+        root_url=Conf.rootURL(),
+        url_state=xhtml_escape(url_state),
+        http_port=Conf.HTTPPort(),
+        https_port=Conf.HTTPSPort(),
+        extensions=data['extensions'],
+        credentials=data['user'],
+        ext_version=data['extVersion'],
+        debug_level=str(gLogger.getLevel()).lower(),
+        bugReportURL=Conf.bugReportURL(),
+        backgroundImage=data['baseURL'] + Conf.getBackgroud(),
+        auth_client_settings=data['configuration'].get('AuthorizationClient', {}))

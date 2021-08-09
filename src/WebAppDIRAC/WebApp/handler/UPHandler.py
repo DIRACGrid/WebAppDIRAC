@@ -29,15 +29,17 @@ class UPHandler(WebHandler):
     # user setup
     self.__tc.setSetup(False)
 
-  def __getUP(self):
-    obj = self.get_argument("obj")
-    app = self.get_argument("app")
-    return UserProfileClient("Web/%s/%s" % (obj, app))
+  def web_saveAppState(self, obj, app, name, state):
+    """ Save App State
 
-  def web_saveAppState(self):
-    up = self.__getUP()
-    name = self.get_argument("name")
-    state = self.get_argument("state")
+        :param str obj: object
+        :param str app: application
+        :param str name: name
+        :param str state: state
+
+        :return: dict
+    """
+    up = UserProfileClient("Web/%s/%s" % (obj, app))
     data = base64.b64encode(zlib.compress(DEncode.encode(state), 9))
     # before we save the state (modify the state) we have to remember the actual access: ReadAccess and PublishAccess
     result = yield self.threadTask(up.getVarPermissions, name)
@@ -55,10 +57,18 @@ class UPHandler(WebHandler):
 
     return S_OK()
 
-  def web_makePublicAppState(self):
-    up = self.__getUP()
-    name = self.get_argument("name")
-    access = self.get_argument("access", "ALL").upper()
+  def web_makePublicAppState(self, obj, app, name, access='ALL'):
+    """ Make public application state
+
+        :param str obj: object
+        :param str app: application
+        :param str name: name
+        :param str access: access type
+
+        :return: dict
+    """
+    up = UserProfileClient("Web/%s/%s" % (obj, app))
+    access = access.upper()
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
 
@@ -73,22 +83,35 @@ class UPHandler(WebHandler):
       return result
     return S_OK()
 
-  def web_loadAppState(self):
-    up = self.__getUP()
-    name = self.get_argument("name")
-    result = yield self.threadTask(up.retrieveVar, name)
+  def web_loadAppState(self, obj, app, name):
+    """ Load application state
+
+        :param str obj: object
+        :param str app: application
+        :param str name: name
+
+        :return: dict
+    """
+    result = UserProfileClient("Web/%s/%s" % (obj, app)).retrieveVar(name)
     if not result['OK']:
       return result
     data = result['Value']
     data, count = DEncode.decode(zlib.decompress(base64.b64decode(data)))
     self.finish(data)
 
-  def web_loadUserAppState(self):
-    up = self.__getUP()
-    user = self.get_argument("user")
-    group = self.get_argument("group")
-    name = self.get_argument("name")
-    result = yield self.threadTask(up.retrieveVarFromUser, user, group, name)
+  def web_loadUserAppState(self, obj, app, user, group, name):
+    """ Load user application state
+
+        :param str obj: object
+        :param str app: application
+        :param str user: user name
+        :param str group: group name
+        :param str name: name
+
+        :return: dict
+    """
+    up = UserProfileClient("Web/%s/%s" % (obj, app))
+    result = up.retrieveVarFromUser(user, group, name)
     if not result['OK']:
       return result
     data = result['Value']
@@ -97,8 +120,15 @@ class UPHandler(WebHandler):
 
   auth_listAppState = ['all']
 
-  def web_listAppState(self):
-    up = self.__getUP()
+  def web_listAppState(self, obj, app):
+    """ Get list application state
+
+        :param str obj: object
+        :param str app: application
+
+        :return: dict
+    """
+    up = UserProfileClient("Web/%s/%s" % (obj, app))
     result = up.retrieveAllVars()
     if not result['OK']:
       return result
@@ -108,18 +138,28 @@ class UPHandler(WebHandler):
       data[k] = json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data[k])))[0])
     self.finish(data)
 
-  def web_delAppState(self):
-    up = self.__getUP()
-    name = self.get_argument("name")
-    result = yield self.threadTask(up.deleteVar, name)
-    if not result['OK']:
-      return result
-    self.finish()
+  def web_delAppState(self, obj, app, name):
+    """ Delete application state
+
+        :param str obj: object
+        :param str app: application
+        :param str name: name
+
+        :return: dict
+    """
+    return UserProfileClient("Web/%s/%s" % (obj, app)).deleteVar(name)
 
   auth_listPublicDesktopStates = ['all']
 
-  def web_listPublicDesktopStates(self):
-    up = self.__getUP()
+  def web_listPublicDesktopStates(self, obj, app):
+    """ Get list public desktop states
+
+        :param str obj: object
+        :param str app: application
+
+        :return: dict
+    """
+    up = UserProfileClient("Web/%s/%s" % (obj, app))
     result = up.listAvailableVars()
     if not result['OK']:
       return result
@@ -144,10 +184,18 @@ class UPHandler(WebHandler):
         sharedDesktops[i['UserName']]['Metadata'] = i
     self.finish(sharedDesktops)
 
-  def web_makePublicDesktopState(self):
+  def web_makePublicDesktopState(self, obj, app, name, access='ALL'):
+    """ Make public desktop state
+
+        :param str obj: object
+        :param str app: application
+        :param str name: name
+        :param str access: access type
+
+        :return: dict
+    """
     up = UserProfileClient("Web/application/desktop")
-    name = self.get_argument("name")
-    access = self.get_argument("access", "ALL").upper()
+    access = access.upper()
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
     # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
@@ -156,11 +204,18 @@ class UPHandler(WebHandler):
       return result
     return S_OK()
 
-  def web_changeView(self):
-    up = self.__getUP()
-    desktopName = self.get_argument("desktop")
-    view = self.get_argument("view")
-    result = yield self.threadTask(up.retrieveVar, desktopName)
+  def web_changeView(self, obj, app, desktop, view):
+    """ Change view
+
+        :param str obj: object
+        :param str app: application
+        :param str desktop: desktop name
+        :param str view: view
+
+        :return: dict
+    """
+    up = UserProfileClient("Web/%s/%s" % (obj, app))
+    result = up.retrieveVar(desktop)
     if not result['OK']:
       return result
     data = result['Value']
@@ -168,19 +223,22 @@ class UPHandler(WebHandler):
     oDesktop[six.text_type('view')] = six.text_type(view)
     oDesktop = json.dumps(oDesktop)
     data = base64.b64encode(zlib.compress(DEncode.encode(oDesktop), 9))
-    result = up.storeVar(desktopName, data)
-    if not result['OK']:
-      return result
-    return S_OK()
+    return up.storeVar(desktop, data)
 
   auth_listPublicStates = ['all']
 
-  def web_listPublicStates(self):
+  def web_listPublicStates(self, obj, app):
+    """ Get list public state
 
+        :param str obj: object
+        :param str app: application
+
+        :return: dict
+    """
     user = self.getUserName()
 
-    up = self.__getUP()
-    retVal = yield self.threadTask(up.listStatesForWeb, {'PublishAccess': 'ALL'})
+    up = UserProfileClient("Web/%s/%s" % (obj, app))
+    retVal = up.getUserProfileNames({'PublishAccess': 'ALL'})
     if not retVal['OK']:
       raise WErr.fromSERROR(retVal)
     records = retVal['Value']
@@ -256,10 +314,18 @@ class UPHandler(WebHandler):
 
     self.finish(desktopsApplications)
 
-  def web_publishAppState(self):
-    up = self.__getUP()
-    name = self.get_argument("name")
-    access = self.get_argument("access", "ALL").upper()
+  def web_publishAppState(self, obj, app, name, access='ALL'):
+    """ Publish application state
+
+        :param str obj: object
+        :param str app: application
+        :param str name: name
+        :param str access: access type
+
+        :return: dict
+    """
+    up = UserProfileClient("Web/%s/%s" % (obj, app))
+    access = access.upper()
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
 

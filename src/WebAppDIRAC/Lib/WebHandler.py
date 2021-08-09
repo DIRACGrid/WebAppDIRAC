@@ -150,9 +150,9 @@ class _WebHandler(TornadoREST):
   def _getMethodArgs(self, args):
     """ Decode args.
 
-        :return: list
+        :return: tuple(list, dict)
     """
-    return args[3:]
+    return super(_WebHandler, self)._getMethodArgs(args[3:])
 
   def _prepare(self):
     """
@@ -520,3 +520,10 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
 
   def on_open(self):
     pass
+
+  def _getMethod(self):
+    """ Get method function to call.
+
+        :return: function
+    """
+    return ''
