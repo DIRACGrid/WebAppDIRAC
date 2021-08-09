@@ -1,5 +1,6 @@
-[v4r2p6]
+[v4r2p7]
 
+FIX: (#520) fix bug in applicationInDowntime
 FIX: (#510) add arguments to getHosts in SystemAdministration
 FIX: (#511) downtime fix bug
 FIX: (#511) datetime field fix bug
