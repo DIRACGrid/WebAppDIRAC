@@ -1,3 +1,8 @@
+[v4r2p8]
+
+FIX: (#525) fix SystemAdministrator selector, #519 issue
+FIX: (#524) fix TimeSearch panel, #518 issue
+
 [v4r2p7]
 
 FIX: (#522) fix downtime message
