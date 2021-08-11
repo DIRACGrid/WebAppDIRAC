@@ -25,7 +25,7 @@ class RootHandler(WebHandler):
 
         :return: TornadoResponse()
     """
-    return TornadoResponse().redirect(self.__change(group=to or self.getUserGroup() or 'anon'))
+    return TornadoResponse().redirect(self.__change(group=to))
 
   def web_changeSetup(self, to):
     """ Change setup
@@ -34,7 +34,7 @@ class RootHandler(WebHandler):
 
         :return: TornadoResponse()
     """
-    return TornadoResponse().redirect(self.__change(setup=to or self.getUserSetup()))
+    return TornadoResponse().redirect(self.__change(setup=to))
 
   def __change(self, setup=None, group=None):
     """ Generate URL to change setup/group
@@ -46,9 +46,9 @@ class RootHandler(WebHandler):
     """
     url = [Conf.rootURL().strip("/")]
     if setup:
-      url.append("s:%s" % setup)
+      url.append("s:%s" % (setup or self.getUserSetup()))
     if group:
-      url.append("g:%s" % group)
+      url.append("g:%s" % (group or self.getUserGroup() or 'anon'))
     qs = False
     if 'Referer' in self.request.headers:
       o = urlparse.urlparse(self.request.headers['Referer'])
@@ -206,7 +206,7 @@ class RootHandler(WebHandler):
         _dev=Conf.devMode(),
         logo=data['baseURL'] + Conf.getLogo(),
         view='tabs',
-        theme=theme_name.lower(),
+        theme=theme.lower(),
         title=Conf.getTitle(),
         welcome=welcome,
         iconUrl=data['baseURL'] + Conf.getIcon(),
