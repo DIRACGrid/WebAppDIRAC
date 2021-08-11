@@ -586,15 +586,16 @@ class SystemAdministrationHandler(WebHandler):
   @asyncGen
   def web_getSelectionData(self):
 
-    data = {}
+    data = {'Hosts': []}
 
     setup = self.getUserSetup().split('-')[-1]
 
     hosts = []
     result = ComponentMonitoringClient().getHosts({}, False, False)
     if result['OK']:
-      hosts = [[i] for i in result['Value']]
-    data['Hosts'] = hosts
+      for hostDict in result['Value']:
+        if hostDict.get("HostName"):
+          data['Hosts'].append([hostDict["HostName"]])
 
     componentTypes = ['Services', 'Agents', 'Executors']
     componentTypes = self.get_arguments("ComponentType") or componentTypes
