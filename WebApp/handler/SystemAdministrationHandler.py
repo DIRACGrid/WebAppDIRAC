@@ -645,7 +645,7 @@ class SystemAdministrationHandler(WebHandler):
     hosts = []
     result = ComponentMonitoringClient().getHosts({}, False, False)
     if result['OK']:
-      hosts = result['Value']
+      hosts = [h['HostName'] for h in result['Value'] if h.get('HostName')]
 
     componentTypes = ['Services', 'Agents']
     if "ComponentType" in self.request.arguments:
