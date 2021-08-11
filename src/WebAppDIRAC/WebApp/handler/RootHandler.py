@@ -131,7 +131,10 @@ class RootHandler(WebHandler):
       </body>
     </html>''')
     resp = TornadoResponse()
-    authSession = json.loads(self.get_secure_cookie('webauth_session'))
+    authSession = self.get_secure_cookie('webauth_session')
+    if not authSession:
+      return resp.redirect('/')
+    authSession = json.loads(authSession)
 
     result = self._idps.getIdProvider('WebAppDIRAC')
     if not result['OK']:
@@ -147,8 +150,14 @@ class RootHandler(WebHandler):
     self.clear_cookie('webauth_session')
 
     # Create session to work through portal
-    self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
-    self.set_cookie('authGrant', 'Session')
+    self.log.debug('Tokens received:\n', pprint.pformat(token))
+    resp.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
+    resp.set_cookie('authGrant', 'Session')
+
+    result = cli.researchGroup()
+    if not result['OK']:
+      return resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
+    group = result['Value'].get('group')
 
     group = token.groups[0]
     url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
