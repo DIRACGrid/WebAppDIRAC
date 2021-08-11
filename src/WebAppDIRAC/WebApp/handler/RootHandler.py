@@ -44,11 +44,9 @@ class RootHandler(WebHandler):
 
         :return: str
     """
-    url = [Conf.rootURL().strip("/")]
-    if setup:
-      url.append("s:%s" % (setup or self.getUserSetup()))
-    if group:
-      url.append("g:%s" % (group or self.getUserGroup() or 'anon'))
+    url = [Conf.rootURL().strip("/"),
+           "s:%s" % (setup or self.getUserSetup()),
+           "g:%s" % (group or self.getUserGroup() or 'anon')]
     qs = False
     if 'Referer' in self.request.headers:
       o = urlparse.urlparse(self.request.headers['Referer'])
