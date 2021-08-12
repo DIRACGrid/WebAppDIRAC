@@ -5,6 +5,7 @@ import tornado.process
 
 from DIRAC import gConfig
 from DIRAC.Core.Security import Locations, X509Chain, X509CRL
+from DIRAC.Core.Utilities.Decorators import deprecated
 
 BASECS = "/WebApp"
 
@@ -237,12 +238,13 @@ def getAuthSectionForHandler(route):
     return "%s/Access/%s" % (BASECS, route)
 
 
+@deprecated("This funtion is deprecated, use 'tabs' instead.")
 def getTheme():
     """Get theme
 
     :return: str
     """
-    return getCSValue("Theme", "tabs")
+    return "tabs"
 
 
 def getIcon():
