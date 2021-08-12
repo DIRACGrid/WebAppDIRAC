@@ -273,7 +273,7 @@ Ext.define("Ext.dirac.core.App", {
       if (downtime) {
         var startDate = Date.parse(downtime.start);
         var start = startDate ? new Date(startDate) : null;
-        var endDate = Date.parse(downtime.start);
+        var endDate = Date.parse(downtime.end);
         var end = endDate ? new Date(endDate) : null;
 
         var message = "Sorry, " + app + " application is in downtime";
