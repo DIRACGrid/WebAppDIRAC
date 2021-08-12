@@ -71,9 +71,10 @@ To configure web portal you need create **/WebApp** section in DIRAC configurati
     # To set secret for security cookies
     # CookieSecret = mysecret
 
+    # Next section contain access rights.
     # Access
     # {
-    #
+    #   upload = TruestedHost
     # }
 
     # Path to favicon icon. It is not recommended to change.
@@ -82,5 +83,6 @@ To configure web portal you need create **/WebApp** section in DIRAC configurati
     # SSL protocol to use.
     # SSLProtocol =
 
-    # DefaultStaticDirs =
+    # Set static directories.
+    # DefaultStaticDirs = None
   }
