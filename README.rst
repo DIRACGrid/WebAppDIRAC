@@ -28,7 +28,7 @@ Instructions for installing WebAppDIRAC are described `here <https://github.com/
 Configure
 ---------
 
-To configure web portal you need create `/WebApp` section in DIRAC configuration file::
+To configure web portal you need create **/WebApp** section in DIRAC configuration::
 
   WebApp
   {
