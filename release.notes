@@ -1,5 +1,4 @@
-[v4r3-pre14]
-
+[v4r3-pre15]
 
 NEW: (#514) use default menu for fresh WebApp installation
 FIX: (#515) align VMDIRAC with ext6
@@ -32,6 +31,11 @@ NEW: (#467) move tests things to tests
 CHANGE: (#467) rename README.md to README.rst
 FIX: (#466) fix selector of pilot stats
 FIX: (#465) return empty result instead error for no host request
+
+[v4r2p9]
+
+FIX: (#530) fix bug in application downtime
+FIX: (#529) fix SystemAdministrator selector
 
 [v4r2p8]
 
