@@ -33,6 +33,11 @@ CHANGE: (#467) rename README.md to README.rst
 FIX: (#466) fix selector of pilot stats
 FIX: (#465) return empty result instead error for no host request
 
+[v4r2p9]
+
+FIX: (#530) fix bug in application downtime
+FIX: (#529) fix SystemAdministrator selector
+
 [v4r2p8]
 
 FIX: (#525) fix SystemAdministrator selector, #519 issue
