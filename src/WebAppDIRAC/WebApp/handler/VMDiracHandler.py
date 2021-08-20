@@ -35,7 +35,7 @@ class VMDiracHandler(WebHandler):
       sortValue = ast.literal_eval(sortValue.strip("[]"))
       sortField = str(sortValue["property"]).replace("_", ".")
       sortDir = str(sortValue["direction"])
-    sort = [(sortField, sortDir)]
+    sort = [[sortField, sortDir]]
 
     condDict = {}
     if 'cond' in self.request.arguments:
