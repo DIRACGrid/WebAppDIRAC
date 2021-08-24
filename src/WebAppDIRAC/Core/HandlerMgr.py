@@ -152,10 +152,10 @@ class HandlerMgr(object):
             self.__routes.append((route, handler))
           self.log.debug("  * %s" % route)
     # Send to root
-    # self.__routes.append(("%s(/?)" % self.__setupGroupRE, CoreHandler, dict(action="sendToRoot")))
-    # if self.__baseURL:
-      # self.__routes.append(("/%s%s()" % (self.__baseURL, self.__setupGroupRE),
-                            # CoreHandler, dict(action="sendToRoot")))
+    self.__routes.append(("%s(/?)" % self.__setupGroupRE, CoreHandler, dict(action="sendToRoot")))
+    if self.__baseURL:
+      self.__routes.append(("/%s%s()" % (self.__baseURL, self.__setupGroupRE),
+                            CoreHandler, dict(action="sendToRoot")))
     return S_OK()
 
   def getHandlers(self):

@@ -320,7 +320,7 @@ class _WebHandler(TornadoREST):
         pprint.pprint(traceback.format_exc())
         gLogger.debug('Cannot check access token %s, try to fetch..' % repr(e))
         # Try to refresh access_token and refresh_token
-        result = self._idps.getIdProvider('WebAppDIRAC')
+        result = self._idps.getIdProvider('DIRACWeb')
         if not result['OK']:
           return result
         cli = result['Value']
