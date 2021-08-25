@@ -1,5 +1,6 @@
-[v4r3-pre15]
+[v4r3-pre16]
 
+FIX: (#535) Use lists instead of tuples in VMDiracHandler
 NEW: (#514) use default menu for fresh WebApp installation
 FIX: (#515) align VMDIRAC with ext6
 NEW: (#501) add VMDIRAC application
