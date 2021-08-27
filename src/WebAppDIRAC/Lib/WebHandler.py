@@ -146,7 +146,7 @@ class _WebHandler(TornadoREST):
     groups = match.groups()
     route = groups[2]
     return "index" if route[-1] == "/" else route[route.rfind("/") + 1:]
-  
+
   def _getMethodArgs(self, args):
     """ Decode args.
 
@@ -173,11 +173,8 @@ class _WebHandler(TornadoREST):
     super(_WebHandler, self)._prepare()
 
     # Configure DISET with user creds
-    if self.getDN():
-      self.__disetConfig.setDN(self.getDN())
-    # if self.getID():
-    #   self.__disetConfig.setID(self.getID())
-    # pylint: disable=no-value-for-parameter
+    if self.getUserDN():
+      self.__disetConfig.setDN(self.getUserDN())
     if self.getUserGroup():  # pylint: disable=no-value-for-parameter
       self.__disetConfig.setGroup(self.getUserGroup())  # pylint: disable=no-value-for-parameter
     self.__disetConfig.setSetup(self.__setup)
@@ -215,82 +212,22 @@ class _WebHandler(TornadoREST):
       :returns: a dict containing the return of :py:meth:`DIRAC.Core.Security.X509Chain.X509Chain.getCredentials`
                 (not a DIRAC structure !)
     """
-    # Unsecure protocol only for visitors
-    if self.request.protocol != "https":
-      return
+    # Authorization type
+    self.__authGrant = ['VISITOR']
+    if self.request.protocol == "https":
+      self.__authGrant.insert(0, self.get_cookie('authGrant', 'SSL').replace('Certificate', 'SSL'))
 
-    # OIDC auth method
-    def oAuth2():
-      access_token = self.get_secure_cookie("AccessToken")
-      if access_token is not None:
-        access_token = access_token.decode()
-        url = Conf.getCSValue("TypeAuths/%s/authority" % typeAuth) + '/userinfo'
-        heads = {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
-        if 'error' in requests.get(url, headers=heads, verify=False).json():
-          self.log.error('OIDC request error: %s' % requests.get(url, headers=heads, verify=False).json()['error'])
-          return
-        ID = requests.get(url, headers=heads, verify=False).json()['sub']
-        result = getUsernameForID(ID)
-        if result['OK']:
-          self.__credDict['username'] = result['Value']
-        result = getDNForUsername(self.__credDict['username'])
-        if result['OK']:
-          self.__credDict['validDN'] = True
-          self.__credDict['DN'] = result['Value'][0]
-        return
+    credDict = super(_WebHandler, self)._gatherPeerCredentials(grants=self.__authGrant)
 
-    # Type of Auth
-    if not self.get_secure_cookie("TypeAuth"):
-      self.set_secure_cookie("TypeAuth", 'Certificate')
-    typeAuth = self.get_secure_cookie("TypeAuth")
-    if typeAuth is not None:
-      typeAuth = typeAuth.decode()
-    self.log.info("Type authentication: %s" % typeAuth)
-    if typeAuth == "Visitor":
-      return
-    retVal = Conf.getCSSections("TypeAuths")
-    if retVal['OK']:
-      if typeAuth in retVal.get("Value"):
-        method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth, 'default')
-        if method == "oAuth2":
-          oAuth2()
+    # Add a group if it present in the request path
+    if credDict and self.__group:
+      credDict['validGroup'] = False
+      credDict['group'] = self.__group
 
-    # NGINX
-    if Conf.balancer() == "nginx":
-      headers = self.request.headers
-      if headers['X-Scheme'] == "https" and headers['X-Ssl_client_verify'] == 'SUCCESS':
-        DN = headers['X-Ssl_client_s_dn']
-        if not DN.startswith('/'):
-          items = DN.split(',')
-          items.reverse()
-          DN = '/' + '/'.join(items)
-        self.__credDict['DN'] = DN
-        self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
-        result = Registry.getUsernameForDN(DN)
-        if not result['OK']:
-          self.__credDict['validDN'] = False
-        else:
-          self.__credDict['validDN'] = True
-          self.__credDict['username'] = result['Value']
-      return
+    return credDict
 
-    # TORNADO
-    derCert = self.request.get_ssl_certificate(binary_form=True)
-    if not derCert:
-      return
-    pemCert = ssl.DER_cert_to_PEM_cert(derCert)
-    chain = X509Chain()
-    chain.loadChainFromString(pemCert)
-    result = chain.getCredentials()
-    if not result['OK']:
-      self.log.error("Could not get client credentials %s" % result['Message'])
-      return
-    self.__credDict = result['Value']
-    # Hack. Data coming from OSSL directly and DISET difer in DN/subject
-    try:
-      self.__credDict['DN'] = self.__credDict['subject']
-    except KeyError:
-      pass
+  def _authzSESSION(self):
+    """ Fill credentionals from session
 
   def _request_summary(self):
     """
@@ -303,22 +240,17 @@ class _WebHandler(TornadoREST):
       self.clear_cookie('authGrant')
       return S_OK(credDict)
 
-    # Each session depends on the tokens    
+    # Each session depends on the tokens
     try:
-      gLogger.debug('Load session tokens..')
-      tokens = OAuth2Token(json.loads(sessionID))
-      gLogger.debug('Found session tokens:\n', pprint.pformat(dict(tokens)))
-      # result = self._idps.getIdProvider('WebAppDIRAC')
-      # if not result['OK']:
-      #   return result
-      # cli = result['Value']
+      sLog.debug('Load session tokens..')
+      token = OAuth2Token(sessionID.decode())
+      sLog.debug('Found session tokens:\n', pprint.pformat(token))
       try:
         return self._authzJWT(tokens.access_token)
         # payload = cli.verifyToken(tokens.access_token, self._jwks[cli.issuer])
         # credDict = cli.researchGroup(payload, tokens.access_token)
       except Exception as e:
-        pprint.pprint(traceback.format_exc())
-        gLogger.debug('Cannot check access token %s, try to fetch..' % repr(e))
+        sLog.debug('Cannot check access token %s, try to fetch..' % repr(e))
         # Try to refresh access_token and refresh_token
         result = self._idps.getIdProvider('DIRACWeb')
         if not result['OK']:
@@ -333,7 +265,7 @@ class _WebHandler(TornadoREST):
         return self._authzJWT(tokens.access_token)
 
     except Exception as e:
-      gLogger.debug(repr(e))
+      sLog.debug(repr(e))
       self.clear_cookie('session_id')
       self.set_cookie('session_id', 'expired')
       self.set_cookie('authGrant', 'Visitor')
@@ -353,7 +285,7 @@ class _WebHandler(TornadoREST):
 
   @classmethod
   def getLog(cls):
-    return cls.__log
+    return sLog
 
   def getCurrentSession(self):
     return self.__session
@@ -492,11 +424,9 @@ class _WebHandler(TornadoREST):
 
 class WebHandler(_WebHandler):
   """ Old WebHandler """
-  def prepare(self):
-    super(WebHandler, self).prepare()
-    super(WebHandler, self)._prepare()
 
   def get(self, setup, group, route, *pathArgs):
+    self.initializeRequest()
     method = self._getMethod()
     return method(*pathArgs)
 
