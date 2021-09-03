@@ -20,7 +20,9 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getSysInfo(self):
-    DN = self.getDN()
+    """ Provide information about hosts state from database
+    """
+    DN = self.getUserDN()
     group = self.getUserGroup()
     client = ComponentMonitoringClient(delegatedDN=DN, delegatedGroup=group)
     result = yield self.threadTask(client.getLogs)
@@ -46,7 +48,7 @@ class SystemAdministrationHandler(WebHandler):
     Returns flatten list of components (services, agents) installed on hosts
     returned by getHosts function
     """
-    DN = self.getDN()
+    DN = self.getUserDN()
     group = self.getUserGroup()
 
     callback = list()
@@ -88,7 +90,7 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getHostErrors(self):
-    DN = self.getDN()
+    DN = self.getUserDN()
     group = self.getUserGroup()
 
     if "host" not in self.request.arguments:
@@ -120,7 +122,7 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getHostLog(self):
-    DN = self.getDN()
+    DN = self.getUserDN()
     group = self.getUserGroup()
 
     if "host" not in self.request.arguments:
@@ -177,7 +179,7 @@ class SystemAdministrationHandler(WebHandler):
     hosts = self.get_argument("host").split(",")
     version = self.get_argument("version")
 
-    DN = self.getDN()
+    DN = self.getUserDN()
     group = self.getUserGroup()
 
     actionSuccess = list()
@@ -222,7 +224,7 @@ class SystemAdministrationHandler(WebHandler):
     Returns standard JSON response structure with with service response
     or error messages
     """
-    DN = self.getDN()
+    DN = self.getUserDN()
     group = self.getUserGroup()
 
     if not (("action" in self.request.arguments) and (len(self.get_argument("action")) > 0)):
