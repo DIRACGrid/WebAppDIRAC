@@ -1,4 +1,4 @@
-[v4r3-pre16]
+[v4r3]
 
 FIX: (#535) Use lists instead of tuples in VMDiracHandler
 NEW: (#514) use default menu for fresh WebApp installation
