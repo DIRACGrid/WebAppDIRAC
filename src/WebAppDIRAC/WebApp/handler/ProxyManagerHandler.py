@@ -4,7 +4,7 @@ from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen, WErr
 
 
 class ProxyManagerHandler(WebHandler):

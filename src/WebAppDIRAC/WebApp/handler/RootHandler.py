@@ -1,5 +1,7 @@
 import re
 import os
+import json
+import pprint
 from six.moves import urllib_parse as urlparse
 
 from tornado.escape import xhtml_escape
@@ -25,7 +27,7 @@ class RootHandler(WebHandler):
 
         :return: TornadoResponse()
     """
-    return TornadoResponse().redirect(self.__change(group=to))
+    return TornadoResponse().redirect(self.__change(group=to))  # pylint: disable=no-member
 
   def web_changeSetup(self, to):
     """ Change setup
@@ -34,7 +36,7 @@ class RootHandler(WebHandler):
 
         :return: TornadoResponse()
     """
-    return TornadoResponse().redirect(self.__change(setup=to))
+    return TornadoResponse().redirect(self.__change(setup=to))  # pylint: disable=no-member
 
   def __change(self, setup=None, group=None):
     """ Generate URL to change setup/group
@@ -102,11 +104,12 @@ class RootHandler(WebHandler):
     session.update(dict(state=state, provider=provider, next=nextURI))
 
     resp = TornadoResponse()
+    # pylint: disable=no-member
     resp.set_secure_cookie('webauth_session', json.dumps(session), secure=True, httponly=True)
 
     # Redirect to authorization server
-    resp.set_cookie('authGrant', 'Visitor')
-    return resp.redirect(uri)
+    resp.set_cookie('authGrant', 'Visitor')  # pylint: disable=no-member
+    return resp.redirect(uri)  # pylint: disable=no-member
 
   def web_loginComplete(self, code, state):
     """ Finishing authoriation flow
@@ -133,29 +136,35 @@ class RootHandler(WebHandler):
     resp = TornadoResponse()
     authSession = self.get_secure_cookie('webauth_session')
     if not authSession:
-      return resp.redirect('/')
+      return resp.redirect('/')  # pylint: disable=no-member
     authSession = json.loads(authSession)
 
     result = self._idps.getIdProvider('WebAppDIRAC')
     if not result['OK']:
-      return result
+      # pylint: disable=no-member
+      resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
+      return resp
     cli = result['Value']
 
-    # Parse response
-    authSession = json.loads(self.get_secure_cookie('webauth_session'))
+    result = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get('code_verifier'))
+    if not result['OK']:
+      # pylint: disable=no-member
+      resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
+      return resp
+    token = result['Value']
 
-    token = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get('code_verifier'))
-    
-    # Remove authorisation session
-    self.clear_cookie('webauth_session')
+    # Remove authorisation session.
+    resp.clear_cookie('webauth_session')  # pylint: disable=no-member
 
     # Create session to work through portal
     self.log.debug('Tokens received:\n', pprint.pformat(token))
+    # pylint: disable=no-member
     resp.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
-    resp.set_cookie('authGrant', 'Session')
+    resp.set_cookie('authGrant', 'Session')  # pylint: disable=no-member
 
     result = cli.researchGroup()
     if not result['OK']:
+      # pylint: disable=no-member
       return resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
     group = result['Value'].get('group')
 
@@ -169,21 +178,9 @@ class RootHandler(WebHandler):
     #   dom.script("sessionStorage.setItem('access_token','%s');window.location='%s'" % (access_token, nextURL),
     #              type="text/javascript")
     # return template.Template(html.render()).generate()
-    t = template.Template('''<!DOCTYPE html>
-      <html>
-        <head>
-          <title>Authentication</title>
-          <meta charset="utf-8" />
-        </head>
-        <body>
-          Authorization is done.
-          <script>
-            sessionStorage.setItem("access_token", "{{access_token}}");
-            window.location = "{{next}}";
-          </script>
-        </body>
-      </html>''')
-    return t.generate(next=nextURL, access_token=token.access_token)
+    # pylint: disable=no-member
+    resp.finish(t.generate(next=nextURL, access_token=token['access_token'], message='Authorization is done').decode())
+    return resp
 
   def web_index(self, url_state="", theme="crisp", open_app=""):
     """ Index method
@@ -208,6 +205,7 @@ class RootHandler(WebHandler):
       except Exception:
         gLogger.warn('Welcome page not found here: %s' % welcomeFile)
 
+    # pylint: disable=no-member
     return TornadoResponse().render(
         "root.tpl",
         _dev=Conf.devMode(),

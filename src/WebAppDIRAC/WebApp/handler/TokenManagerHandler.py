@@ -68,7 +68,6 @@ class TokenManagerHandler(WebHandler):
 
     tokens = []
     for uid in webIds:
-      print(uid)
       retVal = self.tm.deleteToken(uid)
       if retVal['OK']:
         tokens.append(uid)

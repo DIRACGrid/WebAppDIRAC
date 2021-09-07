@@ -7,6 +7,7 @@ import zlib
 import json
 import six
 
+from DIRAC import S_OK
 from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
