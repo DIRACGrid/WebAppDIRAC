@@ -79,7 +79,6 @@ class SystemAdministrationHandler(WebHandler):
     Flatten dict of dicts structure returned by getOverallStatus() method of
     SystemAdministrator client
     """
-
     for kind, a in dataDict.items():
       for system, b in a.items():
         for name, c in b.items():

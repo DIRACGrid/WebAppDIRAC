@@ -1,7 +1,12 @@
-import os
-from tornado.template import BaseLoader, Template
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __RCSID__ = "$Id$"
+
+import os
+from io import open
+from tornado.template import BaseLoader, Template
 
 
 class TemplateLoader(BaseLoader):

@@ -125,7 +125,7 @@ class JobMonitorHandler(WebHandler):
   def web_getSelectionData(self):
     callback = {}
     user = self.getUserName()
-    if user == "Anonymous":
+    if not self.isRegisteredUser():
       callback["prod"] = [["Insufficient rights"]]
     else:
       cacheKey = (self.getUserGroup(), self.getUserSetup())
@@ -218,7 +218,7 @@ class JobMonitorHandler(WebHandler):
         callback["types"] = types
     # ##
         # groupProperty = credentials.getProperties(group)
-        if user == "Anonymous":
+        if not self.isRegisteredUser():
           callback["owner"] = [["Insufficient rights"]]
         else:
           result = yield self.threadTask(JobMonitoringClient().getOwners)

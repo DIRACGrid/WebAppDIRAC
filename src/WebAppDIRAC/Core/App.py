@@ -1,3 +1,9 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+__RCSID__ = "$Id$"
+
 import os
 import ssl
 import imp
@@ -11,14 +17,12 @@ from diraccfg import CFG
 
 import DIRAC
 
-from DIRAC import gLogger, gConfig
+from DIRAC import gLogger, gConfig, S_OK
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
-
-__RCSID__ = "$Id$"
 
 
 class App(object):
@@ -56,6 +60,26 @@ class App(object):
     # tornado.ioloop.IOLoop.instance().stop()
     # gLogger.info('exit success')
     sys.exit(0)
+
+  def getAppToDict(self, port=None):
+    """ Load Web portals
+
+        :return: S_OK(dict)/S_ERROR()
+    """
+    app = {'port': port or Conf.HTTPSPort()}
+    # Calculating routes
+    result = self.__handlerMgr.getRoutes()
+    if not result['OK']:
+      return result
+    app['routes'] = result['Value']
+    # Initialize the session data
+    SessionData.setHandlers(self.__handlerMgr.getHandlers()['Value'])
+    # Create the app
+    tLoader = TemplateLoader(self.__handlerMgr.getPaths("template"))
+    app['settings'] = dict(debug=Conf.devMode(), template_loader=tLoader,
+                           cookie_secret=str(Conf.cookieSecret()),
+                           log_function=self._logRequest)
+    return S_OK(app)
 
   def bootstrap(self):
     """

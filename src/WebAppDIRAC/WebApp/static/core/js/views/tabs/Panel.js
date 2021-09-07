@@ -160,6 +160,7 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
         try {
           me.setLoadedObject(me.setupData, true);
         } catch (err) {
+          console.trace();
           Ext.dirac.system_info.msg("Error Notification", "Application: " + me.getAppClassName() + " : " + err);
         }
       } else if (me.loadedObjectType == "link") me.setPropertiesWhenLink(me.setupData);

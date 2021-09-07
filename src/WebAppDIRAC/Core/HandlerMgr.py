@@ -1,12 +1,18 @@
 """ Basic modules for loading handlers
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+__RCSID__ = "$Id$"
 
 import os
 import re
+import six
 import imp
 import inspect
+import collections
 
-import six
 from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
@@ -15,14 +21,13 @@ from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMe
 import WebAppDIRAC
 
 from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WebSocketHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler, _WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
-__RCSID__ = "$Id$"
 
+@six.add_metaclass(DIRACSingleton)
 class HandlerMgr(object):
-  __metaclass__ = DIRACSingleton
 
   def __init__(self, handlersLocation, baseURL="/"):
     """ Constructor
@@ -68,11 +73,16 @@ class HandlerMgr(object):
         :return: S_OK()/S_ERROR()
     """
     ol = ObjectLoader()
+    handlerList = []
     self.log.debug("Add handles from: %s", self.__handlersLocation)
-    result = ol.getObjects(self.__handlersLocation, parentClass=WebHandler, recurse=True, continueOnError=True)
-    if not result['OK']:
-      return result
-    self.__handlers = result['Value']
+    for parentClass in [WebHandler, _WebHandler]:
+      result = ol.getObjects(self.__handlersLocation, parentClass=parentClass, recurse=True, continueOnError=True)
+      if not result['OK']:
+        return result
+      handlerList += list(result['Value'].items())
+    self.__handlers = collections.OrderedDict(handlerList)
+
+    # ['/opt/dirac/pro/WebAppExt/WebApp/static', ...]
     staticPaths = self.getPaths("static")
     self.log.verbose("Static paths found:\n - %s" % "\n - ".join(staticPaths))
     self.__routes = []
@@ -119,8 +129,11 @@ class HandlerMgr(object):
         continue
       # Look for methods that are exported
       for mName, mObj in inspect.getmembers(handler):
-        if inspect.isroutine(mObj) and mName.find("web_") == 0:
-          if mName == "web_index":
+        if inspect.isroutine(mObj) and mName.find(handler.METHOD_PREFIX) == 0:
+          self.log.debug('  Find %s method' % mName)
+          methodName = mName[len(handler.METHOD_PREFIX):]
+          args = getattr(handler, 'path_%s' % methodName, [])
+          if mName == "web_index" and handler.__name__ == 'RootHandler':
             # Index methods have the bare url
             self.log.verbose(" - Route %s -> %s.web_index" % (handlerRoute, hn))
             route = "%s(%s/)" % (baseRoute, handlerRoute)
@@ -129,7 +142,10 @@ class HandlerMgr(object):
           else:
             # Normal methods get the method appended without web_
             self.log.verbose(" - Route %s/%s ->  %s.%s" % (handlerRoute, mName[4:], hn, mName))
-            route = "%s(%s/%s)" % (baseRoute, handlerRoute, mName[4:])
+            route = "%s(%s%s)" % (baseRoute, handlerRoute, '' if methodName == 'index' else ('/%s' % methodName))
+            # Use request path as options/values, for ex. ../method/<option>/<file path>?<option>=..
+            if args:
+              route += r'[\/]?%s' % '/'.join(args)
             self.__routes.append((route, handler))
           self.log.debug("  * %s" % route)
     # Send to root
