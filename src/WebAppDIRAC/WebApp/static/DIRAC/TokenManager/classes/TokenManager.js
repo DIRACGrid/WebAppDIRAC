@@ -1,7 +1,7 @@
 /*******************************************************************************
  * It is the transformation monitor class.
  */
- Ext.define("DIRAC.TokenManager.classes.TokenManager", {
+Ext.define("DIRAC.TokenManager.classes.TokenManager", {
   extend: "Ext.dirac.core.Module",
   requires: [
     "Ext.panel.Panel",
@@ -100,9 +100,7 @@
       username: "User"
     };
 
-    var map = [
-      ["username", "username"]
-    ];
+    var map = [["username", "username"]];
 
     me.leftPanel = new Ext.create("Ext.dirac.utils.DiracBaseSelector", {
       scope: me,

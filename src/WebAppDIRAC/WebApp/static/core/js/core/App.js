@@ -83,7 +83,7 @@ Ext.define("Ext.dirac.core.App", {
         if (Ext.util.Cookies.get("session_id") == "expired") {
           Ext.util.Cookies.clear("authGrant");
           Ext.util.Cookies.clear("session_id");
-          location.protocol = alert('Current session is expired, the page will reload, please login again.') ?? "https";
+          location.protocol = alert("Current session is expired, the page will reload, please login again.") ? "https" : "https";
         }
       }, 3000);
     }
