@@ -27,7 +27,7 @@ jobs:
       with:
         repository: DIRACGrid/DIRAC
         path: DIRACRepo
-        ref: integration
+        ref: rel-v7r3
         fetch-depth: 0
     - uses: conda-incubator/setup-miniconda@master
       with:
