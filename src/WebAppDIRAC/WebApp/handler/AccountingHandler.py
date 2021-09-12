@@ -145,20 +145,27 @@ class AccountingHandler(WebHandler):
         extraParams[k[3:]] = pD[k]
     # Listify the rest
     for selName in pD:
-      if selName == 'grouping':
-        pD[selName] = [pD[selName]]
-      else:
-        try:
-          pD[selName] = json.loads(pD[selName])
-        except ValueError:
-          pD[selName] = List.fromChar(pD[selName], ",")
+      try:
+        pD[selName] = json.loads(pD[selName])
+      except ValueError:
+        pD[selName] = List.fromChar(pD[selName], ",")
 
-    return S_OK((typeName, reportName, start, end, pD, grouping, extraParams))
+    return S_OK((start, end, pD, extraParams))
 
-  @asyncGen
-  def web_generatePlot(self):
-    callback = {}
-    retVal = yield self.threadTask(self.__queryForPlot)
+  def web_generatePlot(self, typeName, plotName, timeSelector, grouping, **kwargs):
+    """ Generate plot
+
+        :param str typeName: accounting type name
+        :param str plotName: plot name
+        :param int timeSelector: time selector value
+        :param str grouping: grouping field name
+
+        :return: dict
+    """
+    retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
+    if retVal['OK']:
+      start, end, pD, kwargs = retVal['Value']
+      retVal = ReportsClient().generateDelayedPlot(typeName, plotName, start, end, pD, [grouping], **kwargs)
     if retVal['OK']:
       callback = {'success': True, 'data': retVal['Value']['plot']}
     else:
@@ -247,16 +254,21 @@ class AccountingHandler(WebHandler):
     data = tempFile.read()
     self.finishWithImage(data, plotImageFile, disableCaching=True)
 
-  @asyncGen
-  def web_getCsvPlotData(self):
-    callback = {}
-    retVal = self.__parseFormParams()
+  def web_getCsvPlotData(self, typeName, plotName, timeSelector, grouping, **kwargs):
+    """ Generate CVS plot
+
+        :param str typeName: accounting type name
+        :param str plotName: plot name
+        :param int timeSelector: time selector value
+        :param str grouping: grouping field name
+
+        :return: dict
+    """
+    retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
     if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
-    params = retVal['Value']
-    retVal = yield self.threadTask(ReportsClient().getReport, *params)
+      return {"success": "false", "error": retVal['Message']}
+    start, end, pD, kwargs = retVal['Value']
+    retVal = ReportsClient().getReport(typeName, plotName, start, end, pD, [grouping], **kwargs)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
@@ -281,24 +293,27 @@ class AccountingHandler(WebHandler):
     else:
       strData = "%s\n" % ",".join(groupKeys)
       strData += ",".join([str(rawData['data'][k]) for k in groupKeys])
-    self.set_header('Content-type', 'text/csv')
-    self.set_header('Content-Disposition', 'attachment; filename="%s.csv"' % md5(str(params)).hexdigest())
-    self.set_header('Content-Length', len(strData))
-    self.finish(strData)
+    resp = TornadoResponse(strData)
+    resp.set_header('Content-type', 'text/csv')  # pylint: disable=no-member
+    # pylint: disable=no-member
+    resp.set_header('Content-Disposition', 'attachment; filename="%s.csv"' % md5(str(params)).hexdigest())
+    resp.set_header('Content-Length', len(strData))  # pylint: disable=no-member
+    return resp
 
-  @asyncGen
-  def web_getPlotData(self):
-    callback = {}
-    retVal = self.__parseFormParams()
-    if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
-    params = retVal['Value']
-    retVal = yield self.threadTask(ReportsClient().getReport, *params)
-    if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
-    rawData = retVal['Value']
-    self.finish(rawData['data'])
+  def web_getPlotData(self, typeName, plotName, timeSelector, grouping, **kwargs):
+    """ Generate plot
+
+        :param str typeName: accounting type name
+        :param str plotName: plot name
+        :param int timeSelector: time selector value
+        :param str grouping: grouping field name
+
+        :return: dict
+    """
+    retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
+    if retVal['OK']:
+      start, end, pD, kwargs = retVal['Value']
+      retVal = ReportsClient().getReport(typeName, plotName, start, end, pD, [grouping], **kwargs)
+    if retVal['OK']:
+      return retVal['Value']
+    return {"success": "false", "error": retVal['Message']}    

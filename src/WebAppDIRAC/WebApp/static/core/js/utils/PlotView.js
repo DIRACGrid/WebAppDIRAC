@@ -357,7 +357,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       iconCls: "dirac-icon-upload",
       handler: function() {
         var me = this;
-        var oParamsData = me.__getSelectionParametars("show_plot");
+        var oParamsData = me.__getSelectionParameters("show_plot");
         me.rightPanel.applyTimeSpan(oParamsData);
       },
       scope: me
@@ -387,7 +387,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
         return;
       }
 
-      oParams = me.__getSelectionParametars("show_plot");
+      oParams = me.__getSelectionParameters("show_plot");
     } else {
       oParams = oLoadState["params"];
       if ("reportType" in oLoadState) {
@@ -539,21 +539,21 @@ Ext.define("Ext.dirac.utils.PlotView", {
 
     me.plotParams = oParams;
 
-    if (!("_typeName" in oParams)) return;
+    if (!("typeName" in oParams)) return;
 
     me.__additionalDataLoad = function() {
-      me.cmbGroupBy.setValue(oParams["_grouping"]);
-      me.cmbPlotGenerate.setValue(oParams["_plotName"]);
-      me.cmbTimeSpan.setValue(oParams["_timeSelector"]);
+      me.cmbGroupBy.setValue(oParams["grouping"]);
+      me.cmbPlotGenerate.setValue(oParams["plotName"]);
+      me.cmbTimeSpan.setValue(oParams["timeSelector"]);
 
       me.calendarFrom.hide();
       me.calendarTo.hide();
       me.cmbQuarter.hide();
 
-      switch (oParams["_timeSelector"]) {
+      switch (oParams["timeSelector"]) {
         case -1:
-          me.calendarFrom.setValue(oParams["_startTime"]);
-          me.calendarTo.setValue(oParams["_endTime"]);
+          me.calendarFrom.setValue(oParams["startTime"]);
+          me.calendarTo.setValue(oParams["endTime"]);
           me.calendarFrom.show();
           me.calendarTo.show();
           break;
@@ -561,22 +561,22 @@ Ext.define("Ext.dirac.utils.PlotView", {
         case -2:
           var oNewQuartersArray = [];
 
-          for (var i = 0; i < oParams["_quarters"].length; i++) oNewQuartersArray.push(parseInt(oParams["_quarters"][i].replace(" Q", "")));
+          for (var i = 0; i < oParams["quarters"].length; i++) oNewQuartersArray.push(parseInt(oParams["quarters"][i].replace(" Q", "")));
 
           me.cmbQuarter.setValue(oNewQuartersArray);
           me.cmbQuarter.show();
           break;
       }
 
-      me.advancedPlotTitle.setValue(oParams["_plotTitle"]);
+      me.advancedPlotTitle.setValue(oParams["plotTitle"]);
 
-      if ("_pinDates" in oParams) {
-        if (oParams["_pinDates"] == "true") me.advancedPin.setValue(true);
+      if ("pinDates" in oParams) {
+        if (oParams["pinDates"] == "true") me.advancedPin.setValue(true);
         else me.advancedPin.setValue(false);
       } else me.advancedPin.setValue(false);
 
-      if ("_ex_staticUnits" in oParams) {
-        if (oParams["_ex_staticUnits"] == "true") me.advancedNotScaleUnits.setValue(true);
+      if ("ex_staticUnits" in oParams) {
+        if (oParams["ex_staticUnits"] == "true") me.advancedNotScaleUnits.setValue(true);
         else me.advancedNotScaleUnits.setValue(false);
       } else me.advancedNotScaleUnits.setValue(false);
 
@@ -585,34 +585,22 @@ Ext.define("Ext.dirac.utils.PlotView", {
       }
 
       var oStandardParamsList = [
-        "_grouping",
-        "_plotName",
-        "_typeName",
-        "_timeSelector",
-        "_startTime",
-        "_endTime",
-        "_plotTitle",
-        "_pinDates",
-        "_ex_staticUnits"
+        "grouping",
+        "plotName",
+        "typeName",
+        "timeSelector",
+        "startTime",
+        "endTime",
+        "plotTitle",
+        "pinDates",
+        "ex_staticUnits"
       ];
 
       for (var oParam in oParams) {
-        // first we check whether the param is not someone form the
-        // default ones
-        var oFound = false;
-
-        for (var i = 0; i < oStandardParamsList.length; i++) {
-          if (oParam == oStandardParamsList[i]) {
-            oFound = true;
-            break;
-          }
-        }
-
-        if (!oFound) {
+        // first we check whether the param is not someone form the default ones
+        if (!oStandardParamsList.includes(oParam)) {
           for (var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
-            var oNewUnderlinedName = "_" + me.fsetSpecialConditions.items.getAt(i).getName();
-
-            if (oNewUnderlinedName == oParam) {
+            if (me.fsetSpecialConditions.items.getAt(i).getName() == oParam) {
               me.fsetSpecialConditions.items.getAt(i).setInverseSelection(oParams[oParam][0] == 1);
               try {
                 me.fsetSpecialConditions.items.getAt(i).setValue(Ext.JSON.decode(oParams[oParam]));
@@ -627,23 +615,24 @@ Ext.define("Ext.dirac.utils.PlotView", {
       }
     };
 
-    if (me.cmbDomain.getValue() == oParams["_typeName"]) {
+    if (me.cmbDomain.getValue() == oParams["typeName"]) {
       me.__additionalDataLoad();
       me.__additionalDataLoad = null;
     } else {
       me.cmbReportType.suspendEvent("change");
-      me.cmbDomain.setValue(oParams["_typeName"]);
+      me.cmbDomain.setValue(oParams["typeName"]);
     }
   },
-  __getSelectionParametars: function(sIntention) {
+  __getSelectionParameters: function(sIntention) {
     var me = this;
 
     var sDomain = me.cmbDomain.getValue();
 
     var oParams = {
-      _grouping: me.cmbGroupBy.getValue(),
-      _plotName: me.cmbPlotGenerate.getValue(),
-      _typeName: sDomain
+      grouping: me.cmbGroupBy.getValue(),
+      plotName: me.cmbPlotGenerate.getValue(),
+      typeName: sDomain,
+      timeSelector: me.cmbTimeSpan.getValue()
     };
 
     var fixTime = function(st) {
@@ -656,45 +645,31 @@ Ext.define("Ext.dirac.utils.PlotView", {
     };
 
     // Time Selector
-
-    iTimeSpan = me.cmbTimeSpan.getValue();
-
-    if (iTimeSpan == -1) {
-      oParams._timeSelector = -1;
-
-      oParams._startTime = fixTime(me.calendarFrom.getValue());
-
-      if (me.calendarTo.getValue() != null) oParams._endTime = fixTime(me.calendarTo.getValue());
-    } else if (iTimeSpan == -2) {
-      oParams._timeSelector = -2;
-
+    if (oParams.timeSelector == -1) {
+      oParams.startTime = fixTime(me.calendarFrom.getValue());
+      if (me.calendarTo.getValue() != null) oParams.endTime = fixTime(me.calendarTo.getValue());
+    } else if (oParams.timeSelector == -2) {
       var oSelectedQuarters = me.cmbQuarter.getValue();
       var oMinQuarter = Ext.Array.min(oSelectedQuarters);
       var oMaxQuarter = Ext.Array.max(oSelectedQuarters);
 
-      var oMinDate = null;
-
       var oYear = Math.floor(oMinQuarter / 10);
       var oMonth = ((oMinQuarter % 10) - 1) * 3 + 1;
 
-      oParams._startTime = oYear.toString() + "-" + (oMonth < 10 ? "0" : "") + oMonth.toString() + "-01";
-
-      var oMaxDate = null;
+      oParams.startTime = oYear.toString() + "-" + (oMonth < 10 ? "0" : "") + oMonth.toString() + "-01";
 
       var oYear = Math.floor(oMaxQuarter / 10);
       var oMonth = (oMaxQuarter % 10) * 3;
       var oDay = oMonth == 6 ? 30 : 31;
 
-      oParams._endTime = oYear.toString() + "-" + (oMonth < 10 ? "0" : "") + oMonth.toString() + "-" + oDay.toString();
+      oParams.endTime = oYear.toString() + "-" + (oMonth < 10 ? "0" : "") + oMonth.toString() + "-" + oDay.toString();
 
       var oRawSelection = me.cmbQuarter.getRawValue().split(",");
       var oQuarters = [];
 
       for (var i = 0; i < oRawSelection.length; i++) oQuarters.push(Ext.util.Format.trim(oRawSelection[i]));
 
-      oParams._quarters = oQuarters;
-    } else {
-      oParams._timeSelector = iTimeSpan;
+      oParams.quarters = oQuarters;
     }
 
     // Special condition selection
@@ -703,25 +678,21 @@ Ext.define("Ext.dirac.utils.PlotView", {
       if (oCondItem.getValue().length != 0) {
         if (sIntention == "show_plot") {
           param = oCondItem.isInverseSelection() ? oCondItem.getInverseSelection() : oCondItem.getValue();
-          oParams["_" + oCondItem.getName()] = Ext.JSON.encode(param);
+          oParams[oCondItem.getName()] = Ext.JSON.encode(param);
         } else if (sIntention == "save_state") {
-          oParams["_" + oCondItem.getName()] = [oCondItem.isInverseSelection() ? 1 : 0, oCondItem.getValue().join(",")];
+          oParams[oCondItem.getName()] = [oCondItem.isInverseSelection() ? 1 : 0, oCondItem.getValue().join(",")];
         }
       }
     }
 
     if (Ext.util.Format.trim(me.advancedPlotTitle.getValue()) != "") {
-      oParams["_plotTitle"] = me.advancedPlotTitle.getValue();
+      oParams["plotTitle"] = me.advancedPlotTitle.getValue();
       sTitle = me.advancedPlotTitle.getValue();
     }
 
-    if (me.advancedPin.checked) {
-      oParams["_pinDates"] = "true";
-    }
+    if (me.advancedPin.checked) oParams["pinDates"] = "true";
 
-    if (me.advancedNotScaleUnits.checked) {
-      oParams["_ex_staticUnits"] = "true";
-    }
+    if (me.advancedNotScaleUnits.checked) oParams["ex_staticUnits"] = "true";
 
     return oParams;
   },
