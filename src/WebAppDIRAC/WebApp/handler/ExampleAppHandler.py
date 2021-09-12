@@ -1,11 +1,10 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 from DIRAC.Core.Utilities import Time
 
 class ExampleAppHandler(WebHandler):
 
   AUTH_PROPS = "all"
 
-  @asyncGen
   def web_getJobData(self):
     timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
     total = 5
@@ -14,12 +13,9 @@ class ExampleAppHandler(WebHandler):
               {"ExampleId":3,"ExampleValue":'aaaa'},
               {"ExampleId":4,"ExampleValue":'bbbb'},
               {"ExampleId":5,"ExampleValue":'adsd'}]
-    callback = {"success":"true", "result":values,
-                "total":total, "date":timestamp }
-    self.finish(callback)
+    return {"success":"true", "result":values,
+            "total":total, "date":timestamp }
 
-  @asyncGen
   def web_getSelectionData(self):
-    callback = {"firstName":["A","C","D"],
-                "lastName":["wwww","dsds","sads"]}
-    self.finish(callback)
+    return {"firstName":["A","C","D"],
+            "lastName":["wwww","dsds","sads"]}
