@@ -7,7 +7,7 @@ from DIRAC import gConfig, S_OK, S_ERROR
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, FileResponse
 from DIRAC.Core.DISET.TransferClient import TransferClient
 import tempfile
 
@@ -208,7 +208,7 @@ class AccountingHandler(WebHandler):
       return
     tempFile.seek(0)
     data = tempFile.read()
-    self.finishWithImage(data, plotImageFile)
+    return FileResponse(data, plotImageFile.encode(), 'png')
 
   @asyncGen
   def web_getPlotImgFromCache(self):
@@ -252,7 +252,7 @@ class AccountingHandler(WebHandler):
       return
     tempFile.seek(0)
     data = tempFile.read()
-    self.finishWithImage(data, plotImageFile, disableCaching=True)
+    return FileResponse(data, plotImageFile.encode(), 'png', cache=False)
 
   def web_getCsvPlotData(self, typeName, plotName, timeSelector, grouping, **kwargs):
     """ Generate CVS plot
@@ -293,12 +293,8 @@ class AccountingHandler(WebHandler):
     else:
       strData = "%s\n" % ",".join(groupKeys)
       strData += ",".join([str(rawData['data'][k]) for k in groupKeys])
-    resp = TornadoResponse(strData)
-    resp.set_header('Content-type', 'text/csv')  # pylint: disable=no-member
-    # pylint: disable=no-member
-    resp.set_header('Content-Disposition', 'attachment; filename="%s.csv"' % md5(str(params)).hexdigest())
-    resp.set_header('Content-Length', len(strData))  # pylint: disable=no-member
-    return resp
+
+    return FileResponse(strData, str((typeName, plotName, start, end, pD, [grouping], kwargs)), 'csv')
 
   def web_getPlotData(self, typeName, plotName, timeSelector, grouping, **kwargs):
     """ Generate plot
