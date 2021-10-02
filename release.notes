@@ -54,6 +54,10 @@ NEW: (#412) add getProperties helper method to the WebHandler
 FIX: (#412) fix bugs, change refreshStore to setStore in the js part of code, use getUserName, etc.. instead getSessionData
 FIX: (#406) add diraccfg to the requirements, minor fixes
 
+[v4r0p39]
+
+CHANGE: allow AccountingMonitor to get the full filter list in the accounting plots
+
 [v4r0p38]
 
 NEW: (#473) use listStatesForWeb endpoint to make the Public State Manager faster
