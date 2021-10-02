@@ -821,7 +821,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       oListForGroup.push([oSelectionOptions[i][0], oSelectionOptions[i][0]]);
 
       if (oSelectionOptions[i][0] == "User" || oSelectionOptions[i][0] == "UserGroup") {
-        var allowedProperties = ["CSAdministrator", "JobAdministrator", "JobMonitor", "UserManager", "Operator", "ProductionManagement"];
+        var allowedProperties = ["CSAdministrator", "JobAdministrator", "JobMonitor", "AccountingMonitor", "UserManager", "Operator", "ProductionManagement"];
         var found = false;
         for (var j = 0; j < allowedProperties.length; j++) {
           // Only
