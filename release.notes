@@ -1,3 +1,7 @@
+[v4r0p39]
+
+CHANGE: allow AccountingMonitor to get the full filter list in the accounting plots
+
 [v4r0p38]
 
 NEW: (#473) use listStatesForWeb endpoint to make the Public State Manager faster
