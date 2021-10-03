@@ -371,7 +371,7 @@ class _WebHandler(TornadoREST):
     self.set_header('Content-Type', cType)
     self.finish(data)
 
-  @deprecated("Should be deprecated for 4.4+, use FileResponse class instead")
+  @deprecated("Should be deprecated for v5+, use FileResponse class instead")
   def finishWithImage(self, data, plotImageFile, disableCaching=False):
     # Set headers
     self.set_header('Content-type', 'image/png')
