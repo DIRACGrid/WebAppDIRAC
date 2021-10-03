@@ -1,4 +1,6 @@
-[v4r4-pre1]
+[v5r0-pre1]
+
+FIX: (#552) Handle requests without arguments for getSpaceOccupancyData
 
 [v4r3]
 
@@ -89,6 +91,10 @@ NEW: (#422) add new Selection Fields and Group By clauses for Activity Monitorin
 NEW: (#412) add getProperties helper method to the WebHandler
 FIX: (#412) fix bugs, change refreshStore to setStore in the js part of code, use getUserName, etc.. instead getSessionData
 FIX: (#406) add diraccfg to the requirements, minor fixes
+
+[v4r0p39]
+
+CHANGE: allow AccountingMonitor to get the full filter list in the accounting plots
 
 [v4r0p38]
 

@@ -31,7 +31,7 @@ jobs:
         fetch-depth: 0
     - uses: conda-incubator/setup-miniconda@master
       with:
-        environment-file: DIRACRepo/environment-py3.yml
+        environment-file: DIRACRepo/environment.yml
         miniforge-variant: Mambaforge
         use-mamba: true
     - name: Run tests
