@@ -16,7 +16,7 @@ class ExampleAppHandler(WebHandler):
     return {"success": "true",
             "result": values,
             "total": total,
-            "date": timestamp }
+            "date": timestamp}
 
   def web_getSelectionData(self):
     return {"firstName": ["A", "C", "D"],
