@@ -1,3 +1,7 @@
+[v4r3p1]
+
+FIX: (#552) Handle requests without arguments for getSpaceOccupancyData
+
 [v4r3]
 
 FIX: (#535) Use lists instead of tuples in VMDiracHandler
