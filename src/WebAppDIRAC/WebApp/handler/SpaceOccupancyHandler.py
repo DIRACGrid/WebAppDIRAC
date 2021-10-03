@@ -40,7 +40,9 @@ class SpaceOccupancyHandler(WebHandler):
 
     rmc = ResourceManagementClient()
 
-    res = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache, None, self.__requestParams())
+    se = json.loads(self.get_argument("StorageElement", "null"))
+
+    res = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache, None, list(se) if se else se)
 
     if not res['OK']:
       raise WErr.fromSERROR(res)
@@ -81,11 +83,3 @@ class SpaceOccupancyHandler(WebHandler):
       resList.append(spRes)
 
     self.finish({'success': "true", 'result': resList, 'total': len(res['Value'])})
-
-  def __requestParams(self):
-    '''
-      We receive the request and we parse it, in this case, we are doing nothing,
-      but it can be certainly more complex.
-    '''
-    gLogger.debug("!!!  PARAMS: ", repr(self.request.arguments))
-    return list(json.loads(self.get_argument("StorageElement", "null")))
