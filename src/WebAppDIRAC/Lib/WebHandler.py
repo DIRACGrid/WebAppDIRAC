@@ -6,6 +6,7 @@ from __future__ import print_function
 
 __RCSID__ = "$Id$"
 
+import os
 import json
 import pprint
 import datetime
@@ -22,9 +23,11 @@ from tornado.ioloop import IOLoop
 
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
+from DIRAC.Core.Utilities.Decorators import deprecated
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST
+from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import TornadoResponse
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 from WebAppDIRAC.Lib import Conf
@@ -34,6 +37,61 @@ from WebAppDIRAC.Lib.SessionData import SessionData
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
 sLog = gLogger.getSubLogger(__name__)
+
+
+class FileResponse(TornadoResponse):
+  """ This class provide logic for CSV and PNG formats.
+
+      Usage example::
+
+        def web_myMethod(self):
+          # Generate CSV data
+          ...
+          return FileResponse(data, 'filename', 'csv')
+  """
+
+  def __init__(self, payload=None, fileName=None, ext=None, cache=True):
+    """ C'or
+
+        :param payload: response body
+        :param str fileName: CSV name
+        :param str ext: file type
+        :param bool cache: use cache
+    """
+    self.name, self.ext = os.path.splitext(fileName)
+    self.ext = (ext or self.ext).lower()
+    self.cache = cache
+    super(FileResponse, self).__init__(payload, 200)
+
+  def _runActions(self, reqObj):
+    """ Calling methods in the order of their registration
+
+        :param reqObj: RequestHandler instance
+    """
+    # Set content type
+    if self.ext == 'csv':
+      reqObj.set_header('Content-type', 'text/csv')
+    elif self.ext == 'png':
+      reqObj.set_header('Content-Transfer-Encoding', 'Binary')
+      reqObj.set_header('Content-type', 'image/png')
+    else:
+      reqObj.set_header('Content-type', 'text/plain')
+
+    # Generate file name
+    fileName = "%s.%s" % (md5(self.name).hexdigest(), self.ext)
+    reqObj.set_header('Content-Disposition', 'attachment; filename="%s"' % fileName)
+    reqObj.set_header('Content-Length', len(self.payload))
+
+    if not self.cache:
+      # Disable cache
+      reqObj.set_header('Cache-Control', "no-cache, no-store, must-revalidate, max-age=0")
+      reqObj.set_header('Pragma', "no-cache")
+      reqObj.set_header(
+          'Expires',
+          (datetime.datetime.utcnow() - datetime.timedelta(minutes=-10)).strftime("%d %b %Y %H:%M:%S GMT")
+      )
+
+    super(FileResponse, self)._runActions(reqObj)
 
 
 class WErr(HTTPError):
@@ -221,6 +279,7 @@ class _WebHandler(TornadoREST):
     # Authorization type
     self.__authGrant = ['VISITOR']
     if self.request.protocol == "https":
+      # First of all we try to authZ with what is specified in cookies, and if attempt is unsuccessful authZ as visitor
       self.__authGrant.insert(0, self.get_cookie('authGrant', 'SSL').replace('Certificate', 'SSL'))
 
     credDict = super(_WebHandler, self)._gatherPeerCredentials(grants=self.__authGrant)
@@ -267,6 +326,7 @@ class _WebHandler(TornadoREST):
 
     except Exception as e:
       sLog.debug(repr(e))
+      # if attempt is unsuccessful expire session
       self.clear_cookie('session_id')
       self.set_cookie('session_id', 'expired')
       self.set_cookie('authGrant', 'Visitor')
@@ -311,6 +371,7 @@ class _WebHandler(TornadoREST):
     self.set_header('Content-Type', cType)
     self.finish(data)
 
+  @deprecated("Should be deprecated for v5+, use FileResponse class instead")
   def finishWithImage(self, data, plotImageFile, disableCaching=False):
     # Set headers
     self.set_header('Content-type', 'image/png')
