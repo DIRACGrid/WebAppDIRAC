@@ -492,7 +492,7 @@ Ext.define("Ext.dirac.utils.Presenter", {
   },
   applyTimeSpan: function(oParams) {
     var me = this;
-    var oStandardParamsList = ["_timeSelector", "_startTime", "_endTime", "_pinDates", "_quarters"];
+    var oStandardParamsList = ["timeSelector", "startTime", "endTime", "pinDates", "quarters"];
 
     me.items.each(function(value, index) {
       var oNewParams = {};

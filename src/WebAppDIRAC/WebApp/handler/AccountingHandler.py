@@ -1,28 +1,56 @@
 import os
+import six
 import json
 import datetime
-from hashlib import md5
+import tempfile
 
 from DIRAC import gConfig, S_OK, S_ERROR
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.Core.DISET.TransferClient import TransferClient
-import tempfile
+
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, FileResponse
 
 
 class AccountingHandler(WebHandler):
+  """ This class is the background for the application that shows information about the use of resources at all times.
+  """
 
   AUTH_PROPS = "all"
+
+  # Cache of the accounting data
+  # Key: (user, group, setup, accounting type)
   __keysCache = DictCache.DictCache()
 
+  # Reports client
+  repClient = None
+  # Transfer client
+  transClient = None
+
+  @classmethod
+  def initializeHandler(cls, serviceInfo):
+    """ This may be overwritten when you write a DIRAC service handler
+        And it must be a class method. This method is called only one time,
+        at the first request
+
+        :param dict serviceInfo: infos about service
+    """
+    cls.repClient = ReportsClient()
+    cls.transClient = TransferClient("Accounting/ReportGenerator")
+
   def __getUniqueKeyValues(self, typeName):
+    """ Get unique key values for accounting type
+
+        :param str typeName: accounting type
+
+        :return: S_OK()/S_ERROR()
+    """
     cacheKey = (self.getUserName(), self.getUserGroup(),
                 self.getUserSetup(), typeName)
     data = AccountingHandler.__keysCache.get(cacheKey)
     if not data:
-      retVal = ReportsClient().listUniqueKeyValues(typeName)
+      retVal = self.repClient.listUniqueKeyValues(typeName)
       if 'rpcStub' in retVal:
         del(retVal['rpcStub'])
       if not retVal['OK']:
@@ -49,15 +77,19 @@ class AccountingHandler(WebHandler):
       AccountingHandler.__keysCache.add(cacheKey, 300, data)
     return data
 
-  @asyncGen
-  def web_getSelectionData(self):
+  def web_getSelectionData(self, type):
+    """ Get selection data
+
+        :param type: type of accounting data
+
+        :return: dict
+    """
     callback = {}
-    typeName = self.get_argument("type")
+    typeName = type
     # Get unique key values
-    retVal = yield self.threadTask(self.__getUniqueKeyValues, typeName)
+    retVal = self.__getUniqueKeyValues(typeName)
     if not retVal['OK']:
-      self.finish({"success": "false", "result": "", "error": retVal['Message']})
-      return
+      return {"success": "false", "result": "", "error": retVal['Message']}
 
     records = {}
     for record in retVal['Value']:  # may have more than 1000 of records.
@@ -74,231 +106,194 @@ class AccountingHandler(WebHandler):
     # Cache for plotsList?
     data = AccountingHandler.__keysCache.get("reportsList:%s" % typeName)
     if not data:
-      repClient = ReportsClient()
-      retVal = yield self.threadTask(repClient.listReports, typeName)
+      retVal = self.repClient.listReports(typeName)
       if not retVal['OK']:
-        self.finish({"success": "false", "result": "", "error": retVal['Message']})
-        return
+        return {"success": "false", "result": "", "error": retVal['Message']}
       data = retVal['Value']
       AccountingHandler.__keysCache.add("reportsList:%s" % typeName, 300, data)
     callback["plotsList"] = data
-    self.finish({"success": "true", "result": callback})
+    return {"success": "true", "result": callback}
 
-  def __parseFormParams(self):
-    pD = {}
+  def __parseFormParams(self, timeSelector, **pD):
+    """ Prepare parameters
+
+        :param int timeSelector: time selector
+
+        :return: S_OK(tuple)/S_ERROR()
+    """
     extraParams = {}
-    pinDates = False
-
-    for name in self.request.arguments:
-      if name.find("_") != 0:
-        continue
-      pD[name[1:]] = self.get_argument(name)
 
     # Personalized title?
     if 'plotTitle' in pD:
       extraParams['plotTitle'] = pD['plotTitle']
       del(pD['plotTitle'])
+
     # Pin dates?
+    pinDates = False
     if 'pinDates' in pD:
-      pinDates = pD['pinDates']
+      pinDates = pD['pinDates'].lower() in ("yes", "y", "true", "1")
       del(pD['pinDates'])
-      pinDates = pinDates.lower() in ("yes", "y", "true", "1")
-    # Get plotname
-    if 'grouping' not in pD:
-      return S_ERROR("Missing grouping!")
-    grouping = pD['grouping']
-    # Get plotname
-    if 'typeName' not in pD:
-      return S_ERROR("Missing type name!")
-    typeName = pD['typeName']
-    del(pD['typeName'])
-    # Get plotname
-    if 'plotName' not in pD:
-      return S_ERROR("Missing plot name!")
-    reportName = pD['plotName']
-    del(pD['plotName'])
-    # Get times
-    if 'timeSelector' not in pD:
-      return S_ERROR("Missing time span!")
+
     # Find the proper time!
-    pD['timeSelector'] = int(pD['timeSelector'])
+    pD['timeSelector'] = int(timeSelector)
     if pD['timeSelector'] > 0:
       end = Time.dateTime()
       start = end - datetime.timedelta(seconds=pD['timeSelector'])
       if not pinDates:
         extraParams['lastSeconds'] = pD['timeSelector']
     else:
-      if 'endTime' not in pD:
-        end = False
-      else:
+
+      end = False
+      if 'endTime' in pD:
         end = Time.fromString(pD['endTime'])
         del(pD['endTime'])
       if 'startTime' not in pD:
         return S_ERROR("Missing starTime!")
-      else:
-        start = Time.fromString(pD['startTime'])
-        del(pD['startTime'])
+      start = Time.fromString(pD['startTime'])
+      del(pD['startTime'])
     del(pD['timeSelector'])
 
+    # Find extra parameters
     for k in pD:
       if k.find("ex_") == 0:
         extraParams[k[3:]] = pD[k]
+
     # Listify the rest
     for selName in pD:
-      if selName == 'grouping':
-        pD[selName] = [pD[selName]]
-      else:
+      if isinstance(pD[selName], six.string_types):
         try:
           pD[selName] = json.loads(pD[selName])
         except ValueError:
           pD[selName] = List.fromChar(pD[selName], ",")
 
-    return S_OK((typeName, reportName, start, end, pD, grouping, extraParams))
+    return S_OK((start, end, pD, extraParams))
 
-  @asyncGen
-  def web_generatePlot(self):
-    callback = {}
-    retVal = yield self.threadTask(self.__queryForPlot)
+  def web_generatePlot(self, typeName, plotName, timeSelector, grouping, **kwargs):
+    """ Generate plot
+
+        :param str typeName: accounting type name
+        :param str plotName: plot name
+        :param int timeSelector: time selector value
+        :param str grouping: grouping field name
+
+        :return: dict
+    """
+    retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
     if retVal['OK']:
-      callback = {'success': True, 'data': retVal['Value']['plot']}
-    else:
-      callback = {'success': False, 'errors': retVal['Message']}
-    self.finish(callback)
+      start, end, pD, kwargs = retVal['Value']
+      retVal = self.repClient.generateDelayedPlot(typeName, plotName, start, end, pD, grouping, kwargs)
+    if retVal['OK']:
+      return {'success': True, 'data': retVal['Value']['plot']}
+    return {'success': False, 'errors': retVal['Message']}
 
-  def __queryForPlot(self):
-    retVal = self.__parseFormParams()
-    if not retVal['OK']:
-      return retVal
-    params = retVal['Value']
-    retVal = ReportsClient().generateDelayedPlot(*params)
-    return retVal
+  def web_getPlotImg(self, file=None):
+    """ Get plot image
 
-  @asyncGen
-  def web_getPlotImg(self):
+        :param str file: file path
+
+        :return: dict
     """
-    Get plot image
-    """
-    callback = {}
-    if 'file' not in self.request.arguments:
-      callback = {"success": "false", "error": "Maybe you forgot the file?"}
-      self.finish(callback)
-      return
-    plotImageFile = self.get_argument("file")
+    plotImageFile = file
+    if not plotImageFile:
+      return {"success": "false", "error": "Maybe you forgot the file?"}
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 
-#    if not plotImageFile.endswith(".png"):
-#      callback = {"success": "false", "error": "Not a valid image!"}
-#      self.finish(callback)
-#      return
-
-    transferClient = TransferClient("Accounting/ReportGenerator")
     tempFile = tempfile.TemporaryFile()
-    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    retVal = self.transClient.receiveFile(tempFile, plotImageFile)
     if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
+      return {"success": "false", "error": retVal['Message']}
+
     tempFile.seek(0)
     data = tempFile.read()
-    self.finishWithImage(data, plotImageFile)
+    return FileResponse(data, plotImageFile.encode(), 'png')
 
-  @asyncGen
-  def web_getPlotImgFromCache(self):
+  def web_getPlotImgFromCache(self, file=None):
+    """ Get plot image from cache.
+
+        :param str file: file path
+
+        :return: dict
     """
-    Get plot image from cache.
-    """
-    callback = {}
-    if 'file' not in self.request.arguments:
-      callback = {"success": "false", "error": "Maybe you forgot the file?"}
-      self.finish(callback)
-      return
-    plotImageFile = self.get_argument("file")
+    plotImageFile = file
+    if not plotImageFile:
+      return {"success": "false", "error": "Maybe you forgot the file?"}
 
     retVal = extractRequestFromFileId(plotImageFile)
     if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Value']}
-      self.finish(callback)
-      return
+      return {"success": "false", "error": retVal['Value']}
     fields = retVal['Value']
     if "extraArgs" in fields:  # in order to get the plot from the cache we have to clean the extraArgs...
-      plotTitle = ""
-      if 'plotTitle' in fields["extraArgs"]:
-        plotTitle = fields["extraArgs"]["plotTitle"]
-        fields["extraArgs"] = {}
+      plotTitle = fields["extraArgs"].get("plotTitle", "")
+      fields["extraArgs"] = {}
+      if plotTitle:
         fields["extraArgs"]["plotTitle"] = plotTitle
-      else:
-        fields["extraArgs"] = {}
 
     retVal = codeRequestInFileId(fields)
     if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Value']}
-      self.finish(callback)
-      return
+      return {"success": "false", "error": retVal['Value']}
+
     plotImageFile = retVal['Value']['plot']
-    transferClient = TransferClient("Accounting/ReportGenerator")
     tempFile = tempfile.TemporaryFile()
-    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    retVal = self.transClient.receiveFile(tempFile, plotImageFile)
     if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
+      return {"success": "false", "error": retVal['Message']}
+
     tempFile.seek(0)
     data = tempFile.read()
-    self.finishWithImage(data, plotImageFile, disableCaching=True)
+    return FileResponse(data, plotImageFile.encode(), 'png', cache=False)
 
-  @asyncGen
-  def web_getCsvPlotData(self):
-    callback = {}
-    retVal = self.__parseFormParams()
+  def web_getCsvPlotData(self, typeName, plotName, timeSelector, grouping, **kwargs):
+    """ Generate CVS plot
+
+        :param str typeName: accounting type name
+        :param str plotName: plot name
+        :param int timeSelector: time selector value
+        :param str grouping: grouping field name
+
+        :return: dict
+    """
+    retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
     if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
-    params = retVal['Value']
-    retVal = yield self.threadTask(ReportsClient().getReport, *params)
+      return {"success": "false", "error": retVal['Message']}
+    start, end, pD, kwargs = retVal['Value']
+    params = (typeName, plotName, start, end, pD, grouping, kwargs)
+    retVal = self.repClient.getReport(*params)
     if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
+      return {"success": "false", "error": retVal['Message']}
+
     rawData = retVal['Value']
     groupKeys = sorted(rawData['data'])
-#     print rawData['data']
     if 'granularity' in rawData:
       granularity = rawData['granularity']
       data = rawData['data']
-      tS = int(Time.toEpoch(params[2]))
+      tS = int(Time.toEpoch(start))
       timeStart = tS - tS % granularity
       strData = "epoch,%s\n" % ",".join(groupKeys)
-      for timeSlot in range(timeStart, int(Time.toEpoch(params[3])), granularity):
+      for timeSlot in range(timeStart, int(Time.toEpoch(end)), granularity):
         lineData = [str(timeSlot)]
         for key in groupKeys:
-          if timeSlot in data[key]:
-            lineData.append(str(data[key][timeSlot]))
-          else:
-            lineData.append("")
+          lineData.append(str(data[key][timeSlot]) if timeSlot in data[key] else "")
         strData += "%s\n" % ",".join(lineData)
     else:
       strData = "%s\n" % ",".join(groupKeys)
       strData += ",".join([str(rawData['data'][k]) for k in groupKeys])
-    self.set_header('Content-type', 'text/csv')
-    self.set_header('Content-Disposition', 'attachment; filename="%s.csv"' % md5(str(params)).hexdigest())
-    self.set_header('Content-Length', len(strData))
-    self.finish(strData)
 
-  @asyncGen
-  def web_getPlotData(self):
-    callback = {}
-    retVal = self.__parseFormParams()
-    if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
-    params = retVal['Value']
-    retVal = yield self.threadTask(ReportsClient().getReport, *params)
-    if not retVal['OK']:
-      callback = {"success": "false", "error": retVal['Message']}
-      self.finish(callback)
-      return
-    rawData = retVal['Value']
-    self.finish(rawData['data'])
+    return FileResponse(strData, str(params), 'csv', cache=False)
+
+  def web_getPlotData(self, typeName, plotName, timeSelector, grouping, **kwargs):
+    """ Generate plot
+
+        :param str typeName: accounting type name
+        :param str plotName: plot name
+        :param int timeSelector: time selector value
+        :param str grouping: grouping field name
+
+        :return: dict
+    """
+    retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
+    if retVal['OK']:
+      start, end, pD, kwargs = retVal['Value']
+      retVal = self.repClient.getReport(typeName, plotName, start, end, pD, grouping, kwargs)
+
+    return retVal['Value'] if retVal['OK'] else {"success": "false", "error": retVal['Message']}
