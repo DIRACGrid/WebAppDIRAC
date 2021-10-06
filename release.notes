@@ -1,4 +1,12 @@
+[v4r3p3]
+
+FIX: (#557) Fix deployment CI job
+
 [v4r3p2]
+
+FIX: (#555) fix deployment action
+
+[v4r3p1]
 
 FIX: (#552) Handle requests without arguments for getSpaceOccupancyData
 
