@@ -42,7 +42,7 @@ jobs:
           echo "Converted ${OLD_STYLE} version to ${NEW_STYLE}"
           DIRACRepo/.github/workflows/make_release.py \
             --token="${{ secrets.GITHUB_TOKEN }}" \
-            --repo="WebAppDIRAC" \
+            --repo="${{ github.repository }}" \
             --version="v${NEW_STYLE}" \
             --rev="$(git rev-parse HEAD)" \
             --release-notes-fn="WebAppDIRACRepo/release.notes"
