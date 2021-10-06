@@ -1,4 +1,4 @@
-[v4r3p1]
+[v4r3p2]
 
 FIX: (#552) Handle requests without arguments for getSpaceOccupancyData
 
