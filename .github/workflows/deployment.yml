@@ -27,15 +27,7 @@ jobs:
       - name: Validate README for PyPI
         run: |
           python -m readme_renderer WebAppDIRACRepo/README.rst -o /tmp/README.html
-      - name: Check tag is for v4r3 or later
-        id: check-tag
-        # When v5 is released we can remove this check
-        run: |
-          if [[ "${{ github.event.ref }}" =~ ^refs/tags/v4r([3-9]|[0-9][0-9]+)(p[0-9]+)?(-pre[0-9]+)?$ ]]; then
-              echo ::set-output name=create-release::true
-          fi
       - name: Make PEP-440 style release on GitHub
-        if: steps.check-tag.outputs.create-release == 'true'
         run: |
           OLD_STYLE=${GITHUB_REF##*/}
           NEW_STYLE=$(python -c "import diraccfg; major, minor, patch, pre = diraccfg.parseVersion('${OLD_STYLE}'); print(f'{major}.{minor}.{patch}', f'a{pre}' if pre else '', sep='')")
