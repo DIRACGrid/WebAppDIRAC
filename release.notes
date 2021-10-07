@@ -1,6 +1,9 @@
 [v5r0-pre1]
 
-
+NEW: (#540) add FileResponse class to handle csv, png, txt files in response
+NEW: (#539) add FileResponse class to handle png and csv responses
+CHANGE: (#539) use parameter names without '_'
+CHANGE: (#539) Use WebHandler with DIRAC.Core.Tornado.Server.privat.BaseRequestHandler for Accounting handler.
 
 [v4r3p4]
 
