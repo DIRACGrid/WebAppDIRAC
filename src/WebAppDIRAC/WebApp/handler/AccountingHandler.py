@@ -135,7 +135,7 @@ class AccountingHandler(WebHandler):
       del(pD['pinDates'])
 
     # Find the proper time!
-    pD['timeSelector'] = int(timeSelector)
+    pD['timeSelector'] = timeSelector
     if pD['timeSelector'] > 0:
       end = Time.dateTime()
       start = end - datetime.timedelta(seconds=pD['timeSelector'])
@@ -168,7 +168,7 @@ class AccountingHandler(WebHandler):
 
     return S_OK((start, end, pD, extraParams))
 
-  def web_generatePlot(self, typeName, plotName, timeSelector, grouping, **kwargs):
+  def web_generatePlot(self, typeName, plotName, timeSelector:int, grouping, **kwargs):
     """ Generate plot
 
         :param str typeName: accounting type name
@@ -243,7 +243,7 @@ class AccountingHandler(WebHandler):
     data = tempFile.read()
     return FileResponse(data, plotImageFile.encode(), 'png', cache=False)
 
-  def web_getCsvPlotData(self, typeName, plotName, timeSelector, grouping, **kwargs):
+  def web_getCsvPlotData(self, typeName, plotName, timeSelector:int, grouping, **kwargs):
     """ Generate CVS plot
 
         :param str typeName: accounting type name
@@ -281,7 +281,7 @@ class AccountingHandler(WebHandler):
 
     return FileResponse(strData, str(params), 'csv', cache=False)
 
-  def web_getPlotData(self, typeName, plotName, timeSelector, grouping, **kwargs):
+  def web_getPlotData(self, typeName, plotName, timeSelector:int, grouping, **kwargs):
     """ Generate plot
 
         :param str typeName: accounting type name
