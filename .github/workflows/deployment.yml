@@ -1,12 +1,13 @@
 name: Deployment
 
-on: [push, pull_request]
+on:
+  release:
+    types: [published]
 
 jobs:
   deploy-pypi:
     name: PyPI deployment
     runs-on: "ubuntu-latest"
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -44,7 +45,6 @@ jobs:
         run: |
           python -m build ./WebAppDIRACRepo/
       - name: Publish package on PyPI
-        if: steps.check-tag.outputs.create-release == 'true'
         uses: pypa/gh-action-pypi-publish@master
         with:
           user: __token__
