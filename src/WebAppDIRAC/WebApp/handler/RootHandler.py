@@ -54,14 +54,14 @@ class RootHandler(WebHandler):
       url.append('?%s' % o.query)
     return "/%s" % "/".join(url)
 
-  def web_getConfigData(self):
+  def web_getConfigData(self, **kwargs):
     """ Get session data
 
         :return: dict
     """
     return self.getSessionData()
 
-  def web_logout(self):
+  def web_logout(self, **kwargs):
     """ Logout
     """
     token = self.get_secure_cookie('session_id')
