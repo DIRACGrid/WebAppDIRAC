@@ -22,11 +22,9 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install dependencies
-        run: |
-          pip install build readme_renderer diraccfg packaging requests
+        run: pip install build readme_renderer diraccfg packaging requests
       - name: Validate README for PyPI
-        run: |
-          python -m readme_renderer WebAppDIRACRepo/README.rst -o /tmp/README.html
+        run: python -m readme_renderer WebAppDIRACRepo/README.rst -o /tmp/README.html
       - name: Check tag is for v4r3 or later
         id: check-tag
         # When v5 is released we can remove this check
@@ -44,13 +42,11 @@ jobs:
             --token="${{ secrets.GITHUB_TOKEN }}" \
             --repo="${{ github.repository }}" \
             --version="v${NEW_STYLE}" \
-            --rev="$(git --git-dir ./WebAppDIRACRepo/.git rev-parse HEAD)" \
-            --release-notes-fn="WebAppDIRACRepo/release.notes"
+            --rev="$(git --git-dir ./WebAppDIRACRepo/.git rev-parse HEAD)"
           git --git-dir ./WebAppDIRACRepo/.git fetch --all --tags
       # Need to do this after creating the PEP-440 style tag
       - name: Build distributions
-        run: |
-          python -m build ./WebAppDIRACRepo/
+        run: python -m build ./WebAppDIRACRepo/
       - name: Publish package on PyPI
         if: steps.check-tag.outputs.create-release == 'true'
         uses: pypa/gh-action-pypi-publish@master
