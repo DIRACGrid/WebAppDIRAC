@@ -16,7 +16,7 @@ jobs:
         with:
           repository: DIRACGrid/DIRAC
           path: DIRACRepo
-          ref: rel-v7r3
+          ref: integration
           fetch-depth: 0
       - uses: actions/setup-python@v2
         with:

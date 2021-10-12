@@ -44,12 +44,12 @@ jobs:
       with:
         repository: DIRACGrid/DIRAC
         path: .DIRAC
-        ref: rel-v7r3
+        ref: integration
 
     - name: Prepare environment with Micromamba
       uses: mamba-org/provision-with-micromamba@main
       with:
-        environment-file: .DIRAC/environment-py3.yml
+        environment-file: .DIRAC/environment.yml
 
     - name: Run tests
       run: pylint -E src/WebAppDIRAC
