@@ -7,80 +7,49 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: |
-          npm install eslint --save-dev
-          curl --fail -O -L http://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
-          npm install @sencha_eslint-plugin-extjs.7.0.0.tgz --save-dev
-          node_modules/.bin/eslint src/WebAppDIRAC/WebApp
+      - name: Cache Sencha esLint plugin
+        id: cache_sencha_eslint
+        uses: actions/cache@v2
+        with:
+          path: sencha_eslint-plugin-extjs.7.0.0.tgz
+          key: sencha_eslint-plugin-extjs.7.0.0.tgz
+      - name: Download Sencha esLint plugin
+        if: steps.cache_sencha_eslint.outputs.cache-hit != 'true'
+        run: curl --fail -L -o sencha_eslint-plugin-extjs.7.0.0.tgz http://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
+      - name: Install dependencies
+        run: npm install eslint sencha_eslint-plugin-extjs.7.0.0.tgz --save-dev
+      - name: Run Tests
+        run: node_modules/.bin/eslint src/WebAppDIRAC/WebApp
 
   prettier:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - run: |
-          npm install --save-dev --save-exact prettier@1.19.1
-          node_modules/.bin/prettier --check src/WebAppDIRAC/WebApp/static/**/*.js
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: npm install --save-dev --save-exact prettier@1.19.1
+      - name: Run Tests
+        run: node_modules/.bin/prettier --check src/WebAppDIRAC/WebApp/static/**/*.js
 
   pyLint:
     runs-on: ubuntu-latest
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
-
-    strategy:
-      fail-fast: False
-      matrix:
-        python:
-          - 2.7.13
-        command:
-          - tests/runPylint.sh
-          - CHECK=pylintPY3K tests/runPylint.sh
-          - |
-            if [[ "${REFERENCE_BRANCH}" != "" ]]; then
-                git remote add upstream https://github.com/DIRACGrid/WebAppDIRAC.git
-                git fetch --no-tags upstream "${REFERENCE_BRANCH}"
-                git branch -vv
-                git diff -U0 "upstream/${REFERENCE_BRANCH}" | pycodestyle --diff
-            fi
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
+    defaults:
+      # Activate the conda environment automatically in each step
+      run:
+        shell: bash -l {0}
 
     steps:
     - uses: actions/checkout@v2
-    - name: Prepare environment
-      run: |
-        conda env create -n python_${{ matrix.python }} python=${{ matrix.python }}
-    - name: Get DIRAC
-      run: |
-        source "${CONDA}/bin/activate"
-        conda activate python_${{ matrix.python }}
-        # get the DIRAC releases.cfg to know what to test against
-        curl -O https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/releases.cfg
-        # get the base WebApp tag (e.g. for rel-v4r0 branch it will be v4r0)
-        WebAppTag=$(echo "${REFERENCE_BRANCH}" | echo $(sed "s/rel-//g"))
-        echo "WebAppTag = ${WebAppTag}"
-        # Now find the DIRAC release (tag) to checkout
-        relToCheckout=integration
-        allreleases=$(diraccfg as-json releases.cfg | jq '.Releases' | diraccfg sort-versions --allow-pre-releases 2>/dev/null)
-        for x in ${allreleases}; do
-          rel=$(echo ${x} | sed "s/\"//g" | sed "s/\[//g" | sed "s/\]//g" | sed "s/,//g")
-          echo "Looking for rel = ${rel}"
-          modules=$(diraccfg as-json releases.cfg | jq ".Releases".\"${rel}\" | jq .Modules)
-          echo "With modules = ${modules}"
-          if [[ "${modules}" == *"WebAppDIRAC:${WebAppTag}"* ]]; then
-            echo "${rel}"
-            relToCheckout="${rel}"
-            break
-          fi
-        done
-        echo "Clone DIRAC ${rel} to $(pwd)"
-        git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${relToCheckout}"
-        # Align with v7r2+ DIRAC versions (with src path)
-        cp -r DIRAC/src/DIRAC/* DIRAC/
-      env:
-        REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
+    - uses: actions/checkout@v2
+      with:
+        repository: DIRACGrid/DIRAC
+        path: .DIRAC
+        ref: rel-v7r3
+
+    - name: Prepare environment with Micromamba
+      uses: mamba-org/provision-with-micromamba@main
+      with:
+        environment-file: .DIRAC/environment-py3.yml
+
     - name: Run tests
-      run: |
-        source "${CONDA}/bin/activate"
-        conda activate python_${{ matrix.python }}
-        set -euxo pipefail
-        echo "${PWD}" > "${CONDA}/envs/python_${{ matrix.python }}/lib/python2.7/site-packages/conda.pth"
-        ${{ matrix.command }}
-      env:
-        REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
+      run: pylint -E src/WebAppDIRAC

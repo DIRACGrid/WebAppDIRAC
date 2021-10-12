@@ -1,6 +1,10 @@
 [v5r0-pre1]
 
 
+[v4r3p5]
+
+FIX: (#566) Update CI according to the compatible DIRAC branch.
+FIX: (#564) Increase client.updateSoftware timeout
 
 [v4r3p4]
 
