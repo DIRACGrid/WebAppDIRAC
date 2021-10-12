@@ -90,8 +90,6 @@ class MonitoringHandler(WebHandler):
     pinDates = False
 
     for name in self.request.arguments:
-      if name.find("_") != 0:
-        continue
       pD[name[1:]] = self.get_argument(name)
 
     # Personalized title?
