@@ -1,6 +1,10 @@
 name: Deployment
 
-on: [push, pull_request]
+on:
+  push:
+    tags:
+      - v4r3p[0-9]+
+  pull_request:
 
 jobs:
   deploy-pypi:
@@ -9,48 +13,35 @@ jobs:
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     steps:
       - uses: actions/checkout@v2
-        with:
-          path: WebAppDIRACRepo
-          fetch-depth: 0
-      - uses: actions/checkout@v2
-        with:
-          repository: DIRACGrid/DIRAC
-          path: DIRACRepo
-          ref: rel-v7r3
-          fetch-depth: 0
       - uses: actions/setup-python@v2
         with:
           python-version: '3.9'
       - name: Install dependencies
-        run: pip install build readme_renderer diraccfg packaging requests
+        run: pip install build readme_renderer diraccfg
       - name: Validate README for PyPI
-        run: python -m readme_renderer WebAppDIRACRepo/README.rst -o /tmp/README.html
-      - name: Check tag is for v4r3 or later
-        id: check-tag
-        # When v5 is released we can remove this check
-        run: |
-          if [[ "${{ github.event.ref }}" =~ ^refs/tags/v4r([3-9]|[0-9][0-9]+)(p[0-9]+)?(-pre[0-9]+)?$ ]]; then
-              echo ::set-output name=create-release::true
-          fi
+        run: python -m readme_renderer README.rst -o /tmp/README.html
       - name: Make PEP-440 style release on GitHub
-        if: steps.check-tag.outputs.create-release == 'true'
+        id: PEP-440
+        if: github.event_name == 'push'
         run: |
-          OLD_STYLE=${GITHUB_REF##*/}
-          NEW_STYLE=$(python -c "import diraccfg; major, minor, patch, pre = diraccfg.parseVersion('${OLD_STYLE}'); print(f'{major}.{minor}.{patch}', f'a{pre}' if pre else '', sep='')")
-          echo "Converted ${OLD_STYLE} version to ${NEW_STYLE}"
-          DIRACRepo/.github/workflows/make_release.py \
-            --token="${{ secrets.GITHUB_TOKEN }}" \
-            --repo="${{ github.repository }}" \
-            --version="v${NEW_STYLE}" \
-            --rev="$(git --git-dir ./WebAppDIRACRepo/.git rev-parse HEAD)"
-          git --git-dir ./WebAppDIRACRepo/.git fetch --all --tags
+          TAG_NAME=${GITHUB_REF##*/}
+          NEW_STYLE=$(python -c "import diraccfg; major, minor, patch, pre = diraccfg.parseVersion('${TAG_NAME}'); print(f'{major}.{minor}.{patch}', f'a{pre}' if pre else '', sep='')")
+          echo "Converted ${TAG_NAME} version to ${NEW_STYLE}"
+          echo ::set-output name=tag_name::"v$NEW_STYLE"
+      - name: Publish ${{ steps.PEP-440.outputs.tag_name }} release to GitHub
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: release.notes
+          tag_name: ${{ steps.PEP-440.outputs.tag_name }}
       # Need to do this after creating the PEP-440 style tag
       - name: Build distributions
-        run: python -m build ./WebAppDIRACRepo/
+        run: |
+          git fetch --all --tags
+          python -m build
       - name: Publish package on PyPI
-        if: steps.check-tag.outputs.create-release == 'true'
+        if: github.event_name == 'push'
         uses: pypa/gh-action-pypi-publish@master
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
-          packages_dir: WebAppDIRACRepo/dist/
