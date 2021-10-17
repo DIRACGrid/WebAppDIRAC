@@ -34,7 +34,7 @@ jobs:
         # if: github.event_name == 'push'
         run: |
           # TAG_NAME=${GITHUB_REF##*/}
-          TAG_NAME=v4r3p5
+          TAG_NAME=v4r3p6
           NEW_STYLE=$(python -c "import diraccfg; major, minor, patch, pre = diraccfg.parseVersion('${TAG_NAME}'); print(f'{major}.{minor}.{patch}', f'a{pre}' if pre else '', sep='')")
           echo "Converted ${TAG_NAME} version to ${NEW_STYLE}"
           echo ::set-output name=tag_name::"v$NEW_STYLE"
