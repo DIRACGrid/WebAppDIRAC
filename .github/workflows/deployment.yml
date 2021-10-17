@@ -13,8 +13,6 @@ jobs:
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: v4r3p6
       - uses: actions/setup-python@v2
         with:
           python-version: '3.9'
@@ -24,29 +22,29 @@ jobs:
         run: python -m readme_renderer README.rst -o /tmp/README.html
       - name: Make PEP-440 style release on GitHub
         id: PEP-440
-        # if: github.event_name == 'push'
+        if: github.event_name == 'push'
         run: |
-          # TAG_NAME=${GITHUB_REF##*/}
-          TAG_NAME=v4r3p6
+          TAG_NAME=${GITHUB_REF##*/}
           NEW_STYLE=$(python -c "import diraccfg; major, minor, patch, pre = diraccfg.parseVersion('${TAG_NAME}'); print(f'{major}.{minor}.{patch}', f'a{pre}' if pre else '', sep='')")
           echo "Converted ${TAG_NAME} version to ${NEW_STYLE}"
           echo ::set-output name=tag_name::"v$NEW_STYLE"
           echo ::set-output name=target_commitish::"$(git rev-parse HEAD)"
       - name: Publish ${{ steps.PEP-440.outputs.tag_name }} release to GitHub
-        # if: github.event_name == 'push'
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v1
         with:
           target_commitish: ${{ steps.PEP-440.outputs.target_commitish }}
           body_path: release.notes
           tag_name: ${{ steps.PEP-440.outputs.tag_name }}
       - name: Get ${{ steps.PEP-440.outputs.tag_name }} tag
+        if: github.event_name == 'push'
         uses: actions/checkout@v2
         with:
           ref: ${{ steps.PEP-440.outputs.tag_name }}
       - name: Build distributions
         run: python -m build
       - name: Publish package on PyPI
-        # if: github.event_name == 'push'
+        if: github.event_name == 'push'
         uses: pypa/gh-action-pypi-publish@master
         with:
           user: __token__
