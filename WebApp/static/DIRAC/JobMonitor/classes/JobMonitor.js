@@ -24,10 +24,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
     "Ext.data.ArrayStore",
     "Ext.dirac.utils.DiracJsonStore",
     "Ext.dirac.utils.DiracArrayStore",
-    "Ext.chart.PolarChart"
+    "Ext.chart.PolarChart",
   ],
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.grid.loadState(data);
@@ -60,13 +60,13 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     // data for grid columns
     var oReturn = {
       leftMenu: me.leftPanel.getStateData(),
-      grid: me.grid.getStateData()
+      grid: me.grid.getStateData(),
       // show/hide for selectors and their selected data (including NOT
       // button)
     };
@@ -81,136 +81,136 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
   dataFields: [
     {
       name: "SystemPriority",
-      type: "float"
+      type: "float",
     },
     {
-      name: "ApplicationNumStatus"
+      name: "ApplicationNumStatus",
     },
     {
       name: "JobID",
-      type: "int"
+      type: "int",
     },
     {
       name: "LastSignOfLife",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "VerifiedFlag"
+      name: "VerifiedFlag",
     },
     {
-      name: "RetrievedFlag"
+      name: "RetrievedFlag",
     },
     {
-      name: "Status"
+      name: "Status",
     },
     {
       name: "StartExecTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
       name: "RescheduleCounter",
-      type: "int"
+      type: "int",
     },
     {
-      name: "JobSplitType"
+      name: "JobSplitType",
     },
     {
-      name: "MinorStatus"
+      name: "MinorStatus",
     },
     {
-      name: "ApplicationStatus"
+      name: "ApplicationStatus",
     },
     {
       name: "SubmissionTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "JobType"
+      name: "JobType",
     },
     {
-      name: "MasterJobID"
+      name: "MasterJobID",
     },
     {
-      name: "KilledFlag"
+      name: "KilledFlag",
     },
     {
-      name: "RescheduleTime"
+      name: "RescheduleTime",
     },
     {
-      name: "DIRACSetup"
+      name: "DIRACSetup",
     },
     {
-      name: "FailedFlag"
+      name: "FailedFlag",
     },
     {
-      name: "CPUTime"
+      name: "CPUTime",
     },
     {
-      name: "OwnerDN"
+      name: "OwnerDN",
     },
     {
-      name: "JobGroup"
+      name: "JobGroup",
     },
     {
-      name: "JobName"
+      name: "JobName",
     },
     {
-      name: "AccountedFlag"
+      name: "AccountedFlag",
     },
     {
-      name: "OSandboxReadyFlag"
+      name: "OSandboxReadyFlag",
     },
     {
       name: "LastUpdateTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "Site"
+      name: "Site",
     },
     {
       name: "HeartBeatTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "OwnerGroup"
+      name: "OwnerGroup",
     },
     {
-      name: "ISandboxReadyFlag"
+      name: "ISandboxReadyFlag",
     },
     {
-      name: "UserPriority"
+      name: "UserPriority",
     },
     {
-      name: "Owner"
+      name: "Owner",
     },
     {
-      name: "DeletedFlag"
+      name: "DeletedFlag",
     },
     {
-      name: "TaskQueueID"
+      name: "TaskQueueID",
     },
     {
-      name: "JobType"
+      name: "JobType",
     },
     {
       name: "JobIDcheckBox",
-      mapping: "JobID"
+      mapping: "JobID",
     },
     {
       name: "StatusIcon",
-      mapping: "Status"
+      mapping: "Status",
     },
     {
-      name: "OwnerGroup"
-    }
+      name: "OwnerGroup",
+    },
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.launcher.title = "Job Monitor";
@@ -244,14 +244,14 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     /*
@@ -270,8 +270,8 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       layout: "border",
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     var selectors = {
@@ -282,18 +282,18 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       owner: "Owner",
       OwnerGroup: "OwnerGroup",
       jobGroup: "Job Group",
-      jobType: "Job Type"
+      jobType: "Job Type",
     };
 
     var textFields = {
       JobID: {
         name: "JobID(s)",
-        type: "number"
+        type: "number",
       },
       PilotJobReference: {
         name: "Pilot Job Reference(s)",
-        type: "originalText"
-      }
+        type: "originalText",
+      },
     };
 
     var properties = [["NormalUser", "JobSharing", "owner"]];
@@ -305,7 +305,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       ["site", "site"],
       ["status", "status"],
       ["types", "jobType"],
-      ["OwnerGroup", "OwnerGroup"]
+      ["OwnerGroup", "OwnerGroup"],
     ];
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -314,7 +314,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       textFields: textFields,
       datamap: map,
       url: "JobMonitor/getSelectionData",
-      properties: properties
+      properties: properties,
     });
 
     /*
@@ -324,7 +324,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
      */
 
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + me.applicationName + "/getJobData"
+      url: GLOBAL.BASE_URL + me.applicationName + "/getJobData",
     });
 
     me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -337,9 +337,9 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       sorters: [
         {
           property: "JobID",
-          direction: "DESC"
-        }
-      ]
+          direction: "DESC",
+        },
+      ],
     });
 
     var pagingToolbar = {};
@@ -352,8 +352,8 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["reschedule", ""],
           properties: {
             tooltip: "Reschedule",
-            iconCls: "dirac-icon-reschedule"
-          }
+            iconCls: "dirac-icon-reschedule",
+          },
         },
         {
           text: "",
@@ -361,8 +361,8 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["kill", ""],
           properties: {
             tooltip: "Kill",
-            iconCls: "dirac-icon-kill"
-          }
+            iconCls: "dirac-icon-kill",
+          },
         },
         {
           text: "",
@@ -370,8 +370,8 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["delete", ""],
           properties: {
             tooltip: "Delete",
-            iconCls: "dirac-icon-delete"
-          }
+            iconCls: "dirac-icon-delete",
+          },
         },
         {
           text: "",
@@ -379,9 +379,9 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: [],
           properties: {
             iconCls: "dirac-icon-pie",
-            tooltip: "Go to the statistics panel"
-          }
-        }
+            tooltip: "Go to the statistics panel",
+          },
+        },
       ],
       Protected: [
         {
@@ -390,26 +390,26 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["reset", ""],
           properties: {
             tooltip: "Reset",
-            iconCls: "jm-red-reset-icon"
+            iconCls: "jm-red-reset-icon",
           },
-          property: "JobAdministrator"
-        }
-      ]
+          property: "JobAdministrator",
+        },
+      ],
     };
 
     pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
       toolButtons: toolButtons,
       property: "JobAdministrator",
       store: me.dataStore,
-      scope: me
+      scope: me,
     });
 
     var oColumns = {
       checkBox: {
-        dataIndex: "JobIDcheckBox"
+        dataIndex: "JobIDcheckBox",
       },
       JobId: {
-        dataIndex: "JobID"
+        dataIndex: "JobID",
       },
       None: {
         dataIndex: "StatusIcon",
@@ -418,122 +418,122 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           sortable: false,
           hideable: false,
           fixed: true,
-          menuDisabled: true
+          menuDisabled: true,
         },
-        renderFunction: "rendererStatus"
+        renderFunction: "rendererStatus",
       },
       Status: {
-        dataIndex: "Status"
+        dataIndex: "Status",
       },
       MinorStatus: {
         dataIndex: "MinorStatus",
         properties: {
-          flex: 1
-        }
+          flex: 1,
+        },
       },
       ApplicationStatus: {
-        dataIndex: "ApplicationStatus"
+        dataIndex: "ApplicationStatus",
       },
       Site: {
-        dataIndex: "Site"
+        dataIndex: "Site",
       },
       JobName: {
         dataIndex: "JobName",
         properties: {
           flex: 1,
-          width: 200
-        }
+          width: 200,
+        },
       },
       "LastUpdate[UTC]": {
         dataIndex: "LastUpdateTime",
         renderer: Ext.util.Format.dateRenderer("Y-m-d H:i:s"),
         properties: {
-          width: 150
-        }
+          width: 150,
+        },
       },
       "LastSignOfLife[UTC]": {
         dataIndex: "LastSignOfLife",
         renderer: Ext.util.Format.dateRenderer("Y-m-d H:i:s"),
         properties: {
-          width: 150
-        }
+          width: 150,
+        },
       },
       "SubmissionTime[UTC]": {
         dataIndex: "SubmissionTime",
         renderer: Ext.util.Format.dateRenderer("Y-m-d H:i:s"),
         properties: {
-          width: 150
-        }
+          width: 150,
+        },
       },
       DIRACSetup: {
         dataIndex: "DIRACSetup",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       FailedFlag: {
         dataIndex: "FailedFlag",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       RescheduleCounter: {
         dataIndex: "RescheduleCounter",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       CPUTime: {
         dataIndex: "CPUTime",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       OwnerDN: {
         dataIndex: "OwnerDN",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       JobGroup: {
         dataIndex: "JobGroup",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       JobType: {
         dataIndex: "JobType",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       AccountedFlag: {
         dataIndex: "AccountedFlag",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       OSandboxReadyFlag: {
         dataIndex: "OSandboxReadyFlag",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       Owner: {
-        dataIndex: "Owner"
+        dataIndex: "Owner",
       },
       TaskQueueID: {
         dataIndex: "TaskQueueID",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       OwnerGroup: {
         dataIndex: "OwnerGroup",
         properties: {
-          hidden: true
-        }
-      }
+          hidden: true,
+        },
+      },
     };
 
     var actionSubmenu = {
@@ -544,8 +544,8 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["kill", true],
           properties: {
             tooltip: "Click to kill the selected job",
-            iconCls: "dirac-icon-kill"
-          }
+            iconCls: "dirac-icon-kill",
+          },
         },
         {
           text: "Delete",
@@ -553,10 +553,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["delete", true],
           properties: {
             tooltip: "Click to delete the selected job",
-            iconCls: "dirac-icon-delete"
-          }
-        }
-      ]
+            iconCls: "dirac-icon-delete",
+          },
+        },
+      ],
     };
     var pilotSubmenu = {
       Visible: [
@@ -566,8 +566,8 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["getPilotStdOut"],
           properties: {
             tooltip: "Click to get pilot standard output",
-            iconCls: "dirac-icon-download"
-          }
+            iconCls: "dirac-icon-download",
+          },
         },
         {
           text: "Get StdErr",
@@ -575,8 +575,8 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["getPilotStdErr"],
           properties: {
             tooltip: "Click to get pilot standard error",
-            iconCls: "dirac-icon-download"
-          }
+            iconCls: "dirac-icon-download",
+          },
         },
         {
           text: "LoggingInfo",
@@ -584,10 +584,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["getPilotLoggingInfo"],
           properties: {
             tooltip: "Click to get pilot logging information",
-            iconCls: "dirac-icon-download"
-          }
-        }
-      ]
+            iconCls: "dirac-icon-download",
+          },
+        },
+      ],
     };
 
     var sandboxSubmenu = {
@@ -598,8 +598,8 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["Input"],
           properties: {
             tooltip: "Click to get the job input sandbox",
-            iconCls: "dirac-icon-download"
-          }
+            iconCls: "dirac-icon-download",
+          },
         },
         {
           text: "Get output file(s)",
@@ -607,10 +607,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["Output"],
           properties: {
             tooltip: "Click to get the job output sandbox",
-            iconCls: "dirac-icon-download"
-          }
-        }
-      ]
+            iconCls: "dirac-icon-download",
+          },
+        },
+      ],
     };
 
     var menuitems = {
@@ -620,46 +620,46 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           handler: me.__oprGetJobData,
           arguments: ["getJDL"],
           properties: {
-            tooltip: "Click to show the JDL of the selected job."
-          }
+            tooltip: "Click to show the JDL of the selected job.",
+          },
         },
         {
-          text: "-"
+          text: "-",
         }, // separator
         {
           text: "Attributes",
           handler: me.__oprGetJobData,
           arguments: ["getBasicInfo"],
           properties: {
-            tooltip: "Click to show the attributtes of the selected job."
-          }
+            tooltip: "Click to show the attributtes of the selected job.",
+          },
         },
         {
           text: "Parameters",
           handler: me.__oprGetJobData,
           arguments: ["getParams"],
           properties: {
-            tooltip: "Click to show the Parameters of the selected job."
-          }
+            tooltip: "Click to show the Parameters of the selected job.",
+          },
         },
         {
           text: "Logging info",
           handler: me.__oprGetJobData,
           arguments: ["getLoggingInfo"],
           properties: {
-            tooltip: "Click to show the log of the selected job."
-          }
+            tooltip: "Click to show the log of the selected job.",
+          },
         },
         {
-          text: "-"
+          text: "-",
         }, // separator
         {
           text: "Peek StandardOutput",
           handler: me.__oprGetJobData,
           arguments: ["getStandardOutput"],
           properties: {
-            tooltip: "Click to retrive the stdout of the selected job."
-          }
+            tooltip: "Click to retrive the stdout of the selected job.",
+          },
         },
         {
           text: "Get LogFile",
@@ -667,55 +667,55 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           arguments: ["getLogURL"],
           properties: {
             tooltip: "Click to download the log file of the jobs.",
-            iconCls: "dirac-icon-download"
-          }
+            iconCls: "dirac-icon-download",
+          },
         },
         {
           text: "Get Pending Request",
           handler: me.__oprGetJobData,
           arguments: ["getPending"],
           properties: {
-            tooltip: "Click to view the pendig request of the selected job"
-          }
+            tooltip: "Click to view the pendig request of the selected job",
+          },
         },
         {
           text: "Get StagerReport",
           handler: me.__oprGetJobData,
           arguments: ["getStagerReport"],
           properties: {
-            tooltip: "Click to show the stager log."
-          }
+            tooltip: "Click to show the stager log.",
+          },
         },
         {
-          text: "-"
+          text: "-",
         }, // separator
         {
           text: "Actions",
           subMenu: actionSubmenu,
           properties: {
-            iconCls: "dirac-icon-action"
-          }
+            iconCls: "dirac-icon-action",
+          },
         },
         {
           text: "Pilot",
           subMenu: pilotSubmenu,
           properties: {
-            iconCls: "dirac-icon-action"
-          }
+            iconCls: "dirac-icon-action",
+          },
         },
         {
           text: "SandBox",
           subMenu: sandboxSubmenu,
           properties: {
-            iconCls: "jm-icon-sandbox"
-          }
-        }
-      ]
+            iconCls: "jm-icon-sandbox",
+          },
+        },
+      ],
     };
 
     me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
       menu: menuitems,
-      scope: me
+      scope: me,
     });
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
@@ -724,7 +724,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       oColumns: oColumns,
       contextMenu: me.contextGridMenu,
       pagingToolbar: pagingToolbar,
-      scope: me
+      scope: me,
     });
 
     me.leftPanel.setGrid(me.grid);
@@ -738,18 +738,18 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["set"],
-        data: [["Selected Statistics"], ["Global Statistics"]]
+        data: [["Selected Statistics"], ["Global Statistics"]],
       }),
       triggerAction: "all",
       value: "Selected Statistics",
       flex: 1,
       listeners: {
-        change: function(combo, newValue, oldValue, eOpts) {
+        change: function (combo, newValue, oldValue, eOpts) {
           var me = combo.moduleObject;
           me.leftPanel.oprLoadGridData();
-        }
+        },
       },
-      moduleObject: me
+      moduleObject: me,
     });
 
     me.statisticsGridCombo = new Ext.form.field.ComboBox({
@@ -759,33 +759,33 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["category"],
-        data: [["Status"], ["Site"], ["Minor Status"], ["Application Status"], ["Owner"], ["Owner Group"], ["Job Group"], ["Job Type"]]
+        data: [["Status"], ["Site"], ["Minor Status"], ["Application Status"], ["Owner"], ["Owner Group"], ["Job Group"], ["Job Type"]],
       }),
       triggerAction: "all",
       value: "Status",
       flex: 1,
       listeners: {
-        change: function(combo, newValue, oldValue, eOpts) {
+        change: function (combo, newValue, oldValue, eOpts) {
           var me = combo.moduleObject;
           me.leftPanel.oprLoadGridData();
-        }
+        },
       },
-      moduleObject: me
+      moduleObject: me,
     });
 
     var oButtonGoToGrid = new Ext.Button({
       margin: 0,
       iconCls: "jm-grid-icon",
-      handler: function() {
+      handler: function () {
         me.centralWorkPanel.getLayout().setActiveItem(0);
       },
-      scope: me
+      scope: me,
     });
 
     me.btnShowPlotAsPng = new Ext.Button({
       margin: 0,
       iconCls: "dirac-icon-save",
-      handler: function() {
+      handler: function () {
         var plot = me.statisticsPlotPanel.down("polar");
         if (plot) {
           var imgData = plot.getImage();
@@ -809,7 +809,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           var oImage = new Image();
           oImage.src = imgData.data;
 
-          oImage.onload = function() {
+          oImage.onload = function () {
             console.log([oImage.clientWidth, oImage.clientHeight]);
 
             oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
@@ -822,75 +822,75 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
         }
       },
       scope: me,
-      tooltip: "Save pie chart as PNG image"
+      tooltip: "Save pie chart as PNG image",
     });
 
     me.btnPlotSettings = new Ext.Button({
       margin: 0,
       iconCls: "dirac-icon-settings",
-      handler: function() {
+      handler: function () {
         me.formPlotSettings();
       },
       scope: me,
-      tooltip: "Plot settings"
+      tooltip: "Plot settings",
     });
 
     /*-----------AUTO REFRESH---------------*/
     var oTask = {
-      run: function() {
+      run: function () {
         me.leftPanel.oprLoadGridData();
       },
-      interval: 0
+      interval: 0,
     };
 
     var oHeartbeat = new Ext.util.TaskRunner();
 
     var oAutoMenu = [
       {
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.start(
             Ext.apply(oTask, {
-              interval: 900000
+              interval: 900000,
             })
           );
         },
         group: "refresh",
-        text: "15 Minutes"
+        text: "15 Minutes",
       },
       {
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.start(
             Ext.apply(oTask, {
-              interval: 1800000
+              interval: 1800000,
             })
           );
         },
         group: "refresh",
-        text: "30 Minutes"
+        text: "30 Minutes",
       },
       {
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.start(
             Ext.apply(oTask, {
-              interval: 3600000
+              interval: 3600000,
             })
           );
         },
         group: "refresh",
-        text: "One Hour"
+        text: "One Hour",
       },
       {
         checked: true,
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.stopAll();
         },
         group: "refresh",
-        text: "Disabled"
-      }
+        text: "Disabled",
+      },
     ];
 
     for (var i = 0; i < oAutoMenu.length; i++) {
@@ -900,10 +900,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
     var btnAutorefresh = new Ext.Button({
       menu: oAutoMenu,
       text: "Auto Refresh: Disabled",
-      tooltip: "Click to set the time for autorefresh"
+      tooltip: "Click to set the time for autorefresh",
     });
 
-    btnAutorefresh.on("menuhide", function(button, menu) {
+    btnAutorefresh.on("menuhide", function (button, menu) {
       var length = menu.items.getCount();
       for (var i = 0; i < length; i++) {
         if (menu.items.items[i].checked) {
@@ -919,33 +919,33 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           sortable: false,
           hideable: false,
           fixed: true,
-          menuDisabled: true
+          menuDisabled: true,
         },
-        renderFunction: "renderStatusForGivenColor"
+        renderFunction: "renderStatusForGivenColor",
       },
       Key: {
         dataIndex: "key",
         properties: {
           hideable: false,
-          width: 150
-        }
+          width: 150,
+        },
       },
       Value: {
         dataIndex: "value",
         properties: {
-          flex: 1
+          flex: 1,
         },
-        renderFunction: "diffValues"
-      }
+        renderFunction: "diffValues",
+      },
     };
 
     var dataStore = Ext.create("Ext.dirac.utils.DiracArrayStore", {
       fields: ["key", "value", "code", "color"],
       oDiffFields: {
         Id: "key",
-        Fields: ["value"]
+        Fields: ["value"],
       },
-      scope: me
+      scope: me,
     });
 
     /*---------------------------------------------------*/
@@ -957,24 +957,24 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       border: 0,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       dockedItems: [
         new Ext.create("Ext.toolbar.Toolbar", {
           dock: "top",
-          items: [oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, "-", btnAutorefresh]
+          items: [oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, "-", btnAutorefresh],
         }),
         new Ext.create("Ext.toolbar.Toolbar", {
           dock: "top",
-          items: [me.statisticsGridComboMain]
+          items: [me.statisticsGridComboMain],
         }),
         new Ext.create("Ext.toolbar.Toolbar", {
           dock: "top",
-          items: [me.statisticsGridCombo]
-        })
+          items: [me.statisticsGridCombo],
+        }),
       ],
       oColumns: oColumns,
-      scope: me
+      scope: me,
     });
 
     me.plotSettings = {};
@@ -986,7 +986,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       width: 100,
       height: 30,
       x: 40, // the sprite x position
-      y: 22
+      y: 22,
       // the sprite y position
     };
     me.plotSettings.plotLegend = {
@@ -995,17 +995,17 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       position: "right",
       boxStrokeWidth: 2,
       labelFont: "12px Helvetica",
-      padding: 5
+      padding: 5,
     };
     me.statisticsPlotPanel = new Ext.create("Ext.panel.Panel", {
       autoScroll: true,
       region: "center",
       floatable: false,
       layout: "fit",
-      header: false
+      header: false,
     });
 
-    me.statisticsPlotPanel.onResize = function(width, height, oldWidth, oldHeight) {
+    me.statisticsPlotPanel.onResize = function (width, height, oldWidth, oldHeight) {
       me.createPlotFromGridData(me.statisticsGridComboMain.getValue() + " :: " + me.statisticsGridCombo.getValue());
     };
 
@@ -1025,17 +1025,17 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       region: "center",
       header: false,
       border: false,
-      items: [me.grid, me.statisticsPanel]
+      items: [me.grid, me.statisticsPanel],
     });
 
     me.add([me.leftPanel, me.centralWorkPanel]);
   },
-  __setActiveItemInTheCentralWorkPanel: function() {
+  __setActiveItemInTheCentralWorkPanel: function () {
     var me = this;
     me.centralWorkPanel.getLayout().setActiveItem(1);
   },
 
-  formPlotSettings: function() {
+  formPlotSettings: function () {
     var me = this;
 
     if (!"plotSettings" in me) me.plotSettings = {};
@@ -1046,7 +1046,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       allowBlank: false,
       margin: 10,
       anchor: "100%",
-      value: me.plotSettings.plotTitle.text
+      value: me.plotSettings.plotTitle.text,
     });
 
     me.plotSettings.cmbLegendPosition = new Ext.create("Ext.form.field.ComboBox", {
@@ -1059,14 +1059,14 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           ["left", "left"],
           ["top", "top"],
           ["bottom", "bottom"],
-          ["none", "none"]
-        ]
+          ["none", "none"],
+        ],
       }),
       displayField: "text",
       valueField: "value",
       anchor: "100%",
       margin: 10,
-      value: me.plotSettings.plotLegend.legend
+      value: me.plotSettings.plotLegend.legend,
     });
 
     // button for saving the state
@@ -1074,15 +1074,15 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       text: "Submit",
       margin: 3,
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         var me = this;
         me.createPlotFromGridData(me.plotSettings.txtPlotTitle.getValue(), me.plotSettings.cmbLegendPosition.getValue());
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
-      border: false
+      border: false,
     });
 
     oToolbar.add([me.plotSettings.btnApplySettings]);
@@ -1091,7 +1091,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       autoHeight: true,
       border: false,
       layout: "anchor",
-      items: [oToolbar, me.plotSettings.txtPlotTitle, me.plotSettings.cmbLegendPosition, me.txtElementConfig]
+      items: [oToolbar, me.plotSettings.txtPlotTitle, me.plotSettings.cmbLegendPosition, me.txtElementConfig],
     });
 
     // initializing window showing the saving form
@@ -1101,11 +1101,11 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       title: "Plot Settings",
       layout: "fit",
       modal: true,
-      items: oPanel
+      items: oPanel,
     }).show();
   },
 
-  funcOnChangeEitherCombo: function() {
+  funcOnChangeEitherCombo: function () {
     var me = this;
 
     var sSet = me.statisticsGridComboMain.getValue();
@@ -1124,7 +1124,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
         url: GLOBAL.BASE_URL + me.applicationName + "/getStatisticsData",
         params: oData,
         scope: me,
-        success: function(response) {
+        success: function (response) {
           var response = Ext.JSON.decode(response.responseText);
 
           if (response["success"] == "true") {
@@ -1141,12 +1141,12 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           me.statisticsGridComboMain.setDisabled(false);
           me.statisticsGridCombo.setDisabled(false);
         },
-        failure: function(response) {
+        failure: function (response) {
           me.statisticsGridComboMain.setDisabled(false);
           me.statisticsGridCombo.setDisabled(false);
           me.statisticsSelectionGrid.body.unmask();
           GLOBAL.APP.CF.showAjaxErrorMessage(response);
-        }
+        },
       });
     } else {
       me.statisticsSelectionGrid.body.mask("Wait ...");
@@ -1155,10 +1155,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
         url: GLOBAL.BASE_URL + me.applicationName + "/getStatisticsData",
         params: {
           statsField: sCategory,
-          globalStat: true
+          globalStat: true,
         },
         scope: me,
-        success: function(response) {
+        success: function (response) {
           var response = Ext.JSON.decode(response.responseText);
 
           if (response["success"] == "true") {
@@ -1174,17 +1174,17 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           me.statisticsGridComboMain.setDisabled(false);
           me.statisticsGridCombo.setDisabled(false);
         },
-        failure: function(response) {
+        failure: function (response) {
           me.statisticsSelectionGrid.body.unmask();
           me.statisticsGridComboMain.setDisabled(false);
           me.statisticsGridCombo.setDisabled(false);
           GLOBAL.APP.CF.showAjaxErrorMessage(response);
-        }
+        },
       });
     }
   },
 
-  createPlotFromGridData: function(sTitle, sLegendPosition) {
+  createPlotFromGridData: function (sTitle, sLegendPosition) {
     var me = this;
     me.statisticsPlotPanel.removeAll();
     if (!sLegendPosition) {
@@ -1214,7 +1214,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       insetPadding: 80,
       background: {
         type: "image",
-        src: GLOBAL.ROOT_URL + "static/core/img/wallpapers/dirac_jobmonitor_background.png"
+        src: GLOBAL.ROOT_URL + "static/core/img/wallpapers/dirac_jobmonitor_background.png",
       },
       interactions: ["rotate", "itemhighlight"],
       store: me.statisticsSelectionGrid.getStore(),
@@ -1227,21 +1227,21 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
         label: {
           field: "key",
           display: "outside",
-          orientation: "vertical"
+          orientation: "vertical",
         },
         showInLegend: true,
         tooltip: {
           trackMouse: true,
           width: 140,
           height: 28,
-          renderer: function(toolTip, record, ctx) {
+          renderer: function (toolTip, record, ctx) {
             toolTip.setHtml(record.get("key") + ": " + record.get("value"));
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    me.statisticsSelectionGrid.on("sortchange", function(ct, column, direction, eOpts) {
+    me.statisticsSelectionGrid.on("sortchange", function (ct, column, direction, eOpts) {
       var colors = [];
       var me = this;
       for (var i = 0; i < me.getStore().getCount(); i++) {
@@ -1252,7 +1252,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
     me.statisticsSelectionGrid.plot.setColors(colors);
     me.statisticsPlotPanel.add(me.statisticsSelectionGrid.plot);
   },
-  __oprJobAction: function(oAction, useSelectedJobId) {
+  __oprJobAction: function (oAction, useSelectedJobId) {
     var me = this;
     var oItems = [];
     var oId = null;
@@ -1285,9 +1285,9 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       method: "POST",
       params: {
         action: oAction,
-        JobID: oItems.join(",")
+        JobID: oItems.join(","),
       },
-      success: function(response) {
+      success: function (response) {
         var jsonData = Ext.JSON.decode(response.responseText);
         if (jsonData["success"] == "false") {
           GLOBAL.APP.CF.alert("Error: " + jsonData["error"], "error");
@@ -1303,10 +1303,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
 
           me.leftPanel.oprLoadGridData();
         }
-      }
+      },
     });
   },
-  __oprGetJobData: function(oDataKind) {
+  __oprGetJobData: function (oDataKind) {
     var me = this;
 
     var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
@@ -1317,10 +1317,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       method: "POST",
       params: {
         data_kind: oDataKind,
-        id: oId
+        id: oId,
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         me.getContainer().body.unmask();
         var jsonData = Ext.JSON.decode(response.responseText);
 
@@ -1339,14 +1339,14 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
                   text: "Name",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "name"
+                  dataIndex: "name",
                 },
                 {
                   text: "Value",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "value"
-                }
+                  dataIndex: "value",
+                },
               ]
             );
           } else if (oDataKind == "getParams") {
@@ -1360,14 +1360,14 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
                   text: "Name",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "name"
+                  dataIndex: "name",
                 },
                 {
                   text: "Value",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "value"
-                }
+                  dataIndex: "value",
+                },
               ]
             );
           } else if (oDataKind == "getLoggingInfo") {
@@ -1381,32 +1381,32 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
                   text: "Source",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "source"
+                  dataIndex: "source",
                 },
                 {
                   text: "Status",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "status"
+                  dataIndex: "status",
                 },
                 {
                   text: "Minor Status",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "minor_status"
+                  dataIndex: "minor_status",
                 },
                 {
                   text: "Application Status",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "app_status"
+                  dataIndex: "app_status",
                 },
                 {
                   text: "Date Time",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "date_time"
-                }
+                  dataIndex: "date_time",
+                },
               ]
             );
           } else if (oDataKind == "getStandardOutput") {
@@ -1441,38 +1441,38 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
                   text: "Type",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "type"
+                  dataIndex: "type",
                 },
                 {
                   text: "Operation",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "operation"
+                  dataIndex: "operation",
                 },
                 {
                   text: "Status",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "status"
+                  dataIndex: "status",
                 },
                 {
                   text: "Order",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "order"
+                  dataIndex: "order",
                 },
                 {
                   text: "Target Se",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "targetSE"
+                  dataIndex: "targetSE",
                 },
                 {
                   text: "File",
                   flex: 1,
                   sortable: true,
-                  dataIndex: "file"
-                }
+                  dataIndex: "file",
+                },
               ]
             );
           } else if (oDataKind == "getStagerReport") {
@@ -1485,10 +1485,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
         } else {
           GLOBAL.APP.CF.alert(jsonData["error"], "error");
         }
-      }
+      },
     });
   },
-  __getSandbox: function(sType) {
+  __getSandbox: function (sType) {
     var me = this;
     var sId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
     Ext.Ajax.request({
@@ -1496,10 +1496,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       params: {
         jobID: sId,
         sandbox: sType,
-        check: 1
+        check: 1,
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var me = this;
         var response = Ext.JSON.decode(response.responseText);
 
@@ -1510,9 +1510,9 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           GLOBAL.APP.CF.alert(response["error"], "error");
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
-  }
+  },
 });

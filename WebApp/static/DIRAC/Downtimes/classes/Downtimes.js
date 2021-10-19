@@ -3,7 +3,7 @@ Ext.define("DIRAC.Downtimes.classes.Downtimes", {
 
   requires: ["Ext.dirac.utils.DiracGridPanel", "Ext.dirac.utils.DiracBaseSelector", "Ext.dirac.utils.DiracAjaxProxy"],
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.grid.loadState(data);
@@ -15,7 +15,7 @@ Ext.define("DIRAC.Downtimes.classes.Downtimes", {
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oReturn = {};
 
@@ -31,29 +31,29 @@ Ext.define("DIRAC.Downtimes.classes.Downtimes", {
   },
   dataFields: [
     {
-      name: "Site"
+      name: "Site",
     },
     {
-      name: "Name"
+      name: "Name",
     },
     {
-      name: "StartDate"
+      name: "StartDate",
     },
     {
-      name: "EndDate"
+      name: "EndDate",
     },
     {
-      name: "Link"
+      name: "Link",
     },
     {
-      name: "Description"
+      name: "Description",
     },
     {
-      name: "Severity"
-    }
+      name: "Severity",
+    },
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
@@ -87,14 +87,14 @@ Ext.define("DIRAC.Downtimes.classes.Downtimes", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     /*
@@ -106,13 +106,13 @@ Ext.define("DIRAC.Downtimes.classes.Downtimes", {
     var selectors = {
       site: "Site",
       name: "Name",
-      severity: "Severity"
+      severity: "Severity",
     };
 
     var map = [
       ["site", "site"],
       ["name", "name"],
-      ["severity", "severity"]
+      ["severity", "severity"],
     ];
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -120,7 +120,7 @@ Ext.define("DIRAC.Downtimes.classes.Downtimes", {
       cmbSelectors: selectors,
       datamap: map,
       hasTimeSearchPanel: false,
-      url: "Downtimes/getSelectionData"
+      url: "Downtimes/getSelectionData",
     });
     /*
      * -----------------------------------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ Ext.define("DIRAC.Downtimes.classes.Downtimes", {
      */
 
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + "Downtimes/getDowntimesData"
+      url: GLOBAL.BASE_URL + "Downtimes/getDowntimesData",
     });
 
     me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -138,7 +138,7 @@ Ext.define("DIRAC.Downtimes.classes.Downtimes", {
       fields: me.dataFields,
       groupField: "Name",
       scope: me,
-      remoteSort: false
+      remoteSort: false,
     });
 
     me.dataStore.sort("Name", "ASC");
@@ -147,49 +147,49 @@ Ext.define("DIRAC.Downtimes.classes.Downtimes", {
         dataIndex: "Name",
         properties: {
           align: "left",
-          width: 150
-        }
+          width: 150,
+        },
       },
       Site: {
         dataIndex: "Site",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       StartDate: {
         dataIndex: "StartDate",
         properties: {
           align: "left",
-          width: 120
-        }
+          width: 120,
+        },
       },
       EndDate: {
         dataIndex: "EndDate",
         properties: {
           align: "left",
-          width: 120
-        }
+          width: 120,
+        },
       },
       Serverity: {
         dataIndex: "Serverity",
         properties: {
           align: "left",
-          width: 80
-        }
+          width: 80,
+        },
       },
       Description: {
         dataIndex: "Description",
         properties: {
           align: "left",
-          width: 500
-        }
+          width: 500,
+        },
       },
       Link: {
         dataIndex: "Link",
         properties: {
-          hidden: true
-        }
-      }
+          hidden: true,
+        },
+      },
     };
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
@@ -198,13 +198,13 @@ Ext.define("DIRAC.Downtimes.classes.Downtimes", {
       scope: me,
       features: [
         {
-          ftype: "grouping"
-        }
-      ]
+          ftype: "grouping",
+        },
+      ],
     });
 
     me.leftPanel.setGrid(me.grid);
 
     me.add([me.leftPanel, me.grid]);
-  }
+  },
 });

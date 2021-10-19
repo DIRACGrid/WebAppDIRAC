@@ -21,8 +21,8 @@
 
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/css.css" />
     <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/iconset.css" />
-    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/tabtheme.css" />    
- 
+    <link rel="stylesheet" type="text/css" href="{{base_url}}/static/core/css/tabtheme.css" />
+
     {% autoescape None %}
     <!-- GC -->
 
@@ -40,10 +40,10 @@
       <script type="text/javascript" src="{{base_url}}/static/extjs/ext-all.js"></script>
       <script type="text/javascript" src="{{base_url}}/static/core/build/all-classes.js"></script>
     {% end %}
-    
+
     <script type="text/javascript" src="{{base_url}}/static/extjs/packages/charts/classic/charts.js"></script>
     <link rel="stylesheet" type="text/css"  href="{{base_url}}/static/extjs/packages/charts/classic/classic/resources/charts-all.css">
-    
+
     <!-- </x-bootstrap> -->
     <script type="text/javascript">
       if (typeof google !== 'undefined') { // google is blocked in some locations
@@ -90,7 +90,7 @@
             'Ext.dirac.views': '{{base_url}}/static/core/js/views',
             'Ext.dirac.utils': '{{base_url}}/static/core/js/utils',
             'Ext.ux.form':'{{base_url}}/static/extjs/{{ext_version}}/packages/ux/classic/src/form',
-            'Ext.ux':'{{base_url}}/static/extjs/{{ext_version}}/packages/ux/classic/src'            
+            'Ext.ux':'{{base_url}}/static/extjs/{{ext_version}}/packages/ux/classic/src'
         });
         Ext.require(['Ext.dirac.core.App','Ext.*']);
         GLOBAL.DEV = 1;
@@ -137,7 +137,7 @@
         </table>
       </div>
   </div>
-  
+
   {{welcome}}
 
 </body>

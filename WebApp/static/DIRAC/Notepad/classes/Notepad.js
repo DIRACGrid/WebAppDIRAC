@@ -8,7 +8,7 @@ Ext.define("DIRAC.Notepad.classes.Notepad", {
 
   requires: ["Ext.form.field.HtmlEditor"],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
@@ -26,18 +26,18 @@ Ext.define("DIRAC.Notepad.classes.Notepad", {
     }
 
     me.editor = new Ext.form.field.HtmlEditor({
-      value: ['Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>', "Give it a try!"].join("")
+      value: ['Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>', "Give it a try!"].join(""),
     });
 
     Ext.apply(me, {
       layout: "fit",
-      items: [me.editor]
+      items: [me.editor],
     });
 
     me.callParent(arguments);
   },
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     if ("helptext" in data) {
@@ -48,14 +48,14 @@ Ext.define("DIRAC.Notepad.classes.Notepad", {
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     return {
-      text: me.editor.getValue()
+      text: me.editor.getValue(),
     };
   },
-  getValue: function() {
+  getValue: function () {
     var me = this;
     return me.editor.getValue();
-  }
+  },
 });

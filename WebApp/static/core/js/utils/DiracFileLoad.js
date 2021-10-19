@@ -4,7 +4,7 @@
 Ext.define("Ext.dirac.utils.DiracFileLoad", {
   requires: [],
 
-  loadFile: function(fileList, callback, scope, preserveOrder) {
+  loadFile: function (fileList, callback, scope, preserveOrder) {
     var scope = scope || this,
       head = document.getElementsByTagName("head")[0],
       fragment = document.createDocumentFragment(),
@@ -14,7 +14,7 @@ Ext.define("Ext.dirac.utils.DiracFileLoad", {
 
     // Loads a particular file from the fileList by index. This is used when
     // preserving order
-    var loadFileIndex = function(index) {
+    var loadFileIndex = function (index) {
       head.appendChild(me.__buildScriptTag(fileList[index], onFileLoaded));
     };
 
@@ -23,7 +23,7 @@ Ext.define("Ext.dirac.utils.DiracFileLoad", {
      * This calls the callback passed to load once the final file in the
      * fileList has been loaded
      */
-    var onFileLoaded = function() {
+    var onFileLoaded = function () {
       loadedFiles++;
 
       // if this was the last file, call the callback, otherwise load the
@@ -44,7 +44,7 @@ Ext.define("Ext.dirac.utils.DiracFileLoad", {
       // load each file (most browsers will do this in parallel)
       Ext.each(
         fileList,
-        function(file, index) {
+        function (file, index) {
           fragment.appendChild(this.__buildScriptTag(file, onFileLoaded));
         },
         this
@@ -54,7 +54,7 @@ Ext.define("Ext.dirac.utils.DiracFileLoad", {
     }
   },
 
-  __buildScriptTag: function(filename, callback) {
+  __buildScriptTag: function (filename, callback) {
     var exten = filename.substr(filename.lastIndexOf(".") + 1);
     // console.log('Loader.buildScriptTag: filename=[%s], exten=[%s]',
     // filename,
@@ -68,7 +68,7 @@ Ext.define("Ext.dirac.utils.DiracFileLoad", {
       // check
       // for it here
       if (script.readyState) {
-        script.onreadystatechange = function() {
+        script.onreadystatechange = function () {
           if (script.readyState == "loaded" || script.readyState == "complete") {
             script.onreadystatechange = null;
             callback();
@@ -87,5 +87,5 @@ Ext.define("Ext.dirac.utils.DiracFileLoad", {
       callback();
       return style;
     }
-  }
+  },
 });

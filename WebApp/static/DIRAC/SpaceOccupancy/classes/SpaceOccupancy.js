@@ -5,10 +5,10 @@ Ext.define("DIRAC.SpaceOccupancy.classes.SpaceOccupancy", {
     "Ext.dirac.utils.DiracGridPanel",
     "Ext.dirac.utils.DiracPagingToolbar",
     "Ext.dirac.utils.DiracBaseSelector",
-    "Ext.dirac.utils.DiracAjaxProxy"
+    "Ext.dirac.utils.DiracAjaxProxy",
   ],
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.grid.loadState(data);
@@ -20,7 +20,7 @@ Ext.define("DIRAC.SpaceOccupancy.classes.SpaceOccupancy", {
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oReturn = {};
 
@@ -37,38 +37,38 @@ Ext.define("DIRAC.SpaceOccupancy.classes.SpaceOccupancy", {
   dataFields: [
     {
       name: "StatusIcon",
-      mapping: "Status"
+      mapping: "Status",
     },
     {
-      name: "Status"
+      name: "Status",
     },
     {
-      name: "Site"
+      name: "Site",
     },
     {
-      name: "Endpoint"
+      name: "Endpoint",
     },
     {
-      name: "StorageElement"
+      name: "StorageElement",
     },
     {
-      name: "Ratio"
+      name: "Ratio",
     },
     {
-      name: "Free"
+      name: "Free",
     },
     {
-      name: "Total"
+      name: "Total",
     },
     {
-      name: "Guaranteed"
+      name: "Guaranteed",
     },
     {
-      name: "LastCheckTime"
-    }
+      name: "LastCheckTime",
+    },
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
@@ -102,14 +102,14 @@ Ext.define("DIRAC.SpaceOccupancy.classes.SpaceOccupancy", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     /*
@@ -119,7 +119,7 @@ Ext.define("DIRAC.SpaceOccupancy.classes.SpaceOccupancy", {
      */
 
     var selectors = {
-      StorageElement: "StorageElement"
+      StorageElement: "StorageElement",
     };
 
     var textFields = {};
@@ -132,7 +132,7 @@ Ext.define("DIRAC.SpaceOccupancy.classes.SpaceOccupancy", {
       textFields: textFields,
       datamap: map,
       hasTimeSearchPanel: false,
-      url: "SpaceOccupancy/getSelectionData"
+      url: "SpaceOccupancy/getSelectionData",
     });
 
     /*
@@ -142,7 +142,7 @@ Ext.define("DIRAC.SpaceOccupancy.classes.SpaceOccupancy", {
      */
 
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + "SpaceOccupancy/getSpaceOccupancyData"
+      url: GLOBAL.BASE_URL + "SpaceOccupancy/getSpaceOccupancyData",
     });
 
     me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -152,7 +152,7 @@ Ext.define("DIRAC.SpaceOccupancy.classes.SpaceOccupancy", {
       groupField: "Site",
       scope: me,
       remoteSort: false,
-      autoLoad: true
+      autoLoad: true,
     });
 
     me.dataStore.sort("Endpoint", "ASC");
@@ -164,62 +164,62 @@ Ext.define("DIRAC.SpaceOccupancy.classes.SpaceOccupancy", {
           sortable: false,
           hideable: false,
           fixed: true,
-          menuDisabled: true
+          menuDisabled: true,
         },
-        renderFunction: "rendererStatus"
+        renderFunction: "rendererStatus",
       },
       Status: {
-        dataIndex: "Status"
+        dataIndex: "Status",
       },
 
       Site: {
         dataIndex: "Site",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       Endpoint: {
         dataIndex: "Endpoint",
         properties: {
           align: "left",
-          width: 350
-        }
+          width: 350,
+        },
       },
       StorageElement: {
         dataIndex: "StorageElement",
         properties: {
           align: "right",
-          width: 100
-        }
+          width: 100,
+        },
       },
       "% Free": {
         dataIndex: "Ratio",
         properties: {
           align: "right",
-          width: 80
-        }
+          width: 80,
+        },
       },
       "Total (MB)": {
         dataIndex: "Total",
         properties: {
           align: "right",
-          width: 80
-        }
+          width: 80,
+        },
       },
       "Guaranteed (MB)": {
         dataIndex: "Guaranteed",
         properties: {
           align: "right",
-          width: 80
-        }
+          width: 80,
+        },
       },
       LastCheckTime: {
         dataIndex: "LastCheckTime",
         properties: {
           align: "left",
-          width: 120
-        }
-      }
+          width: 120,
+        },
+      },
     };
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
@@ -228,13 +228,13 @@ Ext.define("DIRAC.SpaceOccupancy.classes.SpaceOccupancy", {
       scope: me,
       features: [
         {
-          ftype: "grouping"
-        }
-      ]
+          ftype: "grouping",
+        },
+      ],
     });
 
     me.leftPanel.setGrid(me.grid);
 
     me.add([me.leftPanel, me.grid]);
-  }
+  },
 });

@@ -13,7 +13,7 @@ Ext.define("Ext.dirac.core.Stateful", {
    *
    * @return {Object}
    */
-  getStateData: function() {
+  getStateData: function () {
     return {};
   },
   /**
@@ -23,9 +23,9 @@ Ext.define("Ext.dirac.core.Stateful", {
    * @param {Object}
    *          data Data used to set up the state
    */
-  loadState: function(oData) {},
-  getHelpText: function() {
+  loadState: function (oData) {},
+  getHelpText: function () {
     return {};
   },
-  setHelpText: function(text) {}
+  setHelpText: function (text) {},
 });

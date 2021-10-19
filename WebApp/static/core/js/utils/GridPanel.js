@@ -8,23 +8,23 @@ Ext.define("Ext.dirac.utils.GridPanel", {
   viewConfig: {
     stripeRows: true,
     enableTextSelection: true,
-    getRowClass: function() {
+    getRowClass: function () {
       return this.enableTextSelection ? "x-selectable" : "";
-    }
+    },
   },
   menu: null,
   scrollable: true,
   listeners: {
-    beforecellcontextmenu: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+    beforecellcontextmenu: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
       e.preventDefault();
       var me = this;
       if (me.menu) {
         me.menu.showAt(e.getXY());
       }
       return false;
-    }
+    },
   },
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.dataStore = new Ext.data.JsonStore({
@@ -35,14 +35,14 @@ Ext.define("Ext.dirac.utils.GridPanel", {
         extraParams: me.params,
         reader: {
           type: "json",
-          rootProperty: "result"
+          rootProperty: "result",
         },
         timeout: 1800000,
         listeners: {
-          exception: function(proxy, response, operation) {
+          exception: function (proxy, response, operation) {
             GLOBAL.APP.CF.showAjaxErrorMessage(response);
-          }
-        }
+          },
+        },
       },
 
       // alternatively, a Ext.data.Model name can be given
@@ -52,7 +52,7 @@ Ext.define("Ext.dirac.utils.GridPanel", {
       remoteSort: false,
       pageSize: 25,
       listeners: {
-        load: function(oStore, records, successful, eOpts) {
+        load: function (oStore, records, successful, eOpts) {
           if (oStore.proxy.reader.rawData) me.pagingToolbar.updateStamp.setText("Updated: " + oStore.proxy.reader.rawData["date"]);
 
           me.dataStore.remoteSort = false;
@@ -60,17 +60,17 @@ Ext.define("Ext.dirac.utils.GridPanel", {
           me.dataStore.remoteSort = true;
         },
 
-        beforeload: function(oStore, oOperation, eOpts) {
+        beforeload: function (oStore, oOperation, eOpts) {
           me.dataStore.lastDataRequest = oOperation;
-        }
-      }
+        },
+      },
     });
 
     me.pagingToolbar = {};
     me.pagingToolbar.updateStamp = new Ext.Button({
       disabled: true,
       // disabledClass:'my-disabled',
-      text: "Updated: -"
+      text: "Updated: -",
     });
 
     me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
@@ -84,16 +84,16 @@ Ext.define("Ext.dirac.utils.GridPanel", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["number"],
-        data: [[25], [50], [100], [200], [500], [1000]]
+        data: [[25], [50], [100], [200], [500], [1000]],
       }),
       triggerAction: "all",
       value: 25,
-      width: 50
+      width: 50,
     });
 
     me.pagingToolbar.pageSizeCombo.on(
       "change",
-      function(combo, newValue, oldValue, eOpts) {
+      function (combo, newValue, oldValue, eOpts) {
         var me = this;
         me.dataStore.pageSize = newValue;
         me.oprLoadGridData();
@@ -110,19 +110,19 @@ Ext.define("Ext.dirac.utils.GridPanel", {
       items: pagingToolbarItems,
       emptyMsg: "No topics to display",
       prependButtons: true,
-      scrollable: true
+      scrollable: true,
     });
 
     Ext.apply(me, {
       tbar: me.pagingToolbar.toolbar,
       store: me.dataStore,
-      columns: me.oColumns
+      columns: me.oColumns,
     });
     me.callParent(arguments);
   },
-  oprLoadGridData: function() {
+  oprLoadGridData: function () {
     var me = this;
     me.store.proxy.extraParams.limit = me.pagingToolbar.pageSizeCombo.getValue();
     me.store.load();
-  }
+  },
 });

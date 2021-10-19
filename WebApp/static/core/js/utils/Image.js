@@ -8,6 +8,6 @@ Ext.define("Ext.dirac.utils.Image", {
   isSetSrc: true,
   style: {
     borderColor: "white",
-    borderStyle: "solid"
-  }
+    borderStyle: "solid",
+  },
 });

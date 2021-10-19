@@ -7,14 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
-    - name: Install pre-commit
-      run: pip install pre-commit
-    - name: Run pre-commit
-      run: pre-commit run --all-files --show-diff-on-failure
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
 
   pyLint:
     runs-on: ubuntu-latest
@@ -36,43 +36,43 @@ jobs:
                 git diff -U0 "upstream/${REFERENCE_BRANCH}" | pycodestyle --diff
             fi
     steps:
-    - uses: actions/checkout@v2
-    - name: Prepare environment
-      run: |
-        conda env create -n python_${{ matrix.python }} python=${{ matrix.python }}
-    - name: Get DIRAC
-      run: |
-        source "${CONDA}/bin/activate"
-        conda activate python_${{ matrix.python }}
-        # get the DIRAC releases.cfg to know what to test against
-        curl -O https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/releases.cfg
-        # get the base WebApp tag (e.g. for rel-v4r0 branch it will be v4r0)
-        WebAppTag=$(echo "${REFERENCE_BRANCH}" | echo $(sed "s/rel-//g"))
-        echo "WebAppTag = ${WebAppTag}"
-        # Now find the DIRAC release (tag) to checkout
-        allreleases=$(diraccfg as-json releases.cfg | jq '.Releases' | diraccfg sort-versions --allow-pre-releases 2>/dev/null)
-        for x in ${allreleases}; do
-          rel=$(echo ${x} | sed "s/\"//g" | sed "s/\[//g" | sed "s/\]//g" | sed "s/,//g")
-          echo "Looking for rel = ${rel}"
-          modules=$(diraccfg as-json releases.cfg | jq ".Releases".\"${rel}\" | jq .Modules)
-          echo "With modules = ${modules}"
-          if [[ "${modules}" == *"WebAppDIRAC:${WebAppTag}"* ]]; then
-            echo "${rel}"
-            break
-          fi
-        done
-        echo "Clone DIRAC ${rel} to $(pwd)"
-        git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${rel}"
-        # Align with v7r2+ DIRAC versions (with src path)
-        cp -r DIRAC/src/DIRAC/* DIRAC/
-      env:
-        REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
-    - name: Run tests
-      run: |
-        source "${CONDA}/bin/activate"
-        conda activate python_${{ matrix.python }}
-        set -euxo pipefail
-        echo "${PWD}" > "${CONDA}/envs/python_${{ matrix.python }}/lib/python2.7/site-packages/conda.pth"
-        ${{ matrix.command }}
-      env:
-        REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
+      - uses: actions/checkout@v2
+      - name: Prepare environment
+        run: |
+          conda env create -n python_${{ matrix.python }} python=${{ matrix.python }}
+      - name: Get DIRAC
+        run: |
+          source "${CONDA}/bin/activate"
+          conda activate python_${{ matrix.python }}
+          # get the DIRAC releases.cfg to know what to test against
+          curl -O https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/releases.cfg
+          # get the base WebApp tag (e.g. for rel-v4r0 branch it will be v4r0)
+          WebAppTag=$(echo "${REFERENCE_BRANCH}" | echo $(sed "s/rel-//g"))
+          echo "WebAppTag = ${WebAppTag}"
+          # Now find the DIRAC release (tag) to checkout
+          allreleases=$(diraccfg as-json releases.cfg | jq '.Releases' | diraccfg sort-versions --allow-pre-releases 2>/dev/null)
+          for x in ${allreleases}; do
+            rel=$(echo ${x} | sed "s/\"//g" | sed "s/\[//g" | sed "s/\]//g" | sed "s/,//g")
+            echo "Looking for rel = ${rel}"
+            modules=$(diraccfg as-json releases.cfg | jq ".Releases".\"${rel}\" | jq .Modules)
+            echo "With modules = ${modules}"
+            if [[ "${modules}" == *"WebAppDIRAC:${WebAppTag}"* ]]; then
+              echo "${rel}"
+              break
+            fi
+          done
+          echo "Clone DIRAC ${rel} to $(pwd)"
+          git clone https://github.com/DIRACGrid/DIRAC.git --depth 1 --single-branch -b "${rel}"
+          # Align with v7r2+ DIRAC versions (with src path)
+          cp -r DIRAC/src/DIRAC/* DIRAC/
+        env:
+          REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}
+      - name: Run tests
+        run: |
+          source "${CONDA}/bin/activate"
+          conda activate python_${{ matrix.python }}
+          set -euxo pipefail
+          echo "${PWD}" > "${CONDA}/envs/python_${{ matrix.python }}/lib/python2.7/site-packages/conda.pth"
+          ${{ matrix.command }}
+        env:
+          REFERENCE_BRANCH: ${{ github['base_ref'] || github['head_ref'] }}

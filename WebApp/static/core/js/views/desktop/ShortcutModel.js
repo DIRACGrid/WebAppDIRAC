@@ -7,13 +7,13 @@ Ext.define("Ext.dirac.views.desktop.ShortcutModel", {
   extend: "Ext.data.Model",
   fields: [
     {
-      name: "name"
+      name: "name",
     },
     {
-      name: "iconCls"
+      name: "iconCls",
     },
     {
-      name: "module"
-    }
-  ]
+      name: "module",
+    },
+  ],
 });

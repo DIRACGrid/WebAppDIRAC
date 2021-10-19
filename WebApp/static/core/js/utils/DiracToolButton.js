@@ -17,7 +17,7 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
   menuAlign: "tl-bl?",
   menu: null,
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
     me.callParent(arguments);
     if (me.menu) {
@@ -30,7 +30,7 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
     }
   },
 
-  onRender: function() {
+  onRender: function () {
     var me = this;
 
     me.callParent(arguments);
@@ -38,19 +38,19 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
       me.mon(me.menu, {
         scope: me,
         show: me.onMenuShow,
-        hide: me.onMenuHide
+        hide: me.onMenuHide,
       });
 
       me.keyMap = new Ext.util.KeyMap({
         target: me.el,
         key: Ext.event.Event.DOWN,
         handler: me.onDownKey,
-        scope: me
+        scope: me,
       });
     }
   },
 
-  getRefItems: function(deep) {
+  getRefItems: function (deep) {
     var menu = this.menu,
       items;
 
@@ -61,7 +61,7 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
     return items || [];
   },
 
-  beforeDestroy: function() {
+  beforeDestroy: function () {
     var me = this;
 
     if (me.menu && me.destroyMenu !== false) {
@@ -71,7 +71,7 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
     me.callParent();
   },
 
-  showMenu: function() {
+  showMenu: function () {
     var me = this;
     if (me.rendered && me.menu) {
       if (me.menu.isVisible()) {
@@ -85,7 +85,7 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
   /**
    * Hides this button's menu (if it has one)
    */
-  hideMenu: function() {
+  hideMenu: function () {
     if (this.hasVisibleMenu()) {
       this.menu.hide();
     }
@@ -97,13 +97,13 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
    *
    * @return {Boolean}
    */
-  hasVisibleMenu: function() {
+  hasVisibleMenu: function () {
     var menu = this.menu;
     return menu && menu.rendered && menu.isVisible();
   },
 
   // private
-  onMenuShow: function(e) {
+  onMenuShow: function (e) {
     var me = this;
     me.ignoreNextClick = 0;
     me.addClsWithUI(me.menuActiveCls);
@@ -111,14 +111,14 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
   },
 
   // private
-  onMenuHide: function(e) {
+  onMenuHide: function (e) {
     var me = this;
     me.removeClsWithUI(me.menuActiveCls);
     me.ignoreNextClick = Ext.defer(me.restoreClick, 250, me);
     me.fireEvent("menuhide", me, me.menu);
   },
   // private
-  onDownKey: function() {
+  onDownKey: function () {
     var me = this;
 
     if (!me.disabled) {
@@ -127,10 +127,10 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
       }
     }
   },
-  restoreClick: function() {
+  restoreClick: function () {
     this.ignoreNextClick = 0;
   },
-  onDestroy: function() {
+  onDestroy: function () {
     var me = this;
     if (me.rendered) {
       Ext.destroy(me.keyMap);
@@ -139,7 +139,7 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
     me.callParent();
   },
   privates: {
-    onClick: function(e) {
+    onClick: function (e) {
       var me = this;
 
       if (!me.disabled) {
@@ -147,10 +147,10 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
         me.maybeShowMenu();
         me.fireHandler(e);
       }
-    }
+    },
   },
 
-  fireHandler: function(e) {
+  fireHandler: function (e) {
     var me = this,
       handler = me.handler;
 
@@ -162,10 +162,10 @@ Ext.define("Ext.dirac.utils.DiracToolButton", {
     }
   },
 
-  maybeShowMenu: function() {
+  maybeShowMenu: function () {
     var me = this;
     if (me.menu && !me.hasVisibleMenu() && !me.ignoreNextClick) {
       me.showMenu();
     }
-  }
+  },
 });

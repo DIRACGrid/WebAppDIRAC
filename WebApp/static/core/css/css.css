@@ -9,102 +9,101 @@
     Application and module loading message
 */
 
-#app-dirac-loading{
-    height:auto;
-    position:absolute;
-    left:45%;
-    top:40%;
-    padding:2px;
-    z-index:20001;
+#app-dirac-loading {
+  height: auto;
+  position: absolute;
+  left: 45%;
+  top: 40%;
+  padding: 2px;
+  z-index: 20001;
 }
 #app-dirac-loading a {
-    color:#225588;
+  color: #225588;
 }
-#app-dirac-loading .app-dirac-loading-indicator{
-    background:none;
-    color:#444;
-    font:bold 13px Helvetica, Arial, sans-serif;
-    height:auto;
-    margin:0;
-    padding:10px;
-    width:300px;
-    
+#app-dirac-loading .app-dirac-loading-indicator {
+  background: none;
+  color: #444;
+  font: bold 13px Helvetica, Arial, sans-serif;
+  height: auto;
+  margin: 0;
+  padding: 10px;
+  width: 300px;
 }
 #app-dirac-loading-msg {
-    font-size: 12px;
-    font-weight: normal;
+  font-size: 12px;
+  font-weight: normal;
 }
 
 /*----------------------------------------------------
     Application and module welcome intro
 */
 
-#app-dirac-welcome{
-    display: none;
-    height:100%;
-    width:100%;
-    position:absolute;
-    bottom:0;
-    background-color: gray;
-    opacity:0.8;
-    color: white;
-    font-size: 16px;
-    z-index: 1;
+#app-dirac-welcome {
+  display: none;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  background-color: gray;
+  opacity: 0.8;
+  color: white;
+  font-size: 16px;
+  z-index: 1;
 }
-#app-dirac-welcome .app-dirac-welcome-text{
-    margin:17%;
-    margin-top:3%;
-    padding-right: 15px;
-    text-shadow: 0px 0px 20px #333;
-    font-size: 16px;
-    overflow:auto;
-    height: 80%;
+#app-dirac-welcome .app-dirac-welcome-text {
+  margin: 17%;
+  margin-top: 3%;
+  padding-right: 15px;
+  text-shadow: 0px 0px 20px #333;
+  font-size: 16px;
+  overflow: auto;
+  height: 80%;
 }
-#app-dirac-welcome-visitor{
-    display: none;
+#app-dirac-welcome-visitor {
+  display: none;
 }
-#app-dirac-welcome .app-dirac-welcome-text::-webkit-scrollbar{
-    width:8px;
-    background-color: lightgray;
+#app-dirac-welcome .app-dirac-welcome-text::-webkit-scrollbar {
+  width: 8px;
+  background-color: lightgray;
 }
-#app-dirac-welcome .app-dirac-welcome-text::-webkit-scrollbar-thumb{
-    background: #000;
+#app-dirac-welcome .app-dirac-welcome-text::-webkit-scrollbar-thumb {
+  background: #000;
 }
-#app-dirac-welcome .app-dirac-welcome-text b{
-    color: #333;
-    text-shadow: 0px 0px 5px white;
+#app-dirac-welcome .app-dirac-welcome-text b {
+  color: #333;
+  text-shadow: 0px 0px 5px white;
 }
-#app-dirac-welcome-close{
-    position:absolute;
-    right:0;
-    top:0;
-    margin:3%;
-    background-color:white;
-    border-radius:50%;
-    font-size:28px;
-    width:50px;
-    height:50px;
-    color:grey;
-    border:none;
+#app-dirac-welcome-close {
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin: 3%;
+  background-color: white;
+  border-radius: 50%;
+  font-size: 28px;
+  width: 50px;
+  height: 50px;
+  color: grey;
+  border: none;
 }
-#app-dirac-welcome-close:hover{
-    font-size:36px;
-    border-radius:40%;
+#app-dirac-welcome-close:hover {
+  font-size: 36px;
+  border-radius: 40%;
 }
-#app-dirac-welcome .app-dirac-welcome-menu{
-    position:inherit;
-    bottom:0;
-    margin-bottom:30px;
-    padding: 10px;
-    font-family: 'comic sans ms';
+#app-dirac-welcome .app-dirac-welcome-menu {
+  position: inherit;
+  bottom: 0;
+  margin-bottom: 30px;
+  padding: 10px;
+  font-family: "comic sans ms";
 }
-#app-dirac-welcome .app-dirac-welcome-settings{
-    position:inherit;
-    right:0;
-    bottom:0;
-    margin-bottom:30px;
-    padding: 10px;
-    font-family: 'comic sans ms';
+#app-dirac-welcome .app-dirac-welcome-settings {
+  position: inherit;
+  right: 0;
+  bottom: 0;
+  margin-bottom: 30px;
+  padding: 10px;
+  font-family: "comic sans ms";
 }
 
 /*----------------------------------------------------
@@ -112,52 +111,51 @@
 */
 
 #msg-div {
-    position:absolute;
-    left:10px;
-    top:10px;
-    width:300px;
-    z-index:400000;
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 300px;
+  z-index: 400000;
 }
 #msg-div .msg {
-    border-radius: 4px;
-    -moz-border-radius: 4px;
-    background: #F6F6F6;
-    border: 1px solid #ccc;
-    margin-top: 2px;
-    padding: 10px 15px;
-    color: #555;
-    opacity:0.95;
-	filter:alpha(opacity=95);
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  background: #f6f6f6;
+  border: 1px solid #ccc;
+  margin-top: 2px;
+  padding: 10px 15px;
+  color: #555;
+  opacity: 0.95;
+  filter: alpha(opacity=95);
 }
 #msg-div .msg h3 {
-    margin: 0 0 8px;
-    font-weight: bold;
-    font-size: 15px;
+  margin: 0 0 8px;
+  font-weight: bold;
+  font-size: 15px;
 }
 #msg-div .msg p {
-    margin: 0;
+  margin: 0;
 }
-
 
 /*----------------------------------------------------
     Start Button
 */
 
 .ux-dirac-start-button-icon {
-    background-image: url(../img/icons/system/favicon.ico) !important;
-    background-color: transparent;
+  background-image: url(../img/icons/system/favicon.ico) !important;
+  background-color: transparent;
 }
 
 .ux-start-button .x-btn-arrow {
-    background-image: none;
+  background-image: none;
 }
 
 .ux-start-button .x-btn-arrow-right {
-    padding-left: 10px;
+  padding-left: 10px;
 }
 
 .ux-taskbar {
-    padding-left: 4px !important;
+  padding-left: 4px !important;
 }
 
 /*----------------------------------------------------
@@ -165,11 +163,11 @@
 */
 
 .ux-start-menu-toolbar .x-btn-inner {
-    text-align: left;
+  text-align: left;
 }
 
 .ux-start-menu-toolbar {
-    padding: 4px !important;
+  padding: 4px !important;
 }
 
 /*----------------------------------------------------
@@ -177,30 +175,30 @@
 */
 
 .ux-taskbar .x-toolbar {
-    background: transparent none;
-    border-color: transparent;
+  background: transparent none;
+  border-color: transparent;
 }
 
 .x-ie6 .ux-taskbar .x-toolbar {
-    border-color: #d3e1f1;
+  border-color: #d3e1f1;
 }
 
 .ux-desktop-windowbar .x-btn-inner,
 .x-nbr .ux-desktop-windowbar .x-btn-icon-text-left button {
-    text-align: left !important;
+  text-align: left !important;
 }
 
 .ux-taskbar .x-toolbar {
-    height: 28px;
+  height: 28px;
 }
 
 .ux-taskbar {
-    height: 28px;
-    padding: 0;
+  height: 28px;
+  padding: 0;
 }
 
 .x-toolbar .x-toolbar {
-    padding: 0;
+  padding: 0;
 }
 
 /*----------------------------------------------------
@@ -208,66 +206,65 @@
 */
 
 .ux-wallpaper {
-    background-color: #AAAAAA;
-    background-position:bottom right;
+  background-color: #aaaaaa;
+  background-position: bottom right;
 }
 
 .ux-wallpaper-tiled {
-    background-repeat:no-repeat;
+  background-repeat: no-repeat;
 }
 
 .ux-desktop-shortcut {
-    cursor: pointer;
-    text-align: center;
-    padding: 8px;
-    margin: 8px;
-    width: 64px;
+  cursor: pointer;
+  text-align: center;
+  padding: 8px;
+  margin: 8px;
+  width: 64px;
 }
 
 .ux-desktop-shortcut-icon {
-    width: 48px;
-    height: 48px;
-    background-color: transparent;
-    background-repeat: no-repeat;
+  width: 48px;
+  height: 48px;
+  background-color: transparent;
+  background-repeat: no-repeat;
 }
 
 .ux-desktop-shortcut-text {
-    font: normal 10px tahoma,arial,verdana,sans-serif;
-    text-decoration: none;
-    padding-top: 5px;
-    color: white;
+  font: normal 10px tahoma, arial, verdana, sans-serif;
+  text-decoration: none;
+  padding-top: 5px;
+  color: white;
 }
 
 .x-view-over .ux-desktop-shortcut-text {
-    text-decoration: underline;
+  text-decoration: underline;
 }
-
 
 /*----------------------------------------------------
     Various icon classes
 */
 
 .notepad {
-    background-image: url( ../img/icons/system/bogus.png ) !important;
+  background-image: url(../img/icons/system/bogus.png) !important;
 }
 
 .add {
-    background-image:url(../img/icons/fam/add.gif) !important;
+  background-image: url(../img/icons/fam/add.gif) !important;
 }
 .option {
-    background-image:url(../img/icons/fam/plugin.gif) !important;
+  background-image: url(../img/icons/fam/plugin.gif) !important;
 }
 .remove {
-    background-image:url(../img/icons/fam/delete.gif) !important;
+  background-image: url(../img/icons/fam/delete.gif) !important;
 }
 .save {
-    background-image:url(../img/icons/save.gif) !important;
+  background-image: url(../img/icons/save.gif) !important;
 }
 .accordion {
-    background-image:url(../img/icons/system/accordian.gif) !important;
+  background-image: url(../img/icons/system/accordian.gif) !important;
 }
 .tabs {
-    background-image:url(../img/icons/system/tabs.gif) !important;
+  background-image: url(../img/icons/system/tabs.gif) !important;
 }
 
 /*----------------------------------------------------
@@ -275,96 +272,86 @@
 */
 
 .user {
-    background-image:url( ../img/icons/fam/user.gif ) !important;
+  background-image: url(../img/icons/fam/user.gif) !important;
 }
 
 .user-add {
-    background-image:url(../img/icons/fam/user_add.gif) !important;
+  background-image: url(../img/icons/fam/user_add.gif) !important;
 }
 
 .user-delete {
-    background-image:url(../img/icons/fam/user_delete.gif) !important;
+  background-image: url(../img/icons/fam/user_delete.gif) !important;
 }
 
 .connect {
-    background-image:url(../img/icons/fam/connect.gif) !important;
+  background-image: url(../img/icons/fam/connect.gif) !important;
 }
 
 .user-suit {
-    background-image:url(../img/icons/fam/user_suit.gif) !important;
+  background-image: url(../img/icons/fam/user_suit.gif) !important;
 }
 
 .toolbar-other-load {
-    background-image:url(../img/icons/system/_tool_load.png) !important;
-    background-size:16px 16px;
+  background-image: url(../img/icons/system/_tool_load.png) !important;
+  background-size: 16px 16px;
 }
 
 .toolbar-other-manage {
-    background-image:url(../img/icons/system/_tool_manage.png) !important;
-    background-size:16px 16px;
+  background-image: url(../img/icons/system/_tool_manage.png) !important;
+  background-size: 16px 16px;
 }
 
 .toolbar-other-refresh {
-    background-image:url(../img/icons/system/_tool_refresh.png) !important;
-    background-size:16px 16px;
+  background-image: url(../img/icons/system/_tool_refresh.png) !important;
+  background-size: 16px 16px;
 }
 
 .toolbar-other-tile {
-    background-image:url(../img/icons/system/_tool_tile.png) !important;
-    background-size:16px 16px;
+  background-image: url(../img/icons/system/_tool_tile.png) !important;
+  background-size: 16px 16px;
 }
 
 .toolbar-other-cascade {
-    background-image:url(../img/icons/system/_tool_cascade.png) !important;
-    background-size:16px 16px;
+  background-image: url(../img/icons/system/_tool_cascade.png) !important;
+  background-size: 16px 16px;
 }
 
 .toolbar-other-close {
-    background-image:url(../img/icons/system/close.gif) !important;
-    background-size:16px 16px;
+  background-image: url(../img/icons/system/close.gif) !important;
+  background-size: 16px 16px;
 }
 
-.x-hidden-loading-message{
-	
-	visibility:hidden;
-	
+.x-hidden-loading-message {
+  visibility: hidden;
 }
 
 .system_link_icon {
-    background-image:url(../img/icons/system/_link.png) !important;
-    background-size:16px 16px;
+  background-image: url(../img/icons/system/_link.png) !important;
+  background-size: 16px 16px;
 }
 
-.system_web_window{
-	
-	background-image:url(../img/icons/system/_web.png) !important;
-    background-size:16px 16px;
-	
+.system_web_window {
+  background-image: url(../img/icons/system/_web.png) !important;
+  background-size: 16px 16px;
 }
 
-.system_folder{
-	
-	background-image:url(../img/icons/system/_folder.png) !important;
-    background-size:16px 16px;
-	
+.system_folder {
+  background-image: url(../img/icons/system/_folder.png) !important;
+  background-size: 16px 16px;
 }
 
-.system_child_window{
-	
-	background-image:url(../img/icons/system/_child_window.png) !important;
-    background-size:16px 16px;
-	
+.system_child_window {
+  background-image: url(../img/icons/system/_child_window.png) !important;
+  background-size: 16px 16px;
 }
 
-.system_pin_window{
-	
-	background-image:url(../img/icons/system/_pin.png) !important;
-    background-size:16px 16px;
-	
+.system_pin_window {
+  background-image: url(../img/icons/system/_pin.png) !important;
+  background-size: 16px 16px;
 }
 
 .loading_item {
-    background-image: url( ../img/icons/system/loading.gif ) !important;
+  background-image: url(../img/icons/system/loading.gif) !important;
 }
 
 .dirac-table-main-check-box {

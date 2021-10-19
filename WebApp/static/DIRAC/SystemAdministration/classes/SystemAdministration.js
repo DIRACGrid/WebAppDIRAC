@@ -10,10 +10,10 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     "Ext.dirac.utils.DiracJsonStore",
     "Ext.dirac.utils.DiracAjaxProxy",
     "Ext.dirac.utils.Printer",
-    "Ext.dirac.utils.DiracBaseSelector"
+    "Ext.dirac.utils.DiracBaseSelector",
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
@@ -48,14 +48,14 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       defaults: {
         collapsible: true,
         split: true,
-        bodyPadding: 5
-      }
+        bodyPadding: 5,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.locationGrid.loadState(data);
@@ -75,13 +75,13 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var states = {};
 
     states = {
       grid: me.locationGrid.getStateData(),
-      leftMenu: me.leftPanel.getStateData()
+      leftMenu: me.leftPanel.getStateData(),
     };
 
     states.leftPanelCollapsed = me.leftPanel.collapsed;
@@ -91,7 +91,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     return states;
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     me.systemInfoDataStore = new Ext.data.JsonStore({
@@ -101,82 +101,82 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         reader: {
           keepRawData: true,
           type: "json",
-          rootProperty: "result"
+          rootProperty: "result",
         },
         timeout: 1800000,
-        autoLoad: true
+        autoLoad: true,
       },
       autoLoad: true,
       fields: [
         {
-          name: "Host"
+          name: "Host",
         },
         {
-          name: "Status"
+          name: "Status",
         },
         {
-          name: "DIRAC"
+          name: "DIRAC",
         },
         {
-          name: "Load1"
+          name: "Load1",
         },
         {
-          name: "Load5"
+          name: "Load5",
         },
         {
-          name: "Load15"
+          name: "Load15",
         },
         {
-          name: "Memory"
+          name: "Memory",
         },
         {
-          name: "Disk"
+          name: "Disk",
         },
         {
-          name: "Swap"
+          name: "Swap",
         },
         {
-          name: "CPUClock"
+          name: "CPUClock",
         },
         {
-          name: "CPUModel"
+          name: "CPUModel",
         },
         {
-          name: "CertificateDN"
+          name: "CertificateDN",
         },
         {
-          name: "CertificateIssuer"
+          name: "CertificateIssuer",
         },
         {
-          name: "CertificateValidity"
+          name: "CertificateValidity",
         },
         {
-          name: "Cores"
+          name: "Cores",
         },
         {
-          name: "PhysicalCores"
+          name: "PhysicalCores",
         },
         {
-          name: "OpenFiles"
+          name: "OpenFiles",
         },
         {
-          name: "OpenPipes"
+          name: "OpenPipes",
         },
         {
-          name: "OpenSockets"
+          name: "OpenSockets",
         },
         {
-          name: "Setup"
+          name: "Setup",
         },
         {
-          name: "Uptime"
-        }
+          name: "Uptime",
+        },
       ],
       remoteSort: true,
       pageSize: 100,
       createTabsOnce: false,
       listeners: {
-        load: function(oStore, records, successful, eOpts) {
+        load: function (oStore, records, successful, eOpts) {
           var bResponseOK = oStore.proxy.reader.rawData["success"] == "true";
 
           if (!bResponseOK) {
@@ -193,8 +193,8 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
             me.systemInfoDataStore.sort();
             me.systemInfoDataStore.remoteSort = true;
           }
-        }
-      }
+        },
+      },
     });
 
     me.checkboxFunctionDefinition = '<input type="checkbox" value="" onchange="';
@@ -204,7 +204,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     me.checkboxFunctionDefinition += '" class="sa-main-check-box"/>';
 
     me.versionText = new Ext.form.TextField({
-      emptyText: "version"
+      emptyText: "version",
     });
 
     var oGridButtonsToolbar = new Ext.create("Ext.toolbar.Toolbar", {
@@ -213,42 +213,42 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         {
           xtype: "button",
           text: "Restart",
-          handler: function() {
+          handler: function () {
             me.oprHostAction("restart", 2);
           },
           iconCls: "dirac-icon-restart",
-          scope: me
+          scope: me,
         },
         {
           text: "Revert",
-          handler: function() {
+          handler: function () {
             me.oprHostAction("revert", 2);
           },
           iconCls: "dirac-icon-revert",
-          scope: me
+          scope: me,
         },
         "-",
         me.versionText,
         {
           text: "Update",
-          handler: function() {
+          handler: function () {
             me.oprHostAction("update", 2);
           },
           iconCls: "dirac-icon-update",
-          scope: me
+          scope: me,
         },
-        "-"
-      ]
+        "-",
+      ],
     });
 
     if ("properties" in GLOBAL.USER_CREDENTIALS && Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, "AlarmsManagement") != -1) {
       oGridButtonsToolbar.add({
         text: "Send e-mail",
-        handler: function() {
+        handler: function () {
           me.oprShowSendMessageForm(2);
         },
         scope: me,
-        iconCls: "dirac-icon-mail"
+        iconCls: "dirac-icon-mail",
       });
     }
 
@@ -264,10 +264,10 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       header: false,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       selModel: {
-        mode: "MULTI"
+        mode: "MULTI",
       },
       dockedItems: [oGridButtonsToolbar],
       columns: [
@@ -276,156 +276,156 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           width: 36,
           sortable: false,
           dataIndex: "Host",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererChkBox(value);
           },
           hideable: false,
           fixed: true,
           menuDisabled: true,
-          align: "center"
+          align: "center",
         },
         {
           align: "left",
           dataIndex: "Host",
           header: "Hostname",
           sortable: true,
-          width: 200
+          width: 200,
         },
         {
           align: "left",
           dataIndex: "Status",
           header: "Status",
           sortable: true,
-          width: 40
+          width: 40,
         },
         {
           align: "left",
           dataIndex: "DIRAC",
           header: "Version",
           // renderer : releaseNotes,
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "Load1",
           header: "Load 1 minute",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "Load5",
           header: "Load 5 minutes",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "Load15",
           header: "Load 15 minutes",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "Memory",
           fixed: true,
           header: "Memory",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererValueBar(value);
           },
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "DiskOccupancy",
           header: "Disk",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "Swap",
           fixed: true,
           header: "Swap",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererValueBar(value);
           },
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "CPUClock",
           header: "CPUClock",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "CPUModel",
           header: "CPUModel",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "CertificateDN",
           header: "CertificateDN",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "CertificateIssuer",
           header: "CertificateIssuer",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "CertificateValidity",
           header: "CertificateValidity",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "Cores",
           header: "Cores",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "PhysicalCores",
           header: "PhysicalCores",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "OpenFiles",
           header: "OpenFiles",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "OpenPipes",
           header: "OpenPipes",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "OpenSockets",
           header: "OpenSockets",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "Setup",
           header: "Setup",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "Uptime",
           header: "Uptime",
-          sortable: true
-        }
+          sortable: true,
+        },
       ],
-      rendererChkBox: function(val) {
+      rendererChkBox: function (val) {
         return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
       },
-      rendererValueBar: function(value) {
+      rendererValueBar: function (value) {
         if (!value) {
           return;
         }
@@ -443,13 +443,13 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
 
         percent = "." + percent;
 
-        var oFunc = function(id, text, percent) {
+        var oFunc = function (id, text, percent) {
           new Ext.ProgressBar({
             height: 14,
             renderTo: id,
             text: text,
             value: percent,
-            height: 18
+            height: 18,
           });
         };
 
@@ -458,19 +458,19 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         return '<span id="' + id + '"></span>';
       },
       listeners: {
-        beforecellcontextmenu: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        beforecellcontextmenu: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           e.preventDefault();
           me.overallContextMenu.showAt(e.getXY());
           return false;
         },
 
-        cellclick: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        cellclick: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           if (cellIndex != 0) {
             me.hostGridStore.proxy.extraParams.hostname = record.get("Host");
             me.hostGridStore.load();
           }
-        }
-      }
+        },
+      },
     });
 
     me.createBottomGridToolbar(me.systemInfoGrid);
@@ -482,64 +482,64 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     me.overallContextMenu = new Ext.menu.Menu({
       items: [
         {
-          handler: function() {
+          handler: function () {
             me.oprHostAction("restart", 1);
           },
           text: "Restart",
-          iconCls: "dirac-icon-restart"
+          iconCls: "dirac-icon-restart",
         },
         {
-          handler: function() {
+          handler: function () {
             me.oprHostAction("revert", 1);
           },
           text: "Revert",
-          iconCls: "dirac-icon-revert"
+          iconCls: "dirac-icon-revert",
         },
         "-",
         {
-          handler: function() {
+          handler: function () {
             me.oprGetHostErrors();
           },
           text: "Show Errors",
-          iconCls: "dirac-icon-error"
-        }
-      ]
+          iconCls: "dirac-icon-error",
+        },
+      ],
     });
 
     me.hostContextMenu = new Ext.menu.Menu({
       items: [
         {
-          handler: function() {
+          handler: function () {
             var oRecord = this.up("menu").selected_record;
             me.oprGetHostLog(oRecord);
           },
           text: "Log",
-          iconCls: "dirac-icon-log"
+          iconCls: "dirac-icon-log",
         },
         "-",
         {
-          handler: function() {
+          handler: function () {
             me.oprComponentAction("restart", 1);
           },
           text: "Restart",
-          iconCls: "dirac-icon-restart"
+          iconCls: "dirac-icon-restart",
         },
         {
-          handler: function() {
+          handler: function () {
             me.oprComponentAction("stop", 1);
           },
           text: "Stop",
-          iconCls: "dirac-icon-stop"
+          iconCls: "dirac-icon-stop",
         },
         {
-          handler: function() {
+          handler: function () {
             var oGrid = this.up("menu").grid;
             me.oprComponentAction("start", 1);
           },
           text: "Start",
-          iconCls: "dirac-icon-start"
-        }
-      ]
+          iconCls: "dirac-icon-start",
+        },
+      ],
     });
 
     me.hostGridStore = new Ext.data.JsonStore({
@@ -549,62 +549,62 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         reader: {
           keepRawData: true,
           type: "json",
-          rootProperty: "result"
+          rootProperty: "result",
         },
         timeout: 1800000,
         extraParams: {
-          hostname: ""
-        }
+          hostname: "",
+        },
       },
       groupField: "Type",
       fields: [
         {
-          name: "System"
+          name: "System",
         },
         {
-          name: "Host"
+          name: "Host",
         },
         {
-          name: "Name"
+          name: "Name",
         },
         {
-          name: "Setup"
+          name: "Setup",
         },
         {
-          name: "PID"
+          name: "PID",
         },
         {
-          name: "RunitStatus"
+          name: "RunitStatus",
         },
         {
-          name: "Module"
+          name: "Module",
         },
         {
-          name: "Installed"
+          name: "Installed",
         },
         {
-          name: "Timeup"
+          name: "Timeup",
         },
         {
-          name: "Type"
+          name: "Type",
         },
         {
-          name: "CPU"
+          name: "CPU",
         },
         {
-          name: "MEM"
+          name: "MEM",
         },
         {
-          name: "RSS"
+          name: "RSS",
         },
         {
-          name: "VSZ"
-        }
+          name: "VSZ",
+        },
       ],
       remoteSort: false,
       pageSize: 10000,
       listeners: {
-        load: function(oStore, records, successful, eOpts) {
+        load: function (oStore, records, successful, eOpts) {
           var bResponseOK = oStore.proxy.getReader().rawData["success"] == "true";
 
           if (!bResponseOK) {
@@ -615,8 +615,8 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
               else oStore.updateStamp.setText(me.getUtcDate());
             }
           }
-        }
-      }
+        },
+      },
     });
 
     var sId = Ext.id();
@@ -632,7 +632,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     var oGroupingFeature = Ext.create("Ext.grid.feature.Grouping", {
       groupHeaderTpl: '{columnName}: {name} ({rows.length} Item{[values.rows.length > 1 ? "s" : ""]})',
       hideGroupedHeader: true,
-      startCollapsed: false
+      startCollapsed: false,
     });
 
     var oGridButtonsToolbar = new Ext.create("Ext.toolbar.Toolbar", {
@@ -642,32 +642,32 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           xtype: "button",
           text: "Restart",
           iconCls: "dirac-icon-restart",
-          handler: function() {
+          handler: function () {
             me.oprComponentAction("restart", 2);
-          }
+          },
         },
         {
           text: "Start",
           iconCls: "dirac-icon-start",
-          handler: function() {
+          handler: function () {
             me.oprComponentAction("start", 2);
-          }
+          },
         },
         {
           text: "Stop",
           iconCls: "dirac-icon-stop",
-          handler: function() {
+          handler: function () {
             me.oprComponentAction("stop", 2);
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     me.hostGrid = Ext.create("Ext.grid.Panel", {
       region: "center",
       collapsible: false,
       selModel: {
-        mode: "MULTI"
+        mode: "MULTI",
       },
       store: me.hostGridStore,
       header: false,
@@ -679,7 +679,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       id: sId,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       features: [oGroupingFeature],
       dockedItems: [oGridButtonsToolbar],
@@ -689,55 +689,55 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           width: 36,
           sortable: false,
           dataIndex: "System",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererChkBox(record.get("Name") + "|||" + record.get("Host") + "|||" + record.get("System"));
           },
           hideable: false,
           fixed: true,
           menuDisabled: true,
-          align: "center"
+          align: "center",
         },
         {
           align: "left",
           dataIndex: "System",
           header: "System",
           sortable: true,
-          width: 150
+          width: 150,
         },
         {
           align: "left",
           dataIndex: "Name",
           header: "Name",
           sortable: true,
-          width: 150
+          width: 150,
         },
         {
           align: "left",
           dataIndex: "Module",
           header: "Module",
           sortable: true,
-          width: 150
+          width: 150,
         },
         {
           align: "left",
           dataIndex: "Type",
           header: "Type",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "RunitStatus",
           header: "Status",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "Timeup",
           header: "Uptime",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererUptime(value, record);
           },
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
@@ -745,7 +745,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           header: "PID",
           xtype: "numbercolumn",
           format: "0.000",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
@@ -753,13 +753,13 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           header: "CPU(%)",
           xtype: "numbercolumn",
           format: "0.000",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
           dataIndex: "MEM",
           header: "MEM(%)",
-          sortable: true
+          sortable: true,
         },
         {
           align: "left",
@@ -768,9 +768,9 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           xtype: "numbercolumn",
           format: "0.000",
           sortable: true,
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererMB(value);
-          }
+          },
         },
         {
           align: "left",
@@ -779,15 +779,15 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           xtype: "numbercolumn",
           format: "0.000",
           sortable: true,
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererMB(value);
-          }
-        }
+          },
+        },
       ],
-      rendererChkBox: function(val) {
+      rendererChkBox: function (val) {
         return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
       },
-      rendererUptime: function(value, record) {
+      rendererUptime: function (value, record) {
         if (record.get("RunitStatus") != "Run") {
           return "<b>&mdash;</b>";
         }
@@ -802,18 +802,18 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         }
         return value;
       },
-      rendererMB: function(value) {
+      rendererMB: function (value) {
         return value / 1024; // convert to MB
       },
       listeners: {
-        beforecellcontextmenu: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        beforecellcontextmenu: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           e.preventDefault();
           me.hostContextMenu.selected_record = record;
 
           me.hostContextMenu.showAt(e.getXY());
           return false;
-        }
-      }
+        },
+      },
     });
 
     me.createBottomGridToolbar(me.hostGrid);
@@ -821,13 +821,13 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     var selectors = {
       ComponentModule: "Component Module",
       ComponentName: "Component Name",
-      Hosts: "Hosts"
+      Hosts: "Hosts",
     };
 
     var map = [
       ["ComponentModule", "ComponentModule"],
       ["ComponentName", "ComponentName"],
-      ["Hosts", "Hosts"]
+      ["Hosts", "Hosts"],
     ];
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -846,26 +846,26 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       minWidth: 100,
       maxWidth: 450,
       // bodyPadding : 5,
-      autoScroll: true
+      autoScroll: true,
     });
 
     // Buttons at the top of the panel
     var selButtons = new Ext.create("Ext.toolbar.Toolbar", {
       dock: "bottom",
       layout: {
-        pack: "center"
+        pack: "center",
       },
-      items: []
+      items: [],
     });
 
     var btnapply = new Ext.Button({
       text: "Show hosts",
       margin: 3,
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         me.__getHosts();
       },
-      scope: me
+      scope: me,
     });
 
     selButtons.add(btnapply);
@@ -886,143 +886,143 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
               name: "Services",
               inputValue: "1",
               checked: true,
-              handler: function() {
+              handler: function () {
                 me.__loadSelectionData();
-              }
+              },
             },
             {
               boxLabel: "Agents",
               name: "Agents",
               inputValue: "2",
               checked: true,
-              handler: function() {
+              handler: function () {
                 me.__loadSelectionData();
-              }
+              },
             },
             {
               boxLabel: "Executors",
               name: "Executors",
               inputValue: "3",
               checked: true,
-              handler: function() {
+              handler: function () {
                 me.__loadSelectionData();
-              }
-            }
-          ]
-        }
-      ]
+              },
+            },
+          ],
+        },
+      ],
     });
 
     var hostColumns = {
       Host: {
         dataIndex: "Host",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       ComponentModule: {
         dataIndex: "ComponentModule",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       ComponentName: {
         dataIndex: "ComponentName",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
 
       Description: {
         dataIndex: "Description",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       Setup: {
         dataIndex: "Setup",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       Port: {
         dataIndex: "Port",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       Type: {
         dataIndex: "Type",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       Status: {
         dataIndex: "Status",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       LastHeartbeat: {
         dataIndex: "LastHeartbeat",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       LoggingState: {
         dataIndex: "LoggingState",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       Version: {
         dataIndex: "Version",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       Platform: {
         dataIndex: "Platform",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       DIRACVersion: {
         dataIndex: "DIRACVersion",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       VersionTimestamp: {
         dataIndex: "VersionTimestamp",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       StartTime: {
         dataIndex: "StartTime",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       Queries: {
         dataIndex: "queries",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
+        },
       },
       Cycles: {
         dataIndex: "cycles",
-        renderer: function(value, metaData, record, row, col, store, gridView) {
+        renderer: function (value, metaData, record, row, col, store, gridView) {
           return me.rendererGridColumn(value, record);
-        }
-      }
+        },
+      },
     };
 
     var hostProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
       url: GLOBAL.BASE_URL + me.applicationName + "/ComponentLocation",
       extraParams: me.getSelectedData(),
-      autoLoad: false
+      autoLoad: false,
     });
 
     me.hostsStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -1031,79 +1031,79 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       autoLoad: false,
       fields: [
         {
-          name: "Host"
+          name: "Host",
         },
         {
-          name: "Status"
+          name: "Status",
         },
         {
-          name: "LoggingState"
+          name: "LoggingState",
         },
         {
-          name: "Version"
+          name: "Version",
         },
         {
-          name: "Description"
+          name: "Description",
         },
         {
-          name: "ComponentModule"
+          name: "ComponentModule",
         },
         {
-          name: "ComponentName"
+          name: "ComponentName",
         },
         {
-          name: "Setup"
+          name: "Setup",
         },
         {
-          name: "Port"
+          name: "Port",
         },
         {
-          name: "Platform"
+          name: "Platform",
         },
         {
-          name: "DIRACVersion"
+          name: "DIRACVersion",
         },
         {
-          name: "VersionTimestamp"
+          name: "VersionTimestamp",
         },
         {
-          name: "StartTime"
+          name: "StartTime",
         },
         {
-          name: "queries"
+          name: "queries",
         },
         {
-          name: "cycles"
+          name: "cycles",
         },
         {
-          name: "Type"
+          name: "Type",
         },
         {
-          name: "LastHeartbeat"
-        }
+          name: "LastHeartbeat",
+        },
       ],
-      scope: me
+      scope: me,
     });
 
     me.showAll = Ext.create("Ext.button.Button", {
       text: "ShowAll",
       value: 0,
-      handler: function() {
+      handler: function () {
         me.showAll.value = 1;
         me.showActive.show();
         me.showAll.hide();
         me.__getHosts(true);
-      }
+      },
     });
     me.showActive = Ext.create("Ext.button.Button", {
       hidden: true,
       text: "Show active",
-      handler: function() {
+      handler: function () {
         me.showAll.value = 0;
         me.showActive.hide();
         me.showAll.show();
         me.__getHosts(false);
-      }
+      },
     });
     me.locationGrid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
       region: "south",
@@ -1116,43 +1116,43 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       maxHeight: 400,
       features: [
         {
-          ftype: "grouping"
-        }
+          ftype: "grouping",
+        },
       ],
       scope: me,
       listeners: {
-        cellclick: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        cellclick: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           me.hostGridStore.proxy.extraParams.hostname = record.get("Host");
           me.hostGridStore.load();
-        }
+        },
       },
 
       tbar: [
         {
           text: "Print",
           iconCls: "dirac-icon-print",
-          handler: function() {
+          handler: function () {
             Ext.dirac.utils.Printer.printAutomatically = false;
             Ext.dirac.utils.Printer.print(me.locationGrid);
-          }
+          },
         },
         me.showAll,
-        me.showActive
-      ]
+        me.showActive,
+      ],
     });
 
     me.locationGrid.store.sort([
       {
         property: "LastHeartbeat",
-        direction: "DESC"
-      }
+        direction: "DESC",
+      },
     ]);
     me.leftPanel.setGrid(me.locationGrid);
     me.leftPanel.add([me.chkBoxes, me.cmbModules, me.cmbSystems]);
     me.add([me.systemInfoGrid, me.hostGrid, me.leftPanel, me.locationGrid]);
   },
 
-  oprGetHostLog: function(oRecord) {
+  oprGetHostLog: function (oRecord) {
     var me = this;
     var sHostName = oRecord.get("Host");
     var sComponent = oRecord.get("Name");
@@ -1163,10 +1163,10 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       params: {
         component: sComponent,
         host: sHostName,
-        system: sSystem
+        system: sSystem,
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var me = this;
         var response = Ext.JSON.decode(response.responseText);
         me.getContainer().body.unmask();
@@ -1177,14 +1177,14 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           GLOBAL.APP.CF.alert(response["error"], "error");
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         me.getContainer().body.unmask();
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
 
-  oprGetHostErrors: function() {
+  oprGetHostErrors: function () {
     var me = this;
 
     var sHostName = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.systemInfoGrid, "Host");
@@ -1192,10 +1192,10 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "SystemAdministration/getHostErrors",
       params: {
-        host: sHostName
+        host: sHostName,
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var me = this;
         var response = Ext.JSON.decode(response.responseText);
         me.getContainer().body.unmask();
@@ -1204,13 +1204,13 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           var menu = [
             {
               text: "Log",
-              handler: function() {
+              handler: function () {
                 var oRecord = this.up("menu").selected_record;
                 me.oprGetHostLog(oRecord);
               },
               text: "Log",
-              iconCls: "dirac-icon-log"
-            }
+              iconCls: "dirac-icon-log",
+            },
           ];
 
           me.__oprPrepareAndShowWindowGrid(
@@ -1221,29 +1221,29 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
               {
                 text: "System",
                 sortable: true,
-                dataIndex: "System"
+                dataIndex: "System",
               },
               {
                 text: "Component",
                 sortable: true,
-                dataIndex: "Name"
+                dataIndex: "Name",
               },
               {
                 text: "Errors per day",
                 sortable: true,
-                dataIndex: "ErrorsDay"
+                dataIndex: "ErrorsDay",
               },
               {
                 text: "Errors per hour",
                 sortable: true,
-                dataIndex: "ErrorsHour"
+                dataIndex: "ErrorsHour",
               },
               {
                 text: "Last Error",
                 sortable: true,
                 dataIndex: "LastError",
-                flex: 1
-              }
+                flex: 1,
+              },
             ],
             menu
           );
@@ -1251,14 +1251,14 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           GLOBAL.APP.CF.alert(response["error"], "error");
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         me.getContainer().body.unmask();
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
 
-  __oprPrepareAndShowWindowText: function(sTextToShow, component, system, hostname) {
+  __oprPrepareAndShowWindowText: function (sTextToShow, component, system, hostname) {
     var me = this;
 
     var oWindow = me.getContainer().createChildWindow("Log file for: " + component + "/" + system + "@" + hostname, false, 800, 500);
@@ -1269,23 +1269,23 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       compParams: {
         host: hostname,
         component: component,
-        system: system
+        system: system,
       },
       iconCls: "dirac-icon-refresh",
-      handler: function() {
+      handler: function () {
         var me = this;
         me.up().remove(0);
         me.setLoading("Refreshing log...");
         Ext.Ajax.request({
           url: GLOBAL.BASE_URL + "SystemAdministration/getHostLog",
           params: me.compParams,
-          success: function(response) {
+          success: function (response) {
             var response = Ext.JSON.decode(response.responseText);
             if (response["success"] == "true") {
               response["result"] = response["result"].replace(new RegExp("<br>", "g"), "\n");
               var oTextArea = new Ext.create("Ext.form.field.TextArea", {
                 value: response["result"],
-                cls: "sa-textbox-help-window"
+                cls: "sa-textbox-help-window",
               });
 
               me.up().add(oTextArea);
@@ -1295,17 +1295,17 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
               me.setLoading(false);
             }
           },
-          failure: function(response) {
+          failure: function (response) {
             me.setLoading(false);
             GLOBAL.APP.CF.showAjaxErrorMessage(response);
-          }
+          },
         });
-      }
+      },
     });
 
     var oTextArea = new Ext.create("Ext.form.field.TextArea", {
       value: sTextToShow,
-      cls: "sa-textbox-help-window"
+      cls: "sa-textbox-help-window",
     });
 
     oWindow.addDocked(refreshButton);
@@ -1314,12 +1314,12 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     oWindow.show();
   },
 
-  __oprPrepareAndShowWindowGrid: function(oData, sTitle, oFields, oColumns, menu) {
+  __oprPrepareAndShowWindowGrid: function (oData, sTitle, oFields, oColumns, menu) {
     var me = this;
 
     var oStore = new Ext.data.JsonStore({
       fields: oFields,
-      data: oData
+      data: oData,
     });
 
     var oWindow = me.getContainer().createChildWindow(sTitle, false, 800, 500);
@@ -1329,21 +1329,21 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       columns: oColumns,
       width: "100%",
       selModel: {
-        mode: "MULTI"
+        mode: "MULTI",
       },
       viewConfig: {
         stripeRows: true,
         enableTextSelection: true,
         listeners: {
-          render: function(view) {
+          render: function (view) {
             var grid = this;
 
             // record the current cellIndex
             grid.mon(view, {
-              uievent: function(type, view, cell, recordIndex, cellIndex, e) {
+              uievent: function (type, view, cell, recordIndex, cellIndex, e) {
                 grid.cellIndex = cellIndex;
                 grid.recordIndex = recordIndex;
-              }
+              },
             });
 
             grid.tip = Ext.create("Ext.tip.ToolTip", {
@@ -1355,25 +1355,20 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
                 beforeshow: function updateTipBody(tip) {
                   if (!Ext.isEmpty(grid.cellIndex) && grid.cellIndex !== -1) {
                     header = grid.headerCt.getGridColumns()[grid.cellIndex];
-                    tip.update(
-                      grid
-                        .getStore()
-                        .getAt(grid.recordIndex)
-                        .get(header.dataIndex)
-                    );
+                    tip.update(grid.getStore().getAt(grid.recordIndex).get(header.dataIndex));
                   }
-                }
-              }
+                },
+              },
             });
           },
-          destroy: function(view) {
+          destroy: function (view) {
             delete view.tip; // Clean up this property on destroy.
-          }
-        }
+          },
+        },
       },
       menu: null,
       listeners: {
-        beforecellcontextmenu: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        beforecellcontextmenu: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           e.preventDefault();
           var me = this;
           if (me.menu) {
@@ -1381,8 +1376,8 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
             me.menu.showAt(e.getXY());
           }
           return false;
-        }
-      }
+        },
+      },
     });
 
     if (menu) {
@@ -1396,7 +1391,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     oWindow.show();
   },
 
-  __executeAction: function(sAction, sEventSource) {
+  __executeAction: function (sAction, sEventSource) {
     var me = this;
     var sHost = "";
 
@@ -1424,10 +1419,10 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       params: {
         action: sAction,
         host: sHost,
-        version: me.versionText.getValue()
+        version: me.versionText.getValue(),
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var me = this;
         var response = Ext.JSON.decode(response.responseText);
 
@@ -1438,20 +1433,20 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           GLOBAL.APP.CF.alert(response["error"], "error");
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         me.getContainer().body.unmask();
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
-  oprHostAction: function(sAction, sEventSource) {
+  oprHostAction: function (sAction, sEventSource) {
     var me = this;
 
     message = "Do you want to " + sAction + "?";
     Ext.MessageBox.confirm(
       "Confirm",
       message,
-      function(button) {
+      function (button) {
         var me = this;
         if (button === "yes") {
           me.__executeAction(sAction, sEventSource);
@@ -1461,10 +1456,10 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     );
   },
 
-  __executeComponentAction: function(sAction, sEventSource) {
+  __executeComponentAction: function (sAction, sEventSource) {
     var me = this;
     var oParams = {
-      action: sAction
+      action: sAction,
     };
 
     if (sEventSource == 1) {
@@ -1499,7 +1494,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       url: GLOBAL.BASE_URL + "SystemAdministration/componentAction",
       params: oParams,
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var me = this;
         var response = Ext.JSON.decode(response.responseText);
 
@@ -1510,20 +1505,20 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           GLOBAL.APP.CF.alert(response["error"], "error");
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         me.getContainer().body.unmask();
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
-  oprComponentAction: function(sAction, sEventSource) {
+  oprComponentAction: function (sAction, sEventSource) {
     var me = this;
 
     message = "Do you want to " + sAction + "?";
     Ext.MessageBox.confirm(
       "Confirm",
       message,
-      function(button) {
+      function (button) {
         var me = this;
         if (button === "yes") {
           me.__executeComponentAction(sAction, sEventSource);
@@ -1533,64 +1528,64 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     );
   },
 
-  createBottomGridToolbar: function(oGrid) {
+  createBottomGridToolbar: function (oGrid) {
     var oToolbarItems = ["-"];
 
     var oTask = {
-      run: function() {
+      run: function () {
         oGrid.getStore().load();
       },
-      interval: 0
+      interval: 0,
     };
 
     var oHeartbeat = new Ext.util.TaskRunner();
 
     var oAutoMenu = [
       {
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.start(
             Ext.apply(oTask, {
-              interval: 900000
+              interval: 900000,
             })
           );
         },
         group: "refresh",
-        text: "15 Minutes"
+        text: "15 Minutes",
       },
       {
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.start(
             Ext.apply(oTask, {
-              interval: 1800000
+              interval: 1800000,
             })
           );
         },
         group: "refresh",
-        text: "30 Minutes"
+        text: "30 Minutes",
       },
       {
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.start(
             Ext.apply(oTask, {
-              interval: 3600000
+              interval: 3600000,
             })
           );
         },
         group: "refresh",
-        text: "One Hour"
+        text: "One Hour",
       },
       {
         checked: true,
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.stopAll();
         },
         group: "refresh",
-        text: "Disabled"
-      }
+        text: "Disabled",
+      },
     ];
 
     for (var i = 0; i < oAutoMenu.length; i++) {
@@ -1600,10 +1595,10 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     var btnAutorefresh = new Ext.Button({
       menu: oAutoMenu,
       text: "Disabled",
-      tooltip: "Click to set the time for autorefresh"
+      tooltip: "Click to set the time for autorefresh",
     });
 
-    btnAutorefresh.on("menuhide", function(button, menu) {
+    btnAutorefresh.on("menuhide", function (button, menu) {
       var length = menu.items.getCount();
       for (var i = 0; i < length; i++) {
         if (menu.items.items[i].checked) {
@@ -1618,7 +1613,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     var btnUpdateStamp = new Ext.Button({
       disabled: true,
       disabledClass: "my-disabled",
-      text: "Updated: -"
+      text: "Updated: -",
     });
 
     oGrid.getStore().updateStamp = btnUpdateStamp;
@@ -1631,7 +1626,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       items: oToolbarItems,
       pageSize: 10000,
       refreshText: "Click to refresh current page",
-      store: oGrid.getStore()
+      store: oGrid.getStore(),
     });
 
     // hiding the first ten elemnts of the items
@@ -1641,7 +1636,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     oGrid.addDocked(oBbar);
   },
 
-  getUtcDate: function() {
+  getUtcDate: function () {
     var d = new Date();
 
     var hh = d.getUTCHours();
@@ -1669,7 +1664,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     return dateText + " " + hh + ":" + mm + " [UTC]";
   },
 
-  oprShowSendMessageForm: function(iType) {
+  oprShowSendMessageForm: function (iType) {
     var me = this;
 
     me.getContainer().body.mask("Wait...");
@@ -1677,7 +1672,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       url: GLOBAL.BASE_URL + "SystemAdministration/getUsersGroups",
       params: {},
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var response = Ext.JSON.decode(response.responseText);
 
         me.getContainer().body.unmask();
@@ -1685,14 +1680,14 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           me.formSendMail(response["users"], response["groups"], response["email"], iType);
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         me.getContainer().body.unmask();
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
 
-  formSendMail: function(oUsers, oGroups, sMail, iType) {
+  formSendMail: function (oUsers, oGroups, sMail, iType) {
     var me = this;
 
     var oUsers = Ext.create("Ext.dirac.utils.DiracBoxSelect", {
@@ -1704,8 +1699,8 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       anchor: "100%",
       store: new Ext.data.ArrayStore({
         fields: ["value"],
-        data: oUsers
-      })
+        data: oUsers,
+      }),
     });
 
     var oGroups = Ext.create("Ext.dirac.utils.DiracBoxSelect", {
@@ -1717,14 +1712,14 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       anchor: "100%",
       store: new Ext.data.ArrayStore({
         fields: ["value"],
-        data: oGroups
-      })
+        data: oGroups,
+      }),
     });
 
     var oSubject = Ext.create("Ext.form.field.Text", {
       fieldLabel: "Subject",
       labelAlign: "left",
-      anchor: "100%"
+      anchor: "100%",
     });
 
     var oMessage = Ext.create("Ext.form.field.TextArea", {
@@ -1732,25 +1727,25 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       labelAlign: "left",
       grow: true,
       anchor: "100%",
-      height: 150
+      height: 150,
     });
 
     var oResetBtn = new Ext.Button({
       text: "Reset",
       margin: 3,
-      handler: function() {
+      handler: function () {
         oUsers.setValue([]);
         oGroups.setValue([]);
         oSubject.setValue("");
         oMessage.setValue("");
       },
-      scope: me
+      scope: me,
     });
 
     var oSendBtn = new Ext.Button({
       text: iType == 1 ? "Send message" : "Send e-mail",
       margin: 3,
-      handler: function() {
+      handler: function () {
         var bValid = true;
 
         if (Ext.util.Format.trim(oSubject.getValue()) == "") {
@@ -1779,10 +1774,10 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
               subject: oSubject.getValue(),
               message: oMessage.getValue(),
               users: sUsers,
-              groups: sGroups
+              groups: sGroups,
             },
             scope: me,
-            success: function(response) {
+            success: function (response) {
               var response = Ext.JSON.decode(response.responseText);
 
               me.getContainer().body.unmask();
@@ -1794,22 +1789,22 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
 
               oSendBtn.show();
               oResetBtn.show();
-            }
+            },
           });
 
           oSendBtn.hide();
           oResetBtn.hide();
         }
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
       border: false,
       layout: {
-        pack: "center"
+        pack: "center",
       },
-      items: [oSendBtn, oResetBtn]
+      items: [oSendBtn, oResetBtn],
     });
 
     var oMainPanel = new Ext.create("Ext.panel.Panel", {
@@ -1817,7 +1812,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       border: false,
       items: [oUsers, oGroups, oSubject, oMessage],
       bbar: oToolbar,
-      bodyPadding: 10
+      bodyPadding: 10,
     });
 
     var sTitle = "";
@@ -1835,31 +1830,26 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       layout: "fit",
       modal: true,
       items: [oMainPanel],
-      iconCls: "dirac-icon-mail"
+      iconCls: "dirac-icon-mail",
     });
 
     oWindow.show();
   },
-  getSelectedData: function() {
+  getSelectedData: function () {
     var me = this;
     var data = me.leftPanel.getSelectionData();
     data["ComponentType"] = [];
     data["showAll"] = me.showAll ? me.showAll.value : 0;
 
     for (var i = 0; i < me.chkBoxes.items.getAt(0).items.length; i++) {
-      if (
-        me.chkBoxes.items
-          .getAt(0)
-          .items.getAt(i)
-          .getValue()
-      ) {
+      if (me.chkBoxes.items.getAt(0).items.getAt(i).getValue()) {
         data.ComponentType.push(me.chkBoxes.items.getAt(0).items.getAt(i).name);
       }
     }
 
     return data;
   },
-  __loadSelectionData: function() {
+  __loadSelectionData: function () {
     var me = this;
     var params = me.getSelectedData();
 
@@ -1867,18 +1857,18 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       url: GLOBAL.BASE_URL + me.applicationName + "/getSelectionData",
       params: params,
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var response = Ext.JSON.decode(response.responseText);
 
         me.leftPanel.__oprRefreshStoresForSelectors(response, true);
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
 
-  __getHosts: function() {
+  __getHosts: function () {
     var me = this;
 
     var params = me.getSelectedData();
@@ -1888,7 +1878,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
     me.locationGrid.expand();
     me.systemInfoGrid.collapse();
   },
-  rendererGridColumn: function(value, record) {
+  rendererGridColumn: function (value, record) {
     var me = this;
     var result = "";
     var lastHeartBeat = Ext.Date.parse(record.get("LastHeartbeat"), "Y-m-d H:i:s");
@@ -1904,5 +1894,5 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
       result = ' <font color="red">' + value + "</font>";
     }
     return result;
-  }
+  },
 });

@@ -11,131 +11,121 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
 
 class DowntimesHandler(WebHandler):
 
-  AUTH_PROPS = 'authenticated'
+    AUTH_PROPS = "authenticated"
 
-  @asyncGen
-  def web_getSelectionData(self):
-    callback = {
-        'name': set(),
-        'severity': set(),
-        'sites': set()
-    }
+    @asyncGen
+    def web_getSelectionData(self):
+        callback = {"name": set(), "severity": set(), "sites": set()}
 
-    gLogger.info(self.request.arguments)
+        gLogger.info(self.request.arguments)
 
-    downtimes = yield self.threadTask(PublisherClient().getCachedDowntimes, None, None, None, None)
+        downtimes = yield self.threadTask(PublisherClient().getCachedDowntimes, None, None, None, None)
 
-    if downtimes['OK']:
+        if downtimes["OK"]:
 
-      dtList = [dict(zip(downtimes['Columns'], dt)) for dt in downtimes['Value']]
+            dtList = [dict(zip(downtimes["Columns"], dt)) for dt in downtimes["Value"]]
 
-      for dt in dtList:
+            for dt in dtList:
 
-        callback['name'].add(dt['Name'])
-        callback['severity'].add(dt['Severity'])
+                callback["name"].add(dt["Name"])
+                callback["severity"].add(dt["Severity"])
 
-    sites = yield self.threadTask(PublisherClient().getSites)
-    if sites['OK']:
+        sites = yield self.threadTask(PublisherClient().getSites)
+        if sites["OK"]:
 
-      callback['site'] = sites['Value']
+            callback["site"] = sites["Value"]
 
-    for key, value in callback.items():
+        for key, value in callback.items():
 
-      callback[key] = [[item] for item in list(value)]
-      # callback[key].sort()
-      callback[key] = [['All']] + callback[key]
+            callback[key] = [[item] for item in list(value)]
+            # callback[key].sort()
+            callback[key] = [["All"]] + callback[key]
 
-    callback['view'] = [['tabular'], ['availability']]
+        callback["view"] = [["tabular"], ["availability"]]
 
-    self.finish(callback)
+        self.finish(callback)
 
-  @asyncGen
-  def web_getDowntimesData(self):
-    requestParams = self.__requestParams()
-    gLogger.info(requestParams)
+    @asyncGen
+    def web_getDowntimesData(self):
+        requestParams = self.__requestParams()
+        gLogger.info(requestParams)
 
-    retVal = yield self.threadTask(PublisherClient().getSitesResources, list(requestParams['site']))
+        retVal = yield self.threadTask(PublisherClient().getSitesResources, list(requestParams["site"]))
 
-    sitesResources = ""
-    if not retVal['OK']:
-      raise WErr.fromSERROR(retVal)
-    else:
-      sitesResources = retVal['Value']
+        sitesResources = ""
+        if not retVal["OK"]:
+            raise WErr.fromSERROR(retVal)
+        else:
+            sitesResources = retVal["Value"]
 
-    names = []
-    if requestParams['site']:
-
-      if names is None:
         names = []
+        if requestParams["site"]:
 
-      for _site, resources in sitesResources.items():
+            if names is None:
+                names = []
 
-        names += resources['ces']
-        names += resources['ses']
+            for _site, resources in sitesResources.items():
 
-    downtimes = PublisherClient().getCachedDowntimes(None, None,
-                                                     names,
-                                                     list(requestParams['severity']))
-    if not downtimes['OK']:
-      raise WErr.fromSERROR(downtimes)
+                names += resources["ces"]
+                names += resources["ses"]
 
-    dtList = [dict(zip(downtimes['Columns'], dt)) for dt in downtimes['Value']]
+        downtimes = PublisherClient().getCachedDowntimes(None, None, names, list(requestParams["severity"]))
+        if not downtimes["OK"]:
+            raise WErr.fromSERROR(downtimes)
 
-    for dt in dtList:
+        dtList = [dict(zip(downtimes["Columns"], dt)) for dt in downtimes["Value"]]
 
-      dt['Site'] = 'Unknown'
+        for dt in dtList:
 
-      for site, resources in sitesResources.items():
-        if dt['Name'] in resources['ces'] + resources['ses']:
-          dt['Site'] = site
-          break
+            dt["Site"] = "Unknown"
 
-      dt['StartDate'] = str(dt['StartDate'])
-      dt['EndDate'] = str(dt['EndDate'])
+            for site, resources in sitesResources.items():
+                if dt["Name"] in resources["ces"] + resources["ses"]:
+                    dt["Site"] = site
+                    break
 
-    self.finish({'success': 'true', 'result': dtList, 'total': len(dtList)})
+            dt["StartDate"] = str(dt["StartDate"])
+            dt["EndDate"] = str(dt["EndDate"])
 
-  def __requestParams(self):
-    '''
-      We receive the request and we parse it, in this case, we are doing nothing,
-      but it can be certainly more complex.
-    '''
+        self.finish({"success": "true", "result": dtList, "total": len(dtList)})
 
-    gLogger.always("!!!  PARAMS: ", str(self.request.arguments))
+    def __requestParams(self):
+        """
+        We receive the request and we parse it, in this case, we are doing nothing,
+        but it can be certainly more complex.
+        """
 
-    responseParams = {
-        'name': [],
-        'severity': [],
-        'site': []
-    }
+        gLogger.always("!!!  PARAMS: ", str(self.request.arguments))
 
-    for key in responseParams:
-      if key in self.request.arguments and str(self.request.arguments[key][-1]):
-        responseParams[key] = list(json.loads(self.request.arguments[key][-1]))
+        responseParams = {"name": [], "severity": [], "site": []}
 
-    responseParams['startDate'] = None
-    responseParams['endDate'] = None
+        for key in responseParams:
+            if key in self.request.arguments and str(self.request.arguments[key][-1]):
+                responseParams[key] = list(json.loads(self.request.arguments[key][-1]))
 
-    try:
-      startDate = '%s %s' % (self.request.arguments['startDate'], self.request.arguments['startTime'])
-      responseParams['startDate'] = datetime.strptime(startDate, '%Y-%m-%d %H:%M')
-    except KeyError:
-      pass
-    except ValueError:
-      pass
+        responseParams["startDate"] = None
+        responseParams["endDate"] = None
 
-    if responseParams['startDate'] is None:
-      responseParams['startDate'] = datetime.utcnow()
+        try:
+            startDate = "%s %s" % (self.request.arguments["startDate"], self.request.arguments["startTime"])
+            responseParams["startDate"] = datetime.strptime(startDate, "%Y-%m-%d %H:%M")
+        except KeyError:
+            pass
+        except ValueError:
+            pass
 
-    try:
-      endDate = '%s %s' % (self.request.arguments['endDate'], self.request.arguments['endTime'])
-      responseParams['endDate'] = datetime.strptime(endDate, '%Y-%m-%d %H:%M')
-    except KeyError:
-      pass
-    except ValueError:
-      pass
+        if responseParams["startDate"] is None:
+            responseParams["startDate"] = datetime.utcnow()
 
-    if responseParams['endDate'] is None:
-      responseParams['endDate'] = datetime.utcnow()
+        try:
+            endDate = "%s %s" % (self.request.arguments["endDate"], self.request.arguments["endTime"])
+            responseParams["endDate"] = datetime.strptime(endDate, "%Y-%m-%d %H:%M")
+        except KeyError:
+            pass
+        except ValueError:
+            pass
 
-    return responseParams
+        if responseParams["endDate"] is None:
+            responseParams["endDate"] = datetime.utcnow()
+
+        return responseParams

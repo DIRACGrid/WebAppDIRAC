@@ -24,10 +24,10 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     "Ext.form.field.Text",
     "Ext.grid.feature.Grouping",
     "Ext.tree.Panel",
-    "Ext.data.TreeStore"
+    "Ext.data.TreeStore",
   ],
 
-  loadState: function(oData) {
+  loadState: function (oData) {
     var me = this;
 
     me.setLoading("Loading state ...");
@@ -46,7 +46,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     // me.setLoading(false);
   },
 
-  __postponedLoadState: function(oData) {
+  __postponedLoadState: function (oData) {
     var me = this;
 
     if (me.queryData == null) {
@@ -60,7 +60,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         blocks: oData["blocks"],
         index: 0,
         error_message: "",
-        next: function() {
+        next: function () {
           var oIter = this;
 
           if (oIter.blocks.length == 0) {
@@ -146,14 +146,14 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
 
           oIter.index++;
         },
-        finished: false
+        finished: false,
       };
 
       me.__loadingStateDataStruct.next();
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oReturn = {};
 
@@ -166,12 +166,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
 
       if (oBlock.blockType == "string") {
         oItem.push(oBlock.items.getAt(2).isInverseSelection() ? 1 : 0);
-        oItem.push(
-          oBlock.items
-            .getAt(2)
-            .getValue()
-            .join(":::")
-        );
+        oItem.push(oBlock.items.getAt(2).getValue().join(":::"));
       } else {
         oItem.push(0);
         oItem.push(oBlock.items.getAt(2).getValue());
@@ -186,7 +181,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     return oReturn;
   },
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
@@ -206,15 +201,15 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
+        split: true,
       },
-      items: []
+      items: [],
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     /*-------------------------------------------------------------------------------------*/
@@ -222,44 +217,44 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     me.queryPanelToolbarCenter = new Ext.toolbar.Toolbar({
       dock: "bottom",
       layout: {
-        pack: "center"
+        pack: "center",
       },
-      items: []
+      items: [],
     });
 
     me.btnSubmitLeftPanel = new Ext.Button({
       text: "Submit",
 
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         if (me.__isEveryBlockBlured()) {
           me.oprLoadFilesGridData();
         } else {
-          me.funcAfterEveryBlockGetsBlured = function() {
+          me.funcAfterEveryBlockGetsBlured = function () {
             me.oprLoadFilesGridData();
           };
 
           me.btnSubmitLeftPanel.focus();
         }
       },
-      scope: me
+      scope: me,
     });
 
     me.btnResetLeftPanel = new Ext.Button({
       text: "Refresh",
 
       iconCls: "dirac-icon-refresh",
-      handler: function() {
+      handler: function () {
         me.__getQueryData(true);
       },
-      scope: me
+      scope: me,
     });
 
     me.btnClearQuery = new Ext.Button({
       text: "Clear",
 
       iconCls: "dirac-icon-reset",
-      handler: function() {
+      handler: function () {
         for (var i = me.queryPanel.items.length - 1; i >= 0; i--) {
           var oBlock = me.queryPanel.items.getAt(i);
 
@@ -268,7 +263,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
 
         me.__getQueryData(true);
       },
-      scope: me
+      scope: me,
     });
 
     me.queryPanelToolbarCenter.add([me.btnSubmitLeftPanel, me.btnResetLeftPanel, me.btnClearQuery]);
@@ -276,14 +271,14 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     var queryPanelToolbarTop = new Ext.toolbar.Toolbar({
       dock: "top",
       layout: {
-        pack: "center"
+        pack: "center",
       },
-      items: []
+      items: [],
     });
 
     queryPanelToolbarTop.add({
       xtype: "tbtext",
-      text: "Path to start from:"
+      text: "Path to start from:",
     });
 
     me.txtPathField = new Ext.form.field.Text({
@@ -291,10 +286,10 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       value: "/",
       flex: 1,
       listeners: {
-        blur: function(oField, oEvent, eOpts) {
+        blur: function (oField, oEvent, eOpts) {
           me.__getQueryData(true);
-        }
-      }
+        },
+      },
     });
 
     queryPanelToolbarTop.add(me.txtPathField);
@@ -303,11 +298,11 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       text: "",
 
       iconCls: "dirac-icon-reset",
-      handler: function() {
+      handler: function () {
         me.txtPathField.setValue("/");
         me.__getQueryData(true);
       },
-      scope: me
+      scope: me,
     });
 
     queryPanelToolbarTop.add(me.btnResetPath);
@@ -325,7 +320,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       bodyPadding: 0,
       autoScroll: true,
       split: true,
-      height: 400
+      height: 400,
     });
 
     /*-------------------------------------------------------------------------------------*/
@@ -337,40 +332,40 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         reader: {
           type: "json",
           rootProperty: "result",
-          keepRawData: true
+          keepRawData: true,
         },
         timeout: 1800000,
         listeners: {
-          exception: function(proxy, response, operation) {
+          exception: function (proxy, response, operation) {
             GLOBAL.APP.CF.showAjaxErrorMessage(response);
-          }
-        }
+          },
+        },
       },
       groupField: "dirname",
       fields: [
         {
-          name: "dirname"
+          name: "dirname",
         },
         {
-          name: "filename"
+          name: "filename",
         },
         {
-          name: "date"
+          name: "date",
         },
         {
-          name: "size"
+          name: "size",
         },
         {
-          name: "metadata"
+          name: "metadata",
         },
         {
-          name: "fullfilename"
-        }
+          name: "fullfilename",
+        },
       ],
       remoteSort: true,
       pageSize: 100,
       listeners: {
-        load: function(oStore, records, successful, eOpts) {
+        load: function (oStore, records, successful, eOpts) {
           if (oStore.proxy.getReader().rawData["total"] == 0)
             GLOBAL.APP.CF.alert("There were no data matching your selection and access policy!", "info");
 
@@ -378,8 +373,8 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           me.queryPanel.body.unmask();
           me.metadataCatalogGrid.body.unmask();
           me.queryPanelToolbarCenter.show();
-        }
-      }
+        },
+      },
     });
 
     me.checkboxFunctionDefinition = '<input type="checkbox" value="" onchange="';
@@ -391,7 +386,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     me.pagingToolbar = {};
     me.pagingToolbar.updateStamp = new Ext.Button({
       disabled: true,
-      text: "Updated: -"
+      text: "Updated: -",
     });
 
     me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
@@ -405,16 +400,16 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["number"],
-        data: [[25], [50], [100], [200], [500], [1000]]
+        data: [[25], [50], [100], [200], [500], [1000]],
       }),
       triggerAction: "all",
       value: 100,
-      width: 50
+      width: 50,
     });
 
     me.pagingToolbar.pageSizeCombo.on(
       "change",
-      function(combo, newValue, oldValue, eOpts) {
+      function (combo, newValue, oldValue, eOpts) {
         var me = this;
         me.filesDataStore.pageSize = newValue;
         me.oprLoadFilesGridData();
@@ -425,7 +420,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     me.pagingToolbar.btnGrouping = new Ext.Button({
       tooltip: "Ungroup",
       iconCls: "meta-ungroup-icon",
-      handler: function() {
+      handler: function () {
         if (me.groupingFeature.disabled) {
           me.groupingFeature.enable();
           me.pagingToolbar.btnGrouping.setTooltip("Ungroup");
@@ -441,58 +436,62 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           me.filesGrid.updateLayout();
         }
       },
-      scope: me
+      scope: me,
     });
 
     me.pagingToolbar.btnSaveFile = new Ext.Button({
       tooltip: "Save",
       iconCls: "dirac-icon-save",
-      handler: function() {
+      handler: function () {
         me.__getMetadataFile();
       },
-      scope: me
+      scope: me,
     });
 
     me.pagingToolbar.btnSaveFiles = new Ext.Button({
       tooltip: "Download selected<br>files in a .zip archive",
       iconCls: "dirac-icon-save",
-      handler: function() {
+      handler: function () {
         me.__getSelectedFiles();
       },
-      scope: me
+      scope: me,
     });
 
     me.pagingToolbar.btnSelectedFiles2Launchpad = new Ext.Button({
       tooltip: "Open job launchpad<br>with selected files",
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         me.__getSelectedFiles2Launchpad();
       },
-      scope: me
+      scope: me,
     });
 
     me.pagingToolbar.btnShowQuery = new Ext.Button({
       tooltip: "Show Query",
       iconCls: "meta-query-icon",
-      handler: function() {
+      handler: function () {
         var oWindow = me.getContainer().createChildWindow("Show Query", false, 400, 300);
 
         var oTextArea = new Ext.create("Ext.form.field.TextArea", {
           value: me.lastSubmittedQuery,
-          cls: "meta-textbox-help-window"
+          cls: "meta-textbox-help-window",
         });
 
         oWindow.add(oTextArea);
         oWindow.show();
       },
-      scope: me
+      scope: me,
     });
 
     /*
      * Read application settings from CS(WebApp section) to build panel
      */
     var pagingToolbarItems = [];
-    if (GLOBAL.APP.configData.hasOwnProperty("configuration") && GLOBAL.APP.configData.configuration.hasOwnProperty("FileCatalog") && GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar) {
+    if (
+      GLOBAL.APP.configData.hasOwnProperty("configuration") &&
+      GLOBAL.APP.configData.configuration.hasOwnProperty("FileCatalog") &&
+      GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar
+    ) {
       var items = GLOBAL.APP.configData.configuration.FileCatalog.pagingToolbar.replace(/, /g, ",").split(",");
       for (var i = 0; i < items.length; i++) {
         var element = items[i];
@@ -510,7 +509,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         "-",
         "Items per page: ",
         me.pagingToolbar.pageSizeCombo,
-        "-"
+        "-",
       ];
     }
 
@@ -520,7 +519,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       displayMsg: "Displaying topics {0} - {1} of {2}",
       items: pagingToolbarItems,
       emptyMsg: "No topics to display",
-      prependButtons: true
+      prependButtons: true,
     });
 
     me.pagingToolbar.toolbar.items.insert(4, me.pagingToolbar.toolbar.items.items[21]);
@@ -531,7 +530,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       groupHeaderTpl: '{columnName}: {name} ({rows.length} Item{[values.rows.length > 1 ? "s" : ""]})',
       hideGroupedHeader: true,
       startCollapsed: true,
-      id: "directoryGrouping"
+      id: "directoryGrouping",
     });
 
     var oRightPanel = new Ext.create("Ext.panel.Panel", {
@@ -541,8 +540,8 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.treeFileCatalogStore = Ext.create("Ext.data.TreeStore", {
@@ -551,19 +550,19 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         url: GLOBAL.BASE_URL + "FileCatalog/getSubnodeFiles",
         reader: {
           type: "json",
-          rootProperty: "nodes"
-        }
+          rootProperty: "nodes",
+        },
       },
       root: {
-        text: "/"
+        text: "/",
       },
       listeners: {
-        nodebeforeexpand: function(oNode, eOpts) {
+        nodebeforeexpand: function (oNode, eOpts) {
           me.treeFileCatalogStore.proxy.extraParams = {
-            path: me.__getNodePath(oNode)
+            path: me.__getNodePath(oNode),
           };
-        }
-      }
+        },
+      },
     });
 
     me.treeFileCatalogStore.getRootNode().expand();
@@ -574,7 +573,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       header: false,
       height: 300,
       listeners: {
-        beforeitemcontextmenu: function(oView, oNode, item, index, e, eOpts) {
+        beforeitemcontextmenu: function (oView, oNode, item, index, e, eOpts) {
           e.preventDefault();
           if (!oNode.isLeaf()) {
             me.sectionMenu.node = oNode;
@@ -584,10 +583,10 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           return false;
         },
 
-        beforecontainercontextmenu: function(oView, e, eOpts) {
+        beforecontainercontextmenu: function (oView, e, eOpts) {
           return false;
-        }
-      }
+        },
+      },
     });
 
     me.filesGrid = Ext.create("Ext.grid.Panel", {
@@ -601,7 +600,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       flex: 1,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       features: [me.groupingFeature],
       columns: [
@@ -609,7 +608,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           header: "Directory",
           sortable: true,
           dataIndex: "dirname",
-          hideable: false
+          hideable: false,
         },
         {
           header: "File",
@@ -617,30 +616,30 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           dataIndex: "filename",
           align: "left",
           hideable: false,
-          flex: 1
+          flex: 1,
         },
         {
           header: "Date",
           sortable: true,
           dataIndex: "date",
           align: "left",
-          width: 150
+          width: 150,
         },
         {
           header: "Size",
           sortable: true,
           dataIndex: "size",
-          align: "left"
+          align: "left",
         },
         {
           header: "Metadata",
           sortable: false,
           dataIndex: "metadata",
           align: "left",
-          flex: 2
-        }
+          flex: 2,
+        },
       ],
-      tbar: me.pagingToolbar.toolbar
+      tbar: me.pagingToolbar.toolbar,
     });
 
     /*
@@ -649,7 +648,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
 
     me.metadataCatalogStore = new Ext.data.ArrayStore({
       fields: ["Type", "Name"],
-      data: []
+      data: [],
     });
 
     me.metadataCatalogGrid = Ext.create("Ext.grid.Panel", {
@@ -662,20 +661,20 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       bodyBorder: false,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       columns: [
         {
           width: 26,
           sortable: false,
           dataIndex: "Type",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererType(value);
           },
           hideable: false,
           fixed: true,
           menuDisabled: true,
-          align: "center"
+          align: "center",
         },
         {
           dataIndex: "Name",
@@ -683,10 +682,10 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           sortable: true,
           hideable: false,
           sortState: "ASC",
-          flex: 1
-        }
+          flex: 1,
+        },
       ],
-      rendererType: function(value) {
+      rendererType: function (value) {
         if (value == "varchar(128)") {
           return '<img src="static/DIRAC/FileCatalog/images/new_string.png">';
         } else if (value == "int") {
@@ -698,7 +697,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         }
       },
       listeners: {
-        itemclick: function(oView, oRecord, item, index, e, eOpts) {
+        itemclick: function (oView, oRecord, item, index, e, eOpts) {
           if (me.__isEveryBlockBlured()) {
             switch (oRecord.get("Type")) {
               case "varchar(128)":
@@ -709,7 +708,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
                 break;
             }
           } else {
-            me.funcAfterEveryBlockGetsBlured = function() {
+            me.funcAfterEveryBlockGetsBlured = function () {
               switch (oRecord.get("Type")) {
                 case "varchar(128)":
                   me.queryPanel.add(me.__getDropDownField(oRecord.get("Name"), oRecord.get("Type")));
@@ -722,8 +721,8 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
 
             me.btnSubmitLeftPanel.focus();
           }
-        }
-      }
+        },
+      },
     });
 
     var oLeftPanel = new Ext.create("Ext.panel.Panel", {
@@ -733,12 +732,12 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
+        split: true,
       },
       width: 450,
       minWidth: 400,
       maxWidth: 550,
-      items: [me.queryPanel, me.metadataCatalogGrid]
+      items: [me.queryPanel, me.metadataCatalogGrid],
     });
 
     oLeftPanel.addDocked([queryPanelToolbarTop, me.queryPanelToolbarCenter]);
@@ -755,7 +754,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       method: "POST",
       params: {},
       scope: me,
-      success: function(oReponse) {
+      success: function (oReponse) {
         oResponse = Ext.JSON.decode(oReponse.responseText);
 
         if (oResponse.success == "true") {
@@ -767,7 +766,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         } else {
           GLOBAL.APP.CF.alert(oResponse.error, "error");
         }
-      }
+      },
     });
 
     me.funcAfterEveryBlockGetsBlured = null;
@@ -779,15 +778,15 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         {
           text: "Set as starting path",
           listeners: {
-            click: me.oprSetStartPath
-          }
-        }
+            click: me.oprSetStartPath,
+          },
+        },
       ],
-      moduleObject: me
+      moduleObject: me,
     });
   },
 
-  oprSetStartPath: function(oItem, e, eOpts) {
+  oprSetStartPath: function (oItem, e, eOpts) {
     var oNode = oItem.parentMenu.node;
     var oModule = oItem.parentMenu.moduleObject;
 
@@ -795,7 +794,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     oModule.__getQueryData(true);
   },
 
-  oprLoadFilesGridData: function() {
+  oprLoadFilesGridData: function () {
     // me.metadataCatalogGrid.body.mask("Wait ...");
     var me = this;
 
@@ -822,10 +821,10 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     me.filesGrid.store.load();
   },
 
-  __restructureQueryForShow: function(oSendData) {
+  __restructureQueryForShow: function (oSendData) {
     var req = {
       selection: {},
-      path: ""
+      path: "",
     };
 
     for (var sParam in oSendData) {
@@ -894,13 +893,13 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     return "metaDict = " + sNewText + 'path = "' + req["path"] + '"';
   },
 
-  onItemLogicOperationClick: function(oItem, e, eOpts) {
+  onItemLogicOperationClick: function (oItem, e, eOpts) {
     var oButton = oItem.up("button");
     oButton.setIconCls(oItem.iconCls);
     oButton.moduleObject.__getQueryData(true);
   },
 
-  __removeLastBlockIfEmpty: function() {
+  __removeLastBlockIfEmpty: function () {
     var me = this;
 
     if (me.queryPanel.items.length > 0) {
@@ -919,13 +918,13 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       }
     }
   },
-  __removeBlock: function(oBlock) {
+  __removeBlock: function (oBlock) {
     var me = this;
     me.queryPanel.remove(oBlock);
     me.__getQueryData(true);
   },
 
-  __getDropDownField: function(sName, sType) {
+  __getDropDownField: function (sName, sType) {
     var me = this;
 
     me.__removeLastBlockIfEmpty();
@@ -939,38 +938,38 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       focusBlurState: 0,
       store: new Ext.data.ArrayStore({
         fields: ["value", "text"],
-        data: me.__getFieldOptions(sName)
+        data: me.__getFieldOptions(sName),
       }),
       listeners: {
-        blur: function(oField, oEvent, eOpts) {
+        blur: function (oField, oEvent, eOpts) {
           oField.focusBlurState = 0;
           me.__getQueryData(true);
         },
-        focus: function(oField, oEvent, eOpts) {
+        focus: function (oField, oEvent, eOpts) {
           oField.focusBlurState = 1;
         },
-        expand: function(oField, eOpts) {
+        expand: function (oField, eOpts) {
           me.queryPanel.body.mask("Wait ...");
           oField.collapse();
           me.__expandMenuBeforeExpandMenu(oPanel);
-        }
+        },
       },
-      onClearButtonAfterClick: function(oSelectBox) {
+      onClearButtonAfterClick: function (oSelectBox) {
         me.__getQueryData(true);
       },
-      onNotButtonAfterClick: function(oSelectBox) {
+      onNotButtonAfterClick: function (oSelectBox) {
         me.__getQueryData(true);
       },
-      onItemRemovedClick: function(oSelectBox) {
+      onItemRemovedClick: function (oSelectBox) {
         me.__getQueryData(true);
-      }
+      },
     });
 
     var oPanel = Ext.create("Ext.container.Container", {
       layout: {
         type: "hbox",
         // align : 'stretch',
-        margin: 3
+        margin: 3,
       },
       fieldName: sName,
       fieldType: sType,
@@ -980,28 +979,28 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           xtype: "panel",
           html: "<div style='padding:7px 0px 0px 5px;'>" + sName + "</div>",
           border: false,
-          flex: 1
+          flex: 1,
         },
         {
           xtype: "button",
           iconCls: "meta-in-icon",
-          margin: 3
+          margin: 3,
         },
         oDropDown,
         {
           xtype: "button",
           iconCls: "dirac-icon-reset",
           margin: 3,
-          handler: function() {
+          handler: function () {
             me.__removeBlock(oPanel);
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     return oPanel;
   },
-  __getValueField: function(sName, sType) {
+  __getValueField: function (sName, sType) {
     var me = this;
 
     me.__removeLastBlockIfEmpty();
@@ -1015,29 +1014,29 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       focusBlurState: 0,
       store: new Ext.data.ArrayStore({
         fields: ["value", "text"],
-        data: me.__getFieldOptions(sName)
+        data: me.__getFieldOptions(sName),
       }),
       listeners: {
-        blur: function(oField, oEvent, eOpts) {
+        blur: function (oField, oEvent, eOpts) {
           oField.focusBlurState = 0;
           me.__getQueryData(true);
         },
-        focus: function(oField, oEvent, eOpts) {
+        focus: function (oField, oEvent, eOpts) {
           oField.focusBlurState = 1;
         },
-        expand: function(oField, eOpts) {
+        expand: function (oField, eOpts) {
           me.queryPanel.body.mask("Wait ...");
           oField.collapse();
           me.__expandMenuBeforeExpandMenu(oPanel);
-        }
-      }
+        },
+      },
     });
 
     var oPanel = Ext.create("Ext.container.Container", {
       layout: {
         type: "hbox",
         // align : 'stretch',
-        margin: 3
+        margin: 3,
       },
       fieldName: sName,
       fieldType: sType,
@@ -1047,7 +1046,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           xtype: "panel",
           html: "<div style='padding:7px 0px 0px 5px;'>" + sName + "</div>",
           border: false,
-          flex: 1
+          flex: 1,
         },
         {
           xtype: "button",
@@ -1060,67 +1059,67 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
               iconCls: "meta-equal-icon",
               width: 200,
               listeners: {
-                click: me.onItemLogicOperationClick
-              }
+                click: me.onItemLogicOperationClick,
+              },
             },
             {
               text: "Not equal to",
               iconCls: "meta-nequal-icon",
               width: 200,
               listeners: {
-                click: me.onItemLogicOperationClick
-              }
+                click: me.onItemLogicOperationClick,
+              },
             },
             {
               text: "Greater than",
               iconCls: "meta-great-icon",
               width: 200,
               listeners: {
-                click: me.onItemLogicOperationClick
-              }
+                click: me.onItemLogicOperationClick,
+              },
             },
             {
               text: "Less than",
               iconCls: "meta-less-icon",
               width: 200,
               listeners: {
-                click: me.onItemLogicOperationClick
-              }
+                click: me.onItemLogicOperationClick,
+              },
             },
             {
               text: "Greater than or equal to",
               iconCls: "meta-gequal-icon",
               width: 200,
               listeners: {
-                click: me.onItemLogicOperationClick
-              }
+                click: me.onItemLogicOperationClick,
+              },
             },
             {
               text: "Less than or equal to",
               iconCls: "meta-lequal-icon",
               width: 200,
               listeners: {
-                click: me.onItemLogicOperationClick
-              }
-            }
-          ]
+                click: me.onItemLogicOperationClick,
+              },
+            },
+          ],
         },
         oDropDown,
         {
           xtype: "button",
           iconCls: "dirac-icon-reset",
           margin: 3,
-          handler: function() {
+          handler: function () {
             me.__removeBlock(oPanel);
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     return oPanel;
   },
 
-  __isEveryBlockBlured: function() {
+  __isEveryBlockBlured: function () {
     var me = this;
 
     var bBlured = true;
@@ -1136,7 +1135,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     return bBlured;
   },
 
-  __expandMenuBeforeExpandMenu: function(oThisBlock) {
+  __expandMenuBeforeExpandMenu: function (oThisBlock) {
     var me = this;
     // collect already selected options
 
@@ -1175,7 +1174,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         params: oSendData,
         scope: me,
         timeout: 1800000,
-        success: function(oReponse) {
+        success: function (oReponse) {
           oResponse = Ext.JSON.decode(oReponse.responseText);
 
           if (oResponse.success == "true") {
@@ -1190,7 +1189,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
 
             var oNewStore = new Ext.data.ArrayStore({
               fields: ["value", "text"],
-              data: oList
+              data: oList,
             });
 
             switch (sBlockType) {
@@ -1216,14 +1215,14 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
             GLOBAL.APP.CF.alert(oResponse.error, "error");
             me.queryPanel.body.unmask();
           }
-        }
+        },
       });
     } else {
       oDropDown.suspendEvents(false);
 
       var oNewStore = new Ext.data.ArrayStore({
         fields: ["value", "text"],
-        data: me.__getFieldOptions(oThisBlock.fieldName)
+        data: me.__getFieldOptions(oThisBlock.fieldName),
       });
 
       switch (sBlockType) {
@@ -1243,7 +1242,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     }
   },
 
-  __getSelectedFiles: function() {
+  __getSelectedFiles: function () {
     var me = this;
     var oSendData = [];
 
@@ -1256,10 +1255,10 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "FileCatalog/getSelectedFiles",
       params: {
-        path: oSendData.join(",")
+        path: oSendData.join(","),
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var me = this;
         var response = Ext.JSON.decode(response.responseText);
 
@@ -1271,13 +1270,13 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           GLOBAL.APP.CF.alert(response["lfn"] + ":\n  " + response["error"], "error");
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
 
-  __getSelectedFiles2Launchpad: function() {
+  __getSelectedFiles2Launchpad: function () {
     var me = this;
 
     var oSendData = [];
@@ -1290,7 +1289,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
 
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "JobLaunchpad/getLaunchpadSetupWithLFNs?path=" + encodeURIComponent(oSendData.join(",")),
-      success: function(response) {
+      success: function (response) {
         if (response.status == 200) {
           var data = {};
           data = Ext.JSON.decode(response.responseText);
@@ -1301,19 +1300,19 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
             objectType: "app",
             moduleName: "DIRAC.JobLaunchpad.classes.JobLaunchpad",
-            setupData: oSetupData
+            setupData: oSetupData,
           });
         } else {
           GLOBAL.APP.CF.showAjaxErrorMessage(response);
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
 
-  __getMetadataFile: function() {
+  __getMetadataFile: function () {
     var me = this;
 
     var oSendData = [];
@@ -1334,7 +1333,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         encodeURIComponent(oSendData.join("<|>"));
   },
 
-  __getQueryData: function(bRefreshMetadataList) {
+  __getQueryData: function (bRefreshMetadataList) {
     var me = this;
     // collect already selected options
     me.metadataCatalogGrid.body.mask("Wait ...");
@@ -1356,7 +1355,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       params: oSendData,
       scope: me,
       timeout: 1800000,
-      success: function(oReponse) {
+      success: function (oReponse) {
         oResponse = Ext.JSON.decode(oReponse.responseText);
 
         if (oResponse.success == "true") {
@@ -1382,11 +1381,11 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
           GLOBAL.APP.CF.alert(oResponse.error, "error");
           me.metadataCatalogGrid.body.unmask();
         }
-      }
+      },
     });
   },
 
-  __refreshQueryFieldsOptions: function() {
+  __refreshQueryFieldsOptions: function () {
     var me = this;
 
     for (var i = 0; i < me.queryPanel.items.length; i++) {
@@ -1400,7 +1399,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
 
       var oNewStore = new Ext.data.ArrayStore({
         fields: ["value", "text"],
-        data: me.__getFieldOptions(oBlock.fieldName)
+        data: me.__getFieldOptions(oBlock.fieldName),
       });
 
       oDropDown.bindStore(oNewStore);
@@ -1411,7 +1410,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     }
   },
 
-  __getValueBlockDescription: function(oBlock) {
+  __getValueBlockDescription: function (oBlock) {
     var me = this;
     var oButton = oBlock.items.getAt(1);
     var oDropDown = oBlock.items.getAt(2);
@@ -1433,7 +1432,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     return oRet;
   },
 
-  __getSignByIconCls: function(sIconCls, bNot) {
+  __getSignByIconCls: function (sIconCls, bNot) {
     var sSign = "";
 
     switch (sIconCls) {
@@ -1491,7 +1490,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     return sSign;
   },
 
-  __oprRefreshMetadataFieldsList: function() {
+  __oprRefreshMetadataFieldsList: function () {
     var me = this;
 
     me.metadataCatalogStore.removeAll();
@@ -1517,7 +1516,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
     me.metadataCatalogStore.add(oNewData);
   },
 
-  __getFieldOptions: function(sName) {
+  __getFieldOptions: function (sName) {
     var me = this;
 
     var oList = [];
@@ -1525,7 +1524,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
 
     return oList;
   },
-  __getNodePath: function(oNode) {
+  __getNodePath: function (oNode) {
     var sPath = "";
     var oCopyRefNode = oNode;
 
@@ -1544,5 +1543,5 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
       if (!sPath) return "/";
     }
     return sPath;
-  }
+  },
 });

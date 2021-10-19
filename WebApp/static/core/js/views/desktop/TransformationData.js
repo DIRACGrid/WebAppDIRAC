@@ -61,7 +61,7 @@ Ext.define("Ext.dirac.views.desktop.TransformationData", {
    * }
    * </pre>
    */
-  oprMainViewGoFrom0To1: function(oData) {
+  oprMainViewGoFrom0To1: function (oData) {
     var oResponse = {
       dirac_view: 1,
       version: 1,
@@ -70,9 +70,9 @@ Ext.define("Ext.dirac.views.desktop.TransformationData", {
         desktop: {
           version: GLOBAL.APP.MAIN_VIEW.stateDataStructureVersion,
           desktopGranularity: oData.desktopGranularity,
-          positions: []
-        }
-      }
+          positions: [],
+        },
+      },
     };
 
     for (var i = 0; i < oData.data.length; i++) {
@@ -81,7 +81,7 @@ Ext.define("Ext.dirac.views.desktop.TransformationData", {
       oResponse.data.push({
         module: oItem.name,
         data: oItem.data,
-        currentState: oItem.currentState
+        currentState: oItem.currentState,
       });
 
       oResponse.views.desktop.positions.push({
@@ -99,10 +99,10 @@ Ext.define("Ext.dirac.views.desktop.TransformationData", {
         i_y: oItem.i_y,
         ic_x: oItem.ic_x,
         ic_y: oItem.ic_y,
-        _before_pin_state: oItem._before_pin_state
+        _before_pin_state: oItem._before_pin_state,
       });
     }
 
     return oResponse;
-  }
+  },
 });

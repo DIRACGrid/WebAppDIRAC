@@ -40,7 +40,7 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
    * @property{timeSearchPanelHidden} is a boolean which is true when the time search panel is hidden...
    */
   timeSearchPanelHidden: null,
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var data = {
       cmbTimeSpan: me.cmbTimeSpan.getValue(),
@@ -48,13 +48,13 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
       cmbTimeFrom: me.cmbTimeFrom.getValue(),
       calenTo: me.calenTo.getValue(),
       cmbTimeTo: me.cmbTimeTo.getValue(),
-      timeSearchPanelHidden: me.hidden
+      timeSearchPanelHidden: me.hidden,
     };
     return data;
   },
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
-    
+
     data.timeSearchPanelHidden ? me.hide : me.show();
     // END - For the time span searching sub-panel
 
@@ -76,7 +76,7 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
       me.cmbTimeTo.setValue(data.cmbTimeTo);
     }
   },
-  constructor: function() {
+  constructor: function () {
     var me = this;
     me.cmbTimeSpan = new Ext.create("Ext.form.field.ComboBox", {
       labelAlign: "top",
@@ -89,27 +89,27 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
           [2, "Last Day"],
           [3, "Last Week"],
           [4, "Last Month"],
-          [5, "Manual Selection"]
-        ]
+          [5, "Manual Selection"],
+        ],
       }),
       emptyText: "For all time?",
       editable: false,
       displayField: "text",
       valueField: "value",
       anchor: "100%",
-      onChange: function(newVal) {
+      onChange: function (newVal) {
         if (newVal == 5) {
-          me.fromDate.items.forEach(e => e.show());
-          me.toDate.items.forEach(e => e.show());
+          me.fromDate.items.forEach((e) => e.show());
+          me.toDate.items.forEach((e) => e.show());
           if (me.calenFrom.getRawValue() || me.cmbTimeFrom.getValue() || me.calenTo.getRawValue() || me.cmbTimeTo.getValue()) {
-            me.resetDate.items.forEach(e => e.show());
+            me.resetDate.items.forEach((e) => e.show());
           }
         } else {
-          me.fromDate.items.forEach(e => e.hide());
-          me.toDate.items.forEach(e => e.hide());
-          me.resetDate.items.forEach(e => e.hide());
+          me.fromDate.items.forEach((e) => e.hide());
+          me.toDate.items.forEach((e) => e.hide());
+          me.resetDate.items.forEach((e) => e.hide());
         }
-      }
+      },
     });
 
     me.calenFrom = new Ext.create("Ext.form.field.Date", {
@@ -118,107 +118,102 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
       flex: 3,
       format: "Y-m-d",
       hidden: true,
-      onChange: function(newVal) {
+      onChange: function (newVal) {
         if (newVal) {
-          me.resetDate.items.forEach(e => e.show());
+          me.resetDate.items.forEach((e) => e.show());
         }
-      }
+      },
     });
 
     me.cmbTimeFrom = new Ext.create("Ext.form.field.Time", {
-      format: 'H:i',
+      format: "H:i",
       flex: 2,
       increment: 30,
       margin: "0 0 0 10",
       hidden: true,
-      onChange: function(newVal) {
+      onChange: function (newVal) {
         if (!me.calenFrom.getValue()) {
           me.calenFrom.setValue(new Date());
         }
-      }
+      },
     });
 
     me.fromDate = {
       xtype: "panel",
       layout: {
-        type: 'hbox',
-        align: 'bottom'
+        type: "hbox",
+        align: "bottom",
       },
       border: false,
       margin: "0 0 5 0",
-      items: [me.calenFrom, me.cmbTimeFrom]
+      items: [me.calenFrom, me.cmbTimeFrom],
     };
 
     me.calenTo = new Ext.create("Ext.form.field.Date", {
       labelAlign: "top",
       fieldLabel: "To",
-      labelStyle: 'width:20px',
+      labelStyle: "width:20px",
       flex: 3,
       format: "Y-m-d",
       hidden: true,
-      onChange: function(newVal) {
+      onChange: function (newVal) {
         if (newVal) {
-          me.resetDate.items.forEach(e => e.show());
+          me.resetDate.items.forEach((e) => e.show());
         }
-      }
+      },
     });
 
     me.cmbTimeTo = new Ext.create("Ext.form.field.Time", {
-      format: 'H:i',
+      format: "H:i",
       flex: 2,
       increment: 30,
       margin: "0 0 0 10",
       hidden: true,
-      onChange: function(newVal) {
+      onChange: function (newVal) {
         if (!me.calenTo.getValue()) {
           me.calenTo.setValue(new Date());
         }
-      }
+      },
     });
 
     me.toDate = {
       xtype: "panel",
       layout: {
-        type: 'hbox',
-        align: 'bottom'
+        type: "hbox",
+        align: "bottom",
       },
       border: false,
       margin: "0 0 5 0",
-      items: [me.calenTo, me.cmbTimeTo]
+      items: [me.calenTo, me.cmbTimeTo],
     };
 
     me.btnResetTimePanel = new Ext.Button({
       text: "Reset Time Panel",
       margin: 3,
       iconCls: "dirac-icon-reset",
-      handler: function() {
+      handler: function () {
         me.cmbTimeTo.setValue(null);
         me.cmbTimeFrom.setValue(null);
         me.calenTo.setRawValue("");
         me.calenFrom.setRawValue("");
-        me.btnResetTimePanel.hide()
+        me.btnResetTimePanel.hide();
       },
       scope: me,
-      hidden: true
+      hidden: true,
     });
 
     me.resetDate = {
       xtype: "toolbar",
       layout: {
         type: "hbox",
-        pack: "center"
+        pack: "center",
       },
       border: false,
-      items: [me.btnResetTimePanel]
+      items: [me.btnResetTimePanel],
     };
 
     Ext.apply(me, {
-      items: [
-        me.cmbTimeSpan,
-        me.fromDate,
-        me.toDate,
-        me.resetDate
-      ]
+      items: [me.cmbTimeSpan, me.fromDate, me.toDate, me.resetDate],
     });
     me.callParent(arguments);
   },
@@ -227,7 +222,7 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
    *
    * @return {Object}
    */
-  getSelectedData: function() {
+  getSelectedData: function () {
     var me = this;
     var data = {};
     // if a value in time span has been selected
@@ -277,5 +272,5 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
     data["endDate"] = sEndDate;
     data["endTime"] = sEndTime && !(typeof sEndTime === "string") ? sEndTime.getHours() + ":" + sEndTime.getMinutes() : sEndTime;
     return data;
-  }
+  },
 });

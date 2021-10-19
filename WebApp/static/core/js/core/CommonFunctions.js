@@ -10,7 +10,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
 
   messages: [],
 
-  getFieldValueFromSelectedRow: function(oGrid, oFieldName) {
+  getFieldValueFromSelectedRow: function (oGrid, oFieldName) {
     var oVal = "";
     if (oGrid) {
       var oSelectedRecords = oGrid.getSelectionModel().getSelection();
@@ -20,11 +20,11 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     return oVal;
   },
 
-  getSelectedRecords: function(oGrid) {
+  getSelectedRecords: function (oGrid) {
     return oGrid.getSelectionModel().getSelection();
   },
 
-  doubleItemValue: function(oList) {
+  doubleItemValue: function (oList) {
     for (var i = 0; i < oList.length; i++) oList[i] = [oList[i], oList[i]];
 
     return oList;
@@ -35,7 +35,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
    *
    * @param {String} text
    */
-  copyToClipboard: function(text) {
+  copyToClipboard: function (text) {
     var me = this;
     var textArea = document.createElement("textarea");
 
@@ -92,10 +92,10 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     return done;
   },
 
-  alert: function(sMessage, sType, btnCopy) {
+  alert: function (sMessage, sType, btnCopy) {
     var me = this;
     var btns = {
-      yes: "OK"
+      yes: "OK",
     };
 
     if (sMessage == null) return;
@@ -134,7 +134,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       icon: icon,
       buttonText: btns,
       closable: closable,
-      fn: function(oButton) {
+      fn: function (oButton) {
         if (oButton == "cancel") {
           // copy
           if (me.copyToClipboard(sMessage)) {
@@ -147,7 +147,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         } else if (oButton == "yes") {
           // agree and ignore
         }
-      }
+      },
     });
   },
 
@@ -163,7 +163,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     Done: "#238802",
     Failed: "#FF0000",
     failed: "#FF0000",
-    Killed: "#111111"
+    Killed: "#111111",
   },
 
   job_minor_status_palette: {
@@ -200,7 +200,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     "Socket read timeout exceeded": "#B400FE",
     Stalled: "#FF655E",
     "Uploading Job Outputs": "#FE8420",
-    "Watchdog identified this job as stalled": "#FFCC99"
+    "Watchdog identified this job as stalled": "#FFCC99",
   },
   /*************************************************************************
    * It uses the browser provided infrastructure to log the message. It is
@@ -212,24 +212,24 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
    * @param{Object} loggedObject An object what we want to log in the
    *                debugger of the browser.
    */
-  log: function(logLevel, message, loggedObject) {
+  log: function (logLevel, message, loggedObject) {
     var config = null;
 
     if (loggedObject) {
       config = {
         level: logLevel,
-        dump: loggedObject
+        dump: loggedObject,
       };
     } else {
       config = {
-        level: logLevel
+        level: logLevel,
       };
     }
     // <debug>
     Ext.log(config, message);
     // </debug>
   },
-  zfill: function(number, zeros) {
+  zfill: function (number, zeros) {
     if (zeros > 0) {
       var str = "";
       nbzeros = zeros - number.toString().length;
@@ -241,7 +241,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       return number;
     }
   },
-  getSelectedValue: function(oGrid) {
+  getSelectedValue: function (oGrid) {
     var sVal = "";
     var oSelectedRecords = oGrid.getSelectionModel().getSelection();
 
@@ -253,7 +253,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     }
     return sVal;
   },
-  msg: function(type, message, autoClose) {
+  msg: function (type, message, autoClose) {
     var me = this;
 
     if (message === undefined) return;
@@ -279,7 +279,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           stickWhileHover: false,
           iconCls: "ux-notification-icon-information",
           html: message,
-          message: message
+          message: message,
         };
         break;
 
@@ -291,7 +291,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           manager: GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null,
           iconCls: "ux-notification-icon-error",
           html: message,
-          message: message
+          message: message,
         };
 
         break;
@@ -305,7 +305,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           stickWhileHover: false,
           iconCls: "ux-notification-icon-information",
           html: message,
-          message: message
+          message: message,
         };
         break;
 
@@ -317,7 +317,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           manager: GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null,
           iconCls: "ux-notification-icon-error",
           html: message,
-          message: message
+          message: message,
         };
 
         break;
@@ -330,17 +330,17 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           manager: GLOBAL.APP.MAIN_VIEW ? GLOBAL.APP.MAIN_VIEW.Id : null,
           iconCls: "ux-notification-icon-error",
           html: message,
-          message: message
+          message: message,
         };
     }
 
     var notificationobj = Ext.create("widget.uxNotification", config);
-    notificationobj.on("beforeclose", function(notification) {
+    notificationobj.on("beforeclose", function (notification) {
       Ext.Array.remove(me.messages, notification.message);
     });
     notificationobj.show();
   },
-  showAjaxErrorMessage: function(response) {
+  showAjaxErrorMessage: function (response) {
     var me = this;
 
     if (response.statusText == "transaction aborted") return;
@@ -377,7 +377,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       }
     }
   },
-  chunkString: function(str, chunksize) {
+  chunkString: function (str, chunksize) {
     return str.match(new RegExp("[\\s\\S]{1," + +chunksize + "}", "g"));
-  }
+  },
 });

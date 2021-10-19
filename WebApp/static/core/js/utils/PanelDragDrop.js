@@ -102,21 +102,21 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
    */
   containerScroll: false,
 
-  init: function(view) {
+  init: function (view) {
     var me = this;
 
     view.on("render", me.onViewRender, me, {
-      single: true
+      single: true,
     });
   },
 
-  destroy: function() {
+  destroy: function () {
     var me = this;
 
     Ext.destroy(me.dragZone, me.dropZone);
   },
 
-  enable: function() {
+  enable: function () {
     var me = this;
 
     if (me.dragZone) {
@@ -128,7 +128,7 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
     me.callParent();
   },
 
-  disable: function() {
+  disable: function () {
     var me = this;
 
     if (me.dragZone) {
@@ -140,7 +140,7 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
     me.callParent();
   },
 
-  onViewRender: function(view) {
+  onViewRender: function (view) {
     var me = this,
       scrollEl;
 
@@ -155,7 +155,7 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
         dragText: me.dragText,
         containerScroll: me.containerScroll,
         scrollEl: scrollEl,
-        getDragData: function(e) {
+        getDragData: function (e) {
           var view = this.view,
             item = e.getTarget().id,
             record = view.getComponent(item);
@@ -163,12 +163,12 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
             return {
               event: new Ext.EventObjectImpl(e),
               item: e.target,
-              record: record
+              record: record,
             };
           }
         },
 
-        onInitDrag: function(x, y) {
+        onInitDrag: function (x, y) {
           var self = this,
             data = self.dragData,
             view = self.view,
@@ -186,7 +186,7 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
           //        self.proxy.update(self.ddel.dom);
           self.onStartDrag(x, y);
           return true;
-        }
+        },
       });
     }
 
@@ -196,7 +196,7 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
         ddGroup: me.dropGroup || me.ddGroup,
         containerScroll: true,
 
-        getTargetFromEvent: function(e) {
+        getTargetFromEvent: function (e) {
           var me = this,
             v = me.view,
             image = e.getTarget(),
@@ -210,14 +210,14 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
               imageobj = view.getComponent(imageid);
               return {
                 node: imageobj,
-                record: imageobj
+                record: imageobj,
               };
             }
           }
         },
 
         // On Node enter, see if it is valid for us to drop the field on that type of column.
-        onNodeEnter: function(target, dd, e, dragData) {
+        onNodeEnter: function (target, dd, e, dragData) {
           var me = this;
           if (target.record != null) {
             //only allow to drop element, if the target an image. What about copy from other window?
@@ -242,7 +242,7 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
 
         // Return the class name to add to the drag proxy. This provides a visual indication
         // of drop allowed or not allowed.
-        onNodeOver: function(target, dd, e, dragData) {
+        onNodeOver: function (target, dd, e, dragData) {
           return this.dropOK ? this.dropAllowed : this.dropNotAllowed;
         },
 
@@ -256,7 +256,7 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
         },*/
 
         // Process the drop event if we have previously ascertained that a drop is OK.
-        onNodeDrop: function(target, dd, e, dragData) {
+        onNodeDrop: function (target, dd, e, dragData) {
           if (this.dropOK) {
             //target.node.el.frame("#397D02",1);
             var index = view.items.indexOf(target.record);
@@ -265,8 +265,8 @@ Ext.define("Ext.dirac.utils.PanelDragDrop", {
           }
         },
 
-        onCellDrop: Ext.emptyFn
+        onCellDrop: Ext.emptyFn,
       });
     }
-  }
+  },
 });
