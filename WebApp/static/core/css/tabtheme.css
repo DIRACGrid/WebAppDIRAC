@@ -1,14 +1,14 @@
-.core-desktop-icon{background:url(../img/SelPanel/user-desktop.png) no-repeat;!important; }
+.core-desktop-icon{background:url(../img/SelPanel/user-desktop.png) no-repeat !important; }
 
 .x-grid-tree-node-expanded .x-tree-icon-parent.core-desktop-icon{
-  background:url(../img/SelPanel/user-desktop.png)no-repeat; !important;
+  background:url(../img/SelPanel/user-desktop.png)no-repeat !important;
 }
 
-.core-application-icon{background:url(../img/SelPanel/executable.ico) no-repeat; !important;
+.core-application-icon{background:url(../img/SelPanel/executable.ico) no-repeat !important;
 }
 
 .x-grid-tree-node-expanded .x-tree-icon-parent.core-application-icon{
-  background:url(../img/SelPanel/executable.ico)no-repeat; !important;
+  background:url(../img/SelPanel/executable.ico)no-repeat !important;
 }
 
 
@@ -18,25 +18,25 @@
 }
 */
 
-.icon-applications-states-all-default{background:url(../img/SelPanel/run.ico)no-repeat; !important;
+.icon-applications-states-all-default{background:url(../img/SelPanel/run.ico)no-repeat !important;
     background-color: transparent;
 }
 
 
-.shared-desktop{background:url(../img/SelPanel/shared-desktop1.ico)no-repeat; !important;
+.shared-desktop{background:url(../img/SelPanel/shared-desktop1.ico)no-repeat !important;
     background-color: transparent;
 }
 
 .x-grid-tree-node-expanded .x-tree-icon-parent.shared-desktop{
-  background:url(../img/SelPanel/shared-desktop1.ico)no-repeat; !important;
+  background:url(../img/SelPanel/shared-desktop1.ico)no-repeat !important;
 }
 
-.my-desktop{background:url(../img/SelPanel/home.ico)no-repeat; !important;
+.my-desktop{background:url(../img/SelPanel/home.ico)no-repeat !important;
     background-color: transparent;
 }
 
 .x-grid-tree-node-expanded .x-tree-icon-parent.my-desktop{
-  background:url(../img/SelPanel/home.ico)no-repeat; !important;
+  background:url(../img/SelPanel/home.ico)no-repeat !important;
 }
 
 
