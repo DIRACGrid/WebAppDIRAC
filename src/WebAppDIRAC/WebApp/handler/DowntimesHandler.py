@@ -12,119 +12,109 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
 
 class DowntimesHandler(WebHandler):
 
-  AUTH_PROPS = 'authenticated'
+    AUTH_PROPS = "authenticated"
 
-  @asyncGen
-  def web_getSelectionData(self):
-    callback = {
-        'name': set(),
-        'severity': set(),
-        'sites': set()
-    }
+    @asyncGen
+    def web_getSelectionData(self):
+        callback = {"name": set(), "severity": set(), "sites": set()}
 
-    gLogger.info("web_getSelectionData arguments", repr(self.request.arguments))
+        gLogger.info("web_getSelectionData arguments", repr(self.request.arguments))
 
-    downtimes = yield self.threadTask(PublisherClient().getCachedDowntimes, None, None, None, None)
+        downtimes = yield self.threadTask(PublisherClient().getCachedDowntimes, None, None, None, None)
 
-    if downtimes['OK']:
+        if downtimes["OK"]:
 
-      dtList = [dict(zip(downtimes['Columns'], dt)) for dt in downtimes['Value']]
+            dtList = [dict(zip(downtimes["Columns"], dt)) for dt in downtimes["Value"]]
 
-      for dt in dtList:
+            for dt in dtList:
 
-        callback['name'].add(dt['Name'])
-        callback['severity'].add(dt['Severity'])
+                callback["name"].add(dt["Name"])
+                callback["severity"].add(dt["Severity"])
 
-    sites = yield self.threadTask(PublisherClient().getSites)
-    if sites['OK']:
+        sites = yield self.threadTask(PublisherClient().getSites)
+        if sites["OK"]:
 
-      callback['site'] = sites['Value']
+            callback["site"] = sites["Value"]
 
-    for key, value in callback.items():
+        for key, value in callback.items():
 
-      callback[key] = [[item] for item in list(value)]
-      # callback[key].sort()
-      callback[key] = [['All']] + callback[key]
+            callback[key] = [[item] for item in list(value)]
+            # callback[key].sort()
+            callback[key] = [["All"]] + callback[key]
 
-    callback['view'] = [['tabular'], ['availability']]
+        callback["view"] = [["tabular"], ["availability"]]
 
-    self.finish(callback)
+        self.finish(callback)
 
-  @asyncGen
-  def web_getDowntimesData(self):
-    requestParams = self.__requestParams()
-    gLogger.info(requestParams)
+    @asyncGen
+    def web_getDowntimesData(self):
+        requestParams = self.__requestParams()
+        gLogger.info(requestParams)
 
-    retVal = yield self.threadTask(PublisherClient().getSitesResources, list(requestParams['site']))
+        retVal = yield self.threadTask(PublisherClient().getSitesResources, list(requestParams["site"]))
 
-    sitesResources = ""
-    if not retVal['OK']:
-      raise WErr.fromSERROR(retVal)
-    else:
-      sitesResources = retVal['Value']
+        sitesResources = ""
+        if not retVal["OK"]:
+            raise WErr.fromSERROR(retVal)
+        else:
+            sitesResources = retVal["Value"]
 
-    names = []
-    if requestParams['site']:
-
-      if names is None:
         names = []
+        if requestParams["site"]:
 
-      for _site, resources in sitesResources.items():
+            if names is None:
+                names = []
 
-        names += resources['ces']
-        names += resources['ses']
+            for _site, resources in sitesResources.items():
 
-    downtimes = PublisherClient().getCachedDowntimes(None, None,
-                                                     names,
-                                                     list(requestParams['severity']))
-    if not downtimes['OK']:
-      raise WErr.fromSERROR(downtimes)
+                names += resources["ces"]
+                names += resources["ses"]
 
-    dtList = [dict(zip(downtimes['Columns'], dt)) for dt in downtimes['Value']]
+        downtimes = PublisherClient().getCachedDowntimes(None, None, names, list(requestParams["severity"]))
+        if not downtimes["OK"]:
+            raise WErr.fromSERROR(downtimes)
 
-    for dt in dtList:
+        dtList = [dict(zip(downtimes["Columns"], dt)) for dt in downtimes["Value"]]
 
-      dt['Site'] = 'Unknown'
+        for dt in dtList:
 
-      for site, resources in sitesResources.items():
-        if dt['Name'] in resources['ces'] + resources['ses']:
-          dt['Site'] = site
-          break
+            dt["Site"] = "Unknown"
 
-      dt['StartDate'] = str(dt['StartDate'])
-      dt['EndDate'] = str(dt['EndDate'])
+            for site, resources in sitesResources.items():
+                if dt["Name"] in resources["ces"] + resources["ses"]:
+                    dt["Site"] = site
+                    break
 
-    self.finish({'success': 'true', 'result': dtList, 'total': len(dtList)})
+            dt["StartDate"] = str(dt["StartDate"])
+            dt["EndDate"] = str(dt["EndDate"])
 
-  def __requestParams(self):
-    '''
-      We receive the request and we parse it, in this case, we are doing nothing,
-      but it can be certainly more complex.
-    '''
-    gLogger.always("!!!  PARAMS: ", repr(self.request.arguments))
+        self.finish({"success": "true", "result": dtList, "total": len(dtList)})
 
-    responseParams = {
-        'name': [],
-        'severity': [],
-        'site': []
-    }
+    def __requestParams(self):
+        """
+        We receive the request and we parse it, in this case, we are doing nothing,
+        but it can be certainly more complex.
+        """
+        gLogger.always("!!!  PARAMS: ", repr(self.request.arguments))
 
-    for key in responseParams:
-      if self.get_argument(key, None):
-        responseParams[key] = list(json.loads(self.get_argument(key)))
+        responseParams = {"name": [], "severity": [], "site": []}
 
-    try:
-      startDate = '%s %s' % (self.get_argument("startDate"), self.get_argument("startTime"))
-      startDate = datetime.strptime(startDate, '%Y-%m-%d %H:%M')
-    except (tornado.web.MissingArgumentError, ValueError):
-      startDate = datetime.utcnow()
-    responseParams['startDate'] = startDate
+        for key in responseParams:
+            if self.get_argument(key, None):
+                responseParams[key] = list(json.loads(self.get_argument(key)))
 
-    try:
-      endDate = '%s %s' % (self.get_argument("endDate"), self.get_argument("endTime"))
-      endDate = datetime.strptime(endDate, '%Y-%m-%d %H:%M')
-    except (tornado.web.MissingArgumentError, ValueError):
-      endDate = datetime.utcnow()
-    responseParams['endDate'] = endDate
+        try:
+            startDate = "%s %s" % (self.get_argument("startDate"), self.get_argument("startTime"))
+            startDate = datetime.strptime(startDate, "%Y-%m-%d %H:%M")
+        except (tornado.web.MissingArgumentError, ValueError):
+            startDate = datetime.utcnow()
+        responseParams["startDate"] = startDate
 
-    return responseParams
+        try:
+            endDate = "%s %s" % (self.get_argument("endDate"), self.get_argument("endTime"))
+            endDate = datetime.strptime(endDate, "%Y-%m-%d %H:%M")
+        except (tornado.web.MissingArgumentError, ValueError):
+            endDate = datetime.utcnow()
+        responseParams["endDate"] = endDate
+
+        return responseParams

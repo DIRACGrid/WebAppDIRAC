@@ -12,7 +12,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
     "Ext.dirac.views.tabs.PresenterView",
     "Ext.dirac.views.tabs.Panel",
     "Ext.ux.TabScrollerMenu",
-    "Ext.dirac.views.tabs.TabScrollerMenu"
+    "Ext.dirac.views.tabs.TabScrollerMenu",
   ],
   xtype: "diractabs",
   taskbar: null, // this is used by the desktop layout
@@ -35,11 +35,11 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
     // },
     layout: {
       type: "border",
-      padding: 2
+      padding: 2,
     },
     bodyStyle: {
-      background: "#AAAAAA"
-    }
+      background: "#AAAAAA",
+    },
   },
   // this is used to hide the MenuTabs.js
   /*
@@ -58,7 +58,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
    */
   currentOpenedApp: null,
   appLicationContainer: null,
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
     me.callParent(arguments);
     me.createMenuWidgets();
@@ -66,7 +66,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
   /*************************************************************************
    * It creates the widgets corresponds to the Menu in the LeftContainer.
    */
-  createMenuWidgets: function() {
+  createMenuWidgets: function () {
     var me = this;
 
     me.appLicationContainer = Ext.create("widget.tabPanel", {
@@ -75,18 +75,18 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
       // layout:'fit',
       layout: {
         type: "border",
-        padding: 2
+        padding: 2,
       },
       collapsed: false,
       margin: "0 0 2 0",
       tabPosition: "bottom",
-      value: "menuPanel"
+      value: "menuPanel",
     });
     me.add(me.appLicationContainer);
     var wallpaper = Ext.create("widget.wallpaper", {
       layout: "fit",
       margin: "0 0 2 0",
-      value: "welcome"
+      value: "welcome",
     });
     wallpaper.setWallpaper(GLOBAL.BACKGROUND, false);
     me.add(wallpaper);
@@ -99,11 +99,11 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
       xtype: "component",
       autoEl: {
         tag: "iframe",
-        src: "http://diracgrid.org"
-      }
+        src: "http://diracgrid.org",
+      },
     });
   },
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oData = [];
     return oData;
@@ -118,7 +118,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
    *          item is the state name.
    * @return {Boolean}
    */
-  __isStateFound: function(Array, item, module) {
+  __isStateFound: function (Array, item, module) {
     var found = false;
     for (var i = 0; i < Array.length; i++) {
       if (Array[i].currentState == item && Array[i].module == module) {
@@ -135,18 +135,18 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
    * @param {Object}
    *          oApp the current application which is opened
    */
-  setOpenedApp: function(appId) {
+  setOpenedApp: function (appId) {
     var me = this;
     me.currentOpenedApp = appId;
   },
   /*************************************************************************
    * It returns the id of the current application.
    */
-  getOpenedApp: function() {
+  getOpenedApp: function () {
     var me = this;
     return me.currentOpenedApp;
   },
-  getApplicationContainer: function() {
+  getApplicationContainer: function () {
     var me = this;
     return me.appLicationContainer;
   },
@@ -156,7 +156,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
    * @param{String} type is a string the name of the
    *                menu:welcome,menuPanel,sharedLayouts
    */
-  changePanel: function(type) {
+  changePanel: function (type) {
     var me = this;
     if (me.exists(type)) {
       me.makeVisible(type);
@@ -164,10 +164,10 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
       GLOBAL.APP.CF.alert("This menu is not implemented!", "error");
     }
   },
-  exists: function(type) {
+  exists: function (type) {
     var me = this;
     found = false;
-    me.items.each(function(i, key) {
+    me.items.each(function (i, key) {
       if (i.value == type) {
         found = true;
         return;
@@ -175,9 +175,9 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
     });
     return found;
   },
-  makeVisible: function(type) {
+  makeVisible: function (type) {
     var me = this;
-    me.items.each(function(i, key) {
+    me.items.each(function (i, key) {
       if (i.value == type) {
         i.show();
       } else {
@@ -197,7 +197,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
    *          tab the name of the tab where the applications will be
    *          created.
    */
-  createWindow: function(config, oTab, cbFunction) {
+  createWindow: function (config, oTab, cbFunction) {
     var me = this;
     var tab = new Ext.dirac.views.tabs.Panel(config);
     var activeTab = me.getApplicationContainer().getActiveTab();
@@ -217,7 +217,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
             type: "maximize",
             tooltip: "Maximize the application.",
             scope: tab,
-            handler: function(event, toolEl, panelHeader) {
+            handler: function (event, toolEl, panelHeader) {
               var me = this;
               activeTab.hideComponents(); // hides all
               // components!
@@ -233,21 +233,21 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
               }
               var origSize = {
                 width: tab.getWidth(),
-                height: tab.getHeight()
+                height: tab.getHeight(),
               };
               me.origiginalSize = origSize;
               me.setWidth(activeTab.getWidth());
               me.setHeight(activeTab.getHeight());
               me.isOpen = true;
               activeTab.add(me);
-            }
+            },
           },
           {
             type: "minimize",
             tooltip: "Minimize the application.",
             scope: tab,
             hidden: true,
-            handler: function(event, toolEl, panelHeader) {
+            handler: function (event, toolEl, panelHeader) {
               var me = this;
               activeTab.showComponents();
               // we need to show the maximize and close
@@ -263,22 +263,22 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
               me.setWidth(tab.origiginalSize.width);
               me.setHeight(tab.origiginalSize.height);
               activeTab.addWidget(me);
-            }
+            },
           },
           {
             scope: tab,
             type: "save",
             tooltip: "Save application state.",
             // hidden:true,
-            handler: function(event, toolEl, panelHeader) {
+            handler: function (event, toolEl, panelHeader) {
               var me = this;
               Ext.MessageBox.confirm(
                 "Confirm",
                 "Do you want to save the current application state?",
-                function(button) {
+                function (button) {
                   var me = this;
                   if (button == "yes") {
-                    var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+                    var funcAfterSave = function (iCode, sAppName, sStateType, sStateName) {
                       if (iCode == 1 && GLOBAL.APP.MAIN_VIEW.currentState != sStateName) {
                         GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
 
@@ -299,19 +299,19 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
                 },
                 me
               );
-            }
+            },
           },
           {
             scope: tab,
             type: "help",
             tooltip: "It provides description of the active application.",
-            handler: function() {
+            handler: function () {
               var me = this;
 
               GLOBAL.APP.MAIN_VIEW.openHelpWindow(me);
-            }
-          }
-        ]
+            },
+          },
+        ],
       });
       activeTab.addWidget(tab);
       tab.header.hide(); // we do not show the name of the application!
@@ -328,7 +328,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
       tab.toLoad = true;
     }
   },
-  createPresenterWindow: function(config) {
+  createPresenterWindow: function (config) {
     var me = this,
       win,
       cfg = Ext.applyIf(config || {}, {
@@ -342,7 +342,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
         border: false,
         hideMode: "offsets",
         layout: "fit",
-        maximized: true
+        maximized: true,
       });
     var win = Ext.create("Ext.window.Window", cfg);
     return win;
@@ -354,7 +354,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
    *          config the window configuration.
    * @return {Ext.window.Window} win the created window.
    */
-  createModalWindow: function(config) {
+  createModalWindow: function (config) {
     var me = this,
       win,
       cfg = Ext.applyIf(config || {}, {
@@ -366,7 +366,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
         animCollapse: false,
         border: false,
         hideMode: "offsets",
-        layout: "fit"
+        layout: "fit",
       });
     var win = Ext.create("Ext.window.Window", cfg);
     return win;
@@ -378,13 +378,13 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
    *          name The name of the tab widget.
    * @return {Object}
    */
-  getTabFromApplicationContainer: function(name) {
+  getTabFromApplicationContainer: function (name) {
     var me = this;
     var tab = null;
     var container = me.getApplicationContainer();
     if (container) {
       var tabs = container.items;
-      tabs.each(function(key, value, length) {
+      tabs.each(function (key, value, length) {
         if (key.title == name) {
           tab = key;
           return;
@@ -406,7 +406,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
    *                 desktop. If it is true, we do not load the applications
    *                 to the desktop.
    */
-  createDesktopTab: function(name, view, cbLoadDesktop) {
+  createDesktopTab: function (name, view, cbLoadDesktop) {
     var me = this;
     var isLoaded = GLOBAL.APP.MAIN_VIEW.loading ? false : true;
     var tab = me.getTabFromApplicationContainer(name);
@@ -419,7 +419,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
           title: name,
           desktop: me,
           type: "desktop",
-          isLoaded: isLoaded
+          isLoaded: isLoaded,
         });
       } else {
         /* let's create the fast menu */
@@ -428,7 +428,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
           iconCls: null,
           tab: me,
           plugins: "diractabscrollermenu",
-          glyph: 61
+          glyph: 61,
         });
         tab = Ext.create("widget.tabPanel", {
           region: "center",
@@ -441,7 +441,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
             background: "#AAAAAA",
             backgroundImage: "url(" + GLOBAL.BACKGROUND + ")",
             backgroundPosition: "bottom right",
-            backgroundRepeat: "no-repeat"
+            backgroundRepeat: "no-repeat",
           },
           dockedItems: [
             {
@@ -449,7 +449,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
               defaults: {
                 xtype: "tool",
                 weight: 20,
-                border: true
+                border: true,
               },
               items: [
                 "->",
@@ -457,7 +457,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
                 {
                   type: "help",
                   align: "right",
-                  handler: function() {
+                  handler: function () {
                     var desktop = me.getApplicationContainer().getActiveTab();
                     if (desktop) {
                       var app = desktop.getActiveTab();
@@ -465,11 +465,11 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
                         GLOBAL.APP.MAIN_VIEW.openHelpWindow(app);
                       }
                     }
-                  }
-                }
-              ]
-            }
-          ]
+                  },
+                },
+              ],
+            },
+          ],
         });
       }
 
@@ -496,7 +496,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
    * @param {Object}
    *          stateData Data of the module that define its state
    */
-  addStateToExistingWindows: function(stateName, appName) {
+  addStateToExistingWindows: function (stateName, appName) {
     var me = this;
     var activeTab = me.getApplicationContainer().getActiveTab();
     var desktopName = activeTab.title;
@@ -512,7 +512,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
    * Function called when the Save button from the desktop context menu is
    * clicked
    */
-  oprSaveDesktopState: function(desktopName) {
+  oprSaveDesktopState: function (desktopName) {
     var me = this;
 
     var desktop = null;
@@ -526,7 +526,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
       /*
        * Function that is executed after a state has been saved
        */
-      var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+      var funcAfterSave = function (iCode, sAppName, sStateType, sStateName) {
         if (iCode == 1) {
           if (GLOBAL.APP.MAIN_VIEW.SM.saveWindow) GLOBAL.APP.MAIN_VIEW.SM.saveWindow.close();
 
@@ -564,7 +564,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
       Ext.dirac.system_info.msg("Notification", "The desktop is not active!");
     }
   },
-  oprSaveAsDesktopState: function(desktopName) {
+  oprSaveAsDesktopState: function (desktopName) {
     var me = this;
     me.hasClose = close;
     var desktop = null;
@@ -578,7 +578,7 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
       /*
        * Function that is executed after a state has been saved
        */
-      var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+      var funcAfterSave = function (iCode, sAppName, sStateType, sStateName) {
         if (iCode == 1 && GLOBAL.APP.MAIN_VIEW.currentState != sStateName) {
           // if there is an active desktop state, we have to remove it
           if (GLOBAL.APP.MAIN_VIEW.currentState != "") GLOBAL.APP.SM.oprRemoveActiveState("desktop", GLOBAL.APP.MAIN_VIEW.currentState); // OK
@@ -601,12 +601,12 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
       Ext.dirac.system_info.msg("Notification", "No desktop found!");
     }
   },
-  oprDeleteDesktopState: function() {
+  oprDeleteDesktopState: function () {
     var me = this;
     /*
      * Function that is executed after a state has been removed
      */
-    var funcAfterRemove = function(stateType, sAppName, sStateName) {
+    var funcAfterRemove = function (stateType, sAppName, sStateName) {
       if (stateType == "application") {
         GLOBAL.APP.MAIN_VIEW.deleteStateFromMenu(sStateName);
       } else {
@@ -621,11 +621,11 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
     };
     GLOBAL.APP.MAIN_VIEW.SM.formManageStates("desktop", funcAfterRemove);
   },
-  setActiveTab: function(tab) {
+  setActiveTab: function (tab) {
     var me = this;
     var container = me.getApplicationContainer();
     if (container) {
       container.setActiveTab(tab);
     }
-  }
+  },
 });

@@ -18,20 +18,20 @@ Ext.define("Ext.dirac.views.tabs.LeftContainer", {
   items: [],
   desktop: null,
   collapsed: false,
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
     Ext.setGlyphFontFamily("Pictos");
     var menu = Ext.create("Ext.dirac.views.tabs.MenuTabs", {
-      menu: me.menu
+      menu: me.menu,
     });
     Ext.apply(me, { items: menu });
     me.callParent(arguments);
   },
-  setActiveMenu: function(name) {
+  setActiveMenu: function (name) {
     var me = this;
     var menu = me.items.getAt(0);
     found = null;
-    menu.items.each(function(i) {
+    menu.items.each(function (i) {
       if (i.value == name) {
         found = i;
         return;
@@ -46,11 +46,11 @@ Ext.define("Ext.dirac.views.tabs.LeftContainer", {
    * @param{String} name is the name of the panel
    * @return{Object} is a panel
    */
-  __getMenuObject: function(name) {
+  __getMenuObject: function (name) {
     var me = this;
     var menu = me.items.getAt(0);
     found = null;
-    menu.items.each(function(i) {
+    menu.items.each(function (i) {
       if (i.value == name) {
         found = i;
         return;
@@ -62,9 +62,9 @@ Ext.define("Ext.dirac.views.tabs.LeftContainer", {
    * It returns the menu panel
    *@return{Ext.dirac.views.tabs.SelPanel}
    */
-  getSelectionPanel: function() {
+  getSelectionPanel: function () {
     var me = this;
     var mPanel = me.__getMenuObject("menuPanel");
     return mPanel;
-  }
+  },
 });

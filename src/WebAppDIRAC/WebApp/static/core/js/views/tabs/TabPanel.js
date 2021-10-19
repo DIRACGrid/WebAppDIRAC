@@ -21,24 +21,24 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
   renderTo: Ext.getBody(),
   defaults: {
     bodyPadding: 0,
-    scrollable: true
+    scrollable: true,
   },
   bodyStyle: {
     background: "#AAAAAA",
     backgroundImage: "url(" + GLOBAL.BACKGROUND + ")",
     backgroundPosition: "bottom right",
-    backgroundRepeat: "no-repeat"
+    backgroundRepeat: "no-repeat",
   },
 
   workspace: null,
   plugins: ["tabreorderer"], //TODO: use 'tabscrollermenu' plugin when it will be fixed
-  setWorkspace: function(wsk) {
+  setWorkspace: function (wsk) {
     this.workspace = wsk;
   },
-  getWorkspace: function() {
+  getWorkspace: function () {
     return this.workspace;
   },
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.callParent(arguments);
@@ -46,7 +46,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
      * me.loadMask = new Ext.LoadMask(target: me, msg : "Loading ..." });
      */
   },
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
     if (data && data.views && data.views.tabs && data.views.tabs.tabChangeCycle) {
       me.tabChangeCycle = data.views.tabs.tabChangeCycle;
@@ -61,7 +61,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
    *
    * @return {Object}
    */
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     var activeTab = "";
@@ -79,14 +79,14 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
         tabs: {
           activeTab: {
             name: activeTab,
-            currentState: state
+            currentState: state,
           },
           version: 1,
           desktopGranularity: me.desktopGranularity,
           positions: [],
-          tabChangeCycle: me.tabChangeCycle
-        }
-      }
+          tabChangeCycle: me.tabChangeCycle,
+        },
+      },
     };
 
     var apps = {};
@@ -103,7 +103,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
     }
 
     if (GLOBAL.APP.SM.isStateLoaded("reference", "desktop", desktopName) > -1) {
-      me.items.each(function(win, value, length) {
+      me.items.each(function (win, value, length) {
         if (!win.Loaded) {
           win.loadData();
         }
@@ -115,7 +115,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
       // The applications are not loaded by default...
     }
     try {
-      me.items.each(function(win, value, length) {
+      me.items.each(function (win, value, length) {
         // we have to select all the applications which are not loaded
         // and they have the same state.
         if (!win.isLoaded) {
@@ -127,7 +127,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
         }
       });
 
-      me.items.each(function(win, value, length) {
+      me.items.each(function (win, value, length) {
         // load the applications which have the same name.
         // In this case we avoid to overwrite applications with wrong
         // state.
@@ -185,7 +185,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
         }
       }
 
-      me.items.each(function(win, value, length) {
+      me.items.each(function (win, value, length) {
         /*
          * Depends on the loadedObjectType
          */
@@ -198,7 +198,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
               module: win.getAppClassName(),
               data: win.loadedObject.getStateData(),
               currentState: win.currentState,
-              loadedObjectType: win.loadedObjectType
+              loadedObjectType: win.loadedObjectType,
             };
             // if we have some help text, it will be automatically
             // saved.
@@ -208,7 +208,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
                   // The Notepad is open. The text has to be retrieved
                   // from the notepad...
                   var helptext = {
-                    helptext: win.childWindows[i].items.getAt(0).getValue()
+                    helptext: win.childWindows[i].items.getAt(0).getValue(),
                   };
                   Ext.apply(item.data, helptext);
                 }
@@ -222,7 +222,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
             var item = {
               link: win.linkToLoad,
               loadedObjectType: win.loadedObjectType,
-              text: win.title
+              text: win.title,
             };
 
             oData.push(item);
@@ -261,13 +261,13 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
                 var item = {
                   currentState: win.currentState,
                   module: win.getAppClassName(),
-                  data: win.loadedObject.getStateData()
+                  data: win.loadedObject.getStateData(),
                 };
                 if (win.childWindows.length > 0) {
                   for (var i = 0; i < win.childWindows.length; i++) {
                     if (win.childWindows[i].type == "help") {
                       var helptext = {
-                        helptext: win.childWindows[i].items.getAt(0).getValue()
+                        helptext: win.childWindows[i].items.getAt(0).getValue(),
                       };
                       Ext.apply(item.data, helptext);
                     }
@@ -294,7 +294,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
     return desktop;
   },
   listeners: {
-    beforeclose: function() {
+    beforeclose: function () {
       var me = this;
       var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer(); // we
       // have to set the active tab to this widget.
@@ -305,7 +305,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
       Ext.MessageBox.confirm(
         "Confirm",
         "The current desktop has changed. Do you want to save?",
-        function(button) {
+        function (button) {
           var me = this;
           if (button === "yes") {
             GLOBAL.APP.MAIN_VIEW.saveActiveDesktopState();
@@ -318,7 +318,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
       return false; // it cancel the close of the tab. it wait until the
       // state is saved.
     },
-    close: function() {
+    close: function () {
       var me = this;
       Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, me.title); // we
       // have to remove the desktop from the list.
@@ -332,7 +332,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
       // null;
       GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
     },
-    tabchange: function(tabPanel, newCard, oldCard, eOpts) {
+    tabchange: function (tabPanel, newCard, oldCard, eOpts) {
       var me = this;
       /*
        * if (oldCard != null) {
@@ -381,11 +381,11 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
         }
       }
     },
-    afterlayout: function() {
+    afterlayout: function () {
       // it has to be fired to initialize the
       // plugin.
       this.tabBar.fireEvent("afterLayout");
-    }
+    },
   },
   /**
    * It is used to return a given tab.
@@ -394,10 +394,10 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
    *           container.
    * @return tab {Ext.dirac.views.tabs.TabPanel}
    */
-  getTab: function(tabName) {
+  getTab: function (tabName) {
     var tab = null;
     var me = this;
-    me.items.each(function(tabObj, value, length) {
+    me.items.each(function (tabObj, value, length) {
       console.log(tabObj);
       if (tabObj.title == tabName) {
         tab = tabObj;
@@ -411,10 +411,10 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
    * @property state
    * @return
    */
-  getPanel: function(state) {
+  getPanel: function (state) {
     var panel = null;
     var me = this;
-    me.items.each(function(panelObj, value, length) {
+    me.items.each(function (panelObj, value, length) {
       if (panelObj.currentState == state) {
         panel = panelObj;
         return;
@@ -422,10 +422,10 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
     });
     return panel;
   },
-  getDesktop: function(desktop) {
+  getDesktop: function (desktop) {
     var panel = null;
     var me = this;
-    me.items.each(function(panelObj, value, length) {
+    me.items.each(function (panelObj, value, length) {
       if (panelObj.title == desktop) {
         panel = panelObj;
         return;
@@ -433,22 +433,22 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
     });
     return panel;
   },
-  getApplicationsState: function() {
+  getApplicationsState: function () {
     var me = this;
     var states = [];
-    me.items.each(function(panelObj, value, length) {
+    me.items.each(function (panelObj, value, length) {
       states.push({
         module: panelObj.appClassName,
         currentState: panelObj.currentState,
-        data: panelObj.setupData.data
+        data: panelObj.setupData.data,
       });
     });
     return states;
   },
-  getApplicationTab: function(appClassName, stateName) {
+  getApplicationTab: function (appClassName, stateName) {
     var me = this;
     var panel = null;
-    me.items.each(function(panelObj, value, length) {
+    me.items.each(function (panelObj, value, length) {
       if (panelObj.appClassName == appClassName && panelObj.currentState == stateName) {
         panel = panelObj;
         return;
@@ -456,12 +456,12 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
     });
     return panel;
   },
-  setTabChangeTime: function(time) {
+  setTabChangeTime: function (time) {
     var me = this;
     me.tabChangeCycle = time;
     clearInterval(me.tabChangeTimeout);
     if (me.tabChangeCycle > 0) {
-      me.tabChangeTimeout = setInterval(function() {
+      me.tabChangeTimeout = setInterval(function () {
         if (me.tabCounter < me.items.length) {
           me.setActiveTab(me.tabCounter);
           me.tabCounter += 1;
@@ -471,7 +471,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
       }, me.tabChangeCycle);
     }
   },
-  autoTabChange: function() {
+  autoTabChange: function () {
     var me = this;
     var selPanel = GLOBAL.APP.MAIN_VIEW.getLeftContainer().getSelectionPanel();
     if (selPanel) {
@@ -489,7 +489,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
       settingPanel.setTabChangePeriod(me.tabChangeCycle);
     }
   },
-  syncronizeWithSettings: function(tab) {
+  syncronizeWithSettings: function (tab) {
     var selPanel = GLOBAL.APP.MAIN_VIEW.getLeftContainer().getSelectionPanel();
     if (selPanel) {
       var settingPanel = selPanel.getSettimgsPanel().getDesktopSettingsPanel();
@@ -501,15 +501,15 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
       settingPanel.setTabChangePeriod(0);
     }
   },
-  hasDesktopChanged: function() {
+  hasDesktopChanged: function () {
     var me = this;
     var changed = false;
-    me.items.each(function(tabObj, value, length) {
+    me.items.each(function (tabObj, value, length) {
       if (tabObj.hasChanged()) {
         changed = true;
         return;
       }
     });
     return changed;
-  }
+  },
 });

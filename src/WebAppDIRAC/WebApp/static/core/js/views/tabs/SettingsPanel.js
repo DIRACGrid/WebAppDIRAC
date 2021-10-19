@@ -16,41 +16,41 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
   border: false,
   scrollable: true,
   layout: "vbox",
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
     me.desktopSettings = Ext.create("Ext.dirac.views.tabs.DesktopSettings");
     if (!GLOBAL.APP.configData.user.username) {
       GLOBAL.STATE_MANAGEMENT_ENABLED = false;
     }
     Ext.apply(me, {
-      items: [me.addUserForm(), me.desktopSettings]
+      items: [me.addUserForm(), me.desktopSettings],
     });
 
     me.callParent(arguments);
   },
-  addUserName: function(name) {
+  addUserName: function (name) {
     var userName = Ext.create("Ext.form.Panel", {
       maxWidth: 300,
       layout: "fit",
       // bodyPadding: 10,
       layout: {
         type: "hbox",
-        align: "middle"
+        align: "middle",
       },
       items: [
         {
           xtype: "label",
-          text: "UserName:"
+          text: "UserName:",
         },
         {
           xtype: "tbtext",
-          text: name
-        }
-      ]
+          text: name,
+        },
+      ],
     });
     return userName;
   },
-  addUserForm: function() {
+  addUserForm: function () {
     var me = this;
 
     var form = Ext.create("Ext.form.Panel", {
@@ -62,40 +62,40 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
         type: "table",
         columns: 2,
         tdAttrs: {
-          style: "padding: 5px 10px;"
-        }
+          style: "padding: 5px 10px;",
+        },
       },
       defaults: {
         width: 150,
-        textAlign: "left"
+        textAlign: "left",
       },
       items: [
         {
           xtype: "label",
-          text: "User:"
+          text: "User:",
         },
         me.addAuthsButton(),
         {
           xtype: "label",
-          text: "Group:"
+          text: "Group:",
         },
         me.addGroupsButton(),
         {
           xtype: "label",
-          text: "Setup:"
+          text: "Setup:",
         },
         me.addSetupButton(),
         {
           xtype: "label",
-          text: "Theme:"
+          text: "Theme:",
         },
-        me.addThemeButton()
-      ]
+        me.addThemeButton(),
+      ],
     });
     return form;
   },
 
-  addAuthsButton: function() {
+  addAuthsButton: function () {
     var me = this;
     var oListAuth = [];
 
@@ -110,16 +110,16 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
 
     var button_usrname = {
       text: "Visitor",
-      menu: []
+      menu: [],
     };
 
     // HTTP used only for visitors
     if (location.protocol === "http:") {
       button_usrname.menu.push({
         text: "Log in (switch to https://)",
-        handler: function() {
+        handler: function () {
           location.protocol = "https:";
-        }
+        },
       });
       // HTTPS
       // Log in section
@@ -130,9 +130,9 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           // if (oListAuth[i] != currentAuth) {
           button_usrname.menu.push({
             text: oListAuth[i],
-            handler: function() {
+            handler: function () {
               GLOBAL.APP.CF.auth(this.text);
-            }
+            },
           });
           // }
         }
@@ -141,10 +141,10 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       if (currentAuth != "Certificate") {
         button_usrname.menu.push({
           text: "Certificate",
-          handler: function() {
+          handler: function () {
             Ext.util.Cookies.set("authGrant", this.text);
             window.location.protocol = "https";
-          }
+          },
         });
       }
       // Log out section
@@ -152,7 +152,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
         button_usrname.menu.push({ xtype: "menuseparator" });
         button_usrname.menu.push({
           text: "Log out",
-          handler: function() {
+          handler: function () {
             sessionStorage.removeItem("access_token");
             Ext.util.Cookies.set("authGrant", "Visitor");
             if (currentAuth == "Certificate") {
@@ -160,7 +160,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
             } else {
               window.location = GLOBAL.BASE_URL + "logout";
             }
-          }
+          },
         });
         button_usrname.menu.push();
       }
@@ -175,10 +175,10 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     return new Ext.button.Button(button_usrname);
   },
 
-  addGroupsButton: function() {
+  addGroupsButton: function () {
     var button_group = {
       text: GLOBAL.APP.configData["user"]["group"],
-      menu: []
+      menu: [],
     };
     // var data = GLOBAL.APP.configData["groupsStatuses"];
     for (i in GLOBAL.APP.configData.validGroups) {
@@ -191,7 +191,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       button_group.menu.push({
         group: GLOBAL.APP.configData.validGroups[i],
         text: GLOBAL.APP.configData.validGroups[i],
-        handler: function() {
+        handler: function () {
           var me = this;
           var oHref = location.href;
           var oQPosition = oHref.indexOf("?");
@@ -200,7 +200,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           } else {
             location.href = oHref + "changeGroup?to=" + me.group;
           }
-        }
+        },
       });
       // } else {
       //   if (group == GLOBAL.APP.configData["user"]["group"]) {
@@ -226,25 +226,25 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
 
     return new Ext.button.Button(button_group);
   },
-  addSetupButton: function() {
+  addSetupButton: function () {
     var setup_data = {
       text: GLOBAL.APP.configData["setup"],
-      menu: []
+      menu: [],
     };
 
     for (var i = 0; i < GLOBAL.APP.configData["validSetups"].length; i++)
       setup_data.menu.push({
         text: GLOBAL.APP.configData["validSetups"][i],
-        handler: function() {
+        handler: function () {
           var me = this;
 
           location.href = GLOBAL.BASE_URL + "changeSetup?to=" + me.text;
-        }
+        },
       });
 
     return new Ext.button.Button(setup_data);
   },
-  addThemeButton: function() {
+  addThemeButton: function () {
     var me = this;
 
     var sButtonThemeText = "Crisp";
@@ -259,7 +259,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
 
     var button_theme = {
       text: sButtonThemeText,
-      menu: []
+      menu: [],
     };
 
     var oListTheme = ["Gray", "Neptune", "Classic", "Triton", "Crisp"];
@@ -267,7 +267,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     for (var i = 0; i < oListTheme.length; i++) {
       button_theme.menu.push({
         text: oListTheme[i],
-        handler: function() {
+        handler: function () {
           var me = this;
 
           var oHref = location.href;
@@ -286,14 +286,14 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           } else {
             location.href = oHref + "?theme=" + me.text + sState_related_url;
           }
-        }
+        },
       });
     }
     return new Ext.button.Button(button_theme);
   },
 
-  getDesktopSettingsPanel: function() {
+  getDesktopSettingsPanel: function () {
     var me = this;
     return me.desktopSettings;
-  }
+  },
 });

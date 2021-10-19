@@ -1,25 +1,17 @@
-.pm-textbox-help-window textarea.x-form-field{
-	
-	font-family: Courier,monospace !important;	
-	
-
+.pm-textbox-help-window textarea.x-form-field {
+  font-family: Courier, monospace !important;
 }
 
-.pm-main-check-box{
-	
-	margin:3px 0px 3px 0px !important;
-	
+.pm-main-check-box {
+  margin: 3px 0px 3px 0px !important;
 }
-
 
 .pm-grid-icon {
-	background-image: url(../images/grid.png) !important;
-	background-color: transparent;
+  background-image: url(../images/grid.png) !important;
+  background-color: transparent;
 }
 
 .pm-statistics-plot-background {
-	background-image:
-		url(../../../core/img/wallpapers/dirac_symbol_background_b.png)
-		!important;
-	background-repeat: repeat;
+  background-image: url(../../../core/img/wallpapers/dirac_symbol_background_b.png) !important;
+  background-repeat: repeat;
 }

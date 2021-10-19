@@ -44,14 +44,14 @@ Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
     "Ext.dirac.utils.DiracPagingToolbar",
     "Ext.dirac.utils.DiracApplicationContextMenu",
     "Ext.dirac.utils.DiracBaseSelector",
-    "Ext.dirac.utils.DiracAjaxProxy"
+    "Ext.dirac.utils.DiracAjaxProxy",
   ],
 
   /***
    * @param{Object} data
    * It loads the data from the User Profile to the widget.
    */
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     //loads the saved data related to the Grid Panel
@@ -69,7 +69,7 @@ Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
    * @return{Object}
    * It returns the data which will be saved in the User Profile.
    */
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oReturn = {};
 
@@ -85,7 +85,7 @@ Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
   },
   dataFields: [{ name: "ExampleId", type: "int" }, { name: "ExampleValue" }],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.launcher.title = "Example Application";
@@ -104,8 +104,8 @@ Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
@@ -113,7 +113,7 @@ Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
   /**
    * It build the widget.
    */
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     /*
@@ -124,16 +124,16 @@ Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
 
     var selectors = {
       firstName: "First Name",
-      lastName: "Last Name"
+      lastName: "Last Name",
     };
 
     var textFields = {
-      ids: "PersonalId"
+      ids: "PersonalId",
     };
 
     var map = [
       ["firstName", "firstName"],
-      ["lastName", "lastName"]
+      ["lastName", "lastName"],
     ];
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -141,7 +141,7 @@ Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
       cmbSelectors: selectors,
       textFields: textFields,
       datamap: map,
-      url: "ExampleApp/getSelectionData"
+      url: "ExampleApp/getSelectionData",
     });
 
     /*
@@ -151,36 +151,36 @@ Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
      */
 
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + "ExampleApp/getJobData"
+      url: GLOBAL.BASE_URL + "ExampleApp/getJobData",
     });
 
     me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
       proxy: oProxy,
       fields: me.dataFields,
-      scope: me
+      scope: me,
     });
 
     var pagingToolbar = {};
 
     var toolButtons = {
       Visible: [
-        { text: "", handler: me.__executeAction, arguments: ["example", ""], properties: { tooltip: "Example", iconCls: "dirac-icon-reschedule" } }
-      ]
+        { text: "", handler: me.__executeAction, arguments: ["example", ""], properties: { tooltip: "Example", iconCls: "dirac-icon-reschedule" } },
+      ],
     };
 
     pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
       toolButtons: toolButtons,
       store: me.dataStore,
-      scope: me
+      scope: me,
     });
 
     var oColumns = {
       ExampleId: { dataIndex: "ExampleId" },
-      ExampleValue: { dataIndex: "ExampleValue" }
+      ExampleValue: { dataIndex: "ExampleValue" },
     };
 
     var menuitems = {
-      Visible: [{ text: "Get info", handler: me.__executeAction, arguments: ["Get info"], properties: { tooltip: "Click to show...." } }]
+      Visible: [{ text: "Get info", handler: me.__executeAction, arguments: ["Get info"], properties: { tooltip: "Click to show...." } }],
     };
 
     me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({ menu: menuitems, scope: me });
@@ -190,15 +190,15 @@ Ext.define("DIRAC.ExampleApp.classes.ExampleApp", {
       oColumns: oColumns,
       contextMenu: me.contextGridMenu,
       pagingToolbar: pagingToolbar,
-      scope: me
+      scope: me,
     });
 
     me.leftPanel.setGrid(me.grid);
 
     me.add([me.leftPanel, me.grid]);
   },
-  __executeAction: function(action) {
+  __executeAction: function (action) {
     var me = this;
     GLOBAL.APP.CF.alert(action + " button pressed", "info");
-  }
+  },
 });

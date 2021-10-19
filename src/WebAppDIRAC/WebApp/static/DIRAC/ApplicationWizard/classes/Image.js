@@ -8,6 +8,6 @@ Ext.define("DIRAC.ApplicationWizard.classes.Image", {
   border: 3,
   style: {
     borderColor: "white",
-    borderStyle: "solid"
-  }
+    borderStyle: "solid",
+  },
 });

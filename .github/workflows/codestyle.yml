@@ -7,14 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
-    - name: Install pre-commit
-      run: pip install pre-commit
-    - name: Run pre-commit
-      run: pre-commit run --all-files --show-diff-on-failure
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
 
   pyLint:
     runs-on: ubuntu-latest
@@ -25,17 +25,17 @@ jobs:
         shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/checkout@v2
-      with:
-        repository: DIRACGrid/DIRAC
-        path: .DIRAC
-        ref: integration
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: DIRACGrid/DIRAC
+          path: .DIRAC
+          ref: integration
 
-    - name: Prepare environment with Micromamba
-      uses: mamba-org/provision-with-micromamba@main
-      with:
-        environment-file: .DIRAC/environment.yml
+      - name: Prepare environment with Micromamba
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: .DIRAC/environment.yml
 
-    - name: Run tests
-      run: pylint -E src/WebAppDIRAC
+      - name: Run tests
+        run: pylint -E src/WebAppDIRAC

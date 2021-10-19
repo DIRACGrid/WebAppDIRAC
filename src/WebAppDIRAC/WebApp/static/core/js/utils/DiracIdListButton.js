@@ -8,7 +8,7 @@ Ext.define("Ext.dirac.utils.DiracIdListButton", {
   requires: ["Ext.toolbar.Toolbar", "Ext.panel.Panel", "Ext.data.ArrayStore"],
   text: "",
   iconCls: "dirac-icon-list",
-  handler: function() {
+  handler: function () {
     var me = this;
     var oItems = [];
 
@@ -25,7 +25,7 @@ Ext.define("Ext.dirac.utils.DiracIdListButton", {
       var oTextArea = new Ext.create("Ext.form.field.TextArea", {
         value: oItems.join(","),
         cls: "jm-textbox-help-window",
-        flex: 1
+        flex: 1,
       });
 
       var oCombo = new Ext.form.field.ComboBox({
@@ -35,7 +35,7 @@ Ext.define("Ext.dirac.utils.DiracIdListButton", {
         mode: "local",
         store: new Ext.data.ArrayStore({
           fields: ["character"],
-          data: [["SEMI-COLON"], ["COMMA"], ["EMPTY SPACE"]]
+          data: [["SEMI-COLON"], ["COMMA"], ["EMPTY SPACE"]],
         }),
         triggerAction: "all",
         value: "COMMA",
@@ -43,7 +43,7 @@ Ext.define("Ext.dirac.utils.DiracIdListButton", {
         idsItems: oItems,
         textArea: oTextArea,
         listeners: {
-          change: function(combo, newValue, oldValue, eOpts) {
+          change: function (combo, newValue, oldValue, eOpts) {
             switch (newValue) {
               case "SEMI-COLON":
                 combo.textArea.setValue(combo.idsItems.join(";"));
@@ -55,8 +55,8 @@ Ext.define("Ext.dirac.utils.DiracIdListButton", {
                 combo.textArea.setValue(combo.idsItems.join(" "));
                 break;
             }
-          }
-        }
+          },
+        },
       });
 
       var oToolb = new Ext.create("Ext.toolbar.Toolbar", {
@@ -67,19 +67,19 @@ Ext.define("Ext.dirac.utils.DiracIdListButton", {
           {
             xtype: "button",
             text: "COMMA",
-            handler: function() {
+            handler: function () {
               var me = this;
               var parent = me.up("toolbar");
 
               parent.textArea.setValue(parent.idsItems.join(","));
             },
             toggleGroup: me.id + "-ids-separator",
-            allowDepress: false
+            allowDepress: false,
           },
           {
             xtype: "button",
             text: "SEMI-COLON",
-            handler: function() {
+            handler: function () {
               var me = this;
               var parent = me.up("toolbar");
 
@@ -87,12 +87,12 @@ Ext.define("Ext.dirac.utils.DiracIdListButton", {
             },
             toggleGroup: me.id + "-ids-separator",
 
-            allowDepress: false
+            allowDepress: false,
           },
           {
             xtype: "button",
             text: "EMPTY SPACE",
-            handler: function() {
+            handler: function () {
               var me = this;
               var parent = me.up("toolbar");
 
@@ -100,9 +100,9 @@ Ext.define("Ext.dirac.utils.DiracIdListButton", {
             },
             toggleGroup: me.id + "-ids-separator",
 
-            allowDepress: false
-          }
-        ]
+            allowDepress: false,
+          },
+        ],
       });
 
       oToolb.items.getAt(0).toggle();
@@ -115,15 +115,15 @@ Ext.define("Ext.dirac.utils.DiracIdListButton", {
           layout: {
             type: "vbox",
             align: "stretch",
-            pack: "start"
+            pack: "start",
           },
           dockedItems: [oToolb],
-          items: [oTextArea]
+          items: [oTextArea],
         })
       );
 
       oWindow.show();
     }
   },
-  tooltip: "Get Selected IDs"
+  tooltip: "Get Selected IDs",
 });

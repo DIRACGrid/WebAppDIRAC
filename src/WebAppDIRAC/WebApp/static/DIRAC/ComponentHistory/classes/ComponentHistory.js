@@ -6,10 +6,10 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
     "Ext.dirac.utils.DiracPagingToolbar",
     "Ext.dirac.utils.DiracApplicationContextMenu",
     "Ext.dirac.utils.DiracBaseSelector",
-    "Ext.dirac.utils.DiracAjaxProxy"
+    "Ext.dirac.utils.DiracAjaxProxy",
   ],
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.grid.loadState(data);
@@ -21,7 +21,7 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oReturn = {};
 
@@ -44,10 +44,10 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
     { name: "Installed" },
     { name: "Uninstalled" },
     { name: "InstalledBy" },
-    { name: "UninstalledBy" }
+    { name: "UninstalledBy" },
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.launcher.title = "Component history";
@@ -66,14 +66,14 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     /*
@@ -87,7 +87,7 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
       host: "Host",
       system: "System",
       module: "Module",
-      type: "Type"
+      type: "Type",
     };
 
     var textFields = {};
@@ -97,7 +97,7 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
       ["host", "host"],
       ["system", "system"],
       ["module", "module"],
-      ["type", "type"]
+      ["type", "type"],
     ];
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -106,7 +106,7 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
       textFields: textFields,
       datamap: map,
       hasTimeSearchPanel: true,
-      url: "ComponentHistory/getSelectionData"
+      url: "ComponentHistory/getSelectionData",
     });
 
     /*
@@ -116,7 +116,7 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
      */
 
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + "ComponentHistory/getInstallationData"
+      url: GLOBAL.BASE_URL + "ComponentHistory/getInstallationData",
     });
 
     me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -125,14 +125,14 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
       fields: me.dataFields,
       scope: me,
       remoteSort: false,
-      autoLoad: true
+      autoLoad: true,
     });
 
     var pagingToolbar = {};
 
     pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
       store: me.dataStore,
-      scope: me
+      scope: me,
     });
 
     var oColumns = {
@@ -144,18 +144,18 @@ Ext.define("DIRAC.ComponentHistory.classes.ComponentHistory", {
       Installed: { dataIndex: "Installed", properties: { width: 120, align: "center" } },
       Uninstalled: { dataIndex: "Uninstalled", properties: { width: 120, align: "center" } },
       "Installed by": { dataIndex: "InstalledBy", properties: { width: 120, align: "center" } },
-      "Uninstalled by": { dataIndex: "UninstalledBy", properties: { width: 120, align: "center" } }
+      "Uninstalled by": { dataIndex: "UninstalledBy", properties: { width: 120, align: "center" } },
     };
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
       store: me.dataStore,
       oColumns: oColumns,
       pagingToolbar: pagingToolbar,
-      scope: me
+      scope: me,
     });
 
     me.leftPanel.setGrid(me.grid);
 
     me.add([me.leftPanel, me.grid]);
-  }
+  },
 });

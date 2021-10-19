@@ -64,11 +64,11 @@ Ext.define("Ext.dirac.utils.Notification", {
 
   statics: {
     defaultManager: {
-      el: null
-    }
+      el: null,
+    },
   },
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     // Backwards compatibility
@@ -107,15 +107,15 @@ Ext.define("Ext.dirac.utils.Notification", {
     me.callParent(arguments);
   },
 
-  onRender: function() {
+  onRender: function () {
     var me = this;
     me.callParent(arguments);
 
     me.el.hover(
-      function() {
+      function () {
         me.mouseIsOver = true;
       },
-      function() {
+      function () {
         me.mouseIsOver = false;
         if (me.closeOnMouseOut) {
           me.closeOnMouseOut = false;
@@ -126,7 +126,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     );
   },
 
-  updateAlignment: function(position) {
+  updateAlignment: function (position) {
     var me = this;
 
     switch (position) {
@@ -201,7 +201,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     }
   },
 
-  getXposAlignedToManager: function() {
+  getXposAlignedToManager: function () {
     var me = this;
 
     var xPos = 0;
@@ -229,7 +229,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     return xPos;
   },
 
-  getYposAlignedToManager: function() {
+  getYposAlignedToManager: function () {
     var me = this;
 
     var yPos = 0;
@@ -257,7 +257,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     return yPos;
   },
 
-  getXposAlignedToSibling: function(sibling) {
+  getXposAlignedToSibling: function (sibling) {
     var me = this;
 
     if (me.useXAxis) {
@@ -273,7 +273,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     }
   },
 
-  getYposAlignedToSibling: function(sibling) {
+  getYposAlignedToSibling: function (sibling) {
     var me = this;
 
     if (me.useXAxis) {
@@ -289,7 +289,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     }
   },
 
-  getNotifications: function(alignment) {
+  getNotifications: function (alignment) {
     var me = this;
 
     if (!me.manager.notifications[alignment]) {
@@ -299,7 +299,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     return me.manager.notifications[alignment];
   },
 
-  setManager: function(manager) {
+  setManager: function (manager) {
     var me = this;
 
     me.manager = manager;
@@ -323,14 +323,14 @@ Ext.define("Ext.dirac.utils.Notification", {
     }
   },
 
-  beforeShow: function() {
+  beforeShow: function () {
     var me = this;
 
     if (me.stickOnClick) {
       if (me.body && me.body.dom) {
         Ext.fly(me.body.dom).on(
           "click",
-          function() {
+          function () {
             me.cancelAutoClose();
             me.addCls("notification-fixed");
           },
@@ -349,7 +349,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     me.el.setOpacity(1);
   },
 
-  afterShow: function() {
+  afterShow: function () {
     var me = this;
 
     me.callParent(arguments);
@@ -373,20 +373,20 @@ Ext.define("Ext.dirac.utils.Notification", {
     me.el.animate({
       from: {
         x: me.el.getX(),
-        y: me.el.getY()
+        y: me.el.getY(),
       },
       to: {
         x: me.xPos,
         y: me.yPos,
-        opacity: 1
+        opacity: 1,
       },
       easing: me.slideInAnimation,
       duration: me.slideInDuration,
-      dynamic: true
+      dynamic: true,
     });
   },
 
-  slideBack: function() {
+  slideBack: function () {
     var me = this;
 
     var notifications = me.getNotifications(me.managerAlignment);
@@ -408,16 +408,16 @@ Ext.define("Ext.dirac.utils.Notification", {
       me.el.animate({
         to: {
           x: me.xPos,
-          y: me.yPos
+          y: me.yPos,
         },
         easing: me.slideBackAnimation,
         duration: me.slideBackDuration,
-        dynamic: true
+        dynamic: true,
       });
     }
   },
 
-  cancelAutoClose: function() {
+  cancelAutoClose: function () {
     var me = this;
 
     if (me.autoClose) {
@@ -425,7 +425,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     }
   },
 
-  doAutoClose: function() {
+  doAutoClose: function () {
     var me = this;
 
     if (!(me.stickWhileHover && me.mouseIsOver)) {
@@ -437,7 +437,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     }
   },
 
-  removeFromManager: function() {
+  removeFromManager: function () {
     var me = this;
 
     if (me.manager) {
@@ -455,7 +455,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     }
   },
 
-  hide: function() {
+  hide: function () {
     var me = this;
 
     if (me.isHiding) {
@@ -478,13 +478,13 @@ Ext.define("Ext.dirac.utils.Notification", {
           duration: me.hideDuration,
           remove: me.destroyAfterHide,
           listeners: {
-            afteranimate: function() {
+            afteranimate: function () {
               me.isFading = false;
               me.removeCls("notification-fixed");
               me.removeFromManager();
               me.hide(me.animateTarget, me.doClose, me);
-            }
-          }
+            },
+          },
         });
       }
     }
@@ -492,7 +492,7 @@ Ext.define("Ext.dirac.utils.Notification", {
     return me;
   },
 
-  destroy: function() {
+  destroy: function () {
     var me = this;
     if (!me.hidden) {
       me.destroyAfterHide = true;
@@ -500,5 +500,5 @@ Ext.define("Ext.dirac.utils.Notification", {
     } else {
       me.callParent(arguments);
     }
-  }
+  },
 });

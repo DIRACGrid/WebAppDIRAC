@@ -6,26 +6,26 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
     "Ext.dirac.utils.DiracAjaxProxy",
     "Ext.dirac.utils.DiracPagingToolbar",
     "Ext.dirac.utils.DiracApplicationContextMenu",
-    "Ext.dirac.utils.DiracGridPanel"
+    "Ext.dirac.utils.DiracGridPanel",
   ],
 
   applicationsToOpen: {
-    JobMonitor: "DIRAC.JobMonitor.classes.JobMonitor"
+    JobMonitor: "DIRAC.JobMonitor.classes.JobMonitor",
   },
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.grid.loadState(data);
 
     me.leftPanel.loadState(data);
   },
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     var oStates = {
       grid: me.grid.getStateData(),
-      leftMenu: me.leftPanel.getStateData()
+      leftMenu: me.leftPanel.getStateData(),
     };
 
     return oStates;
@@ -33,84 +33,84 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
 
   dataFields: [
     {
-      name: "GridType"
+      name: "GridType",
     },
     {
-      name: "Site"
+      name: "Site",
     },
     {
-      name: "Country"
+      name: "Country",
     },
     {
-      name: "MaskStatus"
+      name: "MaskStatus",
     },
     {
       name: "Received",
-      type: "int"
+      type: "int",
     },
     {
       name: "Checking",
-      type: "int"
+      type: "int",
     },
     {
       name: "Staging",
-      type: "int"
+      type: "int",
     },
     {
       name: "Waiting",
-      type: "int"
+      type: "int",
     },
     {
       name: "Matched",
-      type: "int"
+      type: "int",
     },
     {
       name: "Running",
-      type: "int"
+      type: "int",
     },
     {
       name: "Stalled",
-      type: "int"
+      type: "int",
     },
     {
       name: "Done",
-      type: "int"
+      type: "int",
     },
     {
       name: "Completed",
-      type: "int"
+      type: "int",
     },
     {
       name: "Failed",
-      type: "int"
+      type: "int",
     },
     {
-      name: "Efficiency"
+      name: "Efficiency",
     },
     {
-      name: "Status"
+      name: "Status",
     },
     {
-      name: "Tier"
+      name: "Tier",
     },
     {
-      name: "FullCountry"
+      name: "FullCountry",
     },
     {
       name: "MaskStatusIcon",
-      mapping: "MaskStatus"
+      mapping: "MaskStatus",
     },
     {
       name: "SiteCheckbox",
-      mapping: "Site"
+      mapping: "Site",
     },
     {
       name: "StatusIcon",
-      mapping: "Status"
-    }
+      mapping: "Status",
+    },
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.launcher.title = "Job Summary";
@@ -121,27 +121,27 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     var selectors = {
       status: "Status",
       gridtype: "GridType",
       maskstatus: "MaskStatus",
-      country: "Country"
+      country: "Country",
     };
 
     var map = [
       ["status", "status"],
       ["gridtype", "gridtype"],
       ["maskstatus", "maskstatus"],
-      ["country", "country"]
+      ["country", "country"],
     ];
 
     me.leftPanel = new Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -149,7 +149,7 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
       cmbSelectors: selectors,
       datamap: map,
       hasTimeSearchPanel: false,
-      url: "JobSummary/getSelectionData"
+      url: "JobSummary/getSelectionData",
     });
 
     /*
@@ -158,7 +158,7 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
      * -----------------------------------------------------------------------------------------------------------
      */
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + "JobSummary/getData"
+      url: GLOBAL.BASE_URL + "JobSummary/getData",
     });
 
     me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -166,7 +166,7 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
       groupDir: "DESC",
       groupField: "FullCountry",
       fields: me.dataFields,
-      scope: me
+      scope: me,
     });
 
     var toolButtons = {
@@ -175,31 +175,31 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
           text: "Show jobs",
           handler: me.__showalljobs,
           properties: {
-            tooltip: "Show jobs at the selected sites..."
-          }
-        }
-      ]
+            tooltip: "Show jobs at the selected sites...",
+          },
+        },
+      ],
     };
 
     var pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
       store: me.dataStore,
       toolButtons: toolButtons,
       scope: me,
-      value: 100
+      value: 100,
     });
 
     var oColumns = {
       Name: {
         dataIndex: "Site",
         properties: {
-          hidable: false
-        }
+          hidable: false,
+        },
       },
       Tier: {
-        dataIndex: "Tier"
+        dataIndex: "Tier",
       },
       GridType: {
-        dataIndex: "GridType"
+        dataIndex: "GridType",
       },
       Flag: {
         dataIndex: "Country",
@@ -208,17 +208,17 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
           sortable: true,
           align: "left",
           width: 26,
-          fixed: true
+          fixed: true,
         },
         renderer: function flag(code) {
           return '<img src="' + GLOBAL.BASE_URL + "static/core/img/flags/" + code + '.gif">';
-        }
+        },
       },
       Country: {
         dataIndex: "FullCountry",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       None: {
         dataIndex: "MaskStatusIcon",
@@ -227,12 +227,12 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
           sortable: false,
           hideable: false,
           fixed: true,
-          menuDisabled: true
+          menuDisabled: true,
         },
-        renderFunction: "rendererStatus"
+        renderFunction: "rendererStatus",
       },
       MaskStatus: {
-        dataIndex: "MaskStatus"
+        dataIndex: "MaskStatus",
       },
       None: {
         dataIndex: "StatusIcon",
@@ -241,61 +241,61 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
           sortable: false,
           hideable: false,
           fixed: true,
-          menuDisabled: true
+          menuDisabled: true,
         },
-        renderFunction: "rendererStatus"
+        renderFunction: "rendererStatus",
       },
       Status: {
-        dataIndex: "Status"
+        dataIndex: "Status",
       },
       "Efficiency (%)": {
-        dataIndex: "Efficiency"
+        dataIndex: "Efficiency",
       },
       Received: {
         dataIndex: "Received",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       Checking: {
         dataIndex: "Checking",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       Staging: {
-        dataIndex: "Staging"
+        dataIndex: "Staging",
       },
       Waiting: {
         dataIndex: "Waiting",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       Matched: {
         dataIndex: "Matched",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       Running: {
-        dataIndex: "Running"
+        dataIndex: "Running",
       },
       Completed: {
-        dataIndex: "Completed"
+        dataIndex: "Completed",
       },
       Done: {
-        dataIndex: "Done"
+        dataIndex: "Done",
       },
       Stalled: {
-        dataIndex: "Stalled"
+        dataIndex: "Stalled",
       },
       Failed: {
-        dataIndex: "Failed"
-      }
+        dataIndex: "Failed",
+      },
     };
 
-    var showJobshandler = function() {
+    var showJobshandler = function () {
       var site = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Site");
 
       var setupdata = {
@@ -305,17 +305,17 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
               site: {
                 data_selected: [site],
                 hidden: false,
-                not_selected: false
-              }
-            }
-          }
-        }
+                not_selected: false,
+              },
+            },
+          },
+        },
       };
 
       GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
         objectType: "app",
         moduleName: me.applicationsToOpen["JobMonitor"],
-        setupData: setupdata
+        setupData: setupdata,
       });
     };
 
@@ -325,14 +325,14 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
           text: "Show Jobs",
           handler: showJobshandler,
           properties: {
-            tooltip: "Click to show the jobs which belong to the selected site."
-          }
-        }
-      ]
+            tooltip: "Click to show the jobs which belong to the selected site.",
+          },
+        },
+      ],
     };
     me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
       menu: menuitems,
-      scope: me
+      scope: me,
     });
 
     var sm = Ext.create("Ext.selection.CheckboxModel");
@@ -340,8 +340,8 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
       selModel: sm,
       features: [
         {
-          ftype: "grouping"
-        }
+          ftype: "grouping",
+        },
       ],
       store: me.dataStore,
       columnLines: true,
@@ -350,14 +350,14 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
       oColumns: oColumns,
       pagingToolbar: pagingToolbar,
       contextMenu: me.contextGridMenu,
-      scope: me
+      scope: me,
     });
 
     me.leftPanel.setGrid(me.grid);
 
     me.add([me.leftPanel, me.grid]);
   },
-  __showalljobs: function() {
+  __showalljobs: function () {
     var me = this;
     var values = GLOBAL.APP.CF.getSelectedRecords(me.grid);
     var sites = [];
@@ -371,17 +371,17 @@ Ext.define("DIRAC.JobSummary.classes.JobSummary", {
             site: {
               data_selected: sites,
               hidden: false,
-              not_selected: false
-            }
-          }
-        }
-      }
+              not_selected: false,
+            },
+          },
+        },
+      },
     };
 
     GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
       objectType: "app",
       moduleName: me.applicationsToOpen["JobMonitor"],
-      setupData: setupdata
+      setupData: setupdata,
     });
-  }
+  },
 });

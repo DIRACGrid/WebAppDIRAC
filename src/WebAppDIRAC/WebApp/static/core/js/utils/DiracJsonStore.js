@@ -73,11 +73,11 @@ Ext.define("Ext.dirac.utils.DiracJsonStore", {
    *
    * @return{Object} returns the saved values.
    */
-  getDiffValues: function() {
+  getDiffValues: function () {
     var me = this;
     return me.diffValues;
   },
-  getDiffId: function() {
+  getDiffId: function () {
     var me = this;
     return me.oDiffFields["Id"];
   },
@@ -86,7 +86,7 @@ Ext.define("Ext.dirac.utils.DiracJsonStore", {
    */
   groupField: null,
   listeners: {
-    load: function(oStore, records, successful, eOpts) {
+    load: function (oStore, records, successful, eOpts) {
       var me = this;
 
       if (!successful) {
@@ -136,7 +136,7 @@ Ext.define("Ext.dirac.utils.DiracJsonStore", {
       }
     },
 
-    beforeload: function(oStore, oOperation, eOpts) {
+    beforeload: function (oStore, oOperation, eOpts) {
       var me = this;
 
       if (me.oDiffFields) {
@@ -163,6 +163,6 @@ Ext.define("Ext.dirac.utils.DiracJsonStore", {
       } else {
         return true;
       }
-    }
-  }
+    },
+  },
 });
