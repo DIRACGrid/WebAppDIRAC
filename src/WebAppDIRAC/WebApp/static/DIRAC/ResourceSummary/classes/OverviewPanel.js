@@ -20,7 +20,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
     {
       type: "maximize",
       tooltip: "Maximize the application.",
-      handler: function(event, toolEl, panelHeader) {
+      handler: function (event, toolEl, panelHeader) {
         var me = this;
 
         var widget = me.up("panel");
@@ -39,18 +39,18 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
 
         widget.panelSize = {
           height: widget.getHeight(),
-          width: widget.getWidth()
+          width: widget.getWidth(),
         };
 
         widget.setHeight(widget.maximizedSize.height);
         widget.setWidth(widget.maximizedSize.width);
-      }
+      },
     },
     {
       type: "minimize",
       tooltip: "Minimize the application.",
       hidden: true,
-      handler: function(event, toolEl, panelHeader) {
+      handler: function (event, toolEl, panelHeader) {
         var me = this;
 
         var parent = me.up("panel").parentWidget;
@@ -69,51 +69,51 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
 
         widget.setHeight(widget.panelSize.height);
         widget.setWidth(widget.panelSize.width);
-      }
-    }
+      },
+    },
   ],
   listeners: {
-    collapse: function(panel, eOpts) {
+    collapse: function (panel, eOpts) {
       panel.hide();
       panel.parentWidget.grid.show();
       panel.parentWidget.leftPanel.show();
-    }
+    },
   },
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.dataFields = [
       {
-        name: "Name"
+        name: "Name",
       },
       {
-        name: "StatusType"
+        name: "StatusType",
       },
       {
-        name: "Status"
+        name: "Status",
       },
       {
-        name: "ElementType"
+        name: "ElementType",
       },
       {
-        name: "Reason"
+        name: "Reason",
       },
       {
-        name: "DateEffective"
+        name: "DateEffective",
       },
       {
-        name: "LastCheckTime"
+        name: "LastCheckTime",
       },
       {
-        name: "TokenOwner"
+        name: "TokenOwner",
       },
       {
-        name: "TokenExpiration"
-      }
+        name: "TokenExpiration",
+      },
     ];
 
     var viewStore = Ext.create("Ext.data.Store", {
-      fields: me.dataFields
+      fields: me.dataFields,
     });
     var tpl = new Ext.XTemplate(
       '<tpl for=".">',
@@ -134,7 +134,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       tpl: tpl,
       store: viewStore,
       itemSelector: "div.dataset-statistics",
-      autoHeight: true
+      autoHeight: true,
     });
 
     me.viewPanel = Ext.create("Ext.panel.Panel", {
@@ -142,11 +142,11 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       columnWidth: 1 / 3,
       items: me.view,
       layout: "fit",
-      resizable: true
+      resizable: true,
     });
     var historyStore = new Ext.data.ArrayStore({
       fields: ["Status", "DataEffectiv", "Reason"],
-      data: []
+      data: [],
     });
 
     me.historyGrid = Ext.create("Ext.grid.Panel", {
@@ -159,41 +159,41 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
           text: "Status",
           flex: 1,
           sortable: false,
-          dataIndex: "Status"
+          dataIndex: "Status",
         },
         {
           text: "DataEffectiv",
           flex: 1,
           sortable: false,
-          dataIndex: "DataEffectiv"
+          dataIndex: "DataEffectiv",
         },
         {
           text: "Reason",
           flex: 1,
           sortable: false,
-          dataIndex: "Reason"
-        }
+          dataIndex: "Reason",
+        },
       ],
       width: "100%",
       height: "50%",
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
-      }
+        enableTextSelection: true,
+      },
     });
     me.historyPanel = Ext.create("Ext.panel.Panel", {
       title: "History",
       columnWidth: 1 / 3,
       items: [me.historyGrid],
       height: "50%",
-      resizable: true
+      resizable: true,
     });
 
     me.downtimeGrid = Ext.create("Ext.grid.Panel", {
       layout: "fit",
       store: Ext.create("Ext.data.ArrayStore", {
         fields: ["StartDate", "EndDare", "Link", "Description", "Severity"],
-        data: []
+        data: [],
       }),
       columns: [
         {
@@ -201,105 +201,105 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
           sortable: true,
           dataIndex: "StartDate",
           align: "left",
-          flex: 1
+          flex: 1,
         },
         {
           text: "EndDate",
           sortable: true,
           dataIndex: "EndDate",
           align: "left",
-          flex: 1
+          flex: 1,
         },
         {
           text: "Description",
           sortable: true,
           dataIndex: "Description",
           align: "left",
-          flex: 1
+          flex: 1,
         },
         {
           text: "Severity",
           sortable: true,
           dataIndex: "Severity",
           align: "left",
-          flex: 1
+          flex: 1,
         },
         {
           text: "Link",
           dataIndex: "Link",
           hidden: true,
-          flex: 1
-        }
+          flex: 1,
+        },
       ],
       width: "100%",
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       listeners: {
-        itemclick: function(table, record, item, index, e, eOpts) {
+        itemclick: function (table, record, item, index, e, eOpts) {
           window.open(record.get("Link"));
-        }
-      }
+        },
+      },
     });
     me.downTimePanel = Ext.create("Ext.panel.Panel", {
       title: "Downtimes",
       columnWidth: 1 / 3,
       items: [me.downtimeGrid],
       height: "50%",
-      resizable: true
+      resizable: true,
     });
 
     me.policiesGrid = Ext.create("Ext.grid.Panel", {
       layout: "fit",
       store: Ext.create("Ext.data.ArrayStore", {
         fields: ["Status", "PolicyName", "DataEffectiv", "LastCheckTime", "Reason"],
-        data: []
+        data: [],
       }),
       columns: [
         {
           text: "Status",
           flex: 1,
           sortable: false,
-          dataIndex: "Status"
+          dataIndex: "Status",
         },
         {
           text: "PolicyName",
           flex: 1,
           sortable: false,
-          dataIndex: "PolicyName"
+          dataIndex: "PolicyName",
         },
         {
           text: "DataEffectiv",
           flex: 1,
           sortable: false,
-          dataIndex: "DataEffectiv"
+          dataIndex: "DataEffectiv",
         },
         {
           text: "LastCheckTime",
           flex: 1,
           sortable: false,
-          dataIndex: "LastCheckTime"
+          dataIndex: "LastCheckTime",
         },
         {
           text: "Reason",
           flex: 1,
           sortable: false,
-          dataIndex: "Reason"
-        }
+          dataIndex: "Reason",
+        },
       ],
       width: "100%",
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
-      }
+        enableTextSelection: true,
+      },
     });
 
     me.policies = Ext.create("Ext.panel.Panel", {
       title: "Policies",
       columnWidth: 1 / 3,
       items: [me.policiesGrid],
-      resizable: true
+      resizable: true,
     });
 
     me.timeline = Ext.create("Ext.panel.Panel", {
@@ -311,17 +311,17 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       items: [
         {
           html: "<div id='" + me.id + "-timeline-plot' style='width:100%;'></div>",
-          xtype: "box"
-        }
-      ]
+          xtype: "box",
+        },
+      ],
     });
 
     me.treeStore = Ext.create("Ext.data.TreeStore", {
       model: "DIRAC.ResourceSummary.classes.TreeModel",
       root: {
         expanded: true,
-        children: []
-      }
+        children: [],
+      },
     });
     me.familymaters = Ext.create("Ext.tree.Panel", {
       title: "Family matters",
@@ -333,18 +333,18 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       columnWidth: 1 / 3,
       resizable: true,
       listeners: {
-        itemclick: function(tree, record, item, index, e, eOpts) {
+        itemclick: function (tree, record, item, index, e, eOpts) {
           if (record.get("openResource")) {
             me.loadData(record.get("openResource"));
           }
-        }
-      }
+        },
+      },
     });
 
     me.callParent(arguments);
     me.add([me.viewPanel, me.familymaters, me.timeline, me.policies, me.historyPanel, me.downTimePanel]);
   },
-  loadData: function(selection) {
+  loadData: function (selection) {
     var me = this;
 
     me.viewPanel.body.mask("Loading ...");
@@ -356,14 +356,14 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         name: Ext.JSON.encode([selection.name]),
         elementType: Ext.JSON.encode([selection.elementType]),
         statusType: Ext.JSON.encode([selection.statusType]),
-        element: selection.element ? Ext.JSON.encode([selection.element]) : Ext.JSON.encode(["Resource"])
+        element: selection.element ? Ext.JSON.encode([selection.element]) : Ext.JSON.encode(["Resource"]),
       },
       scope: me,
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
         me.viewPanel.body.unmask();
       },
-      success: function(response) {
+      success: function (response) {
         var jsonData = Ext.JSON.decode(response.responseText);
 
         if (jsonData["success"] == "true") {
@@ -373,7 +373,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         } else {
           GLOBAL.APP.CF.msg("error", jsonData["error"]);
         }
-      }
+      },
     });
 
     me.historyGrid.body.mask("Loading ...");
@@ -384,14 +384,14 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         action: Ext.JSON.encode(["History"]),
         name: Ext.JSON.encode([selection.name]),
         elementType: Ext.JSON.encode([selection.elementType]),
-        statusType: Ext.JSON.encode([selection.statusType])
+        statusType: Ext.JSON.encode([selection.statusType]),
       },
       scope: me,
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
         me.historyGrid.body.unmask();
       },
-      success: function(response) {
+      success: function (response) {
         var jsonData = Ext.JSON.decode(response.responseText);
 
         if (jsonData["success"] == "true") {
@@ -400,7 +400,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         } else {
           GLOBAL.APP.CF.msg("error", jsonData["error"]);
         }
-      }
+      },
     });
 
     me.downtimeGrid.body.mask("Loading ...");
@@ -412,14 +412,14 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         name: Ext.JSON.encode([selection.name]),
         elementType: Ext.JSON.encode([selection.elementType]),
         element: Ext.JSON.encode(["Resource"]),
-        statusType: Ext.JSON.encode([selection.statusType])
+        statusType: Ext.JSON.encode([selection.statusType]),
       },
       scope: me,
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
         me.downtimeGrid.body.unmask();
       },
-      success: function(response) {
+      success: function (response) {
         var jsonData = Ext.JSON.decode(response.responseText);
 
         if (jsonData["success"] == "true") {
@@ -428,7 +428,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         } else {
           GLOBAL.APP.CF.msg("error", jsonData["error"]);
         }
-      }
+      },
     });
 
     me.policiesGrid.body.mask("Loading ...");
@@ -439,14 +439,14 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         action: Ext.JSON.encode(["Policies"]),
         name: Ext.JSON.encode([selection.name]),
         elementType: Ext.JSON.encode([selection.elementType]),
-        statusType: Ext.JSON.encode([selection.statusType])
+        statusType: Ext.JSON.encode([selection.statusType]),
       },
       scope: me,
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
         me.policiesGrid.body.unmask();
       },
-      success: function(response) {
+      success: function (response) {
         var jsonData = Ext.JSON.decode(response.responseText);
 
         if (jsonData["success"] == "true") {
@@ -455,7 +455,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         } else {
           GLOBAL.APP.CF.msg("error", jsonData["error"]);
         }
-      }
+      },
     });
 
     me.timeline.body.mask("Loading ...");
@@ -466,14 +466,14 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         action: Ext.JSON.encode(["Timeline"]),
         name: Ext.JSON.encode([selection.name]),
         elementType: Ext.JSON.encode([selection.elementType]),
-        statusType: Ext.JSON.encode([selection.statusType])
+        statusType: Ext.JSON.encode([selection.statusType]),
       },
       scope: me,
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
         me.timeline.body.unmask();
       },
-      success: function(response) {
+      success: function (response) {
         var jsonData = Ext.JSON.decode(response.responseText);
 
         if (jsonData["success"] == "true") {
@@ -518,12 +518,12 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
 
           data.addRows(rows);
           chart.draw(data, {
-            displayAnnotations: true
+            displayAnnotations: true,
           });
         } else {
           GLOBAL.APP.CF.msg("error", jsonData["error"]);
         }
-      }
+      },
     });
 
     me.familymaters.body.mask("Loading ...");
@@ -534,14 +534,14 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
         action: Ext.JSON.encode(["Tree"]),
         name: Ext.JSON.encode([selection.name]),
         elementType: Ext.JSON.encode([selection.elementType]),
-        statusType: Ext.JSON.encode([selection.statusType])
+        statusType: Ext.JSON.encode([selection.statusType]),
       },
       scope: me,
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
         me.familymaters.body.unmask();
       },
-      success: function(response) {
+      success: function (response) {
         me.familymaters.body.unmask();
         var jsonData = Ext.JSON.decode(response.responseText);
 
@@ -555,7 +555,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                 id: i,
                 leaf: true,
                 iconCls: jsonData["result"][i][2].toLowerCase(),
-                html: "#"
+                html: "#",
               });
             } else {
               break;
@@ -572,7 +572,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                 text: ce[0],
                 id: 2000 + j,
                 leaf: false,
-                children: buffer
+                children: buffer,
               });
               break;
             }
@@ -583,7 +583,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                   text: ce[0],
                   id: 2000 + j,
                   leaf: false,
-                  children: buffer
+                  children: buffer,
                 });
                 buffer = [];
                 ce = [];
@@ -599,8 +599,8 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                   element: "Resource",
                   name: ce[0],
                   elementType: "CE",
-                  statusType: jsonData["result"][j][1]
-                }
+                  statusType: jsonData["result"][j][1],
+                },
               });
             }
           }
@@ -608,7 +608,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
             text: "Computing Elements",
             id: 1000,
             leaf: false,
-            children: ces
+            children: ces,
           });
 
           var ses = [];
@@ -622,7 +622,7 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                   text: se[0],
                   id: 3000 + k,
                   leaf: false,
-                  children: buffer
+                  children: buffer,
                 });
                 buffer = [];
                 se = [];
@@ -638,8 +638,8 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
                   element: "Resource",
                   name: se[0],
                   elementType: "StorageElement",
-                  statusType: jsonData["result"][k][1]
-                }
+                  statusType: jsonData["result"][k][1],
+                },
               });
             }
           }
@@ -648,34 +648,34 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
             text: se[0],
             id: 3000 + k,
             leaf: false,
-            children: buffer
+            children: buffer,
           });
           json.push({
             text: "Storage Elements",
             id: 5000,
             leaf: false,
-            children: ses
+            children: ses,
           });
 
           siteName = jsonData["result"][0][0];
           var rootNode = {
             expanded: true,
             text: siteName,
-            children: json
+            children: json,
           };
           me.treeStore.setRootNode(rootNode);
         } else {
           GLOBAL.APP.CF.msg("error", jsonData["error"]);
         }
-      }
+      },
     });
   },
-  __statusValue: function(statusName) {
+  __statusValue: function (statusName) {
     if (statusName == "Error") return 0;
     else if (statusName == "Banned") return 1;
     else if (statusName == "Probing") return 2;
     else if (statusName == "Degraded") return 3;
     else if (statusName == "Active") return 4;
     else return -1;
-  }
+  },
 });

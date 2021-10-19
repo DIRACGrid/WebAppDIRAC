@@ -16,41 +16,41 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
   border: false,
   scrollable: true,
   layout: "vbox",
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
     me.desktopSettings = Ext.create("Ext.dirac.views.tabs.DesktopSettings");
     if (!GLOBAL.APP.configData.user.username) {
       GLOBAL.STATE_MANAGEMENT_ENABLED = false;
     }
     Ext.apply(me, {
-      items: [me.addUserForm(), me.desktopSettings]
+      items: [me.addUserForm(), me.desktopSettings],
     });
 
     me.callParent(arguments);
   },
-  addUserName: function(name) {
+  addUserName: function (name) {
     var userName = Ext.create("Ext.form.Panel", {
       maxWidth: 300,
       layout: "fit",
       // bodyPadding: 10,
       layout: {
         type: "hbox",
-        align: "middle"
+        align: "middle",
       },
       items: [
         {
           xtype: "label",
-          text: "UserName:"
+          text: "UserName:",
         },
         {
           xtype: "tbtext",
-          text: name
-        }
-      ]
+          text: name,
+        },
+      ],
     });
     return userName;
   },
-  addUserForm: function() {
+  addUserForm: function () {
     var me = this;
 
     var form = Ext.create("Ext.form.Panel", {
@@ -62,47 +62,47 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
         type: "table",
         columns: 2,
         tdAttrs: {
-          style: "padding: 5px 10px;"
-        }
+          style: "padding: 5px 10px;",
+        },
       },
       defaults: {
         width: 150,
-        textAlign: "left"
+        textAlign: "left",
       },
       items: [
         {
           xtype: "label",
-          text: "User:"
+          text: "User:",
         },
         me.addAuthsButton(),
         {
           xtype: "label",
-          text: "Group:"
+          text: "Group:",
         },
         me.addGroupsButton(),
         {
           xtype: "label",
-          text: "Setup:"
+          text: "Setup:",
         },
         me.addSetupButton(),
         {
           xtype: "label",
-          text: "Theme:"
+          text: "Theme:",
         },
-        me.addThemeButton()
-      ]
+        me.addThemeButton(),
+      ],
     });
     return form;
   },
 
-  getAuthCFG: function(Auth, Value) {
+  getAuthCFG: function (Auth, Value) {
     var req = Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "Authentication/getAuthCFG",
       params: {
         typeauth: Auth === undefined ? "" : Auth,
-        value: Value === undefined ? "" : Value
+        value: Value === undefined ? "" : Value,
       },
-      async: false
+      async: false,
     }).responseText;
     res = JSON.parse(req);
     if (Object.keys(res).includes("Value")) {
@@ -112,18 +112,18 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
   },
 
   // OIDC login method
-  oAuth2LogIn: function(settings, name) {
+  oAuth2LogIn: function (settings, name) {
     var manager = new Oidc.UserManager(settings);
-    manager.events.addUserLoaded(function(loadedUser) {
+    manager.events.addUserLoaded(function (loadedUser) {
       console.log(loadedUser);
     });
-    manager.events.addSilentRenewError(function(error) {
+    manager.events.addSilentRenewError(function (error) {
       GLOBAL.APP.CF.log("error", "error while renewing the access token");
     });
-    manager.events.addUserSignedOut(function() {
+    manager.events.addUserSignedOut(function () {
       GLOBAL.APP.CF.alert("The user has signed out", "info");
     });
-    manager.events.addUserLoaded(function(loadedUser) {
+    manager.events.addUserLoaded(function (loadedUser) {
       if (loadedUser && typeof loadedUser === "string") {
         loadedUser = JSON.parse(data);
       }
@@ -136,9 +136,9 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
         url: GLOBAL.BASE_URL + "Authentication/auth",
         params: {
           typeauth: name,
-          value: access_token
+          value: access_token,
         },
-        success: function(response) {
+        success: function (response) {
           var response = Ext.JSON.decode(response.responseText);
           if (response.value == "Done") {
             location.protocol = "https:";
@@ -155,32 +155,32 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
               buttons: [
                 {
                   text: "Registration",
-                  handler: function() {
+                  handler: function () {
                     Ext.Ajax.request({
                       url: GLOBAL.BASE_URL + "Authentication/sendRequest",
                       params: {
                         typeauth: name,
-                        value: response.profile
+                        value: response.profile,
                       },
-                      success: function() {
+                      success: function () {
                         GLOBAL.APP.CF.alert("Your request was sent.", "info");
-                      }
+                      },
                     });
                     this.up("window").close();
-                  }
-                }
-              ]
+                  },
+                },
+              ],
             }).show();
           }
-        }
+        },
       });
     });
-    manager.signinPopup().catch(function(error) {
+    manager.signinPopup().catch(function (error) {
       GLOBAL.APP.CF.log("error", "error while logging in through the popup");
     });
   },
 
-  addAuthsButton: function() {
+  addAuthsButton: function () {
     var me = this;
 
     // Generate list of login buttons
@@ -188,20 +188,20 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     var currentAuth = Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "Authentication/getCurrentAuth",
       perams: {},
-      async: false
+      async: false,
     }).responseText;
     var button_usrname = {
       text: "Visitor",
-      menu: []
+      menu: [],
     };
 
     // HTTP used only for visitors
     if (location.protocol === "http:") {
       button_usrname.menu.push({
         text: "Log in (switch to https://)",
-        handler: function() {
+        handler: function () {
           location.protocol = "https:";
-        }
+        },
       });
       // HTTPS
       // Log in section
@@ -210,7 +210,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       if (Array.isArray(oListAuth) || currentAuth == "Visitor") {
         button_usrname.menu.push({
           xtype: "tbtext",
-          text: "Log in:"
+          text: "Log in:",
         });
       }
       for (var i = 0; i < oListAuth.length; i++) {
@@ -220,7 +220,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           button_usrname.menu.push({
             text: name,
             settings: settings,
-            handler: function() {
+            handler: function () {
               if (this.settings.method == "oAuth2") {
                 me.oAuth2LogIn(this.settings, this.text);
               } else if (settings.method) {
@@ -228,7 +228,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
               } else {
                 GLOBAL.APP.CF.alert("Authentication method is not set.", "error");
               }
-            }
+            },
           });
         }
       }
@@ -236,18 +236,18 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       if (currentAuth != "Certificate") {
         button_usrname.menu.push({
           text: "Certificate",
-          handler: function() {
+          handler: function () {
             Ext.Ajax.request({
               url: GLOBAL.BASE_URL + "Authentication/auth",
               params: {
                 typeauth: "Certificate",
-                value: ""
+                value: "",
               },
-              success: function() {
+              success: function () {
                 location.protocol = "https:";
-              }
+              },
             });
-          }
+          },
         });
       }
       // Log out section
@@ -257,19 +257,19 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
         }
         button_usrname.menu.push({
           text: "Log out",
-          handler: function() {
+          handler: function () {
             Ext.Ajax.request({
               url: GLOBAL.BASE_URL + "Authentication/auth",
               params: {
                 typeauth: "Logout",
-                value: "None"
+                value: "None",
               },
-              success: function(response) {
+              success: function (response) {
                 console.log(response.responseText);
                 location.protocol = "https:";
-              }
+              },
             });
-          }
+          },
         });
         button_usrname.menu.push();
       }
@@ -284,16 +284,16 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     return new Ext.button.Button(button_usrname);
   },
 
-  addGroupsButton: function() {
+  addGroupsButton: function () {
     var button_group = {
       text: GLOBAL.APP.configData["user"]["group"],
-      menu: []
+      menu: [],
     };
 
     for (var i = 0; i < GLOBAL.APP.configData["validGroups"].length; i++)
       button_group.menu.push({
         text: GLOBAL.APP.configData["validGroups"][i],
-        handler: function() {
+        handler: function () {
           var me = this;
           var oHref = location.href;
           var oQPosition = oHref.indexOf("?");
@@ -302,29 +302,29 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           } else {
             location.href = oHref + "changeGroup?to=" + me.text;
           }
-        }
+        },
       });
     return new Ext.button.Button(button_group);
   },
-  addSetupButton: function() {
+  addSetupButton: function () {
     var setup_data = {
       text: GLOBAL.APP.configData["setup"],
-      menu: []
+      menu: [],
     };
 
     for (var i = 0; i < GLOBAL.APP.configData["validSetups"].length; i++)
       setup_data.menu.push({
         text: GLOBAL.APP.configData["validSetups"][i],
-        handler: function() {
+        handler: function () {
           var me = this;
 
           location.href = GLOBAL.BASE_URL + "changeSetup?to=" + me.text;
-        }
+        },
       });
 
     return new Ext.button.Button(setup_data);
   },
-  addThemeButton: function() {
+  addThemeButton: function () {
     var me = this;
 
     var sButtonThemeText = "Crisp";
@@ -339,7 +339,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
 
     var button_theme = {
       text: sButtonThemeText,
-      menu: []
+      menu: [],
     };
 
     var oListTheme = ["Gray", "Neptune", "Classic", "Triton", "Crisp"];
@@ -347,7 +347,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     for (var i = 0; i < oListTheme.length; i++) {
       button_theme.menu.push({
         text: oListTheme[i],
-        handler: function() {
+        handler: function () {
           var me = this;
 
           var oHref = location.href;
@@ -366,14 +366,14 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           } else {
             location.href = oHref + "?theme=" + me.text + sState_related_url;
           }
-        }
+        },
       });
     }
     return new Ext.button.Button(button_theme);
   },
 
-  getDesktopSettingsPanel: function() {
+  getDesktopSettingsPanel: function () {
     var me = this;
     return me.desktopSettings;
-  }
+  },
 });

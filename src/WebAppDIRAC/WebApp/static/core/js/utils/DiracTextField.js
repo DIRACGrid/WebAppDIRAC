@@ -8,7 +8,7 @@ Ext.define("Ext.dirac.utils.DiracTextField", {
   anchor: "100%",
   canDisable: true,
   disableValidator: false,
-  validator: function(value) {
+  validator: function (value) {
     var me = this;
 
     if (!me.canDisable) return true;
@@ -24,13 +24,13 @@ Ext.define("Ext.dirac.utils.DiracTextField", {
   },
   enableKeyEvents: true,
   listeners: {
-    keypress: function(oTextField, e, eOpts) {
+    keypress: function (oTextField, e, eOpts) {
       var me = this;
       me.disableValidator = false;
       // it disables all the widgets except this.
       if (e.getCharCode() == 13) {
         me.scope.oprLoadGridData();
       }
-    }
-  }
+    },
+  },
 });

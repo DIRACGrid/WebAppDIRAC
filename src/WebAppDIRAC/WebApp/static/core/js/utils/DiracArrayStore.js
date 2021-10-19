@@ -38,7 +38,7 @@ Ext.define("Ext.dirac.utils.DiracArrayStore", {
    *
    * @return{Object} returns the saved values.
    */
-  getDiffValues: function() {
+  getDiffValues: function () {
     var me = this;
     return me.diffValues;
   },
@@ -46,7 +46,7 @@ Ext.define("Ext.dirac.utils.DiracArrayStore", {
    * It returns the row identifier.
    * @return {String} it is the DataIndex of a row.
    */
-  getDiffId: function() {
+  getDiffId: function () {
     var me = this;
     return me.oDiffFields["Id"];
   },
@@ -59,7 +59,7 @@ Ext.define("Ext.dirac.utils.DiracArrayStore", {
   doAddDiff: true,
 
   listeners: {
-    beforeload: function(oStore, oOperation, eOpts) {
+    beforeload: function (oStore, oOperation, eOpts) {
       var me = this;
 
       var me = this;
@@ -73,7 +73,7 @@ Ext.define("Ext.dirac.utils.DiracArrayStore", {
         }
       }
     },
-    add: function(store, records, index, eOpts) {
+    add: function (store, records, index, eOpts) {
       var me = this;
 
       if (me.doAddDiff) {
@@ -88,7 +88,7 @@ Ext.define("Ext.dirac.utils.DiracArrayStore", {
       }
     },
 
-    clear: function(store, records, indexes, isMove, eOpts) {
+    clear: function (store, records, indexes, isMove, eOpts) {
       var me = this;
       me.doAddDiff = false;
       if (me.oDiffFields) {
@@ -99,6 +99,6 @@ Ext.define("Ext.dirac.utils.DiracArrayStore", {
           }
         }
       }
-    }
-  }
+    },
+  },
 });

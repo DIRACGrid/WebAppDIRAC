@@ -24,7 +24,7 @@ Ext.define("Ext.dirac.utils.DiracAjaxProxy", {
     keepRawData: true,
     type: "json",
     rootProperty: "result",
-    metaProperty: "extra"
+    metaProperty: "extra",
   },
   /**
    * @cfg{Number} timeout default timeout is 2 minutes (120000 millisecond).
@@ -42,8 +42,8 @@ Ext.define("Ext.dirac.utils.DiracAjaxProxy", {
    */
   dontLoadOnCreation: false,
   listeners: {
-    exception: function(proxy, response, operation) {
+    exception: function (proxy, response, operation) {
       GLOBAL.APP.CF.showAjaxErrorMessage(response);
-    }
-  }
+    },
+  },
 });

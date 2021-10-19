@@ -18,14 +18,14 @@ Ext.define("Ext.dirac.views.tabs.MenuTabs", {
     bodyPadding: 10,
     scrollable: true,
     listeners: {
-      activate: function(component) {
+      activate: function (component) {
         var me = this;
         GLOBAL.APP.MAIN_VIEW.changeRightPanel(component.value);
-      }
-    }
+      },
+    },
   }, // if we want to hide the menu we have to look the RightContainer.js
   listeners: {
-    beforecollapse: function(p, direction, animate, eOpts) {
+    beforecollapse: function (p, direction, animate, eOpts) {
       var me = this;
       var leftCont = GLOBAL.APP.MAIN_VIEW.getLeftContainer();
       me.coordinates.width = leftCont.getWidth();
@@ -35,7 +35,7 @@ Ext.define("Ext.dirac.views.tabs.MenuTabs", {
       leftCont.collapsed = true;
       // leftCont.hide();
     },
-    beforeexpand: function(p, animate, eOpts) {
+    beforeexpand: function (p, animate, eOpts) {
       var me = this;
       var leftCont = GLOBAL.APP.MAIN_VIEW.getLeftContainer();
       // me.items.each(function(comp){
@@ -44,16 +44,16 @@ Ext.define("Ext.dirac.views.tabs.MenuTabs", {
       leftCont.collapsed = false;
       leftCont.setWidth(me.coordinates.width);
       leftCont.setHeight(me.coordinates.height);
-    }
+    },
   },
-  constructor: function(config) {
+  constructor: function (config) {
     var me = this;
     if (GLOBAL.APP == null) {
       alert("Application is not initialised!!!!");
     }
     me.callParent(arguments);
   },
-  initComponent: function(config) {
+  initComponent: function (config) {
     var me = this;
     Ext.apply(me, {
       collapseDirection: "left", // it is required to correctly
@@ -64,9 +64,9 @@ Ext.define("Ext.dirac.views.tabs.MenuTabs", {
           glyph: 72, // home
           layout: "fit",
           bodyStyle: {
-            background: "#AAAAAA"
+            background: "#AAAAAA",
           },
-          value: "welcome"
+          value: "welcome",
         },
         {
           xtype: "menuselpanel",
@@ -80,16 +80,16 @@ Ext.define("Ext.dirac.views.tabs.MenuTabs", {
           minWidth: 175,
           treeModel: me.menu,
           bodyStyle: {
-            background: "#AAAAAA"
-          }
+            background: "#AAAAAA",
+          },
         },
         {
           xtype: "panel",
           glyph: 42,
-          value: "sharedLayouts"
-        }
-      ]
+          value: "sharedLayouts",
+        },
+      ],
     });
     me.callParent(arguments);
-  }
+  },
 });

@@ -15,24 +15,24 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
     "Ext.form.field.TextArea",
     "Ext.form.field.Checkbox",
     "Ext.dirac.utils.DiracMultiSelect",
-    "Ext.data.Record"
+    "Ext.data.Record",
   ],
 
-  loadState: function(oData) {
+  loadState: function (oData) {
     var me = this;
   },
 
   /*
    * PARTLY DONE
    */
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oReturn = {};
 
     return oReturn;
   },
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.launcher.title = "VMDirac";
@@ -51,14 +51,14 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     me._plot_counter = 0;
@@ -67,18 +67,18 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "VMDirac/checkVmWebOperation",
       params: {
-        operation: "Web"
+        operation: "Web",
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var response = Ext.JSON.decode(response.responseText);
         if (response.success == "true") {
           me._can_stop_vm = response.Value;
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         Ext.dirac.system_info.msg("Notification", "Operation failed due to a network error.<br/> Please try again later !");
-      }
+      },
     });
 
     me.cbPlot = Ext.create("Ext.form.ComboBox", {
@@ -92,8 +92,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           ["runningbyimage", "Run. VMs By Image"],
           ["jobs", "Started Jobs"],
           ["transferbytes", "Transferred Data"],
-          ["transferfiles", "Transferred Files"]
-        ]
+          ["transferfiles", "Transferred Files"],
+        ],
       }),
       displayField: "key",
       valueField: "value",
@@ -103,7 +103,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       labelWidth: 70,
       padding: "2px 5px 2px 5px",
       width: 300,
-      editable: false
+      editable: false,
     });
 
     me.cbTimespan = Ext.create("Ext.form.ComboBox", {
@@ -113,8 +113,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           [86400, "Last day"],
           [86400 * 7, "Last week"],
           [86400 * 30, "Last month"],
-          [0, "All History"]
-        ]
+          [0, "All History"],
+        ],
       }),
       displayField: "key",
       valueField: "value",
@@ -123,7 +123,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       value: 0,
       labelWidth: 70,
       padding: "2px 5px 2px 5px",
-      editable: false
+      editable: false,
     });
 
     me.cbRotate = Ext.create("Ext.form.ComboBox", {
@@ -133,8 +133,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           [0, "No Rotation"],
           [15, "15 sec."],
           [30, "30 sec."],
-          [60, "1 min."]
-        ]
+          [60, "1 min."],
+        ],
       }),
       displayField: "key",
       valueField: "value",
@@ -144,20 +144,20 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       labelWidth: 70,
       padding: "2px 5px 2px 5px",
       width: 200,
-      editable: false
+      editable: false,
     });
 
     me._rotate_plot_object = null;
 
     me.cbRotate.on(
       "change",
-      function(combo, newValue, oldValue, eOpts) {
+      function (combo, newValue, oldValue, eOpts) {
         if (newValue == 0) {
           if (me._rotate_plot_object != null) {
             clearInterval(me._rotate_plot_object);
           }
         } else {
-          me._rotate_plot_object = setInterval(function() {
+          me._rotate_plot_object = setInterval(function () {
             me.showNextTab();
           }, 1000 * newValue);
         }
@@ -167,10 +167,10 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
 
     me.btnCreatePlot = Ext.create("Ext.button.Button", {
       text: "Create Plot",
-      handler: function() {
+      handler: function () {
         me.oprDrawPlot();
       },
-      iconCls: "dirac-icon-plus"
+      iconCls: "dirac-icon-plus",
     });
 
     var oSceltTopPanel = Ext.create("Ext.panel.Panel", {
@@ -178,14 +178,14 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       layout: "border",
       header: false,
       tbar: Ext.create("Ext.toolbar.Toolbar", {
-        items: [me.cbPlot, me.cbTimespan, "-", me.cbRotate, "->", me.btnCreatePlot]
-      })
+        items: [me.cbPlot, me.cbTimespan, "-", me.cbRotate, "->", me.btnCreatePlot],
+      }),
     });
 
     me.chartPanel = Ext.create("Ext.tab.Panel", {
       region: "center",
       header: false,
-      border: false
+      border: false,
     });
 
     oSceltTopPanel.add(me.chartPanel);
@@ -196,9 +196,9 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
         url: GLOBAL.BASE_URL + "VMDirac/getInstancesList",
         reader: {
           type: "json",
-          rootProperty: "result"
+          rootProperty: "result",
         },
-        timeout: 1800000
+        timeout: 1800000,
       },
       fields: [
         "inst_RunningPod",
@@ -215,7 +215,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
         "inst_LastUpdate",
         "inst_Load",
         "inst_Uptime",
-        "inst_Jobs"
+        "inst_Jobs",
       ],
       sorters: "inst_InstanceID",
       remoteSort: true,
@@ -223,7 +223,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       pageSize: 100,
 
       listeners: {
-        load: function(oStore, records, successful, eOpts) {
+        load: function (oStore, records, successful, eOpts) {
           var bResponseOK = oStore.proxy.reader.rawData["success"] == "true";
 
           if (!bResponseOK) {
@@ -240,8 +240,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
              * me.dataStore.remoteSort = true;
              */
           }
-        }
-      }
+        },
+      },
     });
 
     me.checkboxFunctionDefinition = '<input type="checkbox" value="" onchange="';
@@ -253,16 +253,16 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
     me.pagingToolbar = {};
     me.pagingToolbar.updateStamp = new Ext.Button({
       disabled: true,
-      text: "Updated: -"
+      text: "Updated: -",
     });
 
     me.btnStopVms = new Ext.Button({
       text: "",
       tooltip: "Stop selected virtual machines",
       iconCls: "dirac-icon-stop",
-      handler: function() {
+      handler: function () {
         me.oprStopSelectedVirtualMachines();
-      }
+      },
     });
 
     me.pagingToolbar.pageSizeCombo = new Ext.form.field.ComboBox({
@@ -276,11 +276,11 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       mode: "local",
       store: new Ext.data.SimpleStore({
         fields: ["number"],
-        data: [[25], [50], [100], [200], [500], [1000]]
+        data: [[25], [50], [100], [200], [500], [1000]],
       }),
       triggerAction: "all",
       value: 100,
-      width: 50
+      width: 50,
     });
 
     me.pagingToolbar.vmStatusCombo = new Ext.form.field.ComboBox({
@@ -291,14 +291,14 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       mode: "local",
       store: new Ext.data.SimpleStore({
         fields: ["status"],
-        data: [["All"], ["New"], ["Submitted"], ["Wait_ssh_context"], ["Contextualizing"], ["Running"], ["Halted"], ["Stalled"], ["Stopping"]]
+        data: [["All"], ["New"], ["Submitted"], ["Wait_ssh_context"], ["Contextualizing"], ["Running"], ["Halted"], ["Stalled"], ["Stopping"]],
       }),
-      triggerAction: "all"
+      triggerAction: "all",
     });
 
     me.pagingToolbar.pageSizeCombo.on(
       "change",
-      function(combo, newValue, oldValue, eOpts) {
+      function (combo, newValue, oldValue, eOpts) {
         var me = this;
         me.dataStore.pageSize = newValue;
         me.oprLoadGridData();
@@ -308,7 +308,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
 
     me.pagingToolbar.vmStatusCombo.on(
       "change",
-      function(combo, newValue, oldValue, eOpts) {
+      function (combo, newValue, oldValue, eOpts) {
         var me = this;
         me.oprLoadGridData();
       },
@@ -328,7 +328,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
         "-",
         "Items per page: ",
         me.pagingToolbar.pageSizeCombo,
-        "-"
+        "-",
       ];
     } else {
       me.btnStopVms = null;
@@ -340,7 +340,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
         "-",
         "Items per page: ",
         me.pagingToolbar.pageSizeCombo,
-        "-"
+        "-",
       ];
     }
 
@@ -350,19 +350,19 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       displayMsg: "Displaying {0} - {1} of {2}",
       items: pagingToolbarItems,
       emptyMsg: "No topics to display",
-      prependButtons: true
+      prependButtons: true,
     });
 
     me.contextGridMenu = new Ext.menu.Menu({
       items: [
         {
-          handler: function() {
+          handler: function () {
             me.showHistoryLogWindow();
           },
           iconCls: "dirac-icon-list",
-          text: "Show History"
-        }
-      ]
+          text: "Show History",
+        },
+      ],
     });
 
     me.gridPanel = Ext.create("Ext.grid.Panel", {
@@ -372,7 +372,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       header: false,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       columns: [
         {
@@ -381,106 +381,106 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           width: 26,
           sortable: false,
           dataIndex: "inst_InstanceID",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererChkBox(value);
           },
           hideable: false,
           fixed: true,
           menuDisabled: true,
-          align: "center"
+          align: "center",
         },
         {
           header: "InstanceID",
           width: 80,
           sortable: true,
-          dataIndex: "inst_InstanceID"
+          dataIndex: "inst_InstanceID",
         },
         {
           header: "Image",
           width: 120,
           sortable: true,
-          dataIndex: "img_Name"
+          dataIndex: "img_Name",
         },
         {
           header: "RunningPod",
           width: 120,
           sortable: true,
-          dataIndex: "inst_RunningPod"
+          dataIndex: "inst_RunningPod",
         },
         {
           header: "EndPoint",
           width: 100,
           sortable: true,
-          dataIndex: "inst_Endpoint"
+          dataIndex: "inst_Endpoint",
         },
         {
           header: "Status",
           width: 100,
           sortable: true,
-          dataIndex: "inst_Status"
+          dataIndex: "inst_Status",
         },
         {
           header: "DIRAC VM ID",
           width: 100,
           sortable: true,
-          dataIndex: "inst_Name"
+          dataIndex: "inst_Name",
         },
         {
           header: "Endpoint VM ID",
           width: 220,
           sortable: true,
-          dataIndex: "inst_UniqueID"
+          dataIndex: "inst_UniqueID",
         },
         {
           header: "IP",
           width: 100,
           sortable: true,
-          dataIndex: "inst_PublicIP"
+          dataIndex: "inst_PublicIP",
         },
         {
           header: "Load",
           width: 50,
           sortable: true,
           dataIndex: "inst_Load",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.renderLoad(value);
-          }
+          },
         },
         {
           header: "Uptime",
           width: 75,
           sortable: true,
           dataIndex: "inst_Uptime",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.renderUptime(value);
-          }
+          },
         },
         {
           header: "Jobs",
           width: 50,
           sortable: true,
-          dataIndex: "inst_Jobs"
+          dataIndex: "inst_Jobs",
         },
         {
           header: "Last Update (UTC)",
           width: 125,
           sortable: true,
-          dataIndex: "inst_LastUpdate"
+          dataIndex: "inst_LastUpdate",
         },
         {
           header: "Error",
           flex: 1,
           sortable: true,
-          dataIndex: "inst_ErrorMessage"
-        }
+          dataIndex: "inst_ErrorMessage",
+        },
       ],
-      rendererChkBox: function(val) {
+      rendererChkBox: function (val) {
         return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
       },
-      renderLoad: function(value) {
+      renderLoad: function (value) {
         return value.toFixed(2);
       },
-      renderUptime: function(value) {
+      renderUptime: function (value) {
         var hour = parseInt(value / 3600);
         var min = parseInt((value % 3600) / 60);
         var sec = parseInt(value % 60);
@@ -491,7 +491,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       },
       tbar: me.pagingToolbar.toolbar,
       listeners: {
-        beforecellcontextmenu: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        beforecellcontextmenu: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           e.preventDefault();
           // var oJobId =
           // GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid,
@@ -501,19 +501,19 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           // "Status");
           me.contextGridMenu.showAt(e.xy);
           return false;
-        }
-      }
+        },
+      },
     });
 
     me.add([oSceltTopPanel, me.gridPanel]);
   },
 
-  getPlotId: function() {
+  getPlotId: function () {
     var me = this;
     return me._plot_counter++;
   },
 
-  showNextTab: function() {
+  showNextTab: function () {
     var me = this;
 
     if (me.chartPanel.items.length > 0) {
@@ -531,14 +531,14 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
     }
   },
 
-  oprLoadGridData: function() {
+  oprLoadGridData: function () {
     var me = this;
     // Collect data for filtration
     var sStatusSelector = me.pagingToolbar.vmStatusCombo.getValue();
 
     if (sStatusSelector != "All") {
       var extraParams = {
-        statusSelector: sStatusSelector
+        statusSelector: sStatusSelector,
       };
 
       // set those data as extraParams in
@@ -551,7 +551,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
     me.gridPanel.store.load();
   },
 
-  oprStopSelectedVirtualMachines: function() {
+  oprStopSelectedVirtualMachines: function () {
     var me = this;
 
     var oIds = [];
@@ -567,21 +567,21 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
         Ext.Ajax.request({
           url: GLOBAL.BASE_URL + "VMDirac/stopInstances",
           params: {
-            idList: Ext.JSON.encode(oIds)
+            idList: Ext.JSON.encode(oIds),
           },
           scope: me,
-          success: function(response) {
+          success: function (response) {
             me.oprLoadGridData();
           },
-          failure: function(response) {
+          failure: function (response) {
             Ext.dirac.system_info.msg("Notification", "Operation failed due to a network error.<br/> Please try again later !");
-          }
+          },
         });
       }
     }
   },
 
-  showHistoryLogWindow: function() {
+  showHistoryLogWindow: function () {
     var me = this;
 
     var sInstanceId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.gridPanel, "inst_InstanceID");
@@ -598,61 +598,61 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           url: GLOBAL.BASE_URL + "VMDirac/getHistoryForInstance",
           reader: {
             type: "json",
-            rootProperty: "result"
+            rootProperty: "result",
           },
           timeout: 1800000,
           extraParams: {
-            instanceID: sInstanceId
-          }
+            instanceID: sInstanceId,
+          },
         },
         fields: ["Status", "Load", "Jobs", "TransferredFiles", "TransferredBytes", "Update"],
-        autoLoad: true
+        autoLoad: true,
       }),
       columns: [
         {
           header: "Update time",
           sortable: true,
           flex: 1,
-          dataIndex: "Update"
+          dataIndex: "Update",
         },
         {
           header: "Status",
           sortable: false,
-          dataIndex: "Status"
+          dataIndex: "Status",
         },
         {
           header: "Load",
           sortable: false,
-          dataIndex: "Load"
+          dataIndex: "Load",
         },
         {
           header: "Jobs",
           sortable: false,
-          dataIndex: "Jobs"
+          dataIndex: "Jobs",
         },
         {
           header: "Files transferred",
           sortable: false,
-          dataIndex: "TransferredFiles"
+          dataIndex: "TransferredFiles",
         },
         {
           header: "Bytes transferred",
           sortable: false,
-          dataIndex: "TransferredBytes"
-        }
+          dataIndex: "TransferredBytes",
+        },
       ],
       width: "100%",
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
-      }
+        enableTextSelection: true,
+      },
     });
 
     oWindow.add(oGrid);
     oWindow.show();
   },
 
-  oprDrawPlot: function() {
+  oprDrawPlot: function () {
     var me = this;
     var sPlotType = me.cbPlot.getValue();
 
@@ -667,8 +667,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           scope: me,
           params: {
             vars: Ext.JSON.encode(["Load"]),
-            timespan: me.cbTimespan.getValue()
-          }
+            timespan: me.cbTimespan.getValue(),
+          },
         });
         break;
       case "running":
@@ -679,8 +679,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           scope: me,
           params: {
             bucketSize: 900,
-            timespan: me.cbTimespan.getValue()
-          }
+            timespan: me.cbTimespan.getValue(),
+          },
         });
         break;
       case "runningbyendpoint":
@@ -691,8 +691,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           scope: me,
           params: {
             bucketSize: 900,
-            timespan: me.cbTimespan.getValue()
-          }
+            timespan: me.cbTimespan.getValue(),
+          },
         });
         break;
       case "runningbyrunningpod":
@@ -703,8 +703,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           scope: me,
           params: {
             bucketSize: 900,
-            timespan: me.cbTimespan.getValue()
-          }
+            timespan: me.cbTimespan.getValue(),
+          },
         });
         break;
       case "runningbyimage":
@@ -715,8 +715,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           scope: me,
           params: {
             bucketSize: 900,
-            timespan: me.cbTimespan.getValue()
-          }
+            timespan: me.cbTimespan.getValue(),
+          },
         });
         break;
       case "jobs":
@@ -727,8 +727,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           scope: me,
           params: {
             vars: Ext.JSON.encode(["Jobs"]),
-            timespan: me.cbTimespan.getValue()
-          }
+            timespan: me.cbTimespan.getValue(),
+          },
         });
         break;
       case "transferbytes":
@@ -739,8 +739,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           scope: me,
           params: {
             vars: Ext.JSON.encode(["TransferredBytes"]),
-            timespan: me.cbTimespan.getValue()
-          }
+            timespan: me.cbTimespan.getValue(),
+          },
         });
         break;
       case "transferfiles":
@@ -751,19 +751,19 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
           scope: me,
           params: {
             vars: Ext.JSON.encode(["TransferredFiles"]),
-            timespan: me.cbTimespan.getValue()
-          }
+            timespan: me.cbTimespan.getValue(),
+          },
         });
         break;
     }
   },
-  ajaxFailure: function(response) {
+  ajaxFailure: function (response) {
     var me = this;
     Ext.dirac.system_info.msg("Notification", "Operation failed due to a network error.<br/> Please try again later !");
     me.chartPanel.body.unmask();
   },
 
-  createTabWithDiv: function() {
+  createTabWithDiv: function () {
     var me = this;
 
     var sNewId = "vmplot_" + me.id + "_" + me.getPlotId();
@@ -783,7 +783,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       googleDataTable: null,
       googleConfig: null,
       listeners: {
-        resize: function(oThisTab, width, height, oldWidth, oldHeight, eOpts) {
+        resize: function (oThisTab, width, height, oldWidth, oldHeight, eOpts) {
           if (oThisTab.googleDataTable != null) {
             var iHeight = height - 20;
             var iWidth = width - 20;
@@ -795,8 +795,8 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
             var chart = new google.visualization.AnnotatedTimeLine(document.getElementById(oThisTab.googleChartId));
             chart.draw(oThisTab.googleDataTable, oThisTab.googleConfig);
           }
-        }
-      }
+        },
+      },
     });
 
     me.chartPanel.add(oTab);
@@ -811,7 +811,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
     return [sNewId, oTab];
   },
 
-  plotRunning: function(ajaxResponse, reqArguments) {
+  plotRunning: function (ajaxResponse, reqArguments) {
     var me = this;
     var retVal = Ext.JSON.decode(ajaxResponse.responseText);
     if (retVal.success == "false") {
@@ -849,7 +849,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       displayGrid: false,
       dateFormat: "y-MM-dd HH:mm (v)",
       colors: ["3fa900"],
-      min: 0
+      min: 0,
     };
     if (retVal.timespan == 0) chartConfig.displayRangeSelector = true;
 
@@ -859,7 +859,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
     me.chartPanel.body.unmask();
   },
 
-  plotRunningByFields: function(ajaxResponse, reqArguments) {
+  plotRunningByFields: function (ajaxResponse, reqArguments) {
     var me = this;
 
     var retVal = Ext.JSON.decode(ajaxResponse.responseText);
@@ -951,7 +951,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       displayGrid: false,
       dateFormat: "y-MM-dd HH:mm (v)",
       colors: ["3fa900"],
-      min: 0
+      min: 0,
     };
     if (this.plotTimespan == 0) chartConfig.displayRangeSelector = true;
     if (dates.length == 0) {
@@ -972,7 +972,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
     me.chartPanel.body.unmask();
   },
 
-  plotHistoryValue: function(ajaxResponse, reqArguments) {
+  plotHistoryValue: function (ajaxResponse, reqArguments) {
     var me = this;
     var retVal = Ext.JSON.decode(ajaxResponse.responseText);
     if (retVal.success == "false") {
@@ -1063,7 +1063,7 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
       displayGrid: false,
       dateFormat: "y-MM-dd HH:mm (v)",
       colors: colors,
-      min: 0
+      min: 0,
     };
     if (this.plotTimespan == 0) chartConfig.displayRangeSelector = true;
 
@@ -1071,5 +1071,5 @@ Ext.define("DIRAC.VMDirac.classes.VMDirac", {
     oDivTab.googleConfig = chartConfig;
     chart.draw(dataTable, chartConfig);
     me.chartPanel.body.unmask();
-  }
+  },
 });

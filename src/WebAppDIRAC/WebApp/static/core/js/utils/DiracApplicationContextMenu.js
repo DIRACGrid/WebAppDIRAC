@@ -43,12 +43,12 @@ Ext.define("Ext.dirac.utils.DiracApplicationContextMenu", {
 
   dynamicShow: false,
 
-  constructor: function(oConfig) {
+  constructor: function (oConfig) {
     var me = this;
     me.callParent(arguments);
     if (oConfig.scope) {
       Ext.apply(me, {
-        scope: oConfig.scope
+        scope: oConfig.scope,
       });
     }
     if (oConfig) {
@@ -62,11 +62,11 @@ Ext.define("Ext.dirac.utils.DiracApplicationContextMenu", {
             oMenuItem = new Ext.menu.Item({
               text: oConfig.menu.Visible[i].text,
               handler: oConfig.menu.Visible[i].handler.bind(me.scope, ...(oConfig.menu.Visible[i].arguments || [])),
-              scope: me.scope
+              scope: me.scope,
             });
           } else if ("subMenu" in oConfig.menu.Visible[i]) {
             oMenuItem = new Ext.menu.Item({
-              text: oConfig.menu.Visible[i].text
+              text: oConfig.menu.Visible[i].text,
             });
             me.__createSubmenu(oMenuItem, oConfig.menu.Visible[i].subMenu);
           }
@@ -94,12 +94,12 @@ Ext.define("Ext.dirac.utils.DiracApplicationContextMenu", {
               text: oConfig.menu.Protected[i].text,
               handler: oConfig.menu.Protected[i].handler.bind(me.scope, ...(oConfig.menu.Protected[i].arguments || [])),
               scope: me.scope,
-              disabled: lDisable
+              disabled: lDisable,
             });
           } else if ("subMenu" in oConfig.menu.Protected[i]) {
             oMenuItem = new Ext.menu.Item({
               text: oConfig.menu.Protected[i].text,
-              disabled: lDisable
+              disabled: lDisable,
             });
             me.__createSubmenu(oMenuItem, oConfig.menu.Protected[i].subMenu);
           }
@@ -121,7 +121,7 @@ Ext.define("Ext.dirac.utils.DiracApplicationContextMenu", {
    * @param{Object} subMenu it contains the menu items the format is same as
    *                the {@link #menuitems}
    */
-  __createSubmenu: function(oMenu, subMenu) {
+  __createSubmenu: function (oMenu, subMenu) {
     var me = this;
     oMenu.menu = new Ext.menu.Menu();
     if (subMenu == null) {
@@ -135,11 +135,11 @@ Ext.define("Ext.dirac.utils.DiracApplicationContextMenu", {
             var oMenuItem = new Ext.menu.Item({
               text: subMenu.Visible[i].text,
               handler: subMenu.Visible[i].handler.bind(me.scope, ...(subMenu.Visible[i].arguments || [])),
-              scope: me.scope
+              scope: me.scope,
             });
           } else if ("subMenu" in subMenu.Visible[i]) {
             var oMenuItem = new Ext.menu.Item({
-              text: oConfig.menu.Visible[i].text
+              text: oConfig.menu.Visible[i].text,
             });
             me.__createSubmenu(oMenuItem, oConfig.menu.Visible[i].subMenu);
             oMenu.menu.add(oMenuItem);
@@ -167,13 +167,13 @@ Ext.define("Ext.dirac.utils.DiracApplicationContextMenu", {
               text: subMenu.Protected[i].text,
               handler: subMenu.Protected[i].handler.bind(me.scope, ...(subMenu.Protected[i].arguments || [])),
               scope: me.scope,
-              disabled: lDisable
+              disabled: lDisable,
             });
           } else if ("subMenu" in subMenu.Protected[i]) {
             var oMenuItem = new Ext.menu.Item({
               text: oConfig.menu.Protected[i].text,
               disabled: lDisable,
-              checkField: oConfig.menu.Protected[i].checkField
+              checkField: oConfig.menu.Protected[i].checkField,
             });
             me.__createSubmenu(oMenuItem, oConfig.menu.Protected[i].subMenu);
             oMenu.menu.add(oMenuItem);
@@ -189,7 +189,7 @@ Ext.define("Ext.dirac.utils.DiracApplicationContextMenu", {
       }
     }
   },
-  doSow: function(record) {
+  doSow: function (record) {
     var me = this;
     for (var i = 0; i < me.items.length; i++) {
       var menuItem = me.items.getAt(i);
@@ -220,5 +220,5 @@ Ext.define("Ext.dirac.utils.DiracApplicationContextMenu", {
         }
       }
     }
-  }
+  },
 });

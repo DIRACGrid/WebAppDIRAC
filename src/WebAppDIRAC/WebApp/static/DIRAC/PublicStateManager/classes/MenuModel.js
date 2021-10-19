@@ -3,27 +3,27 @@ Ext.define("DIRAC.PublicStateManager.classes.MenuModel", {
   fields: [
     {
       name: "name",
-      type: "string"
+      type: "string",
     },
     {
       name: "type",
-      type: "string"
+      type: "string",
     },
     {
       name: "user",
-      type: "string"
+      type: "string",
     },
     {
       name: "group",
-      type: "string"
+      type: "string",
     },
     {
       name: "vo",
-      type: "string"
+      type: "string",
     },
     {
       name: "app",
-      type: "string"
-    }
-  ]
+      type: "string",
+    },
+  ],
 });
