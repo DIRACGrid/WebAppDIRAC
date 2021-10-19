@@ -868,9 +868,6 @@ Ext.define("Ext.dirac.views.tabs.Main", {
       if (window.location.protocol.startsWith("https") && !moduleName.startsWith("https")) {
         var tab = new Ext.dirac.views.tabs.Panel();
         tab.oprShowInNewTab(moduleName, moduleName);
-
-        delete tab; // eslint-disable-line no-alert
-
         Ext.get("app-dirac-loading").hide();
       } else {
         me.getRightContainer().createWindow(
