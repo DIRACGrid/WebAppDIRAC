@@ -4,5 +4,5 @@
 Ext.define("Ext.dirac.views.tabs.TreeMenuModel", {
   extend: "Ext.data.Model",
   fields: ["text", "type", "application", "stateToLoad", "desktop", "isShared", "view", "stateType"],
-  alias: "widget.treemenumodel"
+  alias: "widget.treemenumodel",
 });

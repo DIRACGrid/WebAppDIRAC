@@ -3,7 +3,7 @@ Ext.define("DIRAC.ProxyUpload.classes.ProxyUpload", {
 
   requires: ["Ext.toolbar.Toolbar", "Ext.button.Button", "Ext.form.field.File", "Ext.form.field.Text", "Ext.panel.Panel", "Ext.form.Panel"],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
@@ -37,50 +37,50 @@ Ext.define("DIRAC.ProxyUpload.classes.ProxyUpload", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     me.btnUpload = new Ext.Button({
       text: "Upload",
       margin: 1,
       iconCls: "dirac-icon-upload",
-      handler: function() {
+      handler: function () {
         me.__oprUploadFile();
       },
-      scope: me
+      scope: me,
     });
 
     me.btnReset = new Ext.Button({
       text: "Reset",
       margin: 1,
       iconCls: "dirac-icon-reset",
-      handler: function() {
+      handler: function () {
         me.uploadField.reset(); // fileInputEl.dom.value = "";
         me.passwordField.setValue("");
       },
-      scope: me
+      scope: me,
     });
 
     var oPanelButtons = new Ext.create("Ext.toolbar.Toolbar", {
       dock: "bottom",
       layout: {
-        pack: "center"
+        pack: "center",
       },
-      items: [me.btnUpload, me.btnReset]
+      items: [me.btnUpload, me.btnReset],
     });
 
     me.uploadField = new Ext.create("Ext.form.field.File", {
       fieldLabel: "Certificate",
       anchor: "100%",
       buttonText: "Browse",
-      labelAlign: "left"
+      labelAlign: "left",
     });
 
     me.passwordField = new Ext.create("Ext.form.field.Text", {
@@ -91,12 +91,12 @@ Ext.define("DIRAC.ProxyUpload.classes.ProxyUpload", {
       name: "pass_p12",
       enableKeyEvents: true,
       listeners: {
-        keypress: function(oTextField, e, eOpts) {
+        keypress: function (oTextField, e, eOpts) {
           if (e.getCharCode() == 13) {
             me.__oprUploadFile();
           }
-        }
-      }
+        },
+      },
     });
 
     me.mainFormPanel = new Ext.create("Ext.form.Panel", {
@@ -118,17 +118,17 @@ Ext.define("DIRAC.ProxyUpload.classes.ProxyUpload", {
             "<br/><b>dirac-cert-convert.sh YOUR_P12_FILE_NAME.p12</b>" +
             "<br/><b>dirac-proxy-init -U -g GROUP_NAME</b></div>",
           xtype: "box",
-          anchor: "100%"
+          anchor: "100%",
         },
         me.uploadField,
-        me.passwordField
-      ]
+        me.passwordField,
+      ],
     });
 
     me.add([me.mainFormPanel]);
   },
 
-  __oprUploadFile: function() {
+  __oprUploadFile: function () {
     var me = this;
 
     var sFileName = me.uploadField.getValue();
@@ -144,7 +144,7 @@ Ext.define("DIRAC.ProxyUpload.classes.ProxyUpload", {
 
       me.mainFormPanel.submit({
         url: GLOBAL.BASE_URL + "ProxyUpload/proxyUpload",
-        success: function(form, action) {
+        success: function (form, action) {
           me.getContainer().body.unmask();
 
           if (action.result.success == "false") {
@@ -157,14 +157,14 @@ Ext.define("DIRAC.ProxyUpload.classes.ProxyUpload", {
 
           me.passwordField.setValue("");
         },
-        failure: function(form, action) {
+        failure: function (form, action) {
           me.uploadField.reset();
           me.passwordField.setValue("");
           me.getContainer().body.unmask();
-        }
+        },
       });
     } else {
       GLOBAL.APP.CF.alert("Both fields are mandatory !", "warning");
     }
-  }
+  },
 });

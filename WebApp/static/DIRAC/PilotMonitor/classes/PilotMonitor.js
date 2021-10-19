@@ -15,14 +15,14 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
     "Ext.form.field.Date",
     "Ext.form.field.TextArea",
     "Ext.dirac.utils.DiracApplicationContextMenu",
-    "Ext.dirac.utils.DiracBaseSelector"
+    "Ext.dirac.utils.DiracBaseSelector",
   ],
 
   applicationsToOpen: {
-    JobMonitor: "DIRAC.JobMonitor.classes.JobMonitor"
+    JobMonitor: "DIRAC.JobMonitor.classes.JobMonitor",
   },
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     var me = this;
@@ -57,13 +57,13 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     // data for grid columns
     var oReturn = {
       leftMenu: me.leftPanel.getStateData(),
-      grid: me.grid.getStateData()
+      grid: me.grid.getStateData(),
       // show/hide for selectors and their selected data (including NOT
       // button)
     };
@@ -77,65 +77,65 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
   },
   dataFields: [
     {
-      name: "Status"
+      name: "Status",
     },
     {
-      name: "OwnerGroup"
+      name: "OwnerGroup",
     },
     {
       name: "LastUpdateTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "DestinationSite"
+      name: "DestinationSite",
     },
     {
-      name: "GridType"
+      name: "GridType",
     },
     {
-      name: "TaskQueueID"
+      name: "TaskQueueID",
     },
     {
-      name: "CurrentJobID"
+      name: "CurrentJobID",
     },
     {
       name: "BenchMark",
-      type: "float"
+      type: "float",
     },
     {
-      name: "Broker"
+      name: "Broker",
     },
     {
-      name: "OwnerDN"
+      name: "OwnerDN",
     },
     {
-      name: "GridSite"
+      name: "GridSite",
     },
     {
-      name: "PilotID"
+      name: "PilotID",
     },
     {
-      name: "ParentID"
+      name: "ParentID",
     },
     {
       name: "SubmissionTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "PilotJobReference"
+      name: "PilotJobReference",
     },
     {
-      name: "Owner"
+      name: "Owner",
     },
     {
       name: "StatusIcon",
-      mapping: "Status"
-    }
+      mapping: "Status",
+    },
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
@@ -169,14 +169,14 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     me.statisticsPanel = new Ext.create("Ext.panel.Panel", {
@@ -189,8 +189,8 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       layout: "border",
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     /*
@@ -205,18 +205,18 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       computingElement: "Computing Element",
       ownerGroup: "Owner Group",
       owner: "Owner",
-      broker: "Broker"
+      broker: "Broker",
     };
 
     var textFields = {
       taskQueueId: {
         name: "Task Queue ID",
-        type: "number"
+        type: "number",
       },
       pilotId: {
         name: "Pilot Job Reference",
-        type: "originalText"
-      }
+        type: "originalText",
+      },
     };
 
     var map = [
@@ -225,7 +225,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       ["computingElement", "computingElement"],
       ["ownerGroup", "ownerGroup"],
       ["owner", "owner"],
-      ["broker", "broker"]
+      ["broker", "broker"],
     ];
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -233,7 +233,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       cmbSelectors: selectors,
       textFields: textFields,
       datamap: map,
-      url: "PilotMonitor/getSelectionData"
+      url: "PilotMonitor/getSelectionData",
     });
 
     /*
@@ -243,7 +243,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
      */
 
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + me.applicationName + "/getPilotData"
+      url: GLOBAL.BASE_URL + me.applicationName + "/getPilotData",
     });
 
     me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -253,10 +253,10 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       sorters: [
         {
           property: "SubmissionTime",
-          direction: "DESC"
-        }
+          direction: "DESC",
+        },
       ],
-      scope: me
+      scope: me,
     });
 
     me.dataStore.sort("SubmissionTime", "DESC");
@@ -273,28 +273,28 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
           arguments: [],
           properties: {
             iconCls: "dirac-icon-pie",
-            tooltip: "Go to the statistics panel"
-          }
-        }
-      ]
+            tooltip: "Go to the statistics panel",
+          },
+        },
+      ],
     };
 
     pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
       toolButtons: toolButtons,
       store: me.dataStore,
-      scope: me
+      scope: me,
     });
 
     me.btnStatisticsPanel = new Ext.Button({
       text: "",
       iconCls: "dirac-icon-pie",
       tooltip: "Go to the statistics panel",
-      handler: function() {
+      handler: function () {
         me.__setActiveItemInTheCentralWorkPanel();
-      }
+      },
     });
 
-    var showJobshandler = function() {
+    var showJobshandler = function () {
       var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "PilotJobReference");
 
       var setupdata = {};
@@ -305,7 +305,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
         objectType: "app",
         moduleName: me.applicationsToOpen["JobMonitor"],
-        setupData: setupdata
+        setupData: setupdata,
       });
     };
     var menuitems = {
@@ -314,50 +314,50 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
           text: "Show Jobs",
           handler: showJobshandler,
           properties: {
-            tooltip: "Click to show the jobs bound to the selected pilot job reference(s)."
-          }
+            tooltip: "Click to show the jobs bound to the selected pilot job reference(s).",
+          },
         },
         {
-          text: "-"
+          text: "-",
         },
         {
           text: "Pilot Output",
           handler: me.__oprGetJobData,
           arguments: ["getPilotOutput"],
           properties: {
-            tooltip: "Get the pilot output!"
-          }
+            tooltip: "Get the pilot output!",
+          },
         },
         {
           text: "Pilot Error",
           handler: me.__oprGetJobData,
           arguments: ["getPilotError"],
           properties: {
-            tooltip: "Get the pilot error log!"
-          }
+            tooltip: "Get the pilot error log!",
+          },
         },
         {
           text: "Logging info",
           handler: me.__oprGetJobData,
           arguments: ["getLoggingInfo"],
           properties: {
-            tooltip: "Get the pilot log!"
-          }
-        }
-      ]
+            tooltip: "Get the pilot log!",
+          },
+        },
+      ],
     };
 
     me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
       menu: menuitems,
-      scope: me
+      scope: me,
     });
 
     var columns = {
       checkBox: {
-        dataIndex: "CurrentJobID"
+        dataIndex: "CurrentJobID",
       },
       PilotJobReference: {
-        dataIndex: "PilotJobReference"
+        dataIndex: "PilotJobReference",
       },
       None: {
         dataIndex: "StatusIcon",
@@ -366,75 +366,75 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
           sortable: false,
           hideable: false,
           fixed: true,
-          menuDisabled: true
+          menuDisabled: true,
         },
-        renderFunction: "rendererStatus"
+        renderFunction: "rendererStatus",
       },
       Status: {
-        dataIndex: "Status"
+        dataIndex: "Status",
       },
       Site: {
-        dataIndex: "GridSite"
+        dataIndex: "GridSite",
       },
       ComputingElement: {
-        dataIndex: "DestinationSite"
+        dataIndex: "DestinationSite",
       },
       Broker: {
-        dataIndex: "Broker"
+        dataIndex: "Broker",
       },
       CurrentJobID: {
-        dataIndex: "CurrentJobID"
+        dataIndex: "CurrentJobID",
       },
       GridType: {
-        dataIndex: "GridType"
+        dataIndex: "GridType",
       },
       TaskQueueID: {
-        dataIndex: "TaskQueueID"
+        dataIndex: "TaskQueueID",
       },
       BenchMark: {
-        dataIndex: "BenchMark"
+        dataIndex: "BenchMark",
       },
       Owner: {
         dataIndex: "Owner",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       OwnerDN: {
         dataIndex: "OwnerDN",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       OwnerGroup: {
-        dataIndex: "OwnerGroup"
+        dataIndex: "OwnerGroup",
       },
       PilotID: {
         dataIndex: "PilotID",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       ParentID: {
         dataIndex: "ParentID",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       "LastUpdateTime[UTC]": {
         dataIndex: "LastUpdateTime",
         renderer: Ext.util.Format.dateRenderer("Y-m-d H:i:s"),
         properties: {
-          width: 150
-        }
+          width: 150,
+        },
       },
       "SubmissionTime[UTC]": {
         dataIndex: "SubmissionTime",
         renderer: Ext.util.Format.dateRenderer("Y-m-d H:i:s"),
         properties: {
-          width: 150
-        }
-      }
+          width: 150,
+        },
+      },
     };
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
@@ -443,7 +443,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       oColumns: columns,
       contextMenu: me.contextGridMenu,
       pagingToolbar: pagingToolbar,
-      scope: me
+      scope: me,
     });
 
     me.leftPanel.setGrid(me.grid);
@@ -455,18 +455,18 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["set"],
-        data: [["Selected Statistics"], ["Global Statistics"]]
+        data: [["Selected Statistics"], ["Global Statistics"]],
       }),
       triggerAction: "all",
       value: "Selected Statistics",
       flex: 1,
       listeners: {
-        change: function(combo, newValue, oldValue, eOpts) {
+        change: function (combo, newValue, oldValue, eOpts) {
           var me = combo.moduleObject;
           me.leftPanel.oprLoadGridData();
-        }
+        },
       },
-      moduleObject: me
+      moduleObject: me,
     });
 
     me.statisticsGridCombo = new Ext.form.field.ComboBox({
@@ -476,33 +476,33 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["category"],
-        data: [["Status"], ["Site"], ["Computing Element"], ["Owner Group"], ["Owner"], ["Broker"]]
+        data: [["Status"], ["Site"], ["Computing Element"], ["Owner Group"], ["Owner"], ["Broker"]],
       }),
       triggerAction: "all",
       value: "Status",
       flex: 1,
       listeners: {
-        change: function(combo, newValue, oldValue, eOpts) {
+        change: function (combo, newValue, oldValue, eOpts) {
           var me = combo.moduleObject;
           me.leftPanel.oprLoadGridData();
-        }
+        },
       },
-      moduleObject: me
+      moduleObject: me,
     });
 
     var oButtonGoToGrid = new Ext.Button({
       margin: 0,
       iconCls: "pm-grid-icon",
-      handler: function() {
+      handler: function () {
         me.centralWorkPanel.getLayout().setActiveItem(0);
       },
-      scope: me
+      scope: me,
     });
 
     me.btnShowPlotAsPng = new Ext.Button({
       margin: 0,
       iconCls: "dirac-icon-save",
-      handler: function() {
+      handler: function () {
         var plot = me.statisticsPlotPanel.down("polar");
         if (plot) {
           var imgData = plot.getImage();
@@ -526,7 +526,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
           var oImage = new Image();
           oImage.src = imgData.data;
 
-          oImage.onload = function() {
+          oImage.onload = function () {
             console.log([oImage.clientWidth, oImage.clientHeight]);
 
             oContext.drawImage(oImage, 0, 0, iWidth, iHeight);
@@ -539,75 +539,75 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
         }
       },
       scope: me,
-      tooltip: "Save pie chart as PNG image"
+      tooltip: "Save pie chart as PNG image",
     });
 
     me.btnPlotSettings = new Ext.Button({
       margin: 0,
       iconCls: "dirac-icon-settings",
-      handler: function() {
+      handler: function () {
         me.formPlotSettings();
       },
       scope: me,
-      tooltip: "Plot settings"
+      tooltip: "Plot settings",
     });
 
     /*-----------AUTO REFRESH---------------*/
     var oTask = {
-      run: function() {
+      run: function () {
         me.leftPanel.oprLoadGridData();
       },
-      interval: 0
+      interval: 0,
     };
 
     var oHeartbeat = new Ext.util.TaskRunner();
 
     var oAutoMenu = [
       {
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.start(
             Ext.apply(oTask, {
-              interval: 900000
+              interval: 900000,
             })
           );
         },
         group: "refresh",
-        text: "15 Minutes"
+        text: "15 Minutes",
       },
       {
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.start(
             Ext.apply(oTask, {
-              interval: 1800000
+              interval: 1800000,
             })
           );
         },
         group: "refresh",
-        text: "30 Minutes"
+        text: "30 Minutes",
       },
       {
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.start(
             Ext.apply(oTask, {
-              interval: 3600000
+              interval: 3600000,
             })
           );
         },
         group: "refresh",
-        text: "One Hour"
+        text: "One Hour",
       },
       {
         checked: true,
-        handler: function() {
+        handler: function () {
           this.setChecked(true);
           oHeartbeat.stopAll();
         },
         group: "refresh",
-        text: "Disabled"
-      }
+        text: "Disabled",
+      },
     ];
 
     for (var i = 0; i < oAutoMenu.length; i++) {
@@ -617,10 +617,10 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
     var btnAutorefresh = new Ext.Button({
       menu: oAutoMenu,
       text: "Auto Refresh: Disabled",
-      tooltip: "Click to set the time for autorefresh"
+      tooltip: "Click to set the time for autorefresh",
     });
 
-    btnAutorefresh.on("menuhide", function(button, menu) {
+    btnAutorefresh.on("menuhide", function (button, menu) {
       var length = menu.items.getCount();
       for (var i = 0; i < length; i++) {
         if (menu.items.items[i].checked) {
@@ -637,33 +637,33 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
           sortable: false,
           hideable: false,
           fixed: true,
-          menuDisabled: true
+          menuDisabled: true,
         },
-        renderFunction: "renderStatusForGivenColor"
+        renderFunction: "renderStatusForGivenColor",
       },
       Key: {
         dataIndex: "key",
         properties: {
           hideable: false,
-          width: 150
-        }
+          width: 150,
+        },
       },
       Value: {
         dataIndex: "value",
         properties: {
-          flex: 1
+          flex: 1,
         },
-        renderFunction: "diffValues"
-      }
+        renderFunction: "diffValues",
+      },
     };
 
     var dataStore = Ext.create("Ext.dirac.utils.DiracArrayStore", {
       fields: ["key", "value", "code", "color"],
       oDiffFields: {
         Id: "key",
-        Fields: ["value"]
+        Fields: ["value"],
       },
-      scope: me
+      scope: me,
     });
 
     /*---------------------------------------------------*/
@@ -675,24 +675,24 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       border: 0,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       dockedItems: [
         new Ext.create("Ext.toolbar.Toolbar", {
           dock: "top",
-          items: [oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, "-", btnAutorefresh]
+          items: [oButtonGoToGrid, me.btnShowPlotAsPng, me.btnPlotSettings, "-", btnAutorefresh],
         }),
         new Ext.create("Ext.toolbar.Toolbar", {
           dock: "top",
-          items: [me.statisticsGridComboMain]
+          items: [me.statisticsGridComboMain],
         }),
         new Ext.create("Ext.toolbar.Toolbar", {
           dock: "top",
-          items: [me.statisticsGridCombo]
-        })
+          items: [me.statisticsGridCombo],
+        }),
       ],
       oColumns: oColumns,
-      scope: me
+      scope: me,
     });
 
     me.plotSettings = {};
@@ -704,7 +704,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       width: 100,
       height: 30,
       x: 40, // the sprite x position
-      y: 12
+      y: 12,
       // the sprite y position
     };
     me.plotSettings.plotLegend = {
@@ -713,17 +713,17 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       position: "right",
       boxStrokeWidth: 2,
       labelFont: "12px Helvetica",
-      padding: 10
+      padding: 10,
     };
     me.statisticsPlotPanel = new Ext.create("Ext.panel.Panel", {
       region: "center",
       floatable: false,
       layout: "fit",
       header: false,
-      autoScroll: true
+      autoScroll: true,
     });
 
-    me.statisticsPlotPanel.onResize = function(width, height, oldWidth, oldHeight) {
+    me.statisticsPlotPanel.onResize = function (width, height, oldWidth, oldHeight) {
       me.createPlotFromGridData(me.statisticsGridComboMain.getValue() + " :: " + me.statisticsGridCombo.getValue());
     };
 
@@ -743,7 +743,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       region: "center",
       header: false,
       border: false,
-      items: [me.grid, me.statisticsPanel]
+      items: [me.grid, me.statisticsPanel],
     });
 
     /*
@@ -755,7 +755,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
     // me.add([me.leftPanel, me.grid]);
   },
 
-  __oprGetJobData: function(oDataKind) {
+  __oprGetJobData: function (oDataKind) {
     var me = this;
     var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "PilotJobReference");
 
@@ -766,10 +766,10 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       method: "POST",
       params: {
         data_kind: oDataKind,
-        data: oId
+        data: oId,
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         me.getContainer().body.unmask();
         var jsonData = Ext.JSON.decode(response.responseText);
 
@@ -785,17 +785,17 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
           GLOBAL.APP.CF.alert(jsonData["error"], "error");
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
 
-  __setActiveItemInTheCentralWorkPanel: function() {
+  __setActiveItemInTheCentralWorkPanel: function () {
     var me = this;
     me.centralWorkPanel.getLayout().setActiveItem(1);
   },
-  createPlotFromGridData: function(sTitle, sLegendPosition) {
+  createPlotFromGridData: function (sTitle, sLegendPosition) {
     var me = this;
     me.statisticsPlotPanel.removeAll();
     if (!sLegendPosition) {
@@ -826,7 +826,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       insetPadding: 80,
       background: {
         type: "image",
-        src: GLOBAL.ROOT_URL + "static/core/img/wallpapers/dirac_jobmonitor_background.png"
+        src: GLOBAL.ROOT_URL + "static/core/img/wallpapers/dirac_jobmonitor_background.png",
       },
       interactions: ["rotate", "itemhighlight"],
       store: me.statisticsSelectionGrid.getStore(),
@@ -839,20 +839,20 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
         label: {
           field: "key",
           display: "outside",
-          orientation: "vertical"
+          orientation: "vertical",
         },
         showInLegend: true,
         tooltip: {
           trackMouse: true,
           width: 140,
           height: 28,
-          renderer: function(toolTip, record, ctx) {
+          renderer: function (toolTip, record, ctx) {
             toolTip.setHtml(record.get("key") + ": " + record.get("value"));
-          }
-        }
-      }
+          },
+        },
+      },
     });
-    me.statisticsSelectionGrid.on("sortchange", function(ct, column, direction, eOpts) {
+    me.statisticsSelectionGrid.on("sortchange", function (ct, column, direction, eOpts) {
       var colors = [];
       var me = this;
       for (var i = 0; i < me.getStore().getCount(); i++) {
@@ -863,7 +863,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
     me.statisticsSelectionGrid.plot.setColors(colors);
     me.statisticsPlotPanel.add(me.statisticsSelectionGrid.plot);
   },
-  formPlotSettings: function() {
+  formPlotSettings: function () {
     var me = this;
 
     if (!"plotSettings" in me) me.plotSettings = {};
@@ -874,7 +874,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       allowBlank: false,
       margin: 10,
       anchor: "100%",
-      value: me.plotSettings.plotTitle.text
+      value: me.plotSettings.plotTitle.text,
     });
 
     me.plotSettings.cmbLegendPosition = new Ext.create("Ext.form.field.ComboBox", {
@@ -887,14 +887,14 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
           ["left", "left"],
           ["top", "top"],
           ["bottom", "bottom"],
-          ["none", "none"]
-        ]
+          ["none", "none"],
+        ],
       }),
       displayField: "text",
       valueField: "value",
       anchor: "100%",
       margin: 10,
-      value: me.plotSettings.plotLegend.legend
+      value: me.plotSettings.plotLegend.legend,
     });
 
     // button for saving the state
@@ -902,15 +902,15 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       text: "Submit",
       margin: 3,
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         var me = this;
         me.createPlotFromGridData(me.plotSettings.txtPlotTitle.getValue(), me.plotSettings.cmbLegendPosition.getValue());
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
-      border: false
+      border: false,
     });
 
     oToolbar.add([me.plotSettings.btnApplySettings]);
@@ -919,7 +919,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       autoHeight: true,
       border: false,
       layout: "anchor",
-      items: [oToolbar, me.plotSettings.txtPlotTitle, me.plotSettings.cmbLegendPosition, me.txtElementConfig]
+      items: [oToolbar, me.plotSettings.txtPlotTitle, me.plotSettings.cmbLegendPosition, me.txtElementConfig],
     });
 
     // initializing window showing the saving form
@@ -929,11 +929,11 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       title: "Plot Settings",
       layout: "fit",
       modal: true,
-      items: oPanel
+      items: oPanel,
     }).show();
   },
 
-  funcOnChangeEitherCombo: function() {
+  funcOnChangeEitherCombo: function () {
     var me = this;
 
     var sSet = me.statisticsGridComboMain.getValue();
@@ -952,7 +952,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
         url: GLOBAL.BASE_URL + me.applicationName + "/getStatisticsData",
         params: oData,
         scope: me,
-        success: function(response) {
+        success: function (response) {
           var response = Ext.JSON.decode(response.responseText);
 
           if (response["success"] == "true") {
@@ -970,12 +970,12 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
           me.statisticsGridComboMain.setDisabled(false);
           me.statisticsGridCombo.setDisabled(false);
         },
-        failure: function(response) {
+        failure: function (response) {
           me.statisticsGridComboMain.setDisabled(false);
           me.statisticsGridCombo.setDisabled(false);
           me.statisticsSelectionGrid.body.unmask();
           GLOBAL.APP.CF.showAjaxErrorMessage(response);
-        }
+        },
       });
     } else {
       me.statisticsSelectionGrid.body.mask("Wait ...");
@@ -984,10 +984,10 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
         url: GLOBAL.BASE_URL + me.applicationName + "/getStatisticsData",
         params: {
           statsField: sCategory,
-          globalStat: true
+          globalStat: true,
         },
         scope: me,
-        success: function(response) {
+        success: function (response) {
           var response = Ext.JSON.decode(response.responseText);
 
           if (response["success"] == "true") {
@@ -1004,13 +1004,13 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
           me.statisticsGridComboMain.setDisabled(false);
           me.statisticsGridCombo.setDisabled(false);
         },
-        failure: function(response) {
+        failure: function (response) {
           me.statisticsSelectionGrid.body.unmask();
           me.statisticsGridComboMain.setDisabled(false);
           me.statisticsGridCombo.setDisabled(false);
           GLOBAL.APP.CF.showAjaxErrorMessage(response);
-        }
+        },
       });
     }
-  }
+  },
 });

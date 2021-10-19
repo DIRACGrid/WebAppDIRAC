@@ -22,7 +22,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
     "Ext.dirac.utils.DiracMultiSelect",
     "Ext.util.*",
     "Ext.toolbar.Toolbar",
-    "Ext.data.Record"
+    "Ext.data.Record",
   ],
   timeout: 7200000, // 2 hours
   title: "",
@@ -30,25 +30,25 @@ Ext.define("Ext.dirac.utils.PlotView", {
   reportsDesc: {},
   reportTypes: [
     ["Accounting", "Accounting"],
-    ["Monitoring", "Monitoring"]
+    ["Monitoring", "Monitoring"],
   ],
   handlers: {},
   actualReport: null,
-  loadState: function(oData) {
+  loadState: function (oData) {
     var me = this;
     me.rightPanel.loadState(oData);
   },
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oReturn = me.rightPanel.getStateData();
 
     return oReturn;
   },
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
-    me.loadFile(["static/core/js/utils/css/PlotView.css"], function() {}, me);
+    me.loadFile(["static/core/js/utils/css/PlotView.css"], function () {}, me);
 
     if (GLOBAL.VIEW_ID == "desktop") {
       me.launcher.title = me.title;
@@ -81,14 +81,14 @@ Ext.define("Ext.dirac.utils.PlotView", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
     me.callParent();
 
@@ -102,7 +102,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       maxWidth: 550,
       bodyPadding: 5,
       layout: "anchor",
-      scrollable: true
+      scrollable: true,
     });
 
     me.rightPanel = Ext.create("Ext.dirac.utils.Presenter", {
@@ -114,7 +114,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       parent: me,
       reportType: "",
       scope: me,
-      collapsible: false
+      collapsible: false,
     });
 
     me.cmbReportType = Ext.create("Ext.form.field.ComboBox", {
@@ -126,10 +126,10 @@ Ext.define("Ext.dirac.utils.PlotView", {
       anchor: "100%",
       store: new Ext.data.ArrayStore({
         fields: ["value", "text"],
-        data: me.reportTypes
+        data: me.reportTypes,
       }),
       listeners: {
-        change: function(field, newValue, oldValue, eOpts) {
+        change: function (field, newValue, oldValue, eOpts) {
           if (newValue == null) return;
 
           me.leftPanel.body.mask("Wait ...");
@@ -138,8 +138,8 @@ Ext.define("Ext.dirac.utils.PlotView", {
           me.applyReportType(newValue);
           me.leftPanel.body.unmask();
           me.cmbDomain.resumeEvent("change");
-        }
-      }
+        },
+      },
     });
 
     me.cmbDomain = Ext.create("Ext.form.field.ComboBox", {
@@ -151,10 +151,10 @@ Ext.define("Ext.dirac.utils.PlotView", {
       anchor: "100%",
       store: new Ext.data.ArrayStore({
         fields: ["value", "text"],
-        data: []
+        data: [],
       }),
       listeners: {
-        change: function(field, newValue, oldValue, eOpts) {
+        change: function (field, newValue, oldValue, eOpts) {
           if (newValue == null) return;
 
           me.leftPanel.body.mask("Wait ...");
@@ -163,20 +163,20 @@ Ext.define("Ext.dirac.utils.PlotView", {
             timeout: me.timeout,
             method: "POST",
             params: {
-              type: newValue
+              type: newValue,
             },
             scope: me,
-            success: function(response) {
+            success: function (response) {
               var oResult = Ext.JSON.decode(response.responseText);
               if (oResult["success"] == "true") {
                 me.applyDataToSelection(oResult, newValue, me.actualReport);
                 me.cmbReportType.resumeEvent("change");
               } else GLOBAL.APP.CF.alert(oResult["error"], "error");
               me.leftPanel.body.unmask();
-            }
+            },
           });
-        }
-      }
+        },
+      },
     });
 
     me.cmbPlotGenerate = Ext.create("Ext.form.field.ComboBox", {
@@ -185,7 +185,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       labelAlign: "top",
       displayField: "text",
       valueField: "value",
-      anchor: "100%"
+      anchor: "100%",
     });
 
     me.cmbGroupBy = Ext.create("Ext.form.field.ComboBox", {
@@ -194,18 +194,18 @@ Ext.define("Ext.dirac.utils.PlotView", {
       labelAlign: "top",
       displayField: "text",
       valueField: "value",
-      anchor: "100%"
+      anchor: "100%",
     });
 
     me.fsetTimeSpan = Ext.create("Ext.form.FieldSet", {
       title: "Time Span",
       collapsible: true,
-      layout: "anchor"
+      layout: "anchor",
     });
 
     me.cmbTimeSpanStore = new Ext.data.ArrayStore({
       fields: ["value", "text"],
-      data: me.dataSelectors["Accounting"]["dataSelector"]
+      data: me.dataSelectors["Accounting"]["dataSelector"],
     });
 
     me.cmbTimeSpan = Ext.create("Ext.form.field.ComboBox", {
@@ -216,7 +216,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       value: me.dataSelectors["Accounting"]["dataSelector"][0][0],
       store: me.cmbTimeSpanStore,
       listeners: {
-        change: function(field, newValue, oldValue, eOpts) {
+        change: function (field, newValue, oldValue, eOpts) {
           me.calendarFrom.hide();
           me.calendarTo.hide();
           me.cmbQuarter.hide();
@@ -231,8 +231,8 @@ Ext.define("Ext.dirac.utils.PlotView", {
               me.cmbQuarter.show();
               break;
           }
-        }
-      }
+        },
+      },
     });
 
     me.calendarFrom = new Ext.create("Ext.form.field.Date", {
@@ -240,7 +240,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       format: "Y-m-d",
       fieldLabel: "Initial Date",
       labelAlign: "top",
-      hidden: true
+      hidden: true,
     });
 
     me.calendarTo = new Ext.create("Ext.form.field.Date", {
@@ -248,7 +248,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       format: "Y-m-d",
       fieldLabel: "End Date",
       labelAlign: "top",
-      hidden: true
+      hidden: true,
     });
 
     me.cmbQuarter = Ext.create("Ext.dirac.utils.DiracBoxSelect", {
@@ -256,7 +256,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       displayField: "text",
       valueField: "value",
       anchor: "100%",
-      hidden: true
+      hidden: true,
     });
 
     me.fsetTimeSpan.add([me.cmbTimeSpan, me.calendarFrom, me.calendarTo, me.cmbQuarter]);
@@ -264,27 +264,27 @@ Ext.define("Ext.dirac.utils.PlotView", {
     me.fsetSpecialConditions = Ext.create("Ext.form.FieldSet", {
       title: "Selection Conditions",
       collapsible: true,
-      layout: "anchor"
+      layout: "anchor",
     });
 
     me.fsetAdvanced = Ext.create("Ext.form.FieldSet", {
       title: "Advanced Options",
       collapsible: true,
-      layout: "anchor"
+      layout: "anchor",
     });
 
     me.advancedPlotTitle = Ext.create("Ext.form.field.Text", {
       fieldLabel: "Plot Title",
       labelAlign: "top",
-      anchor: "100%"
+      anchor: "100%",
     });
 
     me.advancedPin = Ext.create("Ext.form.field.Checkbox", {
-      boxLabel: "Pin Dates"
+      boxLabel: "Pin Dates",
     });
 
     me.advancedNotScaleUnits = Ext.create("Ext.form.field.Checkbox", {
-      boxLabel: "Do not scale units"
+      boxLabel: "Do not scale units",
     });
 
     me.fsetAdvanced.add([me.advancedPlotTitle, me.advancedPin, me.advancedNotScaleUnits]);
@@ -296,10 +296,10 @@ Ext.define("Ext.dirac.utils.PlotView", {
       text: "New",
       margin: 3,
       iconCls: "accp-submit-icon",
-      handler: function() {
+      handler: function () {
         me.__generatePlot(null, null, true);
       },
-      scope: me
+      scope: me,
     });
 
     me.btnReset = new Ext.Button({
@@ -307,10 +307,10 @@ Ext.define("Ext.dirac.utils.PlotView", {
       text: "Reset",
       margin: 3,
       iconCls: "accp-reset-icon",
-      handler: function() {
+      handler: function () {
         me.__resetSelectionWindow();
       },
-      scope: me
+      scope: me,
     });
 
     me.btnRefresh = new Ext.Button({
@@ -318,31 +318,31 @@ Ext.define("Ext.dirac.utils.PlotView", {
       text: "Refresh",
       margin: 3,
       iconCls: "accp-refresh-icon",
-      handler: function() {
+      handler: function () {
         me.leftPanel.body.mask("Wait ...");
         Ext.Ajax.request({
           url: GLOBAL.BASE_URL + me.handlers[me.actualReport] + "/getSelectionData",
           timeout: me.timeout,
           method: "POST",
           params: {
-            type: me.cmbDomain.getValue()
+            type: me.cmbDomain.getValue(),
           },
           scope: me,
-          success: function(response) {
+          success: function (response) {
             var oResult = Ext.JSON.decode(response.responseText);
 
             if (oResult["success"] == "true") me.applySpecialConditions(oResult);
             else alert(oResult["error"]);
             me.leftPanel.body.unmask();
           },
-          failure: function(response, opt) {
+          failure: function (response, opt) {
             GLOBAL.APP.CF.showAjaxErrorMessage(response);
             me.rightPanel.body.unmask();
             me.leftPanel.body.unmask();
-          }
+          },
         });
       },
-      scope: me
+      scope: me,
     });
 
     /*
@@ -354,7 +354,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       text: "Apply",
       margin: 3,
       iconCls: "dirac-icon-upload",
-      handler: function() {
+      handler: function () {
         image = me.rightPanel.getLastClickedImage();
         if (image != null) {
           me.__generatePlot(image, null);
@@ -362,7 +362,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
           Ext.dirac.system_info.msg("Notification", "Please select an image what you want to change!");
         }
       },
-      scope: me
+      scope: me,
     });
 
     me.btnApplyAll = new Ext.Button({
@@ -370,25 +370,25 @@ Ext.define("Ext.dirac.utils.PlotView", {
       text: "ApplyAll",
       margin: 3,
       iconCls: "dirac-icon-upload",
-      handler: function() {
+      handler: function () {
         var me = this;
         var oParamsData = me.__getSelectionParametars("show_plot");
         me.rightPanel.applyTimeSpan(oParamsData);
       },
-      scope: me
+      scope: me,
     });
 
     var oPanelButtons = new Ext.create("Ext.toolbar.Toolbar", {
       items: [me.btnPlot, me.btnRefreshPlot, me.btnReset, me.btnRefresh, me.btnApplyAll],
       layout: "column",
       columnWidth: 3,
-      dock: "bottom"
+      dock: "bottom",
     });
 
     me.leftPanel.addDocked(oPanelButtons);
     me.add([me.leftPanel, me.rightPanel]);
   },
-  __generatePlot: function(image, oLoadState, selectAddedPlot) {
+  __generatePlot: function (image, oLoadState, selectAddedPlot) {
     var me = this;
     var oParams = null;
     if (oLoadState == null) {
@@ -429,7 +429,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
         timeout: me.timeout,
         params: oParams,
         scope: me,
-        success: function(response) {
+        success: function (response) {
           var me = this;
 
           me.leftPanel.body.unmask();
@@ -443,7 +443,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
             GLOBAL.APP.CF.alert(response["errors"], "error");
           }
         },
-        failure: function(response, opt) {
+        failure: function (response, opt) {
           GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
           if (me.rightPanel.body) {
@@ -452,7 +452,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
           if (me.leftPanel.body) {
             me.leftPanel.body.unmask();
           }
-        }
+        },
       });
     } else {
       if (me.rightPanel.body) {
@@ -476,9 +476,9 @@ Ext.define("Ext.dirac.utils.PlotView", {
         leftPanel: me.leftPanel,
         scope: me,
         listeners: {
-          afterrender: function(me) {
+          afterrender: function (me) {
             me.el.on({
-              load: function(evt, ele, opts) {
+              load: function (evt, ele, opts) {
                 me.setLoading(false);
                 if (me.isSetSrc) {
                   if (me.rightPanel.body) {
@@ -497,12 +497,12 @@ Ext.define("Ext.dirac.utils.PlotView", {
                     me.rightPanel.selectImage(me);
                   }
                 }
-              }
+              },
             });
           },
 
           // When new plot added on the wall generate image
-          added: function(container, pos, eOpts) {
+          added: function (container, pos, eOpts) {
             var me = this;
             me.setLoading(true);
             Ext.Ajax.request({
@@ -510,7 +510,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
               timeout: me.timeout,
               params: oParams,
               scope: me,
-              success: function(response) {
+              success: function (response) {
                 var me = this;
 
                 if (me.leftPanel.body) {
@@ -529,7 +529,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
                   GLOBAL.APP.CF.alert(response["errors"], "error");
                 }
               },
-              failure: function(response, opt) {
+              failure: function (response, opt) {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
                 if (me.rightPanel.body) {
@@ -540,23 +540,23 @@ Ext.define("Ext.dirac.utils.PlotView", {
                 }
 
                 me.setLoading(false);
-              }
+              },
             });
-          }
-        }
+          },
+        },
       });
 
       me.rightPanel.addImage(oImg);
     }
   },
-  __loadSelectionData: function(oParams) {
+  __loadSelectionData: function (oParams) {
     var me = this;
 
     me.plotParams = oParams;
 
     if (!("_typeName" in oParams)) return;
 
-    me.__additionalDataLoad = function() {
+    me.__additionalDataLoad = function () {
       me.cmbGroupBy.setValue(oParams["_grouping"]);
       me.cmbPlotGenerate.setValue(oParams["_plotName"]);
       me.cmbTimeSpan.setValue(oParams["_timeSelector"]);
@@ -608,7 +608,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
         "_endTime",
         "_plotTitle",
         "_pinDates",
-        "_ex_staticUnits"
+        "_ex_staticUnits",
       ];
 
       for (var oParam in oParams) {
@@ -650,7 +650,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       me.cmbDomain.setValue(oParams["_typeName"]);
     }
   },
-  __getSelectionParametars: function(sIntention) {
+  __getSelectionParametars: function (sIntention) {
     var me = this;
 
     var sDomain = me.cmbDomain.getValue();
@@ -658,10 +658,10 @@ Ext.define("Ext.dirac.utils.PlotView", {
     var oParams = {
       _grouping: me.cmbGroupBy.getValue(),
       _plotName: me.cmbPlotGenerate.getValue(),
-      _typeName: sDomain
+      _typeName: sDomain,
     };
 
-    var fixTime = function(st) {
+    var fixTime = function (st) {
       var year = st.getFullYear().toString();
       var month = st.getMonth() + 1;
       month = (month < 10 ? "0" : "") + month;
@@ -740,7 +740,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
 
     return oParams;
   },
-  __fillComboQuarter: function() {
+  __fillComboQuarter: function () {
     var me = this;
 
     var oStore = me.cmbQuarter.getStore();
@@ -769,12 +769,12 @@ Ext.define("Ext.dirac.utils.PlotView", {
 
     var oNewStore = new Ext.data.ArrayStore({
       fields: ["value", "text"],
-      data: oRecords
+      data: oRecords,
     });
 
     me.cmbQuarter.bindStore(oNewStore);
   },
-  __resetSelectionWindow: function() {
+  __resetSelectionWindow: function () {
     var me = this;
 
     me.cmbGroupBy.setValue(null);
@@ -792,7 +792,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
     me.fsetSpecialConditions.removeAll();
     me.cmbDomain.setValue(null);
   },
-  applyDataToSelection: function(oData, sValue, reportType) {
+  applyDataToSelection: function (oData, sValue, reportType) {
     var me = this;
 
     me.cmbReportType.setValue(reportType);
@@ -802,7 +802,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
 
     var oStore = new Ext.data.ArrayStore({
       fields: ["value", "text"],
-      data: oList
+      data: oList,
     });
 
     me.cmbPlotGenerate.setValue(null);
@@ -821,7 +821,15 @@ Ext.define("Ext.dirac.utils.PlotView", {
       oListForGroup.push([oSelectionOptions[i][0], oSelectionOptions[i][0]]);
 
       if (oSelectionOptions[i][0] == "User" || oSelectionOptions[i][0] == "UserGroup") {
-        var allowedProperties = ["CSAdministrator", "JobAdministrator", "JobMonitor", "AccountingMonitor", "UserManager", "Operator", "ProductionManagement"];
+        var allowedProperties = [
+          "CSAdministrator",
+          "JobAdministrator",
+          "JobMonitor",
+          "AccountingMonitor",
+          "UserManager",
+          "Operator",
+          "ProductionManagement",
+        ];
         var found = false;
         for (var j = 0; j < allowedProperties.length; j++) {
           // Only
@@ -851,11 +859,11 @@ Ext.define("Ext.dirac.utils.PlotView", {
         anchor: "100%",
         store: new Ext.data.ArrayStore({
           fields: ["value", "text"],
-          data: oList
+          data: oList,
         }),
         labelAlign: "top",
         name: oSelectionOptions[i][0],
-        queryMode: "local"
+        queryMode: "local",
       });
 
       me.fsetSpecialConditions.add(oMultiList);
@@ -874,7 +882,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
 
     var oStore = new Ext.data.ArrayStore({
       fields: ["value", "text"],
-      data: oListForGroup
+      data: oListForGroup,
     });
 
     me.cmbGroupBy.setValue(null);
@@ -890,7 +898,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
       me.advancedPlotTitle.setValue("");
     }
   },
-  applySpecialConditions: function(oData) {
+  applySpecialConditions: function (oData) {
     var me = this;
 
     var oSelectionData = oData["result"]["selectionValues"];
@@ -904,10 +912,10 @@ Ext.define("Ext.dirac.utils.PlotView", {
       oBox.loadData(oList);
     }
   },
-  __oprDoubleElementItemList: function(oList) {
+  __oprDoubleElementItemList: function (oList) {
     for (var i = 0; i < oList.length; i++) oList[i] = [oList[i], oList[i]];
   },
-  __validateConditions: function(bWithMessages) {
+  __validateConditions: function (bWithMessages) {
     var me = this;
     var bValid = true;
 
@@ -955,12 +963,12 @@ Ext.define("Ext.dirac.utils.PlotView", {
 
     return bValid;
   },
-  applyReportType: function(reportType) {
+  applyReportType: function (reportType) {
     var me = this;
 
     var categoryStore = new Ext.data.ArrayStore({
       fields: ["value", "text"],
-      data: me.reports[reportType]
+      data: me.reports[reportType],
     });
     //me.cmbDomain.setValue(null);
     me.cmbDomain.bindStore(categoryStore);
@@ -970,8 +978,8 @@ Ext.define("Ext.dirac.utils.PlotView", {
 
     var timeSelector = new Ext.data.ArrayStore({
       fields: ["value", "text"],
-      data: me.dataSelectors[me.actualReport]["dataSelector"]
+      data: me.dataSelectors[me.actualReport]["dataSelector"],
     });
     me.cmbTimeSpan.bindStore(timeSelector);
-  }
+  },
 });

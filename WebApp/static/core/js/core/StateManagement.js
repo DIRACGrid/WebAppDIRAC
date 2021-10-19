@@ -14,7 +14,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
   cache: {
     application: {},
     reference: {},
-    sharedDesktop: {}
+    sharedDesktop: {},
   },
 
   /*
@@ -22,7 +22,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    */
   activeStates: [],
 
-  constructor: function() {
+  constructor: function () {
     var me = this;
     me.TD = new Ext.dirac.core.TransformationData();
     this.callParent();
@@ -43,7 +43,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    * @return {int} (1) - state exists in the cache (-1) - state does not
    *         exist (-2) - the application cache has not been loaded yet
    */
-  isStateLoaded: function(sStateType, sAppName, sStateName) {
+  isStateLoaded: function (sStateType, sAppName, sStateName) {
     var me = this;
 
     if (sAppName in me.cache[sStateType]) {
@@ -71,7 +71,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *         names.
    *
    */
-  getApplicationStates: function(sStateType, sAppName) {
+  getApplicationStates: function (sStateType, sAppName) {
     var me = this;
     var oAppStates = [];
 
@@ -95,7 +95,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    * @return {Object|boolean} False is returned in case when the state is
    *         non existing or has not been loaded yet
    */
-  getStateData: function(sStateType, sAppName, sStateName) {
+  getStateData: function (sStateType, sAppName, sStateName) {
     var me = this;
     var oValidation = me.isStateLoaded(sStateType, sAppName, sStateName);
 
@@ -116,16 +116,16 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          cbAfterRefresh The callback function called on success or on
    *          failure of the request for states and references.
    */
-  oprReadApplicationStatesAndReferences: function(sAppName, cbAfterRefresh) {
+  oprReadApplicationStatesAndReferences: function (sAppName, cbAfterRefresh) {
     var me = this;
 
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "UP/listAppState",
       params: {
         app: sAppName,
-        obj: "application"
+        obj: "application",
       },
-      success: function(response) {
+      success: function (response) {
         if (response.status == 200) {
           var oStates = Ext.JSON.decode(response.responseText);
           me.cache["application"][sAppName] = {};
@@ -147,18 +147,18 @@ Ext.define("Ext.dirac.core.StateManagement", {
                     app: sAppName,
                     name: sStateName,
                     state: Ext.JSON.encode(oNewData),
-                    obj: "application"
+                    obj: "application",
                   },
                   scope: me,
-                  success: function(oResponse) {
+                  success: function (oResponse) {
                     if (oResponse.status != 200) {
                       me.cache["application"][sAppName][sStateName] = oStates[sStateName];
                     }
                   },
-                  failure: function(response) {
+                  failure: function (response) {
                     me.cache["application"][sAppName][sStateName] = oStates[sStateName];
                     GLOBAL.APP.CF.showAjaxErrorMessage(response);
-                  }
+                  },
                 });
               }
             }
@@ -172,9 +172,9 @@ Ext.define("Ext.dirac.core.StateManagement", {
             url: GLOBAL.BASE_URL + "UP/listAppState",
             params: {
               app: sAppName,
-              obj: "reference"
+              obj: "reference",
             },
-            success: function(response) {
+            success: function (response) {
               if (response.status == 200) {
                 var oStates = Ext.JSON.decode(response.responseText);
                 me.cache["reference"][sAppName] = {};
@@ -190,11 +190,11 @@ Ext.define("Ext.dirac.core.StateManagement", {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
               }
             },
-            failure: function(response) {
+            failure: function (response) {
               me.cache["reference"][sAppName] = {};
               cbAfterRefresh(-2, sAppName);
               GLOBAL.APP.CF.showAjaxErrorMessage(response);
-            }
+            },
           });
         } else {
           me.cache["application"][sAppName] = {};
@@ -204,13 +204,13 @@ Ext.define("Ext.dirac.core.StateManagement", {
           GLOBAL.APP.CF.showAjaxErrorMessage(response);
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         me.cache["application"][sAppName] = {};
         me.cache["reference"][sAppName] = {};
         cbAfterRefresh(-4, sAppName);
 
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
 
@@ -221,7 +221,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          sStateName The name of the state or the reference.
    * @return {boolean}
    */
-  isValidStateName: function(sStateName) {
+  isValidStateName: function (sStateName) {
     var regExpr = /^([0-9a-zA-Z\.\_\-\ ]+)+$/;
 
     return String(sStateName).search(regExpr) != -1;
@@ -246,7 +246,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          cbAfterSave The callback function called on success or on
    *          failure of the request for saving a state or a reference.
    */
-  oprSendDataForSave: function(sAppName, oAppObject, sStateType, sStateName, cbAfterSave) {
+  oprSendDataForSave: function (sAppName, oAppObject, sStateType, sStateName, cbAfterSave) {
     var me = this;
 
     var oSendData = oAppObject.getStateData();
@@ -258,10 +258,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
             // The Notepad is open. The text has to be retrieved
             // from the notepad...
             var helptext = {
-              helptext: oAppObject
-                .up("panel")
-                .childWindows[i].items.getAt(0)
-                .getValue()
+              helptext: oAppObject.up("panel").childWindows[i].items.getAt(0).getValue(),
             };
             Ext.apply(oSendData, helptext);
           }
@@ -316,10 +313,10 @@ Ext.define("Ext.dirac.core.StateManagement", {
         app: sAppName,
         name: sStateName,
         state: Ext.JSON.encode(oSendData),
-        obj: sStateType
+        obj: sStateType,
       },
       scope: me,
-      success: function(oResponse) {
+      success: function (oResponse) {
         if (oResponse.status == 200) {
           var me = this;
           Ext.dirac.system_info.msg("Notification", "State saved successfully !");
@@ -340,7 +337,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
           cbAfterSave(-2, sAppName, sStateType, sStateName);
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
         if (response.status == 400) {
@@ -348,7 +345,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
         } else {
           cbAfterSave(-4, sAppName, sStateType, sStateName);
         }
-      }
+      },
     });
   },
 
@@ -364,7 +361,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          sStateName The name of the state
    *
    */
-  isAnyActiveState: function(sAppName, sStateName) {
+  isAnyActiveState: function (sAppName, sStateName) {
     var me = this;
     var oFound = false;
 
@@ -389,7 +386,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          sStateName The name of the state
    *
    */
-  oprAddActiveState: function(sAppName, sStateName) {
+  oprAddActiveState: function (sAppName, sStateName) {
     var me = this;
 
     me.activeStates.push([sAppName, sStateName]);
@@ -406,7 +403,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          sStateName The name of the state
    *
    */
-  oprRemoveActiveState: function(sAppName, sStateName) {
+  oprRemoveActiveState: function (sAppName, sStateName) {
     var me = this;
     var iIndex = -1;
     for (var i = me.activeStates.length - 1; i >= 0; i--) {
@@ -435,7 +432,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          failure of the request for deleting a state or a reference.
    *
    */
-  oprDeleteState: function(sAppName, sStateType, sStateName, cbAfterDelete) {
+  oprDeleteState: function (sAppName, sStateType, sStateName, cbAfterDelete) {
     var me = this;
 
     Ext.Ajax.request({
@@ -443,9 +440,9 @@ Ext.define("Ext.dirac.core.StateManagement", {
       params: {
         app: sAppName,
         name: sStateName,
-        obj: sStateType
+        obj: sStateType,
       },
-      success: function(response) {
+      success: function (response) {
         if (response.status == 200) {
           delete me.cache[sStateType][sAppName][sStateName];
 
@@ -460,7 +457,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
           }
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
         if (response.status == 400) {
@@ -468,7 +465,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
         } else {
           cbAfterDelete(-4, sAppName, sStateType, sStateName);
         }
-      }
+      },
     });
   },
 
@@ -488,7 +485,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          failure of the request for sharing a state.
    *
    */
-  oprShareState: function(sAppName, sStateName, cbAfterShare) {
+  oprShareState: function (sAppName, sStateName, cbAfterShare) {
     var me = this;
 
     Ext.Ajax.request({
@@ -497,10 +494,10 @@ Ext.define("Ext.dirac.core.StateManagement", {
         obj: "application",
         app: sAppName,
         name: sStateName,
-        access: "ALL"
+        access: "ALL",
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         if (response.status == 200) {
           var me = this;
 
@@ -516,7 +513,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
           } else cbAfterShare(-2, sAppName, sStateName, "");
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
         if (response.status == 400) {
@@ -524,7 +521,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
         } else {
           cbAfterShare(-4, sAppName, sStateName, "");
         }
-      }
+      },
     });
   },
   /**
@@ -541,7 +538,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          failure of the request for sharing a state.
    *
    */
-  oprPublishState: function(sAppName, sStateName) {
+  oprPublishState: function (sAppName, sStateName) {
     var me = this;
 
     Ext.Ajax.request({
@@ -550,19 +547,19 @@ Ext.define("Ext.dirac.core.StateManagement", {
         obj: "application",
         app: sAppName,
         name: sStateName,
-        access: "ALL"
+        access: "ALL",
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         if (response.status == 200) {
           GLOBAL.APP.CF.msg("Notification", sStateName + " is available to the public!");
         } else {
           GLOBAL.APP.CF.showAjaxErrorMessage(response);
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
 
@@ -579,7 +576,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          data.
    *
    */
-  oprLoadSharedState: function(sLinkDescription, cbAfterLoadSharedState, stateName) {
+  oprLoadSharedState: function (sLinkDescription, cbAfterLoadSharedState, stateName) {
     var me = this;
 
     var oDataItems = sLinkDescription.split("|");
@@ -596,10 +593,10 @@ Ext.define("Ext.dirac.core.StateManagement", {
         app: oDataItems[0],
         user: oDataItems[1],
         group: oDataItems[2],
-        name: oDataItems[3]
+        name: oDataItems[3],
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         if (response.status == 200) {
           var me = this;
           var oDataReceived = Ext.JSON.decode(response.responseText);
@@ -615,7 +612,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
           }
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
         if (response.status == 400) {
@@ -623,7 +620,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
         } else {
           if (cbAfterLoadSharedState != null) cbAfterLoadSharedState(-4, sLinkDescription, "", stateName);
         }
-      }
+      },
     });
   },
 
@@ -641,7 +638,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          or on failure of the request for saving shared state as a
    *          reference.
    */
-  oprSaveSharedState: function(sRefName, sRef, cbAfterSaveSharedState) {
+  oprSaveSharedState: function (sRefName, sRef, cbAfterSaveSharedState) {
     var me = this;
 
     var oDataItems = sRef.split("|");
@@ -657,17 +654,17 @@ Ext.define("Ext.dirac.core.StateManagement", {
         app: oDataItems[0],
         name: sRefName,
         state: Ext.JSON.encode({
-          link: sRef
+          link: sRef,
         }),
-        obj: "reference"
+        obj: "reference",
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         if (response.status == 200) {
           Ext.dirac.system_info.msg("Notification", "The shared state has been saved successfully !");
 
           me.cache.reference[oDataItems[0]][sRefName] = {
-            link: sRef
+            link: sRef,
           };
 
           if (cbAfterSaveSharedState != null) {
@@ -687,7 +684,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
           }
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
         if (response.status == 400) {
@@ -699,7 +696,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
             cbAfterSaveSharedState(-4, sRefName, sRef);
           }
         }
-      }
+      },
     });
   },
   /**
@@ -714,16 +711,16 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          cbAfterRefresh The callback function called on success or on
    *          failure of the request for states and references.
    */
-  oprReadSharedDesktops: function(sAppName, cbAfterRefresh) {
+  oprReadSharedDesktops: function (sAppName, cbAfterRefresh) {
     var me = this;
 
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "UP/listPublicDesktopStates",
       params: {
         app: sAppName,
-        obj: "application"
+        obj: "application",
       },
-      success: function(response) {
+      success: function (response) {
         if (response.status == 200) {
           var oStates = Ext.JSON.decode(response.responseText);
 
@@ -747,10 +744,10 @@ Ext.define("Ext.dirac.core.StateManagement", {
           GLOBAL.APP.CF.showAjaxErrorMessage(response);
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
         me.cache["sharedDesktop"][sAppName] = {};
-      }
+      },
     });
   },
 
@@ -770,7 +767,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    *          failure of the request for sharing a state.
    *
    */
-  oprChangeSharedStateToPrivate: function(sAppName, sStateName, cbAfterShare) {
+  oprChangeSharedStateToPrivate: function (sAppName, sStateName, cbAfterShare) {
     var me = this;
     me.__changeAccess(sAppName, sStateName, cbAfterShare, "USER");
   },
@@ -786,7 +783,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
    * @param {String}
    *          access
    */
-  __changeAccess: function(sAppName, sStateName, cbAfterShare, access) {
+  __changeAccess: function (sAppName, sStateName, cbAfterShare, access) {
     var me = this;
 
     Ext.Ajax.request({
@@ -795,10 +792,10 @@ Ext.define("Ext.dirac.core.StateManagement", {
         obj: "application",
         app: sAppName,
         name: sStateName,
-        access: access
+        access: access,
       },
       scope: me,
-      success: function(response) {
+      success: function (response) {
         if (response.status == 200) {
           var me = this;
 
@@ -814,7 +811,7 @@ Ext.define("Ext.dirac.core.StateManagement", {
           } else cbAfterShare(-2, sAppName, sStateName, "");
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
         if (response.status == 400) {
@@ -822,22 +819,22 @@ Ext.define("Ext.dirac.core.StateManagement", {
         } else {
           cbAfterShare(-4, sAppName, sStateName, "");
         }
-      }
+      },
     });
   },
-  addApplicationStates: function(appName, stateName, data) {
+  addApplicationStates: function (appName, stateName, data) {
     var me = this;
     var loaded = me.isStateLoaded("application", appName, stateName);
     if (loaded != 1) {
       me.cache["application"][appName][stateName] = {
-        data: []
+        data: [],
       };
     }
 
     me.cache["application"][appName][stateName].data.push(data);
   },
-  createDesktop: function(appName, stateName, data) {
+  createDesktop: function (appName, stateName, data) {
     var me = this;
     me.cache["application"][appName][stateName] = data;
-  }
+  },
 });

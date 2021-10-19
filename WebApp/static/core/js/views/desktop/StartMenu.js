@@ -19,7 +19,7 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
    */
   width: 230,
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     /*
@@ -32,7 +32,7 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
     me.callParent();
   },
 
-  afterRender: function() {
+  afterRender: function () {
     var me = this;
 
     for (var j = 0; j < GLOBAL.APP.configData["menu"].length; j++) me.add(me.getMenuStructureRec(GLOBAL.APP.configData["menu"][j]));
@@ -43,17 +43,17 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
         {
           text: "State Loader",
           iconCls: "dirac-icon-state",
-          handler: function() {
+          handler: function () {
             GLOBAL.APP.MAIN_VIEW.SM.formStateLoader(GLOBAL.APP.MAIN_VIEW.cbAfterLoadSharedState, GLOBAL.APP.MAIN_VIEW.cbAfterSaveSharedState);
-          }
-        }
+          },
+        },
       ]);
     }
 
     this.callParent();
   },
 
-  showBy: function(cmp, pos, off) {
+  showBy: function (cmp, pos, off) {
     var me = this;
 
     if (me.floating && cmp) {
@@ -82,14 +82,14 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
    *
    * @return {Object}
    */
-  getMenuStructureRec: function(item) {
+  getMenuStructureRec: function (item) {
     var me = this;
 
     if (item.length == 2) {
       var result = {
         text: item[0],
         menu: [],
-        iconCls: "system_folder"
+        iconCls: "system_folder",
       };
 
       for (var i = 0; i < item[1].length; i++) result.menu.push(me.getMenuStructureRec(item[1][i]));
@@ -108,10 +108,10 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
           appClassName: sStartClass,
           iconCls: "notepad",
           listeners: {
-            render: function(oMenuItem, eOpts) {
+            render: function (oMenuItem, eOpts) {
               GLOBAL.APP.MAIN_VIEW.registerStartAppMenu(oMenuItem, oMenuItem.appClassName);
 
-              oMenuItem.menu.on("beforeshow", function(oMenu, eOpts) {
+              oMenuItem.menu.on("beforeshow", function (oMenu, eOpts) {
                 if (oMenu.items.length <= 1) {
                   var oElem = Ext.get(oMenuItem.id + "-arrowEl");
 
@@ -135,9 +135,9 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
                 oElem.hide();
               }
             },
-            activate: function(oMenuItem, eOpts) {},
+            activate: function (oMenuItem, eOpts) {},
             click: GLOBAL.APP.MAIN_VIEW.createWindow.bind(GLOBAL.APP.MAIN_VIEW, item[0], item[2], null),
-            focus: function(cmp, e, eOpts) {
+            focus: function (cmp, e, eOpts) {
               if (!GLOBAL.STATE_MANAGEMENT_ENABLED) return;
 
               /*
@@ -159,7 +159,7 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
               } else {
                 if (cmp.isStateMenuLoaded == 0) {
                   cmp.setIconCls("loading_item");
-                  var oFunc = function(iCode, sAppName) {
+                  var oFunc = function (iCode, sAppName) {
                     cmp.oprRefreshAppStates();
                     cmp.isStateMenuLoaded = 2;
                     cmp.setIconCls("notepad");
@@ -191,9 +191,9 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
                   cmp.isStateMenuLoaded = 1;
                 }
               }
-            }
+            },
           },
-          addNewState: function(stateType, stateName) {
+          addNewState: function (stateType, stateName) {
             var oThisMenu = this;
             var oNewItem = null;
 
@@ -201,7 +201,7 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
               oNewItem = Ext.create("Ext.menu.Item", {
                 text: stateName,
                 handler: GLOBAL.APP.MAIN_VIEW.createWindow.bind(GLOBAL.APP.MAIN_VIEW, "app", oThisMenu.appClassName, {
-                  stateToLoad: stateName
+                  stateToLoad: stateName,
                 }),
                 scope: me,
                 iconCls: "dirac-icon-state",
@@ -211,10 +211,10 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
                   {
                     text: "Share state",
                     stateName: stateName,
-                    handler: function() {
+                    handler: function () {
                       var oThisItem = this;
 
-                      GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, oThisItem.stateName, function(rCode, rAppName, rStateName, rMessage) {
+                      GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, oThisItem.stateName, function (rCode, rAppName, rStateName, rMessage) {
                         if (rCode == 1) {
                           var oHtml = "";
                           oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
@@ -224,19 +224,19 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
                         }
                       });
                     },
-                    iconCls: "dirac-icon-share"
+                    iconCls: "dirac-icon-share",
                   },
                   {
                     text: "Make public",
                     stateName: stateName,
-                    handler: function() {
+                    handler: function () {
                       var oThisItem = this;
 
                       GLOBAL.APP.SM.oprPublishState(oThisMenu.appClassName, oThisItem.stateName);
                     },
-                    iconCls: "dirac-icon-share"
-                  }
-                ]
+                    iconCls: "dirac-icon-share",
+                  },
+                ],
               });
 
               oThisMenu.menu.insert(0, oNewItem);
@@ -247,13 +247,13 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
                 handler: GLOBAL.APP.MAIN_VIEW.loadSharedStateByName.bind(GLOBAL.APP.MAIN_VIEW, oThisMenu.appClassName, stateName),
                 scope: me,
                 iconCls: "dirac-icon-link",
-                stateType: stateType
+                stateType: stateType,
               });
 
               oThisMenu.menu.add(oNewItem);
             }
           },
-          removeState: function(stateType, stateName) {
+          removeState: function (stateType, stateName) {
             var me = this;
 
             var iStartingIndex = 0;
@@ -282,7 +282,7 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
                 break;
             }
           },
-          oprRefreshAppStates: function() {
+          oprRefreshAppStates: function () {
             var oThisMenu = this;
 
             oThisMenu.menu.removeAll();
@@ -296,7 +296,7 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
                 text: stateName,
                 minWidth: 200,
                 handler: GLOBAL.APP.MAIN_VIEW.createWindow.bind(GLOBAL.APP.MAIN_VIEW, "app", oThisMenu.appClassName, {
-                  stateToLoad: stateName
+                  stateToLoad: stateName,
                 }),
                 scope: me,
                 iconCls: "dirac-icon-state",
@@ -305,10 +305,10 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
                   {
                     text: "Share state",
                     stateName: stateName,
-                    handler: function() {
+                    handler: function () {
                       var oThisItem = this;
 
-                      GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, oThisItem.stateName, function(rCode, rAppName, rStateName, rMessage) {
+                      GLOBAL.APP.SM.oprShareState(oThisMenu.appClassName, oThisItem.stateName, function (rCode, rAppName, rStateName, rMessage) {
                         if (rCode == 1) {
                           var oHtml = "";
                           oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
@@ -318,19 +318,19 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
                         }
                       });
                     },
-                    iconCls: "dirac-icon-share"
+                    iconCls: "dirac-icon-share",
                   },
                   {
                     text: "Make public",
                     stateName: stateName,
-                    handler: function() {
+                    handler: function () {
                       var oThisItem = this;
 
                       GLOBAL.APP.SM.oprPublishState(oThisMenu.appClassName, oThisItem.stateName);
                     },
-                    iconCls: "dirac-icon-share"
-                  }
-                ]
+                    iconCls: "dirac-icon-share",
+                  },
+                ],
               });
 
               oThisMenu.menu.add(newItem);
@@ -350,23 +350,23 @@ Ext.define("Ext.dirac.views.desktop.StartMenu", {
                 scope: me,
                 iconCls: "dirac-icon-link",
                 minWidth: 200,
-                stateType: "reference"
+                stateType: "reference",
               });
 
               oThisMenu.menu.add(newItem);
             }
-          }
+          },
         };
       } else {
         return {
           text: item[1],
           handler: GLOBAL.APP.MAIN_VIEW.createWindow.bind(GLOBAL.APP.MAIN_VIEW, item[0], item[2], {
-            title: item[1]
+            title: item[1],
           }),
           minWidth: 200,
-          iconCls: "system_web_window"
+          iconCls: "system_web_window",
         };
       }
     }
-  }
+  },
 });

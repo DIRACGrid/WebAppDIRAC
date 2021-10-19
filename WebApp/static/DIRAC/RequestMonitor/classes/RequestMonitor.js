@@ -18,10 +18,10 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
     "Ext.dirac.utils.DiracJsonStore",
     "Ext.dirac.utils.DiracAjaxProxy",
     "Ext.dirac.utils.DiracApplicationContextMenu",
-    "Ext.dirac.utils.DiracBaseSelector"
+    "Ext.dirac.utils.DiracBaseSelector",
   ],
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.grid.loadState(data);
@@ -34,15 +34,15 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
    * @cfg{Object} it contains the application name and the module name.
    */
   applicationsToOpen: {
-    JobMonitor: "DIRAC.JobMonitor.classes.JobMonitor"
+    JobMonitor: "DIRAC.JobMonitor.classes.JobMonitor",
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     var oStates = {
       grid: me.grid.getStateData(),
-      leftMenu: me.leftPanel.getStateData()
+      leftMenu: me.leftPanel.getStateData(),
     };
 
     return oStates;
@@ -51,50 +51,50 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
   dataFields: [
     {
       name: "RequestIDcheckBox",
-      mapping: "RequestID"
+      mapping: "RequestID",
     },
     {
-      name: "Status"
+      name: "Status",
     },
     {
-      name: "OwnerGroup"
+      name: "OwnerGroup",
     },
     {
       name: "LastUpdateTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "OperationType"
+      name: "OperationType",
     },
     {
       name: "CreationTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "JobID"
+      name: "JobID",
     },
     {
-      name: "OwnerDN"
+      name: "OwnerDN",
     },
     {
       name: "RequestID",
-      type: "int"
+      type: "int",
     },
     {
-      name: "Error"
+      name: "Error",
     },
     {
-      name: "RequestName"
+      name: "RequestName",
     },
     {
       name: "StatusIcon",
-      mapping: "Status"
-    }
+      mapping: "Status",
+    },
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.launcher.title = "Request Monitor";
@@ -115,36 +115,36 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     var selectors = {
       operationType: "Operation Type",
       status: "Status",
       owner: "Owner",
-      ownerGroup: "Owner Group"
+      ownerGroup: "Owner Group",
     };
 
     var textFields = {
       id: {
-        name: "JobId(s)"
+        name: "JobId(s)",
       },
       reqId: {
-        name: "RequestId(s)"
-      }
+        name: "RequestId(s)",
+      },
     };
 
     var map = [
       ["operationType", "operationType"],
       ["status", "status"],
       ["owner", "owner"],
-      ["ownerGroup", "ownerGroup"]
+      ["ownerGroup", "ownerGroup"],
     ];
 
     me.leftPanel = new Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -152,7 +152,7 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
       cmbSelectors: selectors,
       textFields: textFields,
       datamap: map,
-      url: "RequestMonitor/getSelectionData"
+      url: "RequestMonitor/getSelectionData",
     });
 
     /*
@@ -161,30 +161,30 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
      * -----------------------------------------------------------------------------------------------------------
      */
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + "RequestMonitor/getRequestMonitorData"
+      url: GLOBAL.BASE_URL + "RequestMonitor/getRequestMonitorData",
     });
 
     me.diffValues = {};
     me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
       proxy: oProxy,
       fields: me.dataFields,
-      scope: me
+      scope: me,
     });
 
     var pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
       dataStore: me.dataStore,
-      scope: me
+      scope: me,
     });
 
     var oColumns = {
       checkBox: {
-        dataIndex: "RequestIDcheckBox"
+        dataIndex: "RequestIDcheckBox",
       },
       RequestId: {
-        dataIndex: "RequestID"
+        dataIndex: "RequestID",
       },
       JobID: {
-        dataIndex: "JobID"
+        dataIndex: "JobID",
       },
       None: {
         dataIndex: "StatusIcon",
@@ -193,51 +193,51 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
           sortable: false,
           hideable: false,
           fixed: true,
-          menuDisabled: true
+          menuDisabled: true,
         },
-        renderFunction: "rendererStatus"
+        renderFunction: "rendererStatus",
       },
       Status: {
         dataIndex: "Status",
         properties: {
-          width: 60
-        }
+          width: 60,
+        },
       },
       OwnerDN: {
-        dataIndex: "OwnerDN"
+        dataIndex: "OwnerDN",
       },
       OperationType: {
-        dataIndex: "OperationType"
+        dataIndex: "OperationType",
       },
       OwnerGroup: {
-        dataIndex: "OwnerGroup"
+        dataIndex: "OwnerGroup",
       },
       RequestName: {
         dataIndex: "RequestName",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       Error: {
-        dataIndex: "Error"
+        dataIndex: "Error",
       },
       "CreationTime [UTC]": {
         dataIndex: "CreationTime",
         renderer: Ext.util.Format.dateRenderer("Y-m-j H:i"),
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       "LastUpdateTime [UTC]": {
         dataIndex: "LastUpdateTime",
         renderer: Ext.util.Format.dateRenderer("Y-m-j H:i"),
         properties: {
-          hidden: true
-        }
-      }
+          hidden: true,
+        },
+      },
     };
 
-    var showJobshandler = function() {
+    var showJobshandler = function () {
       var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "JobID");
       var setupdata = {};
       setupdata.data = {};
@@ -248,7 +248,7 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
       GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
         objectType: "app",
         moduleName: me.applicationsToOpen["JobMonitor"],
-        setupData: setupdata
+        setupData: setupdata,
       });
     };
 
@@ -258,33 +258,33 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
           text: "Show Jobs",
           handler: showJobshandler,
           properties: {
-            tooltip: "Click to show the jobs which belong to the selected request."
-          }
-        }
-      ]
+            tooltip: "Click to show the jobs which belong to the selected request.",
+          },
+        },
+      ],
     };
 
     me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
       menu: menuitems,
-      scope: me
+      scope: me,
     });
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
       store: me.dataStore,
       features: [
         {
-          ftype: "grouping"
-        }
+          ftype: "grouping",
+        },
       ],
       oColumns: oColumns,
       tbar: pagingToolbar,
       contextMenu: me.contextGridMenu,
       pagingToolbar: pagingToolbar,
-      scope: me
+      scope: me,
     });
 
     me.leftPanel.setGrid(me.grid);
 
     me.add([me.leftPanel, me.grid]);
-  }
+  },
 });

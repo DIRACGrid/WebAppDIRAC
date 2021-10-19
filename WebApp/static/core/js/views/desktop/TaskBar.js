@@ -13,7 +13,7 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
     "Ext.menu.Menu",
     "Ext.dirac.views.desktop.StartMenu",
     "Ext.toolbar.TextItem",
-    "Ext.dirac.views.desktop.SettingsPanel"
+    "Ext.dirac.views.desktop.SettingsPanel",
   ],
 
   alias: "widget.taskbar",
@@ -25,7 +25,7 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
    */
   startBtnText: "",
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (!GLOBAL.APP.configData.user.username || GLOBAL.APP.configData.user.group == "visitor") {
@@ -34,7 +34,7 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
 
     var cfg = {
       app: me,
-      menu: ["-"] // add a menu separator
+      menu: ["-"], // add a menu separator
     };
 
     me.usrname_button = new Ext.dirac.views.desktop.SettingsPanel().addAuthsButton();
@@ -51,19 +51,19 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
         iconCls: "ux-dirac-start-button-icon",
         menu: me.startMenu,
         menuAlign: "bl-tl",
-        text: me.startBtnText
+        text: me.startBtnText,
       },
-      me.windowBar
+      me.windowBar,
     ];
 
     me.items.push({
       xtype: "tbtext",
-      text: "Theme"
+      text: "Theme",
     });
     me.items.push(me.button_theme);
     me.items.push({
       xtype: "tbtext",
-      text: "View"
+      text: "View",
     });
     me.items.push(me.button_views);
     me.items.push("-");
@@ -72,7 +72,7 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
     if (GLOBAL.APP.configData.user.username && GLOBAL.APP.configData.user.group != "visitor") {
       me.items.push({
         xtype: "tbtext",
-        text: "@"
+        text: "@",
       });
       me.items.push(me.group_button);
       me.items.push("-");
@@ -82,7 +82,7 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
     me.callParent();
   },
 
-  afterLayout: function() {
+  afterLayout: function () {
     var me = this;
     me.callParent();
     me.windowBar.el.on("contextmenu", me.onButtonContextMenu, me);
@@ -93,32 +93,32 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
    * derived class can override this method, call the base version to build
    * the config and then modify the returned object before returning it.
    */
-  getTrayConfig: function() {
+  getTrayConfig: function () {
     var ret = {
       width: 80,
-      items: this.trayItems
+      items: this.trayItems,
     };
     delete this.trayItems;
     return ret;
   },
 
-  getWindowBarConfig: function() {
+  getWindowBarConfig: function () {
     return {
       flex: 1,
       cls: "ux-desktop-windowbar",
       items: ["&#160;"],
       layout: {
-        overflowHandler: "Scroller"
-      }
+        overflowHandler: "Scroller",
+      },
     };
   },
 
-  getWindowBtnFromEl: function(el) {
+  getWindowBtnFromEl: function (el) {
     var c = this.windowBar.getChildByElement(el);
     return c || null;
   },
 
-  onButtonContextMenu: function(e) {
+  onButtonContextMenu: function (e) {
     var me = this,
       t = e.getTarget(),
       btn = me.getWindowBtnFromEl(t);
@@ -136,7 +136,7 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
    *          win The window to be referenced by the button
    * @return {Ext.button.Button} Button object added to the task bar
    */
-  addTaskButton: function(win) {
+  addTaskButton: function (win) {
     var config = {
       iconCls: win.iconCls,
       enableToggle: true,
@@ -146,9 +146,9 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
       text: Ext.util.Format.ellipsis(win.title, 20),
       listeners: {
         click: this.onWindowBtnClick,
-        scope: this
+        scope: this,
       },
-      win: win
+      win: win,
     };
     var cmp = this.windowBar.add(config);
     cmp.toggle(true);
@@ -161,7 +161,7 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
    * @param {Ext.button.Button}
    *          btn Button that has been clicked
    */
-  onWindowBtnClick: function(btn) {
+  onWindowBtnClick: function (btn) {
     var win = btn.win;
 
     if (win.minimized || win.hidden) {
@@ -185,10 +185,10 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
    *          btn The button to be removed
    * @return {Ext.button.Button} Button object removed from the task bar
    */
-  removeTaskButton: function(btn) {
+  removeTaskButton: function (btn) {
     var found,
       me = this;
-    me.windowBar.items.each(function(item) {
+    me.windowBar.items.each(function (item) {
       if (item === btn) {
         found = item;
       }
@@ -206,15 +206,15 @@ Ext.define("Ext.dirac.views.desktop.TaskBar", {
    * @param {Ext.button.Button}
    *          btn The button to be removed
    */
-  setActiveButton: function(btn) {
+  setActiveButton: function (btn) {
     if (btn) {
       btn.toggle(true);
     } else {
-      this.windowBar.items.each(function(item) {
+      this.windowBar.items.each(function (item) {
         if (item.isButton) {
           item.toggle(false);
         }
       });
     }
-  }
+  },
 });

@@ -111,13 +111,13 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
    *                                           object.
    */
   store: null,
-  constructor: function(config) {
+  constructor: function (config) {
     var me = this;
 
     me.pagingToolbarItems = []; // make sure there is no element in the list
     me.pagingToolbarButtons = [];
     var idBtn = Ext.create("Ext.dirac.utils.DiracIdListButton", {
-      scope: config.scope
+      scope: config.scope,
     });
     me.pagingToolbarItems.push(idBtn);
     me.pagingToolbarItems.push("-");
@@ -131,7 +131,7 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
           } else {
             me.pagingToolbarButtons[nbOfButtons] = Ext.create("Ext.Button", {
               text: config.toolButtons.Visible[i].text,
-              handler: config.toolButtons.Visible[i].handler.bind(config.scope, ...(config.toolButtons.Visible[i].arguments || []))
+              handler: config.toolButtons.Visible[i].handler.bind(config.scope, ...(config.toolButtons.Visible[i].arguments || [])),
             });
             if ("properties" in config.toolButtons.Visible[i]) {
               Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Visible[i].properties);
@@ -151,7 +151,7 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
             } else {
               me.pagingToolbarButtons[nbOfButtons] = Ext.create("Ext.Button", {
                 text: config.toolButtons.Protected[i].text,
-                handler: config.toolButtons.Protected[i].handler.bind(config.scope, ...(config.toolButtons.Protected[i].arguments || []))
+                handler: config.toolButtons.Protected[i].handler.bind(config.scope, ...(config.toolButtons.Protected[i].arguments || [])),
               });
               if ("properties" in config.toolButtons.Protected[i]) {
                 Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Protected[i].properties);
@@ -174,12 +174,12 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
 
     me.pageSizeCombo = Ext.create("Ext.dirac.utils.DiracPageSizeCombo", {
       scope: config.scope,
-      value: config.value ? config.value : 25
+      value: config.value ? config.value : 25,
     });
 
     me.pageSizeCombo.on(
       "change",
-      function(combo, newValue, oldValue, eOpts) {
+      function (combo, newValue, oldValue, eOpts) {
         var me = this;
         me.grid.store.pageSize = newValue;
         me.leftPanel.oprLoadGridData();
@@ -191,17 +191,17 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
     me.updateStamp = new Ext.Button({
       disabled: true,
       // disabledClass:'my-disabled',
-      text: "Updated: -"
+      text: "Updated: -",
     });
 
     me.pagingToolbarItems.push(me.updateStamp);
 
     me.callParent(arguments);
   },
-  initComponent: function(config) {
+  initComponent: function (config) {
     var me = this;
     Ext.apply(me, {
-      items: me.pagingToolbarItems
+      items: me.pagingToolbarItems,
     });
     me.callParent(arguments);
 
@@ -210,7 +210,7 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
     var updateindex = me.items.indexOf(me.updateStamp);
     me.items.insert(index + 1, me.items.items[updateindex]);
 
-    refreshButton.handler = function() {
+    refreshButton.handler = function () {
       var parent = me.scope;
       parent.leftPanel.oprLoadGridData();
     };
@@ -223,48 +223,48 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
           group: "column",
           name: "0",
           checked: true,
-          handler: function() {
+          handler: function () {
             me.__setRefreshCycle(0);
             this.cehcked = true;
-          }
+          },
         },
         {
           text: "Each 15m",
           group: "column",
           checked: false,
           name: "900000",
-          handler: function() {
+          handler: function () {
             me.__setRefreshCycle(900000);
-          }
+          },
         },
         {
           text: "Each 30m",
           group: "column",
           checked: false,
           name: "1800000",
-          handler: function() {
+          handler: function () {
             me.__setRefreshCycle(1800000);
-          }
+          },
         },
         {
           text: "Every hour",
           group: "column",
           checked: false,
           name: "3600000",
-          handler: function() {
+          handler: function () {
             me.__setRefreshCycle(3600000);
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     me.mouseup = false;
     me.refreshMenu = false;
-    refreshButton.on("render", function(oElem, eOpts) {
+    refreshButton.on("render", function (oElem, eOpts) {
       me.mon(
         oElem.el,
         "mouseup",
-        function(event, html, eOpts) {
+        function (event, html, eOpts) {
           me.mouseup = true;
         },
         me
@@ -272,10 +272,10 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
       me.mon(
         oElem.el,
         "mousedown",
-        function(e, t, eOpts) {
+        function (e, t, eOpts) {
           me.mouseup = false;
           Ext.defer(
-            function() {
+            function () {
               if (me.mouseup == false) {
                 me.autoRefresh.showBy(oElem.el);
                 me.refreshMenu = true;
@@ -290,7 +290,7 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
         me
       );
     });
-    refreshButton.on("click", function() {
+    refreshButton.on("click", function () {
       if (me.refreshMenu) {
         me.refreshMenu = false;
         return false;
@@ -303,7 +303,7 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
    *
    * @param{Object}data it contains the saved values.
    */
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     if (data && data.grid && data.grid.pagingToolbar) {
@@ -328,11 +328,11 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
    *
    * @return{Object}
    */
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var returnValues = {
       pageSize: me.pageSizeCombo.getValue(),
-      refreshCycle: me.refreshCycle
+      refreshCycle: me.refreshCycle,
     };
 
     return returnValues;
@@ -342,17 +342,17 @@ Ext.define("Ext.dirac.utils.DiracPagingToolbar", {
    * @param{Object} It is the time when the next refresh will occur. It is
    *                used to set how often refresh the widgets.
    */
-  __setRefreshCycle: function(time) {
+  __setRefreshCycle: function (time) {
     var me = this;
     if (!time) return;
     me.refreshCycle = time; // it is used if we want to save the state!!!
     if (time != 0) {
       clearInterval(me.store.refreshTimeout);
-      me.store.refreshTimeout = setInterval(function() {
+      me.store.refreshTimeout = setInterval(function () {
         me.store.load();
       }, time);
     } else {
       clearInterval(me.store.refreshTimeout);
     }
-  }
+  },
 });

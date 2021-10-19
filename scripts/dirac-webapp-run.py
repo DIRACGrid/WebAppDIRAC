@@ -14,28 +14,28 @@ __RCSID__ = "$Id$"
 
 if __name__ == "__main__":
 
-  def disableDevMode(op):
-    gConfig.setOptionValue("/WebApp/DevelopMode", "False")
-    return S_OK()
+    def disableDevMode(op):
+        gConfig.setOptionValue("/WebApp/DevelopMode", "False")
+        return S_OK()
 
-  localCfg = LocalConfiguration()
+    localCfg = LocalConfiguration()
 
-  localCfg.setConfigurationForWeb("WebApp")
-  localCfg.addMandatoryEntry("/DIRAC/Setup")
-  localCfg.addDefaultEntry("/DIRAC/Security/UseServerCertificate", "yes")
-  localCfg.addDefaultEntry("LogLevel", "INFO")
-  localCfg.addDefaultEntry("LogColor", True)
-  localCfg.registerCmdOpt("p", "production", "Enable production mode", disableDevMode)
+    localCfg.setConfigurationForWeb("WebApp")
+    localCfg.addMandatoryEntry("/DIRAC/Setup")
+    localCfg.addDefaultEntry("/DIRAC/Security/UseServerCertificate", "yes")
+    localCfg.addDefaultEntry("LogLevel", "INFO")
+    localCfg.addDefaultEntry("LogColor", True)
+    localCfg.registerCmdOpt("p", "production", "Enable production mode", disableDevMode)
 
-  result = localCfg.loadUserData()
-  if not result['OK']:
-    gLogger.initialize("WebApp", "/")
-    gLogger.fatal("There were errors when loading configuration", result['Message'])
-    sys.exit(1)
+    result = localCfg.loadUserData()
+    if not result["OK"]:
+        gLogger.initialize("WebApp", "/")
+        gLogger.fatal("There were errors when loading configuration", result["Message"])
+        sys.exit(1)
 
-  app = App()
-  result = app.bootstrap()
-  if not result['OK']:
-    gLogger.fatal(result['Message'])
-    sys.exit(1)
-  app.run()
+    app = App()
+    result = app.bootstrap()
+    if not result["OK"]:
+        gLogger.fatal(result["Message"])
+        sys.exit(1)
+    app.run()

@@ -100,26 +100,26 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
   viewConfig: {
     stripeRows: true,
     enableTextSelection: true,
-    getRowClass: function() {
+    getRowClass: function () {
       return this.enableTextSelection ? "x-selectable" : "";
     },
     listeners: {
-      refresh: function(dataview) {
+      refresh: function (dataview) {
         var nodes = dataview.getNodes();
         for (var i = 0; i < nodes.length; i++) {
           row = Ext.fly(nodes[i], "_rowExpander");
           row.setHeight(26);
         }
       },
-      groupcollapse: function(view, node, group, eOpts) {
+      groupcollapse: function (view, node, group, eOpts) {
         var selectedRow = view.getSelectionModel().getSelection();
         view.deselect(selectedRow);
       },
-      groupexpand: function(view, node, group, eOpts) {
+      groupexpand: function (view, node, group, eOpts) {
         var selectedRow = view.getSelectionModel().getSelection();
         view.deselect(selectedRow);
-      }
-    }
+      },
+    },
   },
   /**
    * @property{Object} defaultColumnsProperties it contains the default
@@ -130,7 +130,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
   defaultColumnsProperties: {
     sortable: true,
     align: "left",
-    hidden: true
+    hidden: true,
   },
   /**
    * @cfg{List} columns it contains the grid columns
@@ -149,7 +149,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
    *
    * @param{Object}data it contains the saved values.
    */
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
     var grid = null;
     if (data.columns) {
@@ -179,13 +179,9 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
       }
     }
     if (grid && grid.sorters) {
-      me.getStore()
-        .getSorters()
-        .clear();
+      me.getStore().getSorters().clear();
       for (var i = 0; i < grid.sorters.length; i++) {
-        me.getStore()
-          .getSorters()
-          .addSort(grid.sorters[i].property, grid.sorters[i].direction);
+        me.getStore().getSorters().addSort(grid.sorters[i].property, grid.sorters[i].direction);
       }
     }
 
@@ -198,7 +194,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
    *
    * @return{List}
    */
-  getRenderers: function() {
+  getRenderers: function () {
     var me = this;
     return me.renderers;
   },
@@ -207,12 +203,12 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
    *
    * @return{Object}
    */
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     // data for grid columns
     var oReturn = {
-      columns: {}
+      columns: {},
     };
 
     for (var i = 0; i < me.columns.length; i++) {
@@ -221,7 +217,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
       oReturn.columns[oName] = {
         width: col.width,
         hidden: col.isHidden(),
-        sortState: col.sortState
+        sortState: col.sortState,
       };
     }
 
@@ -238,7 +234,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
         for (var i = 0; i < stateData.storeState.sorters.length; i++) {
           oReturn.sorters.push({
             property: stateData.storeState.sorters[i].property,
-            direction: stateData.storeState.sorters[i].direction
+            direction: stateData.storeState.sorters[i].direction,
           });
         }
       }
@@ -246,7 +242,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
       if (stateData.storeState.grouper) {
         oReturn.groupers.push({
           property: stateData.storeState.grouper.property,
-          direction: stateData.storeState.grouper.direction
+          direction: stateData.storeState.grouper.direction,
         });
       }
     }
@@ -258,12 +254,12 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
     return oReturn;
   },
   // eslint-disable-next-line no-use-before-define
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
     GLOBAL.APP.CF.log("debug", "init function", me.columns);
     me.callParent();
   },
-  constructor: function(config) {
+  constructor: function (config) {
     var me = this;
 
     GLOBAL.APP.CF.log("debug", "Create panel...");
@@ -283,29 +279,29 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
           width: 36,
           sortable: false,
           dataIndex: config.oColumns[i]["dataIndex"],
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return me.rendererChkBox(value);
           },
           hideable: false,
           fixed: true,
           menuDisabled: true,
-          align: "center"
+          align: "center",
         };
       } else {
         oColumn = {
           sortable: true,
           align: "left",
-          hidden: false
+          hidden: false,
         };
         if (Ext.String.startsWith(i, "None") == true) {
           Ext.apply(oColumn, {
             header: "",
-            dataIndex: config.oColumns[i]["dataIndex"]
+            dataIndex: config.oColumns[i]["dataIndex"],
           });
         } else {
           Ext.apply(oColumn, {
             header: i,
-            dataIndex: config.oColumns[i]["dataIndex"]
+            dataIndex: config.oColumns[i]["dataIndex"],
           });
         }
 
@@ -316,35 +312,35 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
         if ("renderFunction" in config.oColumns[i]) {
           var func = null;
           if (config.oColumns[i]["renderFunction"] == "rendererStatus") {
-            func = function(value, metaData, record, rowIndex, colIndex, store) {
+            func = function (value, metaData, record, rowIndex, colIndex, store) {
               return me.rendererStatus(value, metaData, record, rowIndex, colIndex, store);
             };
           } else if (config.oColumns[i]["renderFunction"] == "diffValues") {
-            func = function(value, metaData, record, rowIndex, colIndex, store) {
+            func = function (value, metaData, record, rowIndex, colIndex, store) {
               return me.diffValues(value, metaData, record, rowIndex, colIndex, store);
             };
           } else if (config.oColumns[i]["renderFunction"] == "renderStatusForGivenColor") {
-            func = function(value, metaData, record, rowIndex, colIndex, store) {
+            func = function (value, metaData, record, rowIndex, colIndex, store) {
               return me.renderStatusForGivenColor(value, metaData, record, rowIndex, colIndex, store);
             };
           } else {
             var message = config.oColumns[i]["renderFunction"] + " render function does not exists!!!";
           }
           Ext.apply(oColumn, {
-            renderer: func
+            renderer: func,
           });
         } else {
-          var tooltipRenderer = function(value, metaData) {
+          var tooltipRenderer = function (value, metaData) {
             metaData.tdAttr = Ext.String.format('data-qtip="{0}"', value);
             return value;
           };
           Ext.apply(oColumn, {
-            renderer: tooltipRenderer
+            renderer: tooltipRenderer,
           });
         }
         if ("renderer" in config.oColumns[i]) {
           Ext.apply(oColumn, {
-            renderer: config.oColumns[i]["renderer"]
+            renderer: config.oColumns[i]["renderer"],
           });
         }
       }
@@ -362,15 +358,15 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
     if (config.contextMenu) {
       Ext.apply(me, {
         listeners: {
-          beforecellcontextmenu: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+          beforecellcontextmenu: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
             e.preventDefault();
             if (config.contextMenu.dynamicShow) {
               config.contextMenu.doSow(record);
             }
             config.contextMenu.showAt(e.getXY());
             return false;
-          }
-        }
+          },
+        },
       });
     }
 
@@ -386,7 +382,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
    *
    * @param{Number} val it is the column value
    */
-  rendererChkBox: function(val) {
+  rendererChkBox: function (val) {
     return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
   },
   /*************************************************************************
@@ -394,7 +390,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
    *
    * @param{String} value It render the status.
    */
-  rendererStatus: function(value) {
+  rendererStatus: function (value) {
     if (value == "Done" || value == "Good" || value == "Active" || value == "Cleared") {
       return '<img src="static/core/img/statusIcons/done.gif"/>';
     } else if (value == "Bad") {
@@ -423,7 +419,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
    * It render the columns in case we want to see the difference before load
    * and after the load. More info {@link Ext.dirac.utils.DiracJsonStore}
    */
-  diffValues: function(value, metaData, record, rowIndex, colIndex, store) {
+  diffValues: function (value, metaData, record, rowIndex, colIndex, store) {
     var me = this;
     var id = record.data[me.store.getDiffId()];
     var diffValues = me.store.getDiffValues();
@@ -451,28 +447,11 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
       }
     }
   },
-  renderStatusForGivenColor: function(value, metadata, record) {
-    for (
-      var i = 0;
-      i <
-      this.getStore()
-        .getData()
-        .getCount();
-      i++
-    ) {
-      if (
-        this.getStore()
-          .getData()
-          .getAt(i).data.key == value
-      ) {
-        return (
-          '<div style="background-color:' +
-          this.getStore()
-            .getData()
-            .getAt(i).data.color +
-          ';width:50px;padding:10px;">'
-        );
+  renderStatusForGivenColor: function (value, metadata, record) {
+    for (var i = 0; i < this.getStore().getData().getCount(); i++) {
+      if (this.getStore().getData().getAt(i).data.key == value) {
+        return '<div style="background-color:' + this.getStore().getData().getAt(i).data.color + ';width:50px;padding:10px;">';
       }
     }
-  }
+  },
 });

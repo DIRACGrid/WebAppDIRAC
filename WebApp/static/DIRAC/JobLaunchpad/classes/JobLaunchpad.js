@@ -10,10 +10,10 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     "Ext.form.Panel",
     "Ext.tree.Panel",
     "Ext.data.TreeStore",
-    "Ext.menu.Menu"
+    "Ext.menu.Menu",
   ],
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     for (var key in data) {
@@ -26,7 +26,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     }
   },
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
@@ -59,35 +59,35 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     me.fsetPredefinedSetsSection = Ext.create("Ext.form.FieldSet", {
       title: "Predefined Sets of Launchpad Values",
       collapsible: true,
       layout: "anchor",
-      padding: 5
+      padding: 5,
     });
 
     me.fsetJdlSection = Ext.create("Ext.form.FieldSet", {
       title: "JDL",
       collapsible: true,
       layout: "anchor",
-      padding: 5
+      padding: 5,
     });
 
     me.fsetInputSandboxSection = Ext.create("Ext.form.FieldSet", {
       title: "Input Sandbox",
       collapsible: true,
       layout: "anchor",
-      padding: 5
+      padding: 5,
     });
 
     me.fsetInputSandboxSection.add(me.uploadField);
@@ -99,32 +99,32 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
       iconCls: "dirac-icon-plus",
       scope: me,
       menu: [],
-      tooltip: "Click to add more parameters to the JDL"
+      tooltip: "Click to add more parameters to the JDL",
     });
 
     me.btnProxyStatus = new Ext.Button({
       text: "Proxy Status",
-      handler: function() {
+      handler: function () {
         me.proxyCheckerFunction();
       },
       scope: me,
-      tooltip: "Proxy status updates automatically once per day"
+      tooltip: "Proxy status updates automatically once per day",
     });
 
     var oTopToolbar = new Ext.create("Ext.toolbar.Toolbar", {
       dock: "top",
-      items: [me.btnProxyStatus, "->", me.btnAddParameters]
+      items: [me.btnProxyStatus, "->", me.btnAddParameters],
     });
 
     me.btnSubmit = new Ext.Button({
       text: "Submit",
       margin: 1,
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         me.getContainer().body.mask("Wait ...");
         me.mainFormPanel.submit({
           url: GLOBAL.BASE_URL + "JobLaunchpad/jobSubmit",
-          success: function(form, action) {
+          success: function (form, action) {
             me.getContainer().body.unmask();
             if (action.result.success == "false") {
               GLOBAL.APP.CF.alert("Error: " + action.result.error);
@@ -149,9 +149,9 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
                 buttons: Ext.MessageBox.OKYES,
                 buttonText: {
                   ok: "OK",
-                  no: "Show Job"
+                  no: "Show Job",
                 },
-                fn: function(oButton) {
+                fn: function (oButton) {
                   oWarn.hide();
 
                   if (oButton == "no") {
@@ -174,36 +174,36 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
 
                       oSetupData.data = {
                         leftMenu: {
-                          JobID: action.result.result
-                        }
+                          JobID: action.result.result,
+                        },
                       };
 
                       GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
                         objectType: "app",
                         moduleName: "DIRAC.JobMonitor.classes.JobMonitor",
-                        setupData: oSetupData
+                        setupData: oSetupData,
                       });
                     }
                   }
                 },
                 animateTarget: "mb4",
-                icon: Ext.MessageBox.QUESTION
+                icon: Ext.MessageBox.QUESTION,
               });
             }
           },
-          failure: function(form, action) {
+          failure: function (form, action) {
             GLOBAL.APP.CF.alert("Error", "error");
-          }
+          },
         });
       },
-      scope: me
+      scope: me,
     });
 
     me.btnReset = new Ext.Button({
       text: "Reset",
       margin: 1,
       iconCls: "dirac-icon-reset",
-      handler: function() {
+      handler: function () {
         // first go through all optional fields and see if they are
         // checked,
         // remove and unchecked
@@ -230,14 +230,14 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
         me.oprAddNewLfnTextField();
         me.proxyCheckerFunction();
       },
-      scope: me
+      scope: me,
     });
 
     var oBottomToolbar = new Ext.create("Ext.toolbar.Toolbar", {
       dock: "bottom",
       layout: {
-        pack: "center"
-      }
+        pack: "center",
+      },
     });
 
     if ("properties" in GLOBAL.USER_CREDENTIALS) {
@@ -247,16 +247,16 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
         oBottomToolbar.add([
           {
             xtype: "tbtext",
-            text: "<b style='color:red'>The selected group is not allowed to submit new jobs !</b>"
-          }
+            text: "<b style='color:red'>The selected group is not allowed to submit new jobs !</b>",
+          },
         ]);
       }
     } else {
       oBottomToolbar.add([
         {
           xtype: "tbtext",
-          text: "<b style='color:red'>The selected group is not allowed to submit new jobs !</b>"
-        }
+          text: "<b style='color:red'>The selected group is not allowed to submit new jobs !</b>",
+        },
       ]);
     }
 
@@ -268,7 +268,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
       bodyPadding: 5,
       autoScroll: true,
       dockedItems: [oTopToolbar, oBottomToolbar],
-      items: [me.fsetPredefinedSetsSection, me.fsetJdlSection, me.fsetInputSandboxSection]
+      items: [me.fsetPredefinedSetsSection, me.fsetJdlSection, me.fsetInputSandboxSection],
     });
 
     me.predefinedSetsMenu = new Ext.menu.Menu({
@@ -278,10 +278,10 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
           text: "Apply to the selected parameters",
           moduleObject: me,
           listeners: {
-            click: me.__oprApplyToJdl
-          }
-        }
-      ]
+            click: me.__oprApplyToJdl,
+          },
+        },
+      ],
     });
 
     me.oprAddNewFileField();
@@ -293,7 +293,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     me.proxyCheckerFunction();
   },
 
-  __oprApplyToJdl: function() {
+  __oprApplyToJdl: function () {
     var me = this.moduleObject;
 
     var sPredefinedSet = me.predefinedSetsMenu.node.data.text;
@@ -330,7 +330,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     }
   },
 
-  oprAddNewFileField: function() {
+  oprAddNewFileField: function () {
     var me = this;
 
     var sFileFieldName = "fileField" + me.fsetInputSandboxSection.items.getCount();
@@ -341,7 +341,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
       moduleObject: me,
       name: sFileFieldName,
       listeners: {
-        change: function(oComp, sValue, eOpts) {
+        change: function (oComp, sValue, eOpts) {
           /*
            * First we check wheather there are empty file fields. If
            * there is an empty field, new field is not added to the
@@ -390,8 +390,8 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
           // console.log("Number of files " + iLength);
           // console.log("The size of all files: " +
           // oComp.moduleObject.bytesToSize(iSize, 2));
-        }
-      }
+        },
+      },
     });
 
     var iLength = me.fsetInputSandboxSection.items.getCount();
@@ -409,7 +409,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     me.fsetInputSandboxSection.insert(iWhereInsert, oFileField);
   },
 
-  oprAddNewLfnTextField: function(sValue) {
+  oprAddNewLfnTextField: function (sValue) {
     var me = this;
 
     var sLfnTextFieldName = "lfnField" + me.fsetInputSandboxSection.items.getCount();
@@ -423,15 +423,15 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
       value: sValue ? sValue : "",
       enableKeyEvents: true,
       listeners: {
-        keypress: function(oTextField, e, eOpts) {
+        keypress: function (oTextField, e, eOpts) {
           if (e.getCharCode() == 13) {
             if (oTextField.getValue() != "") {
               var oItem = me.oprAddNewLfnTextField();
               oItem.focus();
             }
           }
-        }
-      }
+        },
+      },
     });
 
     me.fsetInputSandboxSection.add(oLfnTextField);
@@ -439,7 +439,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     return oLfnTextField;
   },
 
-  bytesToSize: function(bytes, precision) {
+  bytesToSize: function (bytes, precision) {
     var kilobyte = 1024;
     var megabyte = kilobyte * 1024;
     var gigabyte = megabyte * 1024;
@@ -459,7 +459,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     }
   },
 
-  getFileSize: function(oInputFile) {
+  getFileSize: function (oInputFile) {
     /*
      * Can't use `typeof FileReader === "function"` because apparently it
      * comes back as "object" on some browsers. So just see if it's there at
@@ -483,7 +483,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     }
   },
 
-  processResponse: function(response) {
+  processResponse: function (response) {
     var me = this;
 
     for (var sKey in response["result"]) {
@@ -504,7 +504,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
           anchor: "100%",
           labelAlign: "left",
           value: me.textualFields[sKey].value,
-          name: sKey
+          name: sKey,
         });
       } else {
         me.textualFields[sKey].mandatory = false;
@@ -514,13 +514,13 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
           text: sKey,
           relatedCmbField: sKey,
           checked: false,
-          handler: function(item, e) {
+          handler: function (item, e) {
             var me = this;
 
             if (item.checked) me.__createJdlField(item.relatedCmbField);
             else me.__destroyJdlField(item.relatedCmbField);
           },
-          scope: me
+          scope: me,
         });
       }
 
@@ -530,28 +530,28 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     me.__createPrededinedSetsTree(response["predefinedSets"]);
   },
 
-  setUpParametersAndPredefinedConfig: function() {
+  setUpParametersAndPredefinedConfig: function () {
     var me = this;
 
     if (typeof me.launcher.oResponse == "undefined") {
       Ext.Ajax.request({
         url: GLOBAL.BASE_URL + "JobLaunchpad/getLaunchpadOpts",
         method: "POST",
-        success: function(response) {
+        success: function (response) {
           var response = Ext.JSON.decode(response.responseText);
 
           me.processResponse(response);
         },
-        failure: function(response) {
+        failure: function (response) {
           me.showProxyStatus("neutral");
-        }
+        },
       });
     } else {
       me.processResponse(me.launcher.oResponse);
     }
   },
 
-  __createPrededinedSetsTree: function(oPredefinedSets) {
+  __createPrededinedSetsTree: function (oPredefinedSets) {
     var me = this;
 
     me.predefinedSets = oPredefinedSets;
@@ -567,11 +567,11 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
         proxy: {
           type: "localstorage",
           // A unique ID is now required
-          id: "Available Sets"
+          id: "Available Sets",
         },
         root: {
-          text: "Available Sets"
-        }
+          text: "Available Sets",
+        },
       });
 
       var oRoot = me.predefinedSetsTreeStore.getRootNode();
@@ -580,7 +580,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
         var oNewSetNode = oRoot.createNode({
           text: sKeySet,
           leaf: false,
-          predefinedSets: true
+          predefinedSets: true,
         });
 
         oRoot.appendChild(oNewSetNode);
@@ -588,7 +588,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
         for (var sKeyOption in me.predefinedSets[sKeySet]) {
           var oNewOptionNode = oRoot.createNode({
             text: sKeyOption + " = " + me.predefinedSets[sKeySet][sKeyOption],
-            leaf: true
+            leaf: true,
           });
 
           oNewSetNode.appendChild(oNewOptionNode);
@@ -603,7 +603,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
         bodyBorder: false,
         border: false,
         listeners: {
-          beforeitemcontextmenu: function(oView, oNode, item, index, e, eOpts) {
+          beforeitemcontextmenu: function (oView, oNode, item, index, e, eOpts) {
             if (oNode.data.predefinedSets) {
               e.preventDefault();
 
@@ -616,10 +616,10 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
             }
           },
 
-          beforecontainercontextmenu: function(oView, e, eOpts) {
+          beforecontainercontextmenu: function (oView, e, eOpts) {
             return false;
-          }
-        }
+          },
+        },
       });
 
       me.fsetPredefinedSetsSection.add(me.predefinedSetsTreePanel);
@@ -628,7 +628,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     }
   },
 
-  proxyCheckerFunction: function() {
+  proxyCheckerFunction: function () {
     var me = this;
 
     me.showProxyStatus("check");
@@ -636,7 +636,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "JobLaunchpad/getProxyStatus",
       method: "POST",
-      success: function(response) {
+      success: function (response) {
         var jsonData = Ext.JSON.decode(response.responseText);
 
         if (jsonData["success"] == "false") {
@@ -649,13 +649,13 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
           }
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         me.showProxyStatus("neutral");
-      }
+      },
     });
   },
 
-  showProxyStatus: function(sMode) {
+  showProxyStatus: function (sMode) {
     var me = this,
       sBtnText = "Proxy Status: ";
 
@@ -672,7 +672,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     me.btnProxyStatus.setText(sBtnText);
   },
 
-  __createJdlField: function(sFieldName, sValue, bSetCheckbox) {
+  __createJdlField: function (sFieldName, sValue, bSetCheckbox) {
     var me = this;
 
     var sCalValue = "";
@@ -690,7 +690,7 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
       anchor: "100%",
       labelAlign: "left",
       value: sCalValue,
-      name: sFieldName
+      name: sFieldName,
     });
 
     me.fsetJdlSection.add(me.textualFields[sFieldName].object);
@@ -707,11 +707,11 @@ Ext.define("DIRAC.JobLaunchpad.classes.JobLaunchpad", {
     }
   },
 
-  __destroyJdlField: function(sFieldName) {
+  __destroyJdlField: function (sFieldName) {
     var me = this;
 
     me.fsetJdlSection.remove(me.textualFields[sFieldName].object);
     Ext.destroy(me.textualFields[sFieldName].object);
     me.textualFields[sFieldName].object = null;
-  }
+  },
 });

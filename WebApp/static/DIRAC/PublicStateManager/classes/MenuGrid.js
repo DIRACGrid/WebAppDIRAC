@@ -7,7 +7,7 @@ Ext.define("DIRAC.PublicStateManager.classes.MenuGrid", {
     "Ext.tree.*",
     // 'Ext.ux.CheckColumn',
     "DIRAC.PublicStateManager.classes.MenuModel",
-    "Ext.data.TreeStore"
+    "Ext.data.TreeStore",
   ],
   xtype: "tree-grid",
 
@@ -19,12 +19,12 @@ Ext.define("DIRAC.PublicStateManager.classes.MenuGrid", {
   multiSelect: true,
   singleExpand: false,
   listeners: {
-    afterrender: function(component, eOpts) {
+    afterrender: function (component, eOpts) {
       var me = this;
       me.setLoading(true);
-    }
+    },
   },
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.store = Ext.create("Ext.data.TreeStore", {
@@ -34,15 +34,15 @@ Ext.define("DIRAC.PublicStateManager.classes.MenuGrid", {
         url: GLOBAL.BASE_URL + "UP/listPublicStates",
         extraParams: {
           app: "desktop",
-          obj: "application"
-        }
+          obj: "application",
+        },
       },
       autoLoad: true,
       listeners: {
-        load: function(oStore, oOperation, eOpts) {
+        load: function (oStore, oOperation, eOpts) {
           me.setLoading(false);
-        }
-      }
+        },
+      },
     });
 
     Ext.apply(me, {
@@ -52,7 +52,7 @@ Ext.define("DIRAC.PublicStateManager.classes.MenuGrid", {
           text: "Name",
           flex: 2,
           sortable: true,
-          dataIndex: "name"
+          dataIndex: "name",
         },
         {
           xtype: "templatecolumn",
@@ -62,32 +62,32 @@ Ext.define("DIRAC.PublicStateManager.classes.MenuGrid", {
           dataIndex: "type",
           align: "center",
           tpl: Ext.create("Ext.XTemplate", "{type:this.formatApplicationType}", {
-            formatApplicationType: function(v) {
+            formatApplicationType: function (v) {
               if (v == "desktop") {
                 return ' <font color="#00CC00">' + v + "</font>";
               } else {
                 return ' <font color="#FF3300">' + v + "</font>";
               }
-            }
-          })
+            },
+          }),
         },
         {
           text: "UserName",
           flex: 1,
           dataIndex: "user",
-          sortable: true
+          sortable: true,
         },
         {
           text: "Group",
           flex: 1,
           dataIndex: "group",
-          sortable: true
+          sortable: true,
         },
         {
           text: "VO",
           flex: 1,
           dataIndex: "vo",
-          sortable: true
+          sortable: true,
         },
         {
           text: "Load",
@@ -97,7 +97,7 @@ Ext.define("DIRAC.PublicStateManager.classes.MenuGrid", {
           tooltip: "Load a state...",
           align: "center",
           iconCls: "dirac-icon-state",
-          handler: function(grid, rowIndex, colIndex, actionItem, event, record, row) {
+          handler: function (grid, rowIndex, colIndex, actionItem, event, record, row) {
             GLOBAL.APP.MAIN_VIEW.SM.formStateLoader(GLOBAL.APP.MAIN_VIEW.cbAfterLoadSharedState, GLOBAL.APP.MAIN_VIEW.cbAfterSaveSharedState);
 
             var prefix = "";
@@ -114,22 +114,22 @@ Ext.define("DIRAC.PublicStateManager.classes.MenuGrid", {
             GLOBAL.APP.MAIN_VIEW.SM.txtLoadText.disable();
           },
           // Only leaf level tasks may be edited
-          isDisabled: function(view, rowIdx, colIdx, item, record) {
+          isDisabled: function (view, rowIdx, colIdx, item, record) {
             return (
               !record.data.leaf || (record.get("user") == GLOBAL.USER_CREDENTIALS.username && record.get("group") == GLOBAL.USER_CREDENTIALS.group)
             );
-          }
+          },
         },
         {
           text: "Module",
           flex: 1,
           dataIndex: "app",
           sortable: true,
-          hidden: true
-        }
-      ]
+          hidden: true,
+        },
+      ],
     });
 
     me.callParent();
-  }
+  },
 });

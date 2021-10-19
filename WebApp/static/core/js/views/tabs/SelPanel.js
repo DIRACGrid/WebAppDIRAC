@@ -9,7 +9,7 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
     "Ext.tree.plugin.TreeViewDragDrop",
     "Ext.dirac.views.tabs.SettingsPanel",
     "Ext.LoadMask",
-    "Ext.dirac.views.tabs.StateManagerMenu"
+    "Ext.dirac.views.tabs.StateManagerMenu",
   ],
   xtype: "menuselpanel",
   alias: "widget.selPanel",
@@ -20,17 +20,17 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
   settings: null,
   layout: {
     type: "accordion",
-    animate: true
+    animate: true,
   },
   split: true,
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
     me.loadMask = new Ext.LoadMask({
       target: me,
-      msg: "Loading menu..."
+      msg: "Loading menu...",
     });
     Ext.apply(me, {
-      items: [me.createView(), me.createSettingsView()]
+      items: [me.createView(), me.createSettingsView()],
     });
     me.callParent(arguments);
   },
@@ -39,7 +39,7 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
    *
    * @return{Ext.tree.panel}
    */
-  getTreePanel: function() {
+  getTreePanel: function () {
     var me = this;
     return me.tree;
   },
@@ -49,14 +49,14 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
    * @private
    * @return {Ext.view.View}
    */
-  createView: function() {
+  createView: function () {
     var me = this;
 
     var store = Ext.create("Ext.data.TreeStore", {
       root: me.treeModel,
       scope: me,
       listeners: {
-        nodebeforeexpand: function(node, op) {
+        nodebeforeexpand: function (node, op) {
           if (node.get("text") == "Shared") {
             GLOBAL.APP.MAIN_VIEW.oprLoadSharedDesktopsAndApplications();
             return;
@@ -94,7 +94,7 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
             // we have to create a default desktop.
             var desktop = {
               views: {},
-              data: []
+              data: [],
             };
 
             var view = GLOBAL.APP.MAIN_VIEW.ID;
@@ -106,7 +106,7 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
             me.tree.setLoading(true);
             var applications = GLOBAL.APP.MAIN_VIEW.applications;
             for (var i = 0; i < applications.length; i++) {
-              var oFunc = function(iCode, sAppName) {
+              var oFunc = function (iCode, sAppName) {
                 me.oprRefreshAppStates(sAppName, node);
                 me.tree.setLoading(false);
               };
@@ -130,7 +130,7 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
               sStartClass = node.get("application");
             }
 
-            var oFunc = function() {
+            var oFunc = function () {
               return;
             };
 
@@ -140,13 +140,13 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
           }
           node.loaded = true;
         },
-        beforemove: function(node, oldParent, newParent, index, eOpts) {
+        beforemove: function (node, oldParent, newParent, index, eOpts) {
           if (index == 0) {
             alert("Please move the node after Default/All!");
             return false;
           }
-        }
-      }
+        },
+      },
     });
 
     me.tree = Ext.create("Ext.tree.Panel", {
@@ -165,21 +165,21 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
           type: "save",
           tooltip: "Manage states!",
           // hidden:true,
-          handler: function(event, toolEl, panelHeader) {
+          handler: function (event, toolEl, panelHeader) {
             var menu = Ext.create("Ext.dirac.views.tabs.StateManagerMenu");
             menu.showBy(toolEl);
-          }
-        }
+          },
+        },
       ],
       viewConfig: {
         listeners: {},
         enableDD: true,
         plugins: {
-          ptype: "treeviewdragdrop"
-        }
+          ptype: "treeviewdragdrop",
+        },
       },
       listeners: {
-        itemclick: function(record, item, index, e, eOpts) {
+        itemclick: function (record, item, index, e, eOpts) {
           if (
             item.get("expandable") ||
             item.get("type") == "Default" ||
@@ -189,7 +189,7 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
           }
 
           if (item.data.type == "link") {
-            var cbSetActiveTab = function(oTab) {
+            var cbSetActiveTab = function (oTab) {
               if (activeDesktop.view == "tabView") {
                 activeDesktop.setActiveTab(oTab);
               }
@@ -271,7 +271,7 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
                 // we have to activate the panel
                 activeDesktop.setActiveTab(panel);
               } else {
-                var cbSetActiveTab = function(oTab) {
+                var cbSetActiveTab = function (oTab) {
                   if (activeDesktop.view == "tabView") {
                     activeDesktop.setActiveTab(oTab);
                   }
@@ -292,14 +292,14 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
                 desktopName = item.get("text") == "Default" ? "Default" : item.parentNode.get("text");
               }
               GLOBAL.APP.MAIN_VIEW.createDesktopTab(desktopName, view);
-              var cbLoadActiveTab = function(oTab) {
+              var cbLoadActiveTab = function (oTab) {
                 oTab.loadData();
               };
               GLOBAL.APP.MAIN_VIEW.createWindow(item.get("type"), item.get("application"), item.getData(), activeDesktop, cbLoadActiveTab);
             }
           }
         },
-        beforeitemmove: function(node, oldParent, newParent, index, eOpts) {
+        beforeitemmove: function (node, oldParent, newParent, index, eOpts) {
           if (oldParent.get("text") != newParent.get("text")) {
             var tabName = node.get("text");
             var moduleName = node.get("application");
@@ -321,15 +321,15 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
               return false;
             }
           }
-        }
-      }
+        },
+      },
     });
 
     me.contextMenu = Ext.create("Ext.dirac.views.tabs.ContextMenu", {});
 
     me.tree.on(
       "itemcontextmenu",
-      function(view, record, item, index, event) {
+      function (view, record, item, index, event) {
         var me = this;
         me.contextMenu.oSelectedMenuItem = record;
 
@@ -371,19 +371,19 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
    * @private
    * @property {Ext.dirac.views.tabs.TreeMenuModel} node the node object
    */
-  removeChildNodes: function(node) {
+  removeChildNodes: function (node) {
     if (node.childNodes.length > 1) {
       var defaultNode = node.firstChild;
       node.removeAll();
       node.appendChild(defaultNode);
     }
   },
-  createSettingsView: function() {
+  createSettingsView: function () {
     var me = this;
     me.settings = Ext.create("Ext.dirac.views.tabs.SettingsPanel");
     return me.settings;
   },
-  getSettimgsPanel: function() {
+  getSettimgsPanel: function () {
     var me = this;
     return me.settings;
   },
@@ -395,7 +395,7 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
    * @param{Object} node is the current tree node. The states of an
    *                application will be loaded under that node...
    */
-  oprRefreshAppStates: function(appClassName, node) {
+  oprRefreshAppStates: function (appClassName, node) {
     var me = this;
     var oStates = GLOBAL.APP.SM.getApplicationStates("application", appClassName); // OK
 
@@ -405,7 +405,7 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
       var data = {
         data: GLOBAL.APP.SM.getStateData("application", appClassName, stateName),
         currentState: stateName,
-        module: appClassName
+        module: appClassName,
       };
 
       GLOBAL.APP.SM.addApplicationStates("desktop", "Default", data);
@@ -424,14 +424,14 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
           scope: me,
           allowDrag: true,
           allowDrop: true,
-          qtip: qTip
+          qtip: qTip,
         };
 
         if (!Ext.data.schema.Schema.instances.default.hasEntity("Ext.dirac.views.tabs.TreeNodeModel")) {
           Ext.define("Ext.dirac.views.tabs.TreeNodeModel", {
             extend: "Ext.data.Model",
             fields: ["text", "type", "application", "stateToLoad", "desktop"],
-            alias: "widget.treenodemodel"
+            alias: "widget.treenodemodel",
           });
           Ext.data.NodeInterface.decorate("Ext.dirac.views.tabs.TreeNodeModel");
         } else {
@@ -445,12 +445,12 @@ Ext.define("Ext.dirac.views.tabs.SelPanel", {
       } catch (err) {
         Ext.log(
           {
-            level: "error"
+            level: "error",
           },
           "Failed to create child nodes!" + err
         );
         Ext.dirac.system_info.msg("Error", '"Failed to create child nodes!!!');
       }
     }
-  }
+  },
 });

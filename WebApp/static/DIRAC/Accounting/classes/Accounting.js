@@ -1,7 +1,7 @@
 Ext.define("DIRAC.Accounting.classes.Accounting", {
   extend: "Ext.dirac.utils.PlotView",
   timeout: 7200000, // 2 hours
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.reportsDesc = {
@@ -15,8 +15,8 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["Source", "Source SE"],
             ["Destination", "Destination SE"],
             ["Protocol", "Protocol"],
-            ["FinalStatus", "Final Transfer Status"]
-          ]
+            ["FinalStatus", "Final Transfer Status"],
+          ],
         },
         Job: {
           title: "Job",
@@ -29,8 +29,8 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["FinalMajorStatus", "Final Major Status"],
             ["FinalMinorStatus", "Final Minor Status"],
             ["User", "User"],
-            ["UserGroup", "User Group"]
-          ]
+            ["UserGroup", "User Group"],
+          ],
         },
         WMSHistory: {
           title: "WMS History",
@@ -42,8 +42,8 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["ApplicationStatus", "Application Status"],
             ["Site", "Site"],
             ["JobGroup", "Job Group"],
-            ["JobSplitType", "Job Split Type"]
-          ]
+            ["JobSplitType", "Job Split Type"],
+          ],
         },
         Pilot: {
           title: "Pilot",
@@ -54,8 +54,8 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["GridCE", "Grid CE"],
             ["GridMiddleware", "Grid Middleware"],
             ["GridResourceBroker", "Grid Resource Broker"],
-            ["GridStatus", "Grid Status"]
-          ]
+            ["GridStatus", "Grid Status"],
+          ],
         },
         PilotSubmission: {
           title: "Pilot Submission",
@@ -65,8 +65,8 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["SiteDirector", "SiteDirector"],
             ["CE", "CE"],
             ["Queue", "Queue"],
-            ["Status", "Status"]
-          ]
+            ["Status", "Status"],
+          ],
         },
         Network: {
           title: "Network",
@@ -74,17 +74,17 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["Source", "Source Site"],
             ["Destination", "Destination Site"],
             ["SourceHostName", "Source Host"],
-            ["DestinationHostName", "Destination Host"]
-          ]
+            ["DestinationHostName", "Destination Host"],
+          ],
         },
         StorageOccupancy: {
           title: "Storage Occupancy",
           selectionConditions: [
             ["Endpoint", "Endpoint"],
             ["Site", "Site"],
-            ["StorageElement", "StorageElement"]
-          ]
-        }
+            ["StorageElement", "StorageElement"],
+          ],
+        },
       },
       Monitoring: {
         WMSHistory: {
@@ -97,8 +97,8 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["ApplicationStatus", "Application Status"],
             ["Site", "Site"],
             ["JobGroup", "Job Group"],
-            ["JobSplitType", "Job Split Type"]
-          ]
+            ["JobSplitType", "Job Split Type"],
+          ],
         },
         ComponentMonitoring: {
           title: "Component Monitoring",
@@ -107,8 +107,8 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["component", "Component"],
             ["status", "Status"],
             ["componentType", "Component Type"],
-            ["componentLocation", "Component Location"]
-          ]
+            ["componentLocation", "Component Location"],
+          ],
         },
         RMSMonitoring: {
           title: "RMS Monitoring",
@@ -116,10 +116,10 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["host", "Host"],
             ["objectType", "Object Type"],
             ["operationType", "Operation Type"],
-            ["status", "Status"]
-          ]
-        }
-      }
+            ["status", "Status"],
+          ],
+        },
+      },
     };
 
     me.reports = {
@@ -130,18 +130,18 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
         ["Pilot", "Pilot"],
         ["PilotSubmission", "Pilot Submission"],
         ["Network", "Network"],
-        ["StorageOccupancy", "Storage Occupancy"]
+        ["StorageOccupancy", "Storage Occupancy"],
       ],
       Monitoring: [
         ["WMSHistory", "WMS Monitoring"],
         ["ComponentMonitoring", "Component Monitoring"],
-        ["RMSMonitoring", "RMS Monitoring"]
-      ]
+        ["RMSMonitoring", "RMS Monitoring"],
+      ],
     };
 
     me.handlers = {
       Accounting: "Accounting",
-      Monitoring: "Monitoring"
+      Monitoring: "Monitoring",
     };
 
     me.title = "Accounting";
@@ -153,9 +153,9 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
           [604800, "Last Week"],
           [2592000, "Last Month"],
           [-1, "Manual Selection"],
-          [-2, "By Quarter"]
+          [-2, "By Quarter"],
         ],
-        defaultTime: 86400
+        defaultTime: 86400,
       },
       Monitoring: {
         dataSelector: [
@@ -164,14 +164,14 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
           [604800, "Last Week"],
           [2592000, "Last Month"],
           [-1, "Manual Selection"],
-          [-2, "By Quarter"]
+          [-2, "By Quarter"],
         ],
-        defaultTime: 86400
-      }
+        defaultTime: 86400,
+      },
     };
 
     me.callParent();
 
     me.callParent();
-  }
+  },
 });

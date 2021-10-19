@@ -3,17 +3,17 @@ Ext.define("Ext.dirac.utils.DiracBoxSelect", {
   scrollable: true,
   resizable: true,
   multiSelect: true,
-  isInverseSelection: function() {
+  isInverseSelection: function () {
     return false;
   },
-  setInverseSelection: function(bInverseSelection) {
+  setInverseSelection: function (bInverseSelection) {
     if (bInverseSelection) {
       Ext.Logger.warn("Invers selection is not supported in extjs 6!");
     }
   },
-  loadData: function(data) {
+  loadData: function (data) {
     var me = this;
     var store = me.getStore();
     store.loadData(data);
-  }
+  },
 });

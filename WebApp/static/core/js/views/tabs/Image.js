@@ -8,20 +8,20 @@ Ext.define("Ext.dirac.views.tabs.Image", {
   frame: true,
   panel: null,
   listeners: {
-    render: function(oElem, eOpts) {
+    render: function (oElem, eOpts) {
       var me = this;
       oElem.el.on({
-        load: function(evt, ele, opts) {
+        load: function (evt, ele, opts) {
           var me = this;
           me.panel.setLoading(false);
         },
-        scope: me
+        scope: me,
       });
-    }
+    },
   },
-  setPanel: function(p) {
+  setPanel: function (p) {
     var me = this;
     me.panel = p;
-  }
+  },
   // resizable: true, we can forget this!!!
 });

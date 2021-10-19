@@ -18,11 +18,11 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
     "Ext.Array",
     "Ext.data.TreeStore",
     "Ext.ux.form.MultiSelect",
-    "DIRAC.ActivityMonitor.classes.ActivityTreeModel"
+    "DIRAC.ActivityMonitor.classes.ActivityTreeModel",
   ],
 
   expansionState: {},
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
     me.launcher.title = "Activity Monitor";
 
@@ -38,62 +38,62 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
+        split: true,
       },
       items: [],
-      header: false
+      header: false,
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     var oToolb = Ext.create("Ext.toolbar.Toolbar", {
       dock: "top",
       border: false,
       layout: {
-        pack: "center"
+        pack: "center",
       },
       items: [
         {
           xtype: "button",
           text: "Proxy Monitor",
-          handler: function() {
+          handler: function () {
             me.mainPanel.getLayout().setActiveItem(0);
           },
           toggleGroup: me.id + "-ids-submodule",
-          allowDepress: false
+          allowDepress: false,
         },
         {
           xtype: "button",
           text: "Plot Creator",
-          handler: function() {
+          handler: function () {
             me.mainPanel.getLayout().setActiveItem(1);
           },
           toggleGroup: me.id + "-ids-submodule",
-          allowDepress: false
+          allowDepress: false,
         },
         {
           xtype: "button",
           text: "Plot Viewer",
-          handler: function() {
+          handler: function () {
             me.mainPanel.getLayout().setActiveItem(2);
           },
           toggleGroup: me.id + "-ids-submodule",
-          allowDepress: false
+          allowDepress: false,
         },
         {
           xtype: "button",
           text: "System overview plots",
-          handler: function() {
+          handler: function () {
             me.mainPanel.getLayout().setActiveItem(3);
           },
           toggleGroup: me.id + "-ids-submodule",
-          allowDepress: false
-        }
-      ]
+          allowDepress: false,
+        },
+      ],
     });
 
     oToolb.items.getAt(0).toggle();
@@ -104,7 +104,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       region: "center",
       header: false,
       border: false,
-      dockedItems: [oToolb]
+      dockedItems: [oToolb],
     });
 
     me.__buildActivityMonitor();
@@ -115,7 +115,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
     me.add([me.mainPanel]);
   },
 
-  __buildActivityMonitor: function() {
+  __buildActivityMonitor: function () {
     var me = this;
 
     me.activityMonitorDataStore = new Ext.data.JsonStore({
@@ -125,15 +125,15 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
         reader: {
           keepRawData: true,
           type: "json",
-          rootProperty: "result"
+          rootProperty: "result",
         },
-        timeout: 1800000
+        timeout: 1800000,
       },
       autoLoad: true,
       fields: [
         {
           name: "sources_id",
-          type: "int"
+          type: "int",
         },
         "sources_site",
         "sources_componentType",
@@ -141,7 +141,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
         "sources_componentName",
         {
           name: "activities_id",
-          type: "int"
+          type: "int",
         },
         "activities_name",
         "activities_category",
@@ -150,18 +150,18 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
         "activities_description",
         {
           name: "activities_bucketLength",
-          type: "int"
+          type: "int",
         },
         "activities_filename",
         {
           name: "activities_lastUpdate",
-          type: "float"
-        }
+          type: "float",
+        },
       ],
       remoteSort: true,
       pageSize: 100,
       listeners: {
-        load: function(oStore, records, successful, eOpts) {
+        load: function (oStore, records, successful, eOpts) {
           var bResponseOK = oStore.proxy.getReader().rawData["success"] == "true";
 
           if (!bResponseOK) {
@@ -171,14 +171,14 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
               me.dataStore.removeAll();
             }
           }
-        }
-      }
+        },
+      },
     });
 
     var oDeleteSelectedActivities = new Ext.Button({
       text: "Delete",
       iconCls: "dirac-icon-delete",
-      handler: function() {
+      handler: function () {
         var oElems = Ext.query("#" + me.activityMonitorPanel.id + " input.checkrow");
 
         var oItems = [];
@@ -193,15 +193,15 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
         Ext.Ajax.request({
           url: GLOBAL.BASE_URL + "ActivityMonitor/deleteActivities",
           params: {
-            ids: oItems.join(",")
+            ids: oItems.join(","),
           },
           scope: me,
-          success: function(response) {
+          success: function (response) {
             me.activityMonitorDataStore.store.load();
-          }
+          },
         });
       },
-      tooltip: "Click to delete all selected proxies"
+      tooltip: "Click to delete all selected proxies",
     });
 
     me.activityMonitorToolbar = Ext.create("Ext.toolbar.Paging", {
@@ -212,8 +212,8 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       prependButtons: true,
       emptyMsg: "No topics to display",
       layout: {
-        overflowHandler: "Scroller"
-      }
+        overflowHandler: "Scroller",
+      },
     });
 
     var sGridId = Ext.id();
@@ -233,7 +233,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       header: false,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       columns: [
         {
@@ -242,81 +242,81 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
           width: 26,
           sortable: false,
           dataIndex: "activities_id",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererChkBox(record);
           },
           hideable: false,
           fixed: true,
           menuDisabled: true,
-          align: "center"
+          align: "center",
         },
         {
           header: "Site",
           sortable: true,
-          dataIndex: "sources_site"
+          dataIndex: "sources_site",
         },
         {
           header: "Component Type",
           sortable: true,
-          dataIndex: "sources_componentType"
+          dataIndex: "sources_componentType",
         },
         {
           header: "Location",
           sortable: true,
           dataIndex: "sources_componentLocation",
-          flex: 1
+          flex: 1,
         },
         {
           header: "Component name",
           sortable: true,
           dataIndex: "sources_componentName",
-          flex: 1
+          flex: 1,
         },
         {
           header: "Activity name",
           sortable: true,
-          dataIndex: "activities_name"
+          dataIndex: "activities_name",
         },
         {
           header: "Category",
           sortable: true,
-          dataIndex: "activities_category"
+          dataIndex: "activities_category",
         },
         {
           header: "Unit",
           sortable: true,
-          dataIndex: "activities_unit"
+          dataIndex: "activities_unit",
         },
         {
           header: "Activity type",
           sortable: true,
-          dataIndex: "activities_type"
+          dataIndex: "activities_type",
         },
         {
           header: "Description",
           sortable: true,
-          dataIndex: "activities_description"
+          dataIndex: "activities_description",
         },
         {
           header: "Bucket size",
           sortable: true,
-          dataIndex: "activities_bucketLength"
+          dataIndex: "activities_bucketLength",
         },
         {
           header: "File",
           sortable: true,
-          dataIndex: "activities_filename"
+          dataIndex: "activities_filename",
         },
         {
           header: "Last update",
           sortable: true,
           dataIndex: "activities_lastUpdate",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.renderLastUpdate(value, metaData, record, row, col, store, gridView);
-          }
-        }
+          },
+        },
       ],
-      rendererChkBox: function(record) {
+      rendererChkBox: function (record) {
         return (
           '<input value="' +
           record.get("sources_id") +
@@ -325,7 +325,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
           '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>'
         );
       },
-      renderLastUpdate: function(value, metadata, record, rowIndex, colIndex, store) {
+      renderLastUpdate: function (value, metadata, record, rowIndex, colIndex, store) {
         var lastUpdated = record.data.activities_lastUpdate;
         var timeLimit = 86400 * 30;
         if (lastUpdated > timeLimit) lastUpdated = timeLimit;
@@ -333,7 +333,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
         var red = parseInt((200 * lastUpdated) / timeLimit);
         return '<span style="color: rgb(' + red + "," + green + ',0);">' + lastUpdated + "</span>";
       },
-      bbar: me.activityMonitorToolbar
+      bbar: me.activityMonitorToolbar,
     });
 
     me.htmlDescriptionVariables = "";
@@ -354,7 +354,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       ["$COMPONENTNAME", "Full name of component"],
       ["$COMPONENTLOCATION", "	Location of component"],
       ["$UNIT", "Activity unit"],
-      ["$CATEGORY", "Activity category"]
+      ["$CATEGORY", "Activity category"],
     ];
 
     for (var i = 0; i < oVariables.length; i++) {
@@ -373,7 +373,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
     me.mainPanel.add([me.activityMonitorPanel]);
   },
 
-  __buildPlotManagement: function() {
+  __buildPlotManagement: function () {
     var me = this;
 
     me.plotManagementMainPanel = new Ext.create("Ext.panel.Panel", {
@@ -384,8 +384,8 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       items: [],
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     var sGridId = Ext.id();
@@ -406,7 +406,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       header: false,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       columns: [
         {
@@ -415,46 +415,46 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
           width: 26,
           sortable: false,
           dataIndex: "id",
-          renderer: function(value, metaData, record, row, col, store, gridView) {
+          renderer: function (value, metaData, record, row, col, store, gridView) {
             return this.rendererChkBox(value);
           },
           hideable: false,
           fixed: true,
           menuDisabled: true,
-          align: "center"
+          align: "center",
         },
         {
           header: "Name",
           sortable: true,
           width: 300,
-          dataIndex: "name"
+          dataIndex: "name",
         },
         {
           header: "Variable Fields",
           sortable: true,
           dataIndex: "variable_fields",
-          flex: 1
-        }
+          flex: 1,
+        },
       ],
-      refreshData: function() {
+      refreshData: function () {
         Ext.Ajax.request({
           url: GLOBAL.BASE_URL + "ActivityMonitor/getStaticPlotViews",
           scope: me,
-          success: function(response) {
+          success: function (response) {
             var me = this;
             var response = Ext.JSON.decode(response.responseText);
 
             me.plotManagementListPanel.reconfigure(
               new Ext.data.ArrayStore({
                 fields: ["id", "name", "variable_fields"],
-                data: response.result
+                data: response.result,
               }),
               undefined
             );
-          }
+          },
         });
       },
-      rendererChkBox: function(val) {
+      rendererChkBox: function (val) {
         return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
       },
       dockedItems: [
@@ -468,12 +468,12 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
               xtype: "button",
               iconCls: "dirac-icon-delete",
               text: "Delete",
-              handler: function() {}
-            }
+              handler: function () {},
+            },
           ],
-          tooltip: "Delete selected views"
-        }
-      ]
+          tooltip: "Delete selected views",
+        },
+      ],
     });
 
     me.plotManagementListPanel.refreshData();
@@ -487,8 +487,8 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       header: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.viewDefinitionData = {};
@@ -508,7 +508,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
           xtype: "toolbar",
           border: false,
           layout: {
-            pack: "center"
+            pack: "center",
           },
           items: [
             "->",
@@ -516,7 +516,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
               xtype: "button",
               iconCls: "dirac-icon-plus",
               text: "Add to view definition",
-              handler: function() {
+              handler: function () {
                 var sTypeValue = me.restrictByFieldCreator.getValue();
                 var oSelectedValues = me.valuesFieldCreator.getValue();
 
@@ -530,7 +530,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
 
                   me.viewDefinitionData[sTypeText] = {
                     value: sTypeValue,
-                    checked: me.variableFieldCreator.getValue()
+                    checked: me.variableFieldCreator.getValue(),
                   };
 
                   if (me.variableFieldCreator.getValue()) me.viewDefinitionDataForServerVariable.push(sTypeValue);
@@ -538,7 +538,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
 
                   oNodeData = {
                     text: sTypeText,
-                    leaf: false
+                    leaf: false,
                   };
                   var oRoot = me.plotManagementViewTreeStore.getRootNode();
 
@@ -548,14 +548,14 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
                   if (me.variableFieldCreator.getValue()) {
                     var oNewNode = oTypeNode.createNode({
                       text: "variable value",
-                      leaf: true
+                      leaf: true,
                     });
                     oTypeNode.appendChild(oNewNode);
                   } else {
                     for (var i = 0; i < oSelectedValues.length; i++) {
                       var oNewNode = oTypeNode.createNode({
                         text: oSelectedValues[i],
-                        leaf: true
+                        leaf: true,
                       });
                       oTypeNode.appendChild(oNewNode);
                     }
@@ -575,11 +575,11 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
                 } else {
                   GLOBAL.APP.CF.alert("No values have been selected !", "warning");
                 }
-              }
-            }
-          ]
-        }
-      ]
+              },
+            },
+          ],
+        },
+      ],
     });
 
     me.restrictByFieldCreator = Ext.create("Ext.form.field.ComboBox", {
@@ -598,21 +598,21 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
           ["sources.componentLocation", "Component location"],
           ["sources.componentName", "Component name"],
           ["activities.description", "Activity"],
-          ["activities.category", "Activity category"]
-        ]
+          ["activities.category", "Activity category"],
+        ],
       }),
       value: null,
       listeners: {
-        change: function(oComp, sNewValue, sOldValue, eOpts) {
+        change: function (oComp, sNewValue, sOldValue, eOpts) {
           if (sNewValue != null && Ext.util.Format.trim(sNewValue) != "") {
             Ext.Ajax.request({
               url: GLOBAL.BASE_URL + "ActivityMonitor/queryFieldValue",
               params: {
                 queryField: sNewValue,
-                selectedFields: Ext.JSON.encode(me.viewDefinitionDataForServer)
+                selectedFields: Ext.JSON.encode(me.viewDefinitionDataForServer),
               },
               scope: me,
-              success: function(response) {
+              success: function (response) {
                 var response = Ext.JSON.decode(response.responseText);
 
                 if (response["success"] == "true") {
@@ -622,7 +622,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
 
                   for (var i = 0; i < oData.length; i++) {
                     me.valuesFieldCreator.store.add({
-                      value: Ext.util.Format.trim(oData[i][0])
+                      value: Ext.util.Format.trim(oData[i][0]),
                     });
                   }
 
@@ -630,11 +630,11 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
                 } else {
                   GLOBAL.APP.CF.alert(response["error"], "warning");
                 }
-              }
+              },
             });
           }
-        }
-      }
+        },
+      },
     });
 
     me.valuesFieldCreator = new Ext.ux.form.MultiSelect({
@@ -647,13 +647,13 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       height: 150,
       store: new Ext.data.ArrayStore({
         fields: ["value"],
-        data: []
-      })
+        data: [],
+      }),
     });
 
     me.variableFieldCreator = Ext.create("Ext.form.field.Checkbox", {
       fieldLabel: "Variable field",
-      labelAlign: "left"
+      labelAlign: "left",
     });
 
     me.plotManagementFieldCreator.add([me.restrictByFieldCreator, me.valuesFieldCreator, me.variableFieldCreator]);
@@ -673,20 +673,20 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
           xtype: "toolbar",
           border: false,
           layout: {
-            pack: "center"
+            pack: "center",
           },
           items: [
             "->",
             {
               xtype: "button",
               text: "Test View",
-              handler: function() {
+              handler: function () {
                 me.oprTestView();
-              }
-            }
-          ]
-        }
-      ]
+              },
+            },
+          ],
+        },
+      ],
     });
 
     me.checkGroupByViewOptions = new Ext.create("Ext.form.CheckboxGroup", {
@@ -696,53 +696,53 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
         {
           boxLabel: "Site",
           name: "rb",
-          inputValue: "sources.site"
+          inputValue: "sources.site",
         },
         {
           boxLabel: "Component type",
           name: "rb",
           inputValue: "sources.componentType",
-          checked: true
+          checked: true,
         },
         {
           boxLabel: "Component location",
           name: "rb",
-          inputValue: "sources.componentLocation"
+          inputValue: "sources.componentLocation",
         },
         {
           boxLabel: "Component name",
           name: "rb",
-          inputValue: "sources.componentName"
+          inputValue: "sources.componentName",
         },
         {
           boxLabel: "Activity",
           name: "rb",
-          inputValue: "activities.description"
+          inputValue: "activities.description",
         },
         {
           boxLabel: "Activity category",
           name: "rb",
-          inputValue: "activities.category"
-        }
-      ]
+          inputValue: "activities.category",
+        },
+      ],
     });
 
     me.txtActivityLabelViewOptions = Ext.create("Ext.form.field.Text", {
       fieldLabel: "Activities label",
       labelAlign: "left",
       value: "$DESCRIPTION",
-      anchor: "100%"
+      anchor: "100%",
     });
 
     me.txtViewNameViewOptions = Ext.create("Ext.form.field.Text", {
       fieldLabel: "View name",
       labelAlign: "left",
-      anchor: "100%"
+      anchor: "100%",
     });
 
     me.txtStackActivityViewOptions = Ext.create("Ext.form.field.Checkbox", {
       fieldLabel: "Stack activities",
-      labelAlign: "left"
+      labelAlign: "left",
     });
 
     me.plotManagementViewOptions.add([
@@ -751,11 +751,11 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
         columnWidth: 0.5,
         title: "Group plots by",
         collapsible: true,
-        items: [me.checkGroupByViewOptions]
+        items: [me.checkGroupByViewOptions],
       },
       me.txtActivityLabelViewOptions,
       me.txtStackActivityViewOptions,
-      me.txtViewNameViewOptions
+      me.txtViewNameViewOptions,
     ]);
 
     // -------------------------------------------------------------------------------------
@@ -767,7 +767,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
           text: "Delete",
           iconCls: "dirac-icon-delete",
           listeners: {
-            click: function() {
+            click: function () {
               var oNode = me.contextTreeMenu.node;
 
               if (oNode.isLeaf()) {
@@ -778,7 +778,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
 
               me.restrictByFieldCreator.store.add({
                 value: me.viewDefinitionData[sType].value,
-                text: sType
+                text: sType,
               });
 
               if (me.viewDefinitionData[sType].value in me.viewDefinitionDataForServer) {
@@ -791,21 +791,21 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
 
               var oParentNode = oNode.parentNode;
               oParentNode.removeChild(oNode);
-            }
-          }
-        }
+            },
+          },
+        },
       ],
-      moduleObject: me
+      moduleObject: me,
     });
 
     me.plotManagementViewTreeStore = Ext.create("Ext.data.TreeStore", {
       proxy: {
         type: "localstorage",
-        id: me.id + "treeStoreLocalStorage"
+        id: me.id + "treeStoreLocalStorage",
       },
       root: {
-        text: "View Definition"
-      }
+        text: "View Definition",
+      },
     });
 
     me.plotManagementViewTree = new Ext.create("Ext.tree.Panel", {
@@ -813,14 +813,14 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       store: me.plotManagementViewTreeStore,
       header: false,
       listeners: {
-        beforeitemcontextmenu: function(oView, oNode, item, index, e, eOpts) {
+        beforeitemcontextmenu: function (oView, oNode, item, index, e, eOpts) {
           e.preventDefault();
           if (oNode.data.id != "root") {
             me.contextTreeMenu.node = oNode;
             me.contextTreeMenu.showAt(e.getXY());
           }
-        }
-      }
+        },
+      },
     });
 
     // -------------------------------------------------------------------------------------
@@ -830,7 +830,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
     me.mainPanel.add(me.plotManagementMainPanel);
   },
 
-  __buildPlotViewer: function() {
+  __buildPlotViewer: function () {
     var me = this;
 
     me.plotViewerMainPanel = new Ext.create("Ext.panel.Panel", {
@@ -840,25 +840,25 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       border: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "ActivityMonitor/getStaticPlotViews",
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var me = this;
         var response = Ext.JSON.decode(response.responseText);
 
         me.plotViewerListPanel.reconfigure(
           new Ext.data.ArrayStore({
             fields: ["id", "name", "variable_fields"],
-            data: response.result
+            data: response.result,
           }),
           undefined
         );
-      }
+      },
     });
 
     me.plotViewerListPanel = Ext.create("Ext.grid.Panel", {
@@ -870,25 +870,25 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       stateId: "ActivityViewList",
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       columns: [
         {
           header: "Click on a view to plot it",
           sortable: true,
           dataIndex: "name",
-          flex: 1
-        }
+          flex: 1,
+        },
       ],
       listeners: {
-        cellclick: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        cellclick: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           me.plotViewerResultPanel.removeAll();
 
           var oNewPlots = me.__buildPlotView(record.get("name"), "");
 
           me.plotViewerResultPanel.add(oNewPlots);
-        }
-      }
+        },
+      },
     });
 
     me.plotViewerResultPanel = new Ext.create("Ext.panel.Panel", {
@@ -897,14 +897,14 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       layout: "border",
       header: false,
       border: false,
-      items: []
+      items: [],
     });
 
     me.plotViewerMainPanel.add([me.plotViewerListPanel, me.plotViewerResultPanel]);
     me.mainPanel.add([me.plotViewerMainPanel]);
   },
 
-  __buildPlotView: function(sViewId, sVariableData) {
+  __buildPlotView: function (sViewId, sVariableData) {
     var me = this;
 
     var oMainPanel = new Ext.create("Ext.panel.Panel", {
@@ -913,7 +913,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       layout: "border",
       header: false,
       items: [],
-      viewId: sViewId
+      viewId: sViewId,
     });
 
     var oLeftPanel = new Ext.create("Ext.panel.Panel", {
@@ -923,7 +923,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       layout: "anchor",
       width: 300,
       bodyPadding: 10,
-      items: []
+      items: [],
     });
 
     var oRightPanel = new Ext.create("Ext.panel.Panel", {
@@ -933,8 +933,8 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       autoScroll: true,
       layout: {
         type: "table",
-        columns: 1
-      }
+        columns: 1,
+      },
     });
 
     var oCalenFrom = new Ext.create("Ext.form.field.Date", {
@@ -943,7 +943,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       fieldLabel: "From",
       labelAlign: "left",
       hidden: true,
-      anchor: "100%"
+      anchor: "100%",
     });
 
     var oCalenTo = new Ext.create("Ext.form.field.Date", {
@@ -952,7 +952,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       fieldLabel: "To",
       labelAlign: "left",
       hidden: true,
-      anchor: "100%"
+      anchor: "100%",
     });
 
     var oTimeSpan = new Ext.create("Ext.form.field.ComboBox", {
@@ -966,15 +966,15 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
           [86400, "Last Day"],
           [604800, "Last Week"],
           [2592000, "Last Month"],
-          [-1, "Manual Selection"]
-        ]
+          [-1, "Manual Selection"],
+        ],
       }),
       displayField: "text",
       valueField: "value",
       anchor: "100%",
       value: 86400,
       listeners: {
-        change: function(field, newValue, oldValue, eOpts) {
+        change: function (field, newValue, oldValue, eOpts) {
           oCalenFrom.hide();
           oCalenTo.hide();
 
@@ -984,8 +984,8 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
               oCalenTo.show();
               break;
           }
-        }
-      }
+        },
+      },
     });
 
     var oPlotSize = new Ext.create("Ext.form.field.ComboBox", {
@@ -998,13 +998,13 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
           [0, "Small"],
           [1, "Medium"],
           [2, "Big"],
-          [3, "Very Big"]
-        ]
+          [3, "Very Big"],
+        ],
       }),
       displayField: "text",
       valueField: "value",
       anchor: "100%",
-      value: 1
+      value: 1,
     });
 
     oLeftPanel.add([oTimeSpan, oCalenFrom, oCalenTo, oPlotSize]);
@@ -1013,16 +1013,16 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       dock: "bottom",
       border: false,
       layout: {
-        pack: "center"
+        pack: "center",
       },
-      items: []
+      items: [],
     });
 
     var oSubmitBtn = new Ext.Button({
       text: "Submit",
       margin: 3,
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         oRightPanel.setLoading(true);
         var oParams = {};
         var bValid = true;
@@ -1058,7 +1058,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
             url: GLOBAL.BASE_URL + "ActivityMonitor/plotView",
             params: oParams,
             scope: me,
-            success: function(response) {
+            success: function (response) {
               oRightPanel.setLoading(false);
               var me = this;
               var response = Ext.JSON.decode(response.responseText);
@@ -1071,7 +1071,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
                   for (var i = 0; i < plotsList.length; i++) {
                     var oNewImage = Ext.create("Ext.Img", {
                       region: "center",
-                      src: GLOBAL.BASE_URL + "ActivityMonitor/getPlotImg?file=" + plotsList[i]
+                      src: GLOBAL.BASE_URL + "ActivityMonitor/getPlotImg?file=" + plotsList[i],
                     });
 
                     oRightPanel.add(oNewImage);
@@ -1080,17 +1080,17 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
               } else {
                 GLOBAL.APP.CF.alert(response.error, "warning");
               }
-            }
+            },
           });
         }
-      }
+      },
     });
 
     var oResetBtn = new Ext.Button({
       text: "Reset",
       margin: 3,
       iconCls: "dirac-icon-reset",
-      handler: function() {}
+      handler: function () {},
     });
 
     oToolbar.add([oSubmitBtn, oResetBtn]);
@@ -1102,7 +1102,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
     return oMainPanel;
   },
 
-  generateViewRequest: function() {
+  generateViewRequest: function () {
     var me = this;
 
     if (me.viewDefinitionDataForServer.length == 0) {
@@ -1126,11 +1126,11 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       definition: me.viewDefinitionDataForServer,
       variable: me.viewDefinitionDataForServerVariable,
       stacked: bStack,
-      label: sActDesc
+      label: sActDesc,
     });
   },
 
-  oprTestView: function() {
+  oprTestView: function () {
     var me = this;
 
     var sViewRequest = me.generateViewRequest();
@@ -1147,7 +1147,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
     me.getContainer().body.mask("Wait ...");
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "ActivityMonitor/tryView",
-      success: function(response) {
+      success: function (response) {
         var response = Ext.JSON.decode(response.responseText);
 
         if (response.success == "true") {
@@ -1162,7 +1162,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
               autoScroll: true,
               layout: {
                 type: "table",
-                columns: 1
+                columns: 1,
               },
               dockedItems: [
                 {
@@ -1172,7 +1172,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
                     {
                       xtype: "button",
                       text: "Save view",
-                      handler: function() {
+                      handler: function () {
                         var sViewRequest = me.generateViewRequest();
 
                         if (!sViewRequest) return;
@@ -1187,7 +1187,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
                         me.getContainer().body.mask("Wait ...");
                         Ext.Ajax.request({
                           url: GLOBAL.BASE_URL + "ActivityMonitor/saveView",
-                          success: function(response) {
+                          success: function (response) {
                             var response = Ext.JSON.decode(response.responseText);
 
                             if (response.success == "true") {
@@ -1198,25 +1198,25 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
 
                             me.getContainer().body.unmask();
                           },
-                          failure: function(oRequest) {
+                          failure: function (oRequest) {
                             GLOBAL.APP.CF.showAjaxErrorMessage(response);
                             me.getContainer().body.unmask();
                           },
                           params: {
                             plotRequest: sViewRequest,
-                            viewName: sViewName
-                          }
+                            viewName: sViewName,
+                          },
                         });
-                      }
-                    }
-                  ]
-                }
-              ]
+                      },
+                    },
+                  ],
+                },
+              ],
             });
 
             for (var i = 0; i < plotsList.length; i++) {
               var oNewImage = Ext.create("Ext.Img", {
-                src: GLOBAL.BASE_URL + "ActivityMonitor/getPlotImg?file=" + plotsList[i]
+                src: GLOBAL.BASE_URL + "ActivityMonitor/getPlotImg?file=" + plotsList[i],
               });
 
               oPlotContainer.add(oNewImage);
@@ -1231,18 +1231,18 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
         }
         me.getContainer().body.unmask();
       },
-      failure: function(oRequest) {
+      failure: function (oRequest) {
         GLOBAL.APP.CF.alert("Error: " + oRequest.statusText, "warning");
         me.getContainer().body.unmask();
       },
       params: {
         plotRequest: sViewRequest,
         timeLength: "day",
-        viewName: sViewName
-      }
+        viewName: sViewName,
+      },
     });
   },
-  __buildSystemViewer: function() {
+  __buildSystemViewer: function () {
     var me = this;
 
     me.systemPlotViewerMainPanel = new Ext.create("Ext.panel.Panel", {
@@ -1252,8 +1252,8 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       border: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.systemPlotsTreeStore = Ext.create("Ext.data.TreeStore", {
@@ -1262,29 +1262,29 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       scope: me,
       proxy: {
         type: "ajax",
-        url: GLOBAL.BASE_URL + "ActivityMonitor/getDynamicPlotViews"
+        url: GLOBAL.BASE_URL + "ActivityMonitor/getDynamicPlotViews",
       },
       root: {
         text: "/",
         id: "/Systems",
-        expanded: true
+        expanded: true,
       },
       folderSort: true,
       sorters: [
         {
           property: "text",
-          direction: "ASC"
-        }
+          direction: "ASC",
+        },
       ],
       listeners: {
-        collapse: function(oNode, eOpts) {
+        collapse: function (oNode, eOpts) {
           me.__oprUnsetPathAsExpanded(me.__getNodePath(oNode), true);
         },
-        expand: function(oNode, eOpts) {
+        expand: function (oNode, eOpts) {
           me.__oprPathAsExpanded(me.__getNodePath(oNode), true);
         },
-        scope: me
-      }
+        scope: me,
+      },
     });
 
     me.systemPlotViewerTreePanel = Ext.create("Ext.tree.TreePanel", {
@@ -1292,19 +1292,19 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       width: 250,
       store: me.systemPlotsTreeStore,
       listeners: {
-        itemclick: function(record, item, index, e, eOpts) {
+        itemclick: function (record, item, index, e, eOpts) {
           console.log(record);
           if (item.get("component") != "") {
             me.systemPlotViewerResultPanel.removeAll();
             var varData = {
-              "sources.componentName": item.get("component")
+              "sources.componentName": item.get("component"),
             };
             var oNewPlots = me.__buildPlotView("Dynamic component view", varData);
 
             me.systemPlotViewerResultPanel.add(oNewPlots);
           }
-        }
-      }
+        },
+      },
     });
 
     me.systemPlotViewerResultPanel = new Ext.create("Ext.panel.Panel", {
@@ -1313,13 +1313,13 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
       layout: "border",
       header: false,
       border: false,
-      items: []
+      items: [],
     });
 
     me.systemPlotViewerMainPanel.add([me.systemPlotViewerTreePanel, me.systemPlotViewerResultPanel]);
     me.mainPanel.add([me.systemPlotViewerMainPanel]);
   },
-  __oprUnsetPathAsExpanded: function(sPath) {
+  __oprUnsetPathAsExpanded: function (sPath) {
     var me = this;
     var oParts = sPath.split("/");
 
@@ -1340,7 +1340,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
     }
   },
 
-  __oprPathAsExpanded: function(sPath, bInsertIntoStructure) {
+  __oprPathAsExpanded: function (sPath, bInsertIntoStructure) {
     var me = this;
     var oParts = sPath.split("/");
 
@@ -1368,7 +1368,7 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
 
     return oFound;
   },
-  __getNodePath: function(oNode) {
+  __getNodePath: function (oNode) {
     var sPath = "";
     var oCopyRefNode = oNode;
     while (oCopyRefNode) {
@@ -1378,5 +1378,5 @@ Ext.define("DIRAC.ActivityMonitor.classes.ActivityMonitor", {
     }
     if (!sPath) return "/";
     return sPath;
-  }
+  },
 });

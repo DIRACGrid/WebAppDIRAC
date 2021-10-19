@@ -3,7 +3,7 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
 
   requires: ["Ext.grid.Panel", "Ext.dirac.utils.DiracBaseSelector", "DIRAC.ApplicationWizard.classes.Presenter"],
 
-  loadState: function(states) {
+  loadState: function (states) {
     var me = this;
     me.leftPanel.loadState(states);
     if (states.leftPanelCollapsed) {
@@ -11,17 +11,17 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
     }
     me.presenterView.loadState(states.pData);
   },
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var data = {
       leftMenu: me.leftPanel.getStateData(),
       pData: me.presenterView.getStateData(),
-      leftPanelCollapsed: me.leftPanel.collapsed
+      leftPanelCollapsed: me.leftPanel.collapsed,
     };
     return data;
   },
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
@@ -53,13 +53,13 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
     Ext.apply(me, {
       layout: {
         type: "hbox",
-        align: "stretch"
+        align: "stretch",
       },
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: false
-      }
+        split: false,
+      },
     });
 
     me.callParent(arguments);
@@ -67,25 +67,25 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
   /**
    * It build the widget.
    */
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     var textFields = {
       link: {
         name: "Page url",
-        type: "originalText"
+        type: "originalText",
       },
       src: {
         name: "Image url",
-        type: "originalText"
+        type: "originalText",
       },
       title: {
         name: "Title",
         type: "originalText",
         properties: {
-          canDisable: false
-        }
-      }
+          canDisable: false,
+        },
+      },
     };
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -93,23 +93,23 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
       textFields: textFields,
       hasTimeSearchPanel: false,
       panelButtons: false,
-      collapseDirection: "left"
+      collapseDirection: "left",
     });
 
     // Buttons at the bottom of the panel
     var leftPanelButtons = new Ext.create("Ext.toolbar.Toolbar", {
       dock: "bottom",
       layout: {
-        pack: "center"
+        pack: "center",
       },
-      items: []
+      items: [],
     });
 
     var addButton = new Ext.Button({
       text: "Add",
       margin: 3,
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         var urls = me.leftPanel.getSelectionData();
         var title = Ext.JSON.decode(urls["title"]);
         if (title.length > 0) {
@@ -122,18 +122,18 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
         if (link && link.length > 0) {
           plotParams = {
             link: link[0],
-            title: title
+            title: title,
           };
           me.presenterView.addLinks([plotParams]);
         } else {
           plotParams = {
             src: Ext.JSON.decode(urls["src"])[0],
-            title: title
+            title: title,
           };
           me.presenterView.addImages([plotParams]);
         }
       },
-      scope: me
+      scope: me,
     });
 
     leftPanelButtons.add(addButton);
@@ -142,10 +142,10 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
       text: "Reset",
       margin: 3,
       iconCls: "dirac-icon-reset",
-      handler: function() {
+      handler: function () {
         me.leftPanel.oprResetSelectionOptions();
       },
-      scope: me
+      scope: me,
     });
 
     leftPanelButtons.add(resetButton);
@@ -155,7 +155,7 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
       tooltip: "It updates the selected image.",
       margin: 3,
       iconCls: "dirac-icon-upload",
-      handler: function() {
+      handler: function () {
         var urls = me.leftPanel.getSelectionData();
         var link = Ext.JSON.decode(urls["link"]);
         if (link.length > 0) {
@@ -165,7 +165,7 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
           if (me.presenterView.clickedPanel.linkToLoad != link) {
             me.presenterView.clickedPanel.linkToLoad = link;
             me.presenterView.clickedPanel.items.getAt(0).el.set({
-              src: link
+              src: link,
             });
           }
         } else {
@@ -180,27 +180,27 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
               columnWidth: image.columnWidth,
               plotParams: {
                 src: src,
-                title: title
+                title: title,
               },
               title: title,
               src: src,
               listeners: {
-                render: function() {
+                render: function () {
                   var me = this;
                   me.el.on({
-                    load: function(evt, ele, opts) {
+                    load: function (evt, ele, opts) {
                       me.setLoading(false);
-                    }
+                    },
                   });
-                }
-              }
+                },
+              },
             });
 
             me.presenterView.presenter.replaceImg(image, newImage);
           }
         }
       },
-      scope: me
+      scope: me,
     });
 
     leftPanelButtons.add(applyButton);
@@ -209,9 +209,9 @@ Ext.define("DIRAC.ApplicationWizard.classes.ApplicationWizard", {
 
     me.presenterView = Ext.create("DIRAC.ApplicationWizard.classes.Presenter", {
       parent: me,
-      flex: 2
+      flex: 2,
     });
 
     me.add([me.leftPanel, me.presenterView]);
-  }
+  },
 });

@@ -1,14 +1,14 @@
 Ext.define("DIRAC.PublicStateManager.classes.PublicStateManager", {
   extend: "Ext.dirac.core.Module",
   requires: ["DIRAC.PublicStateManager.classes.MenuGrid"],
-  loadState: function(data) {},
-  getStateData: function() {
+  loadState: function (data) {},
+  getStateData: function () {
     var me = this;
     var states = {};
 
     return states;
   },
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     if (GLOBAL.VIEW_ID == "desktop") {
@@ -41,40 +41,40 @@ Ext.define("DIRAC.PublicStateManager.classes.PublicStateManager", {
       layout: "fit",
       defaults: {
         collapsible: false,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     me.leftPanel = Ext.create("DIRAC.PublicStateManager.classes.MenuGrid", {
       collapsible: false,
       store: me.treeStore,
-      region: "center"
+      region: "center",
     });
 
     var panelButtons = new Ext.create("Ext.toolbar.Toolbar", {
       dock: "top",
       layout: {
-        pack: "left"
+        pack: "left",
       },
-      items: []
+      items: [],
     });
 
     var refreshButton = new Ext.Button({
       text: "refresh",
       margin: 3,
       iconCls: "dirac-icon-refresh",
-      handler: function() {
+      handler: function () {
         var me = this;
         me.leftPanel.store.load();
         me.leftPanel.setLoading(true);
       },
-      scope: me
+      scope: me,
     });
 
     panelButtons.add(refreshButton);
@@ -83,5 +83,5 @@ Ext.define("DIRAC.PublicStateManager.classes.PublicStateManager", {
 
     me.add([me.leftPanel]);
     me.leftPanel.setLoading(true);
-  }
+  },
 });

@@ -21,7 +21,7 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
   beforeChange: null,
   activeTab: null,
   defaults: {
-    layout: "fit"
+    layout: "fit",
   },
   childWindows: [],
   isOpen: false,
@@ -32,17 +32,17 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
    */
   appClassName: null,
   listeners: {
-    beforeclose: function(panel, eOpts) {
+    beforeclose: function (panel, eOpts) {
       var me = this;
       if (!panel.hasChanged()) return;
       Ext.MessageBox.confirm(
         "Confirm",
         "The application has changed. Do you want to save the application?",
-        function(button) {
+        function (button) {
           var me = this;
           if (button == "yes") {
             Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._default_desktop_state, me.getUrlDescription());
-            var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+            var funcAfterSave = function (iCode, sAppName, sStateType, sStateName) {
               if (iCode == 1 && me.currentState != sStateName) {
                 GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(sStateName, sAppName);
 
@@ -72,7 +72,7 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
       );
       return false;
     },
-    render: function(oElem, eOpts) {
+    render: function (oElem, eOpts) {
       var me = this;
       if (me.activeTab) {
         me.activeTab.setLoading(false);
@@ -84,7 +84,7 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
        * 'mouseout', function(event, html, eOpts) { if (!me.isOpen) {
        * me.header.hide(); } }, me); }
        */
-    }
+    },
   },
   /*************************************************************************
    * It removes the application from the container (view) when it is not
@@ -92,11 +92,9 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
    *
    * @param{Object} panel the object which needs to be removed.
    */
-  removeAndclose: function(panel) {
+  removeAndclose: function (panel) {
     var me = this;
-    var activeTab = GLOBAL.APP.MAIN_VIEW.getRightContainer()
-      .getApplicationContainer()
-      .getActiveTab();
+    var activeTab = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer().getActiveTab();
     if (activeTab) {
       if (activeTab.view == "presenterView") {
         // the activeTab is
@@ -111,12 +109,12 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
 
     GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
   },
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.loadMask = new Ext.LoadMask({
       target: me,
-      msg: "Loading ..."
+      msg: "Loading ...",
     });
 
     if (me.loadedObjectType == "app") {
@@ -131,9 +129,9 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
           xtype: "component",
           autoEl: {
             tag: "iframe",
-            src: me.linkToLoad
-          }
-        }
+            src: me.linkToLoad,
+          },
+        },
       ];
       me.appClassName = "link";
     }
@@ -147,13 +145,13 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
   /**
    * It returns the class name of the application
    */
-  getClassName: function() {
+  getClassName: function () {
     return this.appClassName;
   },
-  getAppClassName: function() {
+  getAppClassName: function () {
     return this.appClassName;
   },
-  loadData: function() {
+  loadData: function () {
     var me = this;
     if (!me.oneTimeAfterShow) {
       if (me.loadedObjectType == "app") {
@@ -172,10 +170,10 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
       me.oneTimeAfterShow = true;
     }
   },
-  setPropertiesWhenLink: function(data) {
+  setPropertiesWhenLink: function (data) {
     return;
   },
-  setLoadedObject: function(setupData, loadState) {
+  setLoadedObject: function (setupData, loadState) {
     var me = this;
     // if there is a state to load, we load that state
     if (setupData.stateToLoad && setupData.stateToLoad != "Default") {
@@ -213,7 +211,7 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
     // making relation between the application and the window container
     me.loadedObject.setContainer(me);
   },
-  oprLoadAppStateFromCache: function(stateName, loadState, desktopName) {
+  oprLoadAppStateFromCache: function (stateName, loadState, desktopName) {
     var me = this;
 
     var oState = null;
@@ -274,7 +272,7 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
    * Function to close all child windows
    *
    */
-  closeAllChildWindows: function() {
+  closeAllChildWindows: function () {
     var me = this;
 
     for (var i = me.childWindows.length - 1; i >= 0; i--) me.childWindows[i].close();
@@ -286,7 +284,7 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
    * @param {String}
    *          stateName The name of the state
    */
-  createChildWindow: function(sTitle, oModal, oWidth, oHeight) {
+  createChildWindow: function (sTitle, oModal, oWidth, oHeight) {
     var me = this;
 
     var oWindow = GLOBAL.APP.MAIN_VIEW.getRightContainer().createModalWindow({
@@ -296,7 +294,7 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
       modal: oModal,
       parentWindow: me,
       isChildWindow: true,
-      iconCls: "system_child_window"
+      iconCls: "system_child_window",
     });
 
     me.childWindows.push(oWindow);
@@ -307,7 +305,7 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
    * Function to get the data describing the state of the window at the
    * desktop area
    */
-  getUrlDescription: function() {
+  getUrlDescription: function () {
     var me = this;
 
     if (me.loadedObjectType == "link") return "";
@@ -317,7 +315,7 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
 
     return urlState;
   },
-  hasChanged: function() {
+  hasChanged: function () {
     var me = this,
       data = null;
     var changed = false;
@@ -327,13 +325,13 @@ Ext.define("Ext.dirac.views.tabs.Panel", {
     }
     return changed;
   },
-  afterShow: function() {
+  afterShow: function () {
     var me = this;
     Ext.defer(me.storeState, 2000, me);
   },
-  storeState: function() {
+  storeState: function () {
     var me = this;
     if (Ext.Ajax.isLoading()) me.afterShow();
     else if (!me.beforeChange) me.beforeChange = me.loadedObject.getStateData();
-  }
+  },
 });

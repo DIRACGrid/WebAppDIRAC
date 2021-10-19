@@ -8,61 +8,61 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
     "Ext.dirac.utils.DiracApplicationContextMenu",
     "Ext.dirac.utils.DiracGridPanel",
     "Ext.dirac.utils.DiracRowExpander",
-    "DIRAC.ResourceSummary.classes.OverviewPanel"
+    "DIRAC.ResourceSummary.classes.OverviewPanel",
   ],
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.grid.loadState(data);
 
     me.leftPanel.loadState(data);
   },
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     var oStates = {
       grid: me.grid.getStateData(),
-      leftMenu: me.leftPanel.getStateData()
+      leftMenu: me.leftPanel.getStateData(),
     };
 
     return oStates;
   },
   dataFields: [
     {
-      name: "Name"
+      name: "Name",
     },
     {
-      name: "Status"
+      name: "Status",
     },
     {
-      name: "Reason"
+      name: "Reason",
     },
     {
       name: "DateEffective",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
       name: "TokenExpiration",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "ElementType"
+      name: "ElementType",
     },
     {
-      name: "StatusType"
+      name: "StatusType",
     },
     {
       name: "LastCheckTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "TokenOwner"
-    }
+      name: "TokenOwner",
+    },
   ],
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.launcher.title = "Resource Summary";
@@ -83,13 +83,13 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     var selectors = {
@@ -97,7 +97,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       elementType: "ResourceType",
       status: "Status",
       statusType: "StatusType",
-      tokenOwner: "TokenOwner"
+      tokenOwner: "TokenOwner",
     };
 
     var map = [
@@ -105,7 +105,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       ["elementType", "elementType"],
       ["status", "status"],
       ["statusType", "statusType"],
-      ["tokenOwner", "tokenOwner"]
+      ["tokenOwner", "tokenOwner"],
     ];
 
     me.leftPanel = new Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -113,7 +113,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       cmbSelectors: selectors,
       datamap: map,
       hasTimeSearchPanel: false,
-      url: "ResourceSummary/getSelectionData"
+      url: "ResourceSummary/getSelectionData",
     });
 
     /*
@@ -122,19 +122,19 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
      * -----------------------------------------------------------------------------------------------------------
      */
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + "ResourceSummary/getResourceSummaryData"
+      url: GLOBAL.BASE_URL + "ResourceSummary/getResourceSummaryData",
     });
 
     me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
       proxy: oProxy,
       fields: me.dataFields,
-      scope: me
+      scope: me,
     });
 
     var pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
       store: me.dataStore,
       scope: me,
-      value: 100
+      value: 100,
     });
 
     var oColumns = {
@@ -145,56 +145,56 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           sortable: false,
           hideable: false,
           fixed: true,
-          menuDisabled: true
+          menuDisabled: true,
         },
-        renderFunction: "rendererStatus"
+        renderFunction: "rendererStatus",
       },
       Name: {
         dataIndex: "Name",
         properties: {
-          fixed: false
-        }
+          fixed: false,
+        },
       },
       ResourceType: {
-        dataIndex: "ElementType"
+        dataIndex: "ElementType",
       },
       StatusType: {
         dataIndex: "StatusType",
         properties: {
           width: 60,
-          sortable: false
-        }
+          sortable: false,
+        },
       },
       Status: {
-        dataIndex: "Status"
+        dataIndex: "Status",
       },
       Reason: {
-        dataIndex: "Reason"
+        dataIndex: "Reason",
       },
       DateEffective: {
         dataIndex: "DateEffective",
         properties: {
-          sortable: true
-        }
+          sortable: true,
+        },
       },
       LastCheckTime: {
         dataIndex: "LastCheckTime",
         properties: {
-          sortable: true
-        }
+          sortable: true,
+        },
       },
       TokenOwner: {
         dataIndex: "TokenOwner",
         properties: {
-          sortable: true
-        }
+          sortable: true,
+        },
       },
       TokenExpiration: {
         dataIndex: "TokenExpiration",
         properties: {
-          sortable: true
-        }
-      }
+          sortable: true,
+        },
+      },
     };
 
     var statusSubmenu = {
@@ -204,34 +204,34 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           handler: me.__oprSetResources,
           arguments: ["setStatus", "Active"],
           properties: {
-            tooltip: "Click to activate the resource."
-          }
+            tooltip: "Click to activate the resource.",
+          },
         },
         {
           text: "Degraded",
           handler: me.__oprSetResources,
           arguments: ["setStatus", "Degraded"],
           properties: {
-            tooltip: "Click to set degraded the resource."
-          }
+            tooltip: "Click to set degraded the resource.",
+          },
         },
         {
           text: "Probing",
           handler: me.__oprSetResources,
           arguments: ["setStatus", "Probing"],
           properties: {
-            tooltip: "Click to set probing the resource."
-          }
+            tooltip: "Click to set probing the resource.",
+          },
         },
         {
           text: "Banned",
           handler: me.__oprSetResources,
           arguments: ["setStatus", "Banned"],
           properties: {
-            tooltip: "Click to set banned the resource."
-          }
-        }
-      ]
+            tooltip: "Click to set banned the resource.",
+          },
+        },
+      ],
     };
     var tokenSubmenu = {
       Visible: [
@@ -240,18 +240,18 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           handler: me.__oprSetResources,
           arguments: ["setToken", "Acquire"],
           properties: {
-            tooltip: "Click to acquire the resource."
-          }
+            tooltip: "Click to acquire the resource.",
+          },
         },
         {
           text: "Release",
           handler: me.__oprSetResources,
           arguments: ["setToken", "Release"],
           properties: {
-            tooltip: "Click to release the resource."
-          }
-        }
-      ]
+            tooltip: "Click to release the resource.",
+          },
+        },
+      ],
     };
     var menuitems = {
       Visible: [
@@ -259,45 +259,45 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           text: "Overview",
           handler: me.__oprShowEditor,
           properties: {
-            tooltip: "Click to show the jobs which belong to the selected request."
-          }
+            tooltip: "Click to show the jobs which belong to the selected request.",
+          },
         },
         {
-          text: "-" // separator
+          text: "-", // separator
         },
         {
           text: "History",
           handler: me.__oprOnResourceSummaryData,
           arguments: ["History"],
           properties: {
-            tooltip: "Click to show the history of the selected resource."
-          }
+            tooltip: "Click to show the history of the selected resource.",
+          },
         },
         {
           text: "Policies",
           handler: me.__oprOnResourceSummaryData,
           arguments: ["Policies"],
           properties: {
-            tooltip: "Click to show the policies of the selected resource."
-          }
+            tooltip: "Click to show the policies of the selected resource.",
+          },
         },
         {
-          text: "-" // separator
+          text: "-", // separator
         },
         {
           text: "Set status",
-          subMenu: statusSubmenu
+          subMenu: statusSubmenu,
         },
         {
           text: "Set token",
-          subMenu: tokenSubmenu
-        }
-      ]
+          subMenu: tokenSubmenu,
+        },
+      ],
     };
 
     me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
       menu: menuitems,
-      scope: me
+      scope: me,
     });
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
@@ -315,16 +315,16 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
         {
           ptype: "diracrowexpander",
           containValue: {
-            StatusType: "elements"
+            StatusType: "elements",
           },
-          rowBodyTpl: ['<div id="expanded-Grid-{Name}"> </div>']
-        }
-      ]
+          rowBodyTpl: ['<div id="expanded-Grid-{Name}"> </div>'],
+        },
+      ],
     });
 
     me.leftPanel.setGrid(me.grid);
 
-    me.grid.view.on("expandbody", function(rowNode, record, expandbody) {
+    me.grid.view.on("expandbody", function (rowNode, record, expandbody) {
       var targetId = "expanded-Grid-" + record.get("Name");
       if (Ext.getCmp(targetId + "_grid") != null) {
         Ext.destroy(Ext.getCmp(targetId + "_grid"));
@@ -332,10 +332,10 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
 
       if (Ext.getCmp(targetId + "_grid") == null) {
         var params = {
-          name: Ext.JSON.encode([record.data.Name])
+          name: Ext.JSON.encode([record.data.Name]),
         };
         var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-          url: GLOBAL.BASE_URL + "ResourceSummary/expand"
+          url: GLOBAL.BASE_URL + "ResourceSummary/expand",
         });
         oProxy.extraParams = params;
         var expandStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -343,7 +343,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           fields: me.dataFields,
           scope: me,
           autoLoad: true,
-          dontLoadOnCreation: true
+          dontLoadOnCreation: true,
         });
 
         me.grid.expandedGridPanel = Ext.create("Ext.grid.Panel", {
@@ -356,7 +356,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           store: expandStore,
           viewConfig: {
             stripeRows: true,
-            enableTextSelection: true
+            enableTextSelection: true,
           },
           columns: [
             {
@@ -365,7 +365,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
               dataIndex: "Name",
               align: "left",
               hideable: false,
-              width: 120
+              width: 120,
             },
             {
               header: "ResourceType",
@@ -373,82 +373,82 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
               dataIndex: "ElementType",
               align: "left",
               hideable: false,
-              width: 120
+              width: 120,
             },
             {
               header: "StatusType",
               width: 120,
               sortable: true,
               dataIndex: "StatusType",
-              align: "left"
+              align: "left",
             },
             {
               header: "Status",
               sortable: false,
               dataIndex: "Status",
               align: "left",
-              width: 60
+              width: 60,
             },
             {
               header: "Reason",
               sortable: true,
               dataIndex: "Reason",
-              align: "left"
+              align: "left",
             },
             {
               header: "DateEffective",
               sortable: false,
               dataIndex: "DateEffective",
-              align: "left"
+              align: "left",
             },
             {
               header: "LastCheckTime",
               sortable: true,
               dataIndex: "LastCheckTime",
-              align: "left"
+              align: "left",
             },
             {
               header: "TokenOwner",
               sortable: true,
               dataIndex: "TokenOwner",
-              align: "left"
+              align: "left",
             },
             {
               header: "TokenExpiration",
               sortable: true,
               dataIndex: "TokenExpiration",
-              align: "left"
-            }
+              align: "left",
+            },
           ],
           listeners: {
-            beforecellcontextmenu: function(table, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+            beforecellcontextmenu: function (table, td, cellIndex, record, tr, rowIndex, e, eOpts) {
               e.preventDefault();
               me.contextGridMenu.showAt(e.getXY());
               this.isExpanded = true;
               return false;
-            }
-          }
+            },
+          },
         });
 
         rowNode.grid = me.grid.expandedGridPanel;
         me.grid.expandedGridPanel.setLoading(true);
-        expandStore.load(function() {
+        expandStore.load(function () {
           me.grid.expandedGridPanel.setLoading(false);
         });
         me.grid.expandedGridPanel.getEl().swallowEvent(["mouseover", "mousedown", "click", "dblclick", "onRowFocus"]);
         me.grid.expandedGridPanel.fireEvent("bind", me.grid.expandedGridPanel, {
-          id: record.get("Name")
+          id: record.get("Name"),
         });
       }
     });
 
     me.overviewPanel = Ext.create("DIRAC.ResourceSummary.classes.OverviewPanel", {
       applicationName: me.applicationName,
-      parentWidget: me
+      parentWidget: me,
     });
     me.add([me.leftPanel, me.grid, me.overviewPanel]);
   },
-  __oprOnResourceSummaryData: function(action) {
+  __oprOnResourceSummaryData: function (action) {
     var me = this;
     var selectedValues = me.__getSelectedValues();
 
@@ -460,13 +460,13 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
         action: Ext.JSON.encode([action]),
         name: Ext.JSON.encode([selectedValues.name]),
         elementType: Ext.JSON.encode([selectedValues.elementType]),
-        statusType: Ext.JSON.encode([selectedValues.statusType])
+        statusType: Ext.JSON.encode([selectedValues.statusType]),
       },
       scope: me,
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
       },
-      success: function(response) {
+      success: function (response) {
         me.getContainer().body.unmask();
         var jsonData = Ext.JSON.decode(response.responseText);
 
@@ -481,20 +481,20 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                   text: "Status",
                   flex: 1,
                   sortable: false,
-                  dataIndex: "Status"
+                  dataIndex: "Status",
                 },
                 {
                   text: "DataEffectiv",
                   flex: 1,
                   sortable: false,
-                  dataIndex: "DataEffectiv"
+                  dataIndex: "DataEffectiv",
                 },
                 {
                   text: "Reason",
                   flex: 1,
                   sortable: false,
-                  dataIndex: "Reason"
-                }
+                  dataIndex: "Reason",
+                },
               ]
             );
           } else if (action == "Policies") {
@@ -507,32 +507,32 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
                   text: "Status",
                   flex: 1,
                   sortable: false,
-                  dataIndex: "Status"
+                  dataIndex: "Status",
                 },
                 {
                   text: "PolicyName",
                   flex: 1,
                   sortable: false,
-                  dataIndex: "PolicyName"
+                  dataIndex: "PolicyName",
                 },
                 {
                   text: "DataEffectiv",
                   flex: 1,
                   sortable: false,
-                  dataIndex: "DataEffectiv"
+                  dataIndex: "DataEffectiv",
                 },
                 {
                   text: "LastCheckTime",
                   flex: 1,
                   sortable: false,
-                  dataIndex: "LastCheckTime"
+                  dataIndex: "LastCheckTime",
                 },
                 {
                   text: "Reason",
                   flex: 1,
                   sortable: false,
-                  dataIndex: "Reason"
-                }
+                  dataIndex: "Reason",
+                },
               ]
             );
           } else {
@@ -540,10 +540,10 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
             Ext.dirac.system_info.msg("error", jsonData["error"]);
           }
         }
-      }
+      },
     });
   },
-  __getSelectedValues: function() {
+  __getSelectedValues: function () {
     var me = this;
 
     var values = {};
@@ -569,7 +569,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
     }
     return values;
   },
-  __oprSetResources: function(action, newStatus) {
+  __oprSetResources: function (action, newStatus) {
     var me = this;
     var selectedValues = me.__getSelectedValues();
     me.getContainer().body.mask("Wait ...");
@@ -582,13 +582,13 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
         elementType: Ext.JSON.encode([selectedValues.elementType]),
         statusType: Ext.JSON.encode([selectedValues.statusType]),
         status: Ext.JSON.encode([newStatus]),
-        lastCheckTime: Ext.JSON.encode([selectedValues.lastCheckTime])
+        lastCheckTime: Ext.JSON.encode([selectedValues.lastCheckTime]),
       },
       scope: me,
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
       },
-      success: function(response) {
+      success: function (response) {
         me.getContainer().body.unmask();
         var jsonData = Ext.JSON.decode(response.responseText);
 
@@ -603,7 +603,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
             delete me.grid.expandedGridPanel;
           }
 
-          Ext.defer(function() {
+          Ext.defer(function () {
             var records = me.grid.getStore().getRange();
             var record = null;
             for (var i = 0; i < records.length; i++) {
@@ -621,18 +621,18 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
           me.getContainer().body.unmask();
           Ext.dirac.system_info.msg("error", jsonData["error"]);
         }
-      }
+      },
     });
   },
-  __oprShowEditor: function() {
+  __oprShowEditor: function () {
     var me = this;
     var values = me.__getSelectedValues();
     me.overviewPanel.maximizedSize = {
       height: me.grid.getHeight() + me.leftPanel.getHeight(),
-      width: me.grid.getWidth() + me.leftPanel.getWidth()
+      width: me.grid.getWidth() + me.leftPanel.getWidth(),
     };
     me.overviewPanel.loadData(values);
     me.overviewPanel.expand();
     me.overviewPanel.show();
-  }
+  },
 });

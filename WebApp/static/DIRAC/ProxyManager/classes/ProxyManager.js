@@ -14,10 +14,10 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
     "Ext.dirac.utils.DiracJsonStore",
     "Ext.dirac.utils.DiracAjaxProxy",
     "Ext.dirac.utils.DiracApplicationContextMenu",
-    "Ext.dirac.utils.DiracBaseSelector"
+    "Ext.dirac.utils.DiracBaseSelector",
   ],
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.grid.loadState(data);
@@ -29,13 +29,13 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oStates = {};
 
     oStates = {
       grid: me.grid.getStateData(),
-      leftMenu: me.leftPanel.getStateData()
+      leftMenu: me.leftPanel.getStateData(),
     };
 
     oStates.leftPanelCollapsed = me.leftPanel.collapsed;
@@ -44,29 +44,29 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
   },
   dataFields: [
     {
-      name: "proxyid"
+      name: "proxyid",
     },
     {
-      name: "UserName"
+      name: "UserName",
     },
     {
-      name: "UserDN"
+      name: "UserDN",
     },
     {
       name: "UserGroup",
-      type: "auto"
+      type: "auto",
     },
     {
       name: "ExpirationTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
+      dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "PersistentFlag"
-    }
+      name: "PersistentFlag",
+    },
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     GLOBAL.APP.CF.log("debug", "create the widget(initComponent)...");
@@ -89,25 +89,25 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     GLOBAL.APP.CF.log("debug", "create the widget...(buildUI)");
 
     var selectors = {
       username: "User",
-      usergroup: "Group"
+      usergroup: "Group",
     };
 
     var map = [
       ["username", "username"],
-      ["usergroup", "usergroup"]
+      ["usergroup", "usergroup"],
     ];
 
     me.leftPanel = new Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -115,7 +115,7 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
       cmbSelectors: selectors,
       datamap: map,
       hasTimeSearchPanel: false,
-      url: "ProxyManager/getSelectionData"
+      url: "ProxyManager/getSelectionData",
     });
 
     /*
@@ -124,7 +124,7 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
      * -----------------------------------------------------------------------------------------------------------
      */
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + me.applicationName + "/getProxyManagerData"
+      url: GLOBAL.BASE_URL + me.applicationName + "/getProxyManagerData",
     });
 
     me.diffValues = {};
@@ -144,50 +144,50 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
           handler: me.__deleteProxyes,
           properties: {
             tooltip: "Click to delete the selected proxies!",
-            iconCls: "dirac-icon-delete"
-          }
-        }
-      ]
+            iconCls: "dirac-icon-delete",
+          },
+        },
+      ],
     };
 
     pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
       toolButtons: toolButtons,
       store: me.dataStore,
-      scope: me
+      scope: me,
     });
 
     var oColumns = {
       checkBox: {
-        dataIndex: "proxyid"
+        dataIndex: "proxyid",
       },
       User: {
         dataIndex: "UserName",
         properties: {
           width: 100,
-          sortable: true
-        }
+          sortable: true,
+        },
       },
       DN: {
         dataIndex: "UserDN",
         properties: {
           width: 350,
-          sortable: true
-        }
+          sortable: true,
+        },
       },
       Group: {
         dataIndex: "UserGroup",
         properties: {
           width: 100,
-          sortable: true
-        }
+          sortable: true,
+        },
       },
       "Expiration date (UTC)": {
         dataIndex: "ExpirationTime",
         properties: {
           width: 150,
-          sortable: true
+          sortable: true,
         },
-        renderer: function(value, metadata, record, rowIndex, colIndex, store) {
+        renderer: function (value, metadata, record, rowIndex, colIndex, store) {
           var expEpoch = record.data.ExpirationTime.getTime();
           /* eslint-disable */
           var nowEpoch = Ext.Date.now();
@@ -204,34 +204,34 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
           } else {
             return '<span style="color:green">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s") + "</span>";
           }
-        }
+        },
       },
       Persistent: {
         dataIndex: "PersistentFlag",
         properties: {
           width: 100,
-          sortable: true
-        }
-      }
+          sortable: true,
+        },
+      },
     };
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
       store: me.dataStore,
       features: [
         {
-          ftype: "grouping"
-        }
+          ftype: "grouping",
+        },
       ],
       oColumns: oColumns,
       pagingToolbar: pagingToolbar,
-      scope: me
+      scope: me,
     });
 
     me.leftPanel.setGrid(me.grid);
 
     me.add([me.leftPanel, me.grid]);
   },
-  __deleteProxyes: function() {
+  __deleteProxyes: function () {
     var me = this;
     var items = [];
     var elememts = Ext.query("#" + me.id + " input.checkrow");
@@ -245,9 +245,9 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
         Ext.Ajax.request({
           url: GLOBAL.BASE_URL + me.applicationName + "/deleteProxies",
           params: {
-            idList: Ext.JSON.encode(items)
+            idList: Ext.JSON.encode(items),
           },
-          success: function(oResponse) {
+          success: function (oResponse) {
             if (oResponse.status == 200) {
               response = Ext.JSON.decode(oResponse.responseText);
               if (response.success == "false") {
@@ -259,10 +259,10 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
               GLOBAL.APP.CF.showAjaxErrorMessage(response);
             }
           },
-          failure: function(response) {
+          failure: function (response) {
             GLOBAL.APP.CF.showAjaxErrorMessage(response);
-          }
+          },
         });
     }
-  }
+  },
 });

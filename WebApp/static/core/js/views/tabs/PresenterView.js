@@ -12,7 +12,7 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
   autoRender: true,
   layout: {
     type: "border",
-    padding: 2
+    padding: 2,
   },
   view: "presenterView",
   /**
@@ -22,7 +22,7 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
   presenter: null,
   isLoaded: false,
   listeners: {
-    resize: function(view, width, height, oldWidth, oldHeight, eOpts) {
+    resize: function (view, width, height, oldWidth, oldHeight, eOpts) {
       var me = this;
       var panel = me.getOpenedApplication();
       if (panel) {
@@ -30,7 +30,7 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
         panel.setHeight(view.getHeight());
       }
     },
-    beforeclose: function() {
+    beforeclose: function () {
       var me = this;
       var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer().getApplicationContainer(); // we
       // have
@@ -48,7 +48,7 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
       Ext.MessageBox.confirm(
         "Confirm",
         "There is an active desktop state. Do you want to save the current state?",
-        function(button) {
+        function (button) {
           var me = this;
           if (button === "yes") {
             GLOBAL.APP.MAIN_VIEW.saveActiveDesktopState();
@@ -61,7 +61,7 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
       return false; // it cancel the close of the tab. it wait until the
       // state is saved.
     },
-    close: function() {
+    close: function () {
       var me = this;
       Ext.Array.remove(GLOBAL.APP.MAIN_VIEW._state_related_url, me.title); // we
       // have
@@ -82,9 +82,9 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
       GLOBAL.APP.MAIN_VIEW.currentState = ""; // the current state has to be
       // null;
       GLOBAL.APP.MAIN_VIEW.refreshUrlDesktopState();
-    }
+    },
   },
-  constructor: function(config) {
+  constructor: function (config) {
     var me = this;
     me.presenter = Ext.create("Ext.dirac.utils.Tabtheme", {
       region: "center",
@@ -92,10 +92,10 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
       // title : name,
       closable: false,
       app: config.app,
-      desktop: config.desktop
+      desktop: config.desktop,
     });
     Ext.apply(me, {
-      items: [me.presenter]
+      items: [me.presenter],
     });
 
     me.callParent(arguments);
@@ -105,7 +105,7 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
    *
    * @return{@link Ext.dirac.utils.Tabtheme}
    */
-  getPresenter: function() {
+  getPresenter: function () {
     var me = this;
     return me.presenter;
   },
@@ -116,7 +116,7 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
    * @param{Object} panel is an {@link Ext.dirac.views.tabs.Panel}
    *
    */
-  closeRemoveApplication: function(panel) {
+  closeRemoveApplication: function (panel) {
     var me = this;
     var presenter = me.getPresenter();
     if (presenter) {
@@ -130,14 +130,14 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
    * @param{Object} widget is a object which inherited from
    *                {@link Ext.dirac.views.tabs.Panel}
    */
-  addWidget: function(widget) {
+  addWidget: function (widget) {
     var me = this;
     var presenter = me.getPresenter();
     if (presenter) {
       presenter.addImage(widget);
     }
   },
-  getOpenedApplication: function() {
+  getOpenedApplication: function () {
     var me = this;
     var app = null;
     for (var i = 0; i < me.items.length; i++) {
@@ -149,31 +149,31 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
     }
     return app;
   },
-  isExist: function(name) {
+  isExist: function (name) {
     var me = this;
     return me.items.getAt(0).isExist(name);
   },
-  hideComponents: function() {
+  hideComponents: function () {
     var me = this;
     var widgetsContainer = me.items.getAt(0);
-    widgetsContainer.items.each(function(widget) {
+    widgetsContainer.items.each(function (widget) {
       widget.hide();
     });
   },
-  showComponents: function() {
+  showComponents: function () {
     var me = this;
     var widgetsContainer = me.items.getAt(0);
-    widgetsContainer.items.each(function(widget) {
+    widgetsContainer.items.each(function (widget) {
       widget.show();
     });
   },
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
     me.getPresenter().loadState(data);
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     var desktop = {
@@ -186,24 +186,24 @@ Ext.define("Ext.dirac.views.tabs.PresenterView", {
         tabs: {
           version: 1,
           desktopGranularity: me.desktopGranularity,
-          positions: []
-        }
-      }
+          positions: [],
+        },
+      },
     };
 
     Ext.apply(desktop, me.getPresenter().getStateData());
     return desktop;
   },
-  setActiveTab: function(panel) {
+  setActiveTab: function (panel) {
     var me = this;
     //we have nothing to do...
   },
-  getPanel: function(name) {
+  getPanel: function (name) {
     var me = this;
     return me.items.getAt(0).getPanel(name);
   },
-  getApplicationsState: function() {
+  getApplicationsState: function () {
     var me = this;
     return me.items.getAt(0).getApplicationsState();
-  }
+  },
 });

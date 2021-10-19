@@ -36,7 +36,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    */
   resizeHandles: "s e se",
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     // property indicating whether the window is pinned or not
@@ -85,12 +85,12 @@ Ext.define("Ext.dirac.views.desktop.Window", {
       width: 200,
       height: 200,
       maximized: false,
-      minimized: false
+      minimized: false,
     };
 
     me.loadMask = new Ext.LoadMask({
       target: me,
-      msg: "Loading ..."
+      msg: "Loading ...",
     });
 
     if (me.loadedObjectType == "app") {
@@ -103,9 +103,9 @@ Ext.define("Ext.dirac.views.desktop.Window", {
           xtype: "component",
           autoEl: {
             tag: "iframe",
-            src: me.linkToLoad
-          }
-        }
+            src: me.linkToLoad,
+          },
+        },
       ];
       me.appClassName = "link";
     }
@@ -118,7 +118,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
     me.callParent();
   },
 
-  afterShow: function() {
+  afterShow: function () {
     var me = this;
 
     me.callParent();
@@ -134,8 +134,8 @@ Ext.define("Ext.dirac.views.desktop.Window", {
         dblclick: {
           fn: me.toggleMaximize,
           element: "el",
-          scope: me
-        }
+          scope: me,
+        },
       });
       me.oneTimeAfterShow = true;
     }
@@ -148,7 +148,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * @param {Object}
    *          setupData Setup data
    */
-  setLoadedObject: function(setupData) {
+  setLoadedObject: function (setupData) {
     var me = this;
 
     me.minimized = false;
@@ -367,7 +367,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * @param {Object}
    *          oData Data to be applied
    */
-  loadWindowFrameState: function(oData) {
+  loadWindowFrameState: function (oData) {
     var me = this;
 
     me.suspendEvents(false);
@@ -444,7 +444,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * @param {Object}
    *          setupData Setup data
    */
-  setPropertiesWhenLink: function(setupData) {
+  setPropertiesWhenLink: function (setupData) {
     var me = this;
 
     if (setupData.x && setupData.y) me.setPosition(setupData.x, setupData.y);
@@ -472,7 +472,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    *
    * @return {String} The name of the class
    */
-  getAppClassName: function() {
+  getAppClassName: function () {
     return this.appClassName;
   },
 
@@ -481,7 +481,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    *
    * @return {String} The name of the class
    */
-  getCurrentState: function() {
+  getCurrentState: function () {
     return this.currentState;
   },
 
@@ -489,7 +489,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * Overriden function, inherited from Ext.window.Window used to set up the
    * buttons at the top right corner of the window
    */
-  addTools: function() {
+  addTools: function () {
     var me = this;
 
     if (me.loadedObjectType == "app") {
@@ -512,7 +512,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
          * if the application cache does not exist
          */
 
-        var oFunc = function(iCode, sAppName) {
+        var oFunc = function (iCode, sAppName) {
           if (iCode == 1) {
             me.oprRefreshAppStates();
           }
@@ -521,7 +521,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
         if (GLOBAL.STATE_MANAGEMENT_ENABLED) GLOBAL.APP.SM.oprReadApplicationStatesAndReferences(me.appClassName, oFunc);
       }
 
-      var funcAfterSave = function(iCode, sAppName, sStateType, sStateName) {
+      var funcAfterSave = function (iCode, sAppName, sStateType, sStateName) {
         if (iCode == 1 && me.currentState != sStateName) {
           me.desktop.addStateToExistingWindows("application", sStateName, sAppName);
 
@@ -538,7 +538,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
         }
       };
 
-      var funcAfterRemove = function(sStateType, sAppName, sStateName) {
+      var funcAfterRemove = function (sStateType, sAppName, sStateName) {
         me.desktop.removeStateFromWindows(sStateType, sAppName, sStateName);
       };
 
@@ -547,48 +547,48 @@ Ext.define("Ext.dirac.views.desktop.Window", {
           {
             text: "Load state",
             iconCls: "toolbar-other-load",
-            menu: me.statesMenu
+            menu: me.statesMenu,
           },
           {
             text: "Save",
             iconCls: "dirac-icon-save",
             handler: me.desktop.SM.oprSaveAppState.bind(me.desktop.SM, "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave),
-            scope: me
+            scope: me,
           },
           {
             text: "Save As ...",
             iconCls: "dirac-icon-save",
             handler: me.desktop.SM.formSaveState.bind(me.desktop.SM, "application", me.loadedObject.self.getName(), me.loadedObject, funcAfterSave),
-            scope: me
+            scope: me,
           },
           {
             text: "Refresh states",
             iconCls: "toolbar-other-refresh",
             handler: me.oprRefreshAllAppStates,
-            scope: me
+            scope: me,
           },
           {
             text: "Manage states ...",
             iconCls: "toolbar-other-manage",
             handler: me.desktop.SM.formManageStates.bind(me.desktop.SM, me.loadedObject.self.getName(), funcAfterRemove),
-            scope: me
-          }
-        ]
+            scope: me,
+          },
+        ],
       });
 
       me.addTool({
         xtype: "diracToolButton",
         type: "save",
         menu: GLOBAL.STATE_MANAGEMENT_ENABLED ? me.loadMenu : [],
-        tooltip: "Save state menu"
+        tooltip: "Save state menu",
       });
 
       me.desktopGridStickButton = new Ext.dirac.utils.DiracToolButton({
         type: "pin",
-        handler: function() {
+        handler: function () {
           me.desktop.setDesktopStickMode(me);
         },
-        tooltip: "Pin/Unpin window onto the desktop"
+        tooltip: "Pin/Unpin window onto the desktop",
       });
 
       me.addTool(me.desktopGridStickButton);
@@ -596,10 +596,10 @@ Ext.define("Ext.dirac.views.desktop.Window", {
       me.addTool({
         xtype: "diracToolButton",
         type: "toggle",
-        handler: function() {
+        handler: function () {
           me.getHeader().hide();
         },
-        tooltip: "Hide window header"
+        tooltip: "Hide window header",
       });
 
       me.addTool({
@@ -607,7 +607,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
         type: "help",
         handler: me.openHelpWindow,
         tooltip: "It provides description of the active application.",
-        scope: me
+        scope: me,
       });
     }
 
@@ -617,7 +617,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * Function that is called when the refresh button of the SAVE window menu
    * is clicked
    */
-  oprRefreshAllAppStates: function() {
+  oprRefreshAllAppStates: function () {
     var me = this;
 
     me.desktop.oprRefreshAllAppStates(me.appClassName);
@@ -630,7 +630,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * @param {String}
    *          stateName The name of the state
    */
-  addNewState: function(stateType, stateName) {
+  addNewState: function (stateType, stateName) {
     var me = this;
 
     if (stateType == "application") {
@@ -643,8 +643,8 @@ Ext.define("Ext.dirac.views.desktop.Window", {
         menu: [
           {
             text: "Share state",
-            handler: function() {
-              GLOBAL.APP.SM.oprShareState(me.loadedObject.self.getName(), stateName, function(rCode, rAppName, rStateName, rMessage) {
+            handler: function () {
+              GLOBAL.APP.SM.oprShareState(me.loadedObject.self.getName(), stateName, function (rCode, rAppName, rStateName, rMessage) {
                 if (rCode == 1) {
                   var oHtml = "";
                   oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
@@ -654,16 +654,16 @@ Ext.define("Ext.dirac.views.desktop.Window", {
                 }
               });
             },
-            iconCls: "dirac-icon-share"
+            iconCls: "dirac-icon-share",
           },
           {
             text: "Make public",
-            handler: function() {
+            handler: function () {
               GLOBAL.APP.SM.oprPublishState(me.loadedObject.self.getName(), stateName);
             },
-            iconCls: "dirac-icon-share"
-          }
-        ]
+            iconCls: "dirac-icon-share",
+          },
+        ],
       });
 
       var iIndexPosition = 0;
@@ -682,7 +682,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
         handler: me.desktop.loadSharedStateByName.bind(me.desktop, me.appClassName, stateName),
         scope: me,
         iconCls: "dirac-icon-link",
-        stateType: stateType
+        stateType: stateType,
       });
 
       me.statesMenu.add(newItem);
@@ -697,7 +697,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * @param {String}
    *          stateName The name of the state
    */
-  removeState: function(stateType, stateName) {
+  removeState: function (stateType, stateName) {
     var me = this;
 
     if (stateType == "application") {
@@ -733,7 +733,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * Function to refresh the states of a module. The states are read from
    * the cash.
    */
-  oprRefreshAppStates: function() {
+  oprRefreshAppStates: function () {
     var me = this;
 
     // first we remove all items from the menu
@@ -754,8 +754,8 @@ Ext.define("Ext.dirac.views.desktop.Window", {
         menu: [
           {
             text: "Share state",
-            handler: function() {
-              GLOBAL.APP.SM.oprShareState(me.appClassName, stateName, function(rCode, rAppName, rStateName, rMessage) {
+            handler: function () {
+              GLOBAL.APP.SM.oprShareState(me.appClassName, stateName, function (rCode, rAppName, rStateName, rMessage) {
                 if (rCode == 1) {
                   var oHtml = "";
                   oHtml += "<div style='padding:5px'>The string you can send is as follows:</div>";
@@ -765,16 +765,16 @@ Ext.define("Ext.dirac.views.desktop.Window", {
                 }
               });
             },
-            iconCls: "dirac-icon-share"
+            iconCls: "dirac-icon-share",
           },
           {
             text: "Make public",
-            handler: function() {
+            handler: function () {
               GLOBAL.APP.SM.oprPublishState(me.appClassName, stateName);
             },
-            iconCls: "dirac-icon-share"
-          }
-        ]
+            iconCls: "dirac-icon-share",
+          },
+        ],
       });
 
       me.statesMenu.add(oNewItem);
@@ -793,7 +793,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
         handler: me.desktop.loadSharedStateByName.bind(me.desktop, me.appClassName, stateName),
         scope: me,
         iconCls: "dirac-icon-link",
-        stateType: "reference"
+        stateType: "reference",
       });
 
       me.statesMenu.add(oNewItem);
@@ -806,7 +806,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * @param {String}
    *          stateName The name of the state
    */
-  oprLoadAppStateFromCache: function(stateName) {
+  oprLoadAppStateFromCache: function (stateName) {
     var me = this;
 
     // checking whether the state exists or not
@@ -818,7 +818,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
         return;
         break;
       case -2:
-        me.funcPostponedLoading = function() {
+        me.funcPostponedLoading = function () {
           me.oprLoadAppStateFromCache(stateName);
         };
 
@@ -858,7 +858,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * @param {String}
    *          stateName The name of the state
    */
-  createChildWindow: function(sTitle, oModal, oWidth, oHeight) {
+  createChildWindow: function (sTitle, oModal, oWidth, oHeight) {
     var me = this;
 
     var oWindow = me.desktop.initWindow({
@@ -868,7 +868,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
       modal: oModal,
       parentWindow: me,
       isChildWindow: true,
-      iconCls: "system_child_window"
+      iconCls: "system_child_window",
     });
 
     me.childWindows.push(oWindow);
@@ -882,7 +882,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * @param {Ext.dirac.views.desktop.Window}
    *          oChildWindow Rference to the child window
    */
-  removeChildWindowFromList: function(oChildWindow) {
+  removeChildWindowFromList: function (oChildWindow) {
     var me = this;
     var oNewList = [];
 
@@ -897,7 +897,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * Function to close all child windows
    *
    */
-  closeAllChildWindows: function() {
+  closeAllChildWindows: function () {
     var me = this;
 
     for (var i = me.childWindows.length - 1; i >= 0; i--) me.childWindows[i].close();
@@ -907,7 +907,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
    * Function to get the data describing the state of the window at the
    * desktop area
    */
-  getUrlDescription: function() {
+  getUrlDescription: function () {
     var me = this;
 
     if (me.loadedObjectType == "link") return "";
@@ -931,7 +931,7 @@ Ext.define("Ext.dirac.views.desktop.Window", {
 
     return sRet;
   },
-  openHelpWindow: function() {
+  openHelpWindow: function () {
     var me = this;
 
     var win = Ext.create("Ext.window.Window", {
@@ -954,18 +954,18 @@ Ext.define("Ext.dirac.views.desktop.Window", {
       layout: "fit",
       application: me.loadedObject,
       listeners: {
-        close: function() {
+        close: function () {
           var notepad = this.items.getAt(0);
           var text = notepad.getStateData();
           this.application.setHelpText(text);
           Ext.Array.remove(me.childWindows, this);
-        }
-      }
+        },
+      },
     });
 
     me.childWindows.push(win);
 
     me.desktop.createHelpWindow("app", "DIRAC.Notepad.classes.Notepad", this.loadedObject.getHelpText(), win);
     win.show();
-  }
+  },
 });
