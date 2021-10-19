@@ -95,7 +95,8 @@ class AccountingHandler(WebHandler):
             # length = len( retVal['Value'][record] )
             # if  length > 10000:
             #  records[record] = retVal['Value'][record][length - 5000:]
-            #  message = "The %s accounting type contains to many rows: %s - > %d. Note: Only 1000 rows are returned!" % ( typeName, record, length )
+            #  message = "The %s accounting type contains to many rows: %s - > %d. Note: Only 1000 rows are returned!"
+            #  message = message % ( typeName, record, length )
             #  gLogger.warn( message )
             # else:
             records[record] = retVal["Value"][record]
