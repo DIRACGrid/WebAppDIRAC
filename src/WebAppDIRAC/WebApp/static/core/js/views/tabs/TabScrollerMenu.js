@@ -23,7 +23,7 @@ Ext.define("Ext.dirac.views.tabs.TabScrollerMenu", {
    * Creates new TabScrollerMenu.
    * @param {Object} config Configuration options
    */
-  constructor: function(config) {
+  constructor: function (config) {
     Ext.apply(this, config);
   },
 
@@ -32,7 +32,7 @@ Ext.define("Ext.dirac.views.tabs.TabScrollerMenu", {
    * @param {Object} tabPanel tab panel which contains a toolbar
    * @param {Object} menu which shows the open tabs
    */
-  init: function(tabPanel, menu) {
+  init: function (tabPanel, menu) {
     var me = this;
 
     me.tabPanel = tabPanel;
@@ -46,46 +46,46 @@ Ext.define("Ext.dirac.views.tabs.TabScrollerMenu", {
    * Returns an the current page size (this.pageSize);
    * @return {Number} this.pageSize The current page size.
    */
-  getPageSize: function() {
+  getPageSize: function () {
     return this.pageSize;
   },
   /**
    * Sets the number of menu items per submenu "page size".
    * @param {Number} pageSize The page size
    */
-  setPageSize: function(pageSize) {
+  setPageSize: function (pageSize) {
     this.pageSize = pageSize;
   },
   /**
    * Returns the current maxText length;
    * @return {Number} this.maxText The current max text length.
    */
-  getMaxText: function() {
+  getMaxText: function () {
     return this.maxText;
   },
   /**
    * Sets the maximum text size for each menu item.
    * @param {Number} t The max text per each menu item.
    */
-  setMaxText: function(t) {
+  setMaxText: function (t) {
     this.maxText = t;
   },
   /**
    * Returns the current menu prefix text String.;
    * @return {String} this.menuPrefixText The current menu prefix text.
    */
-  getMenuPrefixText: function() {
+  getMenuPrefixText: function () {
     return this.menuPrefixText;
   },
   /**
    * Sets the menu prefix text String.
    * @param {String} t The menu prefix text.
    */
-  setMenuPrefixText: function(t) {
+  setMenuPrefixText: function (t) {
     this.menuPrefixText = t;
   },
 
-  showTabsMenu: function(e) {
+  showTabsMenu: function (e) {
     var me = this;
 
     if (me.tabsMenu) {
@@ -102,7 +102,7 @@ Ext.define("Ext.dirac.views.tabs.TabScrollerMenu", {
   /**
    * @private
    */
-  generateTabMenuItems: function() {
+  generateTabMenuItems: function () {
     var me = this,
       tabPanel = me.tabPanel,
       curActive = tabPanel.getActiveTab(),
@@ -121,7 +121,7 @@ Ext.define("Ext.dirac.views.tabs.TabScrollerMenu", {
       index;
 
     tabsMenu.suspendLayouts();
-    allItems = Ext.Array.filter(allItems, function(item) {
+    allItems = Ext.Array.filter(allItems, function (item) {
       if (item.id == curActive.id) {
         return false;
       }
@@ -145,7 +145,7 @@ Ext.define("Ext.dirac.views.tabs.TabScrollerMenu", {
 
         tabsMenu.add({
           text: me.getMenuPrefixText() + " " + (curPage - pageSize + 1) + " - " + curPage,
-          menu: menuItems
+          menu: menuItems,
         });
       }
       // remaining items
@@ -159,7 +159,7 @@ Ext.define("Ext.dirac.views.tabs.TabScrollerMenu", {
 
         me.tabsMenu.add({
           text: me.menuPrefixText + " " + (start + 1) + " - " + (start + menuItems.length),
-          menu: menuItems
+          menu: menuItems,
         });
       }
     } else {
@@ -173,7 +173,7 @@ Ext.define("Ext.dirac.views.tabs.TabScrollerMenu", {
   /**
    * @private
    */
-  autoGenMenuItem: function(item) {
+  autoGenMenuItem: function (item) {
     var maxText = this.getMaxText(),
       text = Ext.util.Format.ellipsis(item.title, maxText);
 
@@ -183,19 +183,19 @@ Ext.define("Ext.dirac.views.tabs.TabScrollerMenu", {
       scope: this,
       disabled: item.disabled,
       tabToShow: item,
-      iconCls: item.iconCls
+      iconCls: item.iconCls,
     };
   },
 
   /**
    * @private
    */
-  showTabFromMenu: function(menuItem) {
+  showTabFromMenu: function (menuItem) {
     this.tabPanel.setActiveTab(menuItem.tabToShow);
   },
 
-  destroy: function() {
+  destroy: function () {
     Ext.destroy(this.tabsMenu, this.menuButton);
     this.callParent();
-  }
+  },
 });

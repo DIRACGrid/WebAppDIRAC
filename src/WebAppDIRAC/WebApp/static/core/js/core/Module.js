@@ -8,7 +8,7 @@ Ext.define("Ext.dirac.core.Module", {
   mixins: ["Ext.dirac.core.Stateful", "Ext.dirac.utils.DiracFileLoad"],
   extend: "Ext.container.Container",
 
-  constructor: function(config) {
+  constructor: function (config) {
     this.launcher = config.launcherElements;
     this.applicationName = config.launcherElements.applicationName;
     this._container = null;
@@ -18,17 +18,17 @@ Ext.define("Ext.dirac.core.Module", {
     this.loadCSS();
   },
 
-  setContainer: function(oContainer) {
+  setContainer: function (oContainer) {
     this._container = oContainer;
   },
 
-  getContainer: function() {
+  getContainer: function () {
     return this._container;
   },
 
   buildUI: Ext.emptyFn,
 
-  loadCSS: function() {
+  loadCSS: function () {
     var me = this;
     var oSuperClass = me;
     var oCssFilesStack = [];
@@ -43,7 +43,7 @@ Ext.define("Ext.dirac.core.Module", {
 
     GLOBAL.APP.mixins.fileLoader.loadFile(
       oCssFilesStack,
-      function() {
+      function () {
         var me = this;
 
         me.buildUI();
@@ -51,7 +51,7 @@ Ext.define("Ext.dirac.core.Module", {
       me
     );
   },
-  setHelpText: function(data) {
+  setHelpText: function (data) {
     var me = this;
     if (data.text) {
       me.helptext = data.text;
@@ -60,14 +60,14 @@ Ext.define("Ext.dirac.core.Module", {
       me.helptext = data.helptext;
     }
   },
-  getHelpText: function() {
+  getHelpText: function () {
     var me = this;
     var result = {};
     if (me.helptext) {
       result = {
-        helptext: me.helptext
+        helptext: me.helptext,
       };
     }
     return result;
-  }
+  },
 });

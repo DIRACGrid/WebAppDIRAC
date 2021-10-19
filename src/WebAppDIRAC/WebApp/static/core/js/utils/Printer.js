@@ -56,12 +56,12 @@ Ext.define("Ext.dirac.utils.Printer", {
      * Prints the passed grid. Reflects on the grid's column model to build a table, and fills it using the store
      * @param {Ext.grid.Panel} grid The grid to print
      */
-    print: function(grid) {
+    print: function (grid) {
       //We generate an XTemplate here by using 2 intermediary XTemplates - one to create the header,
       //the other to create the body (see the escaped {} below)
       var columns = [];
       //account for grouped columns
-      Ext.each(grid.columns, function(c) {
+      Ext.each(grid.columns, function (c) {
         if (c.items.length > 0) {
           columns = columns.concat(c.items.items);
         } else {
@@ -71,7 +71,7 @@ Ext.define("Ext.dirac.utils.Printer", {
 
       //build a usable array of store data for the XTemplate
       var data = [];
-      grid.store.data.each(function(item, row) {
+      grid.store.data.each(function (item, row) {
         var convertedData = {};
 
         //apply renderers from column model
@@ -80,7 +80,7 @@ Ext.define("Ext.dirac.utils.Printer", {
 
           Ext.each(
             columns,
-            function(column, col) {
+            function (column, col) {
               if (column && column.dataIndex == key) {
                 /*
                  * TODO: add the meta to template
@@ -101,7 +101,7 @@ Ext.define("Ext.dirac.utils.Printer", {
 
       //remove columns that do not contains dataIndex or dataIndex is empty. for example: columns filter or columns button
       var clearColumns = [];
-      Ext.each(columns, function(column) {
+      Ext.each(columns, function (column) {
         if (column && !Ext.isEmpty(column.dataIndex) && !column.hidden) {
           clearColumns.push(column);
         } else if (column && column.xtype === "rownumberer") {
@@ -124,7 +124,7 @@ Ext.define("Ext.dirac.utils.Printer", {
         pluginsBodyMarkup = [];
 
       //add relevant plugins
-      Ext.each(grid.plugins, function(p) {
+      Ext.each(grid.plugins, function (p) {
         if (p.ptype == "rowexpander") {
           pluginsBody += p.rowBodyTpl.join("");
         }
@@ -169,7 +169,7 @@ Ext.define("Ext.dirac.utils.Printer", {
         "</tpl>",
         "</table>",
         "</body>",
-        "</html>"
+        "</html>",
       ];
 
       var html = Ext.create("Ext.XTemplate", htmlMarkup).apply(data);
@@ -252,6 +252,6 @@ Ext.define("Ext.dirac.utils.Printer", {
      * The XTemplate used to create each row. This is used inside the 'print' function to build another XTemplate, to which the data
      * are then applied (see the escaped dataIndex attribute here - this ends up as "{dataIndex}")
      */
-    bodyTpl: ['<tpl for=".">', "<td>{{[Ext.String.createVarName(values.text)]}}</td>", "</tpl>"]
-  }
+    bodyTpl: ['<tpl for=".">', "<td>{{[Ext.String.createVarName(values.text)]}}</td>", "</tpl>"],
+  },
 });

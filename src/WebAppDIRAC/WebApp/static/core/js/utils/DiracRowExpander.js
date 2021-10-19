@@ -34,7 +34,7 @@ Ext.define("Ext.dirac.utils.DiracRowExpander", {
 
   selectRowOnExpand: true,
 
-  getHeaderConfig: function() {
+  getHeaderConfig: function () {
     var me = this;
 
     return {
@@ -53,7 +53,7 @@ Ext.define("Ext.dirac.utils.DiracRowExpander", {
                 }
                 return '<div class="' + Ext.baseCSSPrefix + 'grid-row-expander"></div>';
           },*/
-      renderer: function(value, metadata) {
+      renderer: function (value, metadata) {
         // Only has to span 2 rows if it is not in a lockable grid.
         if (!me.grid.ownerLockable) {
           metadata.tdAttr += ' rowspan="2"';
@@ -86,12 +86,12 @@ Ext.define("Ext.dirac.utils.DiracRowExpander", {
           return '<div class="' + Ext.baseCSSPrefix + 'grid-row-expander" role="presentation"></div>';
         }
       },
-      processEvent: function(type, view, cell, rowIndex, cellIndex, e, record) {
+      processEvent: function (type, view, cell, rowIndex, cellIndex, e, record) {
         if (type == "mousedown" && e.getTarget("." + Ext.baseCSSPrefix + "grid-row-expander")) {
           me.toggleRow(rowIndex, record);
           return me.selectRowOnExpand;
         }
-      }
+      },
     };
-  }
+  },
 });

@@ -23,31 +23,31 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     "Ext.form.field.TextArea",
     "Ext.Array",
     "Ext.data.proxy.LocalStorage",
-    "DIRAC.ConfigurationManager.classes.HistoryGridPanel"
+    "DIRAC.ConfigurationManager.classes.HistoryGridPanel",
   ],
 
-  loadState: function(oData) {
+  loadState: function (oData) {
     var me = this;
 
     me.__postponedLoadState(oData);
   },
 
-  __postponedLoadState: function(oData) {
+  __postponedLoadState: function (oData) {
     var me = this;
 
     if (!me.isConnectionEstablished) {
-      setTimeout(function() {
+      setTimeout(function () {
         me.__postponedLoadState(oData);
       }, 1000);
     } else {
       me.__sendSocketMessage({
         op: "getBulkExpandedNodeData",
-        nodes: oData.expandedNodes.join("<<||>>")
+        nodes: oData.expandedNodes.join("<<||>>"),
       });
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oReturn = {};
 
@@ -60,7 +60,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     return oReturn;
   },
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.launcher.title = "Configuration Manager";
@@ -76,7 +76,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
      */
     Ext.apply(me, {
       layout: "card",
-      bodyBorder: false
+      bodyBorder: false,
     });
     me.callParent(arguments);
   },
@@ -85,12 +85,12 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
    * This function is used only for ExtJS version 4.1.3
    */
 
-  setNodeText: function(oNode, sNewText) {
+  setNodeText: function (oNode, sNewText) {
     oNode.set("text", sNewText);
 
     oNode.data.text = sNewText;
   },
-  __sendSocketMessage: function(oData) {
+  __sendSocketMessage: function (oData) {
     var me = this;
 
     console.log(oData);
@@ -108,7 +108,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       me.socket.send(JSON.stringify(oData));
     }
   },
-  __setChangeMade: function(bChange) {
+  __setChangeMade: function (bChange) {
     var me = this;
 
     if (bChange) {
@@ -119,7 +119,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
 
     me.changeMade = bChange;
   },
-  __createSocket: function(sOnOpenFuncName) {
+  __createSocket: function (sOnOpenFuncName) {
     var me = this;
 
     var sLoc = window.location;
@@ -134,22 +134,22 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
 
     var socket = new WebSocket(sWsuri);
 
-    socket.onopen = function(e) {
+    socket.onopen = function (e) {
       console.log("CONNECTED");
       me.isConnectionEstablished = true;
       socket.send(
         JSON.stringify({
-          op: sOnOpenFuncName
+          op: sOnOpenFuncName,
         })
       );
     };
 
-    socket.onerror = function(e) {
+    socket.onerror = function (e) {
       console.log("ERR " + e.data);
       me.isConnectionEstablished = false;
     };
 
-    socket.onclose = function(e) {
+    socket.onclose = function (e) {
       me.isConnectionEstablished = false;
       var sMessage = "CONNECTION CLOSED";
 
@@ -170,7 +170,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       }
     };
 
-    socket.onmessage = function(e) {
+    socket.onmessage = function (e) {
       var oResponse = JSON.parse(e.data);
 
       if (parseInt(oResponse.success, 10) == 0) {
@@ -265,7 +265,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
             me.btnCommitConfiguration.show();
             me.__setChangeMade(false);
             me.__sendSocketMessage({
-              op: "resetConfiguration"
+              op: "resetConfiguration",
             });
             me.btnResetConfig.hide();
             break;
@@ -284,7 +284,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
           case "download":
             try {
               var blob = new Blob([oResponse.result], {
-                type: "text/plain;charset=utf-8"
+                type: "text/plain;charset=utf-8",
               });
               saveAs(blob, oResponse.fileName);
             } catch (ex) {
@@ -292,12 +292,12 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
             }
             break;
           case "showCommitDiff":
-            var cb = function(window) {
+            var cb = function (window) {
               if (confirm("Do you want to apply the configuration changes you've done till now?")) {
                 me.treePanel.body.mask("Committing the configuration changes...");
 
                 me.__sendSocketMessage({
-                  op: "commitConfiguration"
+                  op: "commitConfiguration",
                 });
 
                 window.hide();
@@ -314,7 +314,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     return socket;
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     me.isConnectionEstablished = false;
@@ -325,14 +325,14 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       text: "View as Text",
 
       iconCls: "dirac-icon-text",
-      handler: function() {
+      handler: function () {
         me.__sendSocketMessage({
-          op: "showConfigurationAsText"
+          op: "showConfigurationAsText",
         });
 
         me.btnViewConfigAsText.hide();
       },
-      scope: me
+      scope: me,
     });
 
     me.btnDownloadConfigAsText = new Ext.Button({
@@ -340,66 +340,66 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
 
       iconCls: "dirac-icon-download",
 
-      handler: function() {
+      handler: function () {
         me.__sendSocketMessage({
-          op: "download"
+          op: "download",
         });
       },
-      scope: me
+      scope: me,
     });
 
     me.btnResetConfig = new Ext.Button({
       text: "Reload",
 
       iconCls: "dirac-icon-reset",
-      handler: function() {
+      handler: function () {
         if (me.changeMade) {
           if (confirm("If you reload you might loose the changes you've might made.\nDo you want to reload?")) {
             me.__sendSocketMessage({
-              op: "resetConfiguration"
+              op: "resetConfiguration",
             });
             me.btnResetConfig.hide();
             me.treePanel.body.mask("Loading ...");
           }
         } else {
           me.__sendSocketMessage({
-            op: "resetConfiguration"
+            op: "resetConfiguration",
           });
           me.btnResetConfig.hide();
           me.treePanel.body.mask("Loading ...");
         }
       },
-      scope: me
+      scope: me,
     });
 
     me.treeStore = Ext.create("Ext.data.TreeStore", {
       proxy: {
         type: "localstorage",
-        id: "localstorage" + me.id
+        id: "localstorage" + me.id,
       },
       root: {
-        text: "Configuration"
+        text: "Configuration",
       },
       listeners: {
-        nodebeforeexpand: function(oNode, eOpts) {
+        nodebeforeexpand: function (oNode, eOpts) {
           if (!me.flagReset) {
             var oNodePath = me.__getNodePath(oNode);
 
             me.__sendSocketMessage({
               op: "getSubnodes",
               nodePath: oNodePath,
-              node: oNode.getId()
+              node: oNode.getId(),
             });
           }
         },
-        nodebeforecollapse: function(oNode, eOpts) {
+        nodebeforecollapse: function (oNode, eOpts) {
           // remove the path from the
           var oNodePath = me.__getNodePath(oNode);
           oNode.removeAll();
           oNode.appendChild({});
           me.__oprUnsetPathAsExpanded(oNodePath);
-        }
-      }
+        },
+      },
     });
 
     var bBarElems = [me.btnViewConfigAsText, me.btnDownloadConfigAsText, me.btnResetConfig];
@@ -409,7 +409,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
         text: "Manage",
 
         iconCls: "cm-to-manage-icon",
-        handler: function() {
+        handler: function () {
           if (me.editMode) {
             me.btnBrowseManage.setText("Manage");
             me.btnBrowseManage.setIconCls("cm-to-manage-icon");
@@ -429,49 +429,49 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
           }
           me.editMode = !me.editMode;
         },
-        scope: me
+        scope: me,
       });
 
       me.btnCommitConfiguration = new Ext.Button({
         text: "Commit",
 
         iconCls: "dirac-icon-submit",
-        handler: function() {
+        handler: function () {
           me.setLoading("Creating the diff.... Please be patient...");
           me.__sendSocketMessage({
-            op: "showCommitDiff"
+            op: "showCommitDiff",
           });
         },
         scope: me,
-        hidden: true
+        hidden: true,
       });
 
       me.btnViewConfigDifference = new Ext.Button({
         text: "Show diff.",
 
         iconCls: "cm-to-browse-icon",
-        handler: function() {
+        handler: function () {
           me.setLoading("Creating the diff.... Please be patient...");
           me.__sendSocketMessage({
-            op: "showCurrentDiff"
+            op: "showCurrentDiff",
           });
           me.btnCommitConfiguration.hide();
         },
         scope: me,
-        hidden: false
+        hidden: false,
       });
 
       me.btnShowHistory = new Ext.button.Button({
         text: "Show history",
-        handler: function() {
+        handler: function () {
           me.setLoading("Loading server history...");
           me.__sendSocketMessage({
-            op: "showshowHistory"
+            op: "showshowHistory",
           });
           me.getLayout().setActiveItem(1);
         },
         scope: me,
-        hidden: false
+        hidden: false,
       });
 
       bBarElems.push("->");
@@ -488,12 +488,12 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       viewConfig: {
         plugins: {
           ptype: "treeviewdragdrop",
-          containerScroll: true
-        }
+          containerScroll: true,
+        },
       },
       tbar: bBarElems,
       listeners: {
-        beforeitemcontextmenu: function(oView, oNode, item, index, e, eOpts) {
+        beforeitemcontextmenu: function (oView, oNode, item, index, e, eOpts) {
           if (me.editMode) {
             e.preventDefault();
             if (oNode.isLeaf()) {
@@ -516,7 +516,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
           }
         },
 
-        beforecontainercontextmenu: function(oView, e, eOpts) {
+        beforecontainercontextmenu: function (oView, e, eOpts) {
           if (me.editMode) {
             return false;
           } else {
@@ -524,12 +524,12 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
           }
         },
 
-        itemclick: function(oView, oNode, item, index, e, eOpts) {
+        itemclick: function (oView, oNode, item, index, e, eOpts) {
           if (oNode.getId() != "root") {
             me.__oprSetValuesForValuePanel(me, oNode);
           }
         },
-        beforeitemmove: function(oNode, oOldParent, oNewParent, iIndex, eOpts) {
+        beforeitemmove: function (oNode, oOldParent, oNewParent, iIndex, eOpts) {
           if (me.editMode) {
             if (!me.waitForMoveResponse) {
               me.__oprMoveNode(oNode, oOldParent, oNewParent, iIndex);
@@ -538,8 +538,8 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
           } else {
             return false;
           }
-        }
-      }
+        },
+      },
     });
 
     me.btnValuePanelSubmit = new Ext.Button({
@@ -547,40 +547,40 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       margin: 1,
       iconCls: "dirac-icon-submit",
       handler: me.__oprActionValuePanel,
-      scope: me
+      scope: me,
     });
 
     me.btnValuePanelReset = new Ext.Button({
       text: "Reset",
       margin: 1,
       iconCls: "dirac-icon-reset",
-      handler: function() {
+      handler: function () {
         if (me.valuePanel.csNode == null) return;
 
         me.txtOptionValuePanelTextArea.setValue(me.valuePanel.csValue);
         me.txtCommentValuePanelTextArea.setValue(me.valuePanel.csComment);
       },
-      scope: me
+      scope: me,
     });
 
     var oValuePanelToolbar = new Ext.toolbar.Toolbar({
       dock: "bottom",
       layout: {
-        pack: "center"
+        pack: "center",
       },
-      items: [me.btnValuePanelSubmit, me.btnValuePanelReset]
+      items: [me.btnValuePanelSubmit, me.btnValuePanelReset],
     });
 
     me.txtOptionValuePanelTextArea = new Ext.create("Ext.form.field.TextArea", {
       fieldLabel: "Value",
       labelAlign: "top",
-      flex: 1
+      flex: 1,
     });
 
     me.txtCommentValuePanelTextArea = new Ext.create("Ext.form.field.TextArea", {
       fieldLabel: "Comment",
       labelAlign: "top",
-      flex: 1
+      flex: 1,
     });
 
     me.valuePanel = new Ext.create("Ext.panel.Panel", {
@@ -595,7 +595,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       layout: {
         type: "vbox",
         align: "stretch",
-        pack: "start"
+        pack: "start",
       },
       autoScroll: true,
       collapsed: true,
@@ -608,16 +608,16 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       items: [me.txtOptionValuePanelTextArea, me.txtCommentValuePanelTextArea],
 
       listeners: {
-        render: function(oPanel, eOpts) {
+        render: function (oPanel, eOpts) {
           oPanel.hide();
-        }
-      }
+        },
+      },
     });
 
     me.valuePanel.addDocked([oValuePanelToolbar]);
 
     me.history = Ext.create("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
-      scope: me
+      scope: me,
     });
 
     me.history.on("cancelled", me.__onHistoryCancel, me);
@@ -626,9 +626,9 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       layout: "border",
       defaults: {
         collapsible: true,
-        split: true
+        split: true,
       },
-      items: [me.treePanel, me.valuePanel]
+      items: [me.treePanel, me.valuePanel],
     });
 
     me.add([me.browserPanel, me.history]);
@@ -639,31 +639,31 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
         {
           text: "Copy",
           listeners: {
-            click: me.__oprMenuCopyNode
-          }
+            click: me.__oprMenuCopyNode,
+          },
         },
         {
           text: "Rename",
           listeners: {
-            click: me.__oprMenuRenameNode
-          }
+            click: me.__oprMenuRenameNode,
+          },
         },
         {
           text: "Delete",
           listeners: {
-            click: me.__oprMenuDeleteNode
-          }
-        }
+            click: me.__oprMenuDeleteNode,
+          },
+        },
       ],
-      moduleObject: me
+      moduleObject: me,
     });
 
     me.btnPasteButton = new Ext.menu.Item({
       text: "Paste",
       disabled: false,
       listeners: {
-        click: me.__oprMenuPasteNode
-      }
+        click: me.__oprMenuPasteNode,
+      },
     });
 
     me.sectionMenu = new Ext.menu.Menu({
@@ -672,37 +672,37 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
         {
           text: "Create a subsection",
           listeners: {
-            click: me.__oprMenuCreateSubsection
-          }
+            click: me.__oprMenuCreateSubsection,
+          },
         },
         {
           text: "Create an option",
           listeners: {
-            click: me.__oprMenuCreateOption
-          }
+            click: me.__oprMenuCreateOption,
+          },
         },
         "-",
         {
           text: "Copy",
           listeners: {
-            click: me.__oprMenuCopyNode
-          }
+            click: me.__oprMenuCopyNode,
+          },
         },
         me.btnPasteButton,
         {
           text: "Rename",
           listeners: {
-            click: me.__oprMenuRenameNode
-          }
+            click: me.__oprMenuRenameNode,
+          },
         },
         {
           text: "Delete",
           listeners: {
-            click: me.__oprMenuDeleteNode
-          }
-        }
+            click: me.__oprMenuDeleteNode,
+          },
+        },
       ],
-      moduleObject: me
+      moduleObject: me,
     });
 
     me.expansionState = {};
@@ -715,23 +715,23 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     me.dontShowMessageBeforeClose = true;
   },
 
-  afterRender: function() {
+  afterRender: function () {
     var me = this;
 
     me.__setDiracDestroyHandler();
 
     me.callParent();
   },
-  __onHistoryCancel: function() {
+  __onHistoryCancel: function () {
     var me = this;
     me.getLayout().setActiveItem(0);
   },
-  __setDiracDestroyHandler: function() {
+  __setDiracDestroyHandler: function () {
     var me = this;
 
     me.on(
       "destroy",
-      function(oComp, eOpts) {
+      function (oComp, eOpts) {
         var oThisContainer = this;
 
         oThisContainer.dontShowMessageBeforeClose = false;
@@ -741,7 +741,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     );
   },
 
-  __clearValuePanel: function() {
+  __clearValuePanel: function () {
     var me = this;
     me.txtCommentValuePanelTextArea.setValue("");
     me.txtOptionValuePanelTextArea.setValue("");
@@ -752,7 +752,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     me.valuePanel.setTitle("[No node selected]");
   },
 
-  __oprUnsetPathAsExpanded: function(sPath) {
+  __oprUnsetPathAsExpanded: function (sPath) {
     var me = this;
     var oParts = sPath.split("/");
 
@@ -773,7 +773,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     }
   },
 
-  __oprPathAsExpanded: function(sPath, bInsertIntoStructure) {
+  __oprPathAsExpanded: function (sPath, bInsertIntoStructure) {
     var me = this;
     var oParts = sPath.split("/");
 
@@ -801,7 +801,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
 
     return oFound;
   },
-  __getNodePath: function(oNode) {
+  __getNodePath: function (oNode) {
     var sPath = "";
     var oCopyRefNode = oNode;
     while (oCopyRefNode) {
@@ -813,13 +813,13 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     return sPath;
   },
 
-  __generateNewNodeId: function() {
+  __generateNewNodeId: function () {
     var me = this;
     var sId = me.id + "-ynode-" + me.counterNodes;
     me.counterNodes++;
     return sId;
   },
-  __oprCreateSubnodes: function(oResponse) {
+  __oprCreateSubnodes: function (oResponse) {
     var me = this;
 
     var oParentNode = me.treeStore.getNodeById(oResponse.parentNodeId);
@@ -856,7 +856,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     }
   },
 
-  __showConfigTextInWindow: function(sTextToShow) {
+  __showConfigTextInWindow: function (sTextToShow) {
     var me = this;
 
     var oWindow = me.getContainer().createChildWindow("Configuration As Text", false, 700, 500);
@@ -875,7 +875,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       height: 700,
       width: 500,
       readOnly: true,
-      autoScroll: true
+      autoScroll: true,
     });
 
     oWindow.add(oTextArea);
@@ -885,7 +885,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     oWindow.show();
   },
 
-  __showConfigDiffInWindow: function(oResponse, cbFunction) {
+  __showConfigDiffInWindow: function (oResponse, cbFunction) {
     var me = this;
 
     var iWinHeight = 500;
@@ -934,7 +934,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       html: oResponse.html,
       layout: "fit",
       autoScroll: true,
-      bodyPadding: 5
+      bodyPadding: 5,
     });
 
     var oBlocksPanel = new Ext.create("Ext.panel.Panel", {
@@ -944,7 +944,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       width: 50,
       totalLines: oResponse.totalLines,
       listeners: {
-        resize: function(oComp, width, height, oldWidth, oldHeight, eOpts) {
+        resize: function (oComp, width, height, oldWidth, oldHeight, eOpts) {
           var delta_pos = (1.0 * (height - 10)) / parseFloat(oComp.totalLines);
 
           for (var i = 0; i < oComp.items.length; i++) {
@@ -952,15 +952,15 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
 
             oItem.setPosition(0, Math.ceil(delta_pos * parseFloat(oItem.lineNumber)));
           }
-        }
-      }
+        },
+      },
     });
 
     var oPanel = new Ext.create("Ext.panel.Panel", {
       layout: "border",
       autoScroll: false,
       bodyPadding: 0,
-      items: [oCodePanel, oBlocksPanel]
+      items: [oCodePanel, oBlocksPanel],
     });
 
     if (cbFunction) {
@@ -971,19 +971,19 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
           items: [
             {
               text: "Commit",
-              handler: function() {
+              handler: function () {
                 cbFunction(oWindow);
-              }
-            }
-          ]
-        }
+              },
+            },
+          ],
+        },
       ]);
     }
     oWindow.add(oPanel);
     oWindow.show();
     oWindow.maximize();
     oWindow.getHeader().show();
-    oWindow.on("close", function() {
+    oWindow.on("close", function () {
       if (me.changeMade) {
         me.__setChangeMade(true);
       }
@@ -1019,7 +1019,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
         header: false,
         border: false,
         bodyStyle: {
-          background: sColor
+          background: sColor,
         },
         width: 50,
         lineNumber: oResponse.lines[i][1],
@@ -1027,7 +1027,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
         x: 0,
         y: Math.ceil(delta_pos * parseFloat(oResponse.lines[i][1])),
         layout: "fit",
-        html: '<a href="#' + me.id + "-diff-line-" + oResponse.lines[i][1] + '" style="display:block;width:100%">&nbsp;</a>'
+        html: '<a href="#' + me.id + "-diff-line-" + oResponse.lines[i][1] + '" style="display:block;width:100%">&nbsp;</a>',
       });
     }
 
@@ -1038,7 +1038,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
        }*/
   },
 
-  __cbResetConfigurationTree: function() {
+  __cbResetConfigurationTree: function () {
     var me = this;
 
     var oSerializedActions = [];
@@ -1047,13 +1047,13 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
 
     me.__sendSocketMessage({
       op: "getBulkExpandedNodeData",
-      nodes: oSerializedActions.join("<<||>>")
+      nodes: oSerializedActions.join("<<||>>"),
     });
 
     me.btnResetConfig.show();
   },
 
-  __findNodeByPath: function(sPathToNode) {
+  __findNodeByPath: function (sPathToNode) {
     var me = this;
 
     var oRoot = me.treeStore.getRootNode();
@@ -1080,7 +1080,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     }
   },
 
-  __serializeExpansionAction: function(sPathToLevel, oLevel, oColector) {
+  __serializeExpansionAction: function (sPathToLevel, oLevel, oColector) {
     var me = this;
     oColector.push(sPathToLevel.length == 0 ? "/" : sPathToLevel);
 
@@ -1088,7 +1088,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       me.__serializeExpansionAction(sPathToLevel + "/" + sChild, oLevel[sChild], oColector);
     }
   },
-  __cbGetBulkExpandedNodeData: function(oResponse) {
+  __cbGetBulkExpandedNodeData: function (oResponse) {
     var me = this;
 
     me.treeStore.getRootNode().removeAll();
@@ -1145,7 +1145,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     me.flagReset = false;
   },
 
-  __stringToList: function(stringValue, sep) {
+  __stringToList: function (stringValue, sep) {
     if (!sep) {
       sep = ",";
     } else {
@@ -1163,7 +1163,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     return strippedList;
   },
 
-  __commentToList: function(stringValue) {
+  __commentToList: function (stringValue) {
     var vList = stringValue.trim().split("\n");
     var cList = [];
     for (var i = 0; i < vList.length; i++) {
@@ -1175,7 +1175,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     return cList;
   },
 
-  __oprSetValuesForValuePanel: function(oModule, oNode) {
+  __oprSetValuesForValuePanel: function (oModule, oNode) {
     oModule.valuePanel.csNode = oNode;
     oModule.valuePanel.csComment = oModule.__commentToList(oNode.get("csComment")).join("\n");
     oModule.valuePanel.csPath = oModule.__getNodePath(oNode);
@@ -1192,7 +1192,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     }
   },
 
-  __oprActionValuePanel: function(oButton, eOpts) {
+  __oprActionValuePanel: function (oButton, eOpts) {
     var oValuePanel = oButton.scope.valuePanel;
     var oModule = oButton.scope;
     var oNode = oValuePanel.csNode;
@@ -1206,7 +1206,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
         op: "setOptionValue",
         path: oModule.__getNodePath(oNode),
         value: sNewValue,
-        parentNodeId: oNode.getId()
+        parentNodeId: oNode.getId(),
       });
     }
 
@@ -1214,11 +1214,11 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       op: "setComment",
       path: oModule.__getNodePath(oNode),
       value: oModule.txtCommentValuePanelTextArea.getValue(),
-      parentNodeId: oNode.getId()
+      parentNodeId: oNode.getId(),
     });
   },
 
-  __oprMenuCopyNode: function(oItem, e, eOpts) {
+  __oprMenuCopyNode: function (oItem, e, eOpts) {
     var oModule = oItem.parentMenu.moduleObject;
     var oNode = oItem.parentMenu.node;
 
@@ -1227,7 +1227,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     oModule.btnPasteButton.setDisabled(false);
   },
 
-  __oprMenuPasteNode: function(oItem, e, eOpts) {
+  __oprMenuPasteNode: function (oItem, e, eOpts) {
     var oModule = oItem.parentMenu.moduleObject;
     var oNode = oItem.parentMenu.node;
 
@@ -1254,12 +1254,12 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
         copyFromPath: oModule.__getNodePath(oModule.copyNode),
         copyToPath: oModule.__getNodePath(oNode),
         nodeId: oModule.copyNode.getId(),
-        parentNodeToId: oNode.getId()
+        parentNodeToId: oNode.getId(),
       });
     }
   },
 
-  __nameExists: function(oNode, sName) {
+  __nameExists: function (oNode, sName) {
     var oChildNodes = oNode.childNodes;
 
     var bNameExists = false;
@@ -1274,7 +1274,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     return bNameExists;
   },
 
-  __cbMenuCopyNode: function(oResponse) {
+  __cbMenuCopyNode: function (oResponse) {
     var me = this;
 
     var newName = oResponse.newName;
@@ -1284,7 +1284,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     var newCfg = {
       text: oNode.data.text,
       csName: newName,
-      csComment: oNode.get("csComment")
+      csComment: oNode.get("csComment"),
     };
 
     if (oNode.isLeaf()) {
@@ -1306,7 +1306,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     }
   },
 
-  __oprMenuRenameNode: function(oItem, e, eOpts) {
+  __oprMenuRenameNode: function (oItem, e, eOpts) {
     var oNode = oItem.parentMenu.node;
     var oModule = oItem.parentMenu.moduleObject;
     var sNewName = window.prompt("What's the new name for " + oNode.get("csName") + " ?");
@@ -1316,11 +1316,11 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       op: "renameKey",
       path: oModule.__getNodePath(oNode),
       newName: sNewName,
-      parentNodeId: oNode.getId()
+      parentNodeId: oNode.getId(),
     });
   },
 
-  __cbMenuRenameNode: function(oResponse) {
+  __cbMenuRenameNode: function (oResponse) {
     var me = this;
     var newName = oResponse.newName;
     var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
@@ -1334,18 +1334,18 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     }
   },
 
-  __oprMenuDeleteNode: function(oItem, e, eOpts) {
+  __oprMenuDeleteNode: function (oItem, e, eOpts) {
     var oNode = oItem.parentMenu.node;
     var oModule = oItem.parentMenu.moduleObject;
     if (!window.confirm("Are you sure you want to delete " + oModule.__getNodePath(oNode) + "?")) return;
     oModule.__sendSocketMessage({
       op: "deleteKey",
       path: oModule.__getNodePath(oNode),
-      parentNodeId: oNode.getId()
+      parentNodeId: oNode.getId(),
     });
   },
 
-  __cbMenuDeleteNode: function(oResponse) {
+  __cbMenuDeleteNode: function (oResponse) {
     var me = this;
 
     var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
@@ -1353,14 +1353,14 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     oParentNode.removeChild(oNode);
   },
 
-  __oprMenuCreateSubsection: function(oItem, e, eOpts) {
-    var oFunc = function(oModule, oNode) {
+  __oprMenuCreateSubsection: function (oItem, e, eOpts) {
+    var oFunc = function (oModule, oNode) {
       oModule.__sendSocketMessage({
         op: "createSection",
         path: oModule.__getNodePath(oNode),
         name: oModule.txtElementName.getValue(),
         config: oModule.txtElementConfig.getValue(),
-        parentNodeId: oNode.getId()
+        parentNodeId: oNode.getId(),
       });
     };
 
@@ -1370,7 +1370,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     oModule.formCreateElement("subsection", oFunc, oNode);
   },
 
-  __cbMenuCreateSubsection: function(oResponse) {
+  __cbMenuCreateSubsection: function (oResponse) {
     var me = this;
 
     var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
@@ -1381,7 +1381,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       text: csData.csName,
       csName: csData.csName,
       csComment: csData.csComment,
-      leaf: false
+      leaf: false,
     };
 
     if (oNode.isLoaded()) {
@@ -1395,8 +1395,8 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     oNode.expand();
   },
 
-  __oprMenuCreateOption: function(oItem, e, eOpts) {
-    var oFunc = function(oModule, oNode) {
+  __oprMenuCreateOption: function (oItem, e, eOpts) {
+    var oFunc = function (oModule, oNode) {
       var sValue = oModule.__stringToList(oModule.txtElementValue.getValue(), "\n").join(",");
 
       oModule.__sendSocketMessage({
@@ -1404,7 +1404,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
         path: oModule.__getNodePath(oNode),
         name: oModule.txtElementName.getValue(),
         value: sValue,
-        parentNodeId: oNode.getId()
+        parentNodeId: oNode.getId(),
       });
     };
 
@@ -1414,7 +1414,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     oModule.formCreateElement("option", oFunc, oNode);
   },
 
-  __cbMenuCreateOption: function(oResponse) {
+  __cbMenuCreateOption: function (oResponse) {
     var me = this;
     var oNode = me.treeStore.getNodeById(oResponse.parentNodeId);
     var newCfg = {
@@ -1422,7 +1422,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       csName: oResponse.optionName,
       csValue: oResponse.value,
       csComment: oResponse.comment,
-      leaf: true
+      leaf: true,
     };
 
     if (oNode.isLoaded()) {
@@ -1435,7 +1435,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     oNode.expand();
   },
 
-  __oprMoveNode: function(oNode, oOldParent, oNewParent, iIndex) {
+  __oprMoveNode: function (oNode, oOldParent, oNewParent, iIndex) {
     var me = this;
 
     me.__sendSocketMessage({
@@ -1448,13 +1448,13 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       oldIndex: oOldParent.indexOf(oNode),
       nodeId: oNode.getId(),
       parentOldId: oOldParent.getId(),
-      parentNewId: oNewParent.getId()
+      parentNewId: oNewParent.getId(),
     });
 
     me.waitForMoveResponse = true;
   },
 
-  __cbMoveNode: function(oResponse) {
+  __cbMoveNode: function (oResponse) {
     var me = this;
     var oNode = me.treeStore.getNodeById(oResponse.nodeId);
     var oNewParent = me.treeStore.getNodeById(oResponse.parentNewId);
@@ -1463,7 +1463,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
     me.waitForMoveResponse = false;
   },
 
-  formCreateElement: function(sType, funcCreateElement, oNode) {
+  formCreateElement: function (sType, funcCreateElement, oNode) {
     var me = this;
 
     me.txtElementName = Ext.create("Ext.form.field.Text", {
@@ -1471,7 +1471,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       labelAlign: "left",
       allowBlank: false,
       margin: 10,
-      anchor: "100%"
+      anchor: "100%",
     });
 
     me.txtElementValue = Ext.create("Ext.form.field.Text", {
@@ -1481,7 +1481,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       width: 400,
       allowBlank: false,
       hidden: sType == "subsection" ? true : false,
-      anchor: "100%"
+      anchor: "100%",
     });
 
     me.txtElementConfig = Ext.create("Ext.form.field.TextArea", {
@@ -1490,7 +1490,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       margin: 10,
       width: 400,
       hidden: sType == "subsection" ? false : true,
-      anchor: "100%"
+      anchor: "100%",
     });
 
     // button for saving the state
@@ -1498,7 +1498,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       text: "Submit",
       margin: 3,
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         var bValid = me.txtElementName.validate();
 
         if (sType == "option") bValid = bValid && me.txtElementValue.validate();
@@ -1508,7 +1508,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
           me.createElementWindow.close();
         }
       },
-      scope: me
+      scope: me,
     });
 
     // button to close the save form
@@ -1516,14 +1516,14 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       text: "Cancel",
       margin: 3,
       iconCls: "toolbar-other-close",
-      handler: function() {
+      handler: function () {
         me.createElementWindow.close();
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
-      border: false
+      border: false,
     });
 
     oToolbar.add([me.btnCreateElement, me.btnCancelCreateElement]);
@@ -1532,7 +1532,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       autoHeight: true,
       border: false,
       layout: "anchor",
-      items: [oToolbar, me.txtElementName, me.txtElementValue, me.txtElementConfig]
+      items: [oToolbar, me.txtElementName, me.txtElementValue, me.txtElementConfig],
     });
 
     var sTitle = "Create an option";
@@ -1550,10 +1550,10 @@ Ext.define("DIRAC.ConfigurationManager.classes.ConfigurationManager", {
       title: sTitle,
       layout: "fit",
       modal: true,
-      items: oPanel
+      items: oPanel,
     });
 
     me.createElementWindow.show();
     me.txtElementName.focus();
-  }
+  },
 });

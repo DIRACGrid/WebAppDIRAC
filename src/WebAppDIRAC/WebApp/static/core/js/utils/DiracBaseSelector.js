@@ -65,7 +65,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
     "Ext.dirac.utils.DiracNumericField",
     "Ext.dirac.utils.DiracTimeSearchPanel",
     "Ext.form.field.Checkbox",
-    "Ext.dirac.utils.DiracToolButton"
+    "Ext.dirac.utils.DiracToolButton",
   ],
   title: "Selectors",
   region: "west",
@@ -125,7 +125,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    */
   grid: null,
 
-  constructor: function(oConfig) {
+  constructor: function (oConfig) {
     var me = this;
     me.callParent(arguments);
 
@@ -143,7 +143,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
           labelAlign: "top",
           displayField: "text",
           valueField: "value",
-          anchor: "100%"
+          anchor: "100%",
         });
       }
     }
@@ -160,13 +160,13 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
           text: me.cmbSelectors[cmb].getFieldLabel(),
           relatedCmbField: cmb,
           checked: true,
-          handler: function(item, e) {
+          handler: function (item, e) {
             var me = this;
 
             if (item.checked) me.cmbSelectors[item.relatedCmbField].show();
             else me.cmbSelectors[item.relatedCmbField].hide();
           },
-          scope: me
+          scope: me,
         });
       }
 
@@ -174,17 +174,17 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
         xtype: "menucheckitem",
         text: "Time Span",
         checked: true,
-        handler: function(item, e) {
+        handler: function (item, e) {
           var me = this;
 
           if (item.checked) me.timeSearchPanel.show();
           else me.timeSearchPanel.hide();
         },
-        scope: me
+        scope: me,
       });
 
       me.selectorMenu = new Ext.menu.Menu({
-        items: menuItems
+        items: menuItems,
       });
     }
 
@@ -203,20 +203,20 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
           textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
             fieldLabel: oConfig.textFields[field]["name"],
             scope: me,
-            type: oConfig.textFields[field]["type"]
+            type: oConfig.textFields[field]["type"],
           });
         } else if (oConfig.textFields[field]["type"] == "Checkbox" || oConfig.textFields[field]["type"] == "checkbox") {
           textFieldWidget = Ext.create("Ext.form.field.Checkbox", {
             fieldLabel: oConfig.textFields[field]["fieldLabel"],
             name: oConfig.textFields[field]["name"],
             scope: me,
-            type: oConfig.textFields[field]["type"]
+            type: oConfig.textFields[field]["type"],
           });
         } else {
           textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
             fieldLabel: oConfig.textFields[field]["name"],
             scope: me,
-            type: oConfig.textFields[field]["type"]
+            type: oConfig.textFields[field]["type"],
           });
         }
         if (oConfig.textFields[field]["properties"]) {
@@ -235,19 +235,19 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
       var oPanelButtons = new Ext.create("Ext.toolbar.Toolbar", {
         dock: "bottom",
         layout: {
-          pack: "center"
+          pack: "center",
         },
-        items: []
+        items: [],
       });
 
       me.btnSubmit = new Ext.Button({
         text: "Submit",
         margin: 3,
         iconCls: "dirac-icon-submit",
-        handler: function() {
+        handler: function () {
           me.oprLoadGridData();
         },
-        scope: me
+        scope: me,
       });
 
       oPanelButtons.add(me.btnSubmit);
@@ -256,10 +256,10 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
         text: "Reset",
         margin: 3,
         iconCls: "dirac-icon-reset",
-        handler: function() {
+        handler: function () {
           me.oprResetSelectionOptions();
         },
-        scope: me
+        scope: me,
       });
 
       oPanelButtons.add(me.btnReset);
@@ -268,10 +268,10 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
         text: "Refresh",
         margin: 3,
         iconCls: "dirac-icon-refresh",
-        handler: function() {
+        handler: function () {
           me.oprSelectorsRefreshWithSubmit(false);
         },
-        scope: me
+        scope: me,
       });
 
       oPanelButtons.add(me.btnRefresh);
@@ -281,18 +281,18 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
 
     me.grid = oConfig.grid;
   },
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
     me.bDataSelectionLoaded = false;
     me.callParent(arguments);
   },
-  afterRender: function() {
+  afterRender: function () {
     var me = this;
     if (me.selectorMenu) {
       me.getHeader().addTool({
         xtype: "diracToolButton",
         type: "down",
-        menu: me.selectorMenu
+        menu: me.selectorMenu,
       });
     }
     me.__loadSelectorData();
@@ -303,7 +303,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    *
    * @return{Object}
    */
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     // show/hide for selectors and their selected data (including NOT
@@ -320,7 +320,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
       leftMenu.selectors[cmb] = {
         hidden: me.cmbSelectors[cmb].isHidden(),
         data_selected: me.cmbSelectors[cmb].getValue(),
-        not_selected: me.cmbSelectors[cmb].isInverseSelection()
+        not_selected: me.cmbSelectors[cmb].isInverseSelection(),
       };
     }
 
@@ -337,7 +337,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    *
    * @param{Object}data it contains the saved values.
    */
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     var bToReload = false;
@@ -402,7 +402,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    *                       oSelectionBox
    * @param{Boolean} it used to cancel the previous request
    */
-  __oprPostponedValueSetUntilOptionsLoaded: function(oSelectionBox, oValues, bLastOne) {
+  __oprPostponedValueSetUntilOptionsLoaded: function (oSelectionBox, oValues, bLastOne) {
     var me = this;
     GLOBAL.APP.CF.log("debug", "pospone request", bLastOne);
     if (me.bDataSelectionLoaded) {
@@ -419,7 +419,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
   /*************************************************************************
    * @private It cancel the AJAX request.
    */
-  __cancelPreviousDataRequest: function() {
+  __cancelPreviousDataRequest: function () {
     var me = this;
 
     if (me.grid && me.grid.store.loading && me.grid.store.lastDataRequest) {
@@ -436,14 +436,14 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    *
    * @retun{Ext.dirac.utils.DiracTimeSearchPanel}
    */
-  getTimeSearch: function() {
+  getTimeSearch: function () {
     var me = this;
     return me.timeSearchPanel;
   },
   /*************************************************************************
    * @private It loads the Selector data using AJAX request.
    */
-  __loadSelectorData: function() {
+  __loadSelectorData: function () {
     var me = this;
 
     if (Object.keys(me.cmbSelectors).length > 0) {
@@ -455,7 +455,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
         url: GLOBAL.BASE_URL + me.url,
         params: {},
         scope: me,
-        success: function(response) {
+        success: function (response) {
           var me = this;
 
           me.body.unmask();
@@ -486,10 +486,10 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
 
           me.bDataSelectionLoaded = true;
         },
-        failure: function(response) {
+        failure: function (response) {
           GLOBAL.APP.CF.showAjaxErrorMessage(response);
           me.body.unmask();
-        }
+        },
       });
     }
   },
@@ -499,7 +499,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    * @param{Object}oData data used by the selectors.
    * @param{Boolean}bRefreshStores to create new store.
    */
-  __oprRefreshStoresForSelectors: function(oData, bRefreshStores) {
+  __oprRefreshStoresForSelectors: function (oData, bRefreshStores) {
     var me = this;
 
     for (var j = 0; j < me.datamap.length; j++) {
@@ -510,7 +510,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
 
       var dataStore = new Ext.data.Store({
         fields: ["value", "text"],
-        data: dataOptions
+        data: dataOptions,
       });
 
       me.cmbSelectors[me.datamap[j][1]].setStore(dataStore);
@@ -521,7 +521,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    *
    * @return{Object}
    */
-  getSelectionData: function() {
+  getSelectionData: function () {
     var me = this;
 
     var extraParams = {};
@@ -589,7 +589,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
   /**
    * It loads data to the grid panel.
    */
-  oprLoadGridData: function() {
+  oprLoadGridData: function () {
     var me = this;
 
     if (me.grid && me.__oprValidateBeforeSubmit()) {
@@ -618,7 +618,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    * It validates the selected values. It is used to make sure the values
    * which are selected are correct.
    */
-  __oprValidateBeforeSubmit: function() {
+  __oprValidateBeforeSubmit: function () {
     var me = this;
     var bValid = true;
 
@@ -633,7 +633,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
   /**
    * It is used to reset the selectors.
    */
-  oprResetSelectionOptions: function() {
+  oprResetSelectionOptions: function () {
     var me = this;
     for (var selector in me.cmbSelectors) {
       me.cmbSelectors[selector].setValue([]);
@@ -648,7 +648,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    *
    * @param{Boolean} create a Ajax request and refresh the selectors.
    */
-  oprSelectorsRefreshWithSubmit: function(bSubmit) {
+  oprSelectorsRefreshWithSubmit: function (bSubmit) {
     var me = this;
 
     if (bSubmit && !me.__oprValidateBeforeSubmit()) return;
@@ -661,7 +661,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
       url: GLOBAL.BASE_URL + me.url,
       params: {},
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var me = this;
         var response = Ext.JSON.decode(response.responseText);
         me.__oprRefreshStoresForSelectors(response, true);
@@ -670,9 +670,9 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
 
         me.bDataSelectionLoaded = true;
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
   },
   /**
@@ -692,26 +692,26 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    * </pre>
    */
 
-  addTextFieldSelector: function(data) {
+  addTextFieldSelector: function (data) {
     var me = this;
     var textFieldWidget = null;
     for (var field in data) {
       if (data[field]["type"] == "Number") {
         textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
           fieldLabel: data[field]["name"],
-          scope: me
+          scope: me,
         });
       } else if (data[field]["type"] == "Checkbox" || data[field]["type"] == "checkbox") {
         textFieldWidget = Ext.create("Ext.form.field.Checkbox", {
           fieldLabel: data[field]["fieldLabel"],
           name: data[field]["name"],
           scope: me,
-          type: data[field]["type"]
+          type: data[field]["type"],
         });
       } else {
         textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
           fieldLabel: data[field]["name"],
-          scope: me
+          scope: me,
         });
       }
       me.textFields[field] = textFieldWidget;
@@ -738,7 +738,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    * varmap = [&quot;Example&quot;,[&quot;example&quot;]
    * </pre>
    */
-  addComboSelector: function(data, map) {
+  addComboSelector: function (data, map) {
     var me = this;
     for (var cmb in data) {
       me.cmbSelectors[cmb] = Ext.create("Ext.dirac.utils.DiracBoxSelect", {
@@ -747,7 +747,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
         labelAlign: "top",
         displayField: "text",
         valueField: "value",
-        anchor: "100%"
+        anchor: "100%",
       });
 
       me.add(me.cmbSelectors[cmb]);
@@ -758,13 +758,13 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
         text: me.cmbSelectors[cmb].getFieldLabel(),
         relatedCmbField: cmb,
         checked: true,
-        handler: function(item, e) {
+        handler: function (item, e) {
           var me = this;
 
           if (item.checked) me.cmbSelectors[item.relatedCmbField].show();
           else me.cmbSelectors[item.relatedCmbField].hide();
         },
-        scope: me
+        scope: me,
       });
     }
     if (map) {
@@ -782,7 +782,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
    *          noToDisable it is the selector object which will be not
    *          disabled...
    */
-  disableElements: function(notToDisable) {
+  disableElements: function (notToDisable) {
     var me = this;
 
     if (me.timeSearchPanel) {
@@ -800,7 +800,7 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
       }
     }
   },
-  enableElements: function() {
+  enableElements: function () {
     var me = this;
 
     if (me.timeSearchPanel) {
@@ -817,8 +817,8 @@ Ext.define("Ext.dirac.utils.DiracBaseSelector", {
       }
     }
   },
-  setGrid: function(grid) {
+  setGrid: function (grid) {
     var me = this;
     me.grid = grid;
-  }
+  },
 });

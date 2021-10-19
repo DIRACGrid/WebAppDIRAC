@@ -3,7 +3,7 @@
  * @extends Ext.Welcome.Window
  */
 Ext.define("Ext.dirac.utils.WelcomeWindow", {
-  constructor: function() {
+  constructor: function () {
     var usr = GLOBAL.APP.configData["user"]["username"];
     var mainDiv = document.getElementById("app-dirac-welcome");
     var closeBtn = document.getElementById("app-dirac-welcome-close");
@@ -11,7 +11,7 @@ Ext.define("Ext.dirac.utils.WelcomeWindow", {
     if (mainDiv && closeBtn && visitorDiv) {
       if (!Ext.util.Cookies.get("frstEntrUsrs") || Ext.util.Cookies.get("frstEntrUsrs").indexOf(usr) == -1) {
         mainDiv.style.display = "block";
-        closeBtn.onclick = function() {
+        closeBtn.onclick = function () {
           mainDiv.style.display = "none";
         };
         if (!GLOBAL.APP.configData.user.username) {
@@ -27,5 +27,5 @@ Ext.define("Ext.dirac.utils.WelcomeWindow", {
       }
       return frstEntrUsrs;
     }
-  }
+  },
 });

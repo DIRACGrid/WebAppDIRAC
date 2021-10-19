@@ -11,7 +11,7 @@ Ext.define("Ext.dirac.core.TransformationData", {
   /**
    * Function to verify the structure of the saved data and its version
    */
-  oprVerifyDataStructure: function(oData) {
+  oprVerifyDataStructure: function (oData) {
     if (oData && "version" in oData) {
       if (oData.version == GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION) {
         return true;
@@ -26,7 +26,7 @@ Ext.define("Ext.dirac.core.TransformationData", {
   /**
    *
    */
-  oprTransformMainViewDataToCurrentVersion: function(oData) {
+  oprTransformMainViewDataToCurrentVersion: function (oData) {
     var me = this;
 
     var startVersion = 0;
@@ -50,7 +50,7 @@ Ext.define("Ext.dirac.core.TransformationData", {
     return oData;
   },
 
-  oprTransformMainViewDataToNextVersion: function(iVersion, oData) {
+  oprTransformMainViewDataToNextVersion: function (iVersion, oData) {
     var me = this;
 
     if (iVersion >= GLOBAL.MAIN_VIEW_SAVE_STRUCTURE_VERSION) {
@@ -105,10 +105,10 @@ Ext.define("Ext.dirac.core.TransformationData", {
    * }
    * </pre>
    */
-  oprMainViewGoFrom0To1: function(oData) {
+  oprMainViewGoFrom0To1: function (oData) {
     var oResponse = {
       success: false,
-      data: null
+      data: null,
     };
 
     if ("TD" in GLOBAL.APP.MAIN_VIEW) {
@@ -119,5 +119,5 @@ Ext.define("Ext.dirac.core.TransformationData", {
     }
 
     return oResponse;
-  }
+  },
 });

@@ -25,13 +25,13 @@ Ext.define("Ext.dirac.views.tabs.Wallpaper", {
   stateful: true,
   stateId: "desk-wallpaper",
 
-  afterRender: function() {
+  afterRender: function () {
     var me = this;
     me.callParent();
     me.setWallpaper(me.wallpaper, me.stretch);
   },
 
-  applyState: function() {
+  applyState: function () {
     var me = this,
       old = me.wallpaper;
     me.callParent(arguments);
@@ -40,15 +40,15 @@ Ext.define("Ext.dirac.views.tabs.Wallpaper", {
     }
   },
 
-  getState: function() {
+  getState: function () {
     return (
       this.wallpaper && {
-        wallpaper: this.wallpaper
+        wallpaper: this.wallpaper,
       }
     );
   },
 
-  setWallpaper: function(wallpaper, stretch) {
+  setWallpaper: function (wallpaper, stretch) {
     var me = this,
       imgEl,
       bkgnd;
@@ -68,7 +68,7 @@ Ext.define("Ext.dirac.views.tabs.Wallpaper", {
         Ext.fly(imgEl)
           .setStyle({
             width: "100%",
-            height: "100%"
+            height: "100%",
           })
           .show();
       } else {
@@ -79,12 +79,12 @@ Ext.define("Ext.dirac.views.tabs.Wallpaper", {
       }
 
       me.el.setStyle({
-        backgroundImage: bkgnd || ""
+        backgroundImage: bkgnd || "",
       });
       if (me.stateful) {
         me.saveState();
       }
     }
     return me;
-  }
+  },
 });

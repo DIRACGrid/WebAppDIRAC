@@ -1,6 +1,4 @@
-
 # Contribution Guidelines for DIRAC
-
 
 ## Pull Requests
 
@@ -22,11 +20,13 @@ If you notice an issue, consider first creating an issue and then refering to it
 in your pull-request and commit messages with `#[issue-id]`.
 
 ## Coding Conventions
- For the python code:
- * You should follow the [DIRAC Coding Conventions](https://dirac.readthedocs.io/en/latest/DeveloperGuide/CodingConvention/index.html).
- * Your code should not introduce any new pylint warnings, and fix as many existing warnings as possible.
- * Use autopep8
+
+For the python code:
+
+- You should follow the [DIRAC Coding Conventions](https://dirac.readthedocs.io/en/latest/DeveloperGuide/CodingConvention/index.html).
+- Your code should not introduce any new pylint warnings, and fix as many existing warnings as possible.
+- Use autopep8
 
 ## Git workflow
 
- The DIRAC Development Model is described in the [documentation](https://dirac.readthedocs.io/en/latest/DeveloperGuide/DevelopmentModel/index.html) with detailed instructions on the git workflow listed [here](https://dirac.readthedocs.io/en/latest/DeveloperGuide/DevelopmentModel/ContributingCode/index.html). For additional help on the git(hub) workflow please see this [tutorial](https://github.com/andresailer/tutorial#working-updating-pushing).
+The DIRAC Development Model is described in the [documentation](https://dirac.readthedocs.io/en/latest/DeveloperGuide/DevelopmentModel/index.html) with detailed instructions on the git workflow listed [here](https://dirac.readthedocs.io/en/latest/DeveloperGuide/DevelopmentModel/ContributingCode/index.html). For additional help on the git(hub) workflow please see this [tutorial](https://github.com/andresailer/tutorial#working-updating-pushing).
