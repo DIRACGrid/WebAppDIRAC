@@ -64,7 +64,8 @@ class AccountingHandler(WebHandler):
             # length = len( retVal['Value'][record] )
             # if  length > 10000:
             #  records[record] = retVal['Value'][record][length - 5000:]
-            #  message = "The %s accounting type contains to many rows: %s - > %d. Note: Only 1000 rows are returned!" % ( typeName, record, length )
+            #  message = "The %s accounting type contains to many rows: %s - > %d. Note: Only 1000 rows are returned!"
+            #  message = message % ( typeName, record, length )
             #  gLogger.warn( message )
             # else:
             records[record] = retVal["Value"][record]
@@ -210,7 +211,10 @@ class AccountingHandler(WebHandler):
         self.set_header("Content-Transfer-Encoding", "Binary")
         # self.set_header( 'Cache-Control', "no-cache, no-store, must-revalidate, max-age=0" )
         # self.set_header( 'Pragma', "no-cache" )
-        # self.set_header( 'Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ) )
+        # self.set_header(
+        #     'Expires',
+        #     (datetime.datetime.utcnow() - datetime.timedelta(minutes = -10)).strftime("%d %b %Y %H:%M:%S GMT")
+        # )
         self.finish(data)
 
     @asyncGen

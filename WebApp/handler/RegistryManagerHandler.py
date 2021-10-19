@@ -20,7 +20,7 @@ class RegistryManagerHandler(WebSocketHandler):
         self.log.info("RECEIVED %s" % msg)
         try:
             params = json.loads(msg)
-        except:
+        except Exception:
             gLogger.exception("No op defined")
 
         res = False
