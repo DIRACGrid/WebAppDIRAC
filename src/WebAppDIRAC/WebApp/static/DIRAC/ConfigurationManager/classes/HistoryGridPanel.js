@@ -1,6 +1,6 @@
 Ext.define("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
   extend: "Ext.grid.Panel",
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
     me.store = Ext.create("Ext.data.Store", {
       remoteSort: false,
@@ -8,10 +8,10 @@ Ext.define("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
       sorters: [
         {
           property: "version",
-          direction: "DESC"
-        }
+          direction: "DESC",
+        },
       ],
-      data: []
+      data: [],
     });
 
     Ext.apply(me, {
@@ -22,81 +22,81 @@ Ext.define("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
           width: 50,
           sortable: false,
           dataIndex: "version",
-          renderer: me.renderFromSelect
+          renderer: me.renderFromSelect,
         },
         {
           header: "To / RB",
           width: 50,
           sortable: false,
           dataIndex: "version",
-          renderer: me.renderToSelect
+          renderer: me.renderToSelect,
         },
         {
           header: "Version",
           width: 200,
           sortable: false,
-          dataIndex: "version"
+          dataIndex: "version",
         },
         {
           header: "Commiter",
           width: 100,
           sortable: false,
-          dataIndex: "commiter"
-        }
+          dataIndex: "commiter",
+        },
       ],
       dockedItems: [
         {
           xtype: "toolbar",
           dock: "bottom",
           layout: {
-            pack: "left"
+            pack: "left",
           },
           items: [
             {
               text: "Cancel",
               handler: me.__onCancel,
               scope: me,
-              iconCls: "toolbar-other-close"
+              iconCls: "toolbar-other-close",
             },
             {
               text: "Show difference",
               handler: me.__showDiff,
-              scope: me
+              scope: me,
             },
             "->",
             {
               text: 'Rollback to "TO" version',
               handler: me.__rollback,
-              scope: me
-            }
+              scope: me,
+            },
           ],
           defaults: {
-            margin: 3
-          }
-        }
-      ]
+            margin: 3,
+          },
+        },
+      ],
     });
 
     me.callParent(arguments);
   },
-  __onCancel: function() {
+  __onCancel: function () {
     var me = this;
 
     me.fireEvent("cancelled", me);
   },
 
-  renderFromSelect: function(value, metadata, record, rowIndex, colIndex, store) {
+  renderFromSelect: function (value, metadata, record, rowIndex, colIndex, store) {
     return '<input type="radio" name="fromVersion" value="' + record.get("version") + '"/>';
   },
 
-  renderToSelect: function(value, metadata, record, rowIndex, colIndex, store) {
+  renderToSelect: function (value, metadata, record, rowIndex, colIndex, store) {
     return '<input type="radio" name="toVersion" value="' + record.get("version") + '"/>';
   },
-  afterRender: function() {
+  afterRender: function () {
     var me = this;
     me.el.on("click", me.checkEnabledDiff, me);
   },
-  initRadios: function() {
+  initRadios: function () {
     var me = this;
     toObj = document.getElementsByName("toVersion");
     for (var i = 0; i < toObj.length; i++) {
@@ -115,7 +115,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
     me.checkEnabledDiff();
   },
 
-  checkEnabledDiff: function(toObj, fromObj, a, b, c) {
+  checkEnabledDiff: function (toObj, fromObj, a, b, c) {
     var me = this;
 
     var toObj = document.getElementsByName("toVersion");
@@ -133,7 +133,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
       else toObj[i].style.visibility = "visible";
     }
   },
-  getSelectedIndex: function(radioObj) {
+  getSelectedIndex: function (radioObj) {
     var radioLength = radioObj.length;
     if (radioLength == null) if (radioObj.checked) return 0;
     for (var i = 0; i < radioLength; i++) {
@@ -141,7 +141,7 @@ Ext.define("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
     }
     return 0;
   },
-  __showDiff: function() {
+  __showDiff: function () {
     var me = this;
     me.up().setLoading("Creating the diff.... Please be patient...");
 
@@ -151,10 +151,10 @@ Ext.define("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
     me.up().__sendSocketMessage({
       op: "showDiff",
       fromVersion: me.getRadioValue(fromObj),
-      toVersion: me.getRadioValue(toObj)
+      toVersion: me.getRadioValue(toObj),
     });
   },
-  __rollback: function() {
+  __rollback: function () {
     var me = this;
     rollbackTime = me.getRadioValue(document.getElementsByName("toVersion"));
     if (rollbackTime == "") {
@@ -166,20 +166,20 @@ Ext.define("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
       title: "Question",
       msg: "Are you sure you want to rollback to version " + rollbackTime + "?",
       buttons: Ext.Msg.YESNOCANCEL,
-      fn: function(btn) {
+      fn: function (btn) {
         if (btn == "yes") me.__onCancel();
         me.up().__sendSocketMessage({
           op: "rollback",
-          rollbackToVersion: rollbackTime
+          rollbackToVersion: rollbackTime,
         });
         if (btn == "no") return;
       },
       scope: me,
-      icon: Ext.MessageBox.QUESTION
+      icon: Ext.MessageBox.QUESTION,
     });
   },
 
-  getRadioValue: function(radioObj) {
+  getRadioValue: function (radioObj) {
     var radioLength = radioObj.length;
     if (radioLength == null)
       if (radioObj.checked) return radioObj.value;
@@ -188,5 +188,5 @@ Ext.define("DIRAC.ConfigurationManager.classes.HistoryGridPanel", {
       if (radioObj[i].checked) return radioObj[i].value;
     }
     return "";
-  }
+  },
 });

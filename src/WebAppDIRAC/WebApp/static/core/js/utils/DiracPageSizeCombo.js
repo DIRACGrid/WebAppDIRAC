@@ -15,9 +15,9 @@ Ext.define("Ext.dirac.utils.DiracPageSizeCombo", {
   mode: "local",
   store: new Ext.data.ArrayStore({
     fields: ["number"],
-    data: [[25], [50], [100], [200], [500], [1000]]
+    data: [[25], [50], [100], [200], [500], [1000]],
   }),
   triggerAction: "all",
   value: 25,
-  width: 60
+  width: 60,
 });

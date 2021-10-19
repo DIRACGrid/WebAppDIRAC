@@ -17,10 +17,10 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     "Ext.util.*",
     "Ext.toolbar.Toolbar",
     "Ext.data.Record",
-    "Ext.Array"
+    "Ext.Array",
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.launcher.title = "Registry Manager";
@@ -30,16 +30,16 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
+        split: true,
       },
       items: [],
-      header: false
+      header: false,
     });
 
     me.callParent(arguments);
   },
 
-  __createSocket: function(sOnOpenFuncName) {
+  __createSocket: function (sOnOpenFuncName) {
     var me = this;
 
     var sLoc = window.location;
@@ -54,12 +54,12 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
 
     var socket = new WebSocket(sWsuri);
 
-    socket.onopen = function(e) {
+    socket.onopen = function (e) {
       console.log("CONNECTED");
       me.isConnectionEstablished = true;
       socket.send(
         JSON.stringify({
-          op: sOnOpenFuncName
+          op: sOnOpenFuncName,
         })
       );
 
@@ -67,19 +67,19 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         me.grid.body.mask("Loading ...");
         me.__sendSocketMessage({
           op: "getData",
-          type: "users"
+          type: "users",
         });
 
         me.__getGroupList();
       }
     };
 
-    socket.onerror = function(e) {
+    socket.onerror = function (e) {
       console.log("ERR " + e.data);
       me.isConnectionEstablished = false;
     };
 
-    socket.onclose = function(e) {
+    socket.onclose = function (e) {
       me.isConnectionEstablished = false;
       var sMessage = "CONNECTION CLOSED";
 
@@ -96,7 +96,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       }
     };
 
-    socket.onmessage = function(e) {
+    socket.onmessage = function (e) {
       var oResponse = JSON.parse(e.data);
       // console.log("RESPONSE");
       // console.log(oResponse);
@@ -135,7 +135,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
 
             me.__sendSocketMessage({
               op: "getData",
-              type: me.getSelectedType()
+              type: me.getSelectedType(),
             });
             break;
           case "getData":
@@ -144,15 +144,15 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
 
               me.dataVomsStore = new Ext.data.JsonStore({
                 fields: me.gridFields[oResponse.type],
-                data: oResponse.data
+                data: oResponse.data,
               });
 
               me.vomsGrid.reconfigure(me.dataVomsStore, undefined);
               me.vomsGrid.store.sort([
                 {
                   property: "name",
-                  direction: "ASC"
-                }
+                  direction: "ASC",
+                },
               ]);
 
               me.otherDataMenu.setText("VOMS Servers");
@@ -161,15 +161,15 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
 
               me.dataServersStore = new Ext.data.JsonStore({
                 fields: me.gridFields[oResponse.type],
-                data: oResponse.data
+                data: oResponse.data,
               });
 
               me.serversGrid.reconfigure(me.dataServersStore, undefined);
               me.serversGrid.store.sort([
                 {
                   property: "name",
-                  direction: "ASC"
-                }
+                  direction: "ASC",
+                },
               ]);
 
               me.otherDataMenu.setText("VOMS Servers");
@@ -178,15 +178,15 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
 
               me.dataStore = new Ext.data.JsonStore({
                 fields: me.gridFields[oResponse.type],
-                data: oResponse.data
+                data: oResponse.data,
               });
 
               me.grid.reconfigure(me.dataStore, me.gridColumns[oResponse.type]);
               me.grid.store.sort([
                 {
                   property: "name",
-                  direction: "ASC"
-                }
+                  direction: "ASC",
+                },
               ]);
 
               switch (oResponse.type) {
@@ -219,7 +219,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
 
             var oDataToSend = {
               op: "getData",
-              type: me.rightPanel.currentType
+              type: me.rightPanel.currentType,
             };
 
             if (me.rightPanel.currentType == "servers") {
@@ -241,7 +241,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
 
             var oDataToSend = {
               op: "getData",
-              type: me.rightPanel.currentType
+              type: me.rightPanel.currentType,
             };
 
             if (me.rightPanel.currentType == "servers") {
@@ -256,7 +256,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
             me.grid.body.mask("Loading ...");
             var oDataToSend = {
               op: "getData",
-              type: me.rightPanel.currentType
+              type: me.rightPanel.currentType,
             };
 
             if (me.rightPanel.currentType == "servers") {
@@ -276,7 +276,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           case "commitChanges":
             GLOBAL.APP.CF.alert("The changes in the configuration have been successfuly commited !", "info");
             me.__sendSocketMessage({
-              op: "resetConfiguration"
+              op: "resetConfiguration",
             });
             me.getContainer().body.unmask();
             break;
@@ -298,7 +298,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     return socket;
   },
 
-  __setChangeMade: function(bChange) {
+  __setChangeMade: function (bChange) {
     var me = this;
 
     if (bChange && me.canDoChanges) {
@@ -310,7 +310,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     me.changeMade = bChange;
   },
 
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     me.isConnectionEstablished = false;
@@ -325,178 +325,178 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       maxWidth: 450,
       layout: "anchor",
       autoDestroy: false,
-      currentRecord: null
+      currentRecord: null,
     });
 
     me.otherDataMenu = new Ext.Button({
       text: "Users",
       menu: [
         {
-          handler: function() {
+          handler: function () {
             me.otherDataMenu.setText("Users");
 
             me.grid.body.mask("Loading ...");
             me.__sendSocketMessage({
               op: "getData",
-              type: "users"
+              type: "users",
             });
 
             me.centralWorkPanel.getLayout().setActiveItem(0);
           },
-          text: "Users"
+          text: "Users",
         },
         {
-          handler: function() {
+          handler: function () {
             me.otherDataMenu.setText("Groups");
 
             me.grid.body.mask("Loading ...");
             me.__sendSocketMessage({
               op: "getData",
-              type: "groups"
+              type: "groups",
             });
 
             me.centralWorkPanel.getLayout().setActiveItem(0);
           },
-          text: "Groups"
+          text: "Groups",
         },
         {
-          handler: function() {
+          handler: function () {
             me.otherDataMenu.setText("Hosts");
 
             me.grid.body.mask("Loading ...");
             me.__sendSocketMessage({
               op: "getData",
-              type: "hosts"
+              type: "hosts",
             });
 
             me.centralWorkPanel.getLayout().setActiveItem(0);
           },
-          text: "Hosts"
+          text: "Hosts",
         },
         {
-          handler: function() {
+          handler: function () {
             me.otherDataMenu.setText("VOMS Servers");
             me.__sendSocketMessage({
               op: "getData",
-              type: "voms"
+              type: "voms",
             });
             me.centralWorkPanel.getLayout().setActiveItem(1);
           },
-          text: "VOMS Servers"
+          text: "VOMS Servers",
         },
         "-",
         {
-          handler: function() {
+          handler: function () {
             me.getContainer().body.mask("Loading ...");
             me.__sendSocketMessage({
-              op: "getRegistryProperties"
+              op: "getRegistryProperties",
             });
           },
-          text: "Registry Properties"
+          text: "Registry Properties",
         },
         {
-          handler: function() {
+          handler: function () {
             me.getContainer().body.mask("Loading ...");
             me.__sendSocketMessage({
-              op: "getVomsMapping"
+              op: "getVomsMapping",
             });
           },
-          text: "VOMS Mapping"
-        }
-      ]
+          text: "VOMS Mapping",
+        },
+      ],
     });
 
     me.btnCommitChanges = new Ext.Button({
       text: "Commit",
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         if (confirm("Do you want to apply the configuration changes you've done till now?")) {
           me.getContainer().body.mask("Loading ...");
           me.__sendSocketMessage({
-            op: "commitChanges"
+            op: "commitChanges",
           });
         }
       },
       scope: me,
-      hidden: true
+      hidden: true,
     });
 
     var oLeftPanelTopToolbar = new Ext.toolbar.Toolbar({
       dock: "top",
-      items: [me.otherDataMenu, "->", me.btnCommitChanges]
+      items: [me.otherDataMenu, "->", me.btnCommitChanges],
     });
 
     me.gridFields = {
       users: [
         {
-          name: "name"
+          name: "name",
         },
         {
-          name: "dn"
+          name: "dn",
         },
         {
-          name: "ca"
+          name: "ca",
         },
         {
-          name: "email"
-        }
+          name: "email",
+        },
       ],
       groups: [
         {
-          name: "name"
+          name: "name",
         },
         {
-          name: "users"
+          name: "users",
         },
         {
-          name: "properties"
+          name: "properties",
         },
         {
-          name: "vomsrole"
+          name: "vomsrole",
         },
         {
-          name: "autouploadproxy"
+          name: "autouploadproxy",
         },
         {
-          name: "autouploadpilotproxy"
+          name: "autouploadpilotproxy",
         },
         {
-          name: "autoaddvoms"
+          name: "autoaddvoms",
         },
         {
-          name: "jobshare"
-        }
+          name: "jobshare",
+        },
       ],
       hosts: [
         {
-          name: "name"
+          name: "name",
         },
         {
-          name: "dn"
+          name: "dn",
         },
         {
-          name: "properties"
-        }
+          name: "properties",
+        },
       ],
       voms: [
         {
-          name: "name"
-        }
+          name: "name",
+        },
       ],
       servers: [
         {
-          name: "name"
+          name: "name",
         },
         {
-          name: "dn"
+          name: "dn",
         },
         {
-          name: "port"
+          name: "port",
         },
         {
-          name: "ca"
-        }
-      ]
+          name: "ca",
+        },
+      ],
     };
 
     me.gridColumns = {
@@ -508,7 +508,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           align: "left",
           hideable: false,
           width: 200,
-          sortState: "DESC"
+          sortState: "DESC",
         },
         {
           header: "DN",
@@ -516,7 +516,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           dataIndex: "dn",
           align: "left",
           hideable: false,
-          flex: 1
+          flex: 1,
         },
         {
           header: "CA",
@@ -524,7 +524,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           dataIndex: "ca",
           align: "left",
           hideable: false,
-          flex: 1
+          flex: 1,
         },
         {
           header: "E-Mail",
@@ -532,8 +532,8 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           dataIndex: "email",
           align: "left",
           hideable: false,
-          flex: 1
-        }
+          flex: 1,
+        },
       ],
       groups: [
         {
@@ -543,7 +543,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           align: "left",
           hideable: false,
           width: 200,
-          sortState: "DESC"
+          sortState: "DESC",
         },
         {
           header: "Users",
@@ -551,7 +551,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           dataIndex: "users",
           align: "left",
           hideable: false,
-          flex: 1
+          flex: 1,
         },
         {
           header: "Properties",
@@ -559,43 +559,43 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           dataIndex: "properties",
           align: "left",
           hideable: false,
-          flex: 1
+          flex: 1,
         },
         {
           header: "VOMS Role",
           sortable: true,
           dataIndex: "vomsrole",
           align: "left",
-          hideable: false
+          hideable: false,
         },
         {
           header: "Auto Upload Proxy",
           sortable: true,
           dataIndex: "autouploadproxy",
           align: "left",
-          hideable: false
+          hideable: false,
         },
         {
           header: "Auto Upload Pilot Proxy",
           sortable: true,
           dataIndex: "autouploadpilotproxy",
           align: "left",
-          hideable: false
+          hideable: false,
         },
         {
           header: "Auto Add VOMS",
           sortable: true,
           dataIndex: "autoaddvoms",
           align: "left",
-          hideable: false
+          hideable: false,
         },
         {
           header: "Job Share",
           sortable: true,
           dataIndex: "jobshare",
           align: "left",
-          hideable: false
-        }
+          hideable: false,
+        },
       ],
       hosts: [
         {
@@ -605,7 +605,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           align: "left",
           hideable: false,
           width: 200,
-          sortState: "DESC"
+          sortState: "DESC",
         },
         {
           header: "DN",
@@ -613,7 +613,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           dataIndex: "dn",
           align: "left",
           hideable: false,
-          flex: 1
+          flex: 1,
         },
         {
           header: "Properties",
@@ -621,8 +621,8 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           dataIndex: "properties",
           align: "left",
           hideable: false,
-          flex: 1
-        }
+          flex: 1,
+        },
       ],
       servers: [
         {
@@ -632,7 +632,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           align: "left",
           hideable: false,
           width: 200,
-          sortState: "DESC"
+          sortState: "DESC",
         },
         {
           header: "DN",
@@ -640,7 +640,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           dataIndex: "dn",
           align: "left",
           hideable: false,
-          flex: 1
+          flex: 1,
         },
         {
           header: "Port",
@@ -648,7 +648,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           dataIndex: "port",
           align: "left",
           hideable: false,
-          flex: 1
+          flex: 1,
         },
         {
           header: "CA",
@@ -656,8 +656,8 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           dataIndex: "ca",
           align: "left",
           hideable: false,
-          flex: 1
-        }
+          flex: 1,
+        },
       ],
       voms: [
         {
@@ -667,14 +667,14 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           align: "left",
           hideable: false,
           flex: 1,
-          sortState: "DESC"
-        }
-      ]
+          sortState: "DESC",
+        },
+      ],
     };
 
     me.dataStore = new Ext.data.JsonStore({
       fields: me.gridFields["users"],
-      data: []
+      data: [],
     });
 
     me.grid = Ext.create("Ext.grid.Panel", {
@@ -685,12 +685,12 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       header: false,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       columns: me.gridColumns["users"],
       bufferedRenderer: false,
       listeners: {
-        cellclick: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        cellclick: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           switch (me.getSelectedType()) {
             case "users":
               me.__createUserForm(record);
@@ -702,8 +702,8 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
               me.__createHostForm(record);
               break;
           }
-        }
-      }
+        },
+      },
     });
 
     me.vomsServersPanel = new Ext.create("Ext.panel.Panel", {
@@ -714,13 +714,13 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       layout: "border",
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.dataVomsStore = new Ext.data.JsonStore({
       fields: me.gridFields["voms"],
-      data: []
+      data: [],
     });
 
     me.vomsGrid = Ext.create("Ext.grid.Panel", {
@@ -731,28 +731,28 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       border: false,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       columns: me.gridColumns["voms"],
       listeners: {
-        cellclick: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        cellclick: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           me.serversGrid.vom = record.get("name");
 
           me.serversGrid.body.mask("Loading ...");
           me.__sendSocketMessage({
             op: "getData",
             type: "servers",
-            vom: record.get("name")
+            vom: record.get("name"),
           });
 
           me.__createVomsForm(record);
-        }
-      }
+        },
+      },
     });
 
     me.dataServersStore = new Ext.data.JsonStore({
       fields: me.gridFields["servers"],
-      data: []
+      data: [],
     });
 
     me.serversGrid = Ext.create("Ext.grid.Panel", {
@@ -761,14 +761,14 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       header: false,
       viewConfig: {
         stripeRows: true,
-        enableTextSelection: true
+        enableTextSelection: true,
       },
       columns: me.gridColumns["servers"],
       listeners: {
-        cellclick: function(oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        cellclick: function (oTable, td, cellIndex, record, tr, rowIndex, e, eOpts) {
           me.__createServerForm(record);
-        }
-      }
+        },
+      },
     });
 
     me.vomsServersPanel.add([me.vomsGrid, me.serversGrid]);
@@ -779,7 +779,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       region: "center",
       header: false,
       border: false,
-      items: [me.grid, me.vomsServersPanel]
+      items: [me.grid, me.vomsServersPanel],
     });
 
     me.centralWorkPanel.addDocked(oLeftPanelTopToolbar);
@@ -787,7 +787,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     me.gridContextMenu = new Ext.menu.Menu({
       items: [
         {
-          handler: function() {
+          handler: function () {
             if (me.gridContextMenu.selectedType == "voms" || me.gridContextMenu.selectedType == "servers") {
               switch (me.gridContextMenu.selectedType) {
                 case "voms":
@@ -812,10 +812,10 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
             }
           },
           iconCls: "dirac-icon-plus",
-          text: "New user"
+          text: "New user",
         },
         {
-          handler: function() {
+          handler: function () {
             if (me.gridContextMenu.selectedType == "voms" || me.gridContextMenu.selectedType == "servers") {
               switch (me.gridContextMenu.selectedType) {
                 case "voms":
@@ -844,10 +844,10 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
             }
           },
           iconCls: "dirac-icon-edit",
-          text: "Edit user"
+          text: "Edit user",
         },
         {
-          handler: function() {
+          handler: function () {
             if (me.gridContextMenu.selectedType == "voms" || me.gridContextMenu.selectedType == "servers") {
               var sName = "";
 
@@ -864,9 +864,9 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
             }
           },
           iconCls: "dirac-icon-delete",
-          text: "Delete user"
-        }
-      ]
+          text: "Delete user",
+        },
+      ],
     });
 
     me.canDoChanges = false;
@@ -877,16 +877,16 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       var oRightPanelButtons = new Ext.create("Ext.toolbar.Toolbar", {
         dock: "bottom",
         layout: {
-          pack: "center"
+          pack: "center",
         },
-        items: []
+        items: [],
       });
 
       me.btnSubmit = new Ext.Button({
         text: "Submit",
         margin: 3,
         iconCls: "dirac-icon-submit",
-        handler: function() {
+        handler: function () {
           if (me.rightPanel.items.length > 0) {
             if (me.rightPanel.currentType == "registry") {
               var oDataToSend = me.__collectRegistryProperties();
@@ -975,7 +975,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
             }
           }
         },
-        scope: me
+        scope: me,
       });
 
       oRightPanelButtons.add(me.btnSubmit);
@@ -984,7 +984,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         text: "Reset",
         margin: 3,
         iconCls: "dirac-icon-reset",
-        handler: function() {
+        handler: function () {
           var oRecord = me.rightPanel.currentRecord;
 
           if (me.rightPanel.currentType == "voms") {
@@ -994,12 +994,12 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           } else if (me.rightPanel.currentType == "registry") {
             me.getContainer().body.mask("Loading ...");
             me.__sendSocketMessage({
-              op: "getRegistryProperties"
+              op: "getRegistryProperties",
             });
           } else if (me.rightPanel.currentType == "voms_mapping") {
             me.getContainer().body.mask("Loading ...");
             me.__sendSocketMessage({
-              op: "getVomsMapping"
+              op: "getVomsMapping",
             });
           } else {
             switch (me.getSelectedType()) {
@@ -1015,7 +1015,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
             }
           }
         },
-        scope: me
+        scope: me,
       });
 
       oRightPanelButtons.add(me.btnReset);
@@ -1032,7 +1032,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     me.changeMade = false;
   },
 
-  getSelectedType: function() {
+  getSelectedType: function () {
     var me = this;
     var sResponse = "";
 
@@ -1053,14 +1053,14 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     return sResponse;
   },
 
-  afterRender: function() {
+  afterRender: function () {
     var me = this;
 
     me.__setDiracDestroyHandler();
 
     this.callParent();
 
-    me.serversGrid.body.on("contextmenu", function(e, t, eOpts) {
+    me.serversGrid.body.on("contextmenu", function (e, t, eOpts) {
       e.preventDefault();
 
       me.gridContextMenu.items.getAt(0).setText("New server");
@@ -1073,7 +1073,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       e.stopEvent();
     });
 
-    me.vomsGrid.body.on("contextmenu", function(e, t, eOpts) {
+    me.vomsGrid.body.on("contextmenu", function (e, t, eOpts) {
       e.preventDefault();
 
       me.gridContextMenu.items.getAt(0).setText("New VOMS");
@@ -1086,7 +1086,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       e.stopEvent();
     });
 
-    me.grid.body.on("contextmenu", function(e, t, eOpts) {
+    me.grid.body.on("contextmenu", function (e, t, eOpts) {
       e.preventDefault();
       var sNewNoun = me.getSelectedType().substr(0, me.getSelectedType().length - 1);
 
@@ -1102,20 +1102,20 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     });
   },
 
-  __getGroupList: function() {
+  __getGroupList: function () {
     var me = this;
 
     me.__sendSocketMessage({
-      op: "getGroupList"
+      op: "getGroupList",
     });
   },
 
-  __setDiracDestroyHandler: function() {
+  __setDiracDestroyHandler: function () {
     var me = this;
 
     me.on(
       "destroy",
-      function(oComp, eOpts) {
+      function (oComp, eOpts) {
         var oThisContainer = this;
 
         oThisContainer.dontShowMessageBeforeClose = false;
@@ -1125,7 +1125,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     );
   },
 
-  __createGroupForm: function(oRecord) {
+  __createGroupForm: function (oRecord) {
     var me = this;
 
     if ("groupForm" in me) {
@@ -1142,7 +1142,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         margin: 5,
         labelWidth: 80,
         anchor: "100%",
-        validateValue: function(sValue) {
+        validateValue: function (sValue) {
           sValue = Ext.util.Format.trim(sValue);
 
           if (sValue.length < 1) {
@@ -1157,7 +1157,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
               return false;
             }
           }
-        }
+        },
       });
 
       me.groupForm.cbAutoUploadProxy = Ext.create("Ext.form.field.ComboBox", {
@@ -1169,11 +1169,11 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         width: 200,
         store: new Ext.data.SimpleStore({
           fields: ["value"],
-          data: [["None"], ["True"], ["False"]]
+          data: [["None"], ["True"], ["False"]],
         }),
         margin: 5,
         labelWidth: 80,
-        editable: false
+        editable: false,
       });
 
       me.groupForm.cbAutoUploadPilotProxy = Ext.create("Ext.form.field.ComboBox", {
@@ -1185,11 +1185,11 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         width: 200,
         store: new Ext.data.SimpleStore({
           fields: ["value"],
-          data: [["None"], ["True"], ["False"]]
+          data: [["None"], ["True"], ["False"]],
         }),
         margin: 5,
         labelWidth: 80,
-        editable: false
+        editable: false,
       });
 
       me.groupForm.cbAutoAddVoms = Ext.create("Ext.form.field.ComboBox", {
@@ -1201,11 +1201,11 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         width: 200,
         store: new Ext.data.SimpleStore({
           fields: ["value"],
-          data: [["None"], ["True"], ["False"]]
+          data: [["None"], ["True"], ["False"]],
         }),
         margin: 5,
         labelWidth: 80,
-        editable: false
+        editable: false,
       });
 
       me.groupForm.txtJobShare = Ext.create("Ext.form.field.Number", {
@@ -1213,11 +1213,11 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         labelAlign: "left",
         margin: 5,
         labelWidth: 80,
-        width: 200
+        width: 200,
       });
 
       me.groupForm.msProperties = me.__createMultiListWithButtons("Properties", [], null);
-      me.groupForm.msUsers = me.__createMultiListWithButtons("Users", [], function(sNewUser) {
+      me.groupForm.msUsers = me.__createMultiListWithButtons("Users", [], function (sNewUser) {
         if (Ext.Array.indexOf(me.userList, sNewUser) != -1) {
           return true;
         } else {
@@ -1238,14 +1238,14 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
 
       for (var i = 0; i < oData.length; i++)
         me.groupForm.msProperties.multiList.store.add({
-          value: Ext.util.Format.trim(oData[i])
+          value: Ext.util.Format.trim(oData[i]),
         });
 
       oData = oRecord.get("users").split(",");
 
       for (var i = 0; i < oData.length; i++)
         me.groupForm.msUsers.multiList.store.add({
-          value: Ext.util.Format.trim(oData[i])
+          value: Ext.util.Format.trim(oData[i]),
         });
 
       me.rightPanel.setTitle("Group: " + oRecord.get("name"));
@@ -1267,11 +1267,11 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       me.groupForm.cbAutoUploadProxy,
       me.groupForm.cbAutoUploadPilotProxy,
       me.groupForm.cbAutoAddVoms,
-      me.groupForm.txtJobShare
+      me.groupForm.txtJobShare,
     ]);
   },
 
-  __createUserForm: function(oRecord) {
+  __createUserForm: function (oRecord) {
     var me = this;
 
     if ("userForm" in me) {
@@ -1288,7 +1288,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         margin: 5,
         anchor: "100%",
         labelWidth: 50,
-        validateValue: function(sValue) {
+        validateValue: function (sValue) {
           sValue = Ext.util.Format.trim(sValue);
 
           if (sValue.length < 1) {
@@ -1303,7 +1303,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
               return false;
             }
           }
-        }
+        },
       });
 
       me.userForm.txtDn = Ext.create("Ext.form.field.Text", {
@@ -1311,7 +1311,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         labelAlign: "left",
         margin: 5,
         anchor: "100%",
-        labelWidth: 50
+        labelWidth: 50,
       });
 
       me.userForm.txtCa = Ext.create("Ext.form.field.Text", {
@@ -1319,7 +1319,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         labelAlign: "left",
         margin: 5,
         anchor: "100%",
-        labelWidth: 50
+        labelWidth: 50,
       });
 
       me.userForm.txtEmail = Ext.create("Ext.form.field.Text", {
@@ -1327,7 +1327,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         labelAlign: "left",
         margin: 5,
         anchor: "100%",
-        labelWidth: 50
+        labelWidth: 50,
       });
     }
 
@@ -1352,7 +1352,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     me.rightPanel.add([me.userForm.txtName, me.userForm.txtDn, me.userForm.txtCa, me.userForm.txtEmail]);
   },
 
-  __createHostForm: function(oRecord) {
+  __createHostForm: function (oRecord) {
     var me = this;
 
     if ("hostForm" in me) {
@@ -1368,7 +1368,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         margin: 5,
         anchor: "100%",
         labelWidth: 80,
-        validateValue: function(sValue) {
+        validateValue: function (sValue) {
           sValue = Ext.util.Format.trim(sValue);
 
           if (sValue.length < 1) {
@@ -1383,7 +1383,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
               return false;
             }
           }
-        }
+        },
       });
 
       me.hostForm.txtDn = Ext.create("Ext.form.field.Text", {
@@ -1391,7 +1391,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         labelAlign: "left",
         margin: 5,
         anchor: "100%",
-        labelWidth: 80
+        labelWidth: 80,
       });
 
       me.hostForm.msProperties = me.__createMultiListWithButtons("Properties", [], null);
@@ -1405,7 +1405,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
 
       for (var i = 0; i < oData.length; i++)
         me.hostForm.msProperties.multiList.store.add({
-          value: Ext.util.Format.trim(oData[i])
+          value: Ext.util.Format.trim(oData[i]),
         });
 
       me.rightPanel.setTitle("Host: " + oRecord.get("name"));
@@ -1423,7 +1423,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     me.rightPanel.add([me.hostForm.txtName, me.hostForm.txtDn, me.hostForm.msProperties]);
   },
 
-  __createServerForm: function(oRecord) {
+  __createServerForm: function (oRecord) {
     var me = this;
 
     if ("serverForm" in me) {
@@ -1440,7 +1440,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         margin: 5,
         anchor: "100%",
         labelWidth: 50,
-        validateValue: function(sValue) {
+        validateValue: function (sValue) {
           sValue = Ext.util.Format.trim(sValue);
 
           if (sValue.length < 1) {
@@ -1455,7 +1455,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
               return false;
             }
           }
-        }
+        },
       });
 
       me.serverForm.txtDn = Ext.create("Ext.form.field.Text", {
@@ -1463,7 +1463,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         labelAlign: "left",
         margin: 5,
         anchor: "100%",
-        labelWidth: 50
+        labelWidth: 50,
       });
 
       me.serverForm.txtCa = Ext.create("Ext.form.field.Text", {
@@ -1471,7 +1471,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         labelAlign: "left",
         margin: 5,
         anchor: "100%",
-        labelWidth: 50
+        labelWidth: 50,
       });
 
       me.serverForm.txtPort = Ext.create("Ext.form.field.Text", {
@@ -1479,7 +1479,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         labelAlign: "left",
         margin: 5,
         anchor: "100%",
-        labelWidth: 50
+        labelWidth: 50,
       });
     }
 
@@ -1504,7 +1504,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     me.rightPanel.add([me.serverForm.txtName, me.serverForm.txtDn, me.serverForm.txtPort, me.serverForm.txtCa]);
   },
 
-  __createVomsForm: function(oRecord) {
+  __createVomsForm: function (oRecord) {
     var me = this;
 
     if ("vomsForm" in me) {
@@ -1518,7 +1518,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         margin: 5,
         anchor: "100%",
         labelWidth: 50,
-        validateValue: function(sValue) {
+        validateValue: function (sValue) {
           sValue = Ext.util.Format.trim(sValue);
 
           if (sValue.length < 1) {
@@ -1533,7 +1533,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
               return false;
             }
           }
-        }
+        },
       });
     }
 
@@ -1555,7 +1555,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     me.rightPanel.add([me.vomsForm.txtName]);
   },
 
-  __createMultiListWithButtons: function(sTitle, oData, funcOnAddValidationFunction) {
+  __createMultiListWithButtons: function (sTitle, oData, funcOnAddValidationFunction) {
     var me = this;
 
     var oMultiSelect = new Ext.ux.form.MultiSelect({
@@ -1567,17 +1567,17 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       anchor: "100%",
       store: new Ext.data.SimpleStore({
         fields: ["value"],
-        data: oData
+        data: oData,
       }),
       height: 150,
       margin: "0 5 5 5",
-      labelWidth: 80
+      labelWidth: 80,
     });
 
     var oAddButton = new Ext.Button({
       iconCls: "dirac-icon-plus",
-      handler: function() {
-        Ext.MessageBox.prompt("New Item", "Enter the name of the new item :", function(btn, text) {
+      handler: function () {
+        Ext.MessageBox.prompt("New Item", "Enter the name of the new item :", function (btn, text) {
           if (btn == "ok") {
             text = Ext.util.Format.trim(text);
             if (text != "") {
@@ -1596,12 +1596,12 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
                 if (funcOnAddValidationFunction != null) {
                   if (funcOnAddValidationFunction(text)) {
                     oStore.add({
-                      value: text
+                      value: text,
                     });
                   }
                 } else {
                   oStore.add({
-                    value: text
+                    value: text,
                   });
                 }
               } else {
@@ -1611,12 +1611,12 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           }
         });
       },
-      scope: me
+      scope: me,
     });
 
     var oDeleteButton = new Ext.Button({
       iconCls: "dirac-icon-delete",
-      handler: function() {
+      handler: function () {
         var oStore = oMultiSelect.store;
         var oSelectedValues = oMultiSelect.getValue();
 
@@ -1631,14 +1631,14 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           }
         }
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
       dock: "top",
       items: ["->", oAddButton, oDeleteButton],
       cls: "rm-clean-background",
-      border: 0
+      border: 0,
     });
 
     var oMultiSelectBox = new Ext.create("Ext.panel.Panel", {
@@ -1647,7 +1647,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       multiList: oMultiSelect,
       items: [oToolbar, oMultiSelect],
       border: 0,
-      getValues: function() {
+      getValues: function () {
         var oStore = oMultiSelect.store;
         var sRet = "";
 
@@ -1656,12 +1656,12 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
         }
 
         return sRet;
-      }
+      },
     });
 
     return oMultiSelectBox;
   },
-  __sendSocketMessage: function(oData) {
+  __sendSocketMessage: function (oData) {
     var me = this;
     // console.log("SEND");
     // console.log(oData);
@@ -1677,13 +1677,13 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     }
   },
 
-  __deleteItem: function(sName, sType) {
+  __deleteItem: function (sName, sType) {
     var me = this;
 
     var oDataToSend = {
       op: "deleteItem",
       type: sType,
-      name: sName
+      name: sName,
     };
 
     if (me.gridContextMenu.selectedType == "servers") {
@@ -1695,7 +1695,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     me.__sendSocketMessage(oDataToSend);
   },
 
-  __createRegistryPropertiesForm: function(oData) {
+  __createRegistryPropertiesForm: function (oData) {
     var me = this;
 
     me.rightPanel.currentType = "registry";
@@ -1712,11 +1712,11 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           iconCls: "dirac-icon-plus",
           margin: 3,
           tooltip: "Create option",
-          handler: function() {
+          handler: function () {
             me.__showFormForRegistryOption();
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     me.rightPanel.add(oRegistryToolbar);
@@ -1725,7 +1725,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       me.rightPanel.add(me.__createRegistryProperty(sElem, oData[sElem]));
     }
   },
-  __createRegistryProperty: function(sName, sValue) {
+  __createRegistryProperty: function (sName, sValue) {
     var me = this;
 
     var oField = Ext.create("Ext.form.field.Text", {
@@ -1734,13 +1734,13 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       margin: 5,
       anchor: "100%",
       labelWidth: 140,
-      value: sValue
+      value: sValue,
     });
 
     var oPanel = Ext.create("Ext.container.Container", {
       layout: {
         type: "hbox",
-        margin: 3
+        margin: 3,
       },
       blockType: "string",
       items: [
@@ -1749,17 +1749,17 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           xtype: "button",
           iconCls: "dirac-icon-delete",
           margin: 3,
-          handler: function() {
+          handler: function () {
             me.rightPanel.remove(this.up("container"));
           },
-          tooltip: "Remove this item"
-        }
-      ]
+          tooltip: "Remove this item",
+        },
+      ],
     });
 
     return oPanel;
   },
-  __showFormForRegistryOption: function() {
+  __showFormForRegistryOption: function () {
     var me = this;
 
     me.txtElementName = Ext.create("Ext.form.field.Text", {
@@ -1767,7 +1767,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       labelAlign: "left",
       allowBlank: false,
       margin: 10,
-      anchor: "100%"
+      anchor: "100%",
     });
 
     me.txtElementValue = Ext.create("Ext.form.field.Text", {
@@ -1775,7 +1775,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       labelAlign: "left",
       margin: 10,
       width: 400,
-      anchor: "100%"
+      anchor: "100%",
     });
 
     // button for saving the state
@@ -1783,7 +1783,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       text: "Submit",
       margin: 3,
       iconCls: "dirac-icon-submit",
-      handler: function() {
+      handler: function () {
         var bValid = me.txtElementName.validate();
 
         if (bValid) {
@@ -1791,11 +1791,11 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           me.createElementWindow.close();
         }
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
-      border: false
+      border: false,
     });
 
     oToolbar.add([me.btnCreateElement]);
@@ -1804,7 +1804,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       autoHeight: true,
       border: false,
       layout: "anchor",
-      items: [oToolbar, me.txtElementName, me.txtElementValue]
+      items: [oToolbar, me.txtElementName, me.txtElementValue],
     });
 
     var sTitle = "Create an option";
@@ -1817,14 +1817,14 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
       title: sTitle,
       layout: "fit",
       modal: true,
-      items: oPanel
+      items: oPanel,
     });
 
     me.createElementWindow.show();
     me.txtElementName.focus();
   },
 
-  __collectRegistryProperties: function() {
+  __collectRegistryProperties: function () {
     var me = this;
     var oData = {};
 
@@ -1838,7 +1838,7 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
 
     return oData;
   },
-  __createVomsMappingForm: function(oData) {
+  __createVomsMappingForm: function (oData) {
     var me = this;
 
     me.rightPanel.currentType = "voms_mapping";
@@ -1855,11 +1855,11 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
           iconCls: "dirac-icon-plus",
           margin: 3,
           tooltip: "Create option",
-          handler: function() {
+          handler: function () {
             me.__showFormForRegistryOption();
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     me.rightPanel.add(oRegistryToolbar);
@@ -1867,5 +1867,5 @@ Ext.define("DIRAC.RegistryManager.classes.RegistryManager", {
     for (var i = 0; i < oData.length; i++) {
       me.rightPanel.add(me.__createRegistryProperty(oData[i]["name"], oData[i]["value"]));
     }
-  }
+  },
 });

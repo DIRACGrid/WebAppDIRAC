@@ -14,10 +14,10 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
     "Ext.dirac.utils.DiracJsonStore",
     "Ext.dirac.utils.DiracAjaxProxy",
     "Ext.dirac.utils.DiracApplicationContextMenu",
-    "Ext.dirac.utils.DiracBaseSelector"
+    "Ext.dirac.utils.DiracBaseSelector",
   ],
 
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.grid.loadState(data);
@@ -29,13 +29,13 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
     }
   },
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
     var oStates = {};
 
     oStates = {
       grid: me.grid.getStateData(),
-      leftMenu: me.leftPanel.getStateData()
+      leftMenu: me.leftPanel.getStateData(),
     };
 
     oStates.leftPanelCollapsed = me.leftPanel.collapsed;
@@ -44,25 +44,25 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
   },
   dataFields: [
     {
-      name: "tokenid"
+      name: "tokenid",
     },
     {
-      name: "UserName"
+      name: "UserName",
     },
     {
-      name: "UserID"
+      name: "UserID",
     },
     {
-      name: "Provider"
+      name: "Provider",
     },
     {
       name: "ExpirationTime",
       type: "date",
-      dateFormat: "Y-m-d H:i:s"
-    }
+      dateFormat: "Y-m-d H:i:s",
+    },
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     GLOBAL.APP.CF.log("debug", "create the widget(initComponent)...");
@@ -85,19 +85,19 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     GLOBAL.APP.CF.log("debug", "create the widget...(buildUI)");
 
     var selectors = {
-      username: "User"
+      username: "User",
     };
 
     var map = [["username", "username"]];
@@ -107,7 +107,7 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
       cmbSelectors: selectors,
       datamap: map,
       hasTimeSearchPanel: false,
-      url: "TokenManager/getSelectionData"
+      url: "TokenManager/getSelectionData",
     });
 
     /*
@@ -116,7 +116,7 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
      * -----------------------------------------------------------------------------------------------------------
      */
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + me.applicationName + "/getTokenManagerData"
+      url: GLOBAL.BASE_URL + me.applicationName + "/getTokenManagerData",
     });
 
     me.diffValues = {};
@@ -125,7 +125,7 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
       fields: me.dataFields,
       groupField: "UserName",
       scope: me,
-      remoteSort: false
+      remoteSort: false,
     });
 
     var pagingToolbar = null;
@@ -137,50 +137,50 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
           handler: me.__deleteTokens,
           properties: {
             tooltip: "Click to delete the selected tokens!",
-            iconCls: "dirac-icon-delete"
-          }
-        }
-      ]
+            iconCls: "dirac-icon-delete",
+          },
+        },
+      ],
     };
 
     pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
       toolButtons: toolButtons,
       store: me.dataStore,
-      scope: me
+      scope: me,
     });
 
     var oColumns = {
       checkBox: {
-        dataIndex: "tokenid"
+        dataIndex: "tokenid",
       },
       User: {
         dataIndex: "UserName",
         properties: {
           width: 100,
-          sortable: true
-        }
+          sortable: true,
+        },
       },
       ID: {
         dataIndex: "UserID",
         properties: {
           width: 650,
-          sortable: true
-        }
+          sortable: true,
+        },
       },
       Provider: {
         dataIndex: "Provider",
         properties: {
           width: 100,
-          sortable: true
-        }
+          sortable: true,
+        },
       },
       "Expiration date (UTC)": {
         dataIndex: "ExpirationTime",
         properties: {
           width: 150,
-          sortable: true
+          sortable: true,
         },
-        renderer: function(value, metadata, record, rowIndex, colIndex, store) {
+        renderer: function (value, metadata, record, rowIndex, colIndex, store) {
           var expEpoch = record.data.ExpirationTime.getTime();
           /* eslint-disable */
           var nowEpoch = Ext.Date.now();
@@ -197,27 +197,27 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
           } else {
             return '<span style="color:green">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s") + "</span>";
           }
-        }
-      }
+        },
+      },
     };
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
       store: me.dataStore,
       features: [
         {
-          ftype: "grouping"
-        }
+          ftype: "grouping",
+        },
       ],
       oColumns: oColumns,
       pagingToolbar: pagingToolbar,
-      scope: me
+      scope: me,
     });
 
     me.leftPanel.setGrid(me.grid);
 
     me.add([me.leftPanel, me.grid]);
   },
-  __deleteTokens: function() {
+  __deleteTokens: function () {
     var me = this;
     var items = [];
     var elememts = Ext.query("#" + me.id + " input.checkrow");
@@ -231,9 +231,9 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
         Ext.Ajax.request({
           url: GLOBAL.BASE_URL + me.applicationName + "/deleteTokens",
           params: {
-            idList: Ext.JSON.encode(items)
+            idList: Ext.JSON.encode(items),
           },
-          success: function(oResponse) {
+          success: function (oResponse) {
             if (oResponse.status == 200) {
               response = Ext.JSON.decode(oResponse.responseText);
               if (response.success == "false") {
@@ -245,10 +245,10 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
               GLOBAL.APP.CF.showAjaxErrorMessage(response);
             }
           },
-          failure: function(response) {
+          failure: function (response) {
             GLOBAL.APP.CF.showAjaxErrorMessage(response);
-          }
+          },
         });
     }
-  }
+  },
 });

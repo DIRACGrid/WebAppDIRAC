@@ -15,33 +15,33 @@ Ext.define("Ext.dirac.views.tabs.StateManagerMenu", {
           {
             text: "New Desktop",
             iconCls: "dirac-icon-new-folder",
-            handler: function() {
+            handler: function () {
               GLOBAL.APP.MAIN_VIEW.createNewDesktop();
-            }
+            },
           },
           {
             text: "Save",
             iconCls: "dirac-icon-save",
-            handler: function() {
+            handler: function () {
               GLOBAL.APP.MAIN_VIEW.saveActiveDesktopState();
-            }
+            },
           },
           {
             text: "Save As",
             iconCls: "dirac-icon-save",
-            handler: function() {
+            handler: function () {
               GLOBAL.APP.MAIN_VIEW.saveAsActiveDesktopState();
-            }
+            },
           },
           {
             text: "Delete",
             iconCls: "dirac-icon-delete",
-            handler: function() {
+            handler: function () {
               GLOBAL.APP.MAIN_VIEW.deleteDesktopStates();
-            }
-          }
-        ]
-      }
+            },
+          },
+        ],
+      },
     },
     {
       text: "Applications",
@@ -50,34 +50,34 @@ Ext.define("Ext.dirac.views.tabs.StateManagerMenu", {
           {
             text: "Save",
             iconCls: "dirac-icon-save",
-            handler: function() {
+            handler: function () {
               GLOBAL.APP.MAIN_VIEW.saveActiveApplicationState();
-            }
+            },
           },
           {
             text: "Save As",
             iconCls: "dirac-icon-save",
-            handler: function() {
+            handler: function () {
               GLOBAL.APP.MAIN_VIEW.saveAsActiveApplicationState();
-            }
+            },
           },
           {
             text: "Delete",
             iconCls: "dirac-icon-delete",
-            handler: function() {
+            handler: function () {
               GLOBAL.APP.MAIN_VIEW.deleteApplicationStates();
-            }
-          }
-        ]
-      }
+            },
+          },
+        ],
+      },
     },
     "-",
     {
       text: "State Loader",
       iconCls: "dirac-icon-state",
-      handler: function() {
+      handler: function () {
         GLOBAL.APP.MAIN_VIEW.SM.formStateLoader(GLOBAL.APP.MAIN_VIEW.cbAfterLoadSharedState, GLOBAL.APP.MAIN_VIEW.cbAfterSaveSharedState);
-      }
-    }
-  ]
+      },
+    },
+  ],
 });

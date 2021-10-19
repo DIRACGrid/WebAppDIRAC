@@ -10,24 +10,24 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
     "Ext.dirac.utils.DiracPagingToolbar",
     "Ext.dirac.utils.DiracApplicationContextMenu",
     "Ext.dirac.utils.DiracGridPanel",
-    "Ext.dirac.utils.DiracRowExpander"
+    "Ext.dirac.utils.DiracRowExpander",
   ],
   applicationsToOpen: {
-    PilotMonitor: "DIRAC.PilotMonitor.classes.PilotMonitor"
+    PilotMonitor: "DIRAC.PilotMonitor.classes.PilotMonitor",
   },
-  loadState: function(data) {
+  loadState: function (data) {
     var me = this;
 
     me.grid.loadState(data);
 
     me.leftPanel.loadState(data);
   },
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     var oStates = {
       grid: me.grid.getStateData(),
-      leftMenu: me.leftPanel.getStateData()
+      leftMenu: me.leftPanel.getStateData(),
     };
 
     return oStates;
@@ -35,62 +35,62 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
 
   dataFields: [
     {
-      name: "Scheduled"
+      name: "Scheduled",
     },
     {
-      name: "Status"
+      name: "Status",
     },
     {
-      name: "Aborted_Hour"
+      name: "Aborted_Hour",
     },
     {
       name: "PilotsPerJob",
-      type: "float"
+      type: "float",
     },
     {
-      name: "Site"
+      name: "Site",
     },
     {
-      name: "Submitted"
+      name: "Submitted",
     },
     {
-      name: "Done_Empty"
+      name: "Done_Empty",
     },
     {
-      name: "Waiting"
+      name: "Waiting",
     },
     {
       name: "PilotJobEff",
-      type: "float"
+      type: "float",
     },
     {
-      name: "Done"
+      name: "Done",
     },
     {
-      name: "CE"
+      name: "CE",
     },
     {
-      name: "Aborted"
+      name: "Aborted",
     },
     {
-      name: "Ready"
+      name: "Ready",
     },
     {
-      name: "Total"
+      name: "Total",
     },
     {
-      name: "Running"
+      name: "Running",
     },
     {
       name: "StatusIcon",
-      mapping: "Status"
+      mapping: "Status",
     },
     {
-      name: "Failed"
-    }
+      name: "Failed",
+    },
   ],
 
-  initComponent: function() {
+  initComponent: function () {
     var me = this;
 
     me.launcher.title = "Pilot Summary";
@@ -101,23 +101,23 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
       bodyBorder: false,
       defaults: {
         collapsible: true,
-        split: true
-      }
+        split: true,
+      },
     });
 
     me.callParent(arguments);
   },
-  buildUI: function() {
+  buildUI: function () {
     var me = this;
 
     var selectors = {
       site: "Site",
-      Status: "Status"
+      Status: "Status",
     };
 
     var map = [
       ["site", "site"],
-      ["Status", "Status"]
+      ["Status", "Status"],
     ];
 
     me.leftPanel = new Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -125,7 +125,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
       cmbSelectors: selectors,
       datamap: map,
       hasTimeSearchPanel: false,
-      url: "PilotSummary/getSelectionData"
+      url: "PilotSummary/getSelectionData",
     });
 
     /*
@@ -134,7 +134,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
      * -----------------------------------------------------------------------------------------------------------
      */
     var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-      url: GLOBAL.BASE_URL + "PilotSummary/getPilotSummaryData"
+      url: GLOBAL.BASE_URL + "PilotSummary/getPilotSummaryData",
     });
 
     me.diffValues = {};
@@ -142,13 +142,13 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
       proxy: oProxy,
       fields: me.dataFields,
       remoteSort: false,
-      scope: me
+      scope: me,
     });
 
     var pagingToolbar = Ext.create("Ext.dirac.utils.DiracPagingToolbar", {
       store: me.dataStore,
       scope: me,
-      value: 100
+      value: 100,
     });
 
     var oColumns = {
@@ -159,81 +159,81 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
           sortable: false,
           hideable: false,
           fixed: true,
-          menuDisabled: true
+          menuDisabled: true,
         },
-        renderFunction: "rendererStatus"
+        renderFunction: "rendererStatus",
       },
       Site: {
         dataIndex: "Site",
         properties: {
           fixed: false,
-          width: 120
-        }
+          width: 120,
+        },
       },
       CE: {
-        dataIndex: "CE"
+        dataIndex: "CE",
       },
       Status: {
         dataIndex: "Status",
         properties: {
           width: 60,
-          sortable: false
-        }
+          sortable: false,
+        },
       },
       "PilotJobEff (%)": {
-        dataIndex: "PilotJobEff"
+        dataIndex: "PilotJobEff",
       },
       PilotsPerJob: {
-        dataIndex: "PilotsPerJob"
+        dataIndex: "PilotsPerJob",
       },
       Submitted: {
         dataIndex: "Submitted",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       Ready: {
         dataIndex: "Ready",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       Waiting: {
-        dataIndex: "Waiting"
+        dataIndex: "Waiting",
       },
       Scheduled: {
-        dataIndex: "Scheduled"
+        dataIndex: "Scheduled",
       },
       Running: {
-        dataIndex: "Running"
+        dataIndex: "Running",
       },
       Done: {
-        dataIndex: "Done"
+        dataIndex: "Done",
       },
       Aborted: {
-        dataIndex: "Aborted"
+        dataIndex: "Aborted",
       },
       Aborted_Hour: {
-        dataIndex: "Aborted_Hour"
+        dataIndex: "Aborted_Hour",
       },
       Failed: {
-        dataIndex: "Failed"
+        dataIndex: "Failed",
       },
       Done_Empty: {
         dataIndex: "Done_Empty",
         properties: {
-          hidden: true
-        }
+          hidden: true,
+        },
       },
       Total: {
         dataIndex: "Total",
         properties: {
-          hidden: true
-        }
-      }
+          hidden: true,
+        },
+      },
     };
 
-    var showPilothandler = function() {
+    var showPilothandler = function () {
       var oSite = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "Site");
       var setupdata = {};
       setupdata.data = {};
@@ -243,13 +243,13 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
       setupdata.data.leftMenu.selectors.site = {
         data_selected: [oSite],
         hidden: false,
-        not_selected: false
+        not_selected: false,
       };
 
       GLOBAL.APP.MAIN_VIEW.createNewModuleContainer({
         objectType: "app",
         moduleName: me.applicationsToOpen["PilotMonitor"],
-        setupData: setupdata
+        setupData: setupdata,
       });
     };
 
@@ -259,15 +259,15 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
           text: "Show Pilots",
           handler: showPilothandler,
           properties: {
-            tooltip: "Click to show the jobs which belong to the selected request."
-          }
-        }
-      ]
+            tooltip: "Click to show the jobs which belong to the selected request.",
+          },
+        },
+      ],
     };
 
     me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
       menu: menuitems,
-      scope: me
+      scope: me,
     });
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
@@ -286,31 +286,26 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
         {
           ptype: "diracrowexpander",
           checkField: {
-            CE: "Multiple"
+            CE: "Multiple",
           },
-          rowBodyTpl: ['<div id="expanded-Grid-{[values.Site.split(".").join("_")]}"> </div>']
-        }
-      ]
+          rowBodyTpl: ['<div id="expanded-Grid-{[values.Site.split(".").join("_")]}"> </div>'],
+        },
+      ],
     });
 
     me.leftPanel.setGrid(me.grid);
-    me.grid.view.on("expandbody", function(rowNode, record, expandbody) {
-      var targetId =
-        "expanded-Grid-" +
-        record
-          .get("Site")
-          .split(".")
-          .join("_");
+    me.grid.view.on("expandbody", function (rowNode, record, expandbody) {
+      var targetId = "expanded-Grid-" + record.get("Site").split(".").join("_");
       if (Ext.getCmp(targetId + "_grid") != null) {
         Ext.destroy(Ext.getCmp(targetId + "_grid"));
       }
 
       if (Ext.getCmp(targetId + "_grid") == null) {
         var params = {
-          expand: Ext.JSON.encode([record.data.Site])
+          expand: Ext.JSON.encode([record.data.Site]),
         };
         var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
-          url: GLOBAL.BASE_URL + "PilotSummary/getPilotSummaryData"
+          url: GLOBAL.BASE_URL + "PilotSummary/getPilotSummaryData",
         });
         oProxy.extraParams = params;
         var expandStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
@@ -318,9 +313,9 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
           fields: me.dataFields,
           scope: me,
           autoLoad: true,
-          dontLoadOnCreation: true
+          dontLoadOnCreation: true,
         });
-        expandStore.on("load", function() {
+        expandStore.on("load", function () {
           me.grid.expandedGridPanel.setLoading(false);
         });
         me.grid.expandedGridPanel = Ext.create("Ext.grid.Panel", {
@@ -331,7 +326,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
           store: expandStore,
           viewConfig: {
             stripeRows: true,
-            enableTextSelection: true
+            enableTextSelection: true,
           },
           columns: [
             {
@@ -340,7 +335,7 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
               dataIndex: "Site",
               align: "left",
               hideable: false,
-              fixed: true
+              fixed: true,
             },
             {
               header: "CE",
@@ -348,98 +343,98 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
               dataIndex: "CE",
               align: "left",
               hideable: false,
-              fixed: true
+              fixed: true,
             },
             {
               header: "Status",
               width: 60,
               sortable: false,
               dataIndex: "Status",
-              align: "left"
+              align: "left",
             },
             {
               header: "PilotJobEff (%)",
               sortable: false,
               dataIndex: "PilotJobEff",
-              align: "left"
+              align: "left",
             },
             {
               header: "PilotsPerJob",
               sortable: false,
               dataIndex: "PilotsPerJob",
-              align: "left"
+              align: "left",
             },
             {
               header: "Submitted",
               sortable: false,
               dataIndex: "Submitted",
               align: "left",
-              hidden: true
+              hidden: true,
             },
             {
               header: "Ready",
               sortable: false,
               dataIndex: "Ready",
               align: "left",
-              hidden: true
+              hidden: true,
             },
             {
               header: "Waiting",
               sortable: false,
               dataIndex: "Waiting",
-              align: "left"
+              align: "left",
             },
             {
               header: "Scheduled",
               sortable: false,
               dataIndex: "Scheduled",
-              align: "left"
+              align: "left",
             },
             {
               header: "Running",
               sortable: false,
               dataIndex: "Running",
-              align: "left"
+              align: "left",
             },
             {
               header: "Done",
               sortable: false,
               dataIndex: "Done",
-              align: "left"
+              align: "left",
             },
             {
               header: "Failed",
               sortable: false,
               dataIndex: "Failed",
-              align: "left"
+              align: "left",
             },
             {
               header: "Aborted",
               sortable: false,
               dataIndex: "Aborted",
-              align: "left"
+              align: "left",
             },
             {
               header: "Aborted_Hour",
               sortable: false,
               dataIndex: "Aborted_Hour",
-              align: "left"
+              align: "left",
             },
             {
               header: "Done_Empty",
               sortable: false,
               dataIndex: "Done_Empty",
               align: "left",
-              hidden: true
+              hidden: true,
             },
             {
               header: "Total",
               sortable: false,
               dataIndex: "Total",
               align: "left",
-              hidden: true
-            }
-          ]
+              hidden: true,
+            },
+          ],
         });
 
         rowNode.grid = me.grid.expandedGridPanel;
@@ -447,11 +442,11 @@ Ext.define("DIRAC.PilotSummary.classes.PilotSummary", {
         me.grid.expandedGridPanel.getStore().load();
         me.grid.expandedGridPanel.getEl().swallowEvent(["mouseover", "mousedown", "click", "dblclick", "onRowFocus"]);
         me.grid.expandedGridPanel.fireEvent("bind", me.grid.expandedGridPanel, {
-          id: record.get("Site")
+          id: record.get("Site"),
         });
       }
     });
 
     me.add([me.leftPanel, me.grid]);
-  }
+  },
 });

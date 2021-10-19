@@ -21,7 +21,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
    *          cbAfterSave Function that is executed after the save has been
    *          saved
    */
-  formSaveState: function(sStateType, sAppName, oAppObject, cbAfterSave) {
+  formSaveState: function (sStateType, sAppName, oAppObject, cbAfterSave) {
     var me = this;
 
     me.txtStateName = Ext.create("Ext.form.field.Text", {
@@ -30,7 +30,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       margin: 10,
       width: 400,
       enableKeyEvents: true,
-      validateValue: function(sValue) {
+      validateValue: function (sValue) {
         sValue = Ext.util.Format.trim(sValue);
 
         if (sValue.length < 1) {
@@ -54,7 +54,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       validateOnChange: true,
       validateOnBlur: false,
       listeners: {
-        keypress: function(oTextField, e, eOpts) {
+        keypress: function (oTextField, e, eOpts) {
           if (e.getCharCode() == 13) {
             if (me.txtStateName.isValid()) {
               var sStateName = me.txtStateName.getValue();
@@ -62,8 +62,8 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
               GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, sStateName, cbAfterSave);
             }
           }
-        }
-      }
+        },
+      },
     });
 
     // button for saving the state
@@ -71,14 +71,14 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       text: "Save",
       margin: 3,
       iconCls: "dirac-icon-save",
-      handler: function() {
+      handler: function () {
         if (me.txtStateName.isValid()) {
           var sStateName = me.txtStateName.getValue();
 
           GLOBAL.APP.SM.oprSendDataForSave(sAppName, oAppObject, sStateType, sStateName, cbAfterSave);
         }
       },
-      scope: me
+      scope: me,
     });
 
     // button to close the save form
@@ -86,15 +86,15 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       text: "Cancel",
       margin: 3,
       iconCls: "toolbar-other-close",
-      handler: function() {
+      handler: function () {
         me.txtStateName.setValue("");
         me.saveWindow.hide();
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
-      border: false
+      border: false,
     });
 
     oToolbar.add([me.btnSaveState, me.btnCancelSaveState]);
@@ -102,7 +102,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
     var oPanel = new Ext.create("Ext.panel.Panel", {
       autoHeight: true,
       border: false,
-      items: [oToolbar, me.txtStateName]
+      items: [oToolbar, me.txtStateName],
     });
 
     // initializing window showing the saving form
@@ -112,7 +112,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       title: "Save state",
       layout: "fit",
       modal: true,
-      items: oPanel
+      items: oPanel,
     });
 
     me.saveWindow.show();
@@ -133,7 +133,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
    *          cbAfterSave Function that is executed after the save has been
    *          saved
    */
-  formSaveAsStateOfData: function(desktop, selectedStateName, sStateType, sAppName, cbAfterSave) {
+  formSaveAsStateOfData: function (desktop, selectedStateName, sStateType, sAppName, cbAfterSave) {
     var me = this;
 
     me.txtStateName = Ext.create("Ext.form.field.Text", {
@@ -142,7 +142,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       margin: 10,
       width: 400,
       enableKeyEvents: true,
-      validateValue: function(sValue) {
+      validateValue: function (sValue) {
         sValue = Ext.util.Format.trim(sValue);
 
         if (sValue.length < 1) {
@@ -166,7 +166,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       validateOnChange: true,
       validateOnBlur: false,
       listeners: {
-        keypress: function(oTextField, e, eOpts) {
+        keypress: function (oTextField, e, eOpts) {
           if (e.getCharCode() == 13) {
             if (me.txtStateName.isValid()) {
               var sStateName = me.txtStateName.getValue();
@@ -182,13 +182,13 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
                 }
               }
               desktops.data.push(duplicateState);
-              me.oprSendDataForSave("desktop", desktops, "application", desktop, function(iCode, appName, stateType, stateName) {
+              me.oprSendDataForSave("desktop", desktops, "application", desktop, function (iCode, appName, stateType, stateName) {
                 cbAfterSave(iCode, appName, stateType, sStateName);
               });
             }
           }
-        }
-      }
+        },
+      },
     });
 
     // button for saving the state
@@ -196,7 +196,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       text: "Save",
       margin: 3,
       iconCls: "dirac-icon-save",
-      handler: function() {
+      handler: function () {
         if (me.txtStateName.isValid()) {
           var sStateName = me.txtStateName.getValue();
 
@@ -211,12 +211,12 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
             }
           }
           desktops.data.push(duplicateState);
-          me.oprSendDataForSave("desktop", desktops, "application", desktop, function(iCode, appName, stateType, stateName) {
+          me.oprSendDataForSave("desktop", desktops, "application", desktop, function (iCode, appName, stateType, stateName) {
             cbAfterSave(iCode, appName, stateType, sStateName);
           });
         }
       },
-      scope: me
+      scope: me,
     });
 
     // button to close the save form
@@ -224,15 +224,15 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       text: "Cancel",
       margin: 3,
       iconCls: "toolbar-other-close",
-      handler: function() {
+      handler: function () {
         me.txtStateName.setValue("");
         me.saveWindow.hide();
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
-      border: false
+      border: false,
     });
 
     oToolbar.add([me.btnSaveState, me.btnCancelSaveState]);
@@ -240,7 +240,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
     var oPanel = new Ext.create("Ext.panel.Panel", {
       autoHeight: true,
       border: false,
-      items: [oToolbar, me.txtStateName]
+      items: [oToolbar, me.txtStateName],
     });
 
     // initializing window showing the saving form
@@ -250,7 +250,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       title: "Save state",
       layout: "fit",
       modal: true,
-      items: oPanel
+      items: oPanel,
     });
 
     me.saveWindow.show();
@@ -270,7 +270,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
    *          cbAfterSave Function that is executed after the save has been
    *          saved
    */
-  oprSaveAppState: function(sStateType, sAppName, oAppObject, cbAfterSave) {
+  oprSaveAppState: function (sStateType, sAppName, oAppObject, cbAfterSave) {
     var me = this;
 
     if (oAppObject.title == "" || oAppObject.title == "Default" || oAppObject.currentState == "") {
@@ -298,7 +298,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
    *          removed
    *
    */
-  formManageStates: function(sAppName, cbAfterRemove) {
+  formManageStates: function (sAppName, cbAfterRemove) {
     var me = this;
 
     me.btnDeleteState = new Ext.Button({
@@ -306,12 +306,12 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       margin: 3,
       iconCls: "toolbar-other-close",
       handler: me.oprDeleteSelectedStates,
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
       region: "north",
-      border: false
+      border: false,
     });
 
     oToolbar.add([me.btnDeleteState]);
@@ -323,7 +323,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       autoHeight: true,
       layout: {
         type: "vbox",
-        align: "stretch"
+        align: "stretch",
       },
       appName: sAppName,
       cbAfterRemove: cbAfterRemove,
@@ -342,7 +342,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
               padding: "0 0 5 0",
               checked: true,
               listeners: {
-                change: function(cmp, newValue, oldValue, eOpts) {
+                change: function (cmp, newValue, oldValue, eOpts) {
                   var oSelectElStates = me.manageWindow.items.getAt(1).items.getAt(1);
                   var oSelectElLinks = me.manageWindow.items.getAt(1).items.getAt(2);
 
@@ -353,8 +353,8 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
                     oSelectElStates.hide();
                     oSelectElLinks.show();
                   }
-                }
-              }
+                },
+              },
             },
             {
               xtype: "radiofield",
@@ -362,20 +362,20 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
               inputValue: "l",
               padding: "0 0 5 0",
               name: "manage_state_type",
-              width: 150
-            }
-          ]
-        },
-        {
-          html: "<select multiple='multiple' style='width:100%;height:175px'></select>",
-          xtype: "box"
+              width: 150,
+            },
+          ],
         },
         {
           html: "<select multiple='multiple' style='width:100%;height:175px'></select>",
           xtype: "box",
-          hidden: true
-        }
-      ]
+        },
+        {
+          html: "<select multiple='multiple' style='width:100%;height:175px'></select>",
+          xtype: "box",
+          hidden: true,
+        },
+      ],
     });
 
     // creating the window
@@ -386,7 +386,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       layout: "border",
       modal: true,
       resizable: false,
-      items: [oToolbar, oPanel]
+      items: [oToolbar, oPanel],
     });
 
     me.manageWindow.show();
@@ -398,7 +398,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
   /**
    * Function to fill the select element with the existing module states
    */
-  oprFillSelectFieldWithStates: function() {
+  oprFillSelectFieldWithStates: function () {
     var me = this;
     var oSelectEl = document.getElementById(me.manageWindow.getId()).getElementsByTagName("select")[0];
 
@@ -454,21 +454,14 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
    * Function to delete all selected states or references from the form
    * lists
    */
-  oprDeleteSelectedStates: function() {
+  oprDeleteSelectedStates: function () {
     var me = this;
 
     var iWhoSelect = 0;
 
     var sAppName = me.manageWindow.items.getAt(1).appName;
 
-    if (
-      me.manageWindow.items
-        .getAt(1)
-        .items.getAt(0)
-        .items.getAt(1)
-        .getValue()
-    )
-      iWhoSelect = 1;
+    if (me.manageWindow.items.getAt(1).items.getAt(0).items.getAt(1).getValue()) iWhoSelect = 1;
 
     var oSelectField = document.getElementById(me.manageWindow.getId()).getElementsByTagName("select")[iWhoSelect];
 
@@ -482,7 +475,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
 
         if (iWhoSelect == 0) {
           if (!GLOBAL.APP.SM.isAnyActiveState(sAppName, oStateName)) {
-            var cbFunc = function(rCode, rAppName, rStateType, rStateName) {
+            var cbFunc = function (rCode, rAppName, rStateType, rStateName) {
               if (rCode == 1) {
                 me.manageWindow.items.getAt(1).cbAfterRemove("application", rAppName, rStateName);
                 for (var j = oSelectField.length - 1; j >= 0; j--) {
@@ -498,7 +491,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
           } else
             GLOBAL.APP.CF.alert("The state <b>" + oSelectField.options[i].value + "</b> you are willing to delete is curently in use !", "warning");
         } else {
-          var cbFunc = function(rCode, rAppName, rStateType, rStateName) {
+          var cbFunc = function (rCode, rAppName, rStateType, rStateName) {
             if (rCode == 1) {
               me.manageWindow.items.getAt(1).cbAfterRemove("reference", rAppName, rStateName);
               for (var j = oSelectField.length - 1; j >= 0; j--) {
@@ -528,7 +521,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
    *          been saved
    *
    */
-  formStateLoader: function(cbAfterLoad, cbAfterSave) {
+  formStateLoader: function (cbAfterLoad, cbAfterSave) {
     var me = this;
 
     me.txtLoadText = Ext.create("Ext.form.field.Text", {
@@ -536,7 +529,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       labelAlign: "left",
       margin: 10,
       width: 400,
-      validate: function() {
+      validate: function () {
         var me = this;
         var sValue = me.getValue();
         if (Ext.util.Format.trim(sValue) != "" && sValue.split("|").length == 4) {
@@ -547,7 +540,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
         }
       },
       validateOnChange: false,
-      validateOnBlur: false
+      validateOnBlur: false,
     });
 
     me.txtRefName = Ext.create("Ext.form.field.Text", {
@@ -555,7 +548,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       labelAlign: "left",
       margin: 10,
       width: 400,
-      validate: function() {
+      validate: function () {
         var me = this;
 
         if (Ext.util.Format.trim(me.getValue()) != "") {
@@ -566,28 +559,28 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
         }
       },
       validateOnChange: false,
-      validateOnBlur: false
+      validateOnBlur: false,
     });
 
     me.btnLoadSharedState = new Ext.Button({
       text: "Load",
       margin: 3,
       iconCls: "toolbar-other-load",
-      handler: function() {
+      handler: function () {
         if (me.txtLoadText.validate()) {
           GLOBAL.APP.MAIN_VIEW.currentState = "";
           GLOBAL.APP.SM.oprLoadSharedState(me.txtLoadText.getValue(), cbAfterLoad, me.txtRefName.getValue());
           me.manageWindow.hide();
         }
       },
-      scope: me
+      scope: me,
     });
 
     me.btnSaveSharedState = new Ext.Button({
       text: "Create Link",
       margin: 3,
       iconCls: "toolbar-other-save",
-      handler: function() {
+      handler: function () {
         var oValid = true;
 
         if (!me.txtLoadText.validate()) oValid = false;
@@ -599,14 +592,14 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
           me.manageWindow.hide();
         }
       },
-      scope: me
+      scope: me,
     });
 
     me.btnLoadAndSaveSharedState = new Ext.Button({
       text: "Load &amp; Create Link",
       margin: 3,
       iconCls: "toolbar-other-load",
-      handler: function() {
+      handler: function () {
         var oValid = true;
 
         if (!me.txtLoadText.validate()) oValid = false;
@@ -620,11 +613,11 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
           me.manageWindow.hide();
         }
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
-      border: false
+      border: false,
     });
 
     oToolbar.add([me.btnLoadSharedState, me.btnSaveSharedState, me.btnLoadAndSaveSharedState]);
@@ -632,7 +625,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
     var oPanel = new Ext.create("Ext.panel.Panel", {
       autoHeight: true,
       border: false,
-      items: [oToolbar, me.txtLoadText, me.txtRefName]
+      items: [oToolbar, me.txtLoadText, me.txtRefName],
     });
 
     me.manageWindow = Ext.create("widget.window", {
@@ -642,7 +635,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       layout: "fit",
       modal: true,
       items: [oPanel],
-      iconCls: "system_state_icon"
+      iconCls: "system_state_icon",
     });
 
     me.manageWindow.show();
@@ -656,7 +649,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
    *          cbAfterSave Function that is executed after the save has been
    *          saved
    */
-  formSaveDialog: function(sStateType, sAppName, oAppObject, cbAfterSave, dialogtext, save) {
+  formSaveDialog: function (sStateType, sAppName, oAppObject, cbAfterSave, dialogtext, save) {
     var me = this;
 
     me.txtStateName = Ext.create("Ext.form.field.Text", {
@@ -665,7 +658,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       margin: 10,
       width: 400,
       enableKeyEvents: true,
-      validateValue: function(sValue) {
+      validateValue: function (sValue) {
         sValue = Ext.util.Format.trim(sValue);
 
         if (sValue.length < 1) {
@@ -689,7 +682,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       validateOnChange: true,
       validateOnBlur: false,
       listeners: {
-        keypress: function(oTextField, e, eOpts) {
+        keypress: function (oTextField, e, eOpts) {
           if (e.getCharCode() == 13) {
             if (me.txtStateName.isValid()) {
               var sStateName = me.txtStateName.getValue();
@@ -701,8 +694,8 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
               }
             }
           }
-        }
-      }
+        },
+      },
     });
 
     // button for saving the state
@@ -710,7 +703,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       text: "Save",
       margin: 3,
       iconCls: "dirac-icon-save",
-      handler: function() {
+      handler: function () {
         if (me.txtStateName.isValid()) {
           var sStateName = me.txtStateName.getValue();
 
@@ -721,7 +714,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
           }
         }
       },
-      scope: me
+      scope: me,
     });
 
     // button to close the save form
@@ -729,15 +722,15 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       text: "Cancel",
       margin: 3,
       iconCls: "toolbar-other-close",
-      handler: function() {
+      handler: function () {
         me.txtStateName.setValue("");
         me.saveWindow.hide();
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
-      border: false
+      border: false,
     });
 
     oToolbar.add([me.btnSaveState, me.btnCancelSaveState]);
@@ -745,7 +738,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
     var oPanel = new Ext.create("Ext.panel.Panel", {
       autoHeight: true,
       border: false,
-      items: [oToolbar, me.txtStateName]
+      items: [oToolbar, me.txtStateName],
     });
 
     // initializing window showing the saving form
@@ -755,20 +748,20 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       title: dialogtext,
       layout: "fit",
       modal: true,
-      items: oPanel
+      items: oPanel,
     });
 
     me.saveWindow.show();
     me.txtStateName.focus();
   },
-  deleteState: function(sAppName, stateName, cbFunc) {
+  deleteState: function (sAppName, stateName, cbFunc) {
     if (!GLOBAL.APP.SM.isAnyActiveState(sAppName, stateName, cbFunc)) {
       GLOBAL.APP.SM.oprDeleteState(sAppName, "application", stateName, cbFunc);
     } else {
       GLOBAL.APP.CF.alert("The state <b>" + stateName + "</b> you are willing to delete is curently in use !", "warning");
     }
   },
-  deleteStateFromDesktop: function(desktop, appName, stateName, cbAfterSave) {
+  deleteStateFromDesktop: function (desktop, appName, stateName, cbAfterSave) {
     var me = this;
     if (!GLOBAL.APP.SM.isAnyActiveState(appName, stateName, cbAfterSave)) {
       var desktops = GLOBAL.APP.SM.getStateData("application", "desktop", desktop);
@@ -784,7 +777,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
     }
   },
 
-  oprSendDataForSave: function(sAppName, oSendData, sStateType, sStateName, cbAfterSave) {
+  oprSendDataForSave: function (sAppName, oSendData, sStateType, sStateName, cbAfterSave) {
     var me = this;
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "UP/saveAppState",
@@ -792,10 +785,10 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
         app: sAppName,
         name: sStateName,
         state: Ext.JSON.encode(oSendData),
-        obj: sStateType
+        obj: sStateType,
       },
       scope: me,
-      success: function(oResponse) {
+      success: function (oResponse) {
         if (oResponse.status == 200) {
           var me = this;
           Ext.dirac.system_info.msg("Notification", "State saved successfully !");
@@ -813,7 +806,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
           }
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
 
         if (response.status == 400) {
@@ -821,10 +814,10 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
         } else {
           cbAfterSave(-4, sAppName, sStateType, sStateName);
         }
-      }
+      },
     });
   },
-  saveState: function(desktop, app, state, cbFunc) {
+  saveState: function (desktop, app, state, cbFunc) {
     var me = this;
     var desktop = desktop == "" ? "Default" : desktop;
     var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer();
@@ -838,7 +831,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
 
             var appl = activeDesktop.getActiveTab();
 
-            var funcAfterSave = function(returnCode, appName, stateType, stateName) {
+            var funcAfterSave = function (returnCode, appName, stateType, stateName) {
               if (returnCode == 1 && appl.currentState != stateName) {
                 me.__changeActiveState(appl, appName, stateType, stateName);
               }
@@ -859,7 +852,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
                         // The Notepad is open. The text has to be retrieved
                         // from the notepad...
                         var helptext = {
-                          helptext: appTab.childWindows[i].items.getAt(0).getValue()
+                          helptext: appTab.childWindows[i].items.getAt(0).getValue(),
                         };
                         Ext.apply(desktops.data[i].data, helptext);
                       }
@@ -874,7 +867,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
             }
 
             if (!found) {
-              me.formSaveStateOfData(desktop, appTab, "application", app, function(returnCode, sAppName, sStateType, sStateName) {
+              me.formSaveStateOfData(desktop, appTab, "application", app, function (returnCode, sAppName, sStateType, sStateName) {
                 // cbFunc(desktop, app, sStateName);
                 if (returnCode == 1 && appTab.loadedObject.currentState != sStateName) {
                   GLOBAL.APP.SM.oprRemoveActiveState(sAppName, appTab.loadedObject.currentState);
@@ -911,7 +904,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
                   // The Notepad is open. The text has to be retrieved
                   // from the notepad...
                   var helptext = {
-                    helptext: appTab.childWindows[i].items.getAt(0).getValue()
+                    helptext: appTab.childWindows[i].items.getAt(0).getValue(),
                   };
                   Ext.apply(desktops.data[i].data, helptext);
                 }
@@ -930,7 +923,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       cbFunc(desktop, app, state);
     }
   },
-  saveAsState: function(desktop, app, state, cbFunc) {
+  saveAsState: function (desktop, app, state, cbFunc) {
     var me = this;
     var desktop = desktop == "" ? "Default" : desktop;
     var appContainer = GLOBAL.APP.MAIN_VIEW.getRightContainer();
@@ -946,7 +939,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
 
             var appl = activeDesktop.getActiveTab();
 
-            var funcAfterSave = function(returnCode, appName, stateType, stateName) {
+            var funcAfterSave = function (returnCode, appName, stateType, stateName) {
               if (returnCode == 1 && appl.currentState != sStateName) {
                 me.__changeActiveState(appl, appName, stateType, stateName);
               }
@@ -955,26 +948,26 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
             GLOBAL.APP.MAIN_VIEW.SM.formSaveState("application", app, appl.loadedObject, funcAfterSave);
           } else {
             // we have to add to the menu and we have to save it...
-            me.formSaveAsStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
+            me.formSaveAsStateOfData(desktop, state, "application", app, function (iCode, sAppName, sStateType, sStateName) {
               cbFunc(desktop, app, sStateName);
               GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktop, sStateName, app);
             });
           }
         } else {
-          me.formSaveAsStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
+          me.formSaveAsStateOfData(desktop, state, "application", app, function (iCode, sAppName, sStateType, sStateName) {
             cbFunc(desktop, app, sStateName);
             GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktop, sStateName, app);
           });
         }
       } else {
-        me.formSaveAsStateOfData(desktop, state, "application", app, function(iCode, sAppName, sStateType, sStateName) {
+        me.formSaveAsStateOfData(desktop, state, "application", app, function (iCode, sAppName, sStateType, sStateName) {
           cbFunc(desktop, app, sStateName);
           GLOBAL.APP.MAIN_VIEW.addApplicationToDesktopMenu(desktop, sStateName, app);
         });
       }
     }
   },
-  __changeActiveState: function(appObj, appName, stateType, stateName) {
+  __changeActiveState: function (appObj, appName, stateType, stateName) {
     var me = this;
     var oldApplicationUrl = appObj.getUrlDescription();
     GLOBAL.APP.MAIN_VIEW.getRightContainer().addStateToExistingWindows(stateName, appName);
@@ -1005,7 +998,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
    *          cbAfterSave Function that is executed after the save has been
    *          saved
    */
-  formSaveStateOfData: function(desktop, appObj, sStateType, sAppName, cbAfterSave) {
+  formSaveStateOfData: function (desktop, appObj, sStateType, sAppName, cbAfterSave) {
     var me = this;
 
     me.txtStateName = Ext.create("Ext.form.field.Text", {
@@ -1014,7 +1007,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       margin: 10,
       width: 400,
       enableKeyEvents: true,
-      validateValue: function(sValue) {
+      validateValue: function (sValue) {
         sValue = Ext.util.Format.trim(sValue);
 
         if (sValue.length < 1) {
@@ -1038,7 +1031,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       validateOnChange: true,
       validateOnBlur: false,
       listeners: {
-        keypress: function(oTextField, e, eOpts) {
+        keypress: function (oTextField, e, eOpts) {
           if (e.getCharCode() == 13) {
             if (me.txtStateName.isValid()) {
               var sStateName = me.txtStateName.getValue();
@@ -1047,7 +1040,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
               var data = {
                 data: appObj.loadedObject.getStateData(),
                 module: appObj.loadedObject.self.getName(),
-                currentState: sStateName
+                currentState: sStateName,
               };
               if (appObj.childWindows.length > 0) {
                 // we have to save the help text automatically.
@@ -1056,7 +1049,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
                     // The Notepad is open. The text has to be retrieved
                     // from the notepad...
                     var helptext = {
-                      helptext: appObj.childWindows[i].items.getAt(0).getValue()
+                      helptext: appObj.childWindows[i].items.getAt(0).getValue(),
                     };
                     Ext.apply(data.data, helptext);
                   }
@@ -1066,13 +1059,13 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
               }
 
               desktops.data.push(data);
-              me.oprSendDataForSave("desktop", desktops, "application", desktop, function(iCode, appName, stateType, stateName) {
+              me.oprSendDataForSave("desktop", desktops, "application", desktop, function (iCode, appName, stateType, stateName) {
                 cbAfterSave(iCode, appObj.loadedObject.self.getName(), stateType, sStateName);
               });
             }
           }
-        }
-      }
+        },
+      },
     });
 
     // button for saving the state
@@ -1080,7 +1073,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       text: "Save",
       margin: 3,
       iconCls: "dirac-icon-save",
-      handler: function() {
+      handler: function () {
         if (me.txtStateName.isValid()) {
           var sStateName = me.txtStateName.getValue();
 
@@ -1089,7 +1082,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
           var data = {
             data: appObj.loadedObject.getStateData(),
             module: appObj.loadedObject.self.getName(),
-            currentState: sStateName
+            currentState: sStateName,
           };
 
           if (appObj.childWindows.length > 0) {
@@ -1099,7 +1092,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
                 // The Notepad is open. The text has to be retrieved
                 // from the notepad...
                 var helptext = {
-                  helptext: appObj.childWindows[i].items.getAt(0).getValue()
+                  helptext: appObj.childWindows[i].items.getAt(0).getValue(),
                 };
                 Ext.apply(data.data, helptext);
               }
@@ -1110,12 +1103,12 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
 
           desktops.data.push(data);
 
-          me.oprSendDataForSave("desktop", desktops, "application", desktop, function(iCode, appName, stateType, stateName) {
+          me.oprSendDataForSave("desktop", desktops, "application", desktop, function (iCode, appName, stateType, stateName) {
             cbAfterSave(iCode, appObj.loadedObject.self.getName(), stateType, sStateName);
           });
         }
       },
-      scope: me
+      scope: me,
     });
 
     // button to close the save form
@@ -1123,15 +1116,15 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       text: "Cancel",
       margin: 3,
       iconCls: "toolbar-other-close",
-      handler: function() {
+      handler: function () {
         me.txtStateName.setValue("");
         me.saveWindow.hide();
       },
-      scope: me
+      scope: me,
     });
 
     var oToolbar = new Ext.toolbar.Toolbar({
-      border: false
+      border: false,
     });
 
     oToolbar.add([me.btnSaveState, me.btnCancelSaveState]);
@@ -1139,7 +1132,7 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
     var oPanel = new Ext.create("Ext.panel.Panel", {
       autoHeight: true,
       border: false,
-      items: [oToolbar, me.txtStateName]
+      items: [oToolbar, me.txtStateName],
     });
 
     // initializing window showing the saving form
@@ -1149,13 +1142,13 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       title: "Save state",
       layout: "fit",
       modal: true,
-      items: oPanel
+      items: oPanel,
     });
 
     me.saveWindow.show();
     me.txtStateName.focus();
   },
-  moveAppState: function(stateName, moduleName, fromDesktopName, toDesktopName) {
+  moveAppState: function (stateName, moduleName, fromDesktopName, toDesktopName) {
     var me = this;
     var data = {};
 
@@ -1164,11 +1157,11 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
         data: GLOBAL.APP.SM.getStateData("application", moduleName, stateName),
         currentState: stateName,
         module: moduleName,
-        loadedObjectType: "app"
+        loadedObjectType: "app",
       });
 
-      me.addStateToDesktop(toDesktopName, data, function() {
-        me.deleteState(moduleName, stateName, function() {});
+      me.addStateToDesktop(toDesktopName, data, function () {
+        me.deleteState(moduleName, stateName, function () {});
       });
     } else {
       var fromDsktop = GLOBAL.APP.SM.getStateData("application", "desktop", fromDesktopName);
@@ -1180,12 +1173,12 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
           }
         }
       }
-      me.addStateToDesktop(toDesktopName, data, function() {
-        me.deleteStateFromDesktop(fromDesktopName, moduleName, stateName, function() {});
+      me.addStateToDesktop(toDesktopName, data, function () {
+        me.deleteStateFromDesktop(fromDesktopName, moduleName, stateName, function () {});
       });
     }
   },
-  addStateToDesktop: function(desktopName, data, cbAfterSave) {
+  addStateToDesktop: function (desktopName, data, cbAfterSave) {
     var me = this;
 
     if (desktopName == "Default") {
@@ -1195,5 +1188,5 @@ Ext.define("Ext.dirac.views.tabs.StateManagement", {
       desktops.data.push(data);
       me.oprSendDataForSave("desktop", desktops, "application", desktopName, cbAfterSave);
     }
-  }
+  },
 });

@@ -7,7 +7,7 @@
 Ext.define("Ext.dirac.core.App", {
   mixins: {
     observable: "Ext.util.Observable",
-    fileLoader: "Ext.dirac.utils.DiracFileLoad"
+    fileLoader: "Ext.dirac.utils.DiracFileLoad",
   },
 
   requires: [
@@ -15,7 +15,7 @@ Ext.define("Ext.dirac.core.App", {
     "Ext.window.MessageBox",
     "Ext.dirac.core.CommonFunctions",
     "Ext.dirac.core.StateManagement",
-    "Ext.dirac.utils.WelcomeWindow"
+    "Ext.dirac.utils.WelcomeWindow",
   ],
 
   /**
@@ -25,24 +25,24 @@ Ext.define("Ext.dirac.core.App", {
 
   validApplications: {},
 
-  constructor: function() {
+  constructor: function () {
     var me = this;
 
     me.mixins.observable.constructor.call(this, undefined);
 
-    Ext.dirac.system_info = (function() {
+    Ext.dirac.system_info = (function () {
       var msgCt;
 
       function createBox(t, s) {
         return '<div class="msg"><h3>' + t + "</h3><p>" + s + "</p></div>";
       }
       return {
-        msg: function(title, format) {
+        msg: function (title, format) {
           if (!msgCt) {
             msgCt = Ext.DomHelper.insertFirst(
               document.body,
               {
-                id: "msg-div"
+                id: "msg-div",
               },
               true
             );
@@ -52,11 +52,11 @@ Ext.define("Ext.dirac.core.App", {
           m.hide();
           m.slideIn("t").ghost("t", {
             delay: 2000,
-            remove: true
+            remove: true,
           });
         },
 
-        init: function() {
+        init: function () {
           if (!msgCt) {
             // It's better to create the msg-div here in order to
             // avoid re-layouts
@@ -65,12 +65,12 @@ Ext.define("Ext.dirac.core.App", {
             msgCt = Ext.DomHelper.insertFirst(
               document.body,
               {
-                id: "msg-div"
+                id: "msg-div",
               },
               true
             );
           }
-        }
+        },
       };
     })();
 
@@ -79,7 +79,7 @@ Ext.define("Ext.dirac.core.App", {
      */
     const authGrant = Ext.util.Cookies.get("authGrant");
     if (authGrant == "Session") {
-      setInterval(function() {
+      setInterval(function () {
         if (Ext.util.Cookies.get("session_id") == "expired") {
           Ext.util.Cookies.clear("authGrant");
           Ext.util.Cookies.clear("session_id");
@@ -95,7 +95,7 @@ Ext.define("Ext.dirac.core.App", {
       url: GLOBAL.BASE_URL + "getConfigData",
       params: {},
       scope: me,
-      success: function(response) {
+      success: function (response) {
         var configData = Ext.JSON.decode(response.responseText);
 
         me.configData = configData;
@@ -118,9 +118,9 @@ Ext.define("Ext.dirac.core.App", {
           Ext.onReady(me.__init, me);
         }
       },
-      failure: function(response) {
+      failure: function (response) {
         GLOBAL.APP.CF.showAjaxErrorMessage(response);
-      }
+      },
     });
 
     /*
@@ -149,7 +149,7 @@ Ext.define("Ext.dirac.core.App", {
    * @private Function to be called when the mouse changes its position
    * @param e
    */
-  __getMouseXY: function(e) {
+  __getMouseXY: function (e) {
     if (GLOBAL.IS_IE) {
       // grab the x-y pos.s if browser is IE
       GLOBAL.MOUSE_X = event.clientX + document.body.scrollLeft;
@@ -174,7 +174,7 @@ Ext.define("Ext.dirac.core.App", {
    * @private Function used to extract a list of valid applications out of
    *          the config data
    */
-  __readValidApplication: function() {
+  __readValidApplication: function () {
     var me = this;
 
     for (var i = 0; i < me.configData["menu"].length; i++) me.__getAppRecursivelyFromConfig(GLOBAL.APP.configData["menu"][i]);
@@ -184,7 +184,7 @@ Ext.define("Ext.dirac.core.App", {
    * @private Main recursive function used to extract the names of the valid
    *          applications
    */
-  __getAppRecursivelyFromConfig: function(item) {
+  __getAppRecursivelyFromConfig: function (item) {
     var me = this;
 
     if (item.length == 2) {
@@ -205,7 +205,7 @@ Ext.define("Ext.dirac.core.App", {
   /**
    * @private Initialization function setting the desktop
    */
-  __init: function() {
+  __init: function () {
     var me = this,
       desktopCfg;
 
@@ -223,19 +223,19 @@ Ext.define("Ext.dirac.core.App", {
 
     var oConfig = {
       enabled: true,
-      paths: {}
+      paths: {},
     };
 
     oConfig["paths"]["Ext.dirac.views." + GLOBAL.VIEW_ID] = "static/core/js/views/" + GLOBAL.VIEW_ID;
 
     Ext.Loader.setConfig(oConfig);
 
-    Ext.require("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", function() {
+    Ext.require("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", function () {
       me.MAIN_VIEW = Ext.create("Ext.dirac.views." + GLOBAL.VIEW_ID + ".Main", {});
 
       me.viewport = new Ext.container.Viewport({
         layout: "fit",
-        items: [me.MAIN_VIEW]
+        items: [me.MAIN_VIEW],
       });
 
       Ext.getWin().on("beforeunload", me.onUnload, me);
@@ -252,7 +252,7 @@ Ext.define("Ext.dirac.core.App", {
    *          sAppName The class name of the application
    * @return {Boolean}
    */
-  isValidApplication: function(sAppName) {
+  isValidApplication: function (sAppName) {
     return sAppName in this.validApplications;
   },
 
@@ -263,7 +263,7 @@ Ext.define("Ext.dirac.core.App", {
    *          sAppName The class name of the application
    * @return {}
    */
-  getApplicationSettings: function(sAppName) {
+  getApplicationSettings: function (sAppName) {
     if (sAppName in GLOBAL.APP.configData.configuration) {
       return GLOBAL.APP.configData.configuration[sAppName];
     } else {
@@ -278,7 +278,7 @@ Ext.define("Ext.dirac.core.App", {
    *          sAppName The class name of the application
    * @return {}
    */
-  applicationInDowntime: function(sAppName) {
+  applicationInDowntime: function (sAppName) {
     if (this.isValidApplication(sAppName)) {
       var now = Date.now();
       var app = this.validApplications[sAppName];
@@ -319,7 +319,7 @@ Ext.define("Ext.dirac.core.App", {
    *          sAppName The class name of the application
    * @return {String}
    */
-  getApplicationTitle: function(sAppName) {
+  getApplicationTitle: function (sAppName) {
     if (sAppName in this.validApplications) {
       return this.validApplications[sAppName];
     } else {
@@ -333,25 +333,25 @@ Ext.define("Ext.dirac.core.App", {
    * @return {Ext.dirac.core.AppView}
    *
    */
-  getDesktop: function() {
+  getDesktop: function () {
     return this.MAIN_VIEW;
   },
 
-  onReady: function(fn, scope) {
+  onReady: function (fn, scope) {
     if (this.isReady) {
       fn.call(scope, this);
     } else {
       this.on({
         ready: fn,
         scope: scope,
-        single: true
+        single: true,
       });
     }
   },
 
-  onUnload: function(e) {
+  onUnload: function (e) {
     if (this.fireEvent("beforeunload", this) === false) {
       e.stopEvent();
     }
-  }
+  },
 });

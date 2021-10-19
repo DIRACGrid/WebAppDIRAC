@@ -9,7 +9,7 @@ Ext.define("Ext.dirac.utils.DiracMultiSelect", {
   listConfig: {
     selModel: new Ext.selection.DataViewModel({
       mode: "MULTI",
-      selectWithEvent: function(record, e, keepExisting) {
+      selectWithEvent: function (record, e, keepExisting) {
         var me = this;
 
         switch (me.selectionMode) {
@@ -48,7 +48,7 @@ Ext.define("Ext.dirac.utils.DiracMultiSelect", {
         }
       },
 
-      selectRange: function(startRow, endRow, keepExisting, dir) {
+      selectRange: function (startRow, endRow, keepExisting, dir) {
         var me = this,
           store = me.store,
           selectedCount = 0,
@@ -102,9 +102,9 @@ Ext.define("Ext.dirac.utils.DiracMultiSelect", {
         }
 
         me.doMultiSelect(records, true);
-      }
+      },
     }),
-    getInnerTpl: function(displayField) {
+    getInnerTpl: function (displayField) {
       return (
         '<table style="padding:0;margin:0"><tr><td class="multselector-checkbox" style="padding:0px 5px 0px 0px;vertical-align:middle"></td><td style="padding:3px 0px 0px 0px;vertical-align:middle">{' +
         displayField +
@@ -112,19 +112,19 @@ Ext.define("Ext.dirac.utils.DiracMultiSelect", {
       );
     },
     listeners: {
-      refresh: function() {
+      refresh: function () {
         var me = this;
         var renderSelector = Ext.query("#" + me.id + " td.multselector-checkbox");
         for (var i in renderSelector) {
           Ext.create("Ext.form.field.Checkbox", {
             renderTo: renderSelector[i],
             margin: 0,
-            padding: 0
+            padding: 0,
           });
         }
       },
 
-      select: function(r, record, eOpts) {
+      select: function (r, record, eOpts) {
         console.log("SELECT");
 
         var node = this.getNode(record);
@@ -136,7 +136,7 @@ Ext.define("Ext.dirac.utils.DiracMultiSelect", {
         }
       },
 
-      deselect: function(r, record, eOpts) {
+      deselect: function (r, record, eOpts) {
         console.log("DE - SELECT");
         var node = this.getNode(record);
 
@@ -148,9 +148,9 @@ Ext.define("Ext.dirac.utils.DiracMultiSelect", {
         }
       },
 
-      itemclick: function(viewObject, record, item, index, e, eOpts) {
+      itemclick: function (viewObject, record, item, index, e, eOpts) {
         if (e.target.nodeName == "INPUT") e.ctrlKey = true;
-      }
-    }
-  }
+      },
+    },
+  },
 });

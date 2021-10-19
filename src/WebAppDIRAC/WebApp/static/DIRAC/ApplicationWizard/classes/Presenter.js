@@ -11,63 +11,63 @@ Ext.define("DIRAC.ApplicationWizard.classes.Presenter", {
   clickedPanel: null,
   layout: "fit",
 
-  getStateData: function() {
+  getStateData: function () {
     var me = this;
 
     var result = me.presenter.getStateData();
     result.data = [];
-    me.presenter.items.each(function(item) {
+    me.presenter.items.each(function (item) {
       if (item.loadedObjectType == "image") {
         // it is an image
         result.data.push({
           src: item.src,
           title: item.title,
-          loadedObjectType: item.loadedObjectType
+          loadedObjectType: item.loadedObjectType,
         });
       } else {
         result.data.push({
           link: item.linkToLoad,
           title: item.title,
-          loadedObjectType: item.loadedObjectType
+          loadedObjectType: item.loadedObjectType,
         });
       }
     });
     return result;
   },
 
-  loadState: function(states) {
+  loadState: function (states) {
     var me = this;
     me.presenter.loadState(states);
     for (var i = 0; i < states.data.length; i++) {
       if (states.data[i].loadedObjectType == "image") {
         var data = {
           src: states.data[i].src,
-          title: states.data[i].title
+          title: states.data[i].title,
         };
         me.addImages([data]);
       } else {
         var data = {
           link: states.data[i].link,
-          title: states.data[i].title
+          title: states.data[i].title,
         };
         me.addLinks([data]);
       }
     }
   },
-  constructor: function(config) {
+  constructor: function (config) {
     var me = this;
     me.presenter = Ext.create("Ext.dirac.utils.Tabtheme", {
       //region : 'center',
       // minWidth : 300,
       // title : name,
       closable: false,
-      parent: me
+      parent: me,
     });
 
     me.presenter.updateTime = Ext.create("Ext.form.Label", {
       xtype: "label",
       text: "Updated: -",
-      style: GLOBAL.WEB_THEME == "neptune" ? "font-weight:bold;color:#FFFFFF;" : "font-weight:bold;color:#666666;"
+      style: GLOBAL.WEB_THEME == "neptune" ? "font-weight:bold;color:#FFFFFF;" : "font-weight:bold;color:#666666;",
       // #990066;', //#666666;'
       // html: "<span style='color:red'>Updated: - </span>"
     });
@@ -78,7 +78,7 @@ Ext.define("DIRAC.ApplicationWizard.classes.Presenter", {
     me.presenter.updateTime.setText("Updated:" + UTCTime);
     me.presenter.tools.push(me.presenter.updateTime);
     Ext.apply(me, {
-      items: [me.presenter]
+      items: [me.presenter],
     });
 
     me.callParent(arguments);
@@ -90,39 +90,39 @@ Ext.define("DIRAC.ApplicationWizard.classes.Presenter", {
    * @param {Object}
    *          links it is a list of links
    */
-  addLinks: function(links) {
+  addLinks: function (links) {
     var me = this;
     var activeTab = me;
 
     for (var i = 0; i < links.length; i++) {
       var config = {
         setupData: {
-          text: links[i].title
+          text: links[i].title,
         },
         loadedObjectType: "link",
         plotParams: links[i],
         linkToLoad: links[i].link,
         listeners: {
-          beforeclose: function(panel, eOpts) {
+          beforeclose: function (panel, eOpts) {
             activeTab.closeRemoveApplication(panel); // generate a close
             // event again.
 
             return false;
           },
 
-          afterrender: function(panel) {
-            panel.header.el.on("dblclick", function(e, t, eOpts) {
+          afterrender: function (panel) {
+            panel.header.el.on("dblclick", function (e, t, eOpts) {
               var panel = Ext.getCmp(t.id).up("panel");
 
               var data = {
                 link: panel.linkToLoad,
-                title: panel.title
+                title: panel.title,
               };
               me.clickedPanel = panel;
               me.__loadSelectionData(data);
             });
-          }
-        }
+          },
+        },
       };
       var tab = new Ext.dirac.views.tabs.Panel(config);
       tab.activeTab = me; // this needs to stop the loading
@@ -133,7 +133,7 @@ Ext.define("DIRAC.ApplicationWizard.classes.Presenter", {
             type: "maximize",
             tooltip: "Maximize the application.",
             scope: tab,
-            handler: function(event, toolEl, panelHeader) {
+            handler: function (event, toolEl, panelHeader) {
               var me = this;
               activeTab.hideComponents(); // hides all
               // components!
@@ -149,21 +149,21 @@ Ext.define("DIRAC.ApplicationWizard.classes.Presenter", {
               }
               var origSize = {
                 width: tab.getWidth(),
-                height: tab.getHeight()
+                height: tab.getHeight(),
               };
               me.origiginalSize = origSize;
               me.setWidth(activeTab.getWidth());
               me.setHeight(activeTab.getHeight());
               me.isOpen = true;
               activeTab.add(me);
-            }
+            },
           },
           {
             type: "minimize",
             tooltip: "Minimize the application.",
             scope: tab,
             hidden: true,
-            handler: function(event, toolEl, panelHeader) {
+            handler: function (event, toolEl, panelHeader) {
               var me = this;
               activeTab.showComponents();
               // we need to show the maximize and close
@@ -179,9 +179,9 @@ Ext.define("DIRAC.ApplicationWizard.classes.Presenter", {
               me.setWidth(tab.origiginalSize.width);
               me.setHeight(tab.origiginalSize.height);
               activeTab.addWidget(me);
-            }
-          }
-        ]
+            },
+          },
+        ],
       });
       activeTab.addWidget(tab);
       tab.header.hide(); // we do not show the name of the application!
@@ -194,7 +194,7 @@ Ext.define("DIRAC.ApplicationWizard.classes.Presenter", {
     }
   },
 
-  addImages: function(images) {
+  addImages: function (images) {
     var me = this;
     var width = 99 / me.columnWidth;
     width = "." + Math.round(width);
@@ -208,30 +208,30 @@ Ext.define("DIRAC.ApplicationWizard.classes.Presenter", {
         title: images[i].title,
         src: images[i].src,
         listeners: {
-          render: function() {
+          render: function () {
             var me = this;
             me.el.on({
-              load: function(evt, ele, opts) {
+              load: function (evt, ele, opts) {
                 me.setLoading(false);
-              }
+              },
             });
-          }
-        }
+          },
+        },
       });
       me.presenter.addImage(oImg);
       oImg.setLoading(true);
     }
   },
 
-  hideComponents: function() {
+  hideComponents: function () {
     var me = this;
-    me.presenter.items.each(function(widget) {
+    me.presenter.items.each(function (widget) {
       widget.hide();
     });
   },
-  showComponents: function() {
+  showComponents: function () {
     var me = this;
-    me.presenter.items.each(function(widget) {
+    me.presenter.items.each(function (widget) {
       widget.show();
     });
   },
@@ -242,23 +242,23 @@ Ext.define("DIRAC.ApplicationWizard.classes.Presenter", {
    * @param{Object} widget is a object which inherited from
    *                {@link Ext.dirac.views.tabs.Panel}
    */
-  addWidget: function(widget) {
+  addWidget: function (widget) {
     var me = this;
 
     me.presenter.addImage(widget);
   },
-  closeRemoveApplication: function(panel) {
+  closeRemoveApplication: function (panel) {
     var me = this;
 
     me.presenter.remove(panel);
   },
-  __loadSelectionData: function(plotParams) {
+  __loadSelectionData: function (plotParams) {
     var me = this;
     var data = {
-      leftMenu: {}
+      leftMenu: {},
     };
 
     Ext.apply(data.leftMenu, plotParams);
     me.parent.leftPanel.loadState(data);
-  }
+  },
 });

@@ -8,7 +8,7 @@ Ext.define("Ext.dirac.utils.DiracNumericField", {
   anchor: "100%",
   canDisable: true,
   disableValidator: false,
-  validator: function(value) {
+  validator: function (value) {
     var me = this;
 
     if (!me.canDisable) return true;
@@ -34,7 +34,7 @@ Ext.define("Ext.dirac.utils.DiracNumericField", {
   },
   enableKeyEvents: true,
   listeners: {
-    keypress: function(oTextField, e, eOpts) {
+    keypress: function (oTextField, e, eOpts) {
       var me = this;
 
       me.disableValidator = false;
@@ -43,9 +43,9 @@ Ext.define("Ext.dirac.utils.DiracNumericField", {
         me.scope.oprLoadGridData();
       }
     },
-    specialkey: function(field, e) {
+    specialkey: function (field, e) {
       var me = this;
       me.disableValidator = false;
-    }
-  }
+    },
+  },
 });
