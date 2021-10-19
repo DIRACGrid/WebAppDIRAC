@@ -439,7 +439,7 @@ class SystemAdministrationHandler(WebHandler):
         """
         try:
             text = text.decode("utf-8", "replace")
-        except:
+        except Exception:
             pass
         text = text.encode("utf-8")
         gLogger.debug(text)
