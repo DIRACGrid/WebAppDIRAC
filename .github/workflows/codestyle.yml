@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -18,7 +18,7 @@ jobs:
 
   pyLint:
     runs-on: ubuntu-latest
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
 
     strategy:
       fail-fast: False
