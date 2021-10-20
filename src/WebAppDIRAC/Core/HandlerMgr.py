@@ -112,7 +112,7 @@ class HandlerMgr(object):
             baseRoute = "/%s%s" % (self.__baseURL or "", baseRoute)
             # Set properly the LOCATION after calculating where it is with helpers to add group and setup later
             handler.LOCATION = handlerRoute
-            handler.PATH_RE = re.compile("%s(%s/[A-z0-9_]+|.)" % (baseRoute, handlerRoute))
+            handler.PATH_RE = re.compile("%s(%s/[A-z0-9_-]*)" % (baseRoute, handlerRoute))
             handler.URLSCHEMA = "/%s%%(setup)s%%(group)s%%(location)s/%%(action)s" % (self.__baseURL)
             if issubclass(handler, WebSocketHandler):
                 handler.PATH_RE = re.compile("%s(%s)" % (baseRoute, handlerRoute))
