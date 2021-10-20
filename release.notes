@@ -1,3 +1,7 @@
+[v4r2p11]
+
+NEW: (#576) Add sweep, labeler and semantic CI configuration
+CHANGE: (#573) Add pre-commit configuration and run it
 
 [v4r2p9]
 
