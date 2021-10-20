@@ -17,7 +17,7 @@ class TokenManagerHandler(WebHandler):
         """Init"""
         cls.tm = TokenManagerClient()
 
-    def web_getSelectionData(self):
+    def web_getSelectionData(self, **kwargs):
         user = self.getUserName()
         if user.lower() == "anonymous":
             return {"success": "false", "error": "You are not authorize to access these data"}
@@ -26,7 +26,7 @@ class TokenManagerHandler(WebHandler):
         users.sort()
         return {"username": [[x] for x in users]}
 
-    def web_getTokenManagerData(self, username="[]"):
+    def web_getTokenManagerData(self, username="[]", **kwargs):
         """Get tokens information
 
         :param str username: user name
