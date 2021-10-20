@@ -1,4 +1,16 @@
-[v5r0-pre1]
+[v5r0-pre2]
+
+FIX: (#578) Align with changes in DIRACGrid/DIRAC#5399
+CHANGE: (#575) Add pre-commit configuration and run it
+FIX: (#569) use arguments without '_' prefix, continue #539 PR
+FIX: (#565) add keyword arguments to allow RootHandler additional args(e.g.: _dc)
+FIX: (#565) specify timeSelector type
+CHANGE: (#561) Depend on DIRAC 8.0
+CHANGE: (#544) Use WebHandler with DIRAC.Core.Tornado.Server.privat.BaseRequestHandler for ExampleApp handler.
+NEW: (#540) add FileResponse class to handle csv, png, txt files in response
+NEW: (#539) add FileResponse class to handle png and csv responses
+CHANGE: (#539) use parameter names without '_'
+CHANGE: (#539) Use WebHandler with DIRAC.Core.Tornado.Server.privat.BaseRequestHandler for Accounting handler.
 
 [v4r3p7]
 
