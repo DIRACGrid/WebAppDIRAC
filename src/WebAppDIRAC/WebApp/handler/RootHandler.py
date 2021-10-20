@@ -81,11 +81,11 @@ class RootHandler(WebHandler):
         self.set_cookie("authGrant", "Visitor")
         self.redirect("/DIRAC")
 
-    def web_login(self, provider, nextURI="/DIRAC"):
+    def web_login(self, provider, next="/DIRAC", **kwargs):
         """Start authorization flow
 
         :param str provider: provider name
-        :param str nextURI: current URI
+        :param str next: current URI
 
         :return: TornadoResponse()
         """
@@ -100,7 +100,7 @@ class RootHandler(WebHandler):
         uri, state, session = cli.submitNewSession()
 
         # Save authorisation session
-        session.update(dict(state=state, provider=provider, next=nextURI))
+        session.update(dict(state=state, provider=provider, next=next))
 
         resp = TornadoResponse()
         # pylint: disable=no-member
@@ -110,7 +110,7 @@ class RootHandler(WebHandler):
         resp.set_cookie("authGrant", "Visitor")  # pylint: disable=no-member
         return resp.redirect(uri)  # pylint: disable=no-member
 
-    def web_loginComplete(self, code, state):
+    def web_loginComplete(self, code, state, **kwargs):
         """Finishing authoriation flow
 
         :param str code: code
@@ -186,7 +186,7 @@ class RootHandler(WebHandler):
         )
         return resp
 
-    def web_index(self, url_state="", theme="crisp", open_app=""):
+    def web_index(self, url_state="", theme="crisp", open_app="", **kwargs):
         """Index method
 
         :param str url_state: url state

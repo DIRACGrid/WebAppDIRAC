@@ -75,7 +75,7 @@ class AccountingHandler(WebHandler):
             AccountingHandler.__keysCache.add(cacheKey, 300, data)
         return data
 
-    def web_getSelectionData(self, type):
+    def web_getSelectionData(self, type, **kwargs):
         """Get selection data
 
         :param type: type of accounting data
@@ -185,7 +185,7 @@ class AccountingHandler(WebHandler):
             return {"success": True, "data": retVal["Value"]["plot"]}
         return {"success": False, "errors": retVal["Message"]}
 
-    def web_getPlotImg(self, file=None):
+    def web_getPlotImg(self, file=None, **kwargs):
         """Get plot image
 
         :param str file: file path
@@ -207,7 +207,7 @@ class AccountingHandler(WebHandler):
         data = tempFile.read()
         return FileResponse(data, plotImageFile.encode(), "png")
 
-    def web_getPlotImgFromCache(self, file=None):
+    def web_getPlotImgFromCache(self, file=None, **kwargs):
         """Get plot image from cache.
 
         :param str file: file path
