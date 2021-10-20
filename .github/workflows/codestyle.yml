@@ -32,6 +32,10 @@ jobs:
           path: .DIRAC
           ref: integration
 
+      - name: Get DIRAC
+        run: |
+          [ ! -d "DIRAC" ] && cp -r .DIRAC/src/DIRAC DIRAC
+
       - name: Prepare environment with Micromamba
         uses: mamba-org/provision-with-micromamba@main
         with:
