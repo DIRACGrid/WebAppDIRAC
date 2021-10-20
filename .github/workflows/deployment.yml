@@ -13,15 +13,6 @@ jobs:
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     steps:
       - uses: actions/checkout@v2
-        with:
-          path: WebAppDIRACRepo
-          fetch-depth: 0
-      - uses: actions/checkout@v2
-        with:
-          repository: DIRACGrid/DIRAC
-          path: DIRACRepo
-          ref: integration
-          fetch-depth: 0
       - uses: actions/setup-python@v2
         with:
           python-version: "3.9"
