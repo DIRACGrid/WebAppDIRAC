@@ -3,7 +3,7 @@ name: Deployment
 on:
   push:
     tags:
-      - v4r3p[0-9]+
+      - v5r0-pre[0-9]+
   pull_request:
 
 jobs:

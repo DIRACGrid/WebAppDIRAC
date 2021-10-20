@@ -113,7 +113,32 @@ def main():
     localCfg.addDefaultEntry("LogColor", True)
     localCfg.registerCmdOpt("i", "--ignore-incompatible", "Ignore incompatible version.", ignoreIncompatible)
     localCfg.registerCmdOpt("p", "production", "Enable production mode", disableDevMode)
+    localCfg.registerCmdOpt(
+        "S:",
+        "set_handlers_location=",
+        "Specify path(s) to handlers, for ex. 'OAuthDIRAC.FrameworkSystem.Utilities'",
+        setHandlers,
+    )
+
+    result = localCfg.loadUserData()
+    if not result["OK"]:
+        gLogger.initialize("WebApp", "/")
+        gLogger.fatal("There were errors when loading configuration", result["Message"])
+        sys.exit(1)
+
+    if six.PY3 and gConfig.getOption("/WebApp/IgnoreVersionCheck").get("Value", "").lower() not in ["yes", "true"]:
+        _checkDIRACVersion()
+
+    result = gConfig.getOption("/WebApp/StaticResourceLinkDir")
+    if result["OK"]:
+        gLogger.notice("Creating symlinks to static resources")
+        _createStaticSymlinks(result["Value"])
+    else:
+        gLogger.warn("Not creating symlinks to static resources", result["Message"])
+
     gLogger.notice("Set next path(s): ", localCfg.handlersLoc)
+    app = App(handlersLoc=localCfg.handlersLoc)
+    result = app.bootstrap()
     if not result["OK"]:
         gLogger.fatal(result["Message"])
         sys.exit(1)

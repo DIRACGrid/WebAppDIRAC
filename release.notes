@@ -1,5 +1,11 @@
 [v5r0-pre1]
 
+[v4r3p7]
+
+FIX: (#577) Correct pattern used for handler.PATH_RE to accept urls like web_t1sites
+CHANGE: (#574) Add pre-commit configuration and run it
+FIX: (#572) fix deployment action
+CHANGE: (#570) use softprops/action-gh-release action
 
 [v4r3p5]
 
