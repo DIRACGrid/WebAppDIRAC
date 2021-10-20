@@ -57,6 +57,11 @@ CHANGE: (#467) rename README.md to README.rst
 FIX: (#466) fix selector of pilot stats
 FIX: (#465) return empty result instead error for no host request
 
+[v4r2p11]
+
+NEW: (#576) Add sweep, labeler and semantic CI configuration
+CHANGE: (#573) Add pre-commit configuration and run it
+
 [v4r2p9]
 
 FIX: (#530) fix bug in application downtime

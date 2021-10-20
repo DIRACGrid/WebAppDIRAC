@@ -2,7 +2,7 @@
 # and that they follow the rule
 # <type> (<scope>): <subject>
 # type: docs, feat, fix, refactor, style or test
-# scope (optional): any extra info, (like DMS or whatever)
+# scope (optional): any extra info, (like FS or whatever)
 
 name: "Commit Message Check"
 on: pull_request
