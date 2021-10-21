@@ -6,8 +6,6 @@ jobs:
   triage:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-        # Skiped for now: Error: HttpError: Must have admin rights to Repository
-        # uses: actions/labeler@v3
-        # with:
-        #   repo-token: "${{ secrets.PAT }}"
+      - uses: actions/labeler@v3
+        with:
+          repo-token: "${{ secrets.PAT }}"
