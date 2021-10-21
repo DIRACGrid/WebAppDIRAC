@@ -18,10 +18,6 @@ Status integration branch (devel):
    :target: https://github.com/DIRACGrid/WebAppDIRAC/actions?query=workflow%3A%22Basic+tests%22+branch%3Aintegration
    :alt: Basic Tests Status
 
-.. image:: https://github.com/DIRACGrid/WebAppDIRAC/workflows/Python%203%20tests/badge.svg?branch=integration
-   :target: https://github.com/DIRACGrid/WebAppDIRAC/actions?query=workflow%3A%Python%203%20tests%22+branch%3Aintegration
-   :alt: Python 3 tests Status
-
 
 
 Install
