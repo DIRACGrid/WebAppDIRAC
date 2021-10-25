@@ -26,6 +26,10 @@ __RCSID__ = "$Id$"
 
 
 class HandlerMgr(object):
+    """This class prepares portal application handlers and forms their routing using regular expressions,
+    see https://docs.python.org/3/library/re.html
+    """
+
     __metaclass__ = DIRACSingleton
 
     def __init__(self, handlersLocation, baseURL="/"):
@@ -38,7 +42,11 @@ class HandlerMgr(object):
         self.__handlersLocation = handlersLocation
         self.__routes = []
         self.__handlers = []
+        # The following regular expression describes two capturing groups from the incoming request path:
+        # 1) the DIRAC setup
+        # 2) the DIRAC user group
         self.__setupGroupRE = r"(?:/s:([\w-]*)/g:([\w.-]*))?"
+        # Describes the same, only as non-capturing groups.
         self.__shySetupGroupRE = r"(?:/s:(?:[\w-]*)/g:(?:[\w.-]*))?"
         self.log = gLogger.getSubLogger("Routing")
 
@@ -112,7 +120,13 @@ class HandlerMgr(object):
             baseRoute = "/%s%s" % (self.__baseURL or "", baseRoute)
             # Set properly the LOCATION after calculating where it is with helpers to add group and setup later
             handler.LOCATION = handlerRoute
-            handler.PATH_RE = re.compile("%s(%s/[A-z0-9_]+)" % (baseRoute, handlerRoute))
+            # Add a pattern that points to the target method.
+            # Note that there are handlers with an index method.
+            # It responds to the request without specifying a method.
+            # The special characters "*" helps to take into account such a case,
+            # see https://docs.python.org/3/library/re.html#regular-expression-syntax.
+            # E.g .: /DIRAC/ -> RootHandler.web_index
+            handler.PATH_RE = re.compile("%s(%s/[A-z0-9_]*)" % (baseRoute, handlerRoute))
             handler.URLSCHEMA = "/%s%%(setup)s%%(group)s%%(location)s/%%(action)s" % (self.__baseURL)
             if issubclass(handler, WebSocketHandler):
                 handler.PATH_RE = re.compile("%s(%s)" % (baseRoute, handlerRoute))
