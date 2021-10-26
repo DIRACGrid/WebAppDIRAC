@@ -61,6 +61,10 @@ CHANGE: (#467) rename README.md to README.rst
 FIX: (#466) fix selector of pilot stats
 FIX: (#465) return empty result instead error for no host request
 
+[v4r2p12]
+
+NEW: (#585, #586) Add sweep, labeler and semantic CI configuration
+
 [v4r2p11]
 
 NEW: (#576) Add sweep, labeler and semantic CI configuration
