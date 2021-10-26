@@ -1,3 +1,10 @@
+
+[v4r3p8]
+
+FIX: (#593) provide correct routing regex
+FIX: (#590) exclude a non-existent link for ReadMe
+FIX: (#588) Re-enable labeler and fix configuration
+
 [v4r3p7]
 
 FIX: (#577) Correct pattern used for handler.PATH_RE to accept urls like web_t1sites
