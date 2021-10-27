@@ -1,3 +1,10 @@
+
+[v4r3p8]
+
+FIX: (#593) provide correct routing regex
+FIX: (#590) exclude a non-existent link for ReadMe
+FIX: (#588) Re-enable labeler and fix configuration
+
 [v4r3p7]
 
 FIX: (#577) Correct pattern used for handler.PATH_RE to accept urls like web_t1sites
@@ -60,6 +67,10 @@ NEW: (#467) move tests things to tests
 CHANGE: (#467) rename README.md to README.rst
 FIX: (#466) fix selector of pilot stats
 FIX: (#465) return empty result instead error for no host request
+
+[v4r2p12]
+
+NEW: (#585, #586) Add sweep, labeler and semantic CI configuration
 
 [v4r2p11]
 
