@@ -1,3 +1,4 @@
+
 [v5r0-pre2]
 
 FIX: (#578) Align with changes in DIRACGrid/DIRAC#5399
@@ -11,6 +12,12 @@ NEW: (#540) add FileResponse class to handle csv, png, txt files in response
 NEW: (#539) add FileResponse class to handle png and csv responses
 CHANGE: (#539) use parameter names without '_'
 CHANGE: (#539) Use WebHandler with DIRAC.Core.Tornado.Server.privat.BaseRequestHandler for Accounting handler.
+
+[v4r3p8]
+
+FIX: (#593) provide correct routing regex
+FIX: (#590) exclude a non-existent link for ReadMe
+FIX: (#588) Re-enable labeler and fix configuration
 
 [v4r3p7]
 
@@ -74,6 +81,10 @@ NEW: (#467) move tests things to tests
 CHANGE: (#467) rename README.md to README.rst
 FIX: (#466) fix selector of pilot stats
 FIX: (#465) return empty result instead error for no host request
+
+[v4r2p12]
+
+NEW: (#585, #586) Add sweep, labeler and semantic CI configuration
 
 [v4r2p11]
 
