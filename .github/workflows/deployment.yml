@@ -10,13 +10,13 @@ on:
         required: true
         default: "yes"
       version:
-        description: "Override the release version number (e.g. 8.0.0a5)"
+        description: "Override the release version number (e.g. 5.0.0a5)"
 
 jobs:
   deploy-pypi:
     name: PyPI deployment
     runs-on: "ubuntu-latest"
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     defaults:
       run:
         shell: bash -l {0}
@@ -28,6 +28,7 @@ jobs:
           git fetch --prune --unshallow
           git config --global user.email "ci@diracgrid.org"
           git config --global user.name "DIRACGrid CI"
+          git clone https://github.com/DIRACGrid/DIRAC.git ../DIRAC
       - uses: actions/setup-python@v2
         with:
           python-version: "3.9"
@@ -51,7 +52,7 @@ jobs:
           PREV_VERSION=$(git describe --tags --abbrev=0 --match '*[0-9].[0-9]*' --exclude 'v[0-9]r*' --exclude 'v[0-9][0-9]r*')
           REFERENCE_BRANCH=${GITHUB_REF#refs/heads/}
           echo "Making release notes for ${REFERENCE_BRANCH} since ${PREV_VERSION}"
-          ./docs/diracdoctools/scripts/dirac-docs-get-release-notes.py \
+          ../DIRAC/docs/diracdoctools/scripts/dirac-docs-get-release-notes.py \
               --token "${{ secrets.GITHUB_TOKEN }}" \
               --sinceTag "${PREV_VERSION}" \
               --branches "${REFERENCE_BRANCH}" \
@@ -63,9 +64,9 @@ jobs:
         run: |
           set -xeuo pipefail
           IFS=$'\n\t'
-          if [[ "${{ github.repository }}" == "DIRACGrid/DIRAC" ]]; then
+          if [[ "${{ github.repository }}" == "DIRACGrid/WebAppDIRAC" ]]; then
             if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-              if [[ "${{ github.event.ref }}" =~ ^refs/heads/(integration|rel-v([8-9]|[1-9][0-9]+)\.[0-9]+)$ ]]; then
+              if [[ "${{ github.event.ref }}" =~ ^refs/heads/(integration|rel-v([5-9]|[1-9][0-9]+)\.[0-9]+)$ ]]; then
                 echo "Will create a real release"
                 export NEW_VERSION="v${{ github.event.inputs.version }}"
                 if [[ "${NEW_VERSION}" == "v" ]]; then
@@ -103,7 +104,7 @@ jobs:
           echo "Pushing tagged release notes to ${GITHUB_REF#refs/heads/}"
           git push "origin" "${GITHUB_REF#refs/heads/}"
           echo "Making GitHub release for ${NEW_VERSION}"
-          .github/workflows/make_release.py \
+          ../DIRAC/.github/workflows/make_release.py \
             --repo="${{ github.repository }}" \
             --token="${{ secrets.GITHUB_TOKEN }}" \
             --version="${NEW_VERSION}" \
