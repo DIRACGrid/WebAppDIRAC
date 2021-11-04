@@ -2,50 +2,116 @@ name: Deployment
 
 on:
   push:
-    tags:
-      - v5r0-pre[0-9]+
   pull_request:
+  workflow_dispatch:
+    inputs:
+      check-ci:
+        description: "Require the CI to have passed for this commit"
+        required: true
+        default: "yes"
+      version:
+        description: "Override the release version number (e.g. 8.0.0a5)"
 
 jobs:
   deploy-pypi:
     name: PyPI deployment
     runs-on: "ubuntu-latest"
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PAT || github.token }}
+      - run: |
+          git fetch --prune --unshallow
+          git config --global user.email "ci@diracgrid.org"
+          git config --global user.name "DIRACGrid CI"
       - uses: actions/setup-python@v2
         with:
           python-version: "3.9"
-      - name: Install dependencies
-        run: pip install build readme_renderer diraccfg
-      - name: Validate README for PyPI
-        run: python -m readme_renderer README.rst -o /tmp/README.html
-      - name: Make PEP-440 style release on GitHub
-        id: PEP-440
-        if: github.event_name == 'push'
+      - name: Installing dependencies
         run: |
-          TAG_NAME=${GITHUB_REF##*/}
-          NEW_STYLE=$(python -c "import diraccfg; major, minor, patch, pre = diraccfg.parseVersion('${TAG_NAME}'); print(f'{major}.{minor}.{patch}', f'a{pre}' if pre else '', sep='')")
-          echo "Converted ${TAG_NAME} version to ${NEW_STYLE}"
-          echo ::set-output name=tag_name::"v$NEW_STYLE"
-          echo ::set-output name=target_commitish::"$(git rev-parse HEAD)"
-      - name: Publish ${{ steps.PEP-440.outputs.tag_name }} release to GitHub
-        if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v1
-        with:
-          target_commitish: ${{ steps.PEP-440.outputs.target_commitish }}
-          body_path: release.notes
-          tag_name: ${{ steps.PEP-440.outputs.tag_name }}
-      - name: Get ${{ steps.PEP-440.outputs.tag_name }} tag
-        if: github.event_name == 'push'
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ steps.PEP-440.outputs.tag_name }}
+          python -m pip install \
+              build \
+              python-dateutil \
+              pytz \
+              readme_renderer \
+              requests \
+              setuptools_scm \
+              six
+      - name: Validate README for PyPI
+        run: |
+          python -m readme_renderer README.rst -o /tmp/README.html
+      - name: Prepare release notes
+        run: |
+          set -xeuo pipefail
+          IFS=$'\n\t'
+          PREV_VERSION=$(git describe --tags --abbrev=0 --match '*[0-9].[0-9]*' --exclude 'v[0-9]r*' --exclude 'v[0-9][0-9]r*')
+          REFERENCE_BRANCH=${GITHUB_REF#refs/heads/}
+          echo "Making release notes for ${REFERENCE_BRANCH} since ${PREV_VERSION}"
+          ./docs/diracdoctools/scripts/dirac-docs-get-release-notes.py \
+              --token "${{ secrets.GITHUB_TOKEN }}" \
+              --sinceTag "${PREV_VERSION}" \
+              --branches "${REFERENCE_BRANCH}" \
+              --repo "${{ github.repository }}" \
+              > release.notes.new
+          cat release.notes.new
+      - name: Create tag if required
+        id: check-tag
+        run: |
+          set -xeuo pipefail
+          IFS=$'\n\t'
+          if [[ "${{ github.repository }}" == "DIRACGrid/DIRAC" ]]; then
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              if [[ "${{ github.event.ref }}" =~ ^refs/heads/(integration|rel-v([8-9]|[1-9][0-9]+)\.[0-9]+)$ ]]; then
+                echo "Will create a real release"
+                export NEW_VERSION="v${{ github.event.inputs.version }}"
+                if [[ "${NEW_VERSION}" == "v" ]]; then
+                  NEW_VERSION=v$(python -m setuptools_scm | sed 's@Guessed Version @@g' | sed -E 's@(\.dev|\+g).+@@g')
+                  export NEW_VERSION
+                fi
+                echo "Release will be named $NEW_VERSION"
+                # Validate the version
+                python -c $'from packaging.version import Version; v = Version('"'$NEW_VERSION'"$')\nif v.is_devrelease:\n    raise ValueError(v)'
+                # Commit the release notes
+                mv release.notes release.notes.old
+                {
+                  echo -e "[${NEW_VERSION}]" && \
+                  tail -n +2 release.notes.new | perl -0777pe 's/\n+$/\n\n/' && \
+                  cat release.notes.old;
+                } > release.notes
+                git add release.notes
+                git commit -m "docs: Add release notes for $NEW_VERSION"
+                git show
+                # Create the tag
+                git tag "$NEW_VERSION"
+                echo ::set-output name=create-release::true
+                echo ::set-output name=new-version::"$NEW_VERSION"
+              fi
+            fi
+          fi
       - name: Build distributions
-        run: python -m build
+        run: |
+          python -m build
+      - name: Make release on GitHub
+        if: steps.check-tag.outputs.create-release == 'true'
+        run: |
+          set -e
+          export NEW_VERSION=${{ steps.check-tag.outputs.new-version }}
+          echo "Pushing tagged release notes to ${GITHUB_REF#refs/heads/}"
+          git push "origin" "${GITHUB_REF#refs/heads/}"
+          echo "Making GitHub release for ${NEW_VERSION}"
+          .github/workflows/make_release.py \
+            --repo="${{ github.repository }}" \
+            --token="${{ secrets.GITHUB_TOKEN }}" \
+            --version="${NEW_VERSION}" \
+            --rev="$(git rev-parse HEAD)" \
+            --release-notes-fn="release.notes.new"
       - name: Publish package on PyPI
-        if: github.event_name == 'push'
-        uses: pypa/gh-action-pypi-publish@master
+        if: steps.check-tag.outputs.create-release == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
