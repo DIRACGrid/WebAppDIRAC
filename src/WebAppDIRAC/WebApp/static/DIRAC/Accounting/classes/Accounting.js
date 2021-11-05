@@ -68,15 +68,6 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["Status", "Status"],
           ],
         },
-        Network: {
-          title: "Network",
-          selectionConditions: [
-            ["Source", "Source Site"],
-            ["Destination", "Destination Site"],
-            ["SourceHostName", "Source Host"],
-            ["DestinationHostName", "Destination Host"],
-          ],
-        },
         StorageOccupancy: {
           title: "Storage Occupancy",
           selectionConditions: [
@@ -129,7 +120,6 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
         ["WMSHistory", "WMS History"],
         ["Pilot", "Pilot"],
         ["PilotSubmission", "Pilot Submission"],
-        ["Network", "Network"],
         ["StorageOccupancy", "Storage Occupancy"],
       ],
       Monitoring: [
