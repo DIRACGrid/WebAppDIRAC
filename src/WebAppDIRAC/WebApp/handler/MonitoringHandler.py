@@ -91,7 +91,7 @@ class MonitoringHandler(WebHandler):
         pinDates = False
 
         for name in self.request.arguments:
-            pD[name[1:]] = self.get_argument(name)
+            pD[name] = self.get_argument(name)
 
         # Personalized title?
         if "plotTitle" in pD:
