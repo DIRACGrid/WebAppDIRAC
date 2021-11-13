@@ -1,3 +1,10 @@
+[v5.0.0a3]
+
+CHANGE: (#601) JS: remove Accounting -> Network query
+FIX: (#600) use full name of the incoming argument to Monitoring handler
+CHANGE: (#584) update readme file
+v5r0-pre2 release notes
+
 
 [v5r0-pre2]
 
