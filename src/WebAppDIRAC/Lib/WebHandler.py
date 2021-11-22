@@ -393,6 +393,9 @@ class _WebHandler(TornadoREST):
 class WebHandler(_WebHandler):
     """Old WebHandler"""
 
+    # This attribute needed for log, see BaseRequestHandler
+    result = None
+
     def get(self, setup, group, route, *pathArgs):
         self.initializeRequest()
         method = self._getMethod()
@@ -404,6 +407,8 @@ class WebHandler(_WebHandler):
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
     def __init__(self, *args, **kwargs):
+        # This attribute needed for log, see BaseRequestHandler
+        self.result = None
         WebHandler.__init__(self, *args, **kwargs)
         tornado.websocket.WebSocketHandler.__init__(self, *args, **kwargs)
 
