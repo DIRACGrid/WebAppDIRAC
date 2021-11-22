@@ -1,4 +1,3 @@
-import six
 import json
 
 from diraccfg import CFG
@@ -366,7 +365,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             }
         oldParentDict = cfgData.getRecursive(nodePath, -1)
         newParentDict = cfgData.getRecursive(destinationParentPath)
-        if isinstance(newParentDict, six.string_types):
+        if isinstance(newParentDict, str):
             return {
                 "success": 0,
                 "op": "moveNode",
@@ -446,7 +445,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         if not nodeDict:
             return {"success": 0, "op": "copyKey", "message": "Moving entity does not exist"}
         newParentDict = cfgData.getRecursive(destinationParentPath)
-        if isinstance(newParentDict, six.string_types):
+        if isinstance(newParentDict, str):
             return {"success": 0, "op": "copyKey", "message": "Destination is not a section"}
         if not newParentDict:
             return {"success": 0, "op": "copyKey", "message": "Destination does not exist"}

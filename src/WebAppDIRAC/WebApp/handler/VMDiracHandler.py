@@ -4,7 +4,6 @@ from __future__ import absolute_import
 
 
 import ast
-import six
 import json
 
 from DIRAC.Core.Utilities import Time
@@ -41,7 +40,7 @@ class VMDiracHandler(WebHandler):
         if "cond" in self.request.arguments:
             dec = json.loads(self.get_argument("cond"))
             for k in dec:
-                v = [str(dec[k])] if isinstance(dec[k], six.string_types) else [str(f) for f in dec[k]]
+                v = [str(dec[k])] if isinstance(dec[k], str) else [str(f) for f in dec[k]]
                 condDict[str(k).replace("_", ".")] = v
 
         if "statusSelector" in self.request.arguments:

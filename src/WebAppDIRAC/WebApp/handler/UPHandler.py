@@ -5,7 +5,6 @@ from __future__ import absolute_import
 import base64
 import zlib
 import json
-import six
 
 from DIRAC import S_OK
 from DIRAC.Core.Utilities import DEncode
@@ -208,7 +207,7 @@ class UPHandler(WebHandler):
             return result
         data = result["Value"]
         oDesktop = json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data)))[0])
-        oDesktop[six.text_type("view")] = six.text_type(view)
+        oDesktop[str("view")] = str(view)
         oDesktop = json.dumps(oDesktop)
         data = base64.b64encode(zlib.compress(DEncode.encode(oDesktop), 9))
         return up.storeVar(desktop, data)

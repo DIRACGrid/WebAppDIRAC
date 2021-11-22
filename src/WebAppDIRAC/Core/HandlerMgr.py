@@ -1,15 +1,8 @@
 """ Basic modules for loading handlers
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
-__RCSID__ = "$Id$"
-
-import os
 import re
-import six
-import imp
+import os
 import inspect
 import collections
 
@@ -18,21 +11,16 @@ from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMetadata
 
-import WebAppDIRAC
-
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import WebHandler, _WebHandler, WebSocketHandler
 from WebAppDIRAC.Core.CoreHandler import CoreHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
 
-@six.add_metaclass(DIRACSingleton)
-class HandlerMgr(object):
+class HandlerMgr(metaclass=DIRACSingleton):
     """This class prepares portal application handlers and forms their routing using regular expressions,
     see https://docs.python.org/3/library/re.html
     """
-
-    __metaclass__ = DIRACSingleton
 
     def __init__(self, handlersLocation, baseURL="/"):
         """Constructor
@@ -61,19 +49,8 @@ class HandlerMgr(object):
         """
         pathList = []
         for extName in extensionsByPriority():
-            if six.PY3:
-                metadata = getExtensionMetadata(extName)
-                pathList.extend(map(str, metadata.get("web_resources", {}).get(dirName, [])))
-            else:
-                try:
-                    modFile, modPath, desc = imp.find_module(extName)
-                    # to match in the real root path to enabling module web extensions (static, templates...)
-                    realModPath = os.path.realpath(modPath)
-                except ImportError:
-                    continue
-                staticPath = os.path.join(realModPath, "WebApp", dirName)
-                if os.path.isdir(staticPath):
-                    pathList.append(staticPath)
+            metadata = getExtensionMetadata(extName)
+            pathList.extend(map(str, metadata.get("web_resources", {}).get(dirName, [])))
         return pathList
 
     def __calculateRoutes(self):

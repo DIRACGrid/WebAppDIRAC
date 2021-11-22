@@ -1,17 +1,15 @@
-import re
-import os
 import json
 import pprint
-from six.moves import urllib_parse as urlparse
+from urllib.parse import urlparse
 
 from tornado.escape import xhtml_escape
 from tornado import template
 
-from DIRAC import rootPath, gLogger, S_OK, gConfig
+from DIRAC import gLogger
 from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import TornadoResponse
 
 from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
 
 
 class RootHandler(WebHandler):
@@ -52,7 +50,7 @@ class RootHandler(WebHandler):
         ]
         qs = False
         if "Referer" in self.request.headers:
-            o = urlparse.urlparse(self.request.headers["Referer"])
+            o = urlparse(self.request.headers["Referer"])
             url.append("?%s" % o.query)
         return "/%s" % "/".join(url)
 
