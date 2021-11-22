@@ -92,9 +92,15 @@ class HandlerMgr(object):
         # Add some standard paths for static files
         statDirectories = Conf.getStaticDirs()
         self.log.info("The following static directories are used:%s" % str(statDirectories))
-        for stdir in statDirectories:
-            pattern = "/%s/(.*)" % stdir
-            self.__routes.append((pattern, StaticHandler, dict(pathList=["%s/webRoot/www/%s" % (rootPath, stdir)])))
+        for staticDirectory in statDirectories:
+            # Get real static files directory
+            realStaticDirectory = "%s/webRoot/www/%s" % (rootPath, staticDirectory)
+            # Make sure the directory exists
+            if not os.path.exists(realStaticDirectory):
+                os.makedirs(realStaticDirectory)
+            # Let's add routes
+            pattern = "/%s/(.*)" % staticDirectory
+            self.__routes.append((pattern, StaticHandler, dict(pathList=[realStaticDirectory])))
             self.log.debug(" - Static route: %s" % pattern)
 
         for pattern in (r"/static/(.*)", r"/(favicon\.ico)", r"/(robots\.txt)"):
