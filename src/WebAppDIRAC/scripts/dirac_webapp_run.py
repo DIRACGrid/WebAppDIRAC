@@ -1,12 +1,8 @@
 #!/usr/bin/env python
-import imp
 import os
 import sys
 
-import six
-import tornado
 from DIRAC import gConfig, S_OK
-from DIRAC.Core.Base import Script
 from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMetadata
 from DIRAC.Core.Utilities.DIRACScript import DIRACScript
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
@@ -30,20 +26,8 @@ def _createStaticSymlinks(targetDir):
         os.makedirs(targetDir)
     extensions = extensionsByPriority()
     for extension in extensions:
-        if six.PY3:
-            metadata = getExtensionMetadata(extension)
-            staticDirs = metadata.get("web_resources", {}).get("static", [])
-        else:
-            staticDirs = []
-            try:
-                modFile, modPath, desc = imp.find_module(extension)
-                # to match in the real root path to enabling module web extensions (static, templates...)
-                realModPath = os.path.realpath(modPath)
-            except ImportError:
-                continue
-            staticDirs = [os.path.join(realModPath, "WebApp", "static")]
-            if not os.path.isdir(staticDirs[0]):
-                continue
+        metadata = getExtensionMetadata(extension)
+        staticDirs = metadata.get("web_resources", {}).get("static", [])
 
         for i, path in enumerate(sorted(staticDirs)):
             destination = os.path.join(targetDir, extension)
@@ -126,7 +110,7 @@ def main():
         gLogger.fatal("There were errors when loading configuration", result["Message"])
         sys.exit(1)
 
-    if six.PY3 and gConfig.getOption("/WebApp/IgnoreVersionCheck").get("Value", "").lower() not in ["yes", "true"]:
+    if gConfig.getOption("/WebApp/IgnoreVersionCheck").get("Value", "").lower() not in ["yes", "true"]:
         _checkDIRACVersion()
 
     result = gConfig.getOption("/WebApp/StaticResourceLinkDir")

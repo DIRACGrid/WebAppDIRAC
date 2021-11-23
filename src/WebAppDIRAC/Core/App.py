@@ -1,31 +1,20 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-__RCSID__ = "$Id$"
-
 import os
 import ssl
-import imp
 import sys
 import signal
 import tornado.web
 import tornado.process
 import tornado.httpserver
 import tornado.autoreload
-from diraccfg import CFG
 
-import DIRAC
-
-from DIRAC import gLogger, gConfig, S_OK
-from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
+from DIRAC import gLogger, S_OK
 from WebAppDIRAC.Core.HandlerMgr import HandlerMgr
 from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
 
 
-class App(object):
+class App:
     def __init__(self, handlersLoc="WebApp.handler"):
         self.__handlerMgr = HandlerMgr(handlersLoc, Conf.rootURL())
         self.__servers = {}

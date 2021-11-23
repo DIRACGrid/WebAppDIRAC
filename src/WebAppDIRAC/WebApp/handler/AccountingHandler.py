@@ -1,5 +1,4 @@
 import os
-import six
 import json
 import datetime
 import tempfile
@@ -159,7 +158,7 @@ class AccountingHandler(WebHandler):
 
         # Listify the rest
         for selName in pD:
-            if isinstance(pD[selName], six.string_types):
+            if isinstance(pD[selName], str):
                 try:
                     pD[selName] = json.loads(pD[selName])
                 except ValueError:

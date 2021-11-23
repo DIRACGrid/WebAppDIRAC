@@ -1,18 +1,13 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 import base64
 import zlib
 import json
-import six
 
 from DIRAC import S_OK
 from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
 
 
 class UPHandler(WebHandler):
@@ -208,7 +203,7 @@ class UPHandler(WebHandler):
             return result
         data = result["Value"]
         oDesktop = json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data)))[0])
-        oDesktop[six.text_type("view")] = six.text_type(view)
+        oDesktop[str("view")] = str(view)
         oDesktop = json.dumps(oDesktop)
         data = base64.b64encode(zlib.compress(DEncode.encode(oDesktop), 9))
         return up.storeVar(desktop, data)

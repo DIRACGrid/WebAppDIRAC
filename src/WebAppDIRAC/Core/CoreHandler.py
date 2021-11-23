@@ -1,11 +1,5 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-__RCSID__ = "$Id$"
-
 import tornado.web
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 
 from WebAppDIRAC.Lib import Conf
 
