@@ -1,3 +1,9 @@
+[v5.0.0a4]
+
+NEW: (#606) add static directories automatically (issue #362)
+CHANGE: (#605) remove Python 2 code
+FIX: (#603) provide result attribute for backward compatibility
+
 [v5.0.0a3]
 
 CHANGE: (#601) JS: remove Accounting -> Network query
