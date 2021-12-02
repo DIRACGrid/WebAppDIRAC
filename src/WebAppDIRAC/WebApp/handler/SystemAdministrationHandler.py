@@ -193,7 +193,7 @@ class SystemAdministrationHandler(WebHandler):
             elif action == "revert":
                 result = yield self.threadTask(client.revertSoftware)
             elif action == "update":
-                result = yield self.threadTask(client.updateSoftware, version, "", "", timeout=600)
+                result = yield self.threadTask(client.updateSoftware, version, timeout=600)
             else:
                 error = i + ": Action %s is not defined" % action
                 actionFailed.append(error)
