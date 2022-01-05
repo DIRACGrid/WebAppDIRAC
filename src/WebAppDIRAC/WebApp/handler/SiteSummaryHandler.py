@@ -10,14 +10,27 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getSiteCEMapping,
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 
 from WebAppDIRAC.Lib.WebHandler import asyncGen
-from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import ResourceSummaryHandler
+from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import SummaryHandlerMix
 
 
-class SiteSummaryHandler(ResourceSummaryHandler):
+class SiteSummaryHandler(SummaryHandlerMix):
 
-    LOCATION = None
-    AUTH_PROPS = "all"
     ELEMENT_TYPE = "Site"
+
+    @asyncGen
+    def web_getSelectionData(self):
+        callback = yield self.threadTask(self._getSelectionData)
+        self.finish(callback)
+
+    @asyncGen
+    def web_expand(self):
+        callback = yield self.threadTask(self._expand)
+        self.finish(callback)
+
+    @asyncGen
+    def web_action(self):
+        callback = yield self.threadTask(self._action)
+        self.finish(callback)
 
     @asyncGen
     def web_getSiteSummaryData(self):

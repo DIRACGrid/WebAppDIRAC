@@ -14,8 +14,9 @@ from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
 
 class RootHandler(WebHandler):
 
-    AUTH_PROPS = "all"
-    LOCATION = "/"
+    DEFAULT_AUTHORIZATION = "all"
+    DEFAULT_LOCATION = "/"
+    SUPPORTED_METHODS = ("GET",)
 
     def web_changeGroup(self, to):
         """Change group
@@ -170,7 +171,7 @@ class RootHandler(WebHandler):
         group = result["Value"].get("group")
 
         url = "/".join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
-        nextURL = "/%s/?%s" % (url, urlparse.urlparse(authSession["next"]).query)
+        nextURL = "/%s/?%s" % (url, urlparse(authSession["next"]).query)
         # Save token and go to main page
         # with document('DIRAC authentication') as html:
         #   dom.div('Authorization is done.',
@@ -184,7 +185,7 @@ class RootHandler(WebHandler):
         )
         return resp
 
-    def web_index(self, url_state="", theme="crisp", open_app="", **kwargs):
+    def web_index(self, *, url_state="", theme="crisp", open_app="", **kwargs):
         """Index method
 
         :param str url_state: url state

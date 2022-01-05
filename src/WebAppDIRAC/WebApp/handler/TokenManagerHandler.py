@@ -10,7 +10,7 @@ from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 
 class TokenManagerHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
     @classmethod
     def initializeHandler(cls, serviceInfo):

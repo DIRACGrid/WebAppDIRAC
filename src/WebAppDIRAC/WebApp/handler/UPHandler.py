@@ -7,16 +7,14 @@ from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, AUTHORIZATION
 
 
 class UPHandler(WebHandler):
-    RAISE_DIRAC_ERROR = True
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
     __tc = ThreadConfig()
 
-    def _prepare(self):
-        super(UPHandler, self)._prepare()
+    def initializeRequest(self):
         self.set_header("Pragma", "no-cache")
         self.set_header("Cache-Control", "max-age=0, no-store, no-cache, must-revalidate")
         # Do not use the defined user setup. Use the web one to show the same profile independently of user setup
@@ -105,8 +103,7 @@ class UPHandler(WebHandler):
         data = result["Value"]
         return DEncode.decode(zlib.decompress(base64.b64decode(data)))[0]
 
-    auth_listAppState = ["all"]
-
+    @AUTHORIZATION(["all"])
     def web_listAppState(self, obj, app):
         """Get list application state
 
@@ -134,8 +131,7 @@ class UPHandler(WebHandler):
         """
         return UserProfileClient("Web/%s/%s" % (obj, app)).deleteVar(name)
 
-    auth_listPublicDesktopStates = ["all"]
-
+    @AUTHORIZATION(["all"])
     def web_listPublicDesktopStates(self, obj, app):
         """Get list public desktop states
 
@@ -208,8 +204,7 @@ class UPHandler(WebHandler):
         data = base64.b64encode(zlib.compress(DEncode.encode(oDesktop), 9))
         return up.storeVar(desktop, data)
 
-    auth_listPublicStates = ["all"]
-
+    @AUTHORIZATION(["all"])
     def web_listPublicStates(self, obj, app):
         """Get list public state
 

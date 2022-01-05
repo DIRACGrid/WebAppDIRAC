@@ -4,7 +4,7 @@ from DIRAC.Core.Utilities import Time
 
 class ExampleAppHandler(WebHandler):
 
-    AUTH_PROPS = "all"
+    DEFAULT_AUTHORIZATION = "all"
 
     def web_getJobData(self):
         timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")

@@ -2,6 +2,7 @@
 """
 
 import os
+import re
 import json
 import pprint
 import datetime
@@ -21,8 +22,11 @@ from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.Core.Utilities.Decorators import deprecated
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST
-from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import TornadoResponse
+from DIRAC.Core.Tornado.Server.TornadoREST import (
+    TornadoREST,
+    AUTHORIZATION,
+    TornadoResponse,
+)  # pylint: disable=no-name-in-module
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 from WebAppDIRAC.Lib import Conf
@@ -32,6 +36,32 @@ from WebAppDIRAC.Lib.SessionData import SessionData
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
 sLog = gLogger.getSubLogger(__name__)
+
+
+class UserCredentials:
+    """With this class you can make RPC calls using user credantials
+
+    Usage:
+
+        def post_job(self):
+            with UserCredentials(**self.credDict):
+                # Do stuff
+
+    """
+
+    __disetConfig = ThreadConfig()
+
+    def __init__(self, **kwargs):
+        self.dn = kwargs["DN"]
+        self.group = kwargs["group"]
+        self.setup = kwargs["setup"]
+
+    def __enter__(self):
+        self.__disetConfig.load((self.dn, self.group, self.setup))
+        return self.__disetConfig
+
+    def __exit__(self, type, value, traceback):
+        self.__disetConfig.reset()
 
 
 class FileResponse(TornadoResponse):
@@ -130,105 +160,91 @@ def defaultEncoder(data):
 
 class _WebHandler(TornadoREST):
     __session = None
+    __sessionData = None
     __disetConfig = ThreadConfig()
 
-    USE_AUTHZ_GRANTS = ["SSL", "SESSION", "VISITOR"]
-    # Auth requirements
-    AUTH_PROPS = None
+    DEFAULT_AUTHENTICATION = ["SSL", "SESSION", "VISITOR"]
+    # Auth requirements DEFAULT_AUTHORIZATION
+    DEFAULT_AUTHORIZATION = None
+    # Base URL prefix
+    BASE_URL = None
     # Location of the handler in the URL
-    LOCATION = ""
-    # URL Schema with holders to generate handler urls
-    URLSCHEMA = ""
+    DEFAULT_LOCATION = ""
     # RE to extract group and setup
     PATH_RE = None
     # Prefix of methods names
     METHOD_PREFIX = "web_"
 
+    SUPPORTED_METHODS = (
+        "POST",
+        "GET",
+    )
+
+    # for backward compatibility
+    LOCATION = ""
+    AUTH_PROPS = None
+
+    # pylint: disable=no-member
+    @classmethod
+    def _pre_initialize(cls):
+        # For backward compatibility
+        cls.LOCATION = cls.LOCATION or cls.DEFAULT_LOCATION
+        cls.AUTH_PROPS = cls.AUTH_PROPS or cls.DEFAULT_AUTHORIZATION
+
+        cls.DEFAULT_LOCATION = cls.DEFAULT_LOCATION or cls.LOCATION
+        cls.DEFAULT_AUTHORIZATION = cls.DEFAULT_AUTHORIZATION or cls.AUTH_PROPS
+
+        # Get tornado URLs
+        urls = super()._pre_initialize()
+        # Define base path regex to know setup/group
+        cls.PATH_RE = re.compile(f"{cls.BASE_URL}(.*)")
+        return urls
+
     def finish(self, data=None, *args, **kwargs):
-        """Finishes this response, ending the HTTP request. More details:
+        """Finishes this response, ending the HTTP request. More detailes:
         https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
         """
         if data and isinstance(data, dict):
             self.set_header("Content-Type", "application/json")
             data = json.dumps(data, default=defaultEncoder)
-        return super(_WebHandler, self).finish(data, *args, **kwargs)
-
-    def threadTask(self, method, *args, **kwargs):
-        def threadJob(*targs, **tkwargs):
-            args = targs[0]
-            disetConf = targs[1]
-            self.__disetConfig.reset()
-            self.__disetConfig.load(disetConf)
-            return method(*args, **tkwargs)
-
-        targs = (args, self.__disetDump)
-        return IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *targs, **kwargs))
-
-    def __disetBlockDecor(self, func):
-        def wrapper(*args, **kwargs):
-            raise RuntimeError("All DISET calls must be made from inside a Threaded Task!")
-
-        return wrapper
+        return super().finish(data, *args, **kwargs)
 
     @classmethod
-    def _getServiceName(cls, request):
-        """Search service name in request
+    def _getCSAuthorizarionSection(cls, handler):
+        """Search endpoint auth section.
 
-        :param object request: tornado Request
-
-        :return: str
-        """
-        match = cls.PATH_RE.match(request.path)
-        groups = match.groups()
-        route = groups[2]
-        return route if route[-1] == "/" else route[: route.rfind("/")]
-
-    @classmethod
-    def _getServiceAuthSection(cls, serviceName):
-        """Search service auth section. Developers MUST
-        implement it in subclass.
-
-        :param str serviceName: service name
+        :param str handler: API name, see :py:meth:`_getFullComponentName`
 
         :return: str
         """
-        return Conf.getAuthSectionForHandler(serviceName)
+        return Conf.getAuthSectionForHandler(handler)
 
-    def _getMethodName(self):
-        """Parse method name.
-
-        :return: str
-        """
-        match = self.PATH_RE.match(self.request.path)
-        groups = match.groups()
-        route = groups[2]
-        return "index" if route[-1] == "/" else route[route.rfind("/") + 1 :]
-
-    def _getMethodArgs(self, args):
+    def _getMethodArgs(self, args: tuple, kwargs: dict):
         """Decode args.
 
         :return: tuple(list, dict)
         """
-        return super(_WebHandler, self)._getMethodArgs(args[3:])
+        return super()._getMethodArgs(args=args[3:], kwargs=kwargs)
 
-    def _prepare(self):
-        """
-        Prepare the request. It reads certificates and check authorizations.
+    async def prepare(self):
+        """Prepare the request. It reads certificates and check authorizations.
         We make the assumption that there is always going to be a ``method`` argument
         regardless of the HTTP method used
-
         """
-        # Reset session before authorization
-        self.__session = None
+
         # Parse request URI
-        self.__parseURI()
+        match = self.PATH_RE.match(self.request.path)
+        groups = match.groups()
+        self.__setup = groups[0] or Conf.setup()
+        self.__group = groups[1]
+
         # Reset DISET settings
         self.__disetConfig.reset()
         self.__disetConfig.setDecorator(self.__disetBlockDecor)
         self.__disetDump = self.__disetConfig.dump()
 
         try:
-            super(_WebHandler, self)._prepare()
+            await super().prepare()
         except HTTPError as e:
             raise WErr(e.status_code, e.log_message)
 
@@ -240,16 +256,13 @@ class _WebHandler(TornadoREST):
         self.__disetConfig.setSetup(self.__setup)
         self.__disetDump = self.__disetConfig.dump()
 
-        self.__sessionData = SessionData(self.credDict, self.__setup)
         self.__forceRefreshCS()
 
-    def __parseURI(self):
-        match = self.PATH_RE.match(self.request.path)
-        groups = match.groups()
-        self.__setup = groups[0] or Conf.setup()
-        self.__group = groups[1]
-        self.__route = groups[2]
-        self.__args = groups[3:]
+    def __disetBlockDecor(self, func):
+        def wrapper(*args, **kwargs):
+            raise RuntimeError("All DISET calls must be made from inside a Threaded Task!")
+
+        return wrapper
 
     def __forceRefreshCS(self):
         """Force refresh configuration from master configuration server"""
@@ -277,7 +290,7 @@ class _WebHandler(TornadoREST):
             # First of all we try to authZ with what is specified in cookies, and if attempt is unsuccessful authZ as visitor
             self.__authGrant.insert(0, self.get_cookie("authGrant", "SSL").replace("Certificate", "SSL"))
 
-        credDict = super(_WebHandler, self)._gatherPeerCredentials(grants=self.__authGrant)
+        credDict = super()._gatherPeerCredentials(grants=self.__authGrant)
 
         # Add a group if it present in the request path
         if credDict and self.__group:
@@ -342,6 +355,8 @@ class _WebHandler(TornadoREST):
         return self.__setup
 
     def getSessionData(self):
+        if not self.__sessionData:
+            self.__sessionData = SessionData(self.credDict, self.__setup)
         return self.__sessionData.getData()
 
     def getAppSettings(self, app=None):
@@ -389,37 +404,68 @@ class _WebHandler(TornadoREST):
 class WebHandler(_WebHandler):
     """Old WebHandler"""
 
-    # This attribute needed for log, see BaseRequestHandler
-    result = None
+    @classmethod
+    def _pre_initialize(cls):
+        # Get tornado URLs
+        urls = super()._pre_initialize()
+        # Add a pattern that points to the target method.
+        # Note that there are handlers with an index method.
+        # It responds to the request without specifying a method.
+        # The special characters "*" helps to take into account such a case,
+        # see https://docs.python.org/3/library/re.html#regular-expression-syntax.
+        # E.g .: /DIRAC/ -> RootHandler.web_index
+        cls.PATH_RE = re.compile(f"{cls.BASE_URL}({cls.LOCATION}/[A-z0-9_]*)")
+        return urls
 
-    def get(self, setup, group, route, *pathArgs):
+    def get(self, setup, group, *pathArgs):
         self.initializeRequest()
-        method = self._getMethod()
-        return method(*pathArgs)
+        return self._getMethod()(*pathArgs)
 
     def post(self, *args, **kwargs):
         return self.get(*args, **kwargs)
 
+    def threadTask(self, method, *args, **kwargs):
+        def threadJob(*targs, **tkwargs):
+            args = targs[0]
+            disetConf = targs[1]
+            self.__disetConfig.reset()
+            self.__disetConfig.load(disetConf)
+            return method(*args, **tkwargs)
+
+        targs = (args, self.__disetDump)
+        return IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *targs, **kwargs))
+
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
     def __init__(self, *args, **kwargs):
-        # This attribute needed for log, see BaseRequestHandler
-        self.result = None
         WebHandler.__init__(self, *args, **kwargs)
         tornado.websocket.WebSocketHandler.__init__(self, *args, **kwargs)
 
-    def open(self, setup, group, route):
-        """ Invoked when a new WebSocket is opened, read more in tornado `docs.\
+    @classmethod
+    def _pre_initialize(cls):
+        # For backward compatibility
+        cls.LOCATION = cls.LOCATION or cls.DEFAULT_LOCATION
+        cls.AUTH_PROPS = cls.AUTH_PROPS or cls.DEFAULT_AUTHORIZATION
+
+        cls.DEFAULT_LOCATION = cls.DEFAULT_LOCATION or cls.LOCATION
+        cls.DEFAULT_AUTHORIZATION = cls.DEFAULT_AUTHORIZATION or cls.AUTH_PROPS
+
+        # Define base path regex to know setup/group
+        cls.PATH_RE = re.compile(url := f"{cls.BASE_URL}({cls.LOCATION})")
+        sLog.verbose(f" - WebSocket {cls.LOCATION} -> {cls.__name__}")
+        sLog.debug(f"  * {url}")
+        return [(url, cls)]
+
+    def open(self, *args, **kwargs):
+        """Invoked when a new WebSocket is opened, read more in tornado `docs.\
         <https://www.tornadoweb.org/en/stable/websocket.html#tornado.websocket.WebSocketHandler.open>`_
-    """
+        """
         return self.on_open()
 
     def on_open(self):
-        pass
+        """Developer should implement this method"""
+        raise NotImplementedError('"on_open" method is not implemented')
 
     def _getMethod(self):
-        """Get method function to call.
-
-        :return: function
-        """
-        return ""
+        """Get method function to call."""
+        return self.on_open
