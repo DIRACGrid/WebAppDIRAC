@@ -142,7 +142,7 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
       name: "Jobs_TotalCreated",
     },
     {
-      name: "Jobs_Submitted",
+      name: "Jobs_Submitting",
     },
     {
       name: "Jobs_Waiting",
@@ -273,7 +273,7 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           "Jobs_Failed",
           "Jobs_Running",
           "Jobs_Stalled",
-          "Jobs_Submitted",
+          "Jobs_Submitting",
           "Jobs_Waiting",
           "Jobs_Completed",
           "Files_PercentProcessed",
@@ -464,8 +464,8 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
         dataIndex: "Jobs_TotalCreated",
         renderFunction: "diffValues",
       },
-      Submitted: {
-        dataIndex: "Jobs_Submitted",
+      Submitting: {
+        dataIndex: "Jobs_Submitting",
         renderFunction: "diffValues",
       },
       Matched: {
