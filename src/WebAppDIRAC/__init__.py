@@ -6,8 +6,6 @@ from __future__ import division
 
 __RCSID__ = "$Id$"
 
-import os
-
 import six
 
 
@@ -24,7 +22,7 @@ if six.PY3:
 else:
     majorVersion = 4
     minorVersion = 3
-    patchLevel = 9
+    patchLevel = 10
     preVersion = 0
 
     version = "v%sr%s" % (majorVersion, minorVersion)

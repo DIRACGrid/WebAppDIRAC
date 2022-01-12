@@ -1,3 +1,8 @@
+[v4r3p10]
+
+FIX: (#612) Set Content-Type when returning JSON encoded responses
+FIX: (#611) Show Submitting instead of Submitted in the Transformation Monitor
+
 [v4r3p9]
 
 NEW: (#604) add static directories automatically (issue #362)
