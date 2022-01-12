@@ -145,10 +145,11 @@ class _WebHandler(TornadoREST):
     METHOD_PREFIX = "web_"
 
     def finish(self, data=None, *args, **kwargs):
-        """Finishes this response, ending the HTTP request. More detailes:
+        """Finishes this response, ending the HTTP request. More details:
         https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
         """
         if data and isinstance(data, dict):
+            self.set_header("Content-Type", "application/json")
             data = json.dumps(data, default=defaultEncoder)
         return super(_WebHandler, self).finish(data, *args, **kwargs)
 
@@ -368,7 +369,7 @@ class _WebHandler(TornadoREST):
     @deprecated("Should be deprecated for v5+, use FileResponse class instead")
     def finishWithImage(self, data, plotImageFile, disableCaching=False):
         # Set headers
-        self.set_header("Content-type", "image/png")
+        self.set_header("Content-Type", "image/png")
         self.set_header(
             "Content-Disposition", 'attachment; filename="%s.png"' % md5(plotImageFile.encode()).hexdigest()
         )
