@@ -18,9 +18,9 @@ from WebAppDIRAC.Lib import Conf
 # Doing this ensures a consistent behavior between py2 and py3
 # see https://www.tornadoweb.org/en/stable/asyncio.html#tornado.platform.asyncio.AnyThreadEventLoopPolicy
 import asyncio
-import tornado
+from tornado.platform.asyncio import AnyThreadEventLoopPolicy
 
-asyncio.set_event_loop_policy(tornado.platform.asyncio.AnyThreadEventLoopPolicy())
+asyncio.set_event_loop_policy(AnyThreadEventLoopPolicy())
 
 
 class App:
