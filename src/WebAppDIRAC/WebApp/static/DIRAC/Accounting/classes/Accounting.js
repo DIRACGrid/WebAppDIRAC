@@ -110,6 +110,17 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["status", "Status"],
           ],
         },
+        PilotMonitoring: {
+          title: "Pilot Submission Monitoring",
+          selectionConditions: [
+            ["HostName", "HostName"],
+            ["SiteDirector", "SiteDirector"],
+            ["Site", "Site"],
+            ["CE", "CE"],
+            ["Queue", "Queue"],
+            ["Status", "Status"],
+          ],
+        },
       },
     };
 
@@ -126,6 +137,7 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
         ["WMSHistory", "WMS Monitoring"],
         ["ComponentMonitoring", "Component Monitoring"],
         ["RMSMonitoring", "RMS Monitoring"],
+        ["PilotMonitoring", "Pilot Submission Monitoring"]
       ],
     };
 
