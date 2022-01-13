@@ -33,11 +33,11 @@ Ext.define("Ext.dirac.core.Module", {
     var oSuperClass = me;
     var oCssFilesStack = [];
 
-    while (oSuperClass.self.getName() != "Ext.dirac.core.Module") {
+    do {
       var oParts = oSuperClass.self.getName().split(".");
       oCssFilesStack.push("static/" + oParts[0] + "/" + oParts[1] + "/css/" + oParts[1] + ".css");
       oSuperClass = oSuperClass.superclass;
-    }
+    } while (oSuperClass.self.getName() != "Ext.dirac.core.Module");
 
     oCssFilesStack.reverse();
 

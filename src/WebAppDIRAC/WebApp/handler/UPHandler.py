@@ -7,7 +7,7 @@ from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, AUTHORIZATION
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, authorization
 
 
 class UPHandler(WebHandler):
@@ -103,7 +103,7 @@ class UPHandler(WebHandler):
         data = result["Value"]
         return DEncode.decode(zlib.decompress(base64.b64decode(data)))[0]
 
-    @AUTHORIZATION(["all"])
+    @authorization(["all"])
     def web_listAppState(self, obj, app):
         """Get list application state
 
@@ -131,7 +131,7 @@ class UPHandler(WebHandler):
         """
         return UserProfileClient("Web/%s/%s" % (obj, app)).deleteVar(name)
 
-    @AUTHORIZATION(["all"])
+    @authorization(["all"])
     def web_listPublicDesktopStates(self, obj, app):
         """Get list public desktop states
 
@@ -204,7 +204,7 @@ class UPHandler(WebHandler):
         data = base64.b64encode(zlib.compress(DEncode.encode(oDesktop), 9))
         return up.storeVar(desktop, data)
 
-    @AUTHORIZATION(["all"])
+    @authorization(["all"])
     def web_listPublicStates(self, obj, app):
         """Get list public state
 

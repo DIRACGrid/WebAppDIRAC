@@ -24,7 +24,7 @@ from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Tornado.Server.TornadoREST import (
     TornadoREST,
-    AUTHORIZATION,
+    authorization,
     TornadoResponse,
 )  # pylint: disable=no-name-in-module
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
