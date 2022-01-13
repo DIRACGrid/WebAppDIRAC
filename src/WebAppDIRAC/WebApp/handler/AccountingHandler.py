@@ -15,7 +15,7 @@ from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, FileResponse
 class AccountingHandler(WebHandler):
     """This class is the background for the application that shows information about the use of resources at all times."""
 
-    AUTH_PROPS = "all"
+    DEFAULT_AUTHORIZATION = "all"
 
     # Cache of the accounting data
     # Key: (user, group, setup, accounting type)

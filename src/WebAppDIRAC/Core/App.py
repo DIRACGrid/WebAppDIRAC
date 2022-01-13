@@ -13,6 +13,15 @@ from WebAppDIRAC.Core.TemplateLoader import TemplateLoader
 from WebAppDIRAC.Lib.SessionData import SessionData
 from WebAppDIRAC.Lib import Conf
 
+# If we are running with python3, Tornado will use asyncio,
+# and we have to convince it to let us run in a different thread
+# Doing this ensures a consistent behavior between py2 and py3
+# see https://www.tornadoweb.org/en/stable/asyncio.html#tornado.platform.asyncio.AnyThreadEventLoopPolicy
+import asyncio
+import tornado
+
+asyncio.set_event_loop_policy(tornado.platform.asyncio.AnyThreadEventLoopPolicy())
+
 
 class App:
     def __init__(self, handlersLoc="WebApp.handler"):

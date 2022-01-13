@@ -9,20 +9,18 @@ from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
 
-class ResourceSummaryHandler(WebHandler):
-
+class SummaryHandlerMix(WebHandler):
     AUTH_PROPS = "all"
-    ELEMENT_TYPE = "Resource"
+    ELEMENT_TYPE = None
 
-    @asyncGen
-    def web_getSelectionData(self):
+    def _getSelectionData(self):
         """It returns the possible selection data"""
         callback = {"name": set(), "elementType": set(), "status": set(), "statusType": set(), "tokenOwner": set()}
 
         pub = PublisherClient()
 
         gLogger.info("Arguments to web_getSelectionData", repr(self.request.arguments))
-        elementStatuses = yield self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE, None, None, None, None, None)
+        elementStatuses = pub.getElementStatuses(self.ELEMENT_TYPE, None, None, None, None, None)
 
         if elementStatuses["OK"]:
 
@@ -38,59 +36,7 @@ class ResourceSummaryHandler(WebHandler):
             callback[key] = sorted([[item] for item in list(value)])
             callback[key] = [["All"]] + callback[key]
 
-        self.finish(callback)
-
-    @asyncGen
-    def web_getResourceSummaryData(self):
-        """This method returns the data required to fill the grid."""
-
-        requestParams = self.__requestParams()
-        gLogger.info(requestParams)
-
-        pub = PublisherClient()
-
-        elementStatuses = yield self.threadTask(
-            pub.getElementStatuses,
-            self.ELEMENT_TYPE,
-            requestParams["name"],
-            requestParams["elementType"],
-            requestParams["statusType"],
-            requestParams["status"],
-            requestParams["tokenOwner"],
-        )
-        if not elementStatuses["OK"]:
-            self.finish({"success": "false", "error": elementStatuses["Message"]})
-            return
-
-        elementTree = collections.defaultdict(list)
-
-        for element in elementStatuses["Value"]:
-
-            elementDict = dict(zip(elementStatuses["Columns"], element))
-
-            elementDict["DateEffective"] = str(elementDict["DateEffective"])
-            elementDict["LastCheckTime"] = str(elementDict["LastCheckTime"])
-            elementDict["TokenExpiration"] = str(elementDict["TokenExpiration"])
-
-            elementTree[elementDict["Name"]].append(elementDict)
-
-        elementList = []
-
-        for elementValues in elementTree.values():
-
-            if len(elementValues) == 1:
-                elementList.append(elementValues[0])
-            else:
-
-                elementList.append(self.combine(elementValues))
-
-        rssMachine = RSSMachine(None)
-
-        yield self.threadTask(rssMachine.orderPolicyResults, elementList)
-
-        timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
-
-        self.finish({"success": "true", "result": elementList, "total": len(elementList), "date": timestamp})
+        return callback
 
     def combine(self, elementValues):
 
@@ -138,23 +84,19 @@ class ResourceSummaryHandler(WebHandler):
 
         return combined
 
-    @asyncGen
-    def web_expand(self):
+    def _expand(self):
         """
         This method handles the POST requests
         """
 
-        requestParams = self.__requestParams()
+        requestParams = self._requestParams()
         gLogger.info(requestParams)
 
         pub = PublisherClient()
 
-        elements = yield self.threadTask(
-            pub.getElementStatuses, self.ELEMENT_TYPE, requestParams["name"], None, None, None, None
-        )
+        elements = pub.getElementStatuses(self.ELEMENT_TYPE, requestParams["name"], None, None, None, None)
         if not elements["OK"]:
-            self.finish({"success": "false", "error": elements["Message"]})
-            return
+            return {"success": "false", "error": elements["Message"]}
 
         elementList = [dict(zip(elements["Columns"], element)) for element in elements["Value"]]
         for element in elementList:
@@ -162,12 +104,11 @@ class ResourceSummaryHandler(WebHandler):
             element["LastCheckTime"] = str(element["LastCheckTime"])
             element["TokenExpiration"] = str(element["TokenExpiration"])
 
-        self.finish({"success": "true", "result": elementList, "total": len(elementList)})
+        return {"success": "true", "result": elementList, "total": len(elementList)}
 
-    @asyncGen
-    def web_action(self):
+    def _action(self):
 
-        requestParams = self.__requestParams()
+        requestParams = self._requestParams()
         if "action" in requestParams and requestParams["action"]:
 
             # pylint does not understand the action entry is not None any more
@@ -180,9 +121,9 @@ class ResourceSummaryHandler(WebHandler):
             try:
                 return getattr(self, methodName)(requestParams)
             except AttributeError:
-                self.finish({"success": "false", "error": "bad action %s" % actionName})
+                return {"success": "false", "error": "bad action %s" % actionName}
         else:
-            self.finish({"success": "false", "error": "Missing action"})
+            return {"success": "false", "error": "Missing action"}
 
     def setToken(self, requestParams):
         username = self.getUserName()
@@ -424,7 +365,7 @@ class ResourceSummaryHandler(WebHandler):
 
             self.finish({"success": "true", "result": res, "total": len(res)})
 
-    def __requestParams(self):
+    def _requestParams(self):
         """
         We receive the request and we parse it, in this case, we are doing nothing,
         but it can be certainly more complex.
@@ -448,3 +389,75 @@ class ResourceSummaryHandler(WebHandler):
                 responseParams[key] = list(json.loads(value))
 
         return responseParams
+
+
+class ResourceSummaryHandler(SummaryHandlerMix):
+
+    ELEMENT_TYPE = "Resource"
+
+    @asyncGen
+    def web_getSelectionData(self):
+        callback = yield self.threadTask(self._getSelectionData)
+        self.finish(callback)
+
+    @asyncGen
+    def web_expand(self):
+        callback = yield self.threadTask(self._expand)
+        self.finish(callback)
+
+    @asyncGen
+    def web_action(self):
+        callback = yield self.threadTask(self._action)
+        self.finish(callback)
+
+    @asyncGen
+    def web_getResourceSummaryData(self):
+        """This method returns the data required to fill the grid."""
+
+        requestParams = self._requestParams()
+        gLogger.info(requestParams)
+
+        pub = PublisherClient()
+
+        elementStatuses = yield self.threadTask(
+            pub.getElementStatuses,
+            self.ELEMENT_TYPE,
+            requestParams["name"],
+            requestParams["elementType"],
+            requestParams["statusType"],
+            requestParams["status"],
+            requestParams["tokenOwner"],
+        )
+        if not elementStatuses["OK"]:
+            self.finish({"success": "false", "error": elementStatuses["Message"]})
+            return
+
+        elementTree = collections.defaultdict(list)
+
+        for element in elementStatuses["Value"]:
+
+            elementDict = dict(zip(elementStatuses["Columns"], element))
+
+            elementDict["DateEffective"] = str(elementDict["DateEffective"])
+            elementDict["LastCheckTime"] = str(elementDict["LastCheckTime"])
+            elementDict["TokenExpiration"] = str(elementDict["TokenExpiration"])
+
+            elementTree[elementDict["Name"]].append(elementDict)
+
+        elementList = []
+
+        for elementValues in elementTree.values():
+
+            if len(elementValues) == 1:
+                elementList.append(elementValues[0])
+            else:
+
+                elementList.append(self.combine(elementValues))
+
+        rssMachine = RSSMachine(None)
+
+        yield self.threadTask(rssMachine.orderPolicyResults, elementList)
+
+        timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+
+        self.finish({"success": "true", "result": elementList, "total": len(elementList), "date": timestamp})

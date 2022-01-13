@@ -817,6 +817,14 @@ Ext.define("Ext.dirac.views.tabs.Main", {
 
     if (loadedObjectType == "app") {
       var oParts = moduleName.split(".");
+      /*
+        The value is taken from the query parameters, e.g.:
+        https://dirac.egi.eu/DIRAC/s:BIOMED-Prod/g:dirac_admin/?theme=Crisp&url_state=1|*DIRAC.RegistryManager.classes.RegistryManager:*DIRAC.PilotSummary.classes.PilotSummary:*DIRAC.JobSummary.classes.JobSummary:*DIRAC.ConfigurationManager.classes.ConfigurationManager:*DIRAC.Accounting.classes.Accounting:*DIRAC.ProxyManager.classes.ProxyManager:,
+
+        https://dirac.egi.eu/DIRAC/BIOMED-Prod/registry/?theme=Crisp&url_state=1|*DIRAC.RegistryManager.classes.RegistryManager:*DIRAC.PilotSummary.classes.PilotSummary:*DIRAC.JobSummary.classes.JobSummary:*DIRAC.ConfigurationManager.classes.ConfigurationManager:*DIRAC.Accounting.classes.Accounting:*DIRAC.ProxyManager.classes.ProxyManager:,
+
+        https://dirac.egi.eu/DIRAC/?theme=Crisp&url_state=1|*DIRAC.Accounting.classes.Accounting:*DIRAC.Accounting:,
+      */
       var sStartClass = oParts.length == 2 ? moduleName + ".classes." + oParts[1] : moduleName;
 
       // if the development mod is off, we set up diffrent path to
