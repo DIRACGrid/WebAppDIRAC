@@ -1,3 +1,12 @@
+[v5.0.0a5]
+
+FIX: (#614) Show Submitting instead of Submitted in the Transformation Monitor
+FIX: (#613) Set Content-Type when returning JSON encoded responses
+Updates and optimisations due to proposed changes to BaseRequestHandler, see https://github.com/DIRACGrid/DIRAC/pull/5399
+Changes tested on lbcertifdiracoauth.cern.ch.
+CHANGE: (#610) Updates and optimisations due to proposed changes to BaseRequestHandler
+FIX: (#608) align args of the updateSoftware method
+
 [v5.0.0a4]
 
 [v4r3p10]
