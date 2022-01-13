@@ -137,7 +137,7 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
         ["WMSHistory", "WMS Monitoring"],
         ["ComponentMonitoring", "Component Monitoring"],
         ["RMSMonitoring", "RMS Monitoring"],
-        ["PilotMonitoring", "Pilot Submission Monitoring"]
+        ["PilotMonitoring", "Pilot Submission Monitoring"],
       ],
     };
 
