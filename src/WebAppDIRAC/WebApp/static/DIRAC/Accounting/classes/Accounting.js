@@ -121,6 +121,18 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["Status", "Status"],
           ],
         },
+        DataOperation: {
+          title: "Data Operation Monitoring",
+          selectionConditions: [
+            ["OperationType", "Operation Type"],
+            ["User", "User"],
+            ["ExecutionSite", "Execution Site"],
+            ["Source", "Source SE"],
+            ["Destination", "Destination SE"],
+            ["Protocol", "Protocol"],
+            ["FinalStatus", "Final Transfer Status"],
+          ],
+        },
       },
     };
 
@@ -138,6 +150,7 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
         ["ComponentMonitoring", "Component Monitoring"],
         ["RMSMonitoring", "RMS Monitoring"],
         ["PilotMonitoring", "Pilot Submission Monitoring"],
+        ["DataOperation", "Data Operation Monitoring"],
       ],
     };
 
