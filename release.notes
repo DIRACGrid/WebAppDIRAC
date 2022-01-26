@@ -1,3 +1,9 @@
+[v5.0.0a6]
+
+Please follow the template:
+NEW: (#619) adding monitoring option for pilot submissions
+FIX: (#618) import the tornado correctly
+
 [v5.0.0a5]
 
 FIX: (#614) Show Submitting instead of Submitted in the Transformation Monitor
