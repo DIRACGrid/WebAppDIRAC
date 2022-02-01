@@ -276,7 +276,7 @@ class AccountingHandler(WebHandler):
 
         :return: dict
         """
-        retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
+        retVal = self.__parseFormParams(timeSelector, grouping=[grouping], typeName=typeName, **kwargs)
         if not retVal["OK"]:
             return {"success": "false", "error": retVal["Message"]}
         start, end, pD, kwargs = retVal["Value"]
@@ -314,7 +314,7 @@ class AccountingHandler(WebHandler):
 
         :return: dict
         """
-        retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
+        retVal = self.__parseFormParams(timeSelector, grouping=[grouping], typeName=typeName, **kwargs)
         if retVal["OK"]:
             start, end, pD, kwargs = retVal["Value"]
             retVal = self.repClient.getReport(typeName, plotName, start, end, pD, grouping, kwargs)
