@@ -1,3 +1,9 @@
+[v5.0.0a7]
+
+FIX: (#625) encoding before hashing (py3)
+NEW: (#621) create textfield for selector if items more then 10000
+NEW: (#621) allow to use `*` charter to set group values with the same prefix
+
 [v5.0.0a6]
 
 Please follow the template:
