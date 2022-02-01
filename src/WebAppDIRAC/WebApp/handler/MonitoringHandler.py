@@ -252,8 +252,7 @@ class MonitoringHandler(WebHandler):
             callback = {"success": "false", "error": retVal["Message"]}
             self.finish(callback)
         rawData = retVal["Value"]
-        groupKeys = rawData["data"].keys()
-        groupKeys.sort()
+        groupKeys = sorted(rawData["data"])
         if "granularity" in rawData:
             granularity = rawData["granularity"]
             data = rawData["data"]
@@ -272,7 +271,7 @@ class MonitoringHandler(WebHandler):
             strData = "%s\n" % ",".join(groupKeys)
             strData += ",".join([str(rawData["data"][k]) for k in groupKeys])
         self.set_header("Content-type", "text/csv")
-        self.set_header("Content-Disposition", 'attachment; filename="%s.csv"' % md5(str(params)).hexdigest())
+        self.set_header("Content-Disposition", 'attachment; filename="%s.csv"' % md5(str(params).encode()).hexdigest())
         self.set_header("Content-Length", len(strData))
         self.finish(strData)
 

@@ -103,7 +103,7 @@ class FileResponse(TornadoResponse):
             reqObj.set_header("Content-type", "text/plain")
 
         # Generate file name
-        fileName = "%s.%s" % (md5(self.name).hexdigest(), self.ext)
+        fileName = "%s.%s" % (md5(self.name.encode()).hexdigest(), self.ext)
         reqObj.set_header("Content-Disposition", 'attachment; filename="%s"' % fileName)
         reqObj.set_header("Content-Length", len(self.payload))
 
