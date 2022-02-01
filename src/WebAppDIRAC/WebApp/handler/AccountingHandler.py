@@ -112,10 +112,11 @@ class AccountingHandler(WebHandler):
         callback["plotsList"] = data
         return {"success": "true", "result": callback}
 
-    def __parseFormParams(self, timeSelector, **pD):
+    def __parseFormParams(self, timeSelector, typeName=None, **pD):
         """Prepare parameters
 
         :param int timeSelector: time selector
+        :param str typeName: type of accounting data
 
         :return: S_OK(tuple)/S_ERROR()
         """
@@ -156,6 +157,9 @@ class AccountingHandler(WebHandler):
             if k.find("ex_") == 0:
                 extraParams[k[3:]] = pD[k]
 
+        # Selection data
+        data = {}
+
         # Listify the rest
         for selName in pD:
             if isinstance(pD[selName], str):
@@ -163,6 +167,27 @@ class AccountingHandler(WebHandler):
                     pD[selName] = json.loads(pD[selName])
                 except ValueError:
                     pD[selName] = List.fromChar(pD[selName], ",")
+
+            # If json parse value as string, listify it
+            if isinstance(pD[selName], str):
+                pD[selName] = List.fromChar(pD[selName], ",")
+
+            # Convert 'value*' to list of values that starts with 'value'
+            fullList = []
+            for value in pD[selName]:
+                if value.endswith("*"):
+                    if not data:
+                        retVal = self.__getUniqueKeyValues(typeName)
+                        if not retVal["OK"]:
+                            return retVal
+                        data = retVal["Value"]
+                    for v in data[selName]:
+                        if v.startswith(value[:-1]):
+                            fullList.append(v)
+                else:
+                    fullList.append(value)
+
+            pD[selName] = fullList
 
         return S_OK((start, end, pD, extraParams))
 
@@ -176,7 +201,7 @@ class AccountingHandler(WebHandler):
 
         :return: dict
         """
-        retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
+        retVal = self.__parseFormParams(timeSelector, grouping=[grouping], typeName=typeName, **kwargs)
         if retVal["OK"]:
             start, end, pD, kwargs = retVal["Value"]
             retVal = self.repClient.generateDelayedPlot(typeName, plotName, start, end, pD, grouping, kwargs)
@@ -251,7 +276,7 @@ class AccountingHandler(WebHandler):
 
         :return: dict
         """
-        retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
+        retVal = self.__parseFormParams(timeSelector, grouping=[grouping], typeName=typeName, **kwargs)
         if not retVal["OK"]:
             return {"success": "false", "error": retVal["Message"]}
         start, end, pD, kwargs = retVal["Value"]
@@ -289,7 +314,7 @@ class AccountingHandler(WebHandler):
 
         :return: dict
         """
-        retVal = self.__parseFormParams(timeSelector, grouping=[grouping], **kwargs)
+        retVal = self.__parseFormParams(timeSelector, grouping=[grouping], typeName=typeName, **kwargs)
         if retVal["OK"]:
             start, end, pD, kwargs = retVal["Value"]
             retVal = self.repClient.getReport(typeName, plotName, start, end, pD, grouping, kwargs)

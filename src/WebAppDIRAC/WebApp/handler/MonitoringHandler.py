@@ -142,6 +142,10 @@ class MonitoringHandler(WebHandler):
         for k in pD:
             if k.find("ex_") == 0:
                 extraParams[k[3:]] = pD[k]
+
+        # Selection data
+        data = {}
+
         # Listify the rest
         for selName in pD:
             if selName == "grouping":
@@ -151,6 +155,27 @@ class MonitoringHandler(WebHandler):
                     pD[selName] = json.loads(pD[selName])
                 except ValueError:
                     pD[selName] = List.fromChar(pD[selName], ",")
+
+            # If json parse value as string, listify it
+            if isinstance(pD[selName], str):
+                pD[selName] = List.fromChar(pD[selName], ",")
+
+            # Convert 'value*' to list of values that starts with 'value'
+            fullList = []
+            for value in pD[selName]:
+                if value.endswith("*"):
+                    if not data:
+                        retVal = self.__getUniqueKeyValues(typeName)
+                        if not retVal["OK"]:
+                            return retVal
+                        data = retVal["Value"]
+                    for v in data[selName]:
+                        if v.startswith(value[:-1]):
+                            fullList.append(v)
+                else:
+                    fullList.append(value)
+
+            pD[selName] = fullList
 
         return S_OK((typeName, reportName, start, end, pD, grouping, extraParams))
 

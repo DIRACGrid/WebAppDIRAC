@@ -676,11 +676,12 @@ Ext.define("Ext.dirac.utils.PlotView", {
     for (var i = 0; i < me.fsetSpecialConditions.items.length; i++) {
       var oCondItem = me.fsetSpecialConditions.items.getAt(i);
       if (oCondItem.getValue().length != 0) {
+        isInverseSelection = typeof oCondItem.isInverseSelection == "function" && oCondItem.isInverseSelection();
         if (sIntention == "show_plot") {
-          param = oCondItem.isInverseSelection() ? oCondItem.getInverseSelection() : oCondItem.getValue();
+          param = isInverseSelection ? oCondItem.getInverseSelection() : oCondItem.getValue();
           oParams[oCondItem.getName()] = Ext.JSON.encode(param);
         } else if (sIntention == "save_state") {
-          oParams[oCondItem.getName()] = [oCondItem.isInverseSelection() ? 1 : 0, oCondItem.getValue().join(",")];
+          oParams[oCondItem.getName()] = [isInverseSelection ? 1 : 0, oCondItem.getValue().join(",")];
         }
       }
     }
@@ -808,19 +809,36 @@ Ext.define("Ext.dirac.utils.PlotView", {
 
       me.__oprDoubleElementItemList(oList);
 
-      var oMultiList = Ext.create("Ext.dirac.utils.DiracBoxSelect", {
-        fieldLabel: oSelectionOptions[i][1],
-        displayField: "text",
-        valueField: "value",
-        anchor: "100%",
-        store: new Ext.data.ArrayStore({
-          fields: ["value", "text"],
-          data: oList,
-        }),
-        labelAlign: "top",
-        name: oSelectionOptions[i][0],
-        queryMode: "local",
-      });
+      // When items more than 10000 then rendering block all application for a long time
+      // See issue https://github.com/DIRACGrid/WebAppDIRAC/issues/609
+      if (oList.length > 10000) {
+        var oMultiList = {
+          xtype: "textfield",
+          anchor: "100%",
+          labelAlign: "top",
+          fieldLabel: oSelectionOptions[i][1],
+          name: oSelectionOptions[i][0],
+        };
+      } else {
+        var oMultiList = Ext.create("Ext.dirac.utils.DiracBoxSelect", {
+          fieldLabel: oSelectionOptions[i][1],
+          displayField: "text",
+          valueField: "value",
+          anchor: "100%",
+          // See https://docs.sencha.com/extjs/7.3.1/classic/Ext.form.field.Tag.html#cfg-filterPickList
+          filterPickList: true,
+          // See https://docs.sencha.com/extjs/7.3.1/classic/Ext.form.field.Tag.html#cfg-createNewOnEnter
+          createNewOnEnter: true,
+          forceSelection: false,
+          store: new Ext.data.ArrayStore({
+            fields: ["value", "text"],
+            data: oList,
+          }),
+          labelAlign: "top",
+          name: oSelectionOptions[i][0],
+          queryMode: "local",
+        });
+      }
 
       me.fsetSpecialConditions.add(oMultiList);
     }
