@@ -1,3 +1,7 @@
+[v4r3p11]
+
+FIX: (#622) encoding before hashing (py3)
+
 [v4r3p10]
 
 FIX: (#612) Set Content-Type when returning JSON encoded responses
