@@ -110,7 +110,7 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["status", "Status"],
           ],
         },
-        PilotMonitoring: {
+        PilotSubmissionMonitoring: {
           title: "Pilot Submission Monitoring",
           selectionConditions: [
             ["HostName", "HostName"],
@@ -137,7 +137,7 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
         ["WMSHistory", "WMS Monitoring"],
         ["ComponentMonitoring", "Component Monitoring"],
         ["RMSMonitoring", "RMS Monitoring"],
-        ["PilotMonitoring", "Pilot Submission Monitoring"],
+        ["PilotSubmissionMonitoring", "Pilot Submission Monitoring"],
       ],
     };
 
