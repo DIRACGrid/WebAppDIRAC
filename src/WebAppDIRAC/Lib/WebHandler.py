@@ -75,18 +75,20 @@ class FileResponse(TornadoResponse):
         return FileResponse(data, 'filename', 'csv')
     """
 
-    def __init__(self, payload=None, fileName=None, ext=None, cache=True):
+    def __init__(self, payload, fileName: str, ext: str = "", cache: bool = True):
         """C'or
 
         :param payload: response body
-        :param str fileName: CSV name
-        :param str ext: file type
-        :param bool cache: use cache
+        :param fileName: CSV name
+        :param ext: file type
+        :param cache: use cache
         """
-        self.name, self.ext = os.path.splitext(fileName)
-        self.ext = (ext or self.ext).lower()
+        name, _ext = os.path.splitext(fileName)
+        self.ext = (ext or _ext).lower()
+        # Generate file name
+        self.fileHash = md5(name.encode()).hexdigest()  # MD5 take a bytes
         self.cache = cache
-        super(FileResponse, self).__init__(payload, 200)
+        super().__init__(payload, 200)
 
     def _runActions(self, reqObj):
         """Calling methods in the order of their registration
@@ -102,9 +104,7 @@ class FileResponse(TornadoResponse):
         else:
             reqObj.set_header("Content-type", "text/plain")
 
-        # Generate file name
-        fileName = "%s.%s" % (md5(self.name.encode()).hexdigest(), self.ext)
-        reqObj.set_header("Content-Disposition", 'attachment; filename="%s"' % fileName)
+        reqObj.set_header("Content-Disposition", f'attachment; filename="{self.fileHash}.{self.ext}"')
         reqObj.set_header("Content-Length", len(self.payload))
 
         if not self.cache:
@@ -116,12 +116,12 @@ class FileResponse(TornadoResponse):
                 (datetime.datetime.utcnow() - datetime.timedelta(minutes=-10)).strftime("%d %b %Y %H:%M:%S GMT"),
             )
 
-        super(FileResponse, self)._runActions(reqObj)
+        super()._runActions(reqObj)
 
 
 class WErr(HTTPError):
     def __init__(self, code, msg="", **kwargs):
-        super(WErr, self).__init__(code, str(msg) or None)
+        super().__init__(code, str(msg) or None)
         for k in kwargs:
             setattr(self, k, kwargs[k])
         self.msg = msg
