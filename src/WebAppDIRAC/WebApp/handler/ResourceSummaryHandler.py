@@ -13,7 +13,7 @@ class SummaryHandlerMix(WebHandler):
     AUTH_PROPS = "all"
     ELEMENT_TYPE = None
 
-    def _getSelectionData(self):
+    def _getSelectionData(self) -> dict:
         """It returns the possible selection data"""
         callback = {"name": set(), "elementType": set(), "status": set(), "statusType": set(), "tokenOwner": set()}
 
@@ -38,7 +38,11 @@ class SummaryHandlerMix(WebHandler):
 
         return callback
 
-    def combine(self, elementValues):
+    def combine(self, elementValues: list) -> dict:
+        """Helper method to combine values
+
+        :param elementValues: values
+        """
 
         statuses = [element["Status"] for element in elementValues]
 
@@ -84,10 +88,8 @@ class SummaryHandlerMix(WebHandler):
 
         return combined
 
-    def _expand(self):
-        """
-        This method handles the POST requests
-        """
+    def _expand(self) -> dict:
+        """This method handles the POST requests"""
 
         requestParams = self._requestParams()
         gLogger.info(requestParams)
@@ -106,38 +108,45 @@ class SummaryHandlerMix(WebHandler):
 
         return {"success": "true", "result": elementList, "total": len(elementList)}
 
-    def _action(self):
-
+    def _action(self) -> dict:
+        """Do action requested from the web portal."""
         requestParams = self._requestParams()
-        if "action" in requestParams and requestParams["action"]:
-
-            # pylint does not understand the action entry is not None any more
-            actionName = requestParams["action"][0]  # pylint: disable=unsubscriptable-object
-
-            methodName = actionName
-            if not actionName.startswith("set"):
-                methodName = "_get%s" % actionName
-
-            try:
-                return getattr(self, methodName)(requestParams)
-            except AttributeError:
-                return {"success": "false", "error": "bad action %s" % actionName}
-        else:
+        if not requestParams.get("action"):
             return {"success": "false", "error": "Missing action"}
 
-    def setToken(self, requestParams):
-        username = self.getUserName()
+        # pylint does not understand the action entry is not None any more
+        actionName = requestParams["action"][0]  # pylint: disable=unsubscriptable-object
 
+        methodName = actionName
+        if not actionName.startswith("set"):
+            methodName = f"_get{actionName}"
+
+        try:
+            return getattr(self, methodName)(requestParams)
+        except AttributeError:
+            return {"success": "false", "error": f"bad action {actionName}"}
+
+    def __checkAuth(self, username: str):
+        """Check user permissions
+
+        :param username: user name
+
+        :return: None if all OK else error message
+        """
         if username == "anonymous":
-            self.finish({"success": "false", "error": "Cannot perform this operation as anonymous"})
-            return
+            return "Cannot perform this operation as anonymous"
         if "SiteManager" not in self.getProperties():
-            self.finish({"success": "false", "error": "Not authorized"})
-            return
+            return "Not authorized"
 
-        pub = PublisherClient()
-        res = yield self.threadTask(
-            pub.setToken,
+    def setToken(self, requestParams: dict) -> dict:
+        """Set token
+
+        :param requestParams: request parameters
+        """
+        if error := self.__checkAuth(username := self.getUserName()):
+            return {"success": "false", "error": error}
+
+        res = PublisherClient().setToken(
             self.ELEMENT_TYPE,
             str(requestParams["name"][0]),
             str(requestParams["statusType"][0]),
@@ -148,24 +157,18 @@ class SummaryHandlerMix(WebHandler):
         )
 
         if not res["OK"]:
-            self.finish({"success": "false", "error": res["Message"]})
-        else:
-            self.finish({"success": "true", "result": res["Value"]})
+            return {"success": "false", "error": res["Message"]}
+        return {"success": "true", "result": res["Value"]}
 
-    def setStatus(self, requestParams):
-        username = self.getUserName()
+    def setStatus(self, requestParams: dict) -> dict:
+        """Set token
 
-        if username == "anonymous":
-            self.finish({"success": "false", "error": "Cannot perform this operation as anonymous"})
-            return
-        if "SiteManager" not in self.getProperties():
-            self.finish({"success": "false", "error": "Not authorized"})
-            return
+        :param requestParams: request parameters
+        """
+        if error := self.__checkAuth(username := self.getUserName()):
+            return {"success": "false", "error": error}
 
-        pub = PublisherClient()
-
-        res = yield self.threadTask(
-            pub.setStatus,
+        res = PublisherClient().setStatus(
             self.ELEMENT_TYPE,
             str(requestParams["name"][0]),
             str(requestParams["statusType"][0]),
@@ -176,23 +179,30 @@ class SummaryHandlerMix(WebHandler):
         )
 
         if not res["OK"]:
-            self.finish({"success": "false", "error": res["Message"]})
-        else:
-            self.finish({"success": "true", "result": res["Value"]})
+            return {"success": "false", "error": res["Message"]}
+        return {"success": "true", "result": res["Value"]}
 
-    def _getHistory(self, requestParams):
+    def _checkParameters(self, requestParams: dict, parametersToCheck: list):
+        """Check incoming parameters
 
-        # Sanitize
-        if "name" not in requestParams or not requestParams["name"]:
-            self.finish({"success": "false", "error": "Missing name"})
-        if "elementType" not in requestParams or not requestParams["elementType"]:
-            self.finish({"success": "false", "error": "Missing elementType"})
-        if "statusType" not in requestParams or not requestParams["statusType"]:
-            self.finish({"success": "false", "error": "Missing statusType"})
+        :param requestParams: request parameters
+        :param parametersToCheck: parameters to check
 
-        pub = PublisherClient()
-        res = yield self.threadTask(
-            pub.getElementHistory,
+        :return: None if all is OK else error message
+        """
+        for fieldName in parametersToCheck:
+            if not requestParams.get(fieldName):
+                return f"Missing {fieldName}"
+
+    def _getHistory(self, requestParams: dict) -> dict:
+        """Get history
+
+        :param requestParams: request parameters
+        """
+        if error := self._checkParameters(requestParams, ["name", "elementType", "statusType"]):
+            return {"success": "false", "error": error}
+
+        res = PublisherClient().getElementHistory(
             self.ELEMENT_TYPE,
             requestParams["name"],
             requestParams["elementType"],
@@ -201,75 +211,62 @@ class SummaryHandlerMix(WebHandler):
 
         if not res["OK"]:
             gLogger.error(res["Message"])
-            self.finish({"success": "false", "error": "error getting history"})
+            return {"success": "false", "error": "error getting history"}
 
         history = [[r[0], str(r[1]), r[2]] for r in res["Value"]]
 
-        self.finish({"success": "true", "result": history, "total": len(history)})
+        return {"success": "true", "result": history, "total": len(history)}
 
-    def _getPolicies(self, requestParams):
+    def _getPolicies(self, requestParams: dict) -> dict:
+        """Get policies
 
-        # Sanitize
-        if "name" not in requestParams or not requestParams["name"]:
-            self.finish({"success": "false", "error": "Missing name"})
-        if "statusType" not in requestParams or not requestParams["statusType"]:
-            self.finish({"success": "false", "error": "Missing statusType"})
+        :param requestParams: request parameters
+        """
+        if error := self._checkParameters(requestParams, ["name", "statusType"]):
+            return {"success": "false", "error": error}
 
-        pub = PublisherClient()
-        res = yield self.threadTask(
-            pub.getElementPolicies, self.ELEMENT_TYPE, requestParams["name"], requestParams["statusType"]
+        res = PublisherClient().getElementPolicies(
+            self.ELEMENT_TYPE, requestParams["name"], requestParams["statusType"]
         )
 
         if not res["OK"]:
             gLogger.error(res["Message"])
-            self.finish({"success": "false", "error": "error getting policies"})
+            return {"success": "false", "error": "error getting policies"}
 
         policies = [[r[0], r[1], str(r[2]), str(r[3]), r[4]] for r in res["Value"]]
 
-        self.finish({"success": "true", "result": policies, "total": len(policies)})
+        return {"success": "true", "result": policies, "total": len(policies)}
 
-    def _getDowntime(self, requestParams):
+    def _getDowntime(self, requestParams: dict) -> dict:
+        """Get downtime
 
-        # Sanitize
-        if "name" not in requestParams or not requestParams["name"]:
-            self.finish({"success": "false", "error": "Missing name"})
-        if "elementType" not in requestParams or not requestParams["elementType"]:
-            self.finish({"success": "false", "error": "Missing elementType"})
-        if "statusType" not in requestParams or not requestParams["statusType"]:
-            self.finish({"success": "false", "error": "Missing statusType"})
-        if "element" not in requestParams or not requestParams["element"]:
-            self.finish({"success": "false", "error": "Missing element"})
+        :param requestParams: request parameters
+        """
+        if error := self._checkParameters(requestParams, ["name", "element", "elementType", "statusType"]):
+            return {"success": "false", "error": error}
 
-        pub = PublisherClient()
-
-        res = yield self.threadTask(
-            pub.getDowntimes,
+        res = PublisherClient().getDowntimes(
             str(requestParams["element"][-1]),
             str(requestParams["elementType"][-1]),
             str(requestParams["name"][-1]),
         )
         if not res["OK"]:
             gLogger.error(res["Message"])
-            self.finish({"success": "false", "error": "error getting downtimes"})
+            return {"success": "false", "error": "error getting downtimes"}
 
         downtimes = [[str(dt[0]), str(dt[1]), dt[2], dt[3], dt[4]] for dt in res["Value"]]
 
-        self.finish({"success": "true", "result": downtimes, "total": len(downtimes)})
+        return {"success": "true", "result": downtimes, "total": len(downtimes)}
 
-    def _getTimeline(self, requestParams):
+    def _getTimeline(self, requestParams: dict) -> dict:
+        """Get timeline
 
-        # Sanitize
-        if "name" not in requestParams or not requestParams["name"]:
-            self.finish({"success": "false", "error": "Missing name"})
-        if "elementType" not in requestParams or not requestParams["elementType"]:
-            self.finish({"success": "false", "error": "Missing elementType"})
-        if "statusType" not in requestParams or not requestParams["statusType"]:
-            self.finish({"success": "false", "error": "Missing statusType"})
+        :param requestParams: request parameters
+        """
+        if error := self._checkParameters(requestParams, ["name", "elementType", "statusType"]):
+            return {"success": "false", "error": error}
 
-        pub = PublisherClient()
-
-        res = yield self.threadTask(
-            pub.getElementHistory,
+        res = PublisherClient().getElementHistory(
             self.ELEMENT_TYPE,
             str(requestParams["name"][-1]),
             str(requestParams["elementType"][-1]),
@@ -278,7 +275,7 @@ class SummaryHandlerMix(WebHandler):
 
         if not res["OK"]:
             gLogger.error(res["Message"])
-            self.finish({"success": "false", "error": "error getting history"})
+            return {"success": "false", "error": "error getting history"}
 
         history = []
 
@@ -288,23 +285,21 @@ class SummaryHandlerMix(WebHandler):
 
             history.append([status, str(dateEffective), reason])
 
-        self.finish({"success": "true", "result": history, "total": len(history)})
+        return {"success": "true", "result": history, "total": len(history)}
 
-    def _getTree(self, requestParams):
+    def _getTree(self, requestParams: dict) -> dict:
+        """Get timeline
 
-        if "name" not in requestParams or not requestParams["name"]:
-            self.finish({"success": "false", "error": "Missing name"})
-        if "elementType" not in requestParams or not requestParams["elementType"]:
-            self.finish({"success": "false", "error": "Missing elementType"})
-        if "statusType" not in requestParams or not requestParams["statusType"]:
-            self.finish({"success": "false", "error": "Missing statusType"})
+        :param requestParams: request parameters
+        """
+        if error := self._checkParameters(requestParams, ["name", "elementType", "statusType"]):
+            return {"success": "false", "error": error}
 
         pub = PublisherClient()
-
-        res = yield self.threadTask(pub.getTree, str(requestParams["elementType"][-1]), str(requestParams["name"][-1]))
+        res = PublisherClient().getTree(str(requestParams["elementType"][-1]), str(requestParams["name"][-1]))
         if not res["OK"]:
             gLogger.error(res["Message"])
-            self.finish({"success": "false", "error": "error getting tree"})
+            return {"success": "false", "error": "error getting tree"}
         res = res["Value"]
 
         siteName = list(res)[0]
@@ -325,22 +320,17 @@ class SummaryHandlerMix(WebHandler):
             for k, v in seDict.items():
                 tree.append([None, k, v, se])
 
-        self.finish({"success": "true", "result": tree, "total": len(tree)})
+        return {"success": "true", "result": tree, "total": len(tree)}
 
-    def _getInfo(self, requestParams):
-        if "name" not in requestParams or not requestParams["name"]:
-            self.finish({"success": "false", "error": "Missing name"})
-        if "elementType" not in requestParams or not requestParams["elementType"]:
-            self.finish({"success": "false", "error": "Missing elementType"})
-        if "statusType" not in requestParams or not requestParams["statusType"]:
-            self.finish({"success": "false", "error": "Missing statusType"})
-        if "element" not in requestParams or not requestParams["element"]:
-            self.finish({"success": "false", "error": "Missing element"})
+    def _getInfo(self, requestParams: dict) -> dict:
+        """Get timeline
 
-        pub = PublisherClient()
+        :param requestParams: request parameters
+        """
+        if error := self._checkParameters(requestParams, ["name", "element", "elementType", "statusType"]):
+            return {"success": "false", "error": error}
 
-        res = yield self.threadTask(
-            pub.getElementStatuses,
+        res = PublisherClient().getElementStatuses(
             str(requestParams["element"][-1]),
             str(requestParams["name"][-1]),
             str(requestParams["elementType"][-1]),
@@ -350,22 +340,20 @@ class SummaryHandlerMix(WebHandler):
         )
 
         if not res["OK"]:
-            self.finish({"success": "false", "error": res["Message"]})
-        elif not res["Value"]:
-            self.finish({"success": "false", "error": "Nothing found."})
+            return {"success": "false", "error": res["Message"]}
+        if not res["Value"]:
+            return {"success": "false", "error": "Nothing found."}
 
-        else:
+        columns = res["Columns"]
 
-            columns = res["Columns"]
+        res = dict(zip(columns, res["Value"][0]))
+        res["DateEffective"] = str(res["DateEffective"])
+        res["LastCheckTime"] = str(res["LastCheckTime"])
+        res["TokenExpiration"] = str(res["TokenExpiration"])
 
-            res = dict(zip(columns, res["Value"][0]))
-            res["DateEffective"] = str(res["DateEffective"])
-            res["LastCheckTime"] = str(res["LastCheckTime"])
-            res["TokenExpiration"] = str(res["TokenExpiration"])
+        return {"success": "true", "result": res, "total": len(res)}
 
-            self.finish({"success": "true", "result": res, "total": len(res)})
-
-    def _requestParams(self):
+    def _requestParams(self) -> dict:
         """
         We receive the request and we parse it, in this case, we are doing nothing,
         but it can be certainly more complex.

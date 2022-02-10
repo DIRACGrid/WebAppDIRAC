@@ -38,10 +38,8 @@ class SiteSummaryHandler(SummaryHandlerMix):
         requestParams = self.__requestParams()
         gLogger.info(requestParams)
 
-        pub = PublisherClient()
-
         elementStatuses = yield self.threadTask(
-            pub.getElementStatuses,
+            PublisherClient().getElementStatuses,
             "Site",
             requestParams["name"],
             requestParams["elementType"],
@@ -66,32 +64,29 @@ class SiteSummaryHandler(SummaryHandlerMix):
 
         self.finish(result)
 
-    def _getInfo(self, requestParams):
+    def _getInfo(self, requestParams: dict) -> dict:
+        """Get site info
+
+        :param requestParams: request parameters
+        """
 
         gLogger.info(requestParams)
 
         if not requestParams["name"]:
             gLogger.warn("No name given")
-            self.finish({"success": "false", "error": "We need a Site Name to generate an Overview"})
-            return
+            return {"success": "false", "error": "We need a Site Name to generate an Overview"}
 
         elementName = requestParams["name"][0]
 
-        pub = PublisherClient()
-
-        elementStatuses = yield self.threadTask(
-            pub.getElementStatuses, "Site", str(elementName), None, "all", None, None
-        )
+        elementStatuses = PublisherClient().getElementStatuses("Site", str(elementName), None, "all", None, None)
 
         if not elementStatuses["OK"]:
             gLogger.error(elementStatuses["Message"])
-            self.finish({"success": "false", "error": "Error getting ElementStatus information"})
-            return
+            return {"success": "false", "error": "Error getting ElementStatus information"}
 
         if not elementStatuses["Value"]:
             gLogger.error('element "%s" not found' % elementName)
-            self.finish({"success": "false", "error": 'element "%s" not found' % elementName})
-            return
+            return {"success": "false", "error": 'element "%s" not found' % elementName}
 
         elementStatus = [dict(zip(elementStatuses["Columns"], element)) for element in elementStatuses["Value"]][0]
         elementStatus["DateEffective"] = str(elementStatus["DateEffective"])
@@ -157,83 +152,78 @@ class SiteSummaryHandler(SummaryHandlerMix):
             + "</a>"
         )
 
-        self.finish({"success": "true", "result": elementStatus, "total": len(elementStatus)})
+        return {"success": "true", "result": elementStatus, "total": len(elementStatus)}
 
-    def _getStorages(self, requestParams):
+    def _getStorages(self, requestParams: dict) -> dict:
+        """Get storages
 
+        :param requestParams: request parameters
+        """
         if not requestParams["name"]:
             gLogger.warn("No name given")
-            self.finish({"success": "false", "error": "We need a Site Name to generate an Overview"})
-            return
-
-        pub = PublisherClient()
+            return {"success": "false", "error": "We need a Site Name to generate an Overview"}
 
         elementName = requestParams["name"][0]
         retVal = getSEsForSite(elementName)
-        if retVal["OK"]:
-            storageElements = retVal["Value"]
-        else:
-            self.finish({"success": "false", "error": retVal["Message"]})
-            return
+        if not retVal["OK"]:
+            return {"success": "false", "error": retVal["Message"]}
+        storageElements = retVal["Value"]
 
         storageElementsStatus = []
         gLogger.info("storageElements = " + str(storageElements))
 
         # FIXME: use properly RSS
         for se in storageElements:
-            sestatuses = yield self.threadTask(pub.getElementStatuses, "Resource", se, None, None, None, None)
+            sestatuses = PublisherClient().getElementStatuses("Resource", se, None, None, None, None)
 
             for sestatus in sestatuses["Value"]:
                 storageElementsStatus.append([sestatus[0], sestatus[1], sestatus[2], sestatus[6]])
 
-        self.finish({"success": "true", "result": storageElementsStatus, "total": len(storageElementsStatus)})
+        return {"success": "true", "result": storageElementsStatus, "total": len(storageElementsStatus)}
 
-    def _getComputingElements(self, requestParams):
+    def _getComputingElements(self, requestParams: dict) -> dict:
+        """Get computing elements
 
+        :param requestParams: request parameters
+        """
         if not requestParams["name"]:
             gLogger.warn("No name given")
-            self.finish({"success": "false", "error": "We need a Site Name to generate an Overview"})
-            return
-
-        pub = PublisherClient()
+            return {"success": "false", "error": "We need a Site Name to generate an Overview"}
 
         elementName = requestParams["name"][0]
 
         res = getSiteCEMapping()
         if not res["OK"]:
-            self.finish({"success": "false", "error": res["Message"]})
-            return
+            return {"success": "false", "error": res["Message"]}
         computing_elements = res["Value"][elementName]
         computing_elements_status = []
         gLogger.info("computing_elements = " + str(computing_elements))
 
         for ce in computing_elements:
-            cestatuses = yield self.threadTask(pub.getElementStatuses, "Resource", ce, None, "all", None, None)
+            cestatuses = PublisherClient().getElementStatuses("Resource", ce, None, "all", None, None)
             gLogger.info("cestatus = " + str(cestatuses))
 
             for cestatus in cestatuses["Value"]:
                 computing_elements_status.append([cestatus[0], cestatus[1], cestatus[2], cestatus[6]])
 
-        self.finish({"success": "true", "result": computing_elements_status, "total": len(computing_elements_status)})
+        return {"success": "true", "result": computing_elements_status, "total": len(computing_elements_status)}
 
-    def _getImages(self, requestParams):
+    def _getImages(self, requestParams: dict) -> dict:
+        """Get images
 
+        :param requestParams: request parameters
+        """
         if not requestParams["name"]:
             gLogger.warn("No name given")
-            self.finish({"success": "false", "error": "We need a Site Name to generate an Overview"})
-            return
+            return {"success": "false", "error": "We need a Site Name to generate an Overview"}
 
         elementName = requestParams["name"][0]
-        pub = PublisherClient()
 
-        elementStatuses = yield self.threadTask(
-            pub.getElementStatuses, "Site", str(elementName), None, "all", None, None
-        )
+        elementStatuses = PublisherClient().getElementStatuses("Site", str(elementName), None, "all", None, None)
 
         if not elementStatuses["Value"]:
             gLogger.error('element "%s" not found' % elementName)
-            self.finish({"success": "false", "error": 'element "%s" not found' % elementName})
-            return
+            return {"success": "false", "error": 'element "%s" not found' % elementName}
 
         elementStatus = [dict(zip(elementStatuses["Columns"], element)) for element in elementStatuses["Value"]][0]
 
@@ -261,22 +251,31 @@ class SiteSummaryHandler(SummaryHandlerMix):
         plotDict6 = self.getPlotDict(elementStatus["Name"], "FinalStatus", "FailedTransfers", "DataOperation")
         image6 = codeRequestInFileId(plotDict6)["Value"]["plot"]
 
-        self.finish(
-            {
-                "success": "true",
-                "result": [
-                    {"Type": "Accounting", "src": image1},
-                    {"Type": "Accounting", "src": image2},
-                    {"Type": "Accounting", "src": image3},
-                    {"Type": "Monitoring", "src": image4},
-                    {"Type": "Accounting", "src": image5},
-                    {"Type": "Accounting", "src": image6},
-                ],
-                "total": 6,
-            }
-        )
+        return {
+            "success": "true",
+            "result": [
+                {"Type": "Accounting", "src": image1},
+                {"Type": "Accounting", "src": image2},
+                {"Type": "Accounting", "src": image3},
+                {"Type": "Monitoring", "src": image4},
+                {"Type": "Accounting", "src": image5},
+                {"Type": "Accounting", "src": image6},
+            ],
+            "total": 6,
+        }
 
-    def getPlotDict(self, siteName, grouping, reportName, typeName, plotTitle=None, status=None):
+    def getPlotDict(
+        self, siteName: str, grouping: str, reportName: str, typeName: str, plotTitle: str = None, status: str = None
+    ) -> dict:
+        """Create pilot dictionary
+
+        :param siteName: site name
+        :param grouping: grouping
+        :param reportName: report name
+        :param typeName: type name
+        :param plotTitle: plot title
+        :param status: status
+        """
 
         plotDict = {
             "condDict": {
@@ -298,7 +297,7 @@ class SiteSummaryHandler(SummaryHandlerMix):
 
         return plotDict
 
-    def __requestParams(self):
+    def __requestParams(self) -> dict:
         """
         We receive the request and we parse it, in this case, we are doing nothing,
         but it can be certainly more complex.
