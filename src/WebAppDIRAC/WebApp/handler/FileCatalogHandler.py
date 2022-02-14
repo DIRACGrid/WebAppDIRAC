@@ -407,7 +407,7 @@ class FileCatalogHandler(WebHandler):
         strData = "\n".join(retStrLines)
 
         self.set_header("Content-type", "text/plain")
-        self.set_header("Content-Disposition", 'attachment; filename="%s.txt"' % md5(str(req)).hexdigest())
+        self.set_header("Content-Disposition", 'attachment; filename="%s.txt"' % md5(str(req).encode()).hexdigest())
         self.set_header("Content-Length", len(strData))
         self.finish(strData)
 

@@ -1,3 +1,23 @@
+[v5.0.0a9]
+
+FIX: (#630) write CAs as text
+
+[v5.0.0a8]
+
+FIX: (#629) Changed the nomenclature for PilotSubmissionMonitoring
+
+[v5.0.0a7]
+
+FIX: (#625) encoding before hashing (py3)
+NEW: (#621) create textfield for selector if items more then 10000
+NEW: (#621) allow to use `*` charter to set group values with the same prefix
+
+[v5.0.0a6]
+
+Please follow the template:
+NEW: (#619) adding monitoring option for pilot submissions
+FIX: (#618) import the tornado correctly
+
 [v5.0.0a5]
 
 FIX: (#614) Show Submitting instead of Submitted in the Transformation Monitor
@@ -8,17 +28,6 @@ CHANGE: (#610) Updates and optimisations due to proposed changes to BaseRequestH
 FIX: (#608) align args of the updateSoftware method
 
 [v5.0.0a4]
-
-[v4r3p10]
-
-FIX: (#612) Set Content-Type when returning JSON encoded responses
-FIX: (#611) Show Submitting instead of Submitted in the Transformation Monitor
-
-[v4r3p9]
-
-NEW: (#606) add static directories automatically (issue #362)
-CHANGE: (#605) remove Python 2 code
-FIX: (#603) provide result attribute for backward compatibility
 
 [v5.0.0a3]
 
@@ -41,6 +50,21 @@ NEW: (#540) add FileResponse class to handle csv, png, txt files in response
 NEW: (#539) add FileResponse class to handle png and csv responses
 CHANGE: (#539) use parameter names without '_'
 CHANGE: (#539) Use WebHandler with DIRAC.Core.Tornado.Server.privat.BaseRequestHandler for Accounting handler.
+
+[v4r3p11]
+
+FIX: (#622) encoding before hashing (py3)
+
+[v4r3p10]
+
+FIX: (#612) Set Content-Type when returning JSON encoded responses
+FIX: (#611) Show Submitting instead of Submitted in the Transformation Monitor
+
+[v4r3p9]
+
+NEW: (#606) add static directories automatically (issue #362)
+CHANGE: (#605) remove Python 2 code
+FIX: (#603) provide result attribute for backward compatibility
 
 [v4r3p8]
 
