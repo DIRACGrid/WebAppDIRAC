@@ -229,7 +229,7 @@ class AccountingHandler(WebHandler):
 
         tempFile.seek(0)
         data = tempFile.read()
-        return FileResponse(data, plotImageFile.encode(), "png")
+        return FileResponse(data, plotImageFile, "png")
 
     def web_getPlotImgFromCache(self, file=None, **kwargs):
         """Get plot image from cache.
@@ -264,7 +264,7 @@ class AccountingHandler(WebHandler):
 
         tempFile.seek(0)
         data = tempFile.read()
-        return FileResponse(data, plotImageFile.encode(), "png", cache=False)
+        return FileResponse(data, plotImageFile, "png", cache=False)
 
     def web_getCsvPlotData(self, typeName, plotName, timeSelector: int, grouping, **kwargs):
         """Generate CVS plot
