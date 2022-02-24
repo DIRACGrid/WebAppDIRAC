@@ -1,3 +1,11 @@
+[v5.0.0a11]
+
+*ResourceSummary/SiteSummary
+
+FIX: (#632) docs, optimize, fix bugs
+
+NEW: (#620) adding monitoring option for pilot submissions
+
 [v5.0.0a10]
 
 *Accounting
