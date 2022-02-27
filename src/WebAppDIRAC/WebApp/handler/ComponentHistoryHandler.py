@@ -3,14 +3,13 @@ import datetime
 
 from DIRAC.Core.Utilities import Time
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen, WErr
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
 
 
 class ComponentHistoryHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    @asyncGen
     def web_getInstallationData(self):
         """
         Retrieves a list of dictionaries containing components to be displayed by the Component History page
@@ -19,9 +18,7 @@ class ComponentHistoryHandler(WebHandler):
         req = self.__request()
 
         client = ComponentMonitoringClient()
-        result = yield self.threadTask(
-            client.getInstallations, req["installation"], req["component"], req["host"], True
-        )
+        result = client.getInstallations(req["installation"], req["component"], req["host"], True)
         if result["OK"]:
             values = []
             installations = result["Value"]
@@ -57,25 +54,19 @@ class ComponentHistoryHandler(WebHandler):
             callback = {"success": "true", "result": values, "total": total, "date": timestamp}
         else:
             raise WErr.fromSERROR(result)
-        self.finish(callback)
+        return callback
 
-    @asyncGen
     def web_getSelectionData(self):
         """
         Returns a list of possible values for each different selector to choose from
         """
 
-        req = self.__request()
-
         data = {}
-        setup = self.getUserSetup().split("-")[-1]
-        systemList = []
-        system = None
 
         fields = ["name", "host", "module", "system", "type"]
 
         client = ComponentMonitoringClient()
-        result = yield self.threadTask(client.getInstallations, {}, {}, {}, True)
+        result = client.getInstallations({}, {}, {}, True)
         if result["OK"]:
             for field in fields:
                 data[field] = set()
@@ -94,7 +85,7 @@ class ComponentHistoryHandler(WebHandler):
         else:
             raise WErr.fromSERROR(result)
 
-        self.finish(data)
+        return data
 
     def __request(self):
         """
