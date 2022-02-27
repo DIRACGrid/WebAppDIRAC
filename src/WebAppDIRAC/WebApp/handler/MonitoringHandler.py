@@ -3,28 +3,24 @@ import json
 import tempfile
 import datetime
 
-from hashlib import md5
-
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.MonitoringSystem.Client.MonitoringClient import MonitoringClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, FileResponse
 
 
 class MonitoringHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
     __keysCache = DictCache.DictCache()
 
     def __getUniqueKeyValues(self, typeName):
         cacheKey = (self.getUserName(), self.getUserGroup(), self.getUserSetup(), typeName)
-        data = MonitoringHandler.__keysCache.get(cacheKey)
-        if not data:
-            client = MonitoringClient()
-            retVal = client.listUniqueKeyValues(typeName)
+        if not (data := MonitoringHandler.__keysCache.get(cacheKey)):
+            retVal = MonitoringClient().listUniqueKeyValues(typeName)
             if "rpcStub" in retVal:
                 del retVal["rpcStub"]
             if not retVal["OK"]:
@@ -47,15 +43,11 @@ class MonitoringHandler(WebHandler):
             MonitoringHandler.__keysCache.add(cacheKey, 300, data)
         return data
 
-    @asyncGen
-    def web_getSelectionData(self):
+    def web_getSelectionData(self, type):
         callback = {}
-        typeName = self.get_argument("type")
         # Get unique key values
-        retVal = yield self.threadTask(self.__getUniqueKeyValues, typeName)
-        if not retVal["OK"]:
-            self.finish({"success": "false", "result": "", "error": retVal["Message"]})
-            return
+        if not (retVal := self.__getUniqueKeyValues(type))["OK"]:
+            return {"success": "false", "result": "", "error": retVal["Message"]}
 
         records = {}
         for record in retVal["Value"]:  # may have more than 1000 of records.
@@ -65,7 +57,7 @@ class MonitoringHandler(WebHandler):
                 records[record] = retVal["Value"][record][length - 5000 :]
                 message = (
                     "The %s accounting type contains to many rows: %s - > %d. Note: Only 1000 rows are returned!"
-                    % (typeName, record, length)
+                    % (type, record, length)
                 )
                 gLogger.warn(message)
             else:
@@ -73,17 +65,13 @@ class MonitoringHandler(WebHandler):
         callback["selectionValues"] = records
 
         # Cache for plotsList?
-        data = MonitoringHandler.__keysCache.get("reportsList:%s" % typeName)
-        if not data:
-            repClient = MonitoringClient()
-            retVal = yield self.threadTask(repClient.listReports, typeName)
-            if not retVal["OK"]:
-                self.finish({"success": "false", "result": "", "error": retVal["Message"]})
-                return
+        if not (data := MonitoringHandler.__keysCache.get(f"reportsList:{type}")):
+            if not (retVal := MonitoringClient().listReports(type))["OK"]:
+                return {"success": "false", "result": "", "error": retVal["Message"]}
             data = retVal["Value"]
-            MonitoringHandler.__keysCache.add("reportsList:%s" % typeName, 300, data)
+            MonitoringHandler.__keysCache.add(f"reportsList:{type}", 300, data)
         callback["plotsList"] = data
-        self.finish({"success": "true", "result": callback})
+        return {"success": "true", "result": callback}
 
     def __parseFormParams(self):
         pD = {}
@@ -179,62 +167,39 @@ class MonitoringHandler(WebHandler):
 
         return S_OK((typeName, reportName, start, end, pD, grouping, extraParams))
 
-    @asyncGen
     def web_generatePlot(self):
-        callback = {}
-        retVal = yield self.threadTask(self.__queryForPlot)
-        if retVal["OK"]:
-            callback = {"success": True, "data": retVal["Value"]["plot"]}
-        else:
-            callback = {"success": False, "errors": retVal["Message"]}
-        self.finish(callback)
+        if (retVal := self.__queryForPlot())["OK"]:
+            return {"success": True, "data": retVal["Value"]["plot"]}
+        return {"success": False, "errors": retVal["Message"]}
 
     def __queryForPlot(self):
         res = self.__parseFormParams()
         return MonitoringClient().generateDelayedPlot(*res["Value"]) if res["OK"] else res
 
-    @asyncGen
-    def web_getPlotImg(self):
-        """
-        Get plot image
-        """
-        callback = {}
-        if "file" not in self.request.arguments:
-            callback = {"success": "false", "error": "Maybe you forgot the file?"}
-            self.finish(callback)
-            return
-        plotImageFile = self.get_argument("file")
+    def web_getPlotImg(self, file=None):
+        """Get plot image"""
+        if file:
+            return {"success": "false", "error": "Maybe you forgot the file?"}
         # Prevent directory traversal
-        plotImageFile = os.path.normpath("/" + plotImageFile).lstrip("/")
+        plotImageFile = os.path.normpath("/" + file).lstrip("/")
 
         transferClient = TransferClient("Monitoring/Monitoring")
         tempFile = tempfile.TemporaryFile()
-        retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+        retVal = transferClient.receiveFile(tempFile, plotImageFile)
         if not retVal["OK"]:
-            callback = {"success": "false", "error": retVal["Message"]}
-            self.finish(callback)
-            return
+            return {"success": "false", "error": retVal["Message"]}
         tempFile.seek(0)
         data = tempFile.read()
-        self.finishWithImage(data, plotImageFile)
+        return FileResponse(data, plotImageFile, ext="png")
 
-    @asyncGen
-    def web_getPlotImgFromCache(self):
-        """
-        Get plot image from cache.
-        """
-        callback = {}
-        if "file" not in self.request.arguments:
-            callback = {"success": "false", "error": "Maybe you forgot the file?"}
-            self.finish(callback)
-            return
-        plotImageFile = self.get_argument("file")
+    def web_getPlotImgFromCache(self, file=None):
+        """Get plot image from cache."""
+        if plotImageFile := file:
+            return {"success": "false", "error": "Maybe you forgot the file?"}
 
         retVal = extractRequestFromFileId(plotImageFile)
         if not retVal["OK"]:
-            callback = {"success": "false", "error": retVal["Value"]}
-            self.finish(callback)
-            return
+            return {"success": "false", "error": retVal["Value"]}
         fields = retVal["Value"]
         if "extraArgs" in fields:  # in order to get the plot from the cache we have to clean the extraArgs...
             plotTitle = ""
@@ -247,35 +212,23 @@ class MonitoringHandler(WebHandler):
 
         retVal = codeRequestInFileId(fields)
         if not retVal["OK"]:
-            callback = {"success": "false", "error": retVal["Value"]}
-            self.finish(callback)
-            return
+            return {"success": "false", "error": retVal["Value"]}
         plotImageFile = retVal["Value"]["plot"]
 
         transferClient = TransferClient("Monitoring/Monitoring")
         tempFile = tempfile.TemporaryFile()
-        retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
-        if not retVal["OK"]:
-            callback = {"success": "false", "error": retVal["Message"]}
-            self.finish(callback)
-            return
+        if not (retVal := transferClient.receiveFile(tempFile, plotImageFile))["OK"]:
+            return {"success": "false", "error": retVal["Message"]}
         tempFile.seek(0)
         data = tempFile.read()
-        self.finishWithImage(data, plotImageFile, disableCaching=True)
+        return FileResponse(data, plotImageFile, ext="png", cache=False)
 
-    @asyncGen
     def web_getCsvPlotData(self):
-        callback = {}
-        retVal = self.__parseFormParams()
-        if not retVal["OK"]:
-            callback = {"success": "false", "error": retVal["Message"]}
-            self.finish(callback)
+        if not (retVal := self.__parseFormParams())["OK"]:
+            return {"success": "false", "error": retVal["Message"]}
         params = retVal["Value"]
-        repClient = MonitoringClient()
-        retVal = yield self.threadTask(repClient.getReport, *params)
-        if not retVal["OK"]:
-            callback = {"success": "false", "error": retVal["Message"]}
-            self.finish(callback)
+        if not (retVal := MonitoringClient().getReport(*params))["OK"]:
+            return {"success": "false", "error": retVal["Message"]}
         rawData = retVal["Value"]
         groupKeys = sorted(rawData["data"])
         if "granularity" in rawData:
@@ -295,23 +248,12 @@ class MonitoringHandler(WebHandler):
         else:
             strData = "%s\n" % ",".join(groupKeys)
             strData += ",".join([str(rawData["data"][k]) for k in groupKeys])
-        self.set_header("Content-type", "text/csv")
-        self.set_header("Content-Disposition", 'attachment; filename="%s.csv"' % md5(str(params).encode()).hexdigest())
-        self.set_header("Content-Length", len(strData))
-        self.finish(strData)
+        return FileResponse(strData, str(params), ext="csv", cache=False)
 
-    @asyncGen
     def web_getPlotData(self):
-        callback = {}
-        retVal = self.__parseFormParams()
-        if not retVal["OK"]:
-            callback = {"success": "false", "error": retVal["Message"]}
-            self.finish(callback)
+        if not (retVal := self.__parseFormParams())["OK"]:
+            return {"success": "false", "error": retVal["Message"]}
         params = retVal["Value"]
-        repClient = MonitoringClient()
-        retVal = yield self.threadTask(repClient.getReport, *params)
-        if not retVal["OK"]:
-            callback = {"success": "false", "error": retVal["Message"]}
-            self.finish(callback)
-        rawData = retVal["Value"]
-        self.finish(rawData["data"])
+        if not (retVal := MonitoringClient().getReport(*params))["OK"]:
+            return {"success": "false", "error": retVal["Message"]}
+        return retVal["Value"]["data"]
