@@ -1,9 +1,9 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 
 
 class NotepadHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
     def index(self):
         pass
