@@ -5,13 +5,15 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.FrameworkSystem.Client.ProxyManagerClient import ProxyManagerClient
+from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 
 
 class JobLaunchpadHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
     defaultParams = {
         "JobName": [1, "DIRAC"],
         "Executable": [1, "/bin/ls"],
@@ -43,10 +45,9 @@ class JobLaunchpadHandler(WebHandler):
         self.vo = getVOForGroup(self.group)
 
     def web_getProxyStatus(self):
-        self.finish(self.__getProxyStatus())
+        return self.__getProxyStatus()
 
-    def __getProxyStatus(self, secondsOverride=None):
-        from DIRAC.FrameworkSystem.Client.ProxyManagerClient import ProxyManagerClient
+    def __getProxyStatus(self):
 
         proxyManager = ProxyManagerClient()
 
@@ -62,37 +63,10 @@ class JobLaunchpadHandler(WebHandler):
 
         gLogger.info("\033[0;31m userHasProxy(%s, %s, %s) \033[0m" % (userDN, group, validSeconds))
 
-        result = proxyManager.userHasProxy(userDN, group, validSeconds)
+        if (result := proxyManager.userHasProxy(userDN, group, validSeconds))["OK"]:
+            return {"success": "true", "result": "true" if result["Value"] else "false"}
+        return {"success": "false", "error": "false"}
 
-        if result["OK"]:
-            if result["Value"]:
-                return {"success": "true", "result": "true"}
-            else:
-                return {"success": "true", "result": "false"}
-        else:
-            return {"success": "false", "error": "false"}
-
-        gLogger.info("\033[0;31m PROXY: \033[0m", result)
-
-    def __getPlatform(self):
-        gLogger.info("start __getPlatform")
-
-        path = "/Resources/Computing/OSCompatibility"
-        result = gConfig.getOptionsDict(path)
-
-        gLogger.debug(result)
-
-        if not result["OK"]:
-            return False
-
-        platformDict = result["Value"]
-        platform = list(platformDict)
-
-        gLogger.debug("platform: %s" % platform)
-        gLogger.info("end __getPlatform")
-        return platform
-
-    @asyncGen
     def web_getLaunchpadSetupWithLFNs(self):
         """Method obtain launchpad setup with pre-selected LFNs as input data parameter,
         the caller js client will use setup to open an new Launchpad
@@ -125,7 +99,7 @@ class JobLaunchpadHandler(WebHandler):
                 if sectionOptions["OK"]:
                     predefinedSets[section] = sectionOptions["Value"]
 
-        self.finish({"success": "true", "result": params, "predefinedSets": predefinedSets})
+        return {"success": "true", "result": params, "predefinedSets": predefinedSets}
 
     def web_getLaunchpadOpts(self):
         """Reading of the predefined sets of launchpad parameters values"""
@@ -139,18 +113,15 @@ class JobLaunchpadHandler(WebHandler):
                 pprint.pprint(sectionOptions)
                 if sectionOptions["OK"]:
                     predefinedSets[section] = sectionOptions["Value"]
-        self.finish({"success": "true", "result": self.defaultParams, "predefinedSets": predefinedSets})
+        return {"success": "true", "result": self.defaultParams, "predefinedSets": predefinedSets}
 
-    @asyncGen
     def web_jobSubmit(self):
         # self.set_header('Content-type', "text/html")  # Otherwise the browser would offer you to download a JobSubmit file
         if "NormalUser" not in self.getProperties():
-            self.finish({"success": "false", "error": "You are not allowed to run the jobs"})
-            return
-        proxy = yield self.threadTask(self.__getProxyStatus, 86460)
+            return {"success": "false", "error": "You are not allowed to run the jobs"}
+        proxy = self.__getProxyStatus()
         if proxy["success"] == "false" or proxy["result"] == "false":
-            self.finish({"success": "false", "error": "You can not run a job: your proxy is valid less then 24 hours"})
-            return
+            return {"success": "false", "error": "You can not run a job: your proxy is valid less then 24 hours"}
 
         jdl = ""
         lfns = []
@@ -178,16 +149,12 @@ class JobLaunchpadHandler(WebHandler):
                         if len(parameters) > 0:
                             jdl += str(item) + " = {" + parameters + "};"
                         else:
-                            self.finish({"success": "false", "error": "Parameters vector has zero length"})
-                            return
+                            return {"success": "false", "error": "Parameters vector has zero length"}
                     else:
-                        self.finish(
-                            {
-                                "success": "false",
-                                "error": "Parameters must be an integer or a vector. Example: 4 or {1,2,3,4}",
-                            }
-                        )
-                        return
+                        return {
+                            "success": "false",
+                            "error": "Parameters must be an integer or a vector. Example: 4 or {1,2,3,4}",
+                        }
             else:
                 jdl += str(item) + ' = "' + str(params[item]) + '";'
 
@@ -235,13 +202,11 @@ class JobLaunchpadHandler(WebHandler):
 
         if exception_counter == 0:
             jdl += sndBox
-            from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
-
             jobManager = WMSClient(useCertificates=True, timeout=1800)
             jdl = str(jdl)
             gLogger.info("J D L : ", jdl)
             try:
-                result = yield self.threadTask(jobManager.submitJob, jdl)
+                result = jobManager.submitJob(jdl)
                 if result["OK"]:
                     callback = {"success": "true", "result": result["Value"]}
                 else:
@@ -250,4 +215,4 @@ class JobLaunchpadHandler(WebHandler):
                 callback = {"success": "false", "error": "An EXCEPTION happens during job submittion: %s" % str(x)}
         if clearFS:
             shutil.rmtree(storePath)
-        self.finish(callback)
+        return callback
