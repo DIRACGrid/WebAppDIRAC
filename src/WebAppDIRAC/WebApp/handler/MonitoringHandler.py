@@ -167,8 +167,8 @@ class MonitoringHandler(WebHandler):
 
     def web_generatePlot(self):
         if (retVal := self.__queryForPlot())["OK"]:
-            return {"success": True, "data": retVal["Value"]["plot"]}
-        return {"success": False, "errors": retVal["Message"]}
+            return {"success": "true", "data": retVal["Value"]["plot"]}
+        return {"success": "false", "errors": retVal["Message"]}
 
     def __queryForPlot(self):
         res = self.__parseFormParams()
@@ -176,7 +176,7 @@ class MonitoringHandler(WebHandler):
 
     def web_getPlotImg(self, fileName=None):
         """Get plot image"""
-        if fileName:
+        if not fileName:
             return {"success": "false", "error": "Maybe you forgot the file?"}
         # Prevent directory traversal
         plotImageFile = os.path.normpath("/" + fileName).lstrip("/")
@@ -192,12 +192,12 @@ class MonitoringHandler(WebHandler):
 
     def web_getPlotImgFromCache(self, fileName=None):
         """Get plot image from cache."""
-        if plotImageFile := fileName:
+        if not fileName:
             return {"success": "false", "error": "Maybe you forgot the file?"}
 
-        retVal = extractRequestFromFileId(plotImageFile)
+        retVal = extractRequestFromFileId(fileName)
         if not retVal["OK"]:
-            return {"success": "false", "error": retVal["Value"]}
+            return {"success": "false", "error": retVal["Message"]}
         fields = retVal["Value"]
         if "extraArgs" in fields:  # in order to get the plot from the cache we have to clean the extraArgs...
             plotTitle = ""
@@ -210,7 +210,7 @@ class MonitoringHandler(WebHandler):
 
         retVal = codeRequestInFileId(fields)
         if not retVal["OK"]:
-            return {"success": "false", "error": retVal["Value"]}
+            return {"success": "false", "error": retVal["Message"]}
         plotImageFile = retVal["Value"]["plot"]
 
         transferClient = TransferClient("Monitoring/Monitoring")
