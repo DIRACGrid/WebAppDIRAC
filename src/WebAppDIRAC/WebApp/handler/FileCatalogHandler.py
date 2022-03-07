@@ -35,6 +35,9 @@ class FileCatalogHandler(WebHandler):
 
         :return: dict
         """
+        if lfnPath is None:
+            lfnPath = ""
+
         # First pass: download files and check for the success
         if not archivePath:
             tmpdir = "/tmp/" + str(time.time()) + str(random.random())
@@ -102,23 +105,24 @@ class FileCatalogHandler(WebHandler):
             gLogger.error(result["Message"])
             return {"success": "false", "error": result["Message"]}
         filemeta, dirmeta = result["Value"]
-        if len(filemeta) > 0:
-            for key in filemeta:
-                callback[key] = "label"
+        for key in filemeta:
+            callback[key] = "label"
         gLogger.debug("getSelectorGrid: FileMetaFields callback %s" % callback)
-        if len(dirmeta) > 0:
-            for key in dirmeta:
-                callback[key] = dirmeta[key].lower()
+        for key, value in dirmeta.items():
+            callback[key] = value.lower()
         gLogger.debug("getSelectorGrid: Resulting callback %s" % callback)
         return {"success": "true", "result": callback}
 
-    def web_getQueryData(self, lfnPath="/", **kwargs):
+    def web_getQueryData(self, lfnPath=None, **kwargs):
         """Method to read all the available options for a metadata field
 
         :param str lfnPath: path LFN
 
         :return: dict
         """
+        if lfnPath is None:
+            lfnPath = "/"
+
         try:
             compat = {}
             for key in kwargs:
@@ -149,7 +153,7 @@ class FileCatalogHandler(WebHandler):
                     compat[name][sign] += value[1].split(":::")
 
         except Exception as e:
-            return {"success": "false", "error": "Metadata query error: %s" % repr(e)}
+            return {"success": "false", "error": f"Metadata query error: {e!r}"}
 
         gLogger.always(compat)
 
@@ -173,11 +177,11 @@ class FileCatalogHandler(WebHandler):
 
         result = self.__getMetadataFields()
         if not result["OK"]:
-            gLogger.error("request: ", result["Message"])
+            gLogger.error("request:", result["Message"])
         else:
             filemeta, dirmeta = result["Value"]
             meta = [k for k in dirmeta]
-            gLogger.always("request: metafields: ", meta)
+            gLogger.always("request: metafields:", meta)
 
             for param in kwargs:
                 tmp = param.split(".")
@@ -186,7 +190,7 @@ class FileCatalogHandler(WebHandler):
                 _, name, logic = tmp
                 value = kwargs[param].split("|")
                 if logic not in self.__operands:
-                    gLogger.always("Operand '%s' is not supported " % logic)
+                    gLogger.always(f"Operand '{logic}' is not supported")
                     continue
 
                 if name in meta:
@@ -210,9 +214,9 @@ class FileCatalogHandler(WebHandler):
 
         gLogger.debug("submit: incoming request %s" % req)
         result = self.fc.findFilesByMetadataWeb(req["selection"], req["path"], start, limit)
-        gLogger.debug("submit: result of findFilesByMetadataDetailed %s" % result)
+        gLogger.debug("submit: result of findFilesByMetadataDetailed", result)
         if not result["OK"]:
-            gLogger.error("submit: %s" % result["Message"])
+            gLogger.error("submit:", result["Message"])
             return {"success": "false", "error": result["Message"]}
         result = result["Value"]
 
@@ -223,11 +227,15 @@ class FileCatalogHandler(WebHandler):
         result = result["Records"]
 
         callback = list()
-        for key in result:
-            value = result[key]
+        for key, value in result.items():
+            size = ""
+            if "Size" in value:
+                size = value["Size"]
 
-            size = value["Size"] if "Size" in value else ""
-            date = str(value["CreationDate"]) if "CreationDate" in value else ""
+            date = ""
+            if "CreationDate" in value:
+                date = str(value["CreationDate"])
+
             meta = ""
             if "Metadata" in value:
                 m = value["Metadata"]
@@ -261,7 +269,7 @@ class FileCatalogHandler(WebHandler):
         req = {"selection": {}, "path": "/"}
         result = self.__getMetadataFields()
         if not result["OK"]:
-            gLogger.error("request: %s" % result["Message"])
+            gLogger.error("request:", result["Message"])
         else:
             filemeta, dirmeta = result["Value"]
             meta = [k for k in dirmeta]
@@ -269,7 +277,7 @@ class FileCatalogHandler(WebHandler):
 
             selectionElems = selection.split("<|>")
 
-            gLogger.debug("request: THISSSS %s " % selection)
+            gLogger.debug("request: THISSSS", selection)
 
             for param in selectionElems:
                 tmp = str(param).split("|")
@@ -281,7 +289,7 @@ class FileCatalogHandler(WebHandler):
                 logic = tmp[1]
 
                 if logic not in self.__operands:
-                    gLogger.always("Operand '%s' is not supported " % logic)
+                    gLogger.always(f"Operand '{logic}' is not supported")
                     continue
 
                 if name in meta:
@@ -303,17 +311,13 @@ class FileCatalogHandler(WebHandler):
             if lfnPath:
                 req["path"] = lfnPath
 
-        gLogger.debug("submit: incoming request %s" % req)
+        gLogger.debug("submit: incoming request", req)
         result = self.fc.findFilesByMetadata(req["selection"], req["path"])
         if not result["OK"]:
             gLogger.error("submit: %s" % result["Message"])
             return {"success": "false", "error": result["Message"]}
 
-        retStrLines = []
-        if len(result["Value"]) > 0:
-            retStrLines = [fileName for fileName in result["Value"]]
-
-        return FileResponse("\n".join(retStrLines), str(req))
+        return FileResponse("\n".join([fileName for fileName in result["Value"]]), str(req))
 
     def web_getSubnodeFiles(self, lfnPath):
         """Get subnode files
@@ -324,7 +328,7 @@ class FileCatalogHandler(WebHandler):
         """
         result = self.fc.listDirectory(lfnPath, False)
         if not result["OK"]:
-            gLogger.error("submit: %s" % result["Message"])
+            gLogger.error("submit:", result["Message"])
             return {"success": "false", "error": result["Message"]}
 
         filesData = result["Value"]["Successful"][lfnPath]["Files"]
