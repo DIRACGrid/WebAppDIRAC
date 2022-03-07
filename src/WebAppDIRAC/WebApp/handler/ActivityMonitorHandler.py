@@ -4,43 +4,29 @@ import tornado
 import tempfile
 
 from DIRAC import gConfig
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.MonitoringSystem.Client.MonitoringClient import MonitoringClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities import Time, DEncode
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, FileResponse
 
 
 class ActivityMonitorHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    @asyncGen
-    def web_getActivityData(self):
-        try:
-            start = int(self.get_argument("start"))
-        except BaseException:
-            start = 0
-        try:
-            limit = int(self.get_argument("limit"))
-        except BaseException:
-            limit = 0
+    def web_getActivityData(
+        self, start: int = 0, limit: int = 0, sortField: str = None, sortDirection: str = None
+    ) -> dict:
+        """Get activity  data"""
+        sort = []
+        if sortField and sortDirection:
+            sort = [(sortField.replace("_", "."), sortDirection)]
 
-        try:
-            sortField = self.get_argument("sortField").replace("_", ".")
-            sortDir = self.get_argument("sortDirection")
-            sort = [(sortField, sortDir)]
-        except BaseException:
-            sort = []
+        if not (result := MonitoringClient().getActivitiesContents({}, sort, start, limit))["OK"]:
+            return {"success": "false", "result": [], "total": -1, "error": result["Message"]}
 
-        rpcClient = RPCClient("Framework/Monitoring")
-        retVal = yield self.threadTask(rpcClient.getActivitiesContents, {}, sort, start, limit)
-
-        if not retVal["OK"]:
-            self.finish({"success": "false", "result": [], "total": -1, "error": retVal["Message"]})
-            return
-
-        svcData = retVal["Value"]
+        svcData = result["Value"]
         callback = {"success": "true", "total": svcData["TotalRecords"], "result": []}
         now = Time.toEpoch()
         for record in svcData["Records"]:
@@ -51,24 +37,21 @@ class ActivityMonitorHandler(WebHandler):
                 formatted["activities_lastUpdate"] = now - int(formatted["activities_lastUpdate"])
             callback["result"].append(formatted)
 
-        self.finish(callback)
+        return callback
 
-    def __dateToSecs(self, timeVar):
-        dt = Time.fromString(timeVar)
-        return int(Time.toEpoch(dt))
+    def __dateToSecs(self, timeVar: str) -> int:
+        """Convert date to seconds"""
+        return int(Time.toEpoch(Time.fromString(timeVar)))
 
-    @asyncGen
-    def web_plotView(self):
-
+    def web_plotView(self) -> dict:
+        """Get plot view"""
         plotRequest = {}
         try:
             if "id" not in self.request.arguments:
-                self.finish({"success": "false", "error": "Missing viewID in plot request"})
-                return
+                return {"success": "false", "error": "Missing viewID in plot request"}
             plotRequest["id"] = self.get_argument("id")
             if "size" not in self.request.arguments:
-                self.finish({"success": "false", "error": "Missing plotsize in plot request"})
-                return
+                return {"success": "false", "error": "Missing plotsize in plot request"}
             plotRequest["size"] = int(self.get_argument("size"))
 
             timespan = int(self.get_argument("timespan"))
@@ -83,101 +66,68 @@ class ActivityMonitorHandler(WebHandler):
             if "varData" in self.request.arguments:
                 plotRequest["varData"] = dict(json.loads(self.get_argument("varData")))
         except Exception as e:
-            self.finish({"success": "false", "error": "Error while processing plot parameters: %s" % str(e)})
-            return
+            return {"success": "false", "error": "Error while processing plot parameters: %s" % str(e)}
 
-        rpcClient = RPCClient("Framework/Monitoring")
-        retVal = yield self.threadTask(rpcClient.plotView, plotRequest)
+        if (result := MonitoringClient().plotView(plotRequest))["OK"]:
+            return {"success": "true", "data": result["Value"]}
+        return {"success": "false", "error": result["Message"]}
 
-        if retVal["OK"]:
-            self.finish({"success": "true", "data": retVal["Value"]})
-        else:
-            self.finish({"success": "false", "error": retVal["Message"]})
+    def web_getStaticPlotViews(self) -> dict:
+        """Get static plot view"""
+        if not (result := MonitoringClient().getViews(True))["OK"]:
+            return {"success": "false", "error": result["Message"]}
+        return {"success": "true", "result": result["Value"]}
 
-    @asyncGen
-    def web_getStaticPlotViews(self):
-        rpcClient = RPCClient("Framework/Monitoring")
-        retVal = yield self.threadTask(rpcClient.getViews, True)
-        if not retVal["OK"]:
-            self.finish({"success": "false", "error": retVal["Message"]})
-        else:
-            self.finish({"success": "true", "result": retVal["Value"]})
-
-    @asyncGen
     def web_getPlotImg(self):
-        """
-        Get plot image
-        """
-        callback = {}
+        """Get plot image"""
         if "file" not in self.request.arguments:
-            callback = {"success": "false", "error": "Maybe you forgot the file?"}
-            self.finish(callback)
-            return
+            return {"success": "false", "error": "Maybe you forgot the file?"}
         plotImageFile = self.get_argument("file")
         # Prevent directory traversal
         plotImageFile = os.path.normpath("/" + plotImageFile).lstrip("/")
 
         transferClient = TransferClient("Framework/Monitoring")
         tempFile = tempfile.TemporaryFile()
-        retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+        retVal = transferClient.receiveFile(tempFile, plotImageFile)
         if not retVal["OK"]:
-            callback = {"success": "false", "error": retVal["Message"]}
-            self.finish(callback)
-            return
+            return {"success": "false", "error": retVal["Message"]}
         tempFile.seek(0)
         data = tempFile.read()
-        self.finishWithImage(data, plotImageFile)
+        return FileResponse(data, plotImageFile, "png")
 
-    @asyncGen
-    def web_queryFieldValue(self):
-        """
-        Query a value for a field
-        """
-        fieldQuery = self.get_argument("queryField")
-        definedFields = json.loads(self.get_argument("selectedFields"))
-        rpcClient = RPCClient("Framework/Monitoring")
-        result = yield self.threadTask(rpcClient.queryField, fieldQuery, definedFields)
+    def web_queryFieldValue(self, queryField, selectedFields) -> dict:
+        """Query a value for a field"""
+        definedFields = json.loads(selectedFields)
+        result = MonitoringClient().queryField(queryField, definedFields)
         if "rpcStub" in result:
             del result["rpcStub"]
-
         if result["OK"]:
-            self.finish({"success": "true", "result": result["Value"]})
-        else:
-            self.finish({"success": "false", "error": result["Message"]})
+            return {"success": "true", "result": result["Value"]}
+        return {"success": "false", "error": result["Message"]}
 
-    @asyncGen
-    def web_deleteActivities(self):
+    def web_deleteActivities(self) -> dict:
+        """Delete activities"""
         try:
             webIds = self.get_argument("ids").split(",")
         except Exception as e:
-            self.finish({"success": "false", "error": "No valid id's specified"})
-            return
+            return {"success": "false", "error": "No valid id's specified"}
 
         idList = []
         for webId in webIds:
             try:
                 idList.append([int(field) for field in webId.split(".")])
             except Exception as e:
-                self.finish({"success": "false", "error": "Error while processing arguments: %s" % str(e)})
-                return
+                return {"success": "false", "error": "Error while processing arguments: %s" % str(e)}
 
-        rpcClient = RPCClient("Framework/Monitoring")
-
-        retVal = yield self.threadTask(rpcClient.deleteActivities, idList)
-
+        retVal = MonitoringClient().deleteActivities(idList)
         if "rpcStub" in retVal:
             del retVal["rpcStub"]
-
         if retVal["OK"]:
-            self.finish({"success": "true"})
-        else:
-            self.finish({"success": "false", "error": retVal["Message"]})
+            return {"success": "true"}
+        return {"success": "false", "error": retVal["Message"]}
 
-    @asyncGen
-    def web_tryView(self):
-        """
-        Try plotting graphs for a view
-        """
+    def web_tryView(self) -> dict:
+        """Try plotting graphs for a view"""
         try:
             plotRequest = json.loads(self.get_argument("plotRequest"))
             if "timeLength" in self.request.arguments:
@@ -192,44 +142,33 @@ class ActivityMonitorHandler(WebHandler):
                 elif fromSecs == "year":
                     fromDate = toSecs - 31104000
                 else:
-                    self.finish({"success": "false", "error": "Time length value not valid"})
-                    return
+                    return {"success": "false", "error": "Time length value not valid"}
             else:
                 fromDate = self.get_argument("fromDate")
                 toDate = self.get_argument("toDate")
                 fromSecs = self.__dateToSecs(fromDate)
                 toSecs = self.__dateToSecs(toDate)
         except Exception as e:
-            self.finish({"success": "false", "error": "Error while processing plot parameters: %s" % str(e)})
-            return
+            return {"success": "false", "error": "Error while processing plot parameters: %s" % str(e)}
 
-        rpcClient = RPCClient("Framework/Monitoring")
         requestStub = DEncode.encode(plotRequest)
-        retVal = yield self.threadTask(rpcClient.tryView, fromSecs, toSecs, requestStub)
-        if not retVal["OK"]:
-            self.finish({"success": "false", "error": retVal["Message"]})
-            return
+        if not (retVal := MonitoringClient().tryView(fromSecs, toSecs, requestStub))["OK"]:
+            return {"success": "false", "error": retVal["Message"]}
+        return {"success": "true", "images": retVal["Value"], "stub": requestStub}
 
-        self.finish({"success": "true", "images": retVal["Value"], "stub": requestStub})
-
-    @asyncGen
     def web_saveView(self):
-        """
-        Save a view
-        """
+        """Save a view"""
         try:
             plotRequest = json.loads(self.get_argument("plotRequest"))
             viewName = self.get_argument("viewName")
         except Exception as e:
-            self.finish({"success": "false", "error": "Error while processing plot parameters: %s" % str(e)})
-            return
-        rpcClient = RPCClient("Framework/Monitoring")
+            return {"success": "false", "error": "Error while processing plot parameters: %s" % str(e)}
         requestStub = DEncode.encode(plotRequest)
-        result = yield self.threadTask(rpcClient.saveView, viewName, requestStub)
+        result = MonitoringClient().saveView(viewName, requestStub)
         if "rpcStub" in result:
             del result["rpcStub"]
 
-        self.finish({"success": "true"})
+        return {"success": "true"}
 
     def __getSections(self, path):
 
@@ -263,17 +202,11 @@ class ActivityMonitorHandler(WebHandler):
 
         return result
 
-    @asyncGen
-    def web_getDynamicPlotViews(self):
-        """
-        It retrieves the systems from the CS.
-        """
+    def web_getDynamicPlotViews(self, node):
+        """It retrieves the systems from the CS."""
         nodes = []
-        path = self.get_argument("node")
-
-        result = self.__getSections(path)
+        result = self.__getSections(node)
         for i in result:
             nodes += [i]
 
-        result = tornado.escape.json_encode(nodes)
-        self.finish(result)
+        return tornado.escape.json_encode(nodes)
