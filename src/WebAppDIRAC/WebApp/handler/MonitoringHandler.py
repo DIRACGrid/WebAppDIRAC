@@ -43,10 +43,10 @@ class MonitoringHandler(WebHandler):
             MonitoringHandler.__keysCache.add(cacheKey, 300, data)
         return data
 
-    def web_getSelectionData(self, type):
+    def web_getSelectionData(self, monitoringType):
         callback = {}
         # Get unique key values
-        if not (retVal := self.__getUniqueKeyValues(type))["OK"]:
+        if not (retVal := self.__getUniqueKeyValues(monitoringType))["OK"]:
             return {"success": "false", "result": "", "error": retVal["Message"]}
 
         records = {}
@@ -55,21 +55,19 @@ class MonitoringHandler(WebHandler):
             length = len(retVal["Value"][record])
             if length > 10000:
                 records[record] = retVal["Value"][record][length - 5000 :]
-                message = (
-                    "The %s accounting type contains to many rows: %s - > %d. Note: Only 1000 rows are returned!"
-                    % (type, record, length)
-                )
+                message = f"The {monitoringType} monitoring type contains too many rows: {record} -> {length}"
+                message += " Note: Only 5000 rows are returned!"
                 gLogger.warn(message)
             else:
                 records[record] = retVal["Value"][record]
         callback["selectionValues"] = records
 
         # Cache for plotsList?
-        if not (data := MonitoringHandler.__keysCache.get(f"reportsList:{type}")):
-            if not (retVal := MonitoringClient().listReports(type))["OK"]:
+        if not (data := MonitoringHandler.__keysCache.get(f"reportsList:{monitoringType}")):
+            if not (retVal := MonitoringClient().listReports(monitoringType))["OK"]:
                 return {"success": "false", "result": "", "error": retVal["Message"]}
             data = retVal["Value"]
-            MonitoringHandler.__keysCache.add(f"reportsList:{type}", 300, data)
+            MonitoringHandler.__keysCache.add(f"reportsList:{monitoringType}", 300, data)
         callback["plotsList"] = data
         return {"success": "true", "result": callback}
 
@@ -176,12 +174,12 @@ class MonitoringHandler(WebHandler):
         res = self.__parseFormParams()
         return MonitoringClient().generateDelayedPlot(*res["Value"]) if res["OK"] else res
 
-    def web_getPlotImg(self, file=None):
+    def web_getPlotImg(self, fileName=None):
         """Get plot image"""
-        if file:
+        if fileName:
             return {"success": "false", "error": "Maybe you forgot the file?"}
         # Prevent directory traversal
-        plotImageFile = os.path.normpath("/" + file).lstrip("/")
+        plotImageFile = os.path.normpath("/" + fileName).lstrip("/")
 
         transferClient = TransferClient("Monitoring/Monitoring")
         tempFile = tempfile.TemporaryFile()
@@ -192,9 +190,9 @@ class MonitoringHandler(WebHandler):
         data = tempFile.read()
         return FileResponse(data, plotImageFile, ext="png")
 
-    def web_getPlotImgFromCache(self, file=None):
+    def web_getPlotImgFromCache(self, fileName=None):
         """Get plot image from cache."""
-        if plotImageFile := file:
+        if plotImageFile := fileName:
             return {"success": "false", "error": "Maybe you forgot the file?"}
 
         retVal = extractRequestFromFileId(plotImageFile)
