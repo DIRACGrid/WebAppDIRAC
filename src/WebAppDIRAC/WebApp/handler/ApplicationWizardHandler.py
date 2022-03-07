@@ -1,6 +1,6 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 
 
 class ApplicationWizardHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
