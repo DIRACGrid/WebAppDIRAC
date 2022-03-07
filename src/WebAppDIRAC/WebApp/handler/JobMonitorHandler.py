@@ -12,82 +12,63 @@ from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManage
 from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
 from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen, WErr
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
 
 
 class JobMonitorHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
     __dataCache = DictCache.DictCache()
 
-    @asyncGen
     def web_getJobData(self):
         req = self._request()
 
-        result = yield self.threadTask(
-            JobMonitoringClient().getJobPageSummaryWeb, req, self.globalSort, self.pageNumber, self.numberOfJobs
-        )
+        result = JobMonitoringClient().getJobPageSummaryWeb(req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
         if not result["OK"]:
-            self.finish({"success": "false", "result": [], "total": 0, "error": result["Message"]})
-            return
+            return {"success": "false", "result": [], "total": 0, "error": result["Message"]}
         result = result["Value"]
 
         if "TotalRecords" not in result:
-            self.finish(
-                {
-                    "success": "false",
-                    "result": [],
-                    "total": -1,
-                    "error": "Data structure is corrupted",
-                }
-            )
-            return
+            return {
+                "success": "false",
+                "result": [],
+                "total": -1,
+                "error": "Data structure is corrupted",
+            }
 
         if not result["TotalRecords"]:
-            self.finish(
-                {
-                    "success": "false",
-                    "result": [],
-                    "total": 0,
-                    "error": "There were no data matching your selection",
-                }
-            )
-            return
+            return {
+                "success": "false",
+                "result": [],
+                "total": 0,
+                "error": "There were no data matching your selection",
+            }
 
         if "ParameterNames" not in result or "Records" not in result:
-            self.finish(
-                {
-                    "success": "false",
-                    "result": [],
-                    "total": -1,
-                    "error": "Data structure is corrupted",
-                }
-            )
-            return
+            return {
+                "success": "false",
+                "result": [],
+                "total": -1,
+                "error": "Data structure is corrupted",
+            }
 
         if not result["ParameterNames"]:
-            self.finish(
-                {
-                    "success": "false",
-                    "result": [],
-                    "total": -1,
-                    "error": "ParameterNames field is missing",
-                }
-            )
-            return
+            return {
+                "success": "false",
+                "result": [],
+                "total": -1,
+                "error": "ParameterNames field is missing",
+            }
 
         if not result["Records"]:
-            self.finish(
-                {
-                    "success": "false",
-                    "result": [],
-                    "total": 0,
-                    "Message": "There are no data to display",
-                }
-            )
-            return
+            return {
+                "success": "false",
+                "result": [],
+                "total": 0,
+                "Message": "There are no data to display",
+            }
 
         callback = []
         jobs = result["Records"]
@@ -105,22 +86,8 @@ class JobMonitorHandler(WebHandler):
             timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
             extra["date"] = timestamp
 
-        callback = {"success": "true", "result": callback, "total": total, "extra": extra}
-        self.finish(callback)
+        return {"success": "true", "result": callback, "total": total, "extra": extra}
 
-    def __dict2string(self, req):
-        result = ""
-        try:
-            for key, value in req.iteritems():
-                result = result + str(key) + ": " + ", ".join(value) + "; "
-        except Exception as x:
-            pass
-            gLogger.info("\033[0;31m Exception: \033[0m %s" % x)
-        result = result.strip()
-        result = result[:-1]
-        return result
-
-    @asyncGen
     def web_getSelectionData(self):
         callback = {}
         user = self.getUserName()
@@ -132,7 +99,7 @@ class JobMonitorHandler(WebHandler):
             callback = JobMonitorHandler.__dataCache.get(cacheKey)
             if not callback:
                 callback = {}
-                result = yield self.threadTask(JobMonitoringClient().getJobGroups)
+                result = JobMonitoringClient().getJobGroups()
                 if result["OK"]:
                     prod = []
                     prods = result["Value"]
@@ -146,7 +113,7 @@ class JobMonitorHandler(WebHandler):
                     prod = [["Error happened on service side"]]
                 callback["prod"] = prod
 
-                result = yield self.threadTask(JobMonitoringClient().getSites)
+                result = JobMonitoringClient().getSites()
                 if result["OK"]:
                     tier1 = gConfig.getValue("/WebApp/PreferredSites", [])  # Always return a list
                     site = []
@@ -164,7 +131,7 @@ class JobMonitorHandler(WebHandler):
                     site = [["Error happened on service side"]]
                 callback["site"] = site
                 # ##
-                result = yield self.threadTask(JobMonitoringClient().getStates)
+                result = JobMonitoringClient().getStates()
                 if result["OK"]:
                     stat = []
                     if result["Value"]:
@@ -177,7 +144,7 @@ class JobMonitorHandler(WebHandler):
                     stat = [["Error happened on service side"]]
                 callback["status"] = stat
                 # ##
-                result = yield self.threadTask(JobMonitoringClient().getMinorStates)
+                result = JobMonitoringClient().getMinorStates()
                 if result["OK"]:
                     stat = []
                     if result["Value"]:
@@ -190,7 +157,7 @@ class JobMonitorHandler(WebHandler):
                     stat = [["Error happened on service side"]]
                 callback["minorstat"] = stat
                 # ##
-                result = yield self.threadTask(JobMonitoringClient().getApplicationStates)
+                result = JobMonitoringClient().getApplicationStates()
                 if result["OK"]:
                     app = []
                     if result["Value"]:
@@ -203,7 +170,7 @@ class JobMonitorHandler(WebHandler):
                     app = [["Error happened on service side"]]
                 callback["app"] = app
                 # ##
-                result = yield self.threadTask(JobMonitoringClient().getJobTypes)
+                result = JobMonitoringClient().getJobTypes()
                 if result["OK"]:
                     types = []
                     if result["Value"]:
@@ -220,7 +187,7 @@ class JobMonitorHandler(WebHandler):
                 if not self.isRegisteredUser():
                     callback["owner"] = [["Insufficient rights"]]
                 else:
-                    result = yield self.threadTask(JobMonitoringClient().getOwners)
+                    result = JobMonitoringClient().getOwners()
                     if result["OK"]:
                         owner = []
                         if result["Value"]:
@@ -236,13 +203,13 @@ class JobMonitorHandler(WebHandler):
                         owner = [["Error happened on service side"]]
                     callback["owner"] = owner
 
-                result = yield self.threadTask(JobMonitoringClient().getOwnerGroup)
+                result = JobMonitoringClient().getOwnerGroup()
                 if result["OK"]:
                     callback["OwnerGroup"] = [[group] for group in result["Value"]]
 
                 JobMonitorHandler.__dataCache.add(cacheKey, 360, callback)
 
-        self.finish(callback)
+        return callback
 
     def _request(self):
         self.numberOfJobs = int(self.get_argument("limit", "25"))
@@ -313,177 +280,123 @@ class JobMonitorHandler(WebHandler):
         gLogger.debug("Request", str(req))
         return req
 
-    @asyncGen
-    def web_jobAction(self):
-        ids = self.get_argument("JobID").split(",")
+    def web_jobAction(self, JobID):
+        ids = JobID.split(",")
         ids = [int(i) for i in ids]
 
         RPC = JobManagerClient()
         if self.get_argument("action") == "delete":
-            result = yield self.threadTask(RPC.deleteJob, ids)
+            result = RPC.deleteJob(ids)
         elif self.get_argument("action") == "kill":
-            result = yield self.threadTask(RPC.killJob, ids)
+            result = RPC.killJob(ids)
         elif self.get_argument("action") == "reschedule":
-            result = yield self.threadTask(RPC.rescheduleJob, ids)
+            result = RPC.rescheduleJob(ids)
         elif self.get_argument("action") == "reset":
-            result = yield self.threadTask(RPC.resetJob, ids)
+            result = RPC.resetJob(ids)
 
-        callback = {}
         if result["OK"]:
-            callback = {"success": "true", "result": ""}
-        else:
-            if "InvalidJobIDs" in result:
-                callback = {"success": "false", "error": "Invalid JobIDs: %s" % result["InvalidJobIDs"]}
-            elif "NonauthorizedJobIDs" in result:
-                callback = {
-                    "success": "false",
-                    "error": "You are nonauthorized to %s jobs with JobID: %s"
-                    % (self.get_argument("action"), result["NonauthorizedJobIDs"]),
-                }
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        self.finish(callback)
+            return {"success": "true", "result": ""}
 
-    @asyncGen
-    def web_jobData(self):
-        jobId = int(self.get_argument("id"))
-        callback = {}
+        if "InvalidJobIDs" in result:
+            return {"success": "false", "error": "Invalid JobIDs: %s" % result["InvalidJobIDs"]}
+        if "NonauthorizedJobIDs" in result:
+            return {
+                "success": "false",
+                "error": "You are nonauthorized to %s jobs with JobID: %s"
+                % (self.get_argument("action"), result["NonauthorizedJobIDs"]),
+            }
+        return {"success": "false", "error": result["Message"]}
 
-        if self.get_argument("data_kind") == "getJDL":
-            RPC = JobMonitoringClient()
-            result = yield self.threadTask(RPC.getJobJDL, jobId, False)
-            if result["OK"]:
-                callback = {"success": "true", "result": result["Value"]}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        elif self.get_argument("data_kind") == "getBasicInfo":
-            RPC = JobMonitoringClient()
-            result = yield self.threadTask(RPC.getJobSummary, jobId)
-            if result["OK"]:
-                items = []
-                for key, value in result["Value"].items():
-                    items.append([key, value])
-                callback = {"success": "true", "result": items}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        elif self.get_argument("data_kind") == "getParams":
-            RPC = JobMonitoringClient()
-            result = yield self.threadTask(RPC.getJobParameters, jobId)
-            if result["OK"]:
-                attr = result["Value"].get(jobId, {})
+    def web_jobData(self, id: int, data_kind: str) -> dict:
+        if data_kind == "getJDL":
+            if (result := JobMonitoringClient().getJobJDL(id, False))["OK"]:
+                return {"success": "true", "result": result["Value"]}
+            return {"success": "false", "error": result["Message"]}
+        if data_kind == "getBasicInfo":
+            if (result := JobMonitoringClient().getJobSummary(id))["OK"]:
+                items = [[key, value] for key, value in result["Value"].items()]
+                return {"success": "true", "result": items}
+            return {"success": "false", "error": result["Message"]}
+        if data_kind == "getParams":
+            if (result := JobMonitoringClient().getJobParameters(id))["OK"]:
+                attr = result["Value"].get(id, {})
                 items = []
                 for i in attr.items():
                     if i[0] == "Log URL":  # the link has to be opened in a new tab.
                         items.append([i[0], i[1].replace(">", ' target="_blank">')])
                     elif i[0] != "StandardOutput":
                         items.append([i[0], i[1]])
-
-                callback = {"success": "true", "result": items}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        elif self.get_argument("data_kind") == "getLoggingInfo":
-            RPC = JobMonitoringClient()
-            result = yield self.threadTask(RPC.getJobLoggingInfo, jobId)
-            if result["OK"]:
-                callback = {"success": "true", "result": result["Value"]}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-
-        elif self.get_argument("data_kind") == "getStandardOutput":
-            RPC = JobMonitoringClient()
-            result = yield self.threadTask(RPC.getJobParameters, jobId)
-            attr = result["Value"].get(jobId, {})
-            if result["OK"]:
+                return {"success": "true", "result": items}
+            return {"success": "false", "error": result["Message"]}
+        if data_kind == "getLoggingInfo":
+            if (result := JobMonitoringClient().getJobLoggingInfo(id))["OK"]:
+                return {"success": "true", "result": result["Value"]}
+            return {"success": "false", "error": result["Message"]}
+        if data_kind == "getStandardOutput":
+            if (result := JobMonitoringClient().getJobParameters(id))["OK"]:
+                attr = result["Value"].get(id, {})
                 if "StandardOutput" in attr:
-                    callback = {"success": "true", "result": attr["StandardOutput"]}
-                else:
-                    callback = {"success": "false", "error": "Not accessible yet"}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        elif self.get_argument("data_kind") == "getPending":
-
-            result = yield self.threadTask(ReqClient().readRequestsForJobs, [jobId])
-
-            if result["OK"]:
+                    return {"success": "true", "result": attr["StandardOutput"]}
+                return {"success": "false", "error": "Not accessible yet"}
+            return {"success": "false", "error": result["Message"]}
+        if data_kind == "getPending":
+            if (result := ReqClient().readRequestsForJobs([id]))["OK"]:
                 items = {}
-                if jobId in result["Value"]["Successful"]:
-                    result = result["Value"]["Successful"][jobId].getDigest()
+                if id in result["Value"]["Successful"]:
+                    result = result["Value"]["Successful"][id].getDigest()
                     if result["OK"]:
                         items["PendingRequest"] = result["Value"]
                     else:
                         raise WErr.fromSERROR(result)
-                    callback = {"success": "true", "result": items}
-                elif jobId in result["Value"]["Failed"]:  # when no request associated to the job
-                    callback = {"success": "false", "error": result["Value"]["Failed"][jobId]}
-                else:
-                    callback = {"success": "false", "error": "No request found with unknown reason"}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-
-        elif self.get_argument("data_kind") == "getLogURL":
-            RPC = JobMonitoringClient()
-            result = yield self.threadTask(RPC.getJobParameters, jobId)
-            if result["OK"]:
-                attr = result["Value"].get(jobId, {})
+                    return {"success": "true", "result": items}
+                if id in result["Value"]["Failed"]:  # when no request associated to the job
+                    return {"success": "false", "error": result["Value"]["Failed"][id]}
+                return {"success": "false", "error": "No request found with unknown reason"}
+            return {"success": "false", "error": result["Message"]}
+        if data_kind == "getLogURL":
+            if (result := JobMonitoringClient().getJobParameters(id))["OK"]:
+                attr = result["Value"].get(id, {})
                 if "Log URL" in attr:
-                    url = attr["Log URL"].split('"')
-                    if "https:" not in url[1]:
+                    httpsUrl = attr["Log URL"].split('"')[1]
+                    if "https:" not in httpsUrl:
                         # we can not open non secured URL
-                        httpsUrl = url[1].replace("http", "https")
-                    else:
-                        httpsUrl = url[1]
-                    callback = {"success": "true", "result": httpsUrl}
-                else:
-                    callback = {"success": "false", "error": "No URL found"}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        elif self.get_argument("data_kind") == "getStagerReport":
-            RPC = JobMonitoringClient()
-            result = yield self.threadTask(RPC.getJobParameters, jobId)
-            if result["OK"]:
-                attr = result["Value"].get(jobId, {})
+                        httpsUrl = httpsUrl.replace("http", "https")
+                    return {"success": "true", "result": httpsUrl}
+                return {"success": "false", "error": "No URL found"}
+            return {"success": "false", "error": result["Message"]}
+        if data_kind == "getStagerReport":
+            if (result := JobMonitoringClient().getJobParameters(id))["OK"]:
+                attr = result["Value"].get(id, {})
                 if "StagerReport" in attr:
-                    callback = {"success": "true", "result": attr["StagerReport"]}
-                else:
-                    callback = {"success": "false", "error": "StagerReport not available"}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        elif self.get_argument("data_kind") == "getPilotStdOut":
-            result = yield self.threadTask(WMSAdministratorClient().getJobPilotOutput, jobId)
-            if result["OK"]:
-                if "StdOut" in result["Value"]:
-                    callback = {"success": "true", "result": result["Value"]["StdOut"]}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        elif self.get_argument("data_kind") == "getPilotStdErr":
-            result = yield self.threadTask(WMSAdministratorClient().getJobPilotOutput, jobId)
-            if result["OK"]:
-                if "StdErr" in result["Value"]:
-                    callback = {"success": "true", "result": result["Value"]["StdErr"]}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        elif self.get_argument("data_kind") == "getPilotLoggingInfo":
-            retVal = yield self.threadTask(PilotManagerClient().getPilots, int(jobId))
-            if retVal["OK"]:
+                    return {"success": "true", "result": attr["StagerReport"]}
+                return {"success": "false", "error": "StagerReport not available"}
+            return {"success": "false", "error": result["Message"]}
+        if data_kind == "getPilotStdOut":
+            if not (result := WMSAdministratorClient().getJobPilotOutput(id))["OK"]:
+                return {"success": "false", "error": result["Message"]}
+            if "StdOut" in result["Value"]:
+                return {"success": "true", "result": result["Value"]["StdOut"]}
+        if data_kind == "getPilotStdErr":
+            if not (result := WMSAdministratorClient().getJobPilotOutput(id))["OK"]:
+                return {"success": "false", "error": result["Message"]}
+            if "StdErr" in result["Value"]:
+                return {"success": "true", "result": result["Value"]["StdErr"]}
+        if data_kind == "getPilotLoggingInfo":
+            pilotClient = PilotManagerClient()
+            if (retVal := pilotClient.getPilots(id))["OK"]:
                 pilotReference = list(retVal["Value"])[0]
-                retVal = yield self.threadTask(PilotManagerClient().getPilotLoggingInfo, pilotReference)
-                if retVal["OK"]:
-                    callback = {"success": "true", "result": retVal["Value"]}
-                else:
-                    callback = {"success": "false", "error": retVal["Message"]}
-            else:
-                callback = {"success": "false", "error": retVal["Message"]}
-        self.finish(callback)
+                if (retVal := pilotClient.getPilotLoggingInfo(pilotReference))["OK"]:
+                    return {"success": "true", "result": retVal["Value"]}
+                return {"success": "false", "error": retVal["Message"]}
+            return {"success": "false", "error": retVal["Message"]}
+        return {}
 
-    @asyncGen
-    def web_getStatisticsData(self):
+    def web_getStatisticsData(self, statsField):
         req = self._request()
 
         paletteColor = Palette()
 
-        RPC = JobMonitoringClient()
-
-        selector = self.get_argument("statsField")
+        selector = statsField
 
         if selector == "Minor Status":
             selector = "MinorStatus"
@@ -496,9 +409,7 @@ class JobMonitorHandler(WebHandler):
         elif selector == "Job Type":
             selector = "JobType"
 
-        result = yield self.threadTask(RPC.getJobStats, selector, req)
-
-        if result["OK"]:
+        if (result := JobMonitoringClient().getJobStats(selector, req))["OK"]:
             callback = []
             result = dict(result["Value"])
             keylist = sorted(result)
@@ -537,20 +448,12 @@ class JobMonitorHandler(WebHandler):
                     )
                 else:
                     callback.append({"key": key, "value": result[key], "code": "", "color": paletteColor.getColor(key)})
-            callback = {"success": "true", "result": callback}
-        else:
-            callback = {"success": "false", "error": result["Message"]}
-        self.finish(callback)
+            return {"success": "true", "result": callback}
+        return {"success": "false", "error": result["Message"]}
 
-    @asyncGen
-    def web_getSandbox(self):
-        if "jobID" not in self.request.arguments:
-            self.finish({"success": "false", "error": "Maybe you forgot the jobID ?"})
-            return
-        jobID = int(self.get_argument("jobID"))
-        sbType = "Output"
-        if "sandbox" in self.request.arguments:
-            sbType = self.get_argument("sandbox")
+    def web_getSandbox(self, jobID: int = None, sandbox: str = "Output", check=None):
+        if not jobID:
+            return {"success": "false", "error": "Maybe you forgot the jobID ?"}
 
         client = SandboxStoreClient(
             useCertificates=True,
@@ -559,21 +462,19 @@ class JobMonitorHandler(WebHandler):
             setup=self.getUserSetup(),
         )
 
-        result = yield self.threadTask(client.downloadSandboxForJob, jobID, sbType, inMemory=True)
+        result = client.downloadSandboxForJob(jobID, sandbox, inMemory=True)
 
         if not result["OK"]:
-            self.finish({"success": "false", "error": "Error: %s" % result["Message"]})
-            return
+            return {"success": "false", "error": "Error: %s" % result["Message"]}
 
-        if "check" in self.request.arguments:
-            self.finish({"success": "true"})
-            return
+        if check:
+            return {"success": "true"}
 
         data = result["Value"]
-        fname = "%s_%sSandbox.tar" % (str(jobID), sbType)
+        fname = "%s_%sSandbox.tar" % (str(jobID), sandbox)
         self.set_header("Content-type", "application/x-tar")
         self.set_header("Content-Disposition", 'attachment; filename="%s"' % fname)
         self.set_header("Content-Length", len(data))
         self.set_header("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
         self.set_header("Pragma", "no-cache")
-        self.finish(data)
+        return data
