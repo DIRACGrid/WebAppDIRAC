@@ -1,3 +1,15 @@
+[v5.0.0a12]
+
+NEW: (#639) add BaseRequestHandler to NotepadHandler
+NEW: (#638) add BaseRequestHandler to MonitoringHandler
+NEW: (#637) add BaseRequestHandler to JobSummaryHandler
+NEW: (#636) add BaseRequestHandler to JobLaunchpadHandler
+NEW: (#635) add BaseRequestHandler to ComponentHistoryHandler
+NEW: (#634) add BaseRequestHandler to ApplicationWizardHandler
+CHANGE: (#543) Use WebHandler with DIRAC.Core.Tornado.Server.privat.BaseRequestHandler for Downtimes handler.
+CHANGE: (#542) Use WebHandler with DIRAC.Core.Tornado.Server.privat.BaseRequestHandler for ActivityMonitor handler.
+CHANGE: (#541) Use WebHandler with DIRAC.Core.Tornado.Server.privat.BaseRequestHandler for FileCatalog handler.
+
 [v5.0.0a11]
 
 *ResourceSummary/SiteSummary
