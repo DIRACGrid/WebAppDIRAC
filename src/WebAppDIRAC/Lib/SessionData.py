@@ -72,7 +72,10 @@ class SessionData:
                 cls.__extensions.append(cls.__extensions.pop(cls.__extensions.index(ext)))
 
     def __init__(self, credDict, setup):
-        self.__credDict = credDict
+        # Since cece7cc1 in DIRAC the full chain is stored in credDict
+        # This breaks the json.dumps in the various HTML templates so remove it
+        self.__credDict = dict(credDict)
+        self.__credDict.pop("x509Chain", None)
         self.__setup = setup
 
     def __isGroupAuthApp(self, appLoc):
