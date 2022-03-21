@@ -91,16 +91,6 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
             ["JobSplitType", "Job Split Type"],
           ],
         },
-        ComponentMonitoring: {
-          title: "Component Monitoring",
-          selectionConditions: [
-            ["host", "Host"],
-            ["component", "Component"],
-            ["status", "Status"],
-            ["componentType", "Component Type"],
-            ["componentLocation", "Component Location"],
-          ],
-        },
         RMSMonitoring: {
           title: "RMS Monitoring",
           selectionConditions: [
@@ -147,7 +137,6 @@ Ext.define("DIRAC.Accounting.classes.Accounting", {
       ],
       Monitoring: [
         ["WMSHistory", "WMS Monitoring"],
-        ["ComponentMonitoring", "Component Monitoring"],
         ["RMSMonitoring", "RMS Monitoring"],
         ["PilotSubmissionMonitoring", "Pilot Submission Monitoring"],
         ["DataOperation", "Data Operation Monitoring"],
