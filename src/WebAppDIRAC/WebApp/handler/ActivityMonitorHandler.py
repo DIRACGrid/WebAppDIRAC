@@ -23,6 +23,9 @@ class ActivityMonitorHandler(WebHandler):
         if sortField and sortDirection:
             sort = [(sortField.replace("_", "."), sortDirection)]
 
+        if not (result := MonitoringClient().getActivitiesContents({}, sort, start, limit))["OK"]:
+            return {"success": "false", "result": [], "total": -1, "error": result["Message"]}
+
         svcData = result["Value"]
         callback = {"success": "true", "total": svcData["TotalRecords"], "result": []}
         now = Time.toEpoch()
