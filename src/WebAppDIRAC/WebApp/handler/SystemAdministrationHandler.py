@@ -6,10 +6,10 @@ import datetime
 
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities.List import uniqueElements
-from DIRAC.FrameworkSystem.Client.MonitoringClient import gMonitor
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
+from DIRAC.FrameworkSystem.DB.ComponentMonitoringDB import ComponentMonitoringDB
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -699,7 +699,7 @@ class SystemAdministrationHandler(WebHandler):
                 condDict = {"Setup": _setup}
 
         gLogger.debug("condDict" + str(condDict))
-        retVal = gMonitor.getComponentsStatus(condDict)
+        retVal = ComponentMonitoringDB.getComponentsStatus(condDict)
 
         today = datetime.datetime.today()
         if retVal["OK"]:
