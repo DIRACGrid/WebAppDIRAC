@@ -569,7 +569,8 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
           var width = 99 / 2;
           width = "." + Math.round(width);
           for (var i = 0; i < jsonData.result.length; i++) {
-            var src = GLOBAL.BASE_URL + jsonData.result[i].Type + "/getPlotImg?file=" + jsonData.result[i].src + "&nocache=" + new Date().getTime();
+            var src =
+              GLOBAL.BASE_URL + jsonData.result[i].Type + "/getPlotImg?fileName=" + jsonData.result[i].src + "&nocache=" + new Date().getTime();
             var img = me.plotPanel.items.getAt(i);
             img.setSrc(src);
             img.setLoading("Loading...");
