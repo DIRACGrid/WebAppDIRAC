@@ -7,7 +7,7 @@ from DIRAC import gConfig, S_OK, S_ERROR
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
-from DIRAC.Core.DISET.TransferClient import TransferClient
+from DIRAC.Core.Tornado.Client.ClientSelector import TransferClientSelector as TransferClient
 
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, FileResponse
 
