@@ -422,7 +422,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
           var response = Ext.JSON.decode(response.responseText);
 
           if (response["success"]) {
-            var src = GLOBAL.BASE_URL + requestHandler + "/getPlotImg?file=" + response["data"];
+            var src = GLOBAL.BASE_URL + requestHandler + "/getPlotImg?fileName=" + response["data"];
             me.rightPanel.replaceImage(image, src, oParams);
           } else {
             GLOBAL.APP.CF.alert(response["errors"], "error");
@@ -505,7 +505,7 @@ Ext.define("Ext.dirac.utils.PlotView", {
                 var response = Ext.JSON.decode(response.responseText);
 
                 if (response["success"]) {
-                  var src = GLOBAL.BASE_URL + me.scope.handlers[me.reportType] + "/getPlotImg?file=" + response["data"];
+                  var src = GLOBAL.BASE_URL + me.scope.handlers[me.reportType] + "/getPlotImg?fileName=" + response["data"];
 
                   me.setSrc(src);
 

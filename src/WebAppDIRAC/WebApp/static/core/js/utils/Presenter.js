@@ -451,7 +451,7 @@ Ext.define("Ext.dirac.utils.Presenter", {
           success: function (responseImg) {
             responseImg = Ext.JSON.decode(responseImg.responseText);
             if (responseImg["success"]) {
-              me.replaceImage(value, GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?file=" + responseImg["data"]);
+              me.replaceImage(value, GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?fileName=" + responseImg["data"]);
             }
           },
           failure: function (response, opt) {
@@ -478,7 +478,7 @@ Ext.define("Ext.dirac.utils.Presenter", {
             success: function (responseImg) {
               responseImg = Ext.JSON.decode(responseImg.responseText);
               if (responseImg["success"]) {
-                me.replaceImage(value, GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?file=" + responseImg["data"]);
+                me.replaceImage(value, GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?fileName=" + responseImg["data"]);
               }
             },
             failure: function (response, opt) {
@@ -519,7 +519,7 @@ Ext.define("Ext.dirac.utils.Presenter", {
           responseImg = Ext.JSON.decode(responseImg.responseText);
 
           if (responseImg["success"]) {
-            value.setSrc(GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?file=" + responseImg["data"]);
+            value.setSrc(GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?fileName=" + responseImg["data"]);
           }
         },
         failure: function (response, opt) {

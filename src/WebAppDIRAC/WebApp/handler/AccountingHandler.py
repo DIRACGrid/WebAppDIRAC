@@ -209,14 +209,14 @@ class AccountingHandler(WebHandler):
             return {"success": True, "data": retVal["Value"]["plot"]}
         return {"success": False, "errors": retVal["Message"]}
 
-    def web_getPlotImg(self, file=None, **kwargs):
+    def web_getPlotImg(self, fileName=None, **kwargs):
         """Get plot image
 
         :param str file: file path
 
         :return: dict
         """
-        plotImageFile = file
+        plotImageFile = fileName
         if not plotImageFile:
             return {"success": "false", "error": "Maybe you forgot the file?"}
         # Prevent directory traversal
@@ -231,14 +231,14 @@ class AccountingHandler(WebHandler):
         data = tempFile.read()
         return FileResponse(data, plotImageFile, "png")
 
-    def web_getPlotImgFromCache(self, file=None, **kwargs):
+    def web_getPlotImgFromCache(self, fileName=None, **kwargs):
         """Get plot image from cache.
 
         :param str file: file path
 
         :return: dict
         """
-        plotImageFile = file
+        plotImageFile = fileName
         if not plotImageFile:
             return {"success": "false", "error": "Maybe you forgot the file?"}
 
