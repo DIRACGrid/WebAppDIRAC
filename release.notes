@@ -1,3 +1,8 @@
+[v5.0.0a14]
+
+FIX: (#643) Fixing nomenclature of arguments for getSelectionData and getPlotImg that
+CHANGE: (#642) removed activity monitor
+
 [v5.0.0a13]
 
 FIX: (#640) Remove x509Chain from the SessionData
