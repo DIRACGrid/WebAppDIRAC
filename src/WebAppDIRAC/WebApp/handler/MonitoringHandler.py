@@ -4,7 +4,7 @@ import tempfile
 import datetime
 
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.DISET.TransferClient import TransferClient
+from DIRAC.Core.Tornado.Client.ClientSelector import TransferClientSelector as TransferClient
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.MonitoringSystem.Client.MonitoringClient import MonitoringClient
