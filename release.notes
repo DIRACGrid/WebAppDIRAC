@@ -1,3 +1,8 @@
+[v5.0.0a15]
+
+FIX: (#645) Use Tornado.Client.ClientSelector.TransferClientSelector instead of DISET TransferClient
+CHANGE: (#641) removed Component Monitoring
+
 [v5.0.0a14]
 
 FIX: (#643) Fixing nomenclature of arguments for getSelectionData and getPlotImg that
