@@ -180,12 +180,15 @@ class MonitoringHandler(WebHandler):
         if not fileName:
             return {"success": "false", "error": "Maybe you forgot the file?"}
         # Prevent directory traversal
+        print("FILENAME: ", fileName)
         plotImageFile = os.path.normpath("/" + fileName).lstrip("/")
+        print("PLOT IMAGE FILE: ", plotImageFile)
         transferClient = TransferClient("Monitoring/Monitoring")
-        tempFile = tempfile.TemporaryFile()
-        retVal = transferClient.receiveFile(tempFile.gettempdir())
+        tempFile = tempfile.NamedTemporaryFile()
+        retVal = transferClient.receiveFile(tempFile.name, plotImageFile)
+        print("THE TEMP FILE DIRECTORY IS: ", tempFile.name)
         print("PRINTING THE RECEIVEING")
-        print(retVal["Message"])
+        print(retVal)
 
         if not retVal["OK"]:
             print("DID NOT WORK")
