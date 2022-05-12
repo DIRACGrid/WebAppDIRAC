@@ -340,10 +340,6 @@ class _WebHandler(TornadoREST):
             self.set_cookie("authGrant", "Visitor")
             return S_ERROR(repr(e))
 
-    @property
-    def log(self):
-        return sLog
-
     @classmethod
     def getLog(cls):
         return sLog
