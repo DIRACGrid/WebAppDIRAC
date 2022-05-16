@@ -5,48 +5,37 @@ from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.Graphs.Palette import Palette
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForDN
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 
 
 class PilotMonitorHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    @asyncGen
     def web_getPilotData(self):
         req = self.__request()
 
-        result = yield self.threadTask(
-            PilotManagerClient().getPilotMonitorWeb, req, self.globalSort, self.pageNumber, self.numberOfJobs
-        )
+        result = PilotManagerClient().getPilotMonitorWeb(req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
         if not result["OK"]:
-            self.finish({"success": "false", "result": [], "total": 0, "error": result["Message"]})
-            return
+            return {"success": "false", "result": [], "total": 0, "error": result["Message"]}
 
         result = result["Value"]
 
         if "TotalRecords" not in result:
-            self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
-            return
+            return {"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"}
 
         if not (result["TotalRecords"] > 0):
-            self.finish(
-                {"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"}
-            )
-            return
+            return {"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"}
 
         if not ("ParameterNames" in result and "Records" in result):
-            self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
-            return
+            return {"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"}
 
         if not (len(result["ParameterNames"]) > 0):
-            self.finish({"success": "false", "result": [], "total": -1, "error": "ParameterNames field is missing"})
-            return
+            return {"success": "false", "result": [], "total": -1, "error": "ParameterNames field is missing"}
 
         if not (len(result["Records"]) > 0):
-            self.finish({"success": "false", "result": [], "total": 0, "Message": "There are no data to display"})
-            return
+            return {"success": "false", "result": [], "total": 0, "Message": "There are no data to display"}
 
         callback = []
         jobs = result["Records"]
@@ -64,14 +53,9 @@ class PilotMonitorHandler(WebHandler):
         total = result["TotalRecords"]
         timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
         if "Extras" in result:
-            extra = result["Extras"]
-            callback = {"success": "true", "result": callback, "total": total, "extra": extra, "date": timestamp}
-        else:
-            callback = {"success": "true", "result": callback, "total": total, "date": timestamp}
+            return {"success": "true", "result": callback, "total": total, "extra": result["Extras"], "date": timestamp}
+        return {"success": "true", "result": callback, "total": total, "date": timestamp}
 
-        self.finish(callback)
-
-    @asyncGen
     def web_getSelectionData(self):
         callback = {}
 
@@ -79,9 +63,7 @@ class PilotMonitorHandler(WebHandler):
             tmp = {self.get_argument(i).replace('"', "") for i in self.request.arguments}
             callback["extra"] = list(tmp)
 
-        result = yield self.threadTask(PilotManagerClient().getPilotMonitorSelectors)
-
-        if result["OK"]:
+        if (result := PilotManagerClient().getPilotMonitorSelectors())["OK"]:
             result = result["Value"]
 
             if "Status" in result and len(result["Status"]) > 0:
@@ -143,9 +125,8 @@ class PilotMonitorHandler(WebHandler):
                 owner = [["Nothing to display"]]
             callback["owner"] = owner
 
-        self.finish(callback)
+        return callback
 
-    ################################################################################
     def __request(self):
         self.numberOfJobs = int(self.get_argument("limit", "25"))
         self.pageNumber = int(self.get_argument("start", "0"))
@@ -203,57 +184,43 @@ class PilotMonitorHandler(WebHandler):
         gLogger.info("REQUEST:", req)
         return req
 
-    @asyncGen
-    def web_getJobInfoData(self):
-        callback = {}
-        data = self.get_argument("data")
-
+    def web_getJobInfoData(self, data):
         RPC = PilotManagerClient()
         if self.get_argument("data_kind") == "getPilotOutput":
-            result = yield self.threadTask(RPC.getPilotOutput, data)
-            if result["OK"]:
-                callback = {"success": "true", "result": result["Value"]["StdOut"]}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        elif self.get_argument("data_kind") == "getPilotError":
-            result = yield self.threadTask(RPC.getPilotOutput, data)
-            if result["OK"]:
+            if (result := RPC.getPilotOutput(data))["OK"]:
+                return {"success": "true", "result": result["Value"]["StdOut"]}
+            return {"success": "false", "error": result["Message"]}
+        if self.get_argument("data_kind") == "getPilotError":
+            if (result := RPC.getPilotOutput(data))["OK"]:
                 if len(result["Value"]["StdErr"]) > 0:
-                    callback = {"success": "true", "result": result["Value"]["StdErr"]}
-                else:
-                    callback = {"success": "false", "error": "Pilot Error is empty"}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
-        elif self.get_argument("data_kind") == "getLoggingInfo":
-            result = yield self.threadTask(RPC.getPilotLoggingInfo, data)
-            if result["OK"]:
-                callback = {"success": "true", "result": result["Value"]}
-            else:
-                callback = {"success": "false", "error": result["Message"]}
+                    return {"success": "true", "result": result["Value"]["StdErr"]}
+                return {"success": "false", "error": "Pilot Error is empty"}
+            return {"success": "false", "error": result["Message"]}
+        if self.get_argument("data_kind") == "getLoggingInfo":
+            if (result := RPC.getPilotLoggingInfo(data))["OK"]:
+                return {"success": "true", "result": result["Value"]}
+            return {"success": "false", "error": result["Message"]}
+        return {}
 
-        self.finish(callback)
-
-    @asyncGen
-    def web_getStatisticsData(self):
+    def web_getStatisticsData(self, statsField):
         req = self.__request()
 
         paletteColor = Palette()
 
         RPC = PilotManagerClient()
 
-        selector = self.get_argument("statsField")
-
-        if selector == "Site":
+        if statsField == "Site":
             selector = "GridSite"
-        if selector == "Computing Element":
+        elif statsField == "Computing Element":
             selector = "DestinationSite"
-        if selector == "Owner Group":
+        elif statsField == "Owner Group":
             selector = "OwnerGroup"
-        if selector == "Owner":
+        elif statsField == "Owner":
             selector = "OwnerDN"
+        else:
+            selector = statsField
 
-        result = yield self.threadTask(RPC.getPilotStatistics, selector, req)
-        if not result["OK"]:
+        if not (result := RPC.getPilotStatistics(selector, req))["OK"]:
             if "FromDate" in req:
                 del req["FromDate"]
 
@@ -263,14 +230,11 @@ class PilotMonitorHandler(WebHandler):
             if "ToDate" in req:
                 del req["ToDate"]
 
-            result = yield self.threadTask(RPC.getCounters, "PilotAgents", [selector], req)
-
             statistics = {}
-            if result["OK"]:
+            if (result := RPC.getCounters("PilotAgents", [selector], req))["OK"]:
                 for status, count in result["Value"]:
                     if "OwnerDN" in status:
-                        userName = getUsernameForDN(status["OwnerDN"])
-                        if userName["OK"]:
+                        if (userName := getUsernameForDN(status["OwnerDN"]))["OK"]:
                             status["OwnerDN"] = userName["Value"]
                     statistics[status[selector]] = count
 
@@ -315,8 +279,5 @@ class PilotMonitorHandler(WebHandler):
                     )
                 else:
                     callback.append({"key": key, "value": result[key], "code": "", "color": paletteColor.getColor(key)})
-            callback = {"success": "true", "result": callback}
-        else:
-            callback = {"success": "false", "error": result["Message"]}
-
-        self.finish(callback)
+            return {"success": "true", "result": callback}
+        return {"success": "false", "error": result["Message"]}
