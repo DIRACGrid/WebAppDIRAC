@@ -1,7 +1,7 @@
 import json
+import datetime
 
 from DIRAC import gConfig, gLogger
-from DIRAC.Core.Utilities import Time
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
 from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
@@ -43,7 +43,7 @@ class PilotSummaryHandler(WebHandler):
             callback.append(tmp)
         total = result["TotalRecords"]
         total = result["TotalRecords"]
-        timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
         if "Extras" in result:
             st = self.__dict2string({})
             extra = result["Extras"]

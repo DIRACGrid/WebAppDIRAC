@@ -1,7 +1,7 @@
 import json
+import datetime
 
 from DIRAC import gConfig, gLogger
-from DIRAC.Core.Utilities import Time
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getAllUsers
 from DIRAC.FrameworkSystem.Client.TokenManagerClient import TokenManagerClient
 
@@ -53,7 +53,7 @@ class TokenManagerHandler(WebHandler):
                     "ExpirationTime": str(record["rt_expires_at"]),
                 }
             )
-        timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
         return {"success": "true", "result": tokens, "total": len(tokens), "date": timestamp}
 
     def web_deleteTokens(self, idList):

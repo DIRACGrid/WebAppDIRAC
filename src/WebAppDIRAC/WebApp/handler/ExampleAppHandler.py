@@ -1,5 +1,5 @@
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
-from DIRAC.Core.Utilities import Time
+import datetime
 
 
 class ExampleAppHandler(WebHandler):
@@ -7,7 +7,7 @@ class ExampleAppHandler(WebHandler):
     DEFAULT_AUTHORIZATION = "all"
 
     def web_getJobData(self):
-        timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
         total = 5
         values = [
             {"ExampleId": 1, "ExampleValue": "Zoli"},
