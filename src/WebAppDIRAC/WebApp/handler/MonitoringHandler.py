@@ -5,7 +5,7 @@ import datetime
 
 from DIRAC import gConfig, S_OK, S_ERROR, gLogger
 from DIRAC.Core.Tornado.Client.ClientSelector import TransferClientSelector as TransferClient
-from DIRAC.Core.Utilities import Time, List, DictCache
+from DIRAC.Core.Utilities import TimeUtilities, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.MonitoringSystem.Client.MonitoringClient import MonitoringClient
 
@@ -109,7 +109,7 @@ class MonitoringHandler(WebHandler):
         # Find the proper time!
         pD["timeSelector"] = int(pD["timeSelector"])
         if pD["timeSelector"] > 0:
-            end = Time.dateTime()
+            end = datetime.datetime.utcnow()
             start = end - datetime.timedelta(seconds=pD["timeSelector"])
             if not pinDates:
                 extraParams["lastSeconds"] = pD["timeSelector"]
@@ -117,12 +117,12 @@ class MonitoringHandler(WebHandler):
             if "endTime" not in pD:
                 end = False
             else:
-                end = Time.fromString(pD["endTime"])
+                end = TimeUtilities.fromString(pD["endTime"])
                 del pD["endTime"]
             if "startTime" not in pD:
                 return S_ERROR("Missing starTime!")
             else:
-                start = Time.fromString(pD["startTime"])
+                start = TimeUtilities.fromString(pD["startTime"])
                 del pD["startTime"]
         del pD["timeSelector"]
 
@@ -233,10 +233,10 @@ class MonitoringHandler(WebHandler):
         if "granularity" in rawData:
             granularity = rawData["granularity"]
             data = rawData["data"]
-            tS = int(Time.toEpoch(params[2]))
+            tS = int(TimeUtilities.toEpoch(params[2]))
             timeStart = tS - tS % granularity
             strData = "epoch,%s\n" % ",".join(groupKeys)
-            for timeSlot in range(timeStart, int(Time.toEpoch(params[3])), granularity):
+            for timeSlot in range(timeStart, int(TimeUtilities.toEpoch(params[3])), granularity):
                 lineData = [str(timeSlot)]
                 for key in groupKeys:
                     if timeSlot in data[key]:
