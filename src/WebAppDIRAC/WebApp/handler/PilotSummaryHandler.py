@@ -4,49 +4,32 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
 from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 
 
 class PilotSummaryHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    @asyncGen
     def web_getPilotSummaryData(self):
-        callback = {}
         req = self.__request()
 
-        result = yield self.threadTask(
-            PilotManagerClient().getPilotSummaryWeb, req, self.globalSort, self.pageNumber, self.numberOfJobs
-        )
-
+        result = PilotManagerClient().getPilotSummaryWeb(req, self.globalSort, self.pageNumber, self.numberOfJobs)
         if not result["OK"]:
-            self.finish({"success": "false", "result": [], "total": 0, "error": result["Message"]})
-            return
+            return {"success": "false", "result": [], "total": 0, "error": result["Message"]}
 
         result = result["Value"]
 
         if "TotalRecords" not in result:
-            self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
-            return
-
+            return {"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"}
         if not (result["TotalRecords"] > 0):
-            self.finish(
-                {"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"}
-            )
-            return
-
+            return {"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"}
         if not ("ParameterNames" in result and "Records" in result):
-            self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
-            return
-
+            return {"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"}
         if not (len(result["ParameterNames"]) > 0):
-            self.finish({"success": "false", "result": [], "total": -1, "error": "ParameterNames field is missing"})
-            return
-
+            return {"success": "false", "result": [], "total": -1, "error": "ParameterNames field is missing"}
         if not (len(result["Records"]) > 0):
-            self.finish({"success": "false", "result": [], "total": 0, "Message": "There are no data to display"})
-            return
+            return {"success": "false", "result": [], "total": 0, "Message": "There are no data to display"}
 
         callback = []
         jobs = result["Records"]
@@ -64,7 +47,7 @@ class PilotSummaryHandler(WebHandler):
         if "Extras" in result:
             st = self.__dict2string({})
             extra = result["Extras"]
-            callback = {
+            return {
                 "success": "true",
                 "result": callback,
                 "total": total,
@@ -72,9 +55,7 @@ class PilotSummaryHandler(WebHandler):
                 "request": st,
                 "date": timestamp,
             }
-        else:
-            callback = {"success": "true", "result": callback, "total": total, "date": timestamp}
-        self.finish(callback)
+        return {"success": "true", "result": callback, "total": total, "date": timestamp}
 
     def __dict2string(self, req):
         result = ""
@@ -88,51 +69,35 @@ class PilotSummaryHandler(WebHandler):
         result = result[:-1]
         return result
 
-    @asyncGen
     def web_getSelectionData(self):
         callback = {}
-        group = self.getUserGroup()
-        user = self.getUserName()
-        if user == "Anonymous":
-            self.finish({"success": "false", "result": [], "total": 0, "error": "Insufficient rights"})
-        else:
-            result = yield self.threadTask(JobMonitoringClient().getSites)
-            if result["OK"]:
-                tier1 = gConfig.getValue("/WebApp/PreferredSites")
-                if tier1:
-                    try:
-                        tier1 = tier1.split(", ")
-                    except BaseException:
-                        tier1 = list()
-                else:
-                    tier1 = list()
-                site = []
-                if len(result["Value"]) > 0:
-                    s = list(result["Value"])
-                    for i in tier1:
+        if self.getUserName() == "Anonymous":
+            return {"success": "false", "result": [], "total": 0, "error": "Insufficient rights"}
+
+        if (result := JobMonitoringClient().getSites())["OK"]:
+            tier1 = gConfig.getValue("/WebApp/PreferredSites", [])
+            site = []
+            if len(result["Value"]) > 0:
+                s = list(result["Value"])
+                for i in tier1:
+                    site.append([str(i)])
+                for i in s:
+                    if i not in tier1:
                         site.append([str(i)])
-                    for i in s:
-                        if i not in tier1:
-                            site.append([str(i)])
-                else:
-                    site = [["Nothing to display"]]
-
             else:
-                site = [["Error during RPC call"]]
+                site = [["Nothing to display"]]
 
-            callback["site"] = site
-            callback["Status"] = [["Good"], ["Bad"], ["Idle"], ["Poor"], ["Fair"]]
+        else:
+            site = [["Error during RPC call"]]
 
-            self.finish(callback)
-
-    ################################################################################
+        callback["site"] = site
+        callback["Status"] = [["Good"], ["Bad"], ["Idle"], ["Poor"], ["Fair"]]
+        return callback
 
     def __request(self):
         self.numberOfJobs = int(self.get_argument("limit", "25"))
         self.pageNumber = int(self.get_argument("start", "0"))
         self.globalSort = [["GridSite", "ASC"]]
-        group = self.getUserGroup()
-        user = self.getUserName()
 
         req = {}
         found = False
