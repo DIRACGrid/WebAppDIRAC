@@ -1,3 +1,9 @@
+[v5.0.0a16]
+
+CHANGE: (#651) PilotSummary: use BaseRequestHandler
+NEW: (#650) use BaseRequestHandler for PilotMonitor
+CHANGE: (#648) remove log preoperty from webHandler
+
 [v5.0.0a15]
 
 FIX: (#645) Use Tornado.Client.ClientSelector.TransferClientSelector instead of DISET TransferClient
