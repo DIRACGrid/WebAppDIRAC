@@ -1,10 +1,11 @@
 import json
+import datetime
 
 from diraccfg import CFG
 
 from DIRAC import gConfig
 from DIRAC.ConfigurationSystem.Client.ConfigurationClient import ConfigurationClient
-from DIRAC.Core.Utilities import Time, List
+from DIRAC.Core.Utilities import List
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
 from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, WErr, asyncGen
@@ -602,7 +603,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         commiter = "%s@%s - %s" % (
             self.getUserName(),
             self.getUserGroup(),
-            Time.dateTime().strftime("%Y-%m-%d %H:%M:%S"),
+            datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         )
         self.__configData["cfgData"].commiterId = commiter
 

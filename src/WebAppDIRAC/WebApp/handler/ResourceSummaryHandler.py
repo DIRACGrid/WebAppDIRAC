@@ -1,8 +1,8 @@
 import collections
 import json
+import datetime
 
 from DIRAC import gLogger
-from DIRAC.Core.Utilities import Time
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
 
@@ -446,6 +446,6 @@ class ResourceSummaryHandler(SummaryHandlerMix):
 
         yield self.threadTask(rssMachine.orderPolicyResults, elementList)
 
-        timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
 
         self.finish({"success": "true", "result": elementList, "total": len(elementList), "date": timestamp})

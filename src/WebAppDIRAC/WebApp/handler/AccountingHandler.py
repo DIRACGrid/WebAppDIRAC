@@ -4,7 +4,7 @@ import datetime
 import tempfile
 
 from DIRAC import gConfig, S_OK, S_ERROR
-from DIRAC.Core.Utilities import Time, List, DictCache
+from DIRAC.Core.Utilities import TimeUtilities, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
 from DIRAC.Core.Tornado.Client.ClientSelector import TransferClientSelector as TransferClient
@@ -136,7 +136,7 @@ class AccountingHandler(WebHandler):
         # Find the proper time!
         pD["timeSelector"] = timeSelector
         if pD["timeSelector"] > 0:
-            end = Time.dateTime()
+            end = datetime.datetime.utcnow()
             start = end - datetime.timedelta(seconds=pD["timeSelector"])
             if not pinDates:
                 extraParams["lastSeconds"] = pD["timeSelector"]
@@ -144,11 +144,11 @@ class AccountingHandler(WebHandler):
 
             end = False
             if "endTime" in pD:
-                end = Time.fromString(pD["endTime"])
+                end = TimeUtilities.fromString(pD["endTime"])
                 del pD["endTime"]
             if "startTime" not in pD:
                 return S_ERROR("Missing starTime!")
-            start = Time.fromString(pD["startTime"])
+            start = TimeUtilities.fromString(pD["startTime"])
             del pD["startTime"]
         del pD["timeSelector"]
 
@@ -290,10 +290,10 @@ class AccountingHandler(WebHandler):
         if "granularity" in rawData:
             granularity = rawData["granularity"]
             data = rawData["data"]
-            tS = int(Time.toEpoch(start))
+            tS = int(TimeUtilities.toEpoch(start))
             timeStart = tS - tS % granularity
             strData = "epoch,%s\n" % ",".join(groupKeys)
-            for timeSlot in range(timeStart, int(Time.toEpoch(end)), granularity):
+            for timeSlot in range(timeStart, int(TimeUtilities.toEpoch(end)), granularity):
                 lineData = [str(timeSlot)]
                 for key in groupKeys:
                     lineData.append(str(data[key][timeSlot]) if timeSlot in data[key] else "")

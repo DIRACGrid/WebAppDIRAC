@@ -1,7 +1,7 @@
 import json
+import datetime
 
 from DIRAC import gConfig, gLogger
-from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities import DictCache
 from DIRAC.Core.Utilities.Graphs.Palette import Palette
 from DIRAC.RequestManagementSystem.Client.Request import Request
@@ -83,7 +83,7 @@ class JobMonitorHandler(WebHandler):
         extra = None
         if "Extras" in result:
             extra = result["Extras"]
-            timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+            timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
             extra["date"] = timestamp
 
         return {"success": "true", "result": callback, "total": total, "extra": extra}
