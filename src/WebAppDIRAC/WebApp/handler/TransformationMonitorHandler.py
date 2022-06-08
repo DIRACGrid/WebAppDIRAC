@@ -2,6 +2,7 @@
 """
 
 import json
+import time
 
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import TimeUtilities
@@ -93,7 +94,7 @@ class TransformationMonitorHandler(WebHandler):
 
     @asyncGen
     def web_getTransformationData(self):
-        pagestart = TimeUtilities.time()
+        pagestart = time.time()
         user = self.getUserName()
 
         tsClient = TransformationClient(timeout=3600)
@@ -152,7 +153,7 @@ class TransformationMonitorHandler(WebHandler):
             else:
                 callback = {"success": "true", "result": callback, "total": total, "date": None}
 
-            gLogger.info("\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % (TimeUtilities.time() - pagestart))
+            gLogger.info("\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % (time.time() - pagestart))
         self.finish(json.dumps(callback))
 
     ################################################################################
