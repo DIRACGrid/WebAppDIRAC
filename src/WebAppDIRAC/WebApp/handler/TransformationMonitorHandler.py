@@ -4,7 +4,7 @@
 import json
 
 from DIRAC import gConfig, gLogger
-from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities import TimeUtilities
 from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
@@ -93,7 +93,7 @@ class TransformationMonitorHandler(WebHandler):
 
     @asyncGen
     def web_getTransformationData(self):
-        pagestart = Time.time()
+        pagestart = TimeUtilities.time()
         user = self.getUserName()
 
         tsClient = TransformationClient(timeout=3600)
@@ -147,12 +147,12 @@ class TransformationMonitorHandler(WebHandler):
             if "Extras" in result:
                 gLogger.info(result["Extras"])
                 extra = result["Extras"]
-                timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+                timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
                 callback = {"success": "true", "result": callback, "total": total, "extra": extra, "date": timestamp}
             else:
                 callback = {"success": "true", "result": callback, "total": total, "date": None}
 
-            gLogger.info("\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % (Time.time() - pagestart))
+            gLogger.info("\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % (TimeUtilities.time() - pagestart))
         self.finish(json.dumps(callback))
 
     ################################################################################
@@ -311,7 +311,7 @@ class TransformationMonitorHandler(WebHandler):
                 for i in result:
                     DN = i["AuthorDN"]
                     i["AuthorDN"] = dndb.get(DN, DN)
-                    date = Time.toString(i["MessageDate"])
+                    date = TimeUtilities.toString(i["MessageDate"])
                     callback.append([i["Message"], date, i["AuthorDN"]])
                 callback = {"success": "true", "result": callback}
             else:
@@ -405,7 +405,7 @@ class TransformationMonitorHandler(WebHandler):
                                 tmp = {head[j]: i[j] for j in range(headLength)}
                                 callback.append(tmp)
                             total = result["TotalRecords"]
-                            timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+                            timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
                             if "Extras" in result:
                                 extra = result["Extras"]
                                 callback = {

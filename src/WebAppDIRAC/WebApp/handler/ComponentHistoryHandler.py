@@ -1,7 +1,7 @@
 import json
 import datetime
 
-from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities import TimeUtilities
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
 
@@ -49,7 +49,7 @@ class ComponentHistoryHandler(WebHandler):
                         "UninstalledBy": uninstalledBy,
                     }
                 )
-            timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+            timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
             total = len(installations)
             callback = {"success": "true", "result": values, "total": total, "date": timestamp}
         else:

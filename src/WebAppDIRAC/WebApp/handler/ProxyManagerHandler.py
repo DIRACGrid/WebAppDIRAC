@@ -1,6 +1,6 @@
 import json
 from DIRAC import gConfig, gLogger
-from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities import TimeUtilities
 from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
@@ -95,7 +95,7 @@ class ProxyManagerHandler(WebHandler):
         #                   'UserGroups': record['groups'],
         #                   'ExpirationTime': str(record['expirationtime']),
         #                   'Provider': record['provider']})
-        timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
         data = {"success": "true", "result": proxies, "total": svcData["TotalRecords"], "date": timestamp}
         self.finish(data)
 

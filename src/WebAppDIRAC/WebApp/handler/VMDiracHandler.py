@@ -1,7 +1,7 @@
 import ast
 import json
 
-from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities import TimeUtilities
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 from DIRAC.WorkloadManagementSystem.Client.VMClient import VMClient
 
@@ -99,12 +99,12 @@ class VMDiracHandler(WebHandler):
             return
         svcData = result["Value"]
         data = []
-        olderThan = Time.toEpoch() - 400
+        olderThan = TimeUtilities.toEpoch() - 400
         for record in svcData["Records"]:
             rL = []
             for iP in range(len(svcData["ParameterNames"])):
                 param = svcData["ParameterNames"][iP]
-                rL.append(Time.toEpoch(record[iP]) if param == "Update" else record[iP])
+                rL.append(TimeUtilities.toEpoch(record[iP]) if param == "Update" else record[iP])
             if rL[0] < olderThan:
                 data.append(rL)
         self.finish({"success": "true", "data": data, "fields": svcData["ParameterNames"]})
@@ -124,10 +124,10 @@ class VMDiracHandler(WebHandler):
             return
         svcData = result["Value"]
         data = []
-        olderThan = Time.toEpoch() - 400
+        olderThan = TimeUtilities.toEpoch() - 400
         rL = []
         for record in svcData:
-            eTime = Time.toEpoch(record[0])
+            eTime = TimeUtilities.toEpoch(record[0])
             if eTime < olderThan:
                 rL = [eTime, int(record[1])]
             data.append(rL)
@@ -148,9 +148,9 @@ class VMDiracHandler(WebHandler):
             return
         svcData = result["Value"]
         data = []
-        olderThan = Time.toEpoch() - 400
+        olderThan = TimeUtilities.toEpoch() - 400
         for record in svcData:
-            eTime = Time.toEpoch(record[0])
+            eTime = TimeUtilities.toEpoch(record[0])
             if eTime < olderThan:
                 rL = [eTime, record[1], int(record[2])]
             data.append(rL)
@@ -171,9 +171,9 @@ class VMDiracHandler(WebHandler):
             return
         svcData = result["Value"]
         data = []
-        olderThan = Time.toEpoch() - 400
+        olderThan = TimeUtilities.toEpoch() - 400
         for record in svcData:
-            eTime = Time.toEpoch(record[0])
+            eTime = TimeUtilities.toEpoch(record[0])
             if eTime < olderThan:
                 rL = [eTime, record[1], int(record[2])]
             data.append(rL)
@@ -194,9 +194,9 @@ class VMDiracHandler(WebHandler):
             return
         svcData = result["Value"]
         data = []
-        olderThan = Time.toEpoch() - 400
+        olderThan = TimeUtilities.toEpoch() - 400
         for record in svcData:
-            eTime = Time.toEpoch(record[0])
+            eTime = TimeUtilities.toEpoch(record[0])
             if eTime < olderThan:
                 rL = [eTime, record[1], int(record[2])]
             data.append(rL)

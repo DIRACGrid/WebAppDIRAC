@@ -1,7 +1,7 @@
 import json
 
 from DIRAC import gConfig, S_OK, gLogger
-from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities import TimeUtilities
 from DIRAC.Core.Utilities.Graphs.Palette import Palette
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForDN
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
@@ -51,7 +51,7 @@ class PilotMonitorHandler(WebHandler):
                 tmp[head[j]] = i[j]
             callback.append(tmp)
         total = result["TotalRecords"]
-        timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
         if "Extras" in result:
             return {"success": "true", "result": callback, "total": total, "extra": result["Extras"], "date": timestamp}
         return {"success": "true", "result": callback, "total": total, "date": timestamp}

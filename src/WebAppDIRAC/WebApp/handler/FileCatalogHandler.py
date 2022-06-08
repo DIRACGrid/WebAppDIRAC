@@ -5,7 +5,7 @@ import shutil
 import zipfile
 
 from DIRAC import gLogger, S_ERROR, S_OK
-from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities import TimeUtilities
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
@@ -255,7 +255,7 @@ class FileCatalogHandler(WebHandler):
                     "metadata": meta,
                 }
             )
-        timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
         return {"success": "true", "result": callback, "total": total, "date": timestamp}
 
     def web_getMetadataFilesInFile(self, selection="", lfnPath=None):

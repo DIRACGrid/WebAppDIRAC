@@ -11,7 +11,7 @@
  *    ExampleHandler.py:
  *    from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
  *     from DIRAC import gConfig, S_OK, S_ERROR, gLogger
- *     from DIRAC.Core.Utilities import Time
+ *     from DIRAC.Core.Utilities import TimeUtilities
  *     import json
  *
  *     class ExampleAppHandler(WebHandler):
@@ -20,7 +20,7 @@
  *
  *       @asyncGen
  *       def web_getJobData(self):
- *         timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+ *         timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
  *         total = 5
  *         values = []
  *         values = [{"ExampleId":1,"ExampleValue":"Zoli"},{"ExampleId":2,"ExampleValue":'a'},{"ExampleId":3,"ExampleValue":'aaaa'},{"ExampleId":4,"ExampleValue":'bbbb'},{"ExampleId":5,"ExampleValue":'adsd'}]
