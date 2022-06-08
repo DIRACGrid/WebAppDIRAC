@@ -200,15 +200,6 @@ class _WebHandler(TornadoREST):
         cls.PATH_RE = re.compile(f"{cls.BASE_URL}(.*)")
         return urls
 
-    def finish(self, data=None, *args, **kwargs):
-        """Finishes this response, ending the HTTP request. More detailes:
-        https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
-        """
-        if data and isinstance(data, dict):
-            self.set_header("Content-Type", "application/json")
-            data = json.dumps(data, default=defaultEncoder)
-        return super().finish(data, *args, **kwargs)
-
     @classmethod
     def _getCSAuthorizarionSection(cls, handler):
         """Search endpoint auth section.
@@ -218,6 +209,16 @@ class _WebHandler(TornadoREST):
         :return: str
         """
         return Conf.getAuthSectionForHandler(handler)
+
+    @staticmethod
+    def encode(inData):
+        """Encode data.
+        The method is defined in BaseRequestHandler and redefined in _WebHandler to provide
+        correct JSON data to the view.
+
+        :return: encoded data
+        """
+        return json.dumps(inData, default=defaultEncoder)
 
     def _getMethodArgs(self, args: tuple, kwargs: dict):
         """Decode args.
@@ -430,6 +431,15 @@ class WebHandler(_WebHandler):
 
         targs = (args, self.__disetDump)
         return IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *targs, **kwargs))
+
+    def finish(self, data=None, *args, **kwargs):
+        """Finishes this response, ending the HTTP request. More detailes:
+        https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
+        """
+        if data and isinstance(data, dict):
+            self.set_header("Content-Type", "application/json")
+            data = json.dumps(data, default=defaultEncoder)
+        return super().finish(data, *args, **kwargs)
 
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
