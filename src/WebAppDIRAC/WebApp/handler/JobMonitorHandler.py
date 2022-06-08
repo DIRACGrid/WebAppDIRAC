@@ -83,7 +83,7 @@ class JobMonitorHandler(WebHandler):
         extra = None
         if "Extras" in result:
             extra = result["Extras"]
-            timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+            timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
             extra["date"] = timestamp
 
         return {"success": "true", "result": callback, "total": total, "extra": extra}

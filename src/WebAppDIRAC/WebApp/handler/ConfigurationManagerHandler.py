@@ -602,7 +602,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         commiter = "%s@%s - %s" % (
             self.getUserName(),
             self.getUserGroup(),
-            TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M:%S"),
+            datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         )
         self.__configData["cfgData"].commiterId = commiter
 

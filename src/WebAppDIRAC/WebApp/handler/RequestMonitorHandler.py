@@ -66,7 +66,7 @@ class RequestMonitorHandler(WebHandler):
             callback.append(tmp)
         total = result["TotalRecords"]
         total = result["TotalRecords"]
-        timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
         if "Extras" in result:
             st = self.__dict2string({})
             extra = result["Extras"]

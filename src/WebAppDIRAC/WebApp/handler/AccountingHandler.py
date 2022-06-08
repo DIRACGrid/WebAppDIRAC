@@ -136,7 +136,7 @@ class AccountingHandler(WebHandler):
         # Find the proper time!
         pD["timeSelector"] = timeSelector
         if pD["timeSelector"] > 0:
-            end = TimeUtilities.dateTime()
+            end = datetime.datetime.utcnow()
             start = end - datetime.timedelta(seconds=pD["timeSelector"])
             if not pinDates:
                 extraParams["lastSeconds"] = pD["timeSelector"]

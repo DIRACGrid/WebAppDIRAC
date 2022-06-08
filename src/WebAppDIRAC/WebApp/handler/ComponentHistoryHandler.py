@@ -49,7 +49,7 @@ class ComponentHistoryHandler(WebHandler):
                         "UninstalledBy": uninstalledBy,
                     }
                 )
-            timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+            timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
             total = len(installations)
             callback = {"success": "true", "result": values, "total": total, "date": timestamp}
         else:

@@ -51,7 +51,7 @@ class PilotMonitorHandler(WebHandler):
                 tmp[head[j]] = i[j]
             callback.append(tmp)
         total = result["TotalRecords"]
-        timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
         if "Extras" in result:
             return {"success": "true", "result": callback, "total": total, "extra": result["Extras"], "date": timestamp}
         return {"success": "true", "result": callback, "total": total, "date": timestamp}

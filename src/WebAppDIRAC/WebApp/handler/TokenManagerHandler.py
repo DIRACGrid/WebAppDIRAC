@@ -53,7 +53,7 @@ class TokenManagerHandler(WebHandler):
                     "ExpirationTime": str(record["rt_expires_at"]),
                 }
             )
-        timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
         return {"success": "true", "result": tokens, "total": len(tokens), "date": timestamp}
 
     def web_deleteTokens(self, idList):

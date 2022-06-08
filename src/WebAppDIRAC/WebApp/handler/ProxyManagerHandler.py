@@ -95,7 +95,7 @@ class ProxyManagerHandler(WebHandler):
         #                   'UserGroups': record['groups'],
         #                   'ExpirationTime': str(record['expirationtime']),
         #                   'Provider': record['provider']})
-        timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
         data = {"success": "true", "result": proxies, "total": svcData["TotalRecords"], "date": timestamp}
         self.finish(data)
 

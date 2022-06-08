@@ -147,7 +147,7 @@ class TransformationMonitorHandler(WebHandler):
             if "Extras" in result:
                 gLogger.info(result["Extras"])
                 extra = result["Extras"]
-                timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+                timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
                 callback = {"success": "true", "result": callback, "total": total, "extra": extra, "date": timestamp}
             else:
                 callback = {"success": "true", "result": callback, "total": total, "date": None}
@@ -405,7 +405,7 @@ class TransformationMonitorHandler(WebHandler):
                                 tmp = {head[j]: i[j] for j in range(headLength)}
                                 callback.append(tmp)
                             total = result["TotalRecords"]
-                            timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+                            timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
                             if "Extras" in result:
                                 extra = result["Extras"]
                                 callback = {

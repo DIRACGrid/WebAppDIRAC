@@ -255,7 +255,7 @@ class FileCatalogHandler(WebHandler):
                     "metadata": meta,
                 }
             )
-        timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
         return {"success": "true", "result": callback, "total": total, "date": timestamp}
 
     def web_getMetadataFilesInFile(self, selection="", lfnPath=None):

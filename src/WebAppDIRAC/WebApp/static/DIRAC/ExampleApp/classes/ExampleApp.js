@@ -20,7 +20,7 @@
  *
  *       @asyncGen
  *       def web_getJobData(self):
- *         timestamp = TimeUtilities.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
+ *         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
  *         total = 5
  *         values = []
  *         values = [{"ExampleId":1,"ExampleValue":"Zoli"},{"ExampleId":2,"ExampleValue":'a'},{"ExampleId":3,"ExampleValue":'aaaa'},{"ExampleId":4,"ExampleValue":'bbbb'},{"ExampleId":5,"ExampleValue":'adsd'}]
