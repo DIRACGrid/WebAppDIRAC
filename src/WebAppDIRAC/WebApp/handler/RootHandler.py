@@ -18,54 +18,38 @@ class RootHandler(WebHandler):
     DEFAULT_LOCATION = "/"
     SUPPORTED_METHODS = ("GET",)
 
-    def web_changeGroup(self, to):
+    def web_changeGroup(self, group: str):
         """Change group
 
-        :param str to: group name
-
         :return: TornadoResponse()
         """
-        return TornadoResponse().redirect(self.__change(group=to))  # pylint: disable=no-member
+        return TornadoResponse().redirect(self.__change(group=group))  # pylint: disable=no-member
 
-    def web_changeSetup(self, to):
+    def web_changeSetup(self, setup: str):
         """Change setup
 
-        :param str to: setup name
-
         :return: TornadoResponse()
         """
-        return TornadoResponse().redirect(self.__change(setup=to))  # pylint: disable=no-member
+        return TornadoResponse().redirect(self.__change(setup=setup))  # pylint: disable=no-member
 
-    def __change(self, setup=None, group=None):
-        """Generate URL to change setup/group
-
-        :param str setup: setup name
-        :param str group: group name
-
-        :return: str
-        """
-        url = [
-            Conf.rootURL().strip("/"),
-            "s:%s" % (setup or self.getUserSetup()),
-            "g:%s" % (group or self.getUserGroup() or "anon"),
-        ]
-        qs = False
+    def __change(self, setup: str = None, group: str = None) -> str:
+        """Generate URL to change setup/group"""
+        url = f"/{Conf.rootURL().strip('/')}"
+        if group := (group or self.getUserGroup() or "anon"):
+            url += f"/g:{group}"
+        if setup := (setup or self.getUserSetup()):
+            url += f"/s:{setup}"
         if "Referer" in self.request.headers:
-            o = urlparse(self.request.headers["Referer"])
-            url.append("?%s" % o.query)
-        return "/%s" % "/".join(url)
+            url += f"/?{urlparse(self.request.headers['Referer']).query}"
+        return url
 
-    def web_getConfigData(self, **kwargs):
-        """Get session data
-
-        :return: dict
-        """
+    def web_getConfigData(self, **kwargs) -> dict:
+        """Get session data"""
         return self.getSessionData()
 
     def web_logout(self, **kwargs):
         """Logout"""
-        token = self.get_secure_cookie("session_id")
-        if token:
+        if token := self.get_secure_cookie("session_id"):
             token = json.loads(token)
             if token.get("refresh_token"):
                 result = self._idps.getIdProvider("DIRACWeb")
@@ -88,8 +72,7 @@ class RootHandler(WebHandler):
 
         :return: TornadoResponse()
         """
-        result = self._idps.getIdProvider("DIRACWeb")
-        if not result["OK"]:
+        if not (result := self._idps.getIdProvider("DIRACWeb"))["OK"]:
             raise WErr(500, result["Message"])
         cli = result["Value"]
         cli.scope = ""
@@ -162,16 +145,18 @@ class RootHandler(WebHandler):
         resp.set_secure_cookie("session_id", json.dumps(dict(token)), secure=True, httponly=True)
         resp.set_cookie("authGrant", "Session")  # pylint: disable=no-member
 
-        result = cli.researchGroup()
-        if not result["OK"]:
+        if not (result := cli.researchGroup())["OK"]:
             # pylint: disable=no-member
             return resp.finish(
                 t.generate(next=authSession["next"], access_token="", message=result["Message"]).decode()
             )
-        group = result["Value"].get("group")
+        nextURL = f"/{Conf.rootURL().strip('/')}"
+        if group := result["Value"].get("group"):
+            nextURL += f"/g:{group}"
+        if setup := self.getUserSetup():
+            nextURL += f"/s:{setup}"
+        nextURL += f"/?{urlparse(authSession['next']).query}"
 
-        url = "/".join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
-        nextURL = "/%s/?%s" % (url, urlparse(authSession["next"]).query)
         # Save token and go to main page
         # with document('DIRAC authentication') as html:
         #   dom.div('Authorization is done.',
