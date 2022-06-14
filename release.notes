@@ -1,3 +1,9 @@
+[v5.0.0a17]
+
+FIX: (#654) correction of the final address after to authorization
+FIX: (#652) Changed import names for TimeUtilities import following DIRAC PR #6091
+FIX: (#646) JobMonitor page with datetime values
+
 [v5.0.0a16]
 
 CHANGE: (#651) PilotSummary: use BaseRequestHandler
