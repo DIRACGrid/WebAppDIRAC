@@ -32,8 +32,8 @@ class RootHandler(WebHandler):
         """
         return TornadoResponse().redirect(self.__change(setup=to))  # pylint: disable=no-member
 
-    def __change(self, setup: str = None, group: str = None) -> str:
-        """Generate URL to change setup/group"""
+    def __change(self, setup: str = None, group: str = None, query: str = None) -> str:
+        """Generate URL to change setup/group, set query"""
         url = f"/{Conf.rootURL().strip('/')}"
         if setup := (setup or self.getUserSetup()):
             url += f"/s:{setup}"
