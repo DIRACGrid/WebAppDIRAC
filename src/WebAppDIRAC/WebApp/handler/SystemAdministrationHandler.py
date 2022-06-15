@@ -2,14 +2,12 @@
 """
 
 import json
-import datetime
 
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
-from DIRAC.FrameworkSystem.DB.ComponentMonitoringDB import ComponentMonitoringDB
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
 
@@ -42,6 +40,7 @@ class SystemAdministrationHandler(WebHandler):
             )
 
         self.finish({"success": "true", "result": sorted(callback, key=lambda i: i["Host"]), "total": len(callback)})
+        return
 
     @asyncGen
     def web_getHostData(self):
@@ -589,7 +588,6 @@ class SystemAdministrationHandler(WebHandler):
 
         setup = self.getUserSetup().split("-")[-1]
 
-        hosts = []
         result = ComponentMonitoringClient().getHosts({}, False, False)
         if result["OK"]:
             for hostDict in result["Value"]:
@@ -636,101 +634,30 @@ class SystemAdministrationHandler(WebHandler):
     @asyncGen
     def web_ComponentLocation(self):
 
-        _setup = self.getUserSetup()
-        setup = _setup.split("-")[-1]
-
-        hosts = []
-        result = ComponentMonitoringClient().getHosts({}, False, False)
-        if result["OK"]:
-            hosts = [h["HostName"] for h in result["Value"] if h.get("HostName")]
-
-        componentTypes = ["Services", "Agents"]
+        componentTypes = ["Service", "Agent", "Executor"]
         componentTypes = self.get_arguments("ComponentType") or componentTypes
-
-        componentNames = []
-        if "ComponentName" in self.request.arguments:
-            componentNames = list(json.loads(self.get_argument("ComponentName")))
 
         componentModules = []
         if "ComponentModule" in self.request.arguments:
             componentModules = list(json.loads(self.get_argument("ComponentModule")))
 
-        showAll = 0
-        if "showAll" in self.request.arguments:
-            showAll = int(self.get_argument("showAll"))
-
         selectedHosts = []
         if "Hosts" in self.request.arguments:  # we only use the selected host(s)
             selectedHosts = list(json.loads(self.get_argument("Hosts")))
-        retVal = gConfig.getSections("/Systems")
 
-        compMatching = {}
-        fullNames = []
-        if retVal["OK"]:
-            systems = retVal["Value"]
-            for i in systems:
-                for compType in componentTypes:
-                    compPath = "/Systems/%s/%s/%s" % (i, setup, compType)
-                    retVal = gConfig.getSections(compPath)
-                    if retVal["OK"]:
-                        components = retVal["Value"]
-                        for j in components:
-                            path = "%s/%s" % (i, j)
-                            if j in componentNames:
-                                fullNames += [path]
-                                compMatching[path] = path
-                            modulepath = "%s/%s/Module" % (compPath, j)
-                            module = gConfig.getValue(modulepath, "")
-                            if module != "" and module in componentModules:
-                                fullNames += [path]
-                            elif module == "" and j in componentModules:
-                                fullNames += [path]
-
-                            compMatching[path] = module if module != "" else path
-
-        records = []
-        if fullNames:
-            condDict = {"Setup": _setup, "ComponentName": fullNames}
-        else:
-            if len(componentTypes) < 2:
-                cType = "agent" if componentTypes[-1] == "Agents" else "service"
-                condDict = {"Setup": _setup, "Type": cType}
-            else:
-                condDict = {"Setup": _setup}
-
+        condDict = {"Type": componentTypes, "DIRACModule": componentModules}
         gLogger.debug("condDict" + str(condDict))
-        retVal = ComponentMonitoringDB.getComponentsStatus(condDict)
 
-        today = datetime.datetime.today()
-        if retVal["OK"]:
-            components = retVal["Value"][0]
-            for setup in components:
-                for cType in components[setup]:
-                    for name in components[setup][cType]:
-                        for component in components[setup][cType][name]:
-                            if selectedHosts and "Host" in component and component["Host"] not in selectedHosts:
-                                continue
-                            elif "Host" in component and component["Host"] not in hosts:
-                                continue
-                            if "LastHeartbeat" in component:
-                                dateDiff = today - component["LastHeartbeat"]
-                            else:
-                                dateDiff = today - today
+        res = ComponentMonitoringClient().getComponents(condDict, True, True)
+        if not res["OK"]:
+            self.finish({"success": "false", "error": res["Message"]})
+        records = []
+        for component in res["Value"]:
+            installedInHosts = [installation["Host"]["HostName"] for installation in component["Installations"]]
+            if selectedHosts and not set.intersection(set(selectedHosts), set(installedInHosts)):
+                continue
 
-                            if showAll == 0 and dateDiff.days >= 2 and "Host" in component:
-                                continue
+            component["ComponentModule"] = component["DIRACSystem"] + "/" + component["DIRACModule"]
+            records += [component]
 
-                            for conv in component:
-                                component[conv] = str(component[conv])
-                            component["ComponentModule"] = (
-                                compMatching[component["ComponentName"]]
-                                if component["ComponentName"] in compMatching
-                                else component["ComponentName"]
-                            )
-                            records += [component]
-
-            result = {"success": "true", "result": records}
-        else:
-            result = {"success": "false", "error": retVal["Message"]}
-
-        self.finish(result)
+        self.finish({"success": "true", "result": records})
