@@ -9,7 +9,6 @@ from DIRAC.Core.Utilities.Plotting.FileCoding import codeRequestInFileId
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getSiteCEMapping, getGOCSiteName, getDIRACSiteName
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 
-from WebAppDIRAC.Lib.WebHandler import asyncGen
 from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import SummaryHandlerMix
 
 
@@ -17,29 +16,24 @@ class SiteSummaryHandler(SummaryHandlerMix):
 
     ELEMENT_TYPE = "Site"
 
-    @asyncGen
     def web_getSelectionData(self):
-        callback = yield self.threadTask(self._getSelectionData)
+        callback = self._getSelectionData()
         self.finish(callback)
 
-    @asyncGen
     def web_expand(self):
-        callback = yield self.threadTask(self._expand)
+        callback = self._expand()
         self.finish(callback)
 
-    @asyncGen
     def web_action(self):
-        callback = yield self.threadTask(self._action)
+        callback = self._action()
         self.finish(callback)
 
-    @asyncGen
     def web_getSiteSummaryData(self):
         """This method returns the data required to fill the grid."""
         requestParams = self.__requestParams()
         gLogger.info(requestParams)
 
-        elementStatuses = yield self.threadTask(
-            PublisherClient().getElementStatuses,
+        elementStatuses = PublisherClient().getElementStatuses(
             "Site",
             requestParams["name"],
             requestParams["elementType"],

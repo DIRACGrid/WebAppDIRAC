@@ -9,20 +9,19 @@ from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler
 
 
-class SystemAdministrationHandler(WebHandler):
+class SystemAdministrationHandler(_WebHandler):
 
     AUTH_PROPS = "authenticated"
 
-    @asyncGen
     def web_getSysInfo(self):
         """Provide information about hosts state from database"""
         DN = self.getUserDN()
         group = self.getUserGroup()
         client = ComponentMonitoringClient(delegatedDN=DN, delegatedGroup=group)
-        result = yield self.threadTask(client.getLogs)
+        result = client.getLogs()
         if not result["OK"] or not len(result["Value"]) > 0:
             self.finish({"success": "false", "error": result.get("Message", "No system information found")})
             return
@@ -42,7 +41,6 @@ class SystemAdministrationHandler(WebHandler):
         self.finish({"success": "true", "result": sorted(callback, key=lambda i: i["Host"]), "total": len(callback)})
         return
 
-    @asyncGen
     def web_getHostData(self):
         """
         Returns flatten list of components (services, agents) installed on hosts
@@ -59,7 +57,7 @@ class SystemAdministrationHandler(WebHandler):
 
         host = self.get_argument("hostname")
         client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
-        result = yield self.threadTask(client.getOverallStatus)
+        result = client.getOverallStatus()
         gLogger.debug("Result of getOverallStatus(): %s" % result)
 
         if not result["OK"]:
@@ -88,7 +86,6 @@ class SystemAdministrationHandler(WebHandler):
                         c["Name"] = name
                         yield c
 
-    @asyncGen
     def web_getHostErrors(self):
         DN = self.getUserDN()
         group = self.getUserGroup()
@@ -101,7 +98,7 @@ class SystemAdministrationHandler(WebHandler):
 
         client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
 
-        result = yield self.threadTask(client.checkComponentLog, "*")
+        result = client.checkComponentLog("*")
 
         gLogger.debug(result)
         if not result["OK"]:
@@ -120,7 +117,6 @@ class SystemAdministrationHandler(WebHandler):
 
         self.finish({"success": "true", "result": callback, "total": total})
 
-    @asyncGen
     def web_getHostLog(self):
         DN = self.getUserDN()
         group = self.getUserGroup()
@@ -143,7 +139,7 @@ class SystemAdministrationHandler(WebHandler):
 
         client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
 
-        result = yield self.threadTask(client.getLogTail, system, name)
+        result = client.getLogTail(system, name)
         gLogger.debug(result)
 
         if not result["OK"]:
@@ -161,7 +157,6 @@ class SystemAdministrationHandler(WebHandler):
 
         self.finish({"success": "true", "result": log.replace("\n", "<br>")})
 
-    @asyncGen
     def web_hostAction(self):
         """
         Restart all DIRAC components on a given host
@@ -188,11 +183,11 @@ class SystemAdministrationHandler(WebHandler):
         for i in hosts:
             client = SystemAdministratorClient(str(i), None, delegatedDN=DN, delegatedGroup=group)
             if action == "restart":
-                result = yield self.threadTask(client.restartComponent, str("*"), str("*"))
+                result = client.restartComponent(str("*"), str("*"))
             elif action == "revert":
-                result = yield self.threadTask(client.revertSoftware)
+                result = client.revertSoftware()
             elif action == "update":
-                result = yield self.threadTask(client.updateSoftware, version, timeout=600)
+                result = client.updateSoftware(version, timeout=600)
             else:
                 error = i + ": Action %s is not defined" % action
                 actionFailed.append(error)
@@ -215,7 +210,6 @@ class SystemAdministrationHandler(WebHandler):
 
         self.finish(self.aftermath(actionSuccess, actionFailed, action, "Host"))
 
-    @asyncGen
     def web_componentAction(self):
         """
         Actions which should be done on components. The only parameters is an action
@@ -280,11 +274,11 @@ class SystemAdministrationHandler(WebHandler):
 
                 try:
                     if action == "restart":
-                        result = yield self.threadTask(client.restartComponent, system, component)
+                        result = client.restartComponent(system, component)
                     elif action == "start":
-                        result = yield self.threadTask(client.startComponent, system, component)
+                        result = client.startComponent(system, component)
                     elif action == "stop":
-                        result = yield self.threadTask(client.stopComponent, system, component)
+                        result = client.stopComponent(system, component)
                     else:
                         result = dict(OK=False)
                         result["Message"] = "Action %s is not valid" % action
@@ -553,7 +547,6 @@ class SystemAdministrationHandler(WebHandler):
         gLogger.debug(result)
         return {"success": "false", "error": result}
 
-    @asyncGen
     def web_getComponentNames(self):
 
         result = None
@@ -581,7 +574,6 @@ class SystemAdministrationHandler(WebHandler):
 
         self.finish(result)
 
-    @asyncGen
     def web_getSelectionData(self):
 
         data = {"Hosts": []}
@@ -631,7 +623,6 @@ class SystemAdministrationHandler(WebHandler):
 
         self.finish(data)
 
-    @asyncGen
     def web_ComponentLocation(self):
 
         componentTypes = ["Service", "Agent", "Executor"]

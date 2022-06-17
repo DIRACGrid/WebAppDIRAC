@@ -6,10 +6,10 @@ from DIRAC import gLogger
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler
 
 
-class SummaryHandlerMix(WebHandler):
+class SummaryHandlerMix(_WebHandler):
     AUTH_PROPS = "all"
     ELEMENT_TYPE = None
 
@@ -383,22 +383,18 @@ class ResourceSummaryHandler(SummaryHandlerMix):
 
     ELEMENT_TYPE = "Resource"
 
-    @asyncGen
     def web_getSelectionData(self):
-        callback = yield self.threadTask(self._getSelectionData)
+        callback = self._getSelectionData()
         self.finish(callback)
 
-    @asyncGen
     def web_expand(self):
-        callback = yield self.threadTask(self._expand)
+        callback = self._expand()
         self.finish(callback)
 
-    @asyncGen
     def web_action(self):
-        callback = yield self.threadTask(self._action)
+        callback = self._action()
         self.finish(callback)
 
-    @asyncGen
     def web_getResourceSummaryData(self):
         """This method returns the data required to fill the grid."""
 
@@ -407,8 +403,7 @@ class ResourceSummaryHandler(SummaryHandlerMix):
 
         pub = PublisherClient()
 
-        elementStatuses = yield self.threadTask(
-            pub.getElementStatuses,
+        elementStatuses = pub.getElementStatuses(
             self.ELEMENT_TYPE,
             requestParams["name"],
             requestParams["elementType"],
@@ -433,18 +428,14 @@ class ResourceSummaryHandler(SummaryHandlerMix):
             elementTree[elementDict["Name"]].append(elementDict)
 
         elementList = []
-
         for elementValues in elementTree.values():
-
             if len(elementValues) == 1:
                 elementList.append(elementValues[0])
             else:
-
                 elementList.append(self.combine(elementValues))
 
         rssMachine = RSSMachine(None)
-
-        yield self.threadTask(rssMachine.orderPolicyResults, elementList)
+        rssMachine.orderPolicyResults(elementList)
 
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
 

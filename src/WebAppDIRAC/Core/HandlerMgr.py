@@ -10,7 +10,7 @@ from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMetadata
 
 from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import WebHandler, _WebHandler
+from WebAppDIRAC.Lib.WebHandler import _WebHandler
 from WebAppDIRAC.Core.StaticHandler import StaticHandler
 
 
@@ -61,11 +61,10 @@ class HandlerMgr(metaclass=DIRACSingleton):
         ol = ObjectLoader()
         handlerList = []
         self.log.debug("Add handles from: %s", self.__handlersLocation)
-        for parentClass in [WebHandler, _WebHandler]:
-            result = ol.getObjects(self.__handlersLocation, parentClass=parentClass, recurse=True, continueOnError=True)
-            if not result["OK"]:
-                return result
-            handlerList += list(result["Value"].items())
+        result = ol.getObjects(self.__handlersLocation, parentClass=_WebHandler, recurse=True, continueOnError=True)
+        if not result["OK"]:
+            return result
+        handlerList += list(result["Value"].items())
         self.__handlers = collections.OrderedDict(handlerList)
 
         # ['/opt/dirac/pro/WebAppExt/WebApp/static', ...]

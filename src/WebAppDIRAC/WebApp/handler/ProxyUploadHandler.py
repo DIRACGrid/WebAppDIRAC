@@ -1,15 +1,14 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler
 from DIRAC.FrameworkSystem.Client import ProxyUpload
 from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC import gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getGroupsForDN
 
 
-class ProxyUploadHandler(WebHandler):
+class ProxyUploadHandler(_WebHandler):
 
     AUTH_PROPS = "authenticated"
 
-    @asyncGen
     def web_proxyUpload(self):
         """
         Get p12 file and passwords as input. Split p12 to user key and certificate
@@ -125,7 +124,7 @@ class ProxyUploadHandler(WebHandler):
         )
 
         for cmd in cmdCert, cmdKey:
-            result = yield self.threadTask(Subprocess.shellCall, 900, cmd)
+            result = Subprocess.shellCall(900, cmd)
             gLogger.debug("Command is: %s" % cmd)
             gLogger.debug("Result is: %s" % result)
             if not result["OK"]:

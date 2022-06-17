@@ -5,14 +5,13 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen, WErr
+from WebAppDIRAC.Lib.WebHandler import _WebHandler, WErr
 
 
-class ProxyManagerHandler(WebHandler):
+class ProxyManagerHandler(_WebHandler):
 
     AUTH_PROPS = "authenticated"
 
-    @asyncGen
     def web_getSelectionData(self):
         callback = {}
 
@@ -22,7 +21,7 @@ class ProxyManagerHandler(WebHandler):
 
         if len(self.request.arguments) > 0:
             callback["extra"] = {i: self.get_argument(i) for i in self.request.arguments}
-        result = yield self.threadTask(gProxyManager.getDBContents)
+        result = gProxyManager.getDBContents()
         if not result["OK"]:
             if result.get("Errno", 0) == 1112:
                 raise WErr(503, "Connection error")
@@ -63,15 +62,12 @@ class ProxyManagerHandler(WebHandler):
         callback["expiredAfter"] = timespan
         self.finish(callback)
 
-    @asyncGen
     def web_getProxyManagerData(self):
         user = self.getUserName()
         if user.lower() == "anonymous":
             self.finish({"success": "false", "error": "You are not authorize to access these data"})
         start, limit, sort, req = self.__request()
-        # pylint: disable=no-member
-        result = yield self.threadTask(gProxyManager.getDBContents, req, sort, start, limit)
-        # result = yield self.threadTask(gProxyManager.getDBContents, None, None, req, start, limit)
+        result = gProxyManager.getDBContents(req, sort, start, limit)
         gLogger.info("*!*!*!  RESULT: \n%s" % result)
         if not result["OK"]:
             self.finish({"success": "false", "error": result["Message"]})
@@ -88,19 +84,10 @@ class ProxyManagerHandler(WebHandler):
                     "PersistentFlag": str(record[4]),
                 }
             )
-        # for record in svcData['Dictionaries']:
-        #   proxies.append({'proxyid': "%s@%s" % (record["DN"],
-        #                                         record['groups'] if record['groups'] > 1 else record['groups'][0]),
-        #                   'UserName': record['user'],
-        #                   'UserDN': record['DN'],
-        #                   'UserGroups': record['groups'],
-        #                   'ExpirationTime': str(record['expirationtime']),
-        #                   'Provider': record['provider']})
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
         data = {"success": "true", "result": proxies, "total": svcData["TotalRecords"], "date": timestamp}
         self.finish(data)
 
-    @asyncGen
     def web_deleteProxies(self):
         try:
             webIds = list(json.loads(self.get_argument("idList")))
@@ -113,11 +100,6 @@ class ProxyManagerHandler(WebHandler):
             group = spl[-1]
             idList.append((dn, group))
         retVal = gProxyManager.deleteProxyBundle(idList)
-        # for uid in webIds:
-        #   spl = uid.split("@")
-        #   dn = "@".join(spl[:-1])
-        #   idList.append(dn)
-        # retVal = yield self.threadTask(ProxyManagerClient().deleteProxy, idList)  # pylint: disable=no-member
         callback = {}
         if retVal["OK"]:
             callback = {"success": "true", "result": retVal["Value"]}

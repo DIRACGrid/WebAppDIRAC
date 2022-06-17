@@ -2,15 +2,14 @@ import ast
 import json
 
 from DIRAC.Core.Utilities import TimeUtilities
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler
 from DIRAC.WorkloadManagementSystem.Client.VMClient import VMClient
 
 
-class VMDiracHandler(WebHandler):
+class VMDiracHandler(_WebHandler):
 
     AUTH_PROPS = "authenticated"
 
-    @asyncGen
     def web_getInstancesList(self):
         try:
             start = int(self.get_argument("start"))

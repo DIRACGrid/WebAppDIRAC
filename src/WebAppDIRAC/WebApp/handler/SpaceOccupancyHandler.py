@@ -3,16 +3,15 @@
 
 import json
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler, WErr
 from DIRAC import gLogger
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 
-class SpaceOccupancyHandler(WebHandler):
+class SpaceOccupancyHandler(_WebHandler):
 
     AUTH_PROPS = "authenticated"
 
-    @asyncGen
     def web_getSelectionData(self):
         callback = {
             "StorageElement": set(),
@@ -22,7 +21,7 @@ class SpaceOccupancyHandler(WebHandler):
 
         gLogger.info("Arguments to web_getSelectionData", repr(self.request.arguments))
 
-        spaces = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache)
+        spaces = rmc.selectSpaceTokenOccupancyCache()
 
         if spaces["OK"]:
             for sp in spaces["Value"]:
@@ -35,14 +34,13 @@ class SpaceOccupancyHandler(WebHandler):
 
         self.finish(callback)
 
-    @asyncGen
     def web_getSpaceOccupancyData(self):
 
         rmc = ResourceManagementClient()
 
         se = json.loads(self.get_argument("StorageElement", "null"))
 
-        res = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache, None, list(se) if se else se)
+        res = rmc.selectSpaceTokenOccupancyCache(None, list(se) if se else se)
 
         if not res["OK"]:
             raise WErr.fromSERROR(res)

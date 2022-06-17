@@ -8,7 +8,7 @@ from DIRAC.ConfigurationSystem.Client.ConfigurationClient import ConfigurationCl
 from DIRAC.Core.Utilities import List
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
-from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, WErr, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, WErr
 
 
 class ConfigurationManagerHandler(WebSocketHandler):
@@ -18,7 +18,6 @@ class ConfigurationManagerHandler(WebSocketHandler):
     def on_open(self):
         self.__configData = {}
 
-    @asyncGen
     def on_message(self, msg):
         self.log.debug("RECEIVED", msg)
         try:
@@ -31,13 +30,13 @@ class ConfigurationManagerHandler(WebSocketHandler):
             self.log.info("Initialize force refresh..")
             res = gConfig.forceRefresh(fromMaster=True)
         if params["op"] == "init":
-            res = yield self.threadTask(self.__getRemoteConfiguration, "init")
+            res = self.__getRemoteConfiguration("init")
         elif params["op"] == "getSubnodes":
             res = self.__getSubnodes(params["node"], params["nodePath"])
         elif params["op"] == "showConfigurationAsText":
             res = self.__showConfigurationAsText()
         elif params["op"] == "resetConfiguration":
-            res = yield self.threadTask(self.__getRemoteConfiguration, "resetConfiguration")
+            res = self.__getRemoteConfiguration("resetConfiguration")
         elif params["op"] == "getBulkExpandedNodeData":
             res = self.__getBulkExpandedNodeData(params["nodes"])
         elif params["op"] == "setOptionValue":
@@ -57,7 +56,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         elif params["op"] == "moveNode":
             res = self.__moveNode(params)
         elif params["op"] == "commitConfiguration":
-            res = yield self.threadTask(self.__commitConfiguration)
+            res = self.__commitConfiguration()
         elif params["op"] == "showCurrentDiff":
             res = self.__showCurrentDiff()
         elif params["op"] == "showshowHistory":

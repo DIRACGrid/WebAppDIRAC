@@ -1,7 +1,7 @@
 import json
 from diraccfg import CFG
 
-from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebSocketHandler
 from DIRAC.ConfigurationSystem.Client.ConfigurationClient import ConfigurationClient
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
@@ -14,7 +14,6 @@ class RegistryManagerHandler(WebSocketHandler):
     def on_open(self):
         self.__configData = {}
 
-    @asyncGen
     def on_message(self, msg):
 
         self.log.info("RECEIVED %s" % msg)

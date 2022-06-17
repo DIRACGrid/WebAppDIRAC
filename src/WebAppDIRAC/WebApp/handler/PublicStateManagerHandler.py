@@ -1,11 +1,10 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler
 
 
-class PublicStateManagerHandler(WebHandler):
+class PublicStateManagerHandler(_WebHandler):
 
     AUTH_PROPS = "authenticated"
 
-    @asyncGen
     def web_getTreeMenuItems(self):
         applications = {}
         desktops = {}

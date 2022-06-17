@@ -4,21 +4,18 @@ import datetime
 from DIRAC import gLogger
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler
 
 
-class RequestMonitorHandler(WebHandler):
+class RequestMonitorHandler(_WebHandler):
 
     AUTH_PROPS = "authenticated"
 
-    @asyncGen
     def web_getRequestMonitorData(self):
         callback = {}
         req = self.__request()
 
-        result = yield self.threadTask(
-            ReqClient().getRequestSummaryWeb, req, self.globalSort, self.pageNumber, self.numberOfJobs
-        )
+        result = ReqClient().getRequestSummaryWeb(req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
         if not result["OK"]:
             self.finish({"success": "false", "result": [], "total": 0, "error": result["Message"]})
@@ -94,7 +91,6 @@ class RequestMonitorHandler(WebHandler):
         result = result[:-1]
         return result
 
-    @asyncGen
     def web_getSelectionData(self):
         callback = {}
         group = self.getUserGroup()
@@ -103,7 +99,7 @@ class RequestMonitorHandler(WebHandler):
             self.finish({"success": "false", "result": [], "total": 0, "error": "Insufficient rights"})
         else:
             # R E Q U E S T T Y P E
-            result = yield self.threadTask(ReqClient().getDistinctValuesWeb, "Type")
+            result = ReqClient().getDistinctValuesWeb("Type")
             if result["OK"]:
                 reqtype = list()
                 if len(result["Value"]) > 0:
@@ -115,7 +111,7 @@ class RequestMonitorHandler(WebHandler):
                 reqtype = [["Error during RPC call"]]
             callback["operationType"] = reqtype
             # U S E R
-            result = yield self.threadTask(ReqClient().getDistinctValuesWeb, "OwnerDN")
+            result = ReqClient().getDistinctValuesWeb("OwnerDN")
 
             if result["OK"]:
                 owner = []
@@ -128,7 +124,7 @@ class RequestMonitorHandler(WebHandler):
                 owner = [["Error during RPC call"]]
             callback["owner"] = owner
             # G R O U P
-            result = yield self.threadTask(ReqClient().getDistinctValuesWeb, "OwnerGroup")
+            result = ReqClient().getDistinctValuesWeb("OwnerGroup")
             gLogger.info("getDistinctValuesWeb(OwnerGroup)", result)
             if result["OK"]:
                 ownerGroup = list()
@@ -141,7 +137,7 @@ class RequestMonitorHandler(WebHandler):
                 ownerGroup = [["Error during RPC call"]]
             callback["ownerGroup"] = ownerGroup
             # S T A T U S
-            result = yield self.threadTask(ReqClient().getDistinctValuesWeb, "Status")
+            result = ReqClient().getDistinctValuesWeb("Status")
 
             if result["OK"]:
                 status = list()
