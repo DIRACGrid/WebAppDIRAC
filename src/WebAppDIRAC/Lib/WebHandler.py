@@ -1,6 +1,3 @@
-""" Main module
-"""
-
 import os
 import re
 import json
@@ -36,32 +33,6 @@ from WebAppDIRAC.Lib.SessionData import SessionData
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
 sLog = gLogger.getSubLogger(__name__)
-
-
-class UserCredentials:
-    """With this class you can make RPC calls using user credantials
-
-    Usage:
-
-        def post_job(self):
-            with UserCredentials(**self.credDict):
-                # Do stuff
-
-    """
-
-    __disetConfig = ThreadConfig()
-
-    def __init__(self, **kwargs):
-        self.dn = kwargs["DN"]
-        self.group = kwargs["group"]
-        self.setup = kwargs["setup"]
-
-    def __enter__(self):
-        self.__disetConfig.load((self.dn, self.group, self.setup))
-        return self.__disetConfig
-
-    def __exit__(self, type, value, traceback):
-        self.__disetConfig.reset()
 
 
 class FileResponse(TornadoResponse):
@@ -232,7 +203,6 @@ class _WebHandler(TornadoREST):
         We make the assumption that there is always going to be a ``method`` argument
         regardless of the HTTP method used
         """
-
         # Parse request URI
         match = self.PATH_RE.match(self.request.path)
         groups = match.groups()
@@ -277,13 +247,12 @@ class _WebHandler(TornadoREST):
 
     def _gatherPeerCredentials(self):
         """
-        Load client certchain in DIRAC and extract informations.
+        Load client certificate chain in DIRAC and extract informations.
 
         The dictionary returned is designed to work with the AuthManager,
         already written for DISET and re-used for HTTPS.
 
-        :returns: a dict containing the return of :py:meth:`DIRAC.Core.Security.X509Chain.X509Chain.getCredentials`
-                  (not a DIRAC structure !)
+        :returns: dict containing the return of :py:meth:`DIRAC.Core.Security.X509Chain.X509Chain.getCredentials`
         """
         # Authorization type
         self.__authGrant = ["VISITOR"]
@@ -301,7 +270,7 @@ class _WebHandler(TornadoREST):
         return credDict
 
     def _authzSESSION(self):
-        """Fill credentionals from session
+        """Fill credentials from session
 
         :return: S_OK(dict)
         """
@@ -433,7 +402,7 @@ class WebHandler(_WebHandler):
         return IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *targs, **kwargs))
 
     def finish(self, data=None, *args, **kwargs):
-        """Finishes this response, ending the HTTP request. More detailes:
+        """Finishes this response, ending the HTTP request. More details:
         https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
         """
         if data and isinstance(data, dict):
