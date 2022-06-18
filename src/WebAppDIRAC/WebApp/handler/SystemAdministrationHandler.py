@@ -3,31 +3,24 @@
 
 import json
 
-from DIRAC import gConfig, gLogger
+from DIRAC import gConfig, gLogger, S_ERROR
 from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 
 
 class SystemAdministrationHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    @asyncGen
     def web_getSysInfo(self):
         """Provide information about hosts state from database"""
-        DN = self.getUserDN()
-        group = self.getUserGroup()
-        client = ComponentMonitoringClient(delegatedDN=DN, delegatedGroup=group)
-        result = yield self.threadTask(client.getLogs)
-        if not result["OK"] or not len(result["Value"]) > 0:
-            self.finish({"success": "false", "error": result.get("Message", "No system information found")})
-            return
-
-        callback = result["Value"]
+        client = ComponentMonitoringClient(delegatedDN=self.getUserDN(), delegatedGroup=self.getUserGroup())
+        if not (result := client.getLogs())["OK"] or not len(callback := result["Value"]) > 0:
+            return {"success": "false", "error": result.get("Message", "No system information found")}
 
         # Add the information about the extensions' versions, if available, to display along with the DIRAC version
         for i in range(len(callback)):
@@ -39,40 +32,34 @@ class SystemAdministrationHandler(WebHandler):
                 callback[i].get("Extension", callback[i].get("Extensions", "")),
             )
 
-        self.finish({"success": "true", "result": sorted(callback, key=lambda i: i["Host"]), "total": len(callback)})
-        return
+        return {"success": "true", "result": sorted(callback, key=lambda i: i["Host"]), "total": len(callback)}
 
-    @asyncGen
-    def web_getHostData(self):
+    def web_getHostData(self, hostname=None):
         """
         Returns flatten list of components (services, agents) installed on hosts
         returned by getHosts function
         """
-        DN = self.getUserDN()
-        group = self.getUserGroup()
-
         callback = list()
 
-        if "hostname" not in self.request.arguments or not self.get_argument("hostname"):
-            self.finish({"success": "true", "result": callback})
-            return
+        if not hostname:
+            return {"success": "true", "result": callback}
 
-        host = self.get_argument("hostname")
-        client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
-        result = yield self.threadTask(client.getOverallStatus)
-        gLogger.debug("Result of getOverallStatus(): %s" % result)
+        client = SystemAdministratorClient(
+            hostname, None, delegatedDN=self.getUserDN(), delegatedGroup=self.getUserGroup()
+        )
+        result = client.getOverallStatus()
+        gLogger.debug(f"Result of getOverallStatus(): {result}")
 
         if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
+            return {"success": "false", "error": result["Message"]}
 
         overall = result["Value"]
 
         for record in self.flatten(overall):
-            record["Host"] = host
+            record["Host"] = hostname
             callback.append(record)
 
-        self.finish({"success": "true", "result": callback})
+        return {"success": "true", "result": callback}
 
     def flatten(self, dataDict):
         """
@@ -88,114 +75,80 @@ class SystemAdministrationHandler(WebHandler):
                         c["Name"] = name
                         yield c
 
-    @asyncGen
-    def web_getHostErrors(self):
-        DN = self.getUserDN()
-        group = self.getUserGroup()
+    def web_getHostErrors(self, host):
+        if not host:
+            return {"success": "false", "error": "Name of the host is missing or not defined"}
 
-        if "host" not in self.request.arguments:
-            self.finish({"success": "false", "error": "Name of the host is missing or not defined"})
-            return
+        client = SystemAdministratorClient(host, None, delegatedDN=self.getUserDN(), delegatedGroup=self.getUserGroup())
 
-        host = self.get_argument("host")
-
-        client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
-
-        result = yield self.threadTask(client.checkComponentLog, "*")
+        result = client.checkComponentLog("*")
 
         gLogger.debug(result)
         if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
-        result = result["Value"]
+            return {"success": "false", "error": result["Message"]}
+        data = result["Value"]
 
         callback = list()
-        for key, value in result.items():
+        for key, value in data.items():
             system, component = key.split("/")
             value["System"] = system
             value["Name"] = component
             value["Host"] = host
             callback.append(value)
-        total = len(callback)
 
-        self.finish({"success": "true", "result": callback, "total": total})
+        return {"success": "true", "result": callback, "total": len(callback)}
 
-    @asyncGen
-    def web_getHostLog(self):
-        DN = self.getUserDN()
-        group = self.getUserGroup()
+    def web_getHostLog(self, host=None, system=None, component=None):
+        if not host:
+            return {"success": "false", "error": "Name of the host is missing or not defined"}
+        if not system:
+            return {"success": "false", "error": "Name of the system is missing or not defined"}
+        if not component:
+            return {"success": "false", "error": "Name of component is missing or not defined"}
 
-        if "host" not in self.request.arguments:
-            self.finish({"success": "false", "error": "Name of the host is missing or not defined"})
-            return
-        host = self.get_argument("host")
+        client = SystemAdministratorClient(host, None, delegatedDN=self.getUserDN(), delegatedGroup=self.getUserGroup())
 
-        if "system" not in self.request.arguments:
-            self.finish({"success": "false", "error": "Name of the system is missing or not defined"})
-            return
-        system = self.get_argument("system")
-
-        if "component" not in self.request.arguments:
-            self.finish({"success": "false", "error": "Name of component is missing or not defined"})
-            return
-
-        name = self.get_argument("component")
-
-        client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
-
-        result = yield self.threadTask(client.getLogTail, system, name)
-        gLogger.debug(result)
+        gLogger.debug(result := client.getLogTail(system, component))
 
         if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
+            return {"success": "false", "error": result["Message"]}
 
-        result = result["Value"]
+        data = result["Value"]
 
-        key = system + "_" + name
-        if key not in result:
-            self.finish({"success": "false", "error": "%s key is absent in service response" % key})
-            return
+        key = system + "_" + component
+        if key not in data:
+            return {"success": "false", "error": f"{key} key is absent in service response"}
 
-        log = result[key]
+        log = data[key]
 
-        self.finish({"success": "true", "result": log.replace("\n", "<br>")})
+        return {"success": "true", "result": log.replace("\n", "<br>")}
 
-    @asyncGen
-    def web_hostAction(self):
+    def web_hostAction(self, host=None, action=None, version=None):
         """
         Restart all DIRAC components on a given host
         """
 
-        if "host" not in self.request.arguments:
-            self.finish({"success": "false", "error": "No hostname defined"})
-            return
+        if not host:
+            return {"success": "false", "error": "No hostname defined"}
 
-        if "action" not in self.request.arguments:
-            self.finish({"success": "false", "error": "No action defined"})
-            return
-
-        action = self.get_argument("action")
-        hosts = self.get_argument("host").split(",")
-        version = self.get_argument("version")
-
-        DN = self.getUserDN()
-        group = self.getUserGroup()
+        if not action:
+            return {"success": "false", "error": "No action defined"}
 
         actionSuccess = list()
         actionFailed = list()
 
-        for i in hosts:
-            client = SystemAdministratorClient(str(i), None, delegatedDN=DN, delegatedGroup=group)
+        for _host in host.split(","):
+            client = SystemAdministratorClient(
+                str(_host), None, delegatedDN=self.getUserDN(), delegatedGroup=self.getUserGroup()
+            )
             if action == "restart":
-                result = yield self.threadTask(client.restartComponent, str("*"), str("*"))
+                result = client.restartComponent(str("*"), str("*"))
             elif action == "revert":
-                result = yield self.threadTask(client.revertSoftware)
+                result = client.revertSoftware()
             elif action == "update":
-                result = yield self.threadTask(client.updateSoftware, version, timeout=600)
+                result = client.updateSoftware(version, timeout=600)
             else:
-                error = i + ": Action %s is not defined" % action
-                actionFailed.append(error)
+                actionFailed.append(error := f"{_host}: Action {action} is not defined")
                 continue
 
             gLogger.always(result)
@@ -203,233 +156,179 @@ class SystemAdministrationHandler(WebHandler):
             if not result["OK"]:
                 if result["Message"].find("Unexpected EOF") > 0:
                     msg = "Signal 'Unexpected EOF' received: %s. Most likely DIRAC components" % result["Message"]
-                    msg = i + ": " + msg + " were successfully restarted."
+                    msg += _host + ": " + msg + " were successfully restarted."
                     actionSuccess.append(msg)
                     continue
-                error = i + ": " + result["Message"]
-                actionFailed.append(error)
+                actionFailed.append(error := f"{_host}: {result['Message']}")
                 gLogger.error(error)
             else:
                 gLogger.info(result["Value"])
-                actionSuccess.append(i)
+                actionSuccess.append(host)
 
-        self.finish(self.aftermath(actionSuccess, actionFailed, action, "Host"))
+        return self.aftermath(actionSuccess, actionFailed, action, "Host")
 
-    @asyncGen
-    def web_componentAction(self):
+    def web_componentAction(self, action=None, **kwargs):
         """
         Actions which should be done on components. The only parameters is an action
         to perform.
         Returns standard JSON response structure with with service response
         or error messages
         """
-        DN = self.getUserDN()
-        group = self.getUserGroup()
-
-        if not (("action" in self.request.arguments) and (len(self.get_argument("action")) > 0)):
-            self.finish({"success": "false", "error": "No action defined"})
-            return
-
-        action = self.get_argument("action")
+        if not (action and (len(action) > 0)):
+            return {"success": "false", "error": "No action defined"}
 
         if action not in ["restart", "start", "stop"]:
-            error = "The request parameters action '%s' is unknown" % action
-            gLogger.debug(error)
-            self.finish({"success": "false", "error": error})
-            return
+            gLogger.debug(error := f"The request parameters action '{action}' is unknown")
+            return {"success": "false", "error": error}
 
         result = dict()
-        for i in self.request.arguments:
-            if i == "action":
-                continue
-
-            target = i.split("@")
-            if not len(target) == 2:
-                continue
-
-            system = self.get_argument(i)
-            gLogger.always("System: %s" % system)
-            host = target[1]
-            gLogger.always("Host: %s" % host)
-            component = target[0]
-            gLogger.always("Component: %s" % component)
-            if host not in result:
-                result[host] = list()
-            result[host].append([system, component])
+        for i, system in kwargs.items():
+            if len(target := i.split("@")) == 2:
+                gLogger.always(f"System: {system}")
+                gLogger.always(f"Host: {(host := target[1])}")
+                gLogger.always(f"Component: {(component := target[0])}")
+                if host not in result:
+                    result[host] = list()
+                result[host].append([system, component])
 
         if not result:
-            error = "Failed to get component(s) for %s" % action
-            gLogger.debug(error)
-            self.finish({"success": "false", "error": error})
+            gLogger.debug(error := f"Failed to get component(s) for {action}")
+            return {"success": "false", "error": error}
 
         gLogger.always(result)
         actionSuccess = list()
         actionFailed = list()
 
         for hostname in result:
-
             if not result[hostname]:
                 continue
 
-            client = SystemAdministratorClient(hostname, None, delegatedDN=DN, delegatedGroup=group)
+            client = SystemAdministratorClient(
+                hostname, None, delegatedDN=self.getUserDN(), delegatedGroup=self.getUserGroup()
+            )
 
             for i in result[hostname]:
 
                 system = i[0]
                 component = i[1]
-
                 try:
                     if action == "restart":
-                        result = yield self.threadTask(client.restartComponent, system, component)
+                        result = client.restartComponent(system, component)
                     elif action == "start":
-                        result = yield self.threadTask(client.startComponent, system, component)
+                        result = client.startComponent(system, component)
                     elif action == "stop":
-                        result = yield self.threadTask(client.stopComponent, system, component)
+                        result = client.stopComponent(system, component)
                     else:
-                        result = dict(OK=False)
-                        result["Message"] = "Action %s is not valid" % action
+                        result = S_ERROR(f"Action {action} is not valid")
                 except Exception as x:
-                    result = dict(OK=False)
-                    result["Message"] = "Exception: %s" % str(x)
-                gLogger.debug("Result: %s" % result)
+                    result = S_ERROR("Exception: {e}")
+                gLogger.debug(f"Result: {result}")
 
                 if not result["OK"]:
-                    error = hostname + ": " + result["Message"]
-                    actionFailed.append(error)
-                    gLogger.error("Failure during component %s: %s" % (action, error))
+                    actionFailed.append(error := f"{hostname}: {result['Message']}")
+                    gLogger.error(f"Failure during component {action}: {error}")
                 else:
-                    gLogger.always("Successfully %s component %s" % (action, component))
+                    gLogger.always(f"Successfully {action} component {component}")
                     actionSuccess.append(component)
 
-        self.finish(self.aftermath(actionSuccess, actionFailed, action, "Component"))
+        return self.aftermath(actionSuccess, actionFailed, action, "Component")
 
     def aftermath(self, actionSuccess, actionFailed, action, prefix):
 
         success = ", ".join(actionSuccess)
         failure = "\n".join(actionFailed)
 
+        sText = prefix
         if len(actionSuccess) > 1:
-            sText = prefix + "s"
-        else:
-            sText = prefix
+            sText += "s"
 
+        fText = prefix
         if len(actionFailed) > 1:
-            fText = prefix + "s"
-        else:
-            fText = prefix
+            fText += "s"
 
         if success and failure:
-            sMessage = "%s %sed successfully: %s" % (sText, action, success)
-            fMessage = "Failed to %s %s:\n%s" % (action, fText, failure)
-            result = sMessage + "\n\n" + fMessage
-            return {"success": "true", "result": result}
+            sMessage = f"{sText} {action}ed successfully: {success}"
+            fMessage = f"Failed to {action} {fText}:\n{failure}"
+            return {"success": "true", "result": sMessage + "\n\n" + fMessage}
         elif success and len(failure) < 1:
-            result = "%s %sed successfully: %s" % (sText, action, success)
-            return {"success": "true", "result": result}
+            return {"success": "true", "result": f"{sText} {action}ed successfully: {success}"}
         elif len(success) < 1 and failure:
-            result = "Failed to %s %s:\n%s" % (action, fText, failure)
-            gLogger.always(result)
-            return {"success": "false", "error": result}
+            gLogger.always(error := f"Failed to {action} {fText}:\n{failure}")
+            return {"success": "false", "error": error}
 
-        result = "No action has performed due technical failure. Check the logs please"
-        gLogger.debug(result)
-        return {"success": "false", "error": result}
+        gLogger.debug(error := "No action has performed due technical failure. Check the logs please")
+        return {"success": "false", "error": error}
 
     def web_getUsersGroups(self):
+        if not (result := gConfig.getSections("/Registry/Users"))["OK"]:
+            return {"success": "false", "error": result["Message"]}
+        users = [[x] for x in result["Value"]]
 
-        result = gConfig.getSections("/Registry/Users")
-        if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
-        result = result["Value"]
+        if not (result := gConfig.getSections("/Registry/Groups"))["OK"]:
+            return {"success": "false", "error": result["Message"]}
+        groups = [[x] for x in result["Value"]]
 
-        users = [[x] for x in result]
-
-        result = gConfig.getSections("/Registry/Groups")
-        if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
-        result = result["Value"]
-
-        groups = [[x] for x in result]
-
-        self.finish({"success": "true", "users": users, "groups": groups, "email": self.getUserEmail()})
+        return {"success": "true", "users": users, "groups": groups, "email": self.getUserEmail()}
 
     def getUserEmail(self):
-
-        user = self.getUserName()
-
-        if not user:
+        if not (user := self.getUserName()):
             gLogger.debug("user value is empty")
-            return None
+            return
 
         if user == "anonymous":
             gLogger.debug("user is anonymous")
-            return None
+            return
 
-        email = gConfig.getValue("/Registry/Users/%s/Email" % user, "")
-        gLogger.debug("/Registry/Users/%s/Email - '%s'" % (user, email))
+        email = gConfig.getValue(f"/Registry/Users/{user}/Email", "")
+        gLogger.debug(f"/Registry/Users/{user}/Email - '{email}'")
         email = email.strip()
 
-        if not email:
-            return None
-        return email
+        return email or None
 
-    def web_sendMessage(self):
+    def web_sendMessage(self, subject, message, users, groups):
         """
         Send message(not implemented yet) or email getting parameters from request
         """
 
         email = self.getUserEmail()
 
-        if "subject" not in self.request.arguments:
-            result = "subject parameter is not in request... aborting"
-            gLogger.debug(result)
-            self.finish({"success": "false", "error": result})
-            return
-
-        subject = self.checkUnicode(self.get_argument("subject"))
         if not subject:
-            subject = "Message from %s" % email
+            gLogger.debug(error := "subject parameter is not in request... aborting")
+            return {"success": "false", "error": error}
 
-        if "message" not in self.request.arguments:
-            result = "msg parameter is not in request... aborting"
-            gLogger.debug(result)
-            self.finish({"success": "false", "error": result})
-            return
+        if not (subject := self.checkUnicode(subject)):
+            subject = f"Message from {email}"
 
-        body = self.checkUnicode(self.get_argument("message"))
-        if not len(body) > 0:
-            result = "Message body has zero length... aborting"
-            gLogger.debug(result)
-            self.finish({"success": "false", "error": result})
-            return
+        if not message:
+            gLogger.debug(error := "msg parameter is not in request... aborting")
+            return {"success": "false", "error": error}
 
-        users = self.get_argument("users").split(",")
+        if not len(body := self.checkUnicode(message)) > 0:
+            gLogger.debug(error := "Message body has zero length... aborting")
+            return {"success": "false", "error": error}
 
-        groups = self.get_argument("groups").split(",")
+        users = users.split(",")
+        groups = groups.split(",")
 
-        gLogger.info("List of groups from request: %s" % groups)
+        gLogger.info(f"List of groups from request: {groups}")
         if groups:
             for g in groups:
                 userList = self.getUsersFromGroup(g)
-                gLogger.info("Get users: %s from group %s" % (userList, g))
+                gLogger.info(f"Get users: {userList} from group {g}")
                 if userList:
                     users.extend(userList)
 
-        gLogger.info("Merged list of users from users and group %s" % users)
+        gLogger.info(f"Merged list of users from users and group {users}")
 
         if not len(users) > 0:
-            error = "Length of list of recipients is zero size"
-            gLogger.info(error)
-            self.finish({"success": "false", "error": error})
-            return
+            gLogger.info(error := "Length of list of recipients is zero size")
+            return {"success": "false", "error": error}
 
         users = uniqueElements(users)
-        gLogger.info("Final list of users to send message/mail: %s" % users)
+        gLogger.info(f"Final list of users to send message/mail: {users}")
 
         sendDict = self.getMailDict(users)
-        self.finish(self.sendMail(sendDict, subject, body, email))
+        return self.sendMail(sendDict, subject, body, email)
 
     def checkUnicode(self, text=None):
         """
@@ -440,50 +339,43 @@ class SystemAdministrationHandler(WebHandler):
             text = text.decode("utf-8", "replace")
         except Exception:
             pass
-        text = text.encode("utf-8")
-        gLogger.debug(text)
 
+        gLogger.debug(text := text.encode("utf-8"))
         return text
 
     def getUsersFromGroup(self, groupname=None):
-
         if not groupname:
             gLogger.debug("Argument groupname is missing")
-            return None
+            return
 
-        users = gConfig.getValue("/Registry/Groups/%s/Users" % groupname, [])
-        gLogger.debug("%s users: %s" % (groupname, users))
-        if not users:
-            gLogger.debug("No users for group %s found" % groupname)
-            return None
-        return users
+        users = gConfig.getValue(f"/Registry/Groups/{groupname}/Users", [])
+        gLogger.debug(f"{groupname} users: {users}")
+        if users:
+            return users
+        gLogger.debug(f"No users for group {groupname} found")
 
     def getMailDict(self, names=None):
         """
         Convert list of usernames to dict like { e-mail : full name }
         Argument is a list. Return value is a dict
         """
-
         resultDict = dict()
         if not names:
             return resultDict
 
         for user in names:
-            email = gConfig.getValue("/Registry/Users/%s/Email" % user, "")
-            gLogger.debug("/Registry/Users/%s/Email - '%s'" % (user, email))
-            email = email.strip()
+            email = gConfig.getValue(f"/Registry/Users/{user}/Email", "")
+            gLogger.debug(f"/Registry/Users/{user}/Email - '{email}'")
 
-            if not email:
-                gLogger.error("Can't find value for option /Registry/Users/%s/Email" % user)
+            if not (email := email.strip()):
+                gLogger.error(f"Can't find value for option /Registry/Users/{user}/Email")
                 continue
 
-            fname = gConfig.getValue("/Registry/Users/%s/FullName" % user, "")
-            gLogger.debug("/Registry/Users/%s/FullName - '%s'" % (user, fname))
-            fname = fname.strip()
+            fname = gConfig.getValue(f"/Registry/Users/{user}/FullName", "")
+            gLogger.debug(f"/Registry/Users/{user}/FullName - '{fname}'")
 
-            if not fname:
-                fname = user
-                gLogger.debug("FullName is absent, name to be used: %s" % fname)
+            if not (fname := fname.strip()):
+                gLogger.debug(f"FullName is absent, name to be used: {fname := user}")
 
             resultDict[email] = fname
 
@@ -498,24 +390,20 @@ class SystemAdministrationHandler(WebHandler):
         """
 
         if not sendDict:
-            result = ""
-            gLogger.debug(result)
-            return {"success": "false", "error": result}
+            gLogger.debug(error := "")
+            return {"success": "false", "error": error}
 
         if not title:
-            result = "title argument is missing"
-            gLogger.debug(result)
-            return {"success": "false", "error": result}
+            gLogger.debug(error := "title argument is missing")
+            return {"success": "false", "error": error}
 
         if not body:
-            result = "body argument is missing"
-            gLogger.debug(result)
-            return {"success": "false", "error": result}
+            gLogger.debug(error := "body argument is missing")
+            return {"success": "false", "error": error}
 
         if not fromAddress:
-            result = "fromAddress argument is missing"
-            gLogger.debug(result)
-            return {"success": "false", "error": result}
+            gLogger.debug(error := "fromAddress argument is missing")
+            return {"success": "false", "error": error}
 
         sentSuccess = list()
         sentFailed = list()
@@ -525,96 +413,65 @@ class SystemAdministrationHandler(WebHandler):
         for email, name in sendDict.iteritems():
             result = ntc.sendMail(email, title, body, fromAddress, False)
             if not result["OK"]:
-                error = name + ": " + result["Message"]
-                sentFailed.append(error)
+                sentFailed.append(error := f"{name}: {result['Message']}")
                 gLogger.error("Sent failure: ", error)
             else:
-                gLogger.info("Successfully sent to %s" % name)
+                gLogger.info(f"Successfully sent to {name}")
                 sentSuccess.append(name)
 
         success = ", ".join(sentSuccess)
         failure = "\n".join(sentFailed)
 
         if success and failure:
-            result = "Successfully sent e-mail to: "
-            result = result + success + "\n\nFailed to send e-mail to:\n" + failure
-            gLogger.debug(result)
+            gLogger.debug(result := f"Successfully sent e-mail to: {success}\n\nFailed to send e-mail to:\n{failure}")
             return {"success": "true", "result": result}
         elif success and len(failure) < 1:
-            result = "Successfully sent e-mail to: %s" % success
-            gLogger.debug(result)
+            gLogger.debug(f"Successfully sent e-mail to: {success}")
             return {"success": "true", "result": result}
         elif len(success) < 1 and failure:
-            result = "Failed to sent email to:\n%s" % failure
-            gLogger.debug(result)
-            return {"success": "false", "error": result}
+            gLogger.debug(error := f"Failed to sent email to:\n{failure}")
+            return {"success": "false", "error": error}
 
-        result = "No messages were sent due technical failure"
-        gLogger.debug(result)
-        return {"success": "false", "error": result}
+        gLogger.debug(error := "No messages were sent due technical failure")
+        return {"success": "false", "error": error}
 
-    @asyncGen
-    def web_getComponentNames(self):
-
-        result = None
-
-        setup = self.getUserSetup().split("-")[-1]
+    def web_getComponentNames(self, ComponentType: list = ["Services", "Agents"]):
         systemList = []
-        componentTypes = ["Services", "Agents"]
-        componentTypes = self.get_arguments("ComponentType") or componentTypes
+        setup = self.getUserSetup().split("-")[-1]
 
-        retVal = gConfig.getSections("/Systems")
-
-        if retVal["OK"]:
-            systems = retVal["Value"]
-            for i in systems:
-                for compType in componentTypes:
-                    compPath = "/Systems/%s/%s/%s" % (i, setup, compType)
-                    retVal = gConfig.getSections(compPath)
-                    if retVal["OK"]:
-                        components = retVal["Value"]
+        if (result := gConfig.getSections("/Systems"))["OK"]:
+            for system in result["Value"]:
+                for compType in ComponentType:
+                    compPath = f"/Systems/{system}/{setup}/{compType}"
+                    if (result := gConfig.getSections(compPath))["OK"]:
+                        components = result["Value"]
                         systemList += [{"Name": j} for j in components]
 
-            result = {"success": "true", "result": systemList}
-        else:
-            result = {"success": "false", "error": result["Message"]}
+            return {"success": "true", "result": systemList}
+        return {"success": "false", "error": result["Message"]}
 
-        self.finish(result)
-
-    @asyncGen
-    def web_getSelectionData(self):
-
+    def web_getSelectionData(self, ComponentType: list = ["Services", "Agents", "Executors"]):
         data = {"Hosts": []}
-
         setup = self.getUserSetup().split("-")[-1]
 
-        result = ComponentMonitoringClient().getHosts({}, False, False)
-        if result["OK"]:
+        if (result := ComponentMonitoringClient().getHosts({}, False, False))["OK"]:
             for hostDict in result["Value"]:
-                if hostDict.get("HostName"):
-                    data["Hosts"].append([hostDict["HostName"]])
-
-        componentTypes = ["Services", "Agents", "Executors"]
-        componentTypes = self.get_arguments("ComponentType") or componentTypes
-
-        retVal = gConfig.getSections("/Systems")
+                if hostname := hostDict.get("HostName"):
+                    data["Hosts"].append([hostname])
 
         components = []
         componentNames = []
-        data["ComponentModule"] = []
         data["ComponentName"] = []
-        if retVal["OK"]:
-            systems = retVal["Value"]
-            for i in systems:
-                for compType in componentTypes:
-                    compPath = "/Systems/%s/%s/%s" % (i, setup, compType)
-                    retVal = gConfig.getSections(compPath)
-                    if retVal["OK"]:
-                        records = retVal["Value"]
+        data["ComponentModule"] = []
+        if (result := gConfig.getSections("/Systems"))["OK"]:
+            for system in result["Value"]:
+                for compType in ComponentType:
+                    compPath = f"/Systems/{system}/{setup}/{compType}"
+                    if (result := gConfig.getSections(compPath))["OK"]:
+                        records = result["Value"]
                         componentNames += [[cnames] for cnames in records]
                         for record in records:
-                            modulepath = "%s/%s/Module" % (compPath, record)
-                            module = gConfig.getValue(modulepath, "")
+                            module = gConfig.getValue(f"{compPath}/{record}/Module", "")
                             if module != "" and module not in components:
                                 components += [module]
                                 data["ComponentModule"].append([module])
@@ -625,39 +482,31 @@ class SystemAdministrationHandler(WebHandler):
             data["ComponentName"] = componentNames
             data["ComponentName"].sort()
             data["ComponentModule"].sort()
-
         else:
             data = {"success": "false", "error": result["Message"]}
+        return data
 
-        self.finish(data)
+    def web_ComponentLocation(
+        self, ComponentType: list = ["Service", "Agent", "Executor"], ComponentModule: str = [], Hosts=[]
+    ):
+        if ComponentModule:
+            ComponentModule = list(json.loads(ComponentModule))
 
-    @asyncGen
-    def web_ComponentLocation(self):
+        if Hosts:  # we only use the selected host(s)
+            Hosts = list(json.loads(Hosts))
 
-        componentTypes = ["Service", "Agent", "Executor"]
-        componentTypes = self.get_arguments("ComponentType") or componentTypes
-
-        componentModules = []
-        if "ComponentModule" in self.request.arguments:
-            componentModules = list(json.loads(self.get_argument("ComponentModule")))
-
-        selectedHosts = []
-        if "Hosts" in self.request.arguments:  # we only use the selected host(s)
-            selectedHosts = list(json.loads(self.get_argument("Hosts")))
-
-        condDict = {"Type": componentTypes, "DIRACModule": componentModules}
+        condDict = {"Type": ComponentType, "DIRACModule": ComponentModule}
         gLogger.debug("condDict" + str(condDict))
 
-        res = ComponentMonitoringClient().getComponents(condDict, True, True)
-        if not res["OK"]:
-            self.finish({"success": "false", "error": res["Message"]})
+        if not (result := ComponentMonitoringClient().getComponents(condDict, True, True))["OK"]:
+            return {"success": "false", "error": result["Message"]}
         records = []
-        for component in res["Value"]:
+        for component in result["Value"]:
             installedInHosts = [installation["Host"]["HostName"] for installation in component["Installations"]]
-            if selectedHosts and not set.intersection(set(selectedHosts), set(installedInHosts)):
+            if Hosts and not set.intersection(set(Hosts), set(installedInHosts)):
                 continue
 
             component["ComponentModule"] = component["DIRACSystem"] + "/" + component["DIRACModule"]
             records += [component]
 
-        self.finish({"success": "true", "result": records})
+        return {"success": "true", "result": records}
