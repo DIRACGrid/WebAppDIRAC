@@ -142,12 +142,8 @@ class RootHandler(WebHandler):
             return resp.finish(
                 t.generate(next=authSession["next"], access_token="", message=result["Message"]).decode()
             )
-        nextURL = f"/{Conf.rootURL().strip('/')}"
-        if setup := self.getUserSetup():
-            nextURL += f"/s:{setup}"
-        if group := result["Value"].get("group"):
-            nextURL += f"/g:{group}"
-        nextURL += f"/?{urlparse(authSession['next']).query}"
+        self.request.headers["Referer"] = authSession["next"]
+        nextURL = self.__change(group=result["Value"].get("group"))
 
         # Save token and go to main page
         # with document('DIRAC authentication') as html:
