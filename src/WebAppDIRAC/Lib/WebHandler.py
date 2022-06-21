@@ -38,32 +38,6 @@ gThreadPool = ThreadPoolExecutor(100)
 sLog = gLogger.getSubLogger(__name__)
 
 
-class UserCredentials:
-    """With this class you can make RPC calls using user credantials
-
-    Usage:
-
-        def post_job(self):
-            with UserCredentials(**self.credDict):
-                # Do stuff
-
-    """
-
-    __disetConfig = ThreadConfig()
-
-    def __init__(self, **kwargs):
-        self.dn = kwargs["DN"]
-        self.group = kwargs["group"]
-        self.setup = kwargs["setup"]
-
-    def __enter__(self):
-        self.__disetConfig.load((self.dn, self.group, self.setup))
-        return self.__disetConfig
-
-    def __exit__(self, type, value, traceback):
-        self.__disetConfig.reset()
-
-
 class FileResponse(TornadoResponse):
     """This class provide logic for CSV and PNG formats.
 
@@ -234,8 +208,7 @@ class _WebHandler(TornadoREST):
         """
 
         # Parse request URI
-        match = self.PATH_RE.match(self.request.path)
-        groups = match.groups()
+        groups = self.PATH_RE.match(self.request.path).groups()
         self.__setup = groups[0] or Conf.setup()
         self.__group = groups[1]
 

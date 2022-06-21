@@ -33,15 +33,12 @@ class RootHandler(WebHandler):
         return TornadoResponse().redirect(self.__change(setup=to))  # pylint: disable=no-member
 
     def __change(self, setup: str = None, group: str = None) -> str:
-        """Generate URL to change setup/group"""
-        url = f"/{Conf.rootURL().strip('/')}"
-        if setup := (setup or self.getUserSetup()):
-            url += f"/s:{setup}"
-        if group := (group or self.getUserGroup() or "anon"):
-            url += f"/g:{group}"
-        if "Referer" in self.request.headers:
-            url += f"/?{urlparse(self.request.headers['Referer']).query}"
-        return url
+        """Generate URL to change setup/group, set query"""
+        root = Conf.rootURL().strip("/")
+        setup = setup or self.getUserSetup() or ""
+        group = group or self.getUserGroup() or ""
+        query = ((ref := self.request.headers.get("Referer")) and urlparse(ref).query) or ""
+        return f"/{root}/s:{setup}/g:{group}/?{query}"
 
     def web_getConfigData(self, **kwargs) -> dict:
         """Get session data"""
@@ -92,11 +89,8 @@ class RootHandler(WebHandler):
         resp.set_cookie("authGrant", "Visitor")  # pylint: disable=no-member
         return resp.redirect(uri)  # pylint: disable=no-member
 
-    def web_loginComplete(self, code, state, **kwargs):
+    def web_loginComplete(self, code: str, state: str, **kwargs):
         """Finishing authoriation flow
-
-        :param str code: code
-        :param str state: state
 
         :return: TornadoResponse()
         """
@@ -117,13 +111,11 @@ class RootHandler(WebHandler):
     </html>"""
         )
         resp = TornadoResponse()
-        authSession = self.get_secure_cookie("webauth_session")
-        if not authSession:
+        if not (authSession := self.get_secure_cookie("webauth_session")):
             return resp.redirect("/")  # pylint: disable=no-member
         authSession = json.loads(authSession)
 
-        result = self._idps.getIdProvider("DIRACWeb")
-        if not result["OK"]:
+        if not (result := self._idps.getIdProvider("DIRACWeb"))["OK"]:
             # pylint: disable=no-member
             resp.finish(t.generate(next=authSession["next"], access_token="", message=result["Message"]).decode())
             return resp
@@ -150,12 +142,8 @@ class RootHandler(WebHandler):
             return resp.finish(
                 t.generate(next=authSession["next"], access_token="", message=result["Message"]).decode()
             )
-        nextURL = f"/{Conf.rootURL().strip('/')}"
-        if setup := self.getUserSetup():
-            nextURL += f"/s:{setup}"
-        if group := result["Value"].get("group"):
-            nextURL += f"/g:{group}"
-        nextURL += f"/?{urlparse(authSession['next']).query}"
+        self.request.headers["Referer"] = authSession["next"]
+        nextURL = self.__change(group=result["Value"].get("group"))
 
         # Save token and go to main page
         # with document('DIRAC authentication') as html:
