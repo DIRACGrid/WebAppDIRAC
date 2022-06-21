@@ -1,16 +1,16 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
-from DIRAC.FrameworkSystem.Client import ProxyUpload
-from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC import gLogger
+from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
+from DIRAC.FrameworkSystem.Client import ProxyUpload
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getGroupsForDN
+
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 
 
 class ProxyUploadHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    @asyncGen
-    def web_proxyUpload(self):
+    def web_proxyUpload(self, pass_p12=None):
         """
         Get p12 file and passwords as input. Split p12 to user key and certificate
         and creating proxy for groups user belongs to. Upload proxy to proxy store
@@ -19,27 +19,22 @@ class ProxyUploadHandler(WebHandler):
         # response.headers['Content-type'] = "text/html"
         userData = self.getSessionData()
         username = userData["user"]["username"]
-        gLogger.info("Start upload proxy out of p12 for user: %s" % (username))
-        disclaimer = "\nNo proxy was created\nYour private info was safely deleted"
-        disclaimer = disclaimer + " from DIRAC service"
+        gLogger.info(f"Start upload proxy out of p12 for user: {username}")
+        disclaimer = "\nNo proxy was created\nYour private info was safely deleted from DIRAC service"
 
-        if username == "anonymous":
-            error = "Please, send a registration request first"
+        if username.lower() == "anonymous":
             gLogger.error("Anonymous is not allowed")
-            gLogger.debug("Service response: %s" % error)
-            self.finish({"success": "false", "error": error})
-            return
+            gLogger.debug(f"Service response: {(error := 'Please, send a registration request first')}")
+            return {"success": "false", "error": error}
 
         groupList = userData["validGroups"]
-        gLogger.info("Available groups for the user %s: %s" % (username, ", ".join(groupList)))
+        gLogger.info(f"Available groups for the user {username}:", ", ".join(groupList))
 
         if not len(groupList) > 0:
             gLogger.error("User is not registered in any group")
-            error = "Seems that user %s is not register in any group" % username
-            error = error + disclaimer
-            gLogger.debug("Service response: %s" % error)
-            self.finish({"success": "false", "error": error})
-            return
+            error = f"Seems that user {username} is not register in any group {disclaimer}"
+            gLogger.debug(f"Service response: {error}")
+            return {"success": "false", "error": error}
 
         fileObject = None
         gLogger.debug("Request's body:")
@@ -50,23 +45,20 @@ class ProxyUploadHandler(WebHandler):
                 name = name.strip()
                 if name[-4:] == ".p12":
                     gLogger.info(".p12 in filename detected")
-                    if self.get_argument("pass_p12", None):
+                    if pass_p12:
                         fileObject = self.request.files[key][0]
-                        fileObject.p12 = self.get_argument("pass_p12")
+                        fileObject.p12 = pass_p12
                         gLogger.info(".p12 password detected")
                         # store.append(fileObject)
                         gLogger.info("Certificate object is loaded")
         except Exception as x:
-            gLogger.debug("Non fatal for logic, exception happens: %s" % str(x))
-            pass
+            gLogger.debug(f"Non fatal for logic, exception happens: {x}")
 
         if fileObject is None:  # If there is a file(s) to store
             gLogger.error("No file with *.p12 found")
-            error = "Failed to find any suitable *.p12 filename in your request"
-            error = error + disclaimer
-            gLogger.debug("Service response: %s" % error)
-            self.finish({"success": "false", "error": error})
-            return
+            error = f"Failed to find any suitable *.p12 filename in your request {disclaimer}"
+            gLogger.debug(f"Service response: {error}")
+            return {"success": "false", "error": error}
 
         import tempfile
         import shutil
@@ -96,11 +88,9 @@ class ProxyUploadHandler(WebHandler):
         except Exception as x:
             shutil.rmtree(storePath)
             gLogger.exception(x)
-            error = "An exception has happen '%s'" % str(x)
-            error = error + disclaimer
+            error = f"An exception has happen '{x}' {disclaimer}"
             gLogger.debug("Service response: %s" % error)
-            self.finish({"success": "false", "error": error})
-            return
+            return {"success": "false", "error": error}
 
         gLogger.info("Split certificate(s) to public and private keys")
 
@@ -116,38 +106,28 @@ class ProxyUploadHandler(WebHandler):
             tmp = "".join(random.choice(string.ascii_letters) for x in range(10))
             keyDict[j] = os.path.join(storePath, tmp)
 
-        cmdCert = "openssl pkcs12 -clcerts -nokeys -in %s -out %s -password file:%s" % (name, keyDict["pub"], p12)
-        cmdKey = "openssl pkcs12 -nocerts -in %s -out %s -passout file:%s -password file:%s" % (
-            name,
-            keyDict["private"],
-            keyDict["pem"],
-            p12,
-        )
+        cmdCert = f"openssl pkcs12 -clcerts -nokeys -in {name} -out {keyDict['pub']} -password file:{p12}"
+        cmdKey = f"openssl pkcs12 -nocerts -in {name} -out {keyDict['private']} -passout file:{keyDict['pem']} -password file:{p12}"
 
         for cmd in cmdCert, cmdKey:
-            result = yield self.threadTask(Subprocess.shellCall, 900, cmd)
-            gLogger.debug("Command is: %s" % cmd)
-            gLogger.debug("Result is: %s" % result)
+            result = Subprocess.shellCall(900, cmd)
+            gLogger.debug(f"Command is: {cmd}")
+            gLogger.debug(f"Result is: {result}")
             if not result["OK"]:
                 shutil.rmtree(storePath)
                 gLogger.error(result["Message"])
-                error = "Error while executing SSL command: %s" % result["Message"]
-                error = error + disclaimer
-                gLogger.debug("Service response: %s" % error)
-                self.finish({"success": "false", "error": error})
-                return
+                error = f"Error while executing SSL command: {result['Message']} {disclaimer}"
+                gLogger.debug(f"Service response: {error}")
+                return {"success": "false", "error": error}
 
         proxyChain = X509Chain()
 
-        result = proxyChain.loadChainFromFile(keyDict["pub"])
-        if not result["OK"]:
-            self.finish({"error": "Could not load the proxy: %s" % result["Message"], "success": "false"})
-            return
+        if not (result := proxyChain.loadChainFromFile(keyDict["pub"]))["OK"]:
+            return {"error": "Could not load the proxy: %s" % result["Message"], "success": "false"}
 
-        result = proxyChain.getIssuerCert()
-        if not result["OK"]:
-            self.finish({"error": "Could not load the proxy: %s" % result["Message"], "success": "false"})
-            return
+        if not (result := proxyChain.getIssuerCert())["OK"]:
+            return {"error": "Could not load the proxy: %s" % result["Message"], "success": "false"}
+
         issuerCert = result["Value"]
 
         upParams = ProxyUpload.CLIParams()
@@ -156,28 +136,24 @@ class ProxyUploadHandler(WebHandler):
         upParams.certLoc = keyDict["pub"]
         upParams.keyLoc = keyDict["private"]
         upParams.userPasswd = pemPassword
-        result = ProxyUpload.uploadProxy(upParams)
 
-        if not result["OK"]:
-            self.finish({"error": result["Message"], "success": "false"})
-            return
+        if not (result := ProxyUpload.uploadProxy(upParams))["OK"]:
+            return {"error": result["Message"], "success": "false"}
 
         shutil.rmtree(storePath)
 
-        result = issuerCert.getSubjectDN()
-        if result["OK"]:
+        if (result := issuerCert.getSubjectDN())["OK"]:
             result = getGroupsForDN(result["Value"])
         if not result["OK"]:
-            self.finish({"error": result["Message"], "success": "false"})
-            return
+            return {"error": result["Message"], "success": "false"}
+
         groups = ", ".join(result["Value"])
-        result = "Operation finished successfully\n"
-        result += "Proxy uploaded for user: %s \n" % username
+        result = f"Operation finished successfully\nProxy uploaded for user: {username} \n"
         if len(groupList) > 0:
-            result += " in groups: %s \n" % groups
+            result += f" in groups: {groups} \n"
         else:
-            result += " in group: %s \n" % groups
+            result += f" in group: {groups} \n"
 
         result += "\nYour private info was safely deleted from DIRAC server."
         gLogger.info(result)
-        self.finish({"success": "true", "result": result})
+        return {"success": "true", "result": result}
