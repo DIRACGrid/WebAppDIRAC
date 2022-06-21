@@ -18,19 +18,19 @@ class RootHandler(WebHandler):
     DEFAULT_LOCATION = "/"
     SUPPORTED_METHODS = ("GET",)
 
-    def web_changeGroup(self, group: str):
+    def web_changeGroup(self, to: str):
         """Change group
 
         :return: TornadoResponse()
         """
-        return TornadoResponse().redirect(self.__change(group=group))  # pylint: disable=no-member
+        return TornadoResponse().redirect(self.__change(group=to))  # pylint: disable=no-member
 
-    def web_changeSetup(self, setup: str):
+    def web_changeSetup(self, to: str):
         """Change setup
 
         :return: TornadoResponse()
         """
-        return TornadoResponse().redirect(self.__change(setup=setup))  # pylint: disable=no-member
+        return TornadoResponse().redirect(self.__change(setup=to))  # pylint: disable=no-member
 
     def __change(self, setup: str = None, group: str = None) -> str:
         """Generate URL to change setup/group"""
