@@ -2,49 +2,38 @@ import ast
 import json
 
 from DIRAC.Core.Utilities import TimeUtilities
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 from DIRAC.WorkloadManagementSystem.Client.VMClient import VMClient
 
 
 class VMDiracHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    @asyncGen
-    def web_getInstancesList(self):
-        try:
-            start = int(self.get_argument("start"))
-        except Exception:
-            start = 0
-        try:
-            limit = int(self.get_argument("limit"))
-        except Exception:
-            limit = 0
-
+    def web_getInstancesList(
+        self, start: int = 0, limit: int = 0, sort: str = None, cond: str = None, statusSelector: str = None
+    ):
         sortField = "inst_InstanceID"
         sortDir = "DESC"
-        if "sort" in self.request.arguments:
-            sortValue = self.get_argument("sort")
+        if sort:
             # converting the string into a dictionary
-            sortValue = ast.literal_eval(sortValue.strip("[]"))
-            sortField = str(sortValue["property"]).replace("_", ".")
-            sortDir = str(sortValue["direction"])
+            sort = ast.literal_eval(sort.strip("[]"))
+            sortField = str(sort["property"]).replace("_", ".")
+            sortDir = str(sort["direction"])
         sort = [[sortField, sortDir]]
 
         condDict = {}
-        if "cond" in self.request.arguments:
-            dec = json.loads(self.get_argument("cond"))
+        if cond:
+            dec = json.loads(cond)
             for k in dec:
                 v = [str(dec[k])] if isinstance(dec[k], str) else [str(f) for f in dec[k]]
                 condDict[str(k).replace("_", ".")] = v
 
-        if "statusSelector" in self.request.arguments:
-            condDict["inst.Status"] = [str(self.get_argument("statusSelector"))]
+        if statusSelector:
+            condDict["inst.Status"] = [statusSelector]
 
-        result = VMClient().getInstancesContent(condDict, sort, start, limit)
-        if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
+        if not (result := VMClient().getInstancesContent(condDict, sort, start, limit))["OK"]:
+            return {"success": "false", "error": result["Message"]}
         svcData = result["Value"]
         data = {"numRecords": svcData["TotalRecords"], "instances": []}
         for record in svcData["Records"]:
@@ -53,19 +42,17 @@ class VMDiracHandler(WebHandler):
                 param = svcData["ParameterNames"][iP].replace(".", "_")
                 rD[param] = record[iP].strftime("%Y-%m-%d %H:%M:%S") if param == "inst_LastUpdate" else record[iP]
             data["instances"].append(rD)
-        self.finish({"success": "true", "result": data["instances"], "total": data["numRecords"], "date": None})
+        return {"success": "true", "result": data["instances"], "total": data["numRecords"], "date": None}
 
-    def web_stopInstances(self):
-        webIds = json.loads(self.get_argument("idList"))
+    def web_stopInstances(self, idList):
+        webIds = json.loads(idList)
         result = VMClient().declareInstancesStopping(webIds)
-        self.finish({"success": "true", "result": result})
+        return {"success": "true", "result": result}
 
-    def web_getHistoryForInstance(self):
-        instanceID = int(self.get_argument("instanceID"))
-        result = VMClient().getHistoryForInstanceID(instanceID)
-        if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
+    def web_getHistoryForInstance(self, instanceID: int):
+        if not (result := VMClient().getHistoryForInstanceID(instanceID))["OK"]:
+            return {"success": "false", "error": result["Message"]}
+
         svcData = result["Value"]
         data = []
         for record in svcData["Records"]:
@@ -74,29 +61,21 @@ class VMDiracHandler(WebHandler):
                 param = svcData["ParameterNames"][iP].replace(".", "_")
                 rD[param] = record[iP].strftime("%Y-%m-%d %H:%M:%S") if param == "Update" else record[iP]
             data.append(rD)
-        self.finish({"success": "true", "result": data, "total": len(data)})
+        return {"success": "true", "result": data, "total": len(data)}
 
-    def web_checkVmWebOperation(self):
-        operation = str(self.get_argument("operation"))
-        result = VMClient().checkVmWebOperation(operation)
-        if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-        else:
-            self.finish({"success": "true", "data": result["Value"]})
+    def web_checkVmWebOperation(self, operation):
+        if not (result := VMClient().checkVmWebOperation(operation))["OK"]:
+            return {"success": "false", "error": result["Message"]}
+        return {"success": "true", "data": result["Value"]}
 
-    def web_getHistoryValues(self):
+    def web_getHistoryValues(self, vars=None, timespan=86400):
         try:
-            dbVars = [str(f) for f in json.loads(self.get_argument("vars"))]
+            dbVars = [str(f) for f in json.loads(vars)]
         except Exception:
             dbVars = ["Load", "Jobs", "TransferredFiles"]
-        try:
-            timespan = int(self.get_argument("timespan"))
-        except Exception:
-            timespan = 86400
-        result = VMClient().getHistoryValues(3600, {}, dbVars, timespan)
-        if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
+
+        if not (result := VMClient().getHistoryValues(3600, {}, dbVars, timespan))["OK"]:
+            return {"success": "false", "error": result["Message"]}
         svcData = result["Value"]
         data = []
         olderThan = TimeUtilities.toEpoch() - 400
@@ -107,21 +86,11 @@ class VMDiracHandler(WebHandler):
                 rL.append(TimeUtilities.toEpoch(record[iP]) if param == "Update" else record[iP])
             if rL[0] < olderThan:
                 data.append(rL)
-        self.finish({"success": "true", "data": data, "fields": svcData["ParameterNames"]})
+        return {"success": "true", "data": data, "fields": svcData["ParameterNames"]}
 
-    def web_getRunningInstancesHistory(self):
-        try:
-            bucketSize = int(self.get_argument("bucketSize"))
-        except Exception:
-            bucketSize = 900
-        try:
-            timespan = int(self.get_argument("timespan"))
-        except Exception:
-            timespan = 86400
-        result = VMClient().getRunningInstancesHistory(timespan, bucketSize)
-        if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
+    def web_getRunningInstancesHistory(self, bucketSize=900, timespan=86400):
+        if not (result := VMClient().getRunningInstancesHistory(timespan, bucketSize))["OK"]:
+            return {"success": "false", "error": result["Message"]}
         svcData = result["Value"]
         data = []
         olderThan = TimeUtilities.toEpoch() - 400
@@ -131,21 +100,11 @@ class VMDiracHandler(WebHandler):
             if eTime < olderThan:
                 rL = [eTime, int(record[1])]
             data.append(rL)
-        self.finish({"success": "true", "data": data, "timespan": timespan})
+        return {"success": "true", "data": data, "timespan": timespan}
 
-    def web_getRunningInstancesBEPHistory(self):
-        try:
-            bucketSize = int(self.get_argument("bucketSize"))
-        except Exception:
-            bucketSize = 900
-        try:
-            timespan = int(self.get_argument("timespan"))
-        except Exception:
-            timespan = 86400
-        result = VMClient().getRunningInstancesBEPHistory(timespan, bucketSize)
-        if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
+    def web_getRunningInstancesBEPHistory(self, bucketSize=900, timespan=86400):
+        if not (result := VMClient().getRunningInstancesBEPHistory(timespan, bucketSize))["OK"]:
+            return {"success": "false", "error": result["Message"]}
         svcData = result["Value"]
         data = []
         olderThan = TimeUtilities.toEpoch() - 400
@@ -154,21 +113,11 @@ class VMDiracHandler(WebHandler):
             if eTime < olderThan:
                 rL = [eTime, record[1], int(record[2])]
             data.append(rL)
-        self.finish({"success": "true", "data": data})
+        return {"success": "true", "data": data}
 
-    def web_getRunningInstancesByRunningPodHistory(self):
-        try:
-            bucketSize = int(self.get_argument("bucketSize"))
-        except Exception:
-            bucketSize = 900
-        try:
-            timespan = int(self.get_argument("timespan"))
-        except Exception:
-            timespan = 86400
-        result = VMClient().getRunningInstancesByRunningPodHistory(timespan, bucketSize)
-        if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
+    def web_getRunningInstancesByRunningPodHistory(self, bucketSize=900, timespan=86400):
+        if not (result := VMClient().getRunningInstancesByRunningPodHistory(timespan, bucketSize))["OK"]:
+            return {"success": "false", "error": result["Message"]}
         svcData = result["Value"]
         data = []
         olderThan = TimeUtilities.toEpoch() - 400
@@ -177,21 +126,11 @@ class VMDiracHandler(WebHandler):
             if eTime < olderThan:
                 rL = [eTime, record[1], int(record[2])]
             data.append(rL)
-        self.finish({"success": "true", "data": data})
+        return {"success": "true", "data": data}
 
-    def web_getRunningInstancesByImageHistory(self):
-        try:
-            bucketSize = int(self.get_argument("bucketSize"))
-        except Exception:
-            bucketSize = 900
-        try:
-            timespan = int(self.get_argument("timespan"))
-        except Exception:
-            timespan = 86400
-        result = VMClient().getRunningInstancesByImageHistory(timespan, bucketSize)
-        if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
-            return
+    def web_getRunningInstancesByImageHistory(self, bucketSize=900, timespan=86400):
+        if not (result := VMClient().getRunningInstancesByImageHistory(timespan, bucketSize))["OK"]:
+            return {"success": "false", "error": result["Message"]}
         svcData = result["Value"]
         data = []
         olderThan = TimeUtilities.toEpoch() - 400
@@ -200,4 +139,4 @@ class VMDiracHandler(WebHandler):
             if eTime < olderThan:
                 rL = [eTime, record[1], int(record[2])]
             data.append(rL)
-        self.finish({"success": "true", "data": data})
+        return {"success": "true", "data": data}
