@@ -352,11 +352,11 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode(["Info"]),
-        name: Ext.JSON.encode([selection.name]),
-        elementType: Ext.JSON.encode([selection.elementType]),
-        statusType: Ext.JSON.encode([selection.statusType]),
-        element: selection.element ? Ext.JSON.encode([selection.element]) : Ext.JSON.encode(["Resource"]),
+        action: "Info",
+        name: selection.name,
+        elementType: selection.elementType,
+        statusType: selection.statusType,
+        element: selection.element ? selection.element : "Resource",
       },
       scope: me,
       failure: function (response) {
@@ -381,10 +381,10 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode(["History"]),
-        name: Ext.JSON.encode([selection.name]),
-        elementType: Ext.JSON.encode([selection.elementType]),
-        statusType: Ext.JSON.encode([selection.statusType]),
+        action: "History",
+        name: selection.name,
+        elementType: selection.elementType,
+        statusType: selection.statusType,
       },
       scope: me,
       failure: function (response) {
@@ -408,11 +408,11 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode(["Downtime"]),
-        name: Ext.JSON.encode([selection.name]),
-        elementType: Ext.JSON.encode([selection.elementType]),
-        element: Ext.JSON.encode(["Resource"]),
-        statusType: Ext.JSON.encode([selection.statusType]),
+        action: "Downtime",
+        name: selection.name,
+        elementType: selection.elementType,
+        element: "Resource",
+        statusType: selection.statusType,
       },
       scope: me,
       failure: function (response) {
@@ -436,10 +436,10 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode(["Policies"]),
-        name: Ext.JSON.encode([selection.name]),
-        elementType: Ext.JSON.encode([selection.elementType]),
-        statusType: Ext.JSON.encode([selection.statusType]),
+        action: "Policies",
+        name: selection.name,
+        elementType: selection.elementType,
+        statusType: selection.statusType,
       },
       scope: me,
       failure: function (response) {
@@ -463,10 +463,10 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode(["Timeline"]),
-        name: Ext.JSON.encode([selection.name]),
-        elementType: Ext.JSON.encode([selection.elementType]),
-        statusType: Ext.JSON.encode([selection.statusType]),
+        action: "Timeline",
+        name: selection.name,
+        elementType: selection.elementType,
+        statusType: selection.statusType,
       },
       scope: me,
       failure: function (response) {
@@ -531,10 +531,10 @@ Ext.define("DIRAC.ResourceSummary.classes.OverviewPanel", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode(["Tree"]),
-        name: Ext.JSON.encode([selection.name]),
-        elementType: Ext.JSON.encode([selection.elementType]),
-        statusType: Ext.JSON.encode([selection.statusType]),
+        action: "Tree",
+        name: selection.name,
+        elementType: selection.elementType,
+        statusType: selection.statusType,
       },
       scope: me,
       failure: function (response) {

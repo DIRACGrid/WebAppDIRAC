@@ -332,7 +332,7 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
 
       if (Ext.getCmp(targetId + "_grid") == null) {
         var params = {
-          name: Ext.JSON.encode([record.data.Name]),
+          name: record.data.Name,
         };
         var oProxy = Ext.create("Ext.dirac.utils.DiracAjaxProxy", {
           url: GLOBAL.BASE_URL + "ResourceSummary/expand",
@@ -463,10 +463,10 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode([action]),
-        name: Ext.JSON.encode([selectedValues.name]),
-        elementType: Ext.JSON.encode([selectedValues.elementType]),
-        statusType: Ext.JSON.encode([selectedValues.statusType]),
+        action: action,
+        name: selectedValues.name,
+        elementType: selectedValues.elementType,
+        statusType: selectedValues.statusType,
       },
       scope: me,
       failure: function (response) {
@@ -583,12 +583,12 @@ Ext.define("DIRAC.ResourceSummary.classes.ResourceSummary", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode([action]),
-        name: Ext.JSON.encode([selectedValues.name]),
-        elementType: Ext.JSON.encode([selectedValues.elementType]),
-        statusType: Ext.JSON.encode([selectedValues.statusType]),
-        status: Ext.JSON.encode([newStatus]),
-        lastCheckTime: Ext.JSON.encode([selectedValues.lastCheckTime]),
+        action: action,
+        name: selectedValues.name,
+        elementType: selectedValues.elementType,
+        statusType: selectedValues.statusType,
+        status: newStatus,
+        lastCheckTime: selectedValues.lastCheckTime,
       },
       scope: me,
       failure: function (response) {
