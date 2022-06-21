@@ -18,27 +18,27 @@ class RootHandler(WebHandler):
     DEFAULT_LOCATION = "/"
     SUPPORTED_METHODS = ("GET",)
 
-    def web_changeGroup(self, group: str):
+    def web_changeGroup(self, to: str):
         """Change group
 
         :return: TornadoResponse()
         """
-        return TornadoResponse().redirect(self.__change(group=group))  # pylint: disable=no-member
+        return TornadoResponse().redirect(self.__change(group=to))  # pylint: disable=no-member
 
-    def web_changeSetup(self, setup: str):
+    def web_changeSetup(self, to: str):
         """Change setup
 
         :return: TornadoResponse()
         """
-        return TornadoResponse().redirect(self.__change(setup=setup))  # pylint: disable=no-member
+        return TornadoResponse().redirect(self.__change(setup=to))  # pylint: disable=no-member
 
     def __change(self, setup: str = None, group: str = None) -> str:
         """Generate URL to change setup/group"""
         url = f"/{Conf.rootURL().strip('/')}"
-        if group := (group or self.getUserGroup() or "anon"):
-            url += f"/g:{group}"
         if setup := (setup or self.getUserSetup()):
             url += f"/s:{setup}"
+        if group := (group or self.getUserGroup() or "anon"):
+            url += f"/g:{group}"
         if "Referer" in self.request.headers:
             url += f"/?{urlparse(self.request.headers['Referer']).query}"
         return url
@@ -151,10 +151,10 @@ class RootHandler(WebHandler):
                 t.generate(next=authSession["next"], access_token="", message=result["Message"]).decode()
             )
         nextURL = f"/{Conf.rootURL().strip('/')}"
-        if group := result["Value"].get("group"):
-            nextURL += f"/g:{group}"
         if setup := self.getUserSetup():
             nextURL += f"/s:{setup}"
+        if group := result["Value"].get("group"):
+            nextURL += f"/g:{group}"
         nextURL += f"/?{urlparse(authSession['next']).query}"
 
         # Save token and go to main page
