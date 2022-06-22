@@ -1,6 +1,4 @@
-""" Main module
-"""
-
+import contextlib
 import os
 import re
 import json
@@ -17,16 +15,11 @@ from tornado import gen
 from tornado.web import HTTPError
 from tornado.ioloop import IOLoop
 
-from DIRAC import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.Core.Utilities.Decorators import deprecated
-from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.Core.Tornado.Server.TornadoREST import (
-    TornadoREST,
-    authorization,
-    TornadoResponse,
-)  # pylint: disable=no-name-in-module
+from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST, TornadoResponse
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 from WebAppDIRAC.Lib import Conf
@@ -133,10 +126,6 @@ def defaultEncoder(data):
 
 
 class _WebHandler(TornadoREST):
-    __session = None
-    __sessionData = None
-    __disetConfig = ThreadConfig()
-
     DEFAULT_AUTHENTICATION = ["SSL", "SESSION", "VISITOR"]
     # Auth requirements DEFAULT_AUTHORIZATION
     DEFAULT_AUTHORIZATION = None
@@ -206,57 +195,42 @@ class _WebHandler(TornadoREST):
         We make the assumption that there is always going to be a ``method`` argument
         regardless of the HTTP method used
         """
-
         # Parse request URI
         groups = self.PATH_RE.match(self.request.path).groups()
         self.__setup = groups[0] or Conf.setup()
         self.__group = groups[1]
-
-        # Reset DISET settings
-        self.__disetConfig.reset()
-        self.__disetConfig.setDecorator(self.__disetBlockDecor)
-        self.__disetDump = self.__disetConfig.dump()
 
         try:
             await super().prepare()
         except HTTPError as e:
             raise WErr(e.status_code, e.log_message)
 
-        # Configure DISET with user creds
-        if self.getUserDN():
-            self.__disetConfig.setDN(self.getUserDN())
-        if self.getUserGroup():  # pylint: disable=no-value-for-parameter
-            self.__disetConfig.setGroup(self.getUserGroup())  # pylint: disable=no-value-for-parameter
-        self.__disetConfig.setSetup(self.__setup)
-        self.__disetDump = self.__disetConfig.dump()
+    @contextlib.contextmanager
+    def _setupThreadConfig(self):
+        threadConfig = ThreadConfig()
+        if userDN := self.getUserDN():
+            threadConfig.setDN(userDN)
+        if userGroup := self.getUserGroup():
+            threadConfig.setGroup(userGroup)
+        threadConfig.setSetup(self.__setup)
+        try:
+            yield
+        finally:
+            threadConfig.reset()
 
-        self.__forceRefreshCS()
-
-    def __disetBlockDecor(self, func):
-        def wrapper(*args, **kwargs):
-            raise RuntimeError("All DISET calls must be made from inside a Threaded Task!")
-
-        return wrapper
-
-    def __forceRefreshCS(self):
-        """Force refresh configuration from master configuration server"""
-        if self.request.headers.get("X-RefreshConfiguration") == "True":
-            self.log.debug("Initialize force refresh..")
-            if not AuthManager("").authQuery("", dict(self.credDict), "CSAdministrator"):
-                raise WErr(401, "Cannot initialize force refresh, request not authenticated")
-            result = gConfig.forceRefresh()
-            if not result["OK"]:
-                raise WErr(501, result["Message"])
+    def _executeMethod(self, args: list, kwargs: dict):
+        """Execute the requested method while impersonating the current user."""
+        with self._setupThreadConfig():
+            return super()._executeMethod(args, kwargs)
 
     def _gatherPeerCredentials(self):
         """
-        Load client certchain in DIRAC and extract informations.
+        Load client certificate chain in DIRAC and extract informations.
 
         The dictionary returned is designed to work with the AuthManager,
         already written for DISET and re-used for HTTPS.
 
-        :returns: a dict containing the return of :py:meth:`DIRAC.Core.Security.X509Chain.X509Chain.getCredentials`
-                  (not a DIRAC structure !)
+        :returns: dict containing the return of :py:meth:`DIRAC.Core.Security.X509Chain.X509Chain.getCredentials`
         """
         # Authorization type
         self.__authGrant = ["VISITOR"]
@@ -274,7 +248,7 @@ class _WebHandler(TornadoREST):
         return credDict
 
     def _authzSESSION(self):
-        """Fill credentionals from session
+        """Fill credentials from session
 
         :return: S_OK(dict)
         """
@@ -318,14 +292,11 @@ class _WebHandler(TornadoREST):
     def getLog(cls):
         return sLog
 
-    def getCurrentSession(self):
-        return self.__session
-
     def getUserSetup(self):
         return self.__setup
 
     def getSessionData(self):
-        if not self.__sessionData:
+        if not hasattr(self, "__sessionData"):
             self.__sessionData = SessionData(self.credDict, self.__setup)
         return self.__sessionData.getData()
 
@@ -395,18 +366,14 @@ class WebHandler(_WebHandler):
         return self.get(*args, **kwargs)
 
     def threadTask(self, method, *args, **kwargs):
-        def threadJob(*targs, **tkwargs):
-            args = targs[0]
-            disetConf = targs[1]
-            self.__disetConfig.reset()
-            self.__disetConfig.load(disetConf)
-            return method(*args, **tkwargs)
+        def threadJob(*args, **kwargs):
+            with self._setupThreadConfig():
+                return method(*args, **kwargs)
 
-        targs = (args, self.__disetDump)
-        return IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *targs, **kwargs))
+        return IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *args, **kwargs))
 
     def finish(self, data=None, *args, **kwargs):
-        """Finishes this response, ending the HTTP request. More detailes:
+        """Finishes this response, ending the HTTP request. More details:
         https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
         """
         if data and isinstance(data, dict):
