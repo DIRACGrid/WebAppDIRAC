@@ -3,52 +3,45 @@
 
 import json
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
 from DIRAC import gLogger
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
 
 
 class SpaceOccupancyHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    @asyncGen
-    def web_getSelectionData(self):
+    def initializeRequest(self):
+        self.rmc = ResourceManagementClient()
+
+    def web_getSelectionData(self, **kwargs):
         callback = {
             "StorageElement": set(),
         }
 
-        rmc = ResourceManagementClient()
+        gLogger.info("Arguments to web_getSelectionData", kwargs)
 
-        gLogger.info("Arguments to web_getSelectionData", repr(self.request.arguments))
-
-        spaces = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache)
-
-        if spaces["OK"]:
-            for sp in spaces["Value"]:
-                callback["StorageElement"].add(sp[1])
+        if (result := self.rmc.selectSpaceTokenOccupancyCache())["OK"]:
+            for space in result["Value"]:
+                callback["StorageElement"].add(space[1])
 
         for key, value in callback.items():
             callback[key] = [[item] for item in list(value)]
             # callback[key].sort()
             callback[key] = [["All"]] + callback[key]
 
-        self.finish(callback)
+        return callback
 
-    @asyncGen
-    def web_getSpaceOccupancyData(self):
+    def web_getSpaceOccupancyData(self, StorageElement="null"):
+        se = json.loads(StorageElement)
 
-        rmc = ResourceManagementClient()
-
-        se = json.loads(self.get_argument("StorageElement", "null"))
-
-        res = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache, None, list(se) if se else se)
-
-        if not res["OK"]:
-            raise WErr.fromSERROR(res)
+        result = self.rmc.selectSpaceTokenOccupancyCache(None, list(se) if se else se)
+        if not result["OK"]:
+            raise WErr.fromSERROR(result)
 
         resList = []
-        for sp in res["Value"]:
+        for sp in result["Value"]:
             # sp is e.g. ['dips://lbtestvobox.cern.ch:9196/',
             #             'CertificationSandboxSE',
             #             0.0,
@@ -82,4 +75,4 @@ class SpaceOccupancyHandler(WebHandler):
 
             resList.append(spRes)
 
-        self.finish({"success": "true", "result": resList, "total": len(res["Value"])})
+        self.finish({"success": "true", "result": resList, "total": len(result["Value"])})
