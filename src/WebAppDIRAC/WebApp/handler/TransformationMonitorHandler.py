@@ -349,7 +349,7 @@ class TransformationMonitorHandler(WebHandler):
                 "extra": data["Extras"],
                 "date": timestamp,
             }
-        return {"success": "true", "result": callback, "total": total, "date": timestamp}     
+        return {"success": "true", "result": callback, "total": total, "date": timestamp}
 
     def web_getTier1Sites(self):
         if len(tier1 := gConfig.getValue("/WebApp/PreferredSites", [])) < 1:
