@@ -327,27 +327,29 @@ class TransformationMonitorHandler(WebHandler):
             return {"success": "false", "error": result["Message"]}
 
         data = result["Value"]
-        if "TotalRecords" in data and (total := data["TotalRecords"]) > 0:
-            if "ParameterNames" in data and "Records" in data:
-                if (headLength := len(head := data["ParameterNames"])) > 0:
-                    if len(data["Records"]) > 0:
-                        callback = []
-                        for job in data["Records"]:
-                            callback.append({head[j]: job[j] for j in range(headLength)})
-                        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
-                        if "Extras" in data:
-                            return {
-                                "success": "true",
-                                "result": callback,
-                                "total": total,
-                                "extra": data["Extras"],
-                                "date": timestamp,
-                            }
-                        return {"success": "true", "result": callback, "total": total, "date": timestamp}
-                    return {"success": "false", "result": "", "error": "There are no data to display"}
-                return {"success": "false", "result": "", "error": "ParameterNames field is undefined"}
+        total = len(data.get("TotalRecords", []))
+        if total == 0:
+            return {"success": "false", "result": "", "error": "There were no data matching your selection"}
+        if not ("ParameterNames" in data and "Records" in data):
             return {"success": "false", "result": "", "error": "Data structure is corrupted"}
-        return {"success": "false", "result": "", "error": "There were no data matching your selection"}
+        head = data.get("ParameterNames", [])
+        if len(head) == 0:
+            return {"success": "false", "result": "", "error": "ParameterNames field is undefined"}
+        if len(data["Records"]) == 0:
+            return {"success": "false", "result": "", "error": "There are no data to display"}
+        callback = []
+        for job in data["Records"]:
+            callback.append(dict(zip(head, job)))
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
+        if "Extras" in data:
+            return {
+                "success": "true",
+                "result": callback,
+                "total": total,
+                "extra": data["Extras"],
+                "date": timestamp,
+            }
+        return {"success": "true", "result": callback, "total": total, "date": timestamp}     
 
     def web_getTier1Sites(self):
         if len(tier1 := gConfig.getValue("/WebApp/PreferredSites", [])) < 1:
