@@ -9,7 +9,7 @@ from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
 class RegistryManagerHandler(WebSocketHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
     def on_open(self):
         self.__configData = {}
@@ -17,7 +17,7 @@ class RegistryManagerHandler(WebSocketHandler):
     @asyncGen
     def on_message(self, msg):
 
-        self.log.info("RECEIVED %s" % msg)
+        self.log.info(f"RECEIVED {msg}")
         try:
             params = json.loads(msg)
         except Exception:
@@ -56,10 +56,8 @@ class RegistryManagerHandler(WebSocketHandler):
         rpcClient = ConfigurationClient(
             url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server")
         )
-        modCfg = Modificator(rpcClient)
-        retVal = modCfg.loadFromRemote()
 
-        if not retVal["OK"]:
+        if not (modCfg := Modificator(rpcClient)).loadFromRemote()["OK"]:
             return {"success": 0, "op": "getSubnodes", "message": "The configuration cannot be read from the remote !"}
 
         self.__configData["cfgData"] = modCfg
@@ -72,9 +70,7 @@ class RegistryManagerHandler(WebSocketHandler):
     def __getData(self, params):
         data = []
         if params["type"] == "users":
-
-            sectionPath = "/Registry/Users"
-            sectionCfg = self.getSectionCfg(sectionPath)
+            sectionCfg = self.getSectionCfg("/Registry/Users")
 
             for username in sectionCfg.listAll():
 
@@ -89,8 +85,7 @@ class RegistryManagerHandler(WebSocketHandler):
                 data.append(item)
 
         elif params["type"] == "groups":
-            sectionPath = "/Registry/Groups"
-            sectionCfg = self.getSectionCfg(sectionPath)
+            sectionCfg = self.getSectionCfg("/Registry/Groups")
 
             for group in sectionCfg.listAll():
                 item = {}
@@ -109,8 +104,7 @@ class RegistryManagerHandler(WebSocketHandler):
                 data.append(item)
 
         elif params["type"] == "hosts":
-            sectionPath = "/Registry/Hosts"
-            sectionCfg = self.getSectionCfg(sectionPath)
+            sectionCfg = self.getSectionCfg("/Registry/Hosts")
 
             for host in sectionCfg.listAll():
                 item = {}
@@ -123,8 +117,7 @@ class RegistryManagerHandler(WebSocketHandler):
                 data.append(item)
 
         elif params["type"] == "voms":
-            sectionPath = "/Registry/VOMS/Servers"
-            sectionCfg = self.getSectionCfg(sectionPath)
+            sectionCfg = self.getSectionCfg("/Registry/VOMS/Servers")
 
             for host in sectionCfg.listAll():
                 item = {}
@@ -133,8 +126,7 @@ class RegistryManagerHandler(WebSocketHandler):
                 data.append(item)
 
         elif params["type"] == "servers":
-            sectionPath = "/Registry/VOMS/Servers/" + params["vom"]
-            sectionCfg = self.getSectionCfg(sectionPath)
+            sectionCfg = self.getSectionCfg("/Registry/VOMS/Servers/" + params["vom"])
 
             for serv in sectionCfg.listAll():
                 item = {}
@@ -152,8 +144,7 @@ class RegistryManagerHandler(WebSocketHandler):
     def __getGroupList(self):
         data = []
 
-        sectionPath = "/Registry/Groups"
-        sectionCfg = self.getSectionCfg(sectionPath)
+        sectionCfg = self.getSectionCfg("/Registry/Groups")
 
         for group in sectionCfg.listAll():
             data.append([group])
@@ -163,8 +154,7 @@ class RegistryManagerHandler(WebSocketHandler):
     def __getVomsMapping(self):
         data = []
 
-        sectionPath = "/Registry/VOMS/Mapping"
-        sectionCfg = self.getSectionCfg(sectionPath)
+        sectionCfg = self.getSectionCfg("/Registry/VOMS/Mapping")
 
         for mapping in sectionCfg.listAll():
             data.append({"name": mapping, "value": sectionCfg[mapping]})
@@ -172,8 +162,7 @@ class RegistryManagerHandler(WebSocketHandler):
         return {"op": "getVomsMapping", "success": 1, "data": data}
 
     def __getRegistryProperties(self):
-        sectionPath = "/Registry"
-        sectionCfg = self.getSectionCfg(sectionPath)
+        sectionCfg = self.getSectionCfg("/Registry")
 
         data = {}
         for entryName in sectionCfg.listAll():
@@ -195,8 +184,7 @@ class RegistryManagerHandler(WebSocketHandler):
     def getIfExists(self, elem, propsList):
         if elem in propsList.listAll():
             return propsList[elem]
-        else:
-            return ""
+        return ""
 
     def __addItem(self, params):
 
@@ -269,8 +257,7 @@ class RegistryManagerHandler(WebSocketHandler):
             newCFG.loadFromBuffer(configText)
             self.__configData["cfgData"].mergeSectionFromCFG(sectionPath, newCFG)
             return {"success": 1, "op": "addItem"}
-        else:
-            return {"success": 0, "op": "addItem", "message": "Section can't be created. It already exists?"}
+        return {"success": 0, "op": "addItem", "message": "Section can't be created. It already exists?"}
 
     def __editItem(self, params):
 
@@ -354,26 +341,23 @@ class RegistryManagerHandler(WebSocketHandler):
         elif params["type"] == "servers":
             sectionPath = sectionPath + "VOMS/Servers/" + params["vom"]
 
-        sectionPath = sectionPath + "/" + params["name"]
+        sectionPath += "/" + params["name"]
         if self.__configData["cfgData"].removeOption(sectionPath) or self.__configData["cfgData"].removeSection(
             sectionPath
         ):
             return {"success": 1, "op": "deleteItem"}
-        else:
-            return {"success": 0, "op": "deleteItem", "message": "Entity doesn't exist"}
+        return {"success": 0, "op": "deleteItem", "message": "Entity doesn't exist"}
 
     def __commitChanges(self):
         if "CSAdministrator" not in self.getProperties():
             return {"success": 0, "op": "commitChanges", "message": "You are not authorized to commit changes!!"}
-        gLogger.always("User %s is commiting a new configuration version" % self.getUserDN())
-        retDict = self.__configData["cfgData"].commit()
-        if not retDict["OK"]:
+        gLogger.always(f"User {self.getUserDN()} is commiting a new configuration version")
+        if not (retDict := self.__configData["cfgData"].commit())["OK"]:
             return {"success": 0, "op": "commitChanges", "message": retDict["Message"]}
         return {"success": 1, "op": "commitChanges"}
 
     def __saveRegistryProperties(self, params):
-        sectionPath = "/Registry"
-        sectionCfg = self.getSectionCfg(sectionPath)
+        sectionCfg = self.getSectionCfg(sectionPath := "/Registry")
 
         for opt in sectionCfg.listAll():
             if not sectionCfg.isSection(opt):
@@ -395,8 +379,7 @@ class RegistryManagerHandler(WebSocketHandler):
         return {"op": "saveRegistryProperties", "success": 1}
 
     def __saveVomsMapping(self, params):
-        sectionPath = "/Registry/VOMS/Mapping"
-        sectionCfg = self.getSectionCfg(sectionPath)
+        sectionCfg = self.getSectionCfg(sectionPath := "/Registry/VOMS/Mapping")
 
         for opt in sectionCfg.listAll():
             if not sectionCfg.isSection(opt):

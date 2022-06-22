@@ -382,9 +382,9 @@ class WebHandler(_WebHandler):
         return super().finish(data, *args, **kwargs)
 
 
-class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
+class WebSocketHandler(tornado.websocket.WebSocketHandler, _WebHandler):
     def __init__(self, *args, **kwargs):
-        WebHandler.__init__(self, *args, **kwargs)
+        _WebHandler.__init__(self, *args, **kwargs)
         tornado.websocket.WebSocketHandler.__init__(self, *args, **kwargs)
 
     @classmethod
