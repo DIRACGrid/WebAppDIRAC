@@ -4,209 +4,193 @@ import datetime
 from DIRAC import gLogger
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
 
 
 class RequestMonitorHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    @asyncGen
-    def web_getRequestMonitorData(self):
+    def initializeRequest(self):
+        self.reqClient = ReqClient()
+
+    def web_getRequestMonitorData(
+        self,
+        start=25,
+        limit=0,
+        sort="[]",
+        id="[]",
+        reqId="[]",
+        status="[]",
+        owner="[]",
+        date="",
+        startDate="",
+        startTime="",
+        endDate="",
+        endTime="",
+        operationType="[]",
+        ownerGroup="[]",
+    ):
         callback = {}
-        req = self.__request()
-
-        result = yield self.threadTask(
-            ReqClient().getRequestSummaryWeb, req, self.globalSort, self.pageNumber, self.numberOfJobs
+        req = self.__prepareParameters(
+            id,
+            reqId,
+            status,
+            owner,
+            date,
+            startDate,
+            startTime,
+            endDate,
+            endTime,
+            operationType,
+            ownerGroup,
         )
 
-        if not result["OK"]:
-            self.finish({"success": "false", "result": [], "total": 0, "error": result["Message"]})
-            return
+        globalSort = [["JobID", "DESC"]]
+        if sort := json.loads(sort):
+            globalSort = [[i["property"], i["direction"]] for i in sort]
 
-        result = result["Value"]
+        if not (result := self.reqClient.getRequestSummaryWeb(req, globalSort, start, limit))["OK"]:
+            return {"success": "false", "result": [], "total": 0, "error": result["Message"]}
 
-        if "TotalRecords" not in result:
-            self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
-            return
+        data = result["Value"]
 
-        if not (result["TotalRecords"] > 0):
-            self.finish(
-                {"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"}
-            )
-            return
+        if "TotalRecords" not in data:
+            return {"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"}
 
-        if not ("ParameterNames" in result and "Records" in result):
-            self.finish({"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"})
-            return
+        if not (data["TotalRecords"] > 0):
+            return {"success": "false", "result": [], "total": 0, "error": "There were no data matching your selection"}
 
-        if not (len(result["ParameterNames"]) > 0):
-            self.finish({"success": "false", "result": [], "total": -1, "error": "ParameterNames field is missing"})
-            return
+        if not ("ParameterNames" in data and "Records" in data):
+            return {"success": "false", "result": [], "total": -1, "error": "Data structure is corrupted"}
 
-        if not (len(result["Records"]) > 0):
-            self.finish({"success": "false", "result": [], "total": 0, "Message": "There are no data to display"})
-            return
+        if not (len(head := data["ParameterNames"]) > 0):
+            return {"success": "false", "result": [], "total": -1, "error": "ParameterNames field is missing"}
+
+        if not (len(jobs := data["Records"]) > 0):
+            return {"success": "false", "result": [], "total": 0, "Message": "There are no data to display"}
 
         callback = []
-        jobs = result["Records"]
-        head = result["ParameterNames"]
         headLength = len(head)
-
-        jobs = result["Records"]
-        head = result["ParameterNames"]
-        headLength = len(head)
-        for i in jobs:
+        for job in jobs:
             tmp = {}
             for j in range(0, headLength):
-                if j == 2:
-                    if i[j] == "None":
-                        i[j] = "-"
-                tmp[head[j]] = i[j]
+                if j == 2 and job[j] == "None":
+                    job[j] = "-"
+                tmp[head[j]] = job[j]
             callback.append(tmp)
-        total = result["TotalRecords"]
-        total = result["TotalRecords"]
+        total = data["TotalRecords"]
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
-        if "Extras" in result:
-            st = self.__dict2string({})
-            extra = result["Extras"]
-            callback = {
+        if "Extras" in data:
+            return {
                 "success": "true",
                 "result": callback,
                 "total": total,
-                "extra": extra,
-                "request": st,
+                "extra": data["Extras"],
+                "request": "",
                 "date": timestamp,
             }
-        else:
-            callback = {"success": "true", "result": callback, "total": total, "date": timestamp}
-        self.finish(callback)
+        return {"success": "true", "result": callback, "total": total, "date": timestamp}
 
-    def __dict2string(self, req):
-        result = ""
-        try:
-            for key, value in req.iteritems():
-                result = result + str(key) + ": " + ", ".join(value) + "; "
-        except Exception as x:
-            pass
-            gLogger.info("\033[0;31m Exception: \033[0m %s" % x)
-        result = result.strip()
-        result = result[:-1]
-        return result
-
-    @asyncGen
     def web_getSelectionData(self):
         callback = {}
-        group = self.getUserGroup()
-        user = self.getUserName()
-        if user == "Anonymous":
-            self.finish({"success": "false", "result": [], "total": 0, "error": "Insufficient rights"})
+        if self.getUserName() == "Anonymous":
+            return {"success": "false", "result": [], "total": 0, "error": "Insufficient rights"}
+
+        # R E Q U E S T T Y P E
+        if (result := self.reqClient.getDistinctValuesWeb("Type"))["OK"]:
+            reqtype = list()
+            if len(result["Value"]) > 0:
+                for i in result["Value"]:
+                    reqtype.append([str(i)])
+            else:
+                reqtype = [["Nothing to display"]]
         else:
-            # R E Q U E S T T Y P E
-            result = yield self.threadTask(ReqClient().getDistinctValuesWeb, "Type")
-            if result["OK"]:
-                reqtype = list()
-                if len(result["Value"]) > 0:
-                    for i in result["Value"]:
-                        reqtype.append([str(i)])
-                else:
-                    reqtype = [["Nothing to display"]]
-            else:
-                reqtype = [["Error during RPC call"]]
-            callback["operationType"] = reqtype
-            # U S E R
-            result = yield self.threadTask(ReqClient().getDistinctValuesWeb, "OwnerDN")
+            reqtype = [["Error during RPC call"]]
+        callback["operationType"] = reqtype
 
-            if result["OK"]:
-                owner = []
-                for dn in result["Value"]:
+        # U S E R
+        if (result := self.reqClient.getDistinctValuesWeb("OwnerDN"))["OK"]:
+            owner = []
+            for dn in result["Value"]:
+                owner.append([dn])
+            if len(owner) < 2:
+                owner = [["Nothing to display"]]
+        else:
+            owner = [["Error during RPC call"]]
+        callback["owner"] = owner
 
-                    owner.append([dn])
-                if len(owner) < 2:
-                    owner = [["Nothing to display"]]
+        # G R O U P
+        if (result := self.reqClient.getDistinctValuesWeb("OwnerGroup"))["OK"]:
+            ownerGroup = list()
+            if len(result["Value"]) > 0:
+                for i in result["Value"]:
+                    ownerGroup.append([str(i)])
             else:
-                owner = [["Error during RPC call"]]
-            callback["owner"] = owner
-            # G R O U P
-            result = yield self.threadTask(ReqClient().getDistinctValuesWeb, "OwnerGroup")
-            gLogger.info("getDistinctValuesWeb(OwnerGroup)", result)
-            if result["OK"]:
-                ownerGroup = list()
-                if len(result["Value"]) > 0:
-                    for i in result["Value"]:
-                        ownerGroup.append([str(i)])
-                else:
-                    ownerGroup = [["Nothing to display"]]
-            else:
-                ownerGroup = [["Error during RPC call"]]
-            callback["ownerGroup"] = ownerGroup
-            # S T A T U S
-            result = yield self.threadTask(ReqClient().getDistinctValuesWeb, "Status")
+                ownerGroup = [["Nothing to display"]]
+        else:
+            ownerGroup = [["Error during RPC call"]]
+        callback["ownerGroup"] = ownerGroup
 
-            if result["OK"]:
-                status = list()
-                if len(result["Value"]) > 0:
-                    for i in result["Value"]:
-                        status.append([str(i)])
-                else:
-                    status = [["Nothing to display"]]
+        # S T A T U S
+        if (result := self.reqClient.getDistinctValuesWeb("Status"))["OK"]:
+            status = list()
+            if len(result["Value"]) > 0:
+                for i in result["Value"]:
+                    status.append([str(i)])
             else:
-                status = [["Error during RPC call"]]
-            callback["status"] = status
-            self.finish(callback)
+                status = [["Nothing to display"]]
+        else:
+            status = [["Error during RPC call"]]
+        callback["status"] = status
+        return callback
 
-    ################################################################################
-    def __request(self):
-        self.numberOfJobs = int(self.get_argument("limit", "25"))
-        self.pageNumber = int(self.get_argument("start", "0"))
-        self.globalSort = [["JobID", "DESC"]]
-        group = self.getUserGroup()
-        user = self.getUserName()
+    def __prepareParameters(
+        self,
+        id,
+        reqId,
+        status,
+        owner,
+        date,
+        startDate,
+        startTime,
+        endDate,
+        endTime,
+        operationType,
+        ownerGroup,
+    ):
         req = {}
         found = False
 
-        jobids = list(json.loads(self.get_argument("id", "[]")))
-        if jobids:
+        if jobids := list(json.loads(id)):
             req["JobID"] = jobids
             found = True
 
-        reqids = list(json.loads(self.get_argument("reqId", "[]")))
-        if reqids and not found:
+        if (reqids := list(json.loads(reqId))) and not found:
             req["RequestID"] = reqids
             found = True
 
         if not found:
-            value = list(json.loads(self.get_argument("operationType", "[]")))
-            if value:
+            if value := list(json.loads(operationType)):
                 req["Type"] = value
-
-            value = list(json.loads(self.get_argument("ownerGroup", "[]")))
-            if value:
+            if value := list(json.loads(ownerGroup)):
                 req["OwnerGroup"] = value
-
-            value = list(json.loads(self.get_argument("status", "[]")))
-            if value:
+            if value := list(json.loads(status)):
                 req["Status"] = value
-
-            value = list(json.loads(self.get_argument("owner", "[]")))
-            if value:
+            if value := list(json.loads(owner)):
                 req["OwnerDN"] = value
 
-            sort = json.loads(self.get_argument("sort", "[]"))
-            if sort:
-                self.globalSort = [[i["property"], i["direction"]] for i in sort]
+        if startDate:
+            req["FromDate"] = startDate
+            if startTime:
+                req["FromDate"] += " " + startTime
 
-        if self.get_argument("startDate", ""):
-            req["FromDate"] = self.get_argument("startDate")
-            if self.get_argument("startTime", ""):
-                req["FromDate"] += " " + self.get_argument("startTime")
+        if endDate:
+            req["ToDate"] = endDate
+            if endTime:
+                req["ToDate"] += " " + endTime
 
-        if self.get_argument("endDate", ""):
-            req["ToDate"] = self.get_argument("endDate")
-            if self.get_argument("endTime", ""):
-                req["ToDate"] += " " + self.get_argument("endTime")
-
-        if self.get_argument("date", ""):
-            req["LastUpdate"] = self.get_argument("date")
+        if date:
+            req["LastUpdate"] = date
         gLogger.info("REQUEST:", req)
         return req
