@@ -8,7 +8,7 @@ from DIRAC.ConfigurationSystem.Client.ConfigurationClient import ConfigurationCl
 from DIRAC.Core.Utilities import List
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
-from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, WErr, asyncGen
+from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, WErr
 
 
 class ConfigurationManagerHandler(WebSocketHandler):
@@ -18,7 +18,6 @@ class ConfigurationManagerHandler(WebSocketHandler):
     def on_open(self):
         self.__configData = {}
 
-    @asyncGen
     def on_message(self, msg):
         self.log.debug("RECEIVED", msg)
         try:
@@ -31,13 +30,13 @@ class ConfigurationManagerHandler(WebSocketHandler):
             self.log.info("Initialize force refresh..")
             res = gConfig.forceRefresh(fromMaster=True)
         if params["op"] == "init":
-            res = yield self.threadTask(self.__getRemoteConfiguration, "init")
+            res = self.__getRemoteConfiguration("init")
         elif params["op"] == "getSubnodes":
             res = self.__getSubnodes(params["node"], params["nodePath"])
         elif params["op"] == "showConfigurationAsText":
             res = self.__showConfigurationAsText()
         elif params["op"] == "resetConfiguration":
-            res = yield self.threadTask(self.__getRemoteConfiguration, "resetConfiguration")
+            res = self.__getRemoteConfiguration("resetConfiguration")
         elif params["op"] == "getBulkExpandedNodeData":
             res = self.__getBulkExpandedNodeData(params["nodes"])
         elif params["op"] == "setOptionValue":
@@ -57,7 +56,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         elif params["op"] == "moveNode":
             res = self.__moveNode(params)
         elif params["op"] == "commitConfiguration":
-            res = yield self.threadTask(self.__commitConfiguration)
+            res = self.__commitConfiguration()
         elif params["op"] == "showCurrentDiff":
             res = self.__showCurrentDiff()
         elif params["op"] == "showshowHistory":
@@ -80,9 +79,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
             url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server")
         )
         modCfg = Modificator(rpcClient)
-        retVal = modCfg.loadFromRemote()
 
-        if not retVal["OK"]:
+        if not modCfg.loadFromRemote()["OK"]:
             return {"success": 0, "op": "getSubnodes", "message": "The configuration cannot be read from the remote !"}
 
         self.__configData["cfgData"] = modCfg
@@ -97,10 +95,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
         self.log.info("Expanding section", sectionPath)
 
         retData = []
-        retVal = self.__getSubnodesForPath(sectionPath, retData)
-
-        if not retVal:
-            return {"success": 0, "op": "getSubnodes", "message": "Section %s does not exist" % sectionPath}
+        if not self.__getSubnodesForPath(sectionPath, retData):
+            return {"success": 0, "op": "getSubnodes", "message": f"Section {sectionPath} does not exist"}
 
         return {"success": 1, "op": "getSubnodes", "nodes": retData, "parentNodeId": parentNodeId}
 
@@ -111,7 +107,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             for section in [section for section in sectionPath.split("/") if not section.strip() == ""]:
                 sectionCfg = sectionCfg[section]
         except Exception as v:
-            self.log.exception("Section does not exist", "%s -> %s" % (sectionPath, repr(v)))
+            self.log.exception("Section does not exist", f"{sectionPath} -> {v!r}")
             return False
 
         for entryName in sectionCfg.listAll():
@@ -151,8 +147,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             commentLines.append(line)
         if commentLines or commiter:
             return "%s<small><strong>%s</strong></small>" % ("<br/>".join(commentLines), commiter)
-        else:
-            return False
+        return False
 
     def __showConfigurationAsText(self):
         # time.sleep(10)
@@ -172,7 +167,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             optionPath = str(params["path"])
             optionValue = str(params["value"])
         except Exception as e:
-            return {"success": 0, "op": "setOptionValue", "message": "Can't decode path or value: %s" % str(e)}
+            return {"success": 0, "op": "setOptionValue", "message": "Can't decode path or value: {e}"}
 
         self.__setCommiter()
 
@@ -188,7 +183,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             path = str(params["path"])
             value = str(params["value"])
         except Exception as e:
-            return {"success": 0, "op": "setComment", "message": "Can't decode path or value: %s" % str(e)}
+            return {"success": 0, "op": "setComment", "message": f"Can't decode path or value: {e}"}
 
         self.__setCommiter()
 
@@ -206,7 +201,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             keyPath = str(params["path"]).strip()
             newName = str(params["newName"]).strip()
         except Exception as e:
-            return {"success": 0, "op": "renameKey", "message": "Can't decode parameter: %s" % str(e)}
+            return {"success": 0, "op": "renameKey", "message": f"Can't decode parameter: {e}"}
         try:
             if len(keyPath) == 0:
                 return {"success": 0, "op": "renameKey", "message": "Entity path is not valid"}
@@ -219,18 +214,16 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 self.__setCommiter()
                 if self.__configData["cfgData"].renameKey(keyPath, newName):
                     return {"success": 1, "op": "renameKey", "parentNodeId": params["parentNodeId"], "newName": newName}
-                else:
-                    return {"success": 0, "op": "renameKey", "message": "There was a problem while renaming"}
-            else:
-                return {"success": 0, "op": "renameKey", "message": "Path doesn't exist"}
+                return {"success": 0, "op": "renameKey", "message": "There was a problem while renaming"}
+            return {"success": 0, "op": "renameKey", "message": "Path doesn't exist"}
         except Exception as e:
-            return {"success": 0, "op": "renameKey", "message": "Can't rename entity: %s" % str(e)}
+            return {"success": 0, "op": "renameKey", "message": f"Can't rename entity: {e}"}
 
     def __deleteKey(self, params):
         try:
             keyPath = str(params["path"]).strip()
         except Exception as e:
-            return {"success": 0, "op": "deleteKey", "message": "Can't decode parameter: %s" % str(e)}
+            return {"success": 0, "op": "deleteKey", "message": f"Can't decode parameter: {e}"}
         try:
             if len(keyPath) == 0:
                 return {"success": 0, "op": "deleteKey", "message": "Entity path is not valid"}
@@ -238,10 +231,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 keyPath
             ):
                 return {"success": 1, "op": "deleteKey", "parentNodeId": params["parentNodeId"]}
-            else:
-                return {"success": 0, "op": "deleteKey", "message": "Entity doesn't exist"}
+            return {"success": 0, "op": "deleteKey", "message": "Entity doesn't exist"}
         except Exception as e:
-            return {"success": 0, "op": "deleteKey", "message": "Can't rename entity: %s" % str(e)}
+            return {"success": 0, "op": "deleteKey", "message": f"Can't rename entity: {e}"}
 
     def __createSection(self, params):
         try:
@@ -249,13 +241,13 @@ class ConfigurationManagerHandler(WebSocketHandler):
             sectionName = str(params["name"]).strip()
             configText = str(params["config"]).strip()
         except Exception as e:
-            return {"success": 0, "op": "createSection", "message": "Can't decode parameter: %s" % str(e)}
+            return {"success": 0, "op": "createSection", "message": f"Can't decode parameter: {e}"}
         try:
             if len(parentPath) == 0:
                 return {"success": 0, "op": "createSection", "message": "Parent path is not valid"}
             if len(sectionName) == 0:
                 return {"success": 0, "op": "createSection", "message": "Put any name for the section!"}
-            sectionPath = "%s/%s" % (parentPath, sectionName)
+            sectionPath = f"{parentPath}/{sectionName}"
             self.log.info("Creating section", sectionPath)
 
             self.__setCommiter()
@@ -270,7 +262,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 if htmlC:
                     qtipDict = {"text": htmlC}
                     nD["qtipCfg"] = qtipDict
-                #       If config Text is provided then a section is created out of that text
+                # If config Text is provided then a section is created out of that text
                 if configText != "":
                     cfgData = self.__configData["cfgData"].getCFG()
                     newCFG = CFG()
@@ -284,18 +276,16 @@ class ConfigurationManagerHandler(WebSocketHandler):
                         "node": nD,
                         "sectionFromConfig": 1,
                     }
-                else:
-                    return {
-                        "success": 1,
-                        "op": "createSection",
-                        "parentNodeId": params["parentNodeId"],
-                        "node": nD,
-                        "sectionFromConfig": 0,
-                    }
-            else:
-                return {"success": 0, "op": "createSection", "message": "Section can't be created. It already exists?"}
+                return {
+                    "success": 1,
+                    "op": "createSection",
+                    "parentNodeId": params["parentNodeId"],
+                    "node": nD,
+                    "sectionFromConfig": 0,
+                }
+            return {"success": 0, "op": "createSection", "message": "Section can't be created. It already exists?"}
         except Exception as e:
-            return {"success": 0, "op": "createSection", "message": "Can't create section: %s" % str(e)}
+            return {"success": 0, "op": "createSection", "message": f"Can't create section: {e}"}
 
     def __createOption(self, params):
         try:
@@ -303,7 +293,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             optionName = str(params["name"]).strip()
             optionValue = str(params["value"]).strip()
         except Exception as e:
-            return {"success": 0, "op": "createOption", "message": "Can't decode parameter: %s" % str(e)}
+            return {"success": 0, "op": "createOption", "message": f"Can't decode parameter: {e}"}
         try:
             if len(parentPath) == 0:
                 return {"success": 0, "op": "createOption", "message": "Parent path is not valid"}
@@ -318,7 +308,6 @@ class ConfigurationManagerHandler(WebSocketHandler):
             if not self.__configData["cfgData"].existsOption(optionPath):
                 self.__setCommiter()
                 self.__configData["cfgData"].setOptionValue(optionPath, optionValue)
-
                 return {
                     "success": 1,
                     "op": "createOption",
@@ -327,10 +316,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
                     "value": self.__configData["cfgData"].getValue(optionPath),
                     "comment": self.__configData["cfgData"].getComment(optionPath),
                 }
-            else:
-                return {"success": 0, "op": "createOption", "message": "Option can't be created. It already exists?"}
+            return {"success": 0, "op": "createOption", "message": "Option can't be created. It already exists?"}
         except Exception as e:
-            return {"success": 0, "op": "createOption", "message": "Can't create option: %s" % str(e)}
+            return {"success": 0, "op": "createOption", "message": f"Can't create option: {e}"}
 
     def __moveNode(self, params):
         try:
@@ -341,7 +329,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             return {
                 "success": 0,
                 "op": "moveNode",
-                "message": "Can't decode parameter: %s" % str(e),
+                "message": f"Can't decode parameter: {e}",
                 "nodeId": params["nodeId"],
                 "parentOldId": params["parentOldId"],
                 "parentNewId": params["parentNewId"],
@@ -413,7 +401,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             return {
                 "success": 0,
                 "op": "moveNode",
-                "message": "Can't move node: %s" % str(e),
+                "message": f"Can't move node: {e}",
                 "nodeId": params["nodeId"],
                 "parentOldId": params["parentOldId"],
                 "parentNewId": params["parentNewId"],
@@ -434,7 +422,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             destinationParentPath = params["copyToPath"]
             newNodeName = params["newName"]
         except Exception as e:
-            return {"success": 0, "op": "copyKey", "message": "Can't decode parameter: %s" % str(e)}
+            return {"success": 0, "op": "copyKey", "message": f"Can't decode parameter: {e}"}
 
         #     gLogger.info( "Moving %s under %s before pos %s" % ( nodePath, destinationParentPath, beforeOfIndex ) )
         cfgData = self.__configData["cfgData"].getCFG()
@@ -473,7 +461,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 addArgs["value"] = nodeDict["value"].clone()
                 newParentDict["value"].addKey(**addArgs)
         except Exception as e:
-            return {"success": 0, "op": "copyKey", "message": "Can't move node: %s" % str(e)}
+            return {"success": 0, "op": "copyKey", "message": f"Can't move node: {e}"}
         return {
             "success": 1,
             "op": "copyKey",
@@ -489,9 +477,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 "op": "commitConfiguration",
                 "message": "You are not authorized to commit configurations!",
             }
-        self.log.always("User is commiting a new configuration version", "(%s)" % self.getUserDN())
-        retDict = self.__configData["cfgData"].commit()
-        if not retDict["OK"]:
+        self.log.always("User is commiting a new configuration version", f"({self.getUserDN()})")
+        if not (retDict := self.__configData["cfgData"].commit())["OK"]:
             return {"success": 0, "op": "commitConfiguration", "message": retDict["Message"]}
         return {"success": 1, "op": "commitConfiguration"}
 
@@ -592,12 +579,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
         rpcClient = ConfigurationClient(
             url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server")
         )
-        modCfg = Modificator(rpcClient)
-        retVal = modCfg.rollbackToVersion(rollbackVersion)
-        if retVal["OK"]:
+        if (retVal := Modificator(rpcClient).rollbackToVersion(rollbackVersion))["OK"]:
             return {"success": 1, "op": "rollback", "version": rollbackVersion}
-        else:
-            return {"success": 0, "op": "rollback", "message": retVal["Value"]}
+        return {"success": 0, "op": "rollback", "message": retVal["Value"]}
 
     def __setCommiter(self):
         commiter = "%s@%s - %s" % (
@@ -613,8 +597,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         rpcClient = ConfigurationClient(
             url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server")
         )
-        retVal = rpcClient.getCommitHistory()
-        if retVal["OK"]:
+        if (retVal := rpcClient.getCommitHistory())["OK"]:
             cDict = {"numVersions": 0, "versions": []}
             for entry in retVal["Value"]:
                 cDict["numVersions"] += 1
