@@ -16,11 +16,10 @@ class TransformationMonitorHandler(WebHandler):
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def web_getSelectionData(self):
-        tsClient = TransformationClient()
-
         if self.getUserName() == "Anonymous":
             return {"prod": [["Insufficient rights"]]}
 
+        tsClient = TransformationClient()
         if (result := tsClient.getDistinctAttributeValues("Plugin", {}))["OK"]:
             plugin = []
             if len(result["Value"]) > 0:
@@ -98,12 +97,10 @@ class TransformationMonitorHandler(WebHandler):
     ):
         pagestart = datetime.datetime.utcnow()
 
-        tsClient = TransformationClient(timeout=3600)
-
         if self.getUserName() == "Anonymous":
             return {"success": "false", "error": "You are not authorised"}
 
-        result = self._request(
+        params = self.__prepareParameters(
             sort,
             date,
             status,
@@ -120,26 +117,26 @@ class TransformationMonitorHandler(WebHandler):
             TransformationFamily,
         )
 
-        result = tsClient.getTransformationSummaryWeb(result, self.globalSort, start, limit)
-        if not result["OK"]:
-            return json.dumps({"success": "false", "error": result["Message"]})
+        tsClient = TransformationClient(timeout=3600)
+        if not (result := tsClient.getTransformationSummaryWeb(params, self.globalSort, start, limit))["OK"]:
+            return {"success": "false", "error": result["Message"]}
 
         data = result["Value"]
 
         if "TotalRecords" not in data:
-            return json.dumps({"success": "false", "result": "", "error": "Data structure is corrupted"})
+            return {"success": "false", "result": "", "error": "Data structure is corrupted"}
 
         if (total := data["TotalRecords"]) < 1:
-            return json.dumps({"success": "false", "result": "", "error": "There were no data matching your selection"})
+            return {"success": "false", "result": "", "error": "There were no data matching your selection"}
 
         if "ParameterNames" not in data and "Records" not in data:
-            return json.dumps({"success": "false", "result": "", "error": "Data structure is corrupted"})
+            return {"success": "false", "result": "", "error": "Data structure is corrupted"}
 
         if (headLength := len(head := data["ParameterNames"])) < 1:
-            return json.dumps({"success": "false", "result": "", "error": "ParameterNames field is missing"})
+            return {"success": "false", "result": "", "error": "ParameterNames field is missing"}
 
         if len(jobs := data["Records"]) < 1:
-            return json.dumps({"success": "false", "Message": "There are no data to display"})
+            return {"success": "false", "Message": "There are no data to display"}
 
         callback = []
         for i in jobs:
@@ -153,7 +150,7 @@ class TransformationMonitorHandler(WebHandler):
             callback = {"success": "true", "result": callback, "total": total, "date": None}
 
         gLogger.info("\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % (datetime.datetime.utcnow() - pagestart))
-        return json.dumps(callback)
+        return callback
 
     def web_action(self, data_kind, tasks: int, id: int):
         if data_kind == "getLoggingInfo":
@@ -304,17 +301,14 @@ class TransformationMonitorHandler(WebHandler):
         tsClient = TransformationClient()
         if not (result := tsClient.getTransformationParameters(prodid, ["DetailedInfo"]))["OK"]:
             return {"success": "false", "error": result["Message"]}
-
         if callback := result["Value"]:
             return {"success": "true", "result": callback}
         gLogger.debug("#######", result)
         return {"success": "false", "error": "Production does not have parameter 'DetailedInfo'"}
 
     def __extendTransformation(self, transid, tasks):
-        gLogger.info(f"extend {transid}")
-        tsClient = TransformationClient()
-        gLogger.info(f"extendTransformation({transid},{tasks})")
-        if (result := tsClient.extendTransformation(transid, tasks))["OK"]:
+        gLogger.info(f"Extend transformation ({transid}, {tasks})")
+        if (result := TransformationClient().extendTransformation(transid, tasks))["OK"]:
             resString = f"{transid} extended by {tasks} successfully"
         else:
             resString = f"{transid} failed to extend: {result['Message']}"
@@ -357,10 +351,8 @@ class TransformationMonitorHandler(WebHandler):
 
     def web_getTier1Sites(self):
         if len(tier1 := gConfig.getValue("/WebApp/PreferredSites", [])) < 1:
-            callback = {"success": False, "errors": "No site defined in the CS!"}
-        else:
-            callback = {"success": True, "data": tier1}
-        return json.dumps(callback)
+            return {"success": False, "errors": "No site defined in the CS!"}
+        return {"success": True, "data": tier1}
 
     def web_setSite(self, TransformationId: int, RunNumber: int, Site):
         gLogger.info("\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % (TransformationId, RunNumber, Site))
@@ -369,7 +361,7 @@ class TransformationMonitorHandler(WebHandler):
             return {"success": "true", "result": "true"}
         return {"success": "false", "error": result["Message"]}
 
-    def _request(
+    def __prepareParameters(
         self,
         sort,
         date,
