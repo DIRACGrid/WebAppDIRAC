@@ -5,28 +5,23 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen, WErr
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
 
 
 class ProxyManagerHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    @asyncGen
-    def web_getSelectionData(self):
-        callback = {}
+    def web_getSelectionData(self, **kwargs):
+        callback = {"extra": kwargs} if kwargs else {}
 
-        user = self.getUserName()
-        if user.lower() == "anonymous":
-            self.finish({"success": "false", "error": "You are not authorize to access these data"})
+        if self.getUserName().lower() == "anonymous":
+            return {"success": "false", "error": "You are not authorize to access these data"}
 
-        if len(self.request.arguments) > 0:
-            callback["extra"] = {i: self.get_argument(i) for i in self.request.arguments}
-        result = yield self.threadTask(gProxyManager.getDBContents)
-        if not result["OK"]:
+        if not (result := gProxyManager.getDBContents())["OK"]:
             if result.get("Errno", 0) == 1112:
                 raise WErr(503, "Connection error")
-            self.finish({"success": "false", "error": result["Message"]})
+            return {"success": "false", "error": result["Message"]}
         data = result["Value"]
         users = []
         groups = []
@@ -61,26 +56,36 @@ class ProxyManagerHandler(WebHandler):
             timespan = [["Error during RPC call"]]
         callback["expiredBefore"] = timespan
         callback["expiredAfter"] = timespan
-        self.finish(callback)
+        return callback
 
-    @asyncGen
-    def web_getProxyManagerData(self):
-        user = self.getUserName()
-        if user.lower() == "anonymous":
-            self.finish({"success": "false", "error": "You are not authorize to access these data"})
-        start, limit, sort, req = self.__request()
+    def web_getProxyManagerData(
+        self,
+        start=0,
+        limit=25,
+        sortDirection="ASC",
+        sortField="UserName",
+        username="[]",
+        usergroup="[]",
+        persistent="",
+        expiredBefore=0,
+        expiredAfter=0,
+    ):
+        if self.getUserName().lower() == "anonymous":
+            return {"success": "false", "error": "You are not authorize to access these data"}
+        req = self.__prepareParameters(username, usergroup, persistent, expiredBefore, expiredAfter)
+        gLogger.info("!!!  S O R T : ", sort := [[sortField, sortDirection]])
         # pylint: disable=no-member
-        result = yield self.threadTask(gProxyManager.getDBContents, req, sort, start, limit)
-        # result = yield self.threadTask(gProxyManager.getDBContents, None, None, req, start, limit)
-        gLogger.info("*!*!*!  RESULT: \n%s" % result)
+        result = gProxyManager.getDBContents(req, sort, start, limit)
+        # result = gProxyManager.getDBContents(None, None, req, start, limit)
+        gLogger.info(f"*!*!*!  RESULT: \n{result}")
         if not result["OK"]:
-            self.finish({"success": "false", "error": result["Message"]})
+            return {"success": "false", "error": result["Message"]}
         svcData = result["Value"]
         proxies = []
         for record in svcData["Records"]:
             proxies.append(
                 {
-                    "proxyid": "%s@%s" % (record[1], record[2]),
+                    "proxyid": f"{record[1]}@{record[2]}",
                     "UserName": str(record[0]),
                     "UserDN": record[1],
                     "UserGroup": record[2],
@@ -88,24 +93,13 @@ class ProxyManagerHandler(WebHandler):
                     "PersistentFlag": str(record[4]),
                 }
             )
-        # for record in svcData['Dictionaries']:
-        #   proxies.append({'proxyid': "%s@%s" % (record["DN"],
-        #                                         record['groups'] if record['groups'] > 1 else record['groups'][0]),
-        #                   'UserName': record['user'],
-        #                   'UserDN': record['DN'],
-        #                   'UserGroups': record['groups'],
-        #                   'ExpirationTime': str(record['expirationtime']),
-        #                   'Provider': record['provider']})
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
-        data = {"success": "true", "result": proxies, "total": svcData["TotalRecords"], "date": timestamp}
-        self.finish(data)
+        return {"success": "true", "result": proxies, "total": svcData["TotalRecords"], "date": timestamp}
 
-    @asyncGen
-    def web_deleteProxies(self):
-        try:
-            webIds = list(json.loads(self.get_argument("idList")))
-        except Exception:
-            self.finish({"success": "false", "error": "No valid id's specified"})
+    def web_deleteProxies(self, idList=None):
+        if not (webIds := list(json.loads(idList))):
+            return {"success": "false", "error": "No valid id's specified"}
+
         idList = []
         for id in webIds:
             spl = id.split("@")
@@ -118,12 +112,9 @@ class ProxyManagerHandler(WebHandler):
         #   dn = "@".join(spl[:-1])
         #   idList.append(dn)
         # retVal = yield self.threadTask(ProxyManagerClient().deleteProxy, idList)  # pylint: disable=no-member
-        callback = {}
         if retVal["OK"]:
-            callback = {"success": "true", "result": retVal["Value"]}
-        else:
-            callback = {"success": "false", "error": retVal["Message"]}
-        self.finish(callback)
+            return {"success": "true", "result": retVal["Value"]}
+        return {"success": "false", "error": retVal["Message"]}
 
     def __humanize_time(self, sec=False):
         """
@@ -141,7 +132,7 @@ class ProxyManagerHandler(WebHandler):
         if month > 12:
             return "More then a year"
         elif month > 1:
-            return str(month) + " months"
+            return f"{month} months"
         elif month == 1:
             return "One month"
 
@@ -149,43 +140,27 @@ class ProxyManagerHandler(WebHandler):
         if week == 1:
             return "One week"
         elif week > 1:
-            return str(week) + " weeks"
+            return f"{week} weeks"
 
         day, hours = divmod(sec, 86400)
         if day == 1:
             return "One day"
         elif day > 0:
-            return str(day) + " days"
+            return f"{day} days"
 
-    def __request(self):
-        gLogger.info("!!!  PARAMS: ", str(self.request.arguments))
-        start = int(self.get_argument("start", "0"))
-        limit = int(self.get_argument("limit", "25"))
+    def __prepareParameters(self, username, usergroup, persistent, expiredBefore, expiredAfter):
         req = {}
-
-        sortDirection = self.get_argument("sortDirection", "ASC")
-        sortField = self.get_argument("sortField", "UserName")
-        sort = [[sortField, sortDirection]]
-        gLogger.info("!!!  S O R T : ", sort)
-
-        users = list(json.loads(self.get_argument("username", "[]")))
-        if users:
+        if users := list(json.loads(username)):
             req["UserName"] = users
-
-        usersgroup = list(json.loads(self.get_argument("usergroup", "[]")))
-        if usersgroup:
+        if usersgroup := list(json.loads(usergroup)):
             req["UserGroup"] = usersgroup
-
-        persistent = self.get_argument("persistent", "")
         if usersgroup and persistent in ["True", "False"]:
             req["PersistentFlag"] = persistent
-        before = int(self.get_argument("expiredBefore", "0"))
-        after = int(self.get_argument("expiredAfter", "0"))
-        if before > after:
-            before, after = after, before
-        if before:
-            req["beforeDate"] = before
-        if after:
-            req["afterDate"] = after
+        if expiredBefore > expiredAfter:
+            expiredBefore, expiredAfter = expiredAfter, expiredBefore
+        if expiredBefore:
+            req["beforeDate"] = expiredBefore
+        if expiredAfter:
+            req["afterDate"] = expiredAfter
         gLogger.always("REQUEST:", req)
-        return (start, limit, sort, req)
+        return req
