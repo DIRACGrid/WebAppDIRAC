@@ -8,512 +8,411 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import TimeUtilities
 from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
 
 
 class TransformationMonitorHandler(WebHandler):
 
-    AUTH_PROPS = "authenticated"
+    DEFAULT_AUTHORIZATION = "authenticated"
 
-    def index(self):
-        pass
-
-    @asyncGen
     def web_getSelectionData(self):
-        callback = {}
-        group = self.getUserGroup()
-        user = self.getUserName()
-        if user == "Anonymous":
-            callback["prod"] = [["Insufficient rights"]]
+        if self.getUserName() == "Anonymous":
+            return {"prod": [["Insufficient rights"]]}
+
+        tsClient = TransformationClient()
+        if (result := tsClient.getDistinctAttributeValues("Plugin", {}))["OK"]:
+            plugin = []
+            if len(result["Value"]) > 0:
+                for i in result["Value"]:
+                    plugin.append([str(i)])
+            else:
+                plugin.append("Nothing to display")
         else:
-            callback = {}
+            plugin = "Error during RPC call"
+        callback = {"plugin": plugin}
 
-            ####
-            tsClient = TransformationClient()
-            result = yield self.threadTask(tsClient.getDistinctAttributeValues, "Plugin", {})
+        if (result := tsClient.getDistinctAttributeValues("Status", {}))["OK"]:
+            status = []
+            if len(result["Value"]) > 0:
+                for i in result["Value"]:
+                    status.append([str(i)])
+            else:
+                status = "Nothing to display"
+        else:
+            status = "Error during RPC call"
+        callback["prodStatus"] = status
 
-            if result["OK"]:
-                plugin = []
-                if len(result["Value"]) > 0:
-                    for i in result["Value"]:
-                        plugin.append([str(i)])
-                else:
-                    plugin.append("Nothing to display")
+        if (result := tsClient.getDistinctAttributeValues("TransformationGroup", {}))["OK"]:
+            group = []
+            if len(result["Value"]) > 0:
+                for i in result["Value"]:
+                    group.append([str(i)])
             else:
-                plugin = "Error during RPC call"
-            callback["plugin"] = plugin
-            ####
-            result = yield self.threadTask(tsClient.getDistinctAttributeValues, "Status", {})
-            if result["OK"]:
-                status = []
-                if len(result["Value"]) > 0:
-                    for i in result["Value"]:
-                        status.append([str(i)])
-                else:
-                    status = "Nothing to display"
-            else:
-                status = "Error during RPC call"
-            callback["prodStatus"] = status
-            ####
-            result = yield self.threadTask(tsClient.getDistinctAttributeValues, "TransformationGroup", {})
-            if result["OK"]:
-                group = []
-                if len(result["Value"]) > 0:
-                    for i in result["Value"]:
-                        group.append([str(i)])
-                else:
-                    group = "Nothing to display"
-            else:
-                group = "Error during RPC call"
-            callback["transformationGroup"] = group
-            ####
-            result = yield self.threadTask(tsClient.getDistinctAttributeValues, "AgentType", {})
-            if result["OK"]:
-                atype = []
-                if len(result["Value"]) > 0:
-                    for i in result["Value"]:
-                        atype.append([str(i)])
-                else:
-                    atype = "Nothing to display"
-            else:
-                atype = "Error during RPC call"
-            callback["agentType"] = atype
-            ####
-            result = yield self.threadTask(tsClient.getDistinctAttributeValues, "Type", {})
-            if result["OK"]:
-                transType = []
-                if result["Value"]:
-                    for i in result["Value"]:
-                        transType.append([str(i)])
-                else:
-                    transType = "Nothing to display"
-            else:
-                transType = "Error during RPC call"
-            callback["productionType"] = transType
-        self.finish(callback)
+                group = "Nothing to display"
+        else:
+            group = "Error during RPC call"
+        callback["transformationGroup"] = group
 
-    @asyncGen
-    def web_getTransformationData(self):
+        if (result := tsClient.getDistinctAttributeValues("AgentType", {}))["OK"]:
+            atype = []
+            if len(result["Value"]) > 0:
+                for i in result["Value"]:
+                    atype.append([str(i)])
+            else:
+                atype = "Nothing to display"
+        else:
+            atype = "Error during RPC call"
+        callback["agentType"] = atype
+
+        if (result := tsClient.getDistinctAttributeValues("Type", {}))["OK"]:
+            transType = []
+            if result["Value"]:
+                for i in result["Value"]:
+                    transType.append([str(i)])
+            else:
+                transType = "Nothing to display"
+        else:
+            transType = "Error during RPC call"
+        callback["productionType"] = transType
+        return callback
+
+    def web_getTransformationData(
+        self,
+        sort,
+        date=None,
+        endDate=None,
+        endTime=None,
+        startDate=None,
+        startTime=None,
+        start=0,
+        limit=25,
+        type="[]",
+        status="[]",
+        plugin="[]",
+        requestId="[]",
+        agentType="[]",
+        transformationId="[]",
+        transformationGroup="[]",
+        TransformationFamily=None,
+    ):
         pagestart = datetime.datetime.utcnow()
-        user = self.getUserName()
+
+        if self.getUserName() == "Anonymous":
+            return {"success": "false", "error": "You are not authorised"}
+
+        params = self.__prepareParameters(
+            sort,
+            date,
+            status,
+            plugin,
+            endDate,
+            endTime,
+            requestId,
+            agentType,
+            type,
+            startDate,
+            startTime,
+            transformationId,
+            transformationGroup,
+            TransformationFamily,
+        )
 
         tsClient = TransformationClient(timeout=3600)
+        if not (result := tsClient.getTransformationSummaryWeb(params, self.globalSort, start, limit))["OK"]:
+            return {"success": "false", "error": result["Message"]}
 
-        if user == "Anonymous":
-            callback = {"success": "false", "error": "You are not authorised"}
+        data = result["Value"]
+
+        if "TotalRecords" not in data:
+            return {"success": "false", "result": "", "error": "Data structure is corrupted"}
+
+        if (total := data["TotalRecords"]) < 1:
+            return {"success": "false", "result": "", "error": "There were no data matching your selection"}
+
+        if "ParameterNames" not in data and "Records" not in data:
+            return {"success": "false", "result": "", "error": "Data structure is corrupted"}
+
+        if (headLength := len(head := data["ParameterNames"])) < 1:
+            return {"success": "false", "result": "", "error": "ParameterNames field is missing"}
+
+        if len(jobs := data["Records"]) < 1:
+            return {"success": "false", "Message": "There are no data to display"}
+
+        callback = []
+        for i in jobs:
+            tmp = {head[j]: i[j] for j in range(headLength)}
+            callback.append(tmp)
+        if "Extras" in data:
+            gLogger.info(extra := data["Extras"])
+            timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
+            callback = {"success": "true", "result": callback, "total": total, "extra": extra, "date": timestamp}
         else:
-            result = self._request()
+            callback = {"success": "true", "result": callback, "total": total, "date": None}
 
-            result = yield self.threadTask(
-                tsClient.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs
-            )
-            if not result["OK"]:
-                self.finish(json.dumps({"success": "false", "error": result["Message"]}))
-                return
+        gLogger.info("\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % (datetime.datetime.utcnow() - pagestart))
+        return callback
 
-            result = result["Value"]
+    def web_action(self, data_kind, tasks: int, id: int):
+        if data_kind == "getLoggingInfo":
+            return self.__getLoggingInfo(id)
+        if data_kind == "fileStatus":
+            return self.__transformationFileStatus(id)
+        if data_kind == "fileProcessed":
+            return self.__fileRetry(id, "proc")
+        if data_kind == "fileNotProcessed":
+            return self.__fileRetry(id, "not")
+        if data_kind == "fileAllProcessed":
+            return self.__fileRetry(id, "all")
+        if data_kind == "dataQuery":
+            return self.__dataQuery(id)
+        if data_kind == "additionalParams":
+            return self.__additionalParams(id)
+        if data_kind == "transformationDetail":
+            return self.__transformationDetail(id)
+        if data_kind == "extend":
+            return self.__extendTransformation(id, tasks)
+        if data_kind == "workflowxml":
+            return self.__workflowxml(id)
+        return {"success": "false", "error": "Action is unknown!!!"}
 
-            if "TotalRecords" not in result:
-                self.finish(json.dumps({"success": "false", "result": "", "error": "Data structure is corrupted"}))
-                return
-
-            if result["TotalRecords"] < 1:
-                self.finish(
-                    json.dumps(
-                        {"success": "false", "result": "", "error": "There were no data matching your selection"}
-                    )
-                )
-                return
-
-            if "ParameterNames" not in result and "Records" not in result:
-                self.finish(json.dumps({"success": "false", "result": "", "error": "Data structure is corrupted"}))
-                return
-
-            if len(result["ParameterNames"]) < 1:
-                self.finish(json.dumps({"success": "false", "result": "", "error": "ParameterNames field is missing"}))
-                return
-
-            if len(result["Records"]) < 1:
-                self.finish(json.dumps({"success": "false", "Message": "There are no data to display"}))
-                return
-
-            callback = []
-            jobs = result["Records"]
-            head = result["ParameterNames"]
-            headLength = len(head)
-            for i in jobs:
-                tmp = {head[j]: i[j] for j in range(headLength)}
-                callback.append(tmp)
-            total = result["TotalRecords"]
-            if "Extras" in result:
-                gLogger.info(result["Extras"])
-                extra = result["Extras"]
-                timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
-                callback = {"success": "true", "result": callback, "total": total, "extra": extra, "date": timestamp}
-            else:
-                callback = {"success": "true", "result": callback, "total": total, "date": None}
-
-            gLogger.info("\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % (datetime.datetime.utcnow() - pagestart))
-        self.finish(json.dumps(callback))
-
-    ################################################################################
-    @asyncGen
-    def web_action(self):
-        transid = int(self.get_argument("id"))
-        if self.get_argument("data_kind") == "getLoggingInfo":
-            callback = yield self.threadTask(self.__getLoggingInfo, transid)
-        elif self.get_argument("data_kind") == "fileStatus":
-            callback = yield self.threadTask(self.__transformationFileStatus, transid)
-        elif self.get_argument("data_kind") == "fileProcessed":
-            callback = yield self.threadTask(self.__fileRetry, transid, "proc")
-        elif self.get_argument("data_kind") == "fileNotProcessed":
-            callback = yield self.threadTask(self.__fileRetry, transid, "not")
-        elif self.get_argument("data_kind") == "fileAllProcessed":
-            callback = yield self.threadTask(self.__fileRetry, transid, "all")
-        elif self.get_argument("data_kind") == "dataQuery":
-            callback = yield self.threadTask(self.__dataQuery, transid)
-        elif self.get_argument("data_kind") == "additionalParams":
-            callback = yield self.threadTask(self.__additionalParams, transid)
-        elif self.get_argument("data_kind") == "transformationDetail":
-            callback = yield self.threadTask(self.__transformationDetail, transid)
-        elif self.get_argument("data_kind") == "extend":
-            callback = yield self.threadTask(self.__extendTransformation, transid)
-        elif self.get_argument("data_kind") == "workflowxml":
-            callback = yield self.threadTask(self.__workflowxml, transid)
-        else:
-            callback = {"success": "false", "error": "Action is unknown!!!"}
-        self.finish(callback)
-
-    ################################################################################
-    @asyncGen
-    def web_executeOperation(self):
-        cmd = self.get_argument("action")
-        ids = self.get_argument("ids").split(",")
-        ids = [int(i) for i in ids]
-
+    def web_executeOperation(self, action, ids):
         tsClient = TransformationClient()
 
         agentType = "Manual"
-        if cmd == "clean":
+        if action == "clean":
             status = "Cleaning"
-        elif cmd == "start":
+        elif action == "start":
             status = "Active"
             agentType = "Automatic"
-        elif cmd == "flush":
+        elif action == "flush":
             status = "Flush"
             agentType = "Automatic"
-        elif cmd == "stop":
+        elif action == "stop":
             status = "Stopped"
-        elif cmd == "complete":
+        elif action == "complete":
             status = "Completed"
         else:
-            self.finish({"success": "false", "error": "Unknown action"})
+            return {"success": "false", "error": "Unknown action"}
 
         callback = []
 
-        for i in ids:
+        for i in ids.split(","):
             try:
-                transid = int(i)
-
-                result = yield self.threadTask(tsClient.setTransformationParameter, transid, "Status", status)
-
+                result = tsClient.setTransformationParameter(transid := int(i), "Status", status)
                 if result["OK"]:
-                    resString = "ProdID: %s set to %s successfully" % (i, cmd)
-                    result = yield self.threadTask(tsClient.setTransformationParameter, transid, "AgentType", agentType)
+                    resString = f"ProdID: {transid} set to {action} successfully"
+                    result = tsClient.setTransformationParameter(transid, "AgentType", agentType)
                     if not result["OK"]:
-                        resString = "ProdID: %s failed to set to %s: %s" % (i, cmd, result["Message"])
+                        resString = f"ProdID: {transid} failed to set to {action}: {result['Message']}"
                 else:
-                    resString = "ProdID: %s failed due the reason: %s" % (i, result["Message"])
+                    resString = f"ProdID: {transid} failed due the reason: {result['Message']}"
             except Exception:
-                resString = "Unable to convert given ID %s to transformation ID" % i
+                resString = f"Unable to convert given ID {transid} to transformation ID"
             callback.append(resString)
-        callback = {"success": "true", "showResult": callback}
-        gLogger.info(cmd, ids)
-        self.finish(callback)
+        gLogger.info(action, ids)
+        return {"success": "true", "showResult": callback}
 
-    ################################################################################
     def __fileRetry(self, prodid, mode):
         tsClient = TransformationClient()
         if mode == "proc":
-            res = tsClient.getTransformationFilesCount(prodid, "ErrorCount", {"Status": "Processed"})
+            result = tsClient.getTransformationFilesCount(prodid, "ErrorCount", {"Status": "Processed"})
         elif mode == "not":
-            res = tsClient.getTransformationFilesCount(
+            result = tsClient.getTransformationFilesCount(
                 prodid, "ErrorCount", {"Status": ["Unused", "Assigned", "Failed"]}
             )
         elif mode == "all":
-            res = tsClient.getTransformationFilesCount(prodid, "ErrorCount")
+            result = tsClient.getTransformationFilesCount(prodid, "ErrorCount")
 
-        if not res["OK"]:
-            return {"success": "false", "error": res["Message"]}
+        if not result["OK"]:
+            return {"success": "false", "error": result["Message"]}
+
         resList = []
-        total = res["Value"].pop("Total")
-        if total == 0:
+        if (total := result["Value"].pop("Total")) == 0:
             return {"success": "false", "error": "No files found"}
-        for status in sorted(res["Value"]):
-            count = res["Value"][status]
+        for status in sorted(result["Value"]):
+            count = result["Value"][status]
             percent = "%.1f" % ((count * 100.0) / total)
             resList.append((status, str(count), percent))
         resList.append(("Total", total, "-"))
-        gLogger.debug("#######", res)
+        gLogger.debug("#######", result)
         return {"success": "true", "result": resList}
 
-    ################################################################################
     def __dataQuery(self, prodid):
-        callback = {}
         tsClient = TransformationClient()
 
         # FIXME: getTransformationInputDataQuery has been replaced by getTransformationMetaQuery in DIRAC v7r0
-        res = tsClient.getTransformationMetaQuery(prodid, "Input")
-        if not res["OK"] and "Unknown method" in res["Message"]:
-            res = tsClient.getTransformationInputDataQuery(prodid)
+        result = tsClient.getTransformationMetaQuery(prodid, "Input")
+        if not result["OK"] and "Unknown method" in result["Message"]:
+            result = tsClient.getTransformationInputDataQuery(prodid)
 
-        gLogger.debug("-= #######", res)
-        if not res["OK"]:
-            return {"success": "false", "error": res["Message"]}
-        result = res["Value"]
-        back = [[i, result[i]] for i in sorted(result)]
+        gLogger.debug("-= #######", result)
+        if not result["OK"]:
+            return {"success": "false", "error": result["Message"]}
+        data = result["Value"]
+        back = [[i, data[i]] for i in sorted(data)]
         return {"success": "true", "result": back}
 
-    ################################################################################
     def __additionalParams(self, prodid):
-        callback = {}
-        tsClient = TransformationClient()
-
-        res = tsClient.getAdditionalParameters(prodid)
-        if not res["OK"]:
-            return {"success": "false", "error": res["Message"]}
-        result = res["Value"]
-        back = [[i, result[i]] for i in sorted(result)]
+        if not (result := TransformationClient().getAdditionalParameters(prodid))["OK"]:
+            return {"success": "false", "error": result["Message"]}
+        data = result["Value"]
+        back = [[i, data[i]] for i in sorted(data)]
         return {"success": "true", "result": back}
 
-    ################################################################################
     def __workflowxml(self, transid):
-
         tsClient = TransformationClient()
-        retVal = tsClient.getTransformations({"TransformationID": transid})
-        if not retVal["OK"]:
-            raise WErr.fromSERROR(retVal)
-        return {"success": "true", "result": retVal["Value"][0]["Body"]}
+        if not (result := tsClient.getTransformations({"TransformationID": transid}))["OK"]:
+            raise WErr.fromSERROR(result)
+        return {"success": "true", "result": result["Value"][0]["Body"]}
 
-    ################################################################################
     def __getLoggingInfo(self, transid):
-        tsClient = TransformationClient()
-        result = tsClient.getTransformationLogging(transid)
-        if result["OK"]:
-            result = result["Value"]
-            if len(result) > 0:
-                callback = []
-                resultUser = gConfig.getSections("/Security/Users")
+        if (result := TransformationClient().getTransformationLogging(transid))["OK"]:
+            if len(data := result["Value"]) > 0:
                 dndb = {}
-                if resultUser["OK"]:
-                    users = resultUser["Value"]
-                    for j in users:
-                        dndb[gConfig.getValue("/Security/Users/%s/DN" % j)] = j
-                for i in result:
+                callback = []
+                if (result := gConfig.getSections("/Security/Users"))["OK"]:
+                    for user in result["Value"]:
+                        dndb[gConfig.getValue(f"/Security/Users/{user}/DN")] = user
+                for i in data:
                     DN = i["AuthorDN"]
                     i["AuthorDN"] = dndb.get(DN, DN)
                     date = TimeUtilities.toString(i["MessageDate"])
                     callback.append([i["Message"], date, i["AuthorDN"]])
-                callback = {"success": "true", "result": callback}
-            else:
-                callback = {"success": "false", "error": "Nothing to display"}
-        else:
-            callback = {"success": "false", "error": result["Message"]}
-        return callback
+                return {"success": "true", "result": callback}
+            return {"success": "false", "error": "Nothing to display"}
+        return {"success": "false", "error": result["Message"]}
 
-    ################################################################################
     def __transformationFileStatus(self, transid):
         tsClient = TransformationClient()
-        res = tsClient.getTransformationFilesCount(transid, "Status")
-        if not res["OK"]:
-            return {"success": "false", "error": res["Message"]}
+        if not (result := tsClient.getTransformationFilesCount(transid, "Status"))["OK"]:
+            return {"success": "false", "error": result["Message"]}
         resList = []
-        total = res["Value"].pop("Total")
-        if total == 0:
+        if (total := result["Value"].pop("Total")) == 0:
             return {"success": "false", "error": "No files found"}
-        for status in sorted(res["Value"]):
-            count = res["Value"][status]
+        for status in sorted(result["Value"]):
+            count = result["Value"][status]
             percent = "%.1f" % ((count * 100.0) / total)
             resList.append((status, str(count), percent))
         resList.append(("Total", total, "-"))
-        gLogger.debug("#######", res)
+        gLogger.debug("#######", result)
         return {"success": "true", "result": resList}
 
-    ################################################################################
     def __transformationDetail(self, prodid):
-        callback = {}
-
         tsClient = TransformationClient()
-        res = tsClient.getTransformationParameters(prodid, ["DetailedInfo"])
+        if not (result := tsClient.getTransformationParameters(prodid, ["DetailedInfo"]))["OK"]:
+            return {"success": "false", "error": result["Message"]}
+        if callback := result["Value"]:
+            return {"success": "true", "result": callback}
+        gLogger.debug("#######", result)
+        return {"success": "false", "error": "Production does not have parameter 'DetailedInfo'"}
 
-        if not res["OK"]:
-            callback = {"success": "false", "error": res["Message"]}
+    def __extendTransformation(self, transid, tasks):
+        gLogger.info(f"Extend transformation ({transid}, {tasks})")
+        if (result := TransformationClient().extendTransformation(transid, tasks))["OK"]:
+            resString = f"{transid} extended by {tasks} successfully"
         else:
-            callback = res["Value"]
-            if callback:
-                callback = {"success": "true", "result": res["Value"]}
-            else:
-                callback = {"success": "false", "error": "Production does not have parameter 'DetailedInfo'"}
-        gLogger.debug("#######", res)
-        return callback
+            resString = f"{transid} failed to extend: {result['Message']}"
+        gLogger.debug("#######", result)
+        return {"success": "true", "showResult": [resString], "result": resString}
 
-    ################################################################################
-    def __extendTransformation(self, transid):
-        tasks = int(self.get_argument("tasks"))
-        gLogger.info("extend %s" % transid)
-        tsClient = TransformationClient()
-        gLogger.info("extendTransformation(%s,%s)" % (transid, tasks))
-        res = tsClient.extendTransformation(transid, tasks)
-        if res["OK"]:
-            resString = "%s extended by %s successfully" % (transid, tasks)
-        else:
-            resString = "%s failed to extend: %s" % (transid, res["Message"])
-        callback = {"success": "true", "showResult": [resString], "result": resString}
-        gLogger.debug("#######", res)
-        return callback
-
-    ################################################################################
-    @asyncGen
-    def web_showFileStatus(self):
-        callback = {}
-        start = int(self.get_argument("start"))
-        limit = int(self.get_argument("limit"))
-        transid = self.get_argument("transformationId")
-        status = self.get_argument("status")
-
-        tsClient = TransformationClient()
-        result = yield self.threadTask(
-            tsClient.getTransformationFilesSummaryWeb,
-            {"TransformationID": transid, "Status": status},
+    def web_showFileStatus(self, start: int, limit: int, transformationId, status):
+        result = TransformationClient().getTransformationFilesSummaryWeb(
+            {"TransformationID": transformationId, "Status": status},
             [["FileID", "ASC"]],
             start,
             limit,
         )
 
         if not result["OK"]:
-            callback = {"success": "false", "error": result["Message"]}
-        else:
-            result = result["Value"]
-            if "TotalRecords" in result and result["TotalRecords"] > 0:
-                if "ParameterNames" in result and "Records" in result:
-                    if len(result["ParameterNames"]) > 0:
-                        if len(result["Records"]) > 0:
-                            callback = []
-                            jobs = result["Records"]
-                            head = result["ParameterNames"]
-                            headLength = len(head)
-                            for i in jobs:
-                                tmp = {head[j]: i[j] for j in range(headLength)}
-                                callback.append(tmp)
-                            total = result["TotalRecords"]
-                            timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
-                            if "Extras" in result:
-                                extra = result["Extras"]
-                                callback = {
-                                    "success": "true",
-                                    "result": callback,
-                                    "total": total,
-                                    "extra": extra,
-                                    "date": timestamp,
-                                }
-                            else:
-                                callback = {"success": "true", "result": callback, "total": total, "date": timestamp}
-                        else:
-                            callback = {"success": "false", "result": "", "error": "There are no data to display"}
-                    else:
-                        callback = {"success": "false", "result": "", "error": "ParameterNames field is undefined"}
-                else:
-                    callback = {"success": "false", "result": "", "error": "Data structure is corrupted"}
-            else:
-                callback = {"success": "false", "result": "", "error": "There were no data matching your selection"}
-        self.finish(callback)
+            return {"success": "false", "error": result["Message"]}
 
-    ################################################################################
+        data = result["Value"]
+        total = len(data.get("TotalRecords", []))
+        if total == 0:
+            return {"success": "false", "result": "", "error": "There were no data matching your selection"}
+        if not ("ParameterNames" in data and "Records" in data):
+            return {"success": "false", "result": "", "error": "Data structure is corrupted"}
+        head = data.get("ParameterNames", [])
+        if len(head) == 0:
+            return {"success": "false", "result": "", "error": "ParameterNames field is undefined"}
+        if len(data["Records"]) == 0:
+            return {"success": "false", "result": "", "error": "There are no data to display"}
+        callback = []
+        for job in data["Records"]:
+            callback.append(dict(zip(head, job)))
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
+        if "Extras" in data:
+            return {
+                "success": "true",
+                "result": callback,
+                "total": total,
+                "extra": data["Extras"],
+                "date": timestamp,
+            }
+        return {"success": "true", "result": callback, "total": total, "date": timestamp}
+
     def web_getTier1Sites(self):
-        callback = {}
-        tier1 = gConfig.getValue("/WebApp/PreferredSites", [])
-        if len(tier1) < 1:
-            callback = {"success": False, "errors": "No site defined in the CS!"}
-        else:
-            callback = {"success": True, "data": tier1}
-        self.finish(json.dumps(callback))
+        if len(tier1 := gConfig.getValue("/WebApp/PreferredSites", [])) < 1:
+            return {"success": False, "errors": "No site defined in the CS!"}
+        return {"success": True, "data": tier1}
 
-    ################################################################################
-    @asyncGen
-    def web_setSite(self):
-        callback = {}
-        transID = int(self.get_argument("TransformationId"))
-        runID = int(self.get_argument("RunNumber"))
-        site = self.get_argument("Site")
-
-        gLogger.info("\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % (transID, runID, site))
-
-        tsClient = TransformationClient()
-        result = yield self.threadTask(tsClient.setTransformationRunsSite, transID, runID, site)
-
+    def web_setSite(self, TransformationId: int, RunNumber: int, Site):
+        gLogger.info("\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % (TransformationId, RunNumber, Site))
+        result = TransformationClient().setTransformationRunsSite(TransformationId, RunNumber, Site)
         if result["OK"]:
-            callback = {"success": "true", "result": "true"}
-        else:
-            callback = {"success": "false", "error": result["Message"]}
-        self.finish(callback)
+            return {"success": "true", "result": "true"}
+        return {"success": "false", "error": result["Message"]}
 
-    ################################################################################
-    def _request(self):
+    def __prepareParameters(
+        self,
+        sort,
+        date,
+        status,
+        plugin,
+        endDate,
+        endTime,
+        requestId,
+        agentType,
+        transtype,
+        startDate,
+        startTime,
+        transformationId,
+        transformationGroup,
+        TransformationFamily,
+    ):
         req = {}
-        self.numberOfJobs = int(self.get_argument("limit", "25"))
-        self.pageNumber = int(self.get_argument("start", "0"))
-
-        prods = list(json.loads(self.get_argument("transformationId", "[]")))
-        if prods:
+        if prods := list(json.loads(transformationId)):
             req["TransformationID"] = prods
-
-        requests = list(json.loads(self.get_argument("requestId", "[]")))
-        if requests:
+        if requests := list(json.loads(requestId)):
             req["TransformationFamily"] = requests
-
-        if "TransformationFamily" in self.request.arguments:
-            req["TransformationFamily"] = self.get_argument("TransformationFamily")
-
-        agentType = list(json.loads(self.get_argument("agentType", "[]")))
-        if agentType:
+        if TransformationFamily:
+            req["TransformationFamily"] = TransformationFamily
+        if agentType := list(json.loads(agentType)):
             req["agentType"] = agentType
-
-        status = list(json.loads(self.get_argument("status", "[]")))
-        if status:
+        if status := list(json.loads(status)):
             req["Status"] = status
-
-        plugin = list(json.loads(self.get_argument("plugin", "[]")))
-        if plugin:
+        if plugin := list(json.loads(plugin)):
             req["Plugin"] = plugin
-
-        transtype = list(json.loads(self.get_argument("type", "[]")))
-        if transtype:
+        if transtype := list(json.loads(transtype)):
             req["Type"] = transtype
-
-        group = list(json.loads(self.get_argument("transformationGroup", "[]")))
-        if group:
+        if group := list(json.loads(transformationGroup)):
             req["TransformationGroup"] = group
-
-        if "sort" in self.request.arguments:
-            sort = json.loads(self.get_argument("sort"))
-            if sort:
+        if sort:
+            if sort := json.loads(sort):
                 self.globalSort = [["TransformationFamily", "ASC"]]
                 for i in sort:
                     self.globalSort += [[i["property"], i["direction"]]]
         else:
             self.globalSort = [["TransformationID", "DESC"]]
-
-        if self.get_argument("startDate", None):
-            req["FromDate"] = self.get_argument("startDate")
-            if self.get_argument("startTime", None):
-                req["FromDate"] += " " + self.get_argument("startTime")
-
-        if self.get_argument("endDate", None):
-            req["ToDate"] = self.get_argument("endDate")
-            if self.get_argument("endTime", None):
-                req["ToDate"] += " " + self.get_argument("endTime")
-
-        if self.get_argument("date", None):
-            req["LastUpdate"] = self.get_argument("date")
+        if startDate:
+            req["FromDate"] = startDate
+            if startTime:
+                req["FromDate"] += " " + startTime
+        if endDate:
+            req["ToDate"] = endDate
+            if endTime:
+                req["ToDate"] += " " + endTime
+        if date:
+            req["LastUpdate"] = date
         gLogger.verbose("REQUEST:", req)
         return req
