@@ -474,11 +474,11 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode(["Info"]),
-        name: Ext.JSON.encode([selection.name]),
-        elementType: Ext.JSON.encode([selection.elementType]),
-        statusType: Ext.JSON.encode([selection.statusType]),
-        element: selection.element ? Ext.JSON.encode([selection.element]) : Ext.JSON.encode(["Resource"]),
+        action: "Info",
+        name: selection.name,
+        elementType: selection.elementType,
+        statusType: selection.statusType,
+        element: selection.element ? selection.element : "Resource",
       },
       scope: me,
       failure: function (response) {
@@ -503,8 +503,8 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode(["ComputingElements"]),
-        name: Ext.JSON.encode([selection.name]),
+        action: "ComputingElements",
+        name: selection.name,
       },
       scope: me,
       failure: function (response) {
@@ -528,8 +528,8 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode(["Storages"]),
-        name: Ext.JSON.encode([selection.name]),
+        action: "Storages",
+        name: selection.name,
       },
       scope: me,
       failure: function (response) {
@@ -552,8 +552,8 @@ Ext.define("DIRAC.SiteSummary.classes.OverviewPanel", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode(["Images"]),
-        name: Ext.JSON.encode([selection.name]),
+        action: "Images",
+        name: selection.name,
       },
       scope: me,
       failure: function (response) {

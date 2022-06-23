@@ -360,10 +360,10 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode([action]),
-        name: Ext.JSON.encode([selectedValues.name]),
-        elementType: Ext.JSON.encode([selectedValues.elementType]),
-        statusType: Ext.JSON.encode([selectedValues.statusType]),
+        action: action,
+        name: selectedValues.name,
+        elementType: selectedValues.elementType,
+        statusType: selectedValues.statusType,
       },
       scope: me,
       failure: function (response) {
@@ -480,12 +480,12 @@ Ext.define("DIRAC.SiteSummary.classes.SiteSummary", {
       url: GLOBAL.BASE_URL + me.applicationName + "/action",
       method: "POST",
       params: {
-        action: Ext.JSON.encode([action]),
-        name: Ext.JSON.encode([selectedValues.name]),
-        elementType: Ext.JSON.encode([selectedValues.elementType]),
-        statusType: Ext.JSON.encode([selectedValues.statusType]),
-        status: Ext.JSON.encode([newStatus]),
-        lastCheckTime: Ext.JSON.encode([selectedValues.lastCheckTime]),
+        action: action,
+        name: selectedValues.name,
+        elementType: selectedValues.elementType,
+        statusType: selectedValues.statusType,
+        status: newStatus,
+        lastCheckTime: selectedValues.lastCheckTime,
       },
       scope: me,
       failure: function (response) {
