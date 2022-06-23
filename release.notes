@@ -1,3 +1,8 @@
+[v5.0.0a19]
+
+FIX: (#674) sort parameter is optional
+CHANGE: (#673) use a new style of handler writing
+
 [v5.0.0a18]
 
 CHANGE: (#671) RegistryManager/ConfigurationManager use BaseRequestHandler
