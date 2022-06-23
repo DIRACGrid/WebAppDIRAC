@@ -16,7 +16,7 @@ class TransformationMonitorHandler(WebHandler):
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def web_getSelectionData(self):
-        if self.getUserName() == "Anonymous":
+        if self.getUserName().lower() == "anonymous":
             return {"prod": [["Insufficient rights"]]}
 
         tsClient = TransformationClient()
@@ -78,7 +78,7 @@ class TransformationMonitorHandler(WebHandler):
 
     def web_getTransformationData(
         self,
-        sort,
+        sort=None,
         date=None,
         endDate=None,
         endTime=None,
@@ -97,7 +97,7 @@ class TransformationMonitorHandler(WebHandler):
     ):
         pagestart = datetime.datetime.utcnow()
 
-        if self.getUserName() == "Anonymous":
+        if self.getUserName().lower() == "anonymous":
             return {"success": "false", "error": "You are not authorised"}
 
         params = self.__prepareParameters(
