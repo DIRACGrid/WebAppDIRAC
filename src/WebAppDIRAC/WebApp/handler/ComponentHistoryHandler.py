@@ -2,7 +2,7 @@ import json
 import datetime
 
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class ComponentHistoryHandler(WebHandler):

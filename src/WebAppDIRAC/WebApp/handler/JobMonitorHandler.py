@@ -12,7 +12,7 @@ from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManage
 from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
 from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class JobMonitorHandler(WebHandler):

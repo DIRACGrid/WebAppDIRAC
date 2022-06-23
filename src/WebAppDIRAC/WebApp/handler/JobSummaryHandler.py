@@ -4,7 +4,7 @@ from time import time
 from DIRAC import gLogger, gConfig
 from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 # Dictionary of country code top-level domain (ccTLD) and corresponding country name
 COUNTRIES = {

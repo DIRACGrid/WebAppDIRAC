@@ -5,7 +5,7 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class ProxyManagerHandler(WebHandler):

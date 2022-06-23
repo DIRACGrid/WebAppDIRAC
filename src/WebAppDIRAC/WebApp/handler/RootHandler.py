@@ -9,7 +9,7 @@ from DIRAC import gLogger
 from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import TornadoResponse
 
 from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class RootHandler(WebHandler):

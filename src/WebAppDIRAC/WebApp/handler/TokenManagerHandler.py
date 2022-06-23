@@ -5,7 +5,7 @@ from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getAllUsers
 from DIRAC.FrameworkSystem.Client.TokenManagerClient import TokenManagerClient
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class TokenManagerHandler(WebHandler):
