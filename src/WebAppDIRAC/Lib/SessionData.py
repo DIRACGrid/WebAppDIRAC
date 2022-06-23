@@ -24,7 +24,6 @@ DEFAULT_SCHEMA = [
         "Applications",
         [
             ["app", "Accounting", "DIRAC.Accounting"],
-            ["app", "Activity Monitor", "DIRAC.ActivityMonitor"],
             ["app", "Configuration Manager", "DIRAC.ConfigurationManager"],
             ["app", "Job Monitor", "DIRAC.JobMonitor"],
             ["app", "Downtimes", "DIRAC.Downtimes"],
