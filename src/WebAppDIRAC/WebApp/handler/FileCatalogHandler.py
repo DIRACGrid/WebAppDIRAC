@@ -10,7 +10,7 @@ from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, FileResponse
+from WebAppDIRAC.Lib.WebHandler import WebHandler, FileResponse
 
 
 class FileCatalogHandler(WebHandler):

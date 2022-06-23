@@ -4,7 +4,7 @@ import datetime
 from DIRAC import gConfig, gLogger
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
 from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class PilotSummaryHandler(WebHandler):

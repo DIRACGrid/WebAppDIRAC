@@ -9,7 +9,7 @@ from DIRAC.Core.Utilities import TimeUtilities, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.MonitoringSystem.Client.MonitoringClient import MonitoringClient
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, FileResponse
+from WebAppDIRAC.Lib.WebHandler import WebHandler, FileResponse
 
 
 class MonitoringHandler(WebHandler):

@@ -5,7 +5,7 @@ from DIRAC import gConfig, S_OK, gLogger
 from DIRAC.Core.Utilities.Graphs.Palette import Palette
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForDN
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class PilotMonitorHandler(WebHandler):

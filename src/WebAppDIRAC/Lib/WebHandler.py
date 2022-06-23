@@ -4,7 +4,6 @@ import re
 import json
 import pprint
 import datetime
-import functools
 import traceback
 from hashlib import md5
 from concurrent.futures import ThreadPoolExecutor
@@ -13,7 +12,6 @@ import tornado.web
 import tornado.websocket
 from tornado import gen
 from tornado.web import HTTPError
-from tornado.ioloop import IOLoop
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
@@ -125,7 +123,7 @@ def defaultEncoder(data):
     raise TypeError("Object of type {} is not JSON serializable".format(data.__class__.__name__))
 
 
-class _WebHandler(TornadoREST):
+class WebHandler(TornadoREST):
     DEFAULT_AUTHENTICATION = ["SSL", "SESSION", "VISITOR"]
     # Auth requirements DEFAULT_AUTHORIZATION
     DEFAULT_AUTHORIZATION = None
@@ -342,49 +340,9 @@ class _WebHandler(TornadoREST):
         self.finish(data)
 
 
-class WebHandler(_WebHandler):
-    """Old WebHandler"""
-
-    @classmethod
-    def _pre_initialize(cls):
-        # Get tornado URLs
-        urls = super()._pre_initialize()
-        # Add a pattern that points to the target method.
-        # Note that there are handlers with an index method.
-        # It responds to the request without specifying a method.
-        # The special characters "*" helps to take into account such a case,
-        # see https://docs.python.org/3/library/re.html#regular-expression-syntax.
-        # E.g .: /DIRAC/ -> RootHandler.web_index
-        cls.PATH_RE = re.compile(f"{cls.BASE_URL}({cls.LOCATION}/[A-z0-9_]*)")
-        return urls
-
-    def get(self, setup, group, *pathArgs):
-        self.initializeRequest()
-        return self._getMethod()(*pathArgs)
-
-    def post(self, *args, **kwargs):
-        return self.get(*args, **kwargs)
-
-    def threadTask(self, method, *args, **kwargs):
-        def threadJob(*args, **kwargs):
-            with self._setupThreadConfig():
-                return method(*args, **kwargs)
-
-        return IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *args, **kwargs))
-
-    def finish(self, data=None, *args, **kwargs):
-        """Finishes this response, ending the HTTP request. More details:
-        https://www.tornadoweb.org/en/stable/_modules/tornado/web.html#RequestHandler.finish
-        """
-        if data and isinstance(data, dict):
-            self.set_header("Content-Type", "application/json")
-            data = json.dumps(data, default=defaultEncoder)
-        return super().finish(data, *args, **kwargs)
-
-
-class WebSocketHandler(tornado.websocket.WebSocketHandler, _WebHandler):
+class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
     def __init__(self, *args, **kwargs):
-        _WebHandler.__init__(self, *args, **kwargs)
+        WebHandler.__init__(self, *args, **kwargs)
         tornado.websocket.WebSocketHandler.__init__(self, *args, **kwargs)
 
     @classmethod

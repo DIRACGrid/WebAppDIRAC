@@ -6,7 +6,7 @@ from datetime import datetime
 
 from DIRAC import gLogger
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class DowntimesHandler(WebHandler):

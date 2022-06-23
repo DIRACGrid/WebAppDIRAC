@@ -8,7 +8,7 @@ from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 from DIRAC.Core.Tornado.Server.TornadoREST import authorization
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class UPHandler(WebHandler):

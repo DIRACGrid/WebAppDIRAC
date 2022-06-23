@@ -2,7 +2,7 @@ import ast
 import json
 
 from DIRAC.Core.Utilities import TimeUtilities
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 from DIRAC.WorkloadManagementSystem.Client.VMClient import VMClient
 
 

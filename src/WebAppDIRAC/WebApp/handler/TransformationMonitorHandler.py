@@ -8,7 +8,7 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import TimeUtilities
 from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class TransformationMonitorHandler(WebHandler):

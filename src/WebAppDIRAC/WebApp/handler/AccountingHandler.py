@@ -9,7 +9,7 @@ from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, c
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
 from DIRAC.Core.Tornado.Client.ClientSelector import TransferClientSelector as TransferClient
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, FileResponse
+from WebAppDIRAC.Lib.WebHandler import WebHandler, FileResponse
 
 
 class AccountingHandler(WebHandler):

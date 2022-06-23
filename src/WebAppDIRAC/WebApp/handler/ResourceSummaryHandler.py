@@ -6,7 +6,7 @@ from DIRAC import gLogger
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class SummaryHandlerMix(WebHandler):

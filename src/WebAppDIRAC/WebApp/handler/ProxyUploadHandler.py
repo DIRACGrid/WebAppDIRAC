@@ -3,7 +3,7 @@ from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-er
 from DIRAC.FrameworkSystem.Client import ProxyUpload
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getGroupsForDN
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class ProxyUploadHandler(WebHandler):

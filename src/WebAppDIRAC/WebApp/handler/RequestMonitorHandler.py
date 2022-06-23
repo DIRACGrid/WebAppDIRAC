@@ -4,7 +4,7 @@ import datetime
 from DIRAC import gLogger
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 
-from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler
+from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class RequestMonitorHandler(WebHandler):
