@@ -9,28 +9,24 @@
  *    - We implemented the ExampleAppHandler.py
  *
  *    ExampleHandler.py:
- *    from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
+ *    from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
  *     from DIRAC import gConfig, S_OK, S_ERROR, gLogger
  *     import json
  *     import datetime
  *
  *     class ExampleAppHandler(WebHandler):
  *
- *       AUTH_PROPS = "authenticated"
+ *       DEFAULT_AUTHORIZATION = "authenticated"
  *
- *       @asyncGen
  *       def web_getJobData(self):
  *         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
  *         total = 5
  *         values = []
  *         values = [{"ExampleId":1,"ExampleValue":"Zoli"},{"ExampleId":2,"ExampleValue":'a'},{"ExampleId":3,"ExampleValue":'aaaa'},{"ExampleId":4,"ExampleValue":'bbbb'},{"ExampleId":5,"ExampleValue":'adsd'}]
- *         callback = {"success":"true", "result":values, "total":total, "date":timestamp }
- *         self.finish(callback)
+ *         return {"success":"true", "result":values, "total":total, "date":timestamp }
  *
- *       @asyncGen
  *       def web_getSelectionData(self):
- *         callback = {"firstName":["A","C","D"],"lastName":["wwww","dsds","sads"]}
- *         self.finish(callback)
+ *         return {"firstName":["A","C","D"],"lastName":["wwww","dsds","sads"]}
  *
  *
  *    NOTE: You can see the Source by clicking on the page title: DIRAC.ExampleApp.classes.ExampleApp.
