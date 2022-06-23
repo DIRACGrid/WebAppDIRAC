@@ -152,7 +152,7 @@ class TransformationMonitorHandler(WebHandler):
         gLogger.info("\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % (datetime.datetime.utcnow() - pagestart))
         return callback
 
-    def web_action(self, data_kind, tasks: int, id: int):
+    def web_action(self, data_kind, id: int, tasks: int = None):
         if data_kind == "getLoggingInfo":
             return self.__getLoggingInfo(id)
         if data_kind == "fileStatus":
