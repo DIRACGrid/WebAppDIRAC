@@ -77,9 +77,6 @@ class SummaryHandlerMix(WebHandler):
 
     def _expand(self, name) -> dict:
         """This method handles the POST requests"""
-        if name:
-            name = list(json.loads(name))
-
         elements = PublisherClient().getElementStatuses(self.ELEMENT_TYPE, name, None, None, None, None)
         if not elements["OK"]:
             return {"success": "false", "error": elements["Message"]}
@@ -307,7 +304,7 @@ class ResourceSummaryHandler(SummaryHandlerMix):
     def web_getSelectionData(self):
         return self._getSelectionData()
 
-    def web_expand(self, name=None):
+    def web_expand(self, name: list = None):
         return self._expand(name)
 
     def web_action(self, action=None, **kwargs):
