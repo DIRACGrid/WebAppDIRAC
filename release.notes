@@ -1,3 +1,23 @@
+[v5.0.0a18]
+
+CHANGE: (#671) RegistryManager/ConfigurationManager use BaseRequestHandler
+CHANGE: (#670) SiteSummary/ResourceSummary use BaseRequestHandler
+CHANGE: (#669) ProxyManager use BaseRequestHandler
+CHANGE: (#668) UploadProxy use BaseRequestHandler
+CHANGE: (#667) PublicStateManager use BaseRequestHandler
+CHANGE: (#666) RequestMonitor use BaseRequestHandler
+FIX: (#665) Changing group or setup
+CHANGE: (#664) SpaceOccupancy use BaseRequestHandler
+CHANGE: (#663) SystemAdministrator use BaseRequestHandler
+CHANGE: (#662) TransformationMonitor use BaseRequestHandler
+CHANGE: (#661) VMDirac use BaseRequestHandler
+FIX: (#659) Sending extraCredentials when using X509 based RPC calls on behalf of users.
+CHANGE: (#659) The X-RefreshConfiguration header can no longer be used to force a refresh of the CS.
+FIX: (#657) remove showAll button
+FIX: (#656) Bug fixes
+CHANGE: (#656) remove unused UserCredentials
+FIX: (#649) use ComponentMonitoringClient instead of deprecated ComponentMonitoringDB in SystemAdministrationHandler
+
 [v5.0.0a17]
 
 FIX: (#654) correction of the final address after to authorization
