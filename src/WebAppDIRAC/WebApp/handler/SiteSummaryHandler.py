@@ -19,7 +19,7 @@ class SiteSummaryHandler(SummaryHandlerMix):
     def web_getSelectionData(self, **kwargs):
         return self._getSelectionData(**kwargs)
 
-    def web_expand(self, name=None):
+    def web_expand(self, name: list = None):
         return self._expand(name)
 
     def web_action(self, action=None, **kwargs):
