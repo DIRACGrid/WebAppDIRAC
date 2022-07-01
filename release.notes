@@ -1,3 +1,9 @@
+[v5.0.0a20]
+
+FIX: (#677) set correct argument type for _expand
+FIX: (#676) made tasks argument optional
+FIX: (#675) remove Activity monitor from configuration
+
 [v5.0.0a19]
 
 FIX: (#674) sort parameter is optional
