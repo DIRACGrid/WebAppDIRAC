@@ -100,7 +100,7 @@ class TransformationMonitorHandler(WebHandler):
         if self.getUserName().lower() == "anonymous":
             return {"success": "false", "error": "You are not authorised"}
 
-        params = self.__prepareParameters(
+        params = self._prepareSearchParameters(
             sort,
             date,
             status,
@@ -363,7 +363,7 @@ class TransformationMonitorHandler(WebHandler):
             return {"success": "true", "result": "true"}
         return {"success": "false", "error": result["Message"]}
 
-    def __prepareParameters(
+    def _prepareSearchParameters(
         self,
         sort,
         date,
@@ -380,6 +380,10 @@ class TransformationMonitorHandler(WebHandler):
         transformationGroup,
         TransformationFamily,
     ):
+        """Prepare a query dictionary which can be used with TransformationClient.getTransformationSummaryWeb
+
+        Note: This method can be overridden by extensions
+        """
         req = {}
         if prods := list(json.loads(transformationId)):
             req["TransformationID"] = prods
