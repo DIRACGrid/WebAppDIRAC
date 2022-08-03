@@ -102,10 +102,6 @@ def asyncWithCallback(method):
     return tornado.web.asynchronous(method)
 
 
-def asyncGen(method):
-    return gen.coroutine(method)
-
-
 def defaultEncoder(data):
     """Encode
 
