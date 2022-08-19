@@ -58,7 +58,7 @@ class AccountingHandler(WebHandler):
                 siteLevel = {}
                 for siteName in retVal["Value"]["Site"]:
                     sitePrefix = siteName.split(".")[0].strip()
-                    level = gConfig.getValue("/Resources/Sites/%s/%s/MoUTierLevel" % (sitePrefix, siteName), 10)
+                    level = gConfig.getValue(f"/Resources/Sites/{sitePrefix}/{siteName}/MoUTierLevel", 10)
                     if level not in siteLevel:
                         siteLevel[level] = []
                     siteLevel[level].append(siteName)

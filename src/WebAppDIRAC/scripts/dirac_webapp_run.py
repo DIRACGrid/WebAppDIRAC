@@ -34,7 +34,7 @@ def _createStaticSymlinks(targetDir):
             # If there is more than one suffix append a counter
             if i >= 1:
                 destination += "-%s" % i
-            gLogger.notice("    creating symlink from", "%s to %s" % (path, destination))
+            gLogger.notice("    creating symlink from", f"{path} to {destination}")
             if os.path.islink(destination):
                 if path == os.readlink(destination):
                     # The link is already up to date
@@ -68,7 +68,9 @@ def _checkDIRACVersion():
     dirac_spec = deps[0].specifier
     if dirac_version not in dirac_spec:
         raise RuntimeError(
-            "WebAppDIRAC %s requires %s but %s is incompatible" % (version("WebAppDIRAC"), dirac_version, dirac_spec)
+            "WebAppDIRAC {} requires {} but {} is incompatible".format(
+                version("WebAppDIRAC"), dirac_version, dirac_spec
+            )
         )
 
 

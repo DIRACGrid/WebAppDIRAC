@@ -146,7 +146,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 continue
             commentLines.append(line)
         if commentLines or commiter:
-            return "%s<small><strong>%s</strong></small>" % ("<br/>".join(commentLines), commiter)
+            return "{}<small><strong>{}</strong></small>".format("<br/>".join(commentLines), commiter)
         return False
 
     def __showConfigurationAsText(self):
@@ -174,7 +174,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         self.__configData["cfgData"].setOptionValue(optionPath, optionValue)
 
         if self.__configData["cfgData"].getValue(optionPath) == optionValue:
-            self.log.info("Set option value", "%s = %s" % (optionPath, optionValue))
+            self.log.info("Set option value", f"{optionPath} = {optionValue}")
             return {"success": 1, "op": "setOptionValue", "parentNodeId": params["parentNodeId"], "value": optionValue}
         return {"success": 0, "op": "setOptionValue", "message": "Can't update %s" % optionPath}
 
@@ -188,7 +188,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         self.__setCommiter()
 
         self.__configData["cfgData"].setComment(path, value)
-        self.log.info("Set comment", "%s = %s" % (path, value))
+        self.log.info("Set comment", f"{path} = {value}")
         return {
             "success": 1,
             "op": "setComment",
@@ -303,8 +303,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 return {"success": 0, "op": "createOption", "message": "Options can't have a / in the name"}
             if len(optionValue) == 0:
                 return {"success": 0, "op": "createOption", "message": "Options should have values!"}
-            optionPath = "%s/%s" % (parentPath, optionName)
-            self.log.info("Creating option", "%s = %s" % (optionPath, optionValue))
+            optionPath = f"{parentPath}/{optionName}"
+            self.log.info("Creating option", f"{optionPath} = {optionValue}")
             if not self.__configData["cfgData"].existsOption(optionPath):
                 self.__setCommiter()
                 self.__configData["cfgData"].setOptionValue(optionPath, optionValue)
@@ -336,9 +336,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 "oldIndex": params["oldIndex"],
             }
 
-        self.log.info(
-            "Moving node", "Moving %s under %s before pos %s" % (nodePath, destinationParentPath, beforeOfIndex)
-        )
+        self.log.info("Moving node", f"Moving {nodePath} under {destinationParentPath} before pos {beforeOfIndex}")
         cfgData = self.__configData["cfgData"].getCFG()
 
         nodeDict = cfgData.getRecursive(nodePath)
@@ -584,7 +582,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return {"success": 0, "op": "rollback", "message": retVal["Value"]}
 
     def __setCommiter(self):
-        commiter = "%s@%s - %s" % (
+        commiter = "{}@{} - {}".format(
             self.getUserName(),
             self.getUserGroup(),
             datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
@@ -610,7 +608,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
 
         version = str(self.__configData["cfgData"].getCFG()["DIRAC"]["Configuration"]["Version"])
         configName = str(self.__configData["cfgData"].getCFG()["DIRAC"]["Configuration"]["Name"])
-        fileName = "cs.%s.%s" % (configName, version.replace(":", "").replace("-", "").replace(" ", ""))
+        fileName = "cs.{}.{}".format(configName, version.replace(":", "").replace("-", "").replace(" ", ""))
 
         return {"success": 1, "op": "download", "result": self.__configData["strCfgData"], "fileName": fileName}
 

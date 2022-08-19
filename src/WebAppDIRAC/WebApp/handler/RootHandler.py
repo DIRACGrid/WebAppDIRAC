@@ -74,7 +74,9 @@ class RootHandler(WebHandler):
         cli = result["Value"]
         cli.scope = ""
         if provider:
-            cli.metadata["authorization_endpoint"] = "%s/%s" % (cli.get_metadata("authorization_endpoint"), provider)
+            cli.metadata["authorization_endpoint"] = "{}/{}".format(
+                cli.get_metadata("authorization_endpoint"), provider
+            )
 
         uri, state, session = cli.submitNewSession()
 
@@ -173,7 +175,7 @@ class RootHandler(WebHandler):
         welcomeFile = Conf.getWelcome()
         if welcomeFile:
             try:
-                with open(welcomeFile, "r") as f:
+                with open(welcomeFile) as f:
                     welcome = f.read().replace("\n", "")
             except Exception:
                 gLogger.warn("Welcome page not found here: %s" % welcomeFile)

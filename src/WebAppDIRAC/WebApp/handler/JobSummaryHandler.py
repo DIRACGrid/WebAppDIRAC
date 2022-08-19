@@ -268,21 +268,21 @@ class JobSummaryHandler(WebHandler):
         if result["OK"]:
             result = result["Value"]
             if len(result.get("Status", [])) > 0:
-                status = [[str("All")]]
+                status = [["All"]]
                 for i in result["Status"]:
                     status.append([str(i)])
             else:
                 status = [["Nothing to display"]]
             callback["status"] = status
             if len(result.get("GridType", [])) > 0:
-                gridtype = [[str("All")]]
+                gridtype = [["All"]]
                 for i in result["GridType"]:
                     gridtype.append([str(i)])
             else:
                 gridtype = [["Nothing to display"]]
             callback["gridtype"] = gridtype
             if len(result.get("MaskStatus", [])) > 0:
-                maskstatus = [[str("All")]]
+                maskstatus = [["All"]]
                 for i in result["MaskStatus"]:
                     maskstatus.append([str(i)])
             else:
@@ -322,7 +322,7 @@ class JobSummaryHandler(WebHandler):
     def web_getData(self):
         pagestart = time()
         result = self.__request()
-        gLogger.always("getSiteSummaryWeb(%s,%s,%s,%s)" % (result, self.globalSort, self.pageNumber, self.numberOfJobs))
+        gLogger.always(f"getSiteSummaryWeb({result},{self.globalSort},{self.pageNumber},{self.numberOfJobs})")
         retVal = WMSAdministratorClient().getSiteSummaryWeb(result, [], self.pageNumber, self.numberOfJobs)
         gLogger.always("\033[0;31m YO: \033[0m", result)
         if retVal["OK"]:

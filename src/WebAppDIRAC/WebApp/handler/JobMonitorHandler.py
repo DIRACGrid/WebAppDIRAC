@@ -471,7 +471,7 @@ class JobMonitorHandler(WebHandler):
             return {"success": "true"}
 
         data = result["Value"]
-        fname = "%s_%sSandbox.tar" % (str(jobID), sandbox)
+        fname = f"{str(jobID)}_{sandbox}Sandbox.tar"
         self.set_header("Content-type", "application/x-tar")
         self.set_header("Content-Disposition", 'attachment; filename="%s"' % fname)
         self.set_header("Content-Length", len(data))
