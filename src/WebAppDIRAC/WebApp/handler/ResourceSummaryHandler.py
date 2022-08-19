@@ -33,7 +33,7 @@ class SummaryHandlerMix(WebHandler):
 
         for key, value in callback.items():
 
-            callback[key] = sorted([[item] for item in list(value)])
+            callback[key] = sorted([item] for item in list(value))
             callback[key] = [["All"]] + callback[key]
 
         return callback
@@ -54,7 +54,7 @@ class SummaryHandlerMix(WebHandler):
 
         else:
 
-            if set(["Active", "Degraded"]) & set(statusSet):
+            if {"Active", "Degraded"} & set(statusSet):
                 status = "Degraded"
                 reason = "Not completely active"
 

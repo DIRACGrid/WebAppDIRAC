@@ -1,11 +1,10 @@
 import os
-from io import open
 from tornado.template import BaseLoader, Template
 
 
 class TemplateLoader(BaseLoader):
     def __init__(self, pathList, **kwargs):
-        super(TemplateLoader, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.pathList = pathList
 
     def resolve_path(self, name, parent_path=None):
@@ -18,7 +17,7 @@ class TemplateLoader(BaseLoader):
         for path in self.pathList:
             try:
                 f = open(os.path.abspath(os.path.join(path, name)), "rb")
-            except IOError:
+            except OSError:
                 continue
             template = Template(f.read(), name=name, loader=self)
             f.close()

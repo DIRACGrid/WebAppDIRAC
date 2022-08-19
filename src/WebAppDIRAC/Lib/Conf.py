@@ -184,7 +184,7 @@ def generateCAFile():
             fn = tempfile.mkstemp(prefix="cas.", suffix=".pem")[1]
         try:
             fd = open(fn, "w")
-        except IOError:
+        except OSError:
             continue
         for caFile in os.listdir(caDir):
             caFile = os.path.join(caDir, caFile)
@@ -216,7 +216,7 @@ def generateRevokedCertsFile():
             fn = tempfile.mkstemp(prefix="allRevokedCerts", suffix=".pem")[1]
         try:
             fd = open(fn, "w")
-        except IOError:
+        except OSError:
             continue
         for caFile in os.listdir(caDir):
             caFile = os.path.join(caDir, caFile)

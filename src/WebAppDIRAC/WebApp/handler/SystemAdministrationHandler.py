@@ -142,7 +142,7 @@ class SystemAdministrationHandler(WebHandler):
                 str(_host), None, delegatedDN=self.getUserDN(), delegatedGroup=self.getUserGroup()
             )
             if action == "restart":
-                result = client.restartComponent(str("*"), str("*"))
+                result = client.restartComponent("*", "*")
             elif action == "revert":
                 result = client.revertSoftware()
             elif action == "update":
