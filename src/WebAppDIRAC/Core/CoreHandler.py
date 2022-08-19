@@ -14,9 +14,9 @@ class CoreHandler(tornado.web.RequestHandler):
             proto = self.request.protocol
             if "X-Scheme" in self.request.headers:
                 proto = self.request.headers["X-Scheme"]
-            nurl = "%s://%s%s/" % (proto, self.request.host, o.path)
+            nurl = f"{proto}://{self.request.host}{o.path}/"
             if o.query:
-                nurl = "%s?%s" % (nurl, o.query)
+                nurl = f"{nurl}?{o.query}"
             self.redirect(nurl, permanent=True)
         elif self.__action == "sendToRoot":
             dest = "/"
@@ -24,5 +24,5 @@ class CoreHandler(tornado.web.RequestHandler):
             if rootURL:
                 dest += "%s/" % rootURL.strip("/")
             if setup and group:
-                dest += "s:%s/g:%s/" % (setup, group)
+                dest += f"s:{setup}/g:{group}/"
             self.redirect(dest)

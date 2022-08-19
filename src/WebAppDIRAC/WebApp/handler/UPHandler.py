@@ -31,7 +31,7 @@ class UPHandler(WebHandler):
 
         :return: dict
         """
-        up = UserProfileClient("Web/%s/%s" % (obj, app))
+        up = UserProfileClient(f"Web/{obj}/{app}")
         data = base64.b64encode(zlib.compress(DEncode.encode(state), 9))
         # before we save the state (modify the state) we have to remember the actual access: ReadAccess and PublishAccess
         result = up.getVarPermissions(name)
@@ -58,7 +58,7 @@ class UPHandler(WebHandler):
 
         :return: dict
         """
-        up = UserProfileClient("Web/%s/%s" % (obj, app))
+        up = UserProfileClient(f"Web/{obj}/{app}")
         access = access.upper()
         if access not in ("ALL", "VO", "GROUP", "USER"):
             raise WErr(400, "Invalid access")
@@ -80,7 +80,7 @@ class UPHandler(WebHandler):
 
         :return: dict
         """
-        result = UserProfileClient("Web/%s/%s" % (obj, app)).retrieveVar(name)
+        result = UserProfileClient(f"Web/{obj}/{app}").retrieveVar(name)
         if not result["OK"]:
             return result
         data = result["Value"]
@@ -97,7 +97,7 @@ class UPHandler(WebHandler):
 
         :return: dict
         """
-        up = UserProfileClient("Web/%s/%s" % (obj, app))
+        up = UserProfileClient(f"Web/{obj}/{app}")
         result = up.retrieveVarFromUser(user, group, name)
         if not result["OK"]:
             return result
@@ -113,7 +113,7 @@ class UPHandler(WebHandler):
 
         :return: dict
         """
-        up = UserProfileClient("Web/%s/%s" % (obj, app))
+        up = UserProfileClient(f"Web/{obj}/{app}")
         result = up.retrieveAllVars()
         if not result["OK"]:
             return result
@@ -130,7 +130,7 @@ class UPHandler(WebHandler):
 
         :return: dict
         """
-        return UserProfileClient("Web/%s/%s" % (obj, app)).deleteVar(name)
+        return UserProfileClient(f"Web/{obj}/{app}").deleteVar(name)
 
     @authorization(["all"])
     def web_listPublicDesktopStates(self, obj, app):
@@ -141,7 +141,7 @@ class UPHandler(WebHandler):
 
         :return: dict
         """
-        up = UserProfileClient("Web/%s/%s" % (obj, app))
+        up = UserProfileClient(f"Web/{obj}/{app}")
         result = up.listAvailableVars()
         if not result["OK"]:
             return result
@@ -194,7 +194,7 @@ class UPHandler(WebHandler):
 
         :return: dict
         """
-        up = UserProfileClient("Web/%s/%s" % (obj, app))
+        up = UserProfileClient(f"Web/{obj}/{app}")
         result = up.retrieveVar(desktop)
         if not result["OK"]:
             return result
@@ -216,7 +216,7 @@ class UPHandler(WebHandler):
         """
         user = self.getUserName()
 
-        up = UserProfileClient("Web/%s/%s" % (obj, app))
+        up = UserProfileClient(f"Web/{obj}/{app}")
         retVal = up.getUserProfileNames({"PublishAccess": "ALL"})
         if not retVal["OK"]:
             raise WErr.fromSERROR(retVal)
@@ -291,7 +291,7 @@ class UPHandler(WebHandler):
 
         :return: dict
         """
-        up = UserProfileClient("Web/%s/%s" % (obj, app))
+        up = UserProfileClient(f"Web/{obj}/{app}")
         access = access.upper()
         if access not in ("ALL", "VO", "GROUP", "USER"):
             raise WErr(400, "Invalid access")

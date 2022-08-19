@@ -76,11 +76,11 @@ class DowntimesHandler(WebHandler):
 
         requestParams["startDate"] = datetime.utcnow()
         if startDate and startTime:
-            requestParams["startDate"] = datetime.strptime("%s %s" % (startDate, startTime), "%Y-%m-%d %H:%M")
+            requestParams["startDate"] = datetime.strptime(f"{startDate} {startTime}", "%Y-%m-%d %H:%M")
 
         requestParams["endDate"] = datetime.utcnow()
         if endDate and endTime:
-            requestParams["endDate"] = datetime.strptime("%s %s" % (endDate, endTime), "%Y-%m-%d %H:%M")
+            requestParams["endDate"] = datetime.strptime(f"{endDate} {endTime}", "%Y-%m-%d %H:%M")
 
         gLogger.info("Request parameters:", requestParams)
 

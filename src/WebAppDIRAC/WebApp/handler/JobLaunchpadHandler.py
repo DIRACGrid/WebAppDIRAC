@@ -61,7 +61,7 @@ class JobLaunchpadHandler(WebHandler):
         defaultSeconds = 24 * 3600 + 60  # 24H + 1min
         validSeconds = gConfig.getValue("/Registry/DefaultProxyLifeTime", defaultSeconds)
 
-        gLogger.info("\033[0;31m userHasProxy(%s, %s, %s) \033[0m" % (userDN, group, validSeconds))
+        gLogger.info(f"\033[0;31m userHasProxy({userDN}, {group}, {validSeconds}) \033[0m")
 
         if (result := proxyManager.userHasProxy(userDN, group, validSeconds))["OK"]:
             return {"success": "true", "result": "true" if result["Value"] else "false"}

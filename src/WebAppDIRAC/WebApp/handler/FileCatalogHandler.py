@@ -80,7 +80,7 @@ class FileCatalogHandler(WebHandler):
                     pos_relative = absolutePath.find("/", pos_relative + 1)
                     pos_relative = pos_relative + 1
                     relativePath = absolutePath[pos_relative:]
-                    gLogger.always("relativePath %s, file %s" % (relativePath, filename))
+                    gLogger.always(f"relativePath {relativePath}, file {filename}")
                     zFile.write(os.path.join(absolutePath, filename))
             zFile.close()
             shutil.rmtree(tmpdir)
@@ -239,7 +239,7 @@ class FileCatalogHandler(WebHandler):
             meta = ""
             if "Metadata" in value:
                 m = value["Metadata"]
-                meta = "; ".join(["%s: %s" % (i, j) for (i, j) in m.items()])
+                meta = "; ".join([f"{i}: {j}" for (i, j) in m.items()])
 
             dirnameList = key.split("/")
             dirname = "/".join(dirnameList[: len(dirnameList) - 1])

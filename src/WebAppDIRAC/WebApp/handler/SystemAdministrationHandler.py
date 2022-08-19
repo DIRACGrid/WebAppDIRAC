@@ -27,7 +27,7 @@ class SystemAdministrationHandler(WebHandler):
             callback[i]["Host"] = callback[i]["HostName"]
             callback[i]["Timestamp"] = str(callback[i].get("Timestamp", "unknown"))
             # We have to keep the backward compatibility (this can heppen when we do not update one host to v6r15 ...
-            callback[i]["DIRAC"] = "%s,%s" % (
+            callback[i]["DIRAC"] = "{},{}".format(
                 callback[i].get("DIRACVersion", callback[i].get("DIRAC", "")),
                 callback[i].get("Extension", callback[i].get("Extensions", "")),
             )

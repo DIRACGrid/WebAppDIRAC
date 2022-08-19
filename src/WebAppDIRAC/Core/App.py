@@ -146,7 +146,7 @@ class App:
                     message += "The following protocols are provided: %s" % str(aviableProtocols)
                     gLogger.warn(message)
 
-            self.log.debug(" - %s" % "\n - ".join(["%s = %s" % (k, sslops[k]) for k in sslops]))
+            self.log.debug(" - %s" % "\n - ".join([f"{k} = {sslops[k]}" for k in sslops]))
             srv = tornado.httpserver.HTTPServer(self.__app, ssl_options=sslops, xheaders=True)
             port = Conf.HTTPSPort()
             srv.listen(port)
@@ -164,7 +164,7 @@ class App:
         bu = Conf.rootURL().strip("/")
         urls = []
         for proto, port in self.__servers:
-            urls.append("%s://0.0.0.0:%s/%s/" % (proto, port, bu))
+            urls.append(f"{proto}://0.0.0.0:{port}/{bu}/")
         self.log.always("Listening on %s" % " and ".join(urls))
         tornado.autoreload.add_reload_hook(self.__reloadAppCB)
         tornado.ioloop.IOLoop.instance().start()

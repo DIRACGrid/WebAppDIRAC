@@ -89,11 +89,11 @@ class SessionData:
             gLogger.error("Application handler does not exists:", appLoc)
             return False
         if handlerLoc not in self.__handlers:
-            gLogger.error("Handler %s required by %s does not exist!" % (handlerLoc, appLoc))
+            gLogger.error(f"Handler {handlerLoc} required by {appLoc} does not exist!")
             return False
         handler = self.__handlers[handlerLoc]
         auth = AuthManager(Conf.getAuthSectionForHandler(handlerLoc))
-        gLogger.info("Authorization: %s -> %s" % (dict(self.__credDict), handler.AUTH_PROPS))
+        gLogger.info(f"Authorization: {dict(self.__credDict)} -> {handler.AUTH_PROPS}")
         return auth.authQuery("", dict(self.__credDict), handler.AUTH_PROPS)
 
     def __generateSchema(self, base, path):
@@ -106,13 +106,13 @@ class SessionData:
         """
         # Calculate schema
         schema = []
-        fullName = "%s/%s" % (base, path)
+        fullName = f"{base}/{path}"
         result = gConfig.getSections(fullName)
         if not result["OK"]:
             return schema
         sectionsList = result["Value"]
         for sName in sectionsList:
-            subSchema = self.__generateSchema(base, "%s/%s" % (path, sName))
+            subSchema = self.__generateSchema(base, f"{path}/{sName}")
             if subSchema:
                 schema.append((sName, subSchema))
         result = gConfig.getOptions(fullName)
@@ -120,7 +120,7 @@ class SessionData:
             return schema
         optionsList = result["Value"]
         for opName in optionsList:
-            opVal = gConfig.getValue("%s/%s" % (fullName, opName))
+            opVal = gConfig.getValue(f"{fullName}/{opName}")
             if opVal.startswith("link|"):
                 schema.append(("link", opName, opVal[5:]))  # pylint: disable=unsubscriptable-object
                 continue

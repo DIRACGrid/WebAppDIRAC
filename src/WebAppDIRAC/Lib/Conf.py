@@ -18,7 +18,7 @@ def getCSValue(opt, defValue=None):
 
     :return: defValue type result
     """
-    return gConfig.getValue("%s/%s" % (BASECS, opt), defValue)
+    return gConfig.getValue(f"{BASECS}/{opt}", defValue)
 
 
 def getCSSections(opt):
@@ -28,7 +28,7 @@ def getCSSections(opt):
 
     :return: S_OK(list)/S_ERROR()
     """
-    return gConfig.getSections("%s/%s" % (BASECS, opt))
+    return gConfig.getSections(f"{BASECS}/{opt}")
 
 
 def getCSOptions(opt):
@@ -38,7 +38,7 @@ def getCSOptions(opt):
 
     :return: S_OK(list)/S_ERROR()
     """
-    return gConfig.getOptions("%s/%s" % (BASECS, opt))
+    return gConfig.getOptions(f"{BASECS}/{opt}")
 
 
 def getCSOptionsDict(opt):
@@ -48,7 +48,7 @@ def getCSOptionsDict(opt):
 
     :return: S_OK(dict)/S_ERROR()
     """
-    return gConfig.getOptionsDict("%s/%s" % (BASECS, opt))
+    return gConfig.getOptionsDict(f"{BASECS}/{opt}")
 
 
 def getTitle():
@@ -235,7 +235,7 @@ def getAuthSectionForHandler(route):
 
     :return: str
     """
-    return "%s/Access/%s" % (BASECS, route)
+    return f"{BASECS}/Access/{route}"
 
 
 @deprecated("This funtion is deprecated, use 'tabs' instead.")
@@ -329,4 +329,4 @@ def getAppSettings(app):
 
     :return: S_OK(dict)/S_ERROR
     """
-    return gConfig.getOptionsDictRecursively("%s/%s" % (BASECS, app))
+    return gConfig.getOptionsDictRecursively(f"{BASECS}/{app}")

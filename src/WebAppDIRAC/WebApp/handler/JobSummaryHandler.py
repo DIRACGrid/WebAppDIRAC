@@ -322,7 +322,7 @@ class JobSummaryHandler(WebHandler):
     def web_getData(self):
         pagestart = time()
         result = self.__request()
-        gLogger.always("getSiteSummaryWeb(%s,%s,%s,%s)" % (result, self.globalSort, self.pageNumber, self.numberOfJobs))
+        gLogger.always(f"getSiteSummaryWeb({result},{self.globalSort},{self.pageNumber},{self.numberOfJobs})")
         retVal = WMSAdministratorClient().getSiteSummaryWeb(result, [], self.pageNumber, self.numberOfJobs)
         gLogger.always("\033[0;31m YO: \033[0m", result)
         if retVal["OK"]:

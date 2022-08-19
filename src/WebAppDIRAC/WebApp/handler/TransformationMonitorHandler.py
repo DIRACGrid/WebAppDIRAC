@@ -357,7 +357,7 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": True, "data": tier1}
 
     def web_setSite(self, TransformationId: int, RunNumber: int, Site):
-        gLogger.info("\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % (TransformationId, RunNumber, Site))
+        gLogger.info(f"\033[0;31m setTransformationRunsSite({TransformationId}, {RunNumber}, {Site}) \033[0m")
         result = TransformationClient().setTransformationRunsSite(TransformationId, RunNumber, Site)
         if result["OK"]:
             return {"success": "true", "result": "true"}
