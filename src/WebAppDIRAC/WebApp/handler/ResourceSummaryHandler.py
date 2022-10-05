@@ -1,11 +1,10 @@
 import collections
-import json
 import datetime
+import json
 
 from DIRAC import gLogger
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
-
 from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
@@ -34,7 +33,7 @@ class SummaryHandlerMix(WebHandler):
         for key, value in callback.items():
 
             callback[key] = sorted([item] for item in list(value))
-            callback[key] = [["All"]] + callback[key]
+            callback[key] = [["all"]] + callback[key]
 
         return callback
 
@@ -312,6 +311,17 @@ class ResourceSummaryHandler(SummaryHandlerMix):
 
     def web_getResourceSummaryData(self, name=None, status=None, elementType=None, statusType=None, tokenOwner=None):
         """This method returns the data required to fill the grid."""
+        if name:
+            name = json.loads(name)
+        if status:
+            status = json.loads(status)
+        if elementType:
+            elementType = json.loads(elementType)
+        if statusType:
+            statusType = json.loads(statusType)
+        if tokenOwner:
+            tokenOwner = json.loads(tokenOwner)
+
         elementStatuses = PublisherClient().getElementStatuses(
             self.ELEMENT_TYPE,
             name,
