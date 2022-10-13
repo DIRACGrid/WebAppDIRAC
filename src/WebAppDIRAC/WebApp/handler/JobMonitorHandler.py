@@ -459,7 +459,6 @@ class JobMonitorHandler(WebHandler):
             useCertificates=True,
             delegatedDN=self.getUserDN(),
             delegatedGroup=self.getUserGroup(),
-            setup=self.getUserSetup(),
         )
 
         result = client.downloadSandboxForJob(jobID, sandbox, inMemory=True)
