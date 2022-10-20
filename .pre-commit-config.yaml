@@ -27,6 +27,10 @@ repos:
     rev: v2.4.1
     hooks:
       - id: prettier
+        exclude: |
+          (?x)^(
+              .github/labeler.yml
+          )$
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v8.0.1
