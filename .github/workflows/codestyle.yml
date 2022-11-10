@@ -30,7 +30,7 @@ jobs:
         with:
           repository: DIRACGrid/DIRAC
           path: .DIRAC
-          ref: integration
+          ref: rel-v8r0
 
       - name: Get DIRAC
         run: |
