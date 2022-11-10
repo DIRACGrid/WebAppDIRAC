@@ -1,3 +1,9 @@
+[v5.1.0a3]
+
+FIX: (#701) DIRACScript replaced by DIRAC.Core.Base.Script
+FEAT: (#701) Remove VMDiracHandler
+CHANGE: (#698) remove pilot submission monitoring
+
 [v5.1.0a2]
 
 
