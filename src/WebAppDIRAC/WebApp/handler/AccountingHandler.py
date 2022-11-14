@@ -153,9 +153,9 @@ class AccountingHandler(WebHandler):
         del pD["timeSelector"]
 
         # Find extra parameters
-        for k in pD:
+        for k in list(pD.keys()):
             if k.find("ex_") == 0:
-                extraParams[k[3:]] = pD[k]
+                extraParams[k[3:]] = pD.pop(k)
 
         # Selection data
         data = {}
