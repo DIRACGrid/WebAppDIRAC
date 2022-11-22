@@ -1,3 +1,9 @@
+[v5.0.1]
+
+FIX: (#705) DoNotScaleUnits option from the Accounting dashboard
+CHANGE: (#696) remove pilot submission monitoring
+CHANGE: (#692) remove DataOperation monitoring page
+
 [v5.0.0]
 [v5.0.0a22]
 
