@@ -1,3 +1,8 @@
+[v5.1.0a4]
+
+FIX: (#706) DoNotScaleUnits option from the Accounting dashboard
+CHANGE: (#682) Remove VMDIRAC components
+
 [v5.1.0a3]
 
 FIX: (#701) DIRACScript replaced by DIRAC.Core.Base.Script
