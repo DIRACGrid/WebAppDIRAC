@@ -2,6 +2,12 @@
 import os
 import sys
 
+import tornado.iostream
+
+tornado.iostream.SSLIOStream.configure(
+    "tornado_m2crypto.m2iostream.M2IOStream"
+)  # pylint: disable=wrong-import-position
+
 from DIRAC import gConfig, S_OK
 from DIRAC.Core.Base.Script import Script
 from DIRAC.Core.Utilities.Extensions import extensionsByPriority, getExtensionMetadata
