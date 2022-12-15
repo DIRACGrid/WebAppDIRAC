@@ -1,3 +1,8 @@
+[v5.0.2]
+
+FIX: (#709) TransformationManagerHandler: fix for TotalRecords
+FIX: (#699) Running webapp without using nginx
+
 [v5.0.1]
 
 FIX: (#705) DoNotScaleUnits option from the Accounting dashboard
