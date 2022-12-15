@@ -1,8 +1,8 @@
 """ Handler for TransformationMonitor page
 """
 
-import json
 import datetime
+import json
 
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import TimeUtilities
@@ -327,15 +327,15 @@ class TransformationMonitorHandler(WebHandler):
             return {"success": "false", "error": result["Message"]}
 
         data = result["Value"]
-        total = len(data.get("TotalRecords", []))
+        total = data.get("TotalRecords", 0)
         if total == 0:
             return {"success": "false", "result": "", "error": "There were no data matching your selection"}
         if not ("ParameterNames" in data and "Records" in data):
             return {"success": "false", "result": "", "error": "Data structure is corrupted"}
         head = data.get("ParameterNames", [])
-        if len(head) == 0:
+        if not head:
             return {"success": "false", "result": "", "error": "ParameterNames field is undefined"}
-        if len(data["Records"]) == 0:
+        if not data["Records"]:
             return {"success": "false", "result": "", "error": "There are no data to display"}
         callback = []
         for job in data["Records"]:
