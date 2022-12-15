@@ -133,7 +133,7 @@ class App:
                 keyfile=Conf.HTTPSKey(),
                 cert_reqs=ssl.CERT_OPTIONAL,
                 ca_certs=Conf.generateCAFile(),
-                ssl_version=ssl.PROTOCOL_TLSv1_2,
+                ssl_version="tls",
             )
 
             sslprotocol = str(Conf.SSLProtocol())
