@@ -1,3 +1,7 @@
+[v5.0.3]
+
+FIX: (#712) escape urls to avoid xss
+
 [v5.0.2]
 
 FIX: (#709) TransformationManagerHandler: fix for TotalRecords
