@@ -76,7 +76,7 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
       name: "JobID",
     },
     {
-      name: "OwnerDN",
+      name: "Owner",
     },
     {
       name: "RequestID",
@@ -193,8 +193,8 @@ Ext.define("DIRAC.RequestMonitor.classes.RequestMonitor", {
           width: 60,
         },
       },
-      OwnerDN: {
-        dataIndex: "OwnerDN",
+      Owner: {
+        dataIndex: "Owner",
       },
       OperationType: {
         dataIndex: "OperationType",

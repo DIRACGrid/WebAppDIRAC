@@ -110,10 +110,10 @@ class RequestMonitorHandler(WebHandler):
         callback["operationType"] = reqtype
 
         # U S E R
-        if (result := self.reqClient.getDistinctValuesWeb("OwnerDN"))["OK"]:
+        if (result := self.reqClient.getDistinctValuesWeb("Owner"))["OK"]:
             owner = []
-            for dn in result["Value"]:
-                owner.append([dn])
+            for own in result["Value"]:
+                owner.append([own])
             if len(owner) < 2:
                 owner = [["Nothing to display"]]
         else:
@@ -178,7 +178,7 @@ class RequestMonitorHandler(WebHandler):
             if value := list(json.loads(status)):
                 req["Status"] = value
             if value := list(json.loads(owner)):
-                req["OwnerDN"] = value
+                req["Owner"] = value
 
         if startDate:
             req["FromDate"] = startDate
