@@ -369,3 +369,15 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
     def _getMethod(self):
         """Get method function to call."""
         return self.on_open
+
+    def _on_message(self, msg):
+        """This needs to be implemented instead of ``on_message``"""
+        raise NotImplementedError('"_on_message" method is not implemented')
+
+    def on_message(self, msg):
+        """Setup the threadConfig before doing the actual calls.
+        Developer should implement ``_on_message`` instead
+        of ``on_message``
+        """
+        with self._setupThreadConfig():
+            return self._on_message(msg)
