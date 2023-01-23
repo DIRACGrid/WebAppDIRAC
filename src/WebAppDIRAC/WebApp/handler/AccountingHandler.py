@@ -133,6 +133,9 @@ class AccountingHandler(WebHandler):
             pinDates = pD["pinDates"].lower() in ("yes", "y", "true", "1")
             del pD["pinDates"]
 
+        if "lastSeconds" in pD:
+            extraParams["lastSeconds"] = pD.pop("lastSeconds")
+
         # Find the proper time!
         pD["timeSelector"] = timeSelector
         if pD["timeSelector"] > 0:
