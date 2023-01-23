@@ -103,6 +103,8 @@ class MonitoringHandler(WebHandler):
             return S_ERROR("Missing plot name!")
         reportName = pD["plotName"]
         del pD["plotName"]
+        if "lastSeconds" in pD:
+            extraParams["lastSeconds"] = pD.pop("lastSeconds")
         # Get times
         if "timeSelector" not in pD:
             return S_ERROR("Missing time span!")
