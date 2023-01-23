@@ -1,3 +1,8 @@
+[v5.0.4]
+
+FIX: (#716) Treat lastSeconds as extraParams for Accounting/Monitoring plotting
+FIX: (#715) WebSocketHandler sets the ThreadConfig before calling on_message
+
 [v5.0.3]
 
 FIX: (#712) escape urls to avoid xss
