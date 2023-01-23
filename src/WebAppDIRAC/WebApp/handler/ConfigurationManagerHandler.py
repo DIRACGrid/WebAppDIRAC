@@ -18,7 +18,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
     def on_open(self):
         self.__configData = {}
 
-    def on_message(self, msg):
+    def _on_message(self, msg):
         self.log.debug("RECEIVED", msg)
         try:
             params = json.loads(msg)
