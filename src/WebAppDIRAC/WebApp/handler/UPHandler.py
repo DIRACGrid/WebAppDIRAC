@@ -217,7 +217,7 @@ class UPHandler(WebHandler):
         user = self.getUserName()
 
         up = UserProfileClient(f"Web/{obj}/{app}")
-        retVal = up.getUserProfileNames({"PublishAccess": "ALL"})
+        retVal = up.listStatesForWeb({"PublishAccess": "ALL"})
         if not retVal["OK"]:
             raise WErr.fromSERROR(retVal)
         records = retVal["Value"]
