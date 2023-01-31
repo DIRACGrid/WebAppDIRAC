@@ -17,7 +17,6 @@ def main():
     from DIRAC.FrameworkSystem.Client.Logger import gLogger
 
     localCfg = LocalConfiguration()
-    localCfg.addMandatoryEntry("/DIRAC/Setup")
     localCfg.addDefaultEntry("/DIRAC/Security/UseServerCertificate", "yes")
     localCfg.addDefaultEntry("LogLevel", "INFO")
     localCfg.addDefaultEntry("LogColor", True)
