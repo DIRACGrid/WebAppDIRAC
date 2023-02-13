@@ -1,3 +1,7 @@
+[v5.0.5]
+
+FIX: (#719) UPHandler use correct web method when listing public states
+
 [v5.0.4]
 
 FIX: (#716) Treat lastSeconds as extraParams for Accounting/Monitoring plotting
