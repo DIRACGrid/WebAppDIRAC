@@ -8,7 +8,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class PilotSummaryHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def web_getPilotSummaryData(self):
@@ -64,7 +63,7 @@ class PilotSummaryHandler(WebHandler):
                 result = result + str(key) + ": " + ", ".join(value) + "; "
         except Exception as x:
             pass
-            gLogger.info("\033[0;31m Exception: \033[0m %s" % x)
+            gLogger.info(f"\x1b[0;31m Exception: \x1b[0m {x}")
         result = result.strip()
         result = result[:-1]
         return result

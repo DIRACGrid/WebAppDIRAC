@@ -22,4 +22,4 @@ class TemplateLoader(BaseLoader):
             template = Template(f.read(), name=name, loader=self)
             f.close()
             return template
-        raise RuntimeError("Can't find template %s" % name)
+        raise RuntimeError(f"Can't find template {name}")

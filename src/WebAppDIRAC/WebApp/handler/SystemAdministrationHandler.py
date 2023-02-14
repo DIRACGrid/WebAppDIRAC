@@ -13,7 +13,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class SystemAdministrationHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def web_getSysInfo(self):
@@ -155,7 +154,7 @@ class SystemAdministrationHandler(WebHandler):
 
             if not result["OK"]:
                 if result["Message"].find("Unexpected EOF") > 0:
-                    msg = "Signal 'Unexpected EOF' received: %s. Most likely DIRAC components" % result["Message"]
+                    msg = f"Signal 'Unexpected EOF' received: {result['Message']}. Most likely DIRAC components"
                     msg += _host + ": " + msg + " were successfully restarted."
                     actionSuccess.append(msg)
                     continue
@@ -208,7 +207,6 @@ class SystemAdministrationHandler(WebHandler):
             )
 
             for i in result[hostname]:
-
                 system = i[0]
                 component = i[1]
                 try:
@@ -234,7 +232,6 @@ class SystemAdministrationHandler(WebHandler):
         return self.aftermath(actionSuccess, actionFailed, action, "Component")
 
     def aftermath(self, actionSuccess, actionFailed, action, prefix):
-
         success = ", ".join(actionSuccess)
         failure = "\n".join(actionFailed)
 

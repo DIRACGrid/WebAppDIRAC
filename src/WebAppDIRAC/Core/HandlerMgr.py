@@ -72,7 +72,7 @@ class HandlerMgr(metaclass=DIRACSingleton):
 
         # Add some standard paths for static files
         statDirectories = Conf.getStaticDirs()
-        self.log.info("The following static directories are used: %s" % str(statDirectories))
+        self.log.info(f"The following static directories are used: {str(statDirectories)}")
         for staticDirectory in statDirectories:
             # Get real static files directory
             realStaticDirectory = f"{rootPath}/webRoot/www/{staticDirectory}"
@@ -95,7 +95,7 @@ class HandlerMgr(metaclass=DIRACSingleton):
         handler_base_url = self.__baseURL + self.__setupGroupRE
 
         for hn in self.__handlers:
-            self.log.info("Found handler %s" % hn)
+            self.log.info(f"Found handler {hn}")
             handler = self.__handlers[hn]
 
             # Set the base URL of the request

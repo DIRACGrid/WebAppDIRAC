@@ -102,13 +102,13 @@ class AccountingHandler(WebHandler):
         callback["selectionValues"] = records
 
         # Cache for plotsList?
-        data = AccountingHandler.__keysCache.get("reportsList:%s" % typeName)
+        data = AccountingHandler.__keysCache.get(f"reportsList:{typeName}")
         if not data:
             retVal = self.repClient.listReports(typeName)
             if not retVal["OK"]:
                 return {"success": "false", "result": "", "error": retVal["Message"]}
             data = retVal["Value"]
-            AccountingHandler.__keysCache.add("reportsList:%s" % typeName, 300, data)
+            AccountingHandler.__keysCache.add(f"reportsList:{typeName}", 300, data)
         callback["plotsList"] = data
         return {"success": "true", "result": callback}
 
@@ -144,7 +144,6 @@ class AccountingHandler(WebHandler):
             if not pinDates:
                 extraParams["lastSeconds"] = pD["timeSelector"]
         else:
-
             end = False
             if "endTime" in pD:
                 end = TimeUtilities.fromString(pD["endTime"])
@@ -295,14 +294,14 @@ class AccountingHandler(WebHandler):
             data = rawData["data"]
             tS = int(TimeUtilities.toEpoch(start))
             timeStart = tS - tS % granularity
-            strData = "epoch,%s\n" % ",".join(groupKeys)
+            strData = f"epoch,{','.join(groupKeys)}\n"
             for timeSlot in range(timeStart, int(TimeUtilities.toEpoch(end)), granularity):
                 lineData = [str(timeSlot)]
                 for key in groupKeys:
                     lineData.append(str(data[key][timeSlot]) if timeSlot in data[key] else "")
-                strData += "%s\n" % ",".join(lineData)
+                strData += f"{','.join(lineData)}\n"
         else:
-            strData = "%s\n" % ",".join(groupKeys)
+            strData = f"{','.join(groupKeys)}\n"
             strData += ",".join([str(rawData["data"][k]) for k in groupKeys])
 
         return FileResponse(strData, str(params), "csv", cache=False)

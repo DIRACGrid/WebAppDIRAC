@@ -8,14 +8,12 @@ from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
 
 class RegistryManagerHandler(WebSocketHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def on_open(self):
         self.__configData = {}
 
     def _on_message(self, msg):
-
         self.log.info(f"RECEIVED {msg}")
         try:
             params = json.loads(msg)
@@ -72,7 +70,6 @@ class RegistryManagerHandler(WebSocketHandler):
             sectionCfg = self.getSectionCfg("/Registry/Users")
 
             for username in sectionCfg.listAll():
-
                 item = {}
                 item["name"] = username
                 props = sectionCfg[username]
@@ -186,12 +183,10 @@ class RegistryManagerHandler(WebSocketHandler):
         return ""
 
     def __addItem(self, params):
-
         sectionPath = "/Registry/"
         configText = ""
         params = {k: str(v).strip() if v else v for k, v in params.items()}
         if params["type"] == "users":
-
             sectionPath = sectionPath + "Users"
             if params["dn"]:
                 configText = "DN = " + params["dn"] + "\n"
@@ -203,7 +198,6 @@ class RegistryManagerHandler(WebSocketHandler):
                 configText = configText + "Email = " + params["email"]
 
         elif params["type"] == "groups":
-
             sectionPath = sectionPath + "Groups"
             if params["users"]:
                 configText = "Users = " + params["users"] + "\n"
@@ -224,7 +218,6 @@ class RegistryManagerHandler(WebSocketHandler):
                 configText = configText + "AutoAddVOMS = " + params["autoaddvoms"]
 
         elif params["type"] == "hosts":
-
             sectionPath = sectionPath + "Hosts"
             if params["dn"]:
                 configText = "DN = " + params["dn"] + "\n"
@@ -233,11 +226,9 @@ class RegistryManagerHandler(WebSocketHandler):
                 configText = configText + "Properties = " + params["properties"]
 
         elif params["type"] == "voms":
-
             sectionPath = sectionPath + "VOMS/Servers"
 
         elif params["type"] == "servers":
-
             sectionPath = sectionPath + "VOMS/Servers/" + params["vom"]
             if params["dn"]:
                 configText = "DN = " + params["dn"] + "\n"
@@ -259,7 +250,6 @@ class RegistryManagerHandler(WebSocketHandler):
         return {"success": 0, "op": "addItem", "message": "Section can't be created. It already exists?"}
 
     def __editItem(self, params):
-
         ret = self.__deleteItem(params)
         if ret["success"] == 1:
             ret = self.__addItem(params)
@@ -272,7 +262,6 @@ class RegistryManagerHandler(WebSocketHandler):
         configText = ""
         params = {k: str(v).strip() if v else v for k, v in params.items()}
         if params["type"] == "users":
-
             sectionPath = sectionPath + "Users"
             if params["dn"]:
                 configText = "DN = " + params["dn"] + "\n"
@@ -284,7 +273,6 @@ class RegistryManagerHandler(WebSocketHandler):
                 configText = configText + "Email = " + params["email"]
 
         elif params["type"] == "groups":
-
             sectionPath = sectionPath + "Groups"
             if params["users"]:
                 configText = "Users = " + params["users"] + "\n"
@@ -305,7 +293,6 @@ class RegistryManagerHandler(WebSocketHandler):
                 configText = configText + "AutoAddVOMS = " + params["autoaddvoms"]
 
         elif params["type"] == "hosts":
-
             sectionPath = sectionPath + "Hosts"
             if params["dn"]:
                 configText = "DN = " + params["dn"] + "\n"
