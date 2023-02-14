@@ -9,7 +9,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class PilotMonitorHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def web_getPilotData(self):

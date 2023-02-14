@@ -47,7 +47,6 @@ DEFAULT_SCHEMA = [
 
 
 class SessionData:
-
     __handlers = {}
     __groupMenu = {}
     __extensions = []
@@ -153,7 +152,7 @@ class SessionData:
 
         :return: list
         """
-        menuSection = "%s/Schema" % (Conf.BASECS)
+        menuSection = f"{Conf.BASECS}/Schema"
         # Somebody coming from HTTPS and not with a valid group
         group = self.__credDict.get("group", "")
         # Cache time!
@@ -219,6 +218,6 @@ class SessionData:
             # if result['OK']:
             #   data['groupsStatuses'] = result['Value']
         # Calculate baseURL
-        baseURL = [Conf.rootURL().strip("/"), "s:%s" % data["setup"], "g:%s" % self.__credDict.get("group", "")]
-        data["baseURL"] = "/%s" % "/".join(baseURL)
+        baseURL = [Conf.rootURL().strip("/"), f"s:{data['setup']}", f"g:{self.__credDict.get('group', '')}"]
+        data["baseURL"] = f"/{'/'.join(baseURL)}"
         return data

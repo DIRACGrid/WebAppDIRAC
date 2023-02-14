@@ -263,7 +263,7 @@ class WebHandler(TornadoREST):
             try:
                 return self._authzJWT(token["access_token"])
             except Exception as e:
-                sLog.debug("Cannot check access token %s, try to fetch.." % repr(e))
+                sLog.debug(f"Cannot check access token {repr(e)}, try to fetch..")
                 # Try to refresh access_token and refresh_token
                 result = self._idps.getIdProvider("DIRACWeb")
                 if not result["OK"]:
@@ -320,9 +320,7 @@ class WebHandler(TornadoREST):
     def finishWithImage(self, data, plotImageFile, disableCaching=False):
         # Set headers
         self.set_header("Content-Type", "image/png")
-        self.set_header(
-            "Content-Disposition", 'attachment; filename="%s.png"' % md5(plotImageFile.encode()).hexdigest()
-        )
+        self.set_header("Content-Disposition", f'attachment; filename="{md5(plotImageFile.encode()).hexdigest()}.png"')
         self.set_header("Content-Length", len(data))
         self.set_header("Content-Transfer-Encoding", "Binary")
         if disableCaching:

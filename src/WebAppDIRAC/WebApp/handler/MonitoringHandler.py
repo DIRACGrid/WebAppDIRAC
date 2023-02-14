@@ -13,7 +13,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, FileResponse
 
 
 class MonitoringHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
     __keysCache = DictCache.DictCache()
 
@@ -237,7 +236,7 @@ class MonitoringHandler(WebHandler):
             data = rawData["data"]
             tS = int(TimeUtilities.toEpoch(params[2]))
             timeStart = tS - tS % granularity
-            strData = "epoch,%s\n" % ",".join(groupKeys)
+            strData = f"epoch,{','.join(groupKeys)}\n"
             for timeSlot in range(timeStart, int(TimeUtilities.toEpoch(params[3])), granularity):
                 lineData = [str(timeSlot)]
                 for key in groupKeys:
@@ -245,9 +244,9 @@ class MonitoringHandler(WebHandler):
                         lineData.append(str(data[key][timeSlot]))
                     else:
                         lineData.append("")
-                strData += "%s\n" % ",".join(lineData)
+                strData += f"{','.join(lineData)}\n"
         else:
-            strData = "%s\n" % ",".join(groupKeys)
+            strData = f"{','.join(groupKeys)}\n"
             strData += ",".join([str(rawData["data"][k]) for k in groupKeys])
         return FileResponse(strData, str(params), ext="csv", cache=False)
 

@@ -12,7 +12,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class JobLaunchpadHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
     defaultParams = {
         "JobName": [1, "DIRAC"],
@@ -48,7 +47,6 @@ class JobLaunchpadHandler(WebHandler):
         return self.__getProxyStatus()
 
     def __getProxyStatus(self):
-
         proxyManager = ProxyManagerClient()
 
         group = self.getUserGroup()
@@ -162,12 +160,12 @@ class JobLaunchpadHandler(WebHandler):
         for key in self.request.files:
             try:
                 if self.request.files[key][0].filename:
-                    gLogger.info("\033[0;31m file - %s \033[0m " % self.request.files[key][0].filename)
+                    gLogger.info(f"\x1b[0;31m file - {self.request.files[key][0].filename} \x1b[0m ")
                     store.append(self.request.files[key][0])
             except Exception:
                 pass
 
-        gLogger.info("\033[0;31m *** %s \033[0m " % params)
+        gLogger.info(f"\x1b[0;31m *** {params} \x1b[0m ")
 
         clearFS = False  # Clear directory flag
         fileNameList = []
@@ -193,7 +191,7 @@ class JobLaunchpadHandler(WebHandler):
                 exception_counter = 1
                 callback = {
                     "success": "false",
-                    "error": "An EXCEPTION happens during saving your sandbox file(s): %s" % str(x),
+                    "error": f"An EXCEPTION happens during saving your sandbox file(s): {str(x)}",
                 }
 
         sndBox = ""
@@ -212,7 +210,7 @@ class JobLaunchpadHandler(WebHandler):
                 else:
                     callback = {"success": "false", "error": result["Message"]}
             except Exception as x:
-                callback = {"success": "false", "error": "An EXCEPTION happens during job submittion: %s" % str(x)}
+                callback = {"success": "false", "error": f"An EXCEPTION happens during job submittion: {str(x)}"}
         if clearFS:
             shutil.rmtree(storePath)
         return callback

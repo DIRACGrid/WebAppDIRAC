@@ -12,7 +12,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class TransformationMonitorHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def web_getSelectionData(self):
@@ -149,7 +148,7 @@ class TransformationMonitorHandler(WebHandler):
         else:
             callback = {"success": "true", "result": callback, "total": total, "date": None}
 
-        gLogger.info("\033[0;31m PRODUCTION SUBMIT REQUEST: \033[0m %s" % (datetime.datetime.utcnow() - pagestart))
+        gLogger.info(f"\x1b[0;31m PRODUCTION SUBMIT REQUEST: \x1b[0m {datetime.datetime.utcnow() - pagestart}")
         return callback
 
     def web_action(self, data_kind, id: int, tasks: int = None):
@@ -231,7 +230,7 @@ class TransformationMonitorHandler(WebHandler):
             return {"success": "false", "error": "No files found"}
         for status in sorted(result["Value"]):
             count = result["Value"][status]
-            percent = "%.1f" % ((count * 100.0) / total)
+            percent = f"{count * 100.0 / total:.1f}"
             resList.append((status, str(count), percent))
         resList.append(("Total", total, "-"))
         gLogger.debug("#######", result)
@@ -291,7 +290,7 @@ class TransformationMonitorHandler(WebHandler):
             return {"success": "false", "error": "No files found"}
         for status in sorted(result["Value"]):
             count = result["Value"][status]
-            percent = "%.1f" % ((count * 100.0) / total)
+            percent = f"{count * 100.0 / total:.1f}"
             resList.append((status, str(count), percent))
         resList.append(("Total", total, "-"))
         gLogger.debug("#######", result)

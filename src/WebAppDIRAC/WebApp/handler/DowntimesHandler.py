@@ -10,7 +10,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class DowntimesHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     # Publisher client

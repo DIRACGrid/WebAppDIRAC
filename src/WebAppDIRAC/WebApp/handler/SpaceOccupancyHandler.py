@@ -9,7 +9,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class SpaceOccupancyHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def initializeRequest(self):
@@ -54,13 +53,13 @@ class SpaceOccupancyHandler(WebHandler):
             spRes["LastCheckTime"] = str(sp[5])
 
             if sp[4]:
-                spRes["Ratio"] = float("%.2f" % (sp[3] * 100 / sp[4]))
+                spRes["Ratio"] = float(f"{sp[3] * 100 / sp[4]:.2f}")
             else:
                 spRes["Ratio"] = "-"
 
-            spRes["Free"] = float("%.2f" % sp[3])
-            spRes["Total"] = float("%.2f" % sp[4])
-            spRes["Guaranteed"] = float("%.2f" % sp[2])
+            spRes["Free"] = float(f"{sp[3]:.2f}")
+            spRes["Total"] = float(f"{sp[4]:.2f}")
+            spRes["Guaranteed"] = float(f"{sp[2]:.2f}")
 
             # FIXME: call here SpaceTokenOccupancyPolicy and avoid hardcoding twice
 

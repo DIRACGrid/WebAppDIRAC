@@ -7,7 +7,6 @@ from DIRAC.WorkloadManagementSystem.Client.VMClient import VMClient
 
 
 class VMDiracHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def web_getInstancesList(

@@ -3,7 +3,6 @@ import datetime
 
 
 class ExampleAppHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "all"
 
     def web_getJobData(self):

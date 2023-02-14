@@ -9,7 +9,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class ProxyManagerHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def web_getSelectionData(self, **kwargs):
