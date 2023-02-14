@@ -22,7 +22,6 @@ class SummaryHandlerMix(WebHandler):
         elementStatuses = pub.getElementStatuses(self.ELEMENT_TYPE, None, None, None, None, None)
 
         if elementStatuses["OK"]:
-
             for elementStatus in elementStatuses["Value"]:
                 callback["status"].add(elementStatus[2])
                 callback["name"].add(elementStatus[0])
@@ -31,7 +30,6 @@ class SummaryHandlerMix(WebHandler):
                 callback["tokenOwner"].add(elementStatus[8])
 
         for key, value in callback.items():
-
             callback[key] = sorted([item] for item in list(value))
             callback[key] = [["all"]] + callback[key]
 
@@ -49,10 +47,9 @@ class SummaryHandlerMix(WebHandler):
 
         if len(statusSet) == 1:
             status = statusSet.pop()
-            reason = "All %s" % status
+            reason = f"All {status}"
 
         else:
-
             if {"Active", "Degraded"} & set(statusSet):
                 status = "Degraded"
                 reason = "Not completely active"
@@ -64,7 +61,7 @@ class SummaryHandlerMix(WebHandler):
         # Make a copy
         combined = {}
         combined.update(elementValues[0])
-        combined["StatusType"] = "%d elements" % len(statuses)
+        combined["StatusType"] = f"{len(statuses)} elements"
         combined["Status"] = status
         combined["Reason"] = reason
         combined["DateEffective"] = ""
@@ -229,7 +226,6 @@ class SummaryHandlerMix(WebHandler):
         history = []
 
         for status, dateEffective, reason in result["Value"]:
-
             # history.append( [ history[ -1 ][ 0 ], str( dateEffective - timedelta( seconds = 1 ) ), '' ] )
 
             history.append([status, str(dateEffective), reason])
@@ -297,7 +293,6 @@ class SummaryHandlerMix(WebHandler):
 
 
 class ResourceSummaryHandler(SummaryHandlerMix):
-
     ELEMENT_TYPE = "Resource"
 
     def web_getSelectionData(self):
@@ -336,7 +331,6 @@ class ResourceSummaryHandler(SummaryHandlerMix):
         elementTree = collections.defaultdict(list)
 
         for element in elementStatuses["Value"]:
-
             elementDict = dict(zip(elementStatuses["Columns"], element))
 
             elementDict["DateEffective"] = str(elementDict["DateEffective"])
@@ -348,7 +342,6 @@ class ResourceSummaryHandler(SummaryHandlerMix):
         elementList = []
 
         for elementValues in elementTree.values():
-
             if len(elementValues) == 1:
                 elementList.append(elementValues[0])
             else:

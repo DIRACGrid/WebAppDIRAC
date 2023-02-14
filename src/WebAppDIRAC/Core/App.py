@@ -118,7 +118,7 @@ class App:
         # Configure tornado app
         self.__app = tornado.web.Application(routes, **kw)
         port = Conf.HTTPPort()
-        self.log.notice("Configuring HTTP on port %s" % port)
+        self.log.notice(f"Configuring HTTP on port {port}")
         # Create the web servers
         srv = tornado.httpserver.HTTPServer(self.__app, xheaders=True)
         srv.listen(port)
@@ -127,7 +127,7 @@ class App:
         Conf.generateRevokedCertsFile()  # it is used by nginx....
 
         if Conf.HTTPS():
-            self.log.notice("Configuring HTTPS on port %s" % Conf.HTTPSPort())
+            self.log.notice(f"Configuring HTTPS on port {Conf.HTTPSPort()}")
             sslops = dict(
                 certfile=Conf.HTTPSCert(),
                 keyfile=Conf.HTTPSKey(),
@@ -142,8 +142,8 @@ class App:
                 if sslprotocol in aviableProtocols:
                     sslops["ssl_version"] = getattr(ssl, sslprotocol)
                 else:
-                    message = "%s protocol is not provided." % sslprotocol
-                    message += "The following protocols are provided: %s" % str(aviableProtocols)
+                    message = f"{sslprotocol} protocol is not provided."
+                    message += f"The following protocols are provided: {str(aviableProtocols)}"
                     gLogger.warn(message)
 
             self.log.debug(" - %s" % "\n - ".join([f"{k} = {sslops[k]}" for k in sslops]))
@@ -165,6 +165,6 @@ class App:
         urls = []
         for proto, port in self.__servers:
             urls.append(f"{proto}://0.0.0.0:{port}/{bu}/")
-        self.log.always("Listening on %s" % " and ".join(urls))
+        self.log.always(f"Listening on {' and '.join(urls)}")
         tornado.autoreload.add_reload_hook(self.__reloadAppCB)
         tornado.ioloop.IOLoop.instance().start()

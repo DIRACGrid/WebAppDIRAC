@@ -14,7 +14,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, FileResponse
 
 
 class FileCatalogHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     # Supported operands
@@ -46,7 +45,7 @@ class FileCatalogHandler(WebHandler):
                 os.makedirs(tmpdir)
             os.chdir(tmpdir)
             for lfn in lfnPath.split(","):
-                gLogger.always("Data manager get file %s" % lfn)
+                gLogger.always(f"Data manager get file {lfn}")
                 last_slash = lfn.rfind("/")
                 pos_relative = lfn.find("/")
                 pos_relative = lfn.find("/", pos_relative + 1)
@@ -54,7 +53,7 @@ class FileCatalogHandler(WebHandler):
                 pos_relative = pos_relative
                 pathInZip = lfn[pos_relative:last_slash]
                 tmpPathInZip = tmpdir + pathInZip
-                gLogger.always("path in zip %s" % tmpPathInZip)
+                gLogger.always(f"path in zip {tmpPathInZip}")
                 if not os.path.isdir(tmpPathInZip):
                     os.makedirs(tmpPathInZip)
                 result = dataMgr.getFile(str(lfn), destinationDir=str(tmpPathInZip))
@@ -107,10 +106,10 @@ class FileCatalogHandler(WebHandler):
         filemeta, dirmeta = result["Value"]
         for key in filemeta:
             callback[key] = "label"
-        gLogger.debug("getSelectorGrid: FileMetaFields callback %s" % callback)
+        gLogger.debug(f"getSelectorGrid: FileMetaFields callback {callback}")
         for key, value in dirmeta.items():
             callback[key] = value.lower()
-        gLogger.debug("getSelectorGrid: Resulting callback %s" % callback)
+        gLogger.debug(f"getSelectorGrid: Resulting callback {callback}")
         return {"success": "true", "result": callback}
 
     def web_getQueryData(self, lfnPath=None, **kwargs):
@@ -212,7 +211,7 @@ class FileCatalogHandler(WebHandler):
             if lfnPath:
                 req["path"] = lfnPath
 
-        gLogger.debug("submit: incoming request %s" % req)
+        gLogger.debug(f"submit: incoming request {req}")
         result = self.fc.findFilesByMetadataWeb(req["selection"], req["path"], start, limit)
         gLogger.debug("submit: result of findFilesByMetadataDetailed", result)
         if not result["OK"]:
@@ -314,7 +313,7 @@ class FileCatalogHandler(WebHandler):
         gLogger.debug("submit: incoming request", req)
         result = self.fc.findFilesByMetadata(req["selection"], req["path"])
         if not result["OK"]:
-            gLogger.error("submit: %s" % result["Message"])
+            gLogger.error(f"submit: {result['Message']}")
             return {"success": "false", "error": result["Message"]}
 
         return FileResponse("\n".join([fileName for fileName in result["Value"]]), str(req))

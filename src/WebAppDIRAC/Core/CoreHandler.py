@@ -22,7 +22,7 @@ class CoreHandler(tornado.web.RequestHandler):
             dest = "/"
             rootURL = Conf.rootURL()
             if rootURL:
-                dest += "%s/" % rootURL.strip("/")
+                dest += f"{rootURL.strip('/')}/"
             if setup and group:
                 dest += f"s:{setup}/g:{group}/"
             self.redirect(dest)

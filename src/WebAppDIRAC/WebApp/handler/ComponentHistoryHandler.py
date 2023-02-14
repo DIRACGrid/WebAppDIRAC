@@ -6,7 +6,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class ComponentHistoryHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def web_getInstallationData(self):
@@ -118,7 +117,7 @@ class ComponentHistoryHandler(WebHandler):
                 time = self.get_argument("startTime")
             else:
                 time = "00:00"
-            date = datetime.datetime.strptime("{}-{}".format(self.get_argument("startDate"), time), "%Y-%m-%d-%H:%M")
+            date = datetime.datetime.strptime(f"{self.get_argument('startDate')}-{time}", "%Y-%m-%d-%H:%M")
             req["installation"]["InstallationTime.bigger"] = date
 
         if "endDate" in self.request.arguments and len(self.get_argument("endDate")) > 0:
@@ -126,7 +125,7 @@ class ComponentHistoryHandler(WebHandler):
                 time = self.get_argument("endTime")
             else:
                 time = "00:00"
-            date = datetime.datetime.strptime("{}-{}".format(self.get_argument("endDate"), time), "%Y-%m-%d-%H:%M")
+            date = datetime.datetime.strptime(f"{self.get_argument('endDate')}-{time}", "%Y-%m-%d-%H:%M")
             req["installation"]["UnInstallationTime.smaller"] = date
 
         return req

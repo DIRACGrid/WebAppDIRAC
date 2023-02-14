@@ -253,7 +253,6 @@ COUNTRIES = {
 
 
 class JobSummaryHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "all"
 
     pageNumber = 0
@@ -264,7 +263,7 @@ class JobSummaryHandler(WebHandler):
         callback = {}
 
         result = WMSAdministratorClient().getSiteSummarySelectors()
-        gLogger.info("\033[0;31m ++++++: \033[0m %s" % result)
+        gLogger.info(f"\x1b[0;31m ++++++: \x1b[0m {result}")
         if result["OK"]:
             result = result["Value"]
             if len(result.get("Status", [])) > 0:
@@ -356,7 +355,7 @@ class JobSummaryHandler(WebHandler):
         else:
             gLogger.always("- E R R O R -")
             result = {"success": "false", "error": retVal["Message"]}
-        gLogger.info("\033[0;31m SITESUMMARY INDEX REQUEST: \033[0m %s" % (time() - pagestart))
+        gLogger.info(f"\x1b[0;31m SITESUMMARY INDEX REQUEST: \x1b[0m {time() - pagestart}")
         return result
 
     def __request(self):

@@ -13,7 +13,6 @@ from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import SummaryHandlerMix
 
 
 class SiteSummaryHandler(SummaryHandlerMix):
-
     ELEMENT_TYPE = "Site"
 
     def web_getSelectionData(self, **kwargs):
@@ -94,7 +93,7 @@ class SiteSummaryHandler(SummaryHandlerMix):
         else:
             elementStatus["GOCDB"] += "("
             for i in dirac_names["Value"]:
-                elementStatus["GOCDB"] += "%s " % i
+                elementStatus["GOCDB"] += f"{i} "
             elementStatus["GOCDB"] += ")"
 
         elementStatus["GGUS"] = '<a href="https://ggus.eu/ws/ticket_search.php?'
@@ -106,11 +105,11 @@ class SiteSummaryHandler(SummaryHandlerMix):
         elementStatus["GGUS"] += "show_columns_check[]=LAST_UPDATE&show_columns_check[]=TYPE_OF_PROBLEM&"
         elementStatus["GGUS"] += "show_columns_check[]=SUBJECT&ticket=&supportunit=all&su_hierarchy=all&"
         elementStatus["GGUS"] += "vo=all&user=&keyword=&involvedsupporter=&assignto=&"
-        elementStatus["GGUS"] += "affectedsite=%s&specattrib=0&status=open&priority=all&" % gocdb_name
+        elementStatus["GGUS"] += f"affectedsite={gocdb_name}&specattrib=0&status=open&priority=all&"
         elementStatus["GGUS"] += "typeofproblem=all&ticketcategory=&mouarea=&technology_provider=&"
         elementStatus["GGUS"] += "date_type=creation+date&radiotf=1&timeframe=any&from_date=&to_date=&"
         elementStatus["GGUS"] += "untouched_date=&orderticketsby=GHD_INT_REQUEST_ID&"
-        elementStatus["GGUS"] += 'orderhow=descending" target="_blank"> %s tickets</a>' % gocdb_name
+        elementStatus["GGUS"] += f'orderhow=descending" target="_blank"> {gocdb_name} tickets</a>'
 
         convertName = {
             "CERN-PROD": "CERN",

@@ -39,7 +39,7 @@ def _createStaticSymlinks(targetDir):
             destination = os.path.join(targetDir, extension)
             # If there is more than one suffix append a counter
             if i >= 1:
-                destination += "-%s" % i
+                destination += f"-{i}"
             gLogger.notice("    creating symlink from", f"{path} to {destination}")
             if os.path.islink(destination):
                 if path == os.readlink(destination):
@@ -69,7 +69,7 @@ def _checkDIRACVersion():
     deps = [Requirement(x) for x in requires("WebAppDIRAC")]
     deps = [x for x in deps if x.name.lower() == "dirac"]
     if len(deps) != 1:
-        raise NotImplementedError("This shouldn't be possible: %r" % deps)
+        raise NotImplementedError(f"This shouldn't be possible: {deps!r}")
     dirac_version = version("DIRAC")
     dirac_spec = deps[0].specifier
     if dirac_version not in dirac_spec:

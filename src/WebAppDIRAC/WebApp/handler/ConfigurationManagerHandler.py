@@ -12,7 +12,6 @@ from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, WErr
 
 
 class ConfigurationManagerHandler(WebSocketHandler):
-
     AUTH_PROPS = "authenticated"
 
     def on_open(self):
@@ -91,7 +90,6 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return {"success": 1, "op": funcName, "version": version, "name": configName}
 
     def __getSubnodes(self, parentNodeId, sectionPath):
-
         self.log.info("Expanding section", sectionPath)
 
         retData = []
@@ -101,7 +99,6 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return {"success": 1, "op": "getSubnodes", "nodes": retData, "parentNodeId": parentNodeId}
 
     def __getSubnodesForPath(self, sectionPath, retData):
-
         try:
             sectionCfg = self.__configData["cfgData"].getCFG()
             for section in [section for section in sectionPath.split("/") if not section.strip() == ""]:
@@ -146,7 +143,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 continue
             commentLines.append(line)
         if commentLines or commiter:
-            return "{}<small><strong>{}</strong></small>".format("<br/>".join(commentLines), commiter)
+            return f"{'<br/>'.join(commentLines)}<small><strong>{commiter}</strong></small>"
         return False
 
     def __showConfigurationAsText(self):
@@ -176,7 +173,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         if self.__configData["cfgData"].getValue(optionPath) == optionValue:
             self.log.info("Set option value", f"{optionPath} = {optionValue}")
             return {"success": 1, "op": "setOptionValue", "parentNodeId": params["parentNodeId"], "value": optionValue}
-        return {"success": 0, "op": "setOptionValue", "message": "Can't update %s" % optionPath}
+        return {"success": 0, "op": "setOptionValue", "message": f"Can't update {optionPath}"}
 
     def __setComment(self, params):
         try:
@@ -373,7 +370,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 "oldIndex": params["oldIndex"],
             }
         # Calculate the old parent path
-        oldParentPath = "/%s" % "/".join(List.fromChar(nodePath, "/")[:-1])
+        oldParentPath = f"/{'/'.join(List.fromChar(nodePath, '/')[:-1])}"
         if not oldParentPath == destinationParentPath and newParentDict["value"].existsKey(nodeDict["key"]):
             return {
                 "success": 0,
@@ -437,7 +434,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         if not newParentDict:
             return {"success": 0, "op": "copyKey", "message": "Destination does not exist"}
         # Calculate the old parent path
-        oldParentPath = "/%s" % "/".join(List.fromChar(nodePath, "/")[:-1])
+        oldParentPath = f"/{'/'.join(List.fromChar(nodePath, '/')[:-1])}"
         if not oldParentPath == destinationParentPath and newParentDict["value"].existsKey(newNodeName):
             return {"success": 0, "op": "copyKey", "message": "Another entry with the same name already exists"}
 
@@ -547,7 +544,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             fromDate = str(params["fromVersion"])
             toDate = str(params["toVersion"])
         except Exception as e:
-            raise WErr(500, "Can't decode params: %s" % e)
+            raise WErr(500, f"Can't decode params: {e}")
         rpcClient = ConfigurationClient(
             url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server")
         )
@@ -561,7 +558,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
             "totalLines": processedData["totalLines"],
             "html": self.render_string(
                 "ConfigurationManager/diffConfig.tpl",
-                titles=("From version %s" % fromDate, "To version %s" % toDate),
+                titles=(f"From version {fromDate}", f"To version {toDate}"),
                 diffList=processedData["diff"],
             ).decode("utf-8"),
         }
@@ -573,7 +570,7 @@ class ConfigurationManagerHandler(WebSocketHandler):
         try:
             rollbackVersion = str(params["rollbackToVersion"])
         except Exception as e:
-            raise WErr(500, "Can't decode params: %s" % e)
+            raise WErr(500, f"Can't decode params: {e}")
         rpcClient = ConfigurationClient(
             url=gConfig.getValue("/DIRAC/Configuration/MasterServer", "Configuration/Server")
         )
@@ -605,10 +602,9 @@ class ConfigurationManagerHandler(WebSocketHandler):
         return {"success": 1, "op": "showshowHistory", "result": cDict}
 
     def __download(self):
-
         version = str(self.__configData["cfgData"].getCFG()["DIRAC"]["Configuration"]["Version"])
         configName = str(self.__configData["cfgData"].getCFG()["DIRAC"]["Configuration"]["Name"])
-        fileName = "cs.{}.{}".format(configName, version.replace(":", "").replace("-", "").replace(" ", ""))
+        fileName = f"cs.{configName}.{version.replace(':', '').replace('-', '').replace(' ', '')}"
 
         return {"success": 1, "op": "download", "result": self.__configData["strCfgData"], "fileName": fileName}
 
