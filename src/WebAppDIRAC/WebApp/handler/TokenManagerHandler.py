@@ -9,7 +9,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class TokenManagerHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     @classmethod
@@ -38,7 +37,7 @@ class TokenManagerHandler(WebHandler):
             return {"success": "false", "error": "You are not authorize to access these data"}
 
         result = self.tm.getUsersTokensInfo(list(json.loads(username)))
-        gLogger.info("*!*!*!  RESULT: \n%s" % result)
+        gLogger.info(f"*!*!*!  RESULT: \n{result}")
         if not result["OK"]:
             return {"success": "false", "error": result["Message"]}
 

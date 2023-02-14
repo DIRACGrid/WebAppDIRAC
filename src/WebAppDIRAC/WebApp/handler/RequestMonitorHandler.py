@@ -8,7 +8,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class RequestMonitorHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def initializeRequest(self):

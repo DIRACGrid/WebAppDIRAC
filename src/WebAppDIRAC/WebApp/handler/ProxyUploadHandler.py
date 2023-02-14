@@ -7,7 +7,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
 class ProxyUploadHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def web_proxyUpload(self, pass_p12=None):
@@ -89,7 +88,7 @@ class ProxyUploadHandler(WebHandler):
             shutil.rmtree(storePath)
             gLogger.exception(x)
             error = f"An exception has happen '{x}' {disclaimer}"
-            gLogger.debug("Service response: %s" % error)
+            gLogger.debug(f"Service response: {error}")
             return {"success": "false", "error": error}
 
         gLogger.info("Split certificate(s) to public and private keys")
@@ -123,10 +122,10 @@ class ProxyUploadHandler(WebHandler):
         proxyChain = X509Chain()
 
         if not (result := proxyChain.loadChainFromFile(keyDict["pub"]))["OK"]:
-            return {"error": "Could not load the proxy: %s" % result["Message"], "success": "false"}
+            return {"error": f"Could not load the proxy: {result['Message']}", "success": "false"}
 
         if not (result := proxyChain.getIssuerCert())["OK"]:
-            return {"error": "Could not load the proxy: %s" % result["Message"], "success": "false"}
+            return {"error": f"Could not load the proxy: {result['Message']}", "success": "false"}
 
         issuerCert = result["Value"]
 

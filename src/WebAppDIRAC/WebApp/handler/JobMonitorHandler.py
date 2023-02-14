@@ -16,7 +16,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class JobMonitorHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "authenticated"
 
     __dataCache = DictCache.DictCache()
@@ -109,7 +108,7 @@ class JobMonitorHandler(WebHandler):
                     else:
                         prod = [["Nothing to display"]]
                 else:
-                    gLogger.error("JobMonitoringClient().getJobGroups() return error: %s" % result["Message"])
+                    gLogger.error(f"JobMonitoringClient().getJobGroups() return error: {result['Message']}")
                     prod = [["Error happened on service side"]]
                 callback["prod"] = prod
 
@@ -127,7 +126,7 @@ class JobMonitorHandler(WebHandler):
                     else:
                         site = [["Nothing to display"]]
                 else:
-                    gLogger.error("JobMonitoringClient().getSites() return error: %s" % result["Message"])
+                    gLogger.error(f"JobMonitoringClient().getSites() return error: {result['Message']}")
                     site = [["Error happened on service side"]]
                 callback["site"] = site
                 # ##
@@ -140,7 +139,7 @@ class JobMonitorHandler(WebHandler):
                     else:
                         stat = [["Nothing to display"]]
                 else:
-                    gLogger.error("JobMonitoringClient().getStates() return error: %s" % result["Message"])
+                    gLogger.error(f"JobMonitoringClient().getStates() return error: {result['Message']}")
                     stat = [["Error happened on service side"]]
                 callback["status"] = stat
                 # ##
@@ -153,7 +152,7 @@ class JobMonitorHandler(WebHandler):
                     else:
                         stat = [["Nothing to display"]]
                 else:
-                    gLogger.error("JobMonitoringClient().getMinorStates() return error: %s" % result["Message"])
+                    gLogger.error(f"JobMonitoringClient().getMinorStates() return error: {result['Message']}")
                     stat = [["Error happened on service side"]]
                 callback["minorstat"] = stat
                 # ##
@@ -166,7 +165,7 @@ class JobMonitorHandler(WebHandler):
                     else:
                         app = [["Nothing to display"]]
                 else:
-                    gLogger.error("JobMonitoringClient().getApplicationstates() return error: %s" % result["Message"])
+                    gLogger.error(f"JobMonitoringClient().getApplicationstates() return error: {result['Message']}")
                     app = [["Error happened on service side"]]
                 callback["app"] = app
                 # ##
@@ -179,7 +178,7 @@ class JobMonitorHandler(WebHandler):
                     else:
                         types = [["Nothing to display"]]
                 else:
-                    gLogger.error("JobMonitoringClient().getJobTypes() return error: %s" % result["Message"])
+                    gLogger.error(f"JobMonitoringClient().getJobTypes() return error: {result['Message']}")
                     types = [["Error happened on service side"]]
                 callback["types"] = types
                 # ##
@@ -199,7 +198,7 @@ class JobMonitorHandler(WebHandler):
                         owner = [[user]]
                         callback["owner"] = owner
                     else:
-                        gLogger.error("JobMonitoringClient().getOwners() return error: %s" % result["Message"])
+                        gLogger.error(f"JobMonitoringClient().getOwners() return error: {result['Message']}")
                         owner = [["Error happened on service side"]]
                     callback["owner"] = owner
 
@@ -298,7 +297,7 @@ class JobMonitorHandler(WebHandler):
             return {"success": "true", "result": ""}
 
         if "InvalidJobIDs" in result:
-            return {"success": "false", "error": "Invalid JobIDs: %s" % result["InvalidJobIDs"]}
+            return {"success": "false", "error": f"Invalid JobIDs: {result['InvalidJobIDs']}"}
         if "NonauthorizedJobIDs" in result:
             return {
                 "success": "false",
@@ -464,7 +463,7 @@ class JobMonitorHandler(WebHandler):
         result = client.downloadSandboxForJob(jobID, sandbox, inMemory=True)
 
         if not result["OK"]:
-            return {"success": "false", "error": "Error: %s" % result["Message"]}
+            return {"success": "false", "error": f"Error: {result['Message']}"}
 
         if check:
             return {"success": "true"}
@@ -472,7 +471,7 @@ class JobMonitorHandler(WebHandler):
         data = result["Value"]
         fname = f"{str(jobID)}_{sandbox}Sandbox.tar"
         self.set_header("Content-type", "application/x-tar")
-        self.set_header("Content-Disposition", 'attachment; filename="%s"' % fname)
+        self.set_header("Content-Disposition", f'attachment; filename="{fname}"')
         self.set_header("Content-Length", len(data))
         self.set_header("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
         self.set_header("Pragma", "no-cache")

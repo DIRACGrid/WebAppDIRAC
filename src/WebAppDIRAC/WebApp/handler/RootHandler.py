@@ -13,7 +13,6 @@ from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
 class RootHandler(WebHandler):
-
     DEFAULT_AUTHORIZATION = "all"
     DEFAULT_LOCATION = "/"
     SUPPORTED_METHODS = ("GET",)
@@ -178,7 +177,7 @@ class RootHandler(WebHandler):
                 with open(welcomeFile) as f:
                     welcome = f.read().replace("\n", "")
             except Exception:
-                gLogger.warn("Welcome page not found here: %s" % welcomeFile)
+                gLogger.warn(f"Welcome page not found here: {welcomeFile}")
 
         # pylint: disable=no-member
         return TornadoResponse().render(
