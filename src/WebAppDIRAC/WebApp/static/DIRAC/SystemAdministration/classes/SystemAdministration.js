@@ -151,9 +151,6 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           name: "OpenSockets",
         },
         {
-          name: "Setup",
-        },
-        {
           name: "Uptime",
         },
       ],
@@ -396,12 +393,6 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         },
         {
           align: "left",
-          dataIndex: "Setup",
-          header: "Setup",
-          sortable: true,
-        },
-        {
-          align: "left",
           dataIndex: "Uptime",
           header: "Uptime",
           sortable: true,
@@ -551,9 +542,6 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         },
         {
           name: "Name",
-        },
-        {
-          name: "Setup",
         },
         {
           name: "PID",
@@ -924,12 +912,6 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
           return me.rendererGridColumn(value, record);
         },
       },
-      Setup: {
-        dataIndex: "Setup",
-        renderer: function (value, metaData, record, row, col, store, gridView) {
-          return me.rendererGridColumn(value, record);
-        },
-      },
       Port: {
         dataIndex: "Port",
         renderer: function (value, metaData, record, row, col, store, gridView) {
@@ -1035,9 +1017,6 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         },
         {
           name: "ComponentName",
-        },
-        {
-          name: "Setup",
         },
         {
           name: "Port",
