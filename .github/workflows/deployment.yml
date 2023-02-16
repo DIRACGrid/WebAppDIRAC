@@ -21,7 +21,7 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.PAT || github.token }}
       - run: |
@@ -29,7 +29,7 @@ jobs:
           git config --global user.email "ci@diracgrid.org"
           git config --global user.name "DIRACGrid CI"
           git clone https://github.com/DIRACGrid/DIRAC.git ../DIRAC
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.9"
       - name: Installing dependencies
@@ -88,8 +88,8 @@ jobs:
                 git show
                 # Create the tag
                 git tag "$NEW_VERSION"
-                echo ::set-output name=create-release::true
-                echo ::set-output name=new-version::"$NEW_VERSION"
+                run: echo "create-release=true" >> $GITHUB_OUTPUT
+                run: echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
               fi
             fi
           fi
