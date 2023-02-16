@@ -1,3 +1,13 @@
+[v5.1.0a5]
+
+FIX: (#721) remove DIRAC/Setup requirement
+FIX: (#720) UPHandler use correct web method when listing public states
+FIX: (#718) Treat lastSeconds as extraParams for Accounting/Monitoring plotting
+FIX: (#717) WebSocketHandler sets the ThreadConfig before calling on_message
+FIX: (#713) escape urls to avoid xss
+FIX: (#711) TransformationManagerHandler: fix for TotalRecords
+FIX: (#710) Running webapp without using nginx
+
 [v5.1.0a4]
 
 FIX: (#706) DoNotScaleUnits option from the Accounting dashboard
