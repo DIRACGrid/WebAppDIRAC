@@ -1,5 +1,6 @@
 import json
 import datetime
+import jwt
 
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getAllUsers
@@ -45,11 +46,16 @@ class TokenManagerHandler(WebHandler):
         for record in result["Value"]:
             tokens.append(
                 {
-                    "tokenid": record["user_id"],
+                    "TokenId": record["user_id"],
                     "UserName": record["username"],
                     "UserID": record["user_id"],
                     "Provider": record["provider"],
-                    "ExpirationTime": str(record["rt_expires_at"]),
+                    "ExpirationTime": str(
+                        datetime.datetime.fromtimestamp(int(record["expires_at"])).strftime("%Y-%m-%d %H:%M:%S")
+                    ),
+                    "RefreshTokenExpirationTime": str(
+                        datetime.datetime.fromtimestamp(int(record["rt_expires_at"])).strftime("%Y-%m-%d %H:%M:%S")
+                    ),
                 }
             )
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
@@ -77,3 +83,31 @@ class TokenManagerHandler(WebHandler):
             else:
                 err.append(retVal["Message"])
         return {"success": "true", "result": tokens} if tokens else {"success": "false", "error": "; ".join(err)}
+
+    def web_tokenData(self, userid: str, data_kind: str) -> dict:
+        """Retrieve access and refresh token, and scope to show in right click Menu
+
+        :param str userid: user's token id
+        :param str data_kind: access/refresh token or scope
+
+        :return: dict
+        """
+        if (result := self.tm.getTokensByUserID(userid))["OK"]:
+            if data_kind == "getAccessToken":
+                res = (
+                    str(jwt.decode(result["Value"][0]["access_token"], options={"verify_signature": False}))
+                    .replace("{", "{\n")
+                    .replace(", ", ",\n")
+                    .replace("}", "\n}")
+                )
+            elif data_kind == "getRefreshToken":
+                res = (
+                    str(jwt.decode(result["Value"][0]["refresh_token"], options={"verify_signature": False}))
+                    .replace("{", "{\n")
+                    .replace(", ", ",\n")
+                    .replace("}", "\n}")
+                )
+            elif data_kind == "getScope":
+                res = result["Value"][0]["scope"]
+            return {"success": "true", "result": res}
+        return {"success": "false", "error": result["Message"]}
