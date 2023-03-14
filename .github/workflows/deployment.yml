@@ -88,8 +88,8 @@ jobs:
                 git show
                 # Create the tag
                 git tag "$NEW_VERSION"
-                run: echo "create-release=true" >> $GITHUB_OUTPUT
-                run: echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
+                echo "create-release=true" >> $GITHUB_OUTPUT
+                echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
               fi
             fi
           fi
