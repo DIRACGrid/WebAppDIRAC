@@ -60,6 +60,11 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
       type: "date",
       dateFormat: "Y-m-d H:i:s",
     },
+    {
+      name: "RefreshTokenExpirationTime",
+      type: "date",
+      dateFormat: "Y-m-d H:i:s",
+    },
   ],
 
   initComponent: function () {
@@ -151,7 +156,7 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
 
     var oColumns = {
       checkBox: {
-        dataIndex: "tokenid",
+        dataIndex: "TokenId",
       },
       User: {
         dataIndex: "UserName",
@@ -174,7 +179,7 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
           sortable: true,
         },
       },
-      "Expiration date (UTC)": {
+      "Access Token Expiration (UTC)": {
         dataIndex: "ExpirationTime",
         properties: {
           width: 150,
@@ -199,7 +204,60 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
           }
         },
       },
+      "Refresh Token Expiration (UTC)": {
+        dataIndex: "RefreshTokenExpirationTime",
+        properties: {
+          width: 150,
+          sortable: true,
+        },
+        renderer: function (value, metadata, record, rowIndex, colIndex, store) {
+          var expEpoch = record.data.RefreshTokenExpirationTime.getTime();
+          /* eslint-disable */
+          var nowEpoch = Ext.Date.now();
+          /* eslint-enable */
+          var secsLeft = expEpoch - nowEpoch;
+
+          var msDay = 60 * 60 * 24 * 1000;
+          var secsLeft = Math.floor((expEpoch - nowEpoch) / msDay);
+
+          var timeLimit = 30; // 30 days before expiration
+
+          if (secsLeft < timeLimit) {
+            return (
+              '<span style="color:red">' + Ext.Date.format(record.data.RefreshTokenExpirationTime, "Y-m-d H:i:s") + " (" + secsLeft + ")" + "</span>"
+            );
+          } else {
+            return '<span style="color:green">' + Ext.Date.format(record.data.RefreshTokenExpirationTime, "Y-m-d H:i:s") + "</span>";
+          }
+        },
+      },
     };
+
+    var menuitems = {
+      Visible: [
+        {
+          text: "Access Token",
+          handler: me.__oprGetTokenData,
+          arguments: ["getAccessToken"],
+          properties: {
+            tooltip: "Click to show the decoded Access Token of the selected token.",
+          },
+        },
+        {
+          text: "Refresh Token",
+          handler: me.__oprGetTokenData,
+          arguments: ["getRefreshToken"],
+          properties: {
+            tooltip: "Click to show the decoded Refresh Token of the selected token.",
+          },
+        },
+      ],
+    };
+
+    me.contextGridMenu = new Ext.dirac.utils.DiracApplicationContextMenu({
+      menu: menuitems,
+      scope: me,
+    });
 
     me.grid = Ext.create("Ext.dirac.utils.DiracGridPanel", {
       store: me.dataStore,
@@ -209,6 +267,7 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
         },
       ],
       oColumns: oColumns,
+      contextMenu: me.contextGridMenu,
       pagingToolbar: pagingToolbar,
       scope: me,
     });
@@ -216,6 +275,38 @@ Ext.define("DIRAC.TokenManager.classes.TokenManager", {
     me.leftPanel.setGrid(me.grid);
 
     me.add([me.leftPanel, me.grid]);
+  },
+  __oprGetTokenData: function (oDataKind) {
+    var me = this;
+
+    var oId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me.grid, "UserID");
+
+    me.getContainer().body.mask("Wait ...");
+    Ext.Ajax.request({
+      url: GLOBAL.BASE_URL + me.applicationName + "/tokenData?userid=" + oId,
+      method: "POST",
+      params: {
+        data_kind: oDataKind,
+        id: oId,
+      },
+      scope: me,
+      success: function (response) {
+        me.getContainer().body.unmask();
+        var jsonData = Ext.JSON.decode(response.responseText);
+
+        if (jsonData["success"] == "true") {
+          if (oDataKind == "getAccessToken") {
+            // text
+            me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Access Token:" + oId);
+          } else if (oDataKind == "getRefreshToken") {
+            // text
+            me.getContainer().oprPrepareAndShowWindowText(jsonData["result"], "Refresh Token:" + oId);
+          }
+        } else {
+          GLOBAL.APP.CF.alert(jsonData["error"], "error");
+        }
+      },
+    });
   },
   __deleteTokens: function () {
     var me = this;
