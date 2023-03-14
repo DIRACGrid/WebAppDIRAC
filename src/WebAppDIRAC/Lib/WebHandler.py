@@ -17,7 +17,8 @@ from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.Core.Utilities.Decorators import deprecated
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST, TornadoResponse
+from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST
+from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import TornadoResponse
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 from WebAppDIRAC.Lib import Conf
