@@ -8,8 +8,8 @@ Web app extension for the `DIRAC project <https://github.com/DIRACGrid/DIRAC>`_.
 
 Status master branch (stable):
 
-.. image:: https://github.com/DIRACGrid/WebAppDIRAC/workflows/Basic%20tests/badge.svg?branch=rel-v4r3
-   :target: https://github.com/DIRACGrid/WebAppDIRAC/actions?query=workflow%3A%22Basic+tests%22+branch%3Arel-v4r3
+.. image:: https://github.com/DIRACGrid/WebAppDIRAC/workflows/Basic%20tests/badge.svg?branch=rel-v5r0
+   :target: https://github.com/DIRACGrid/WebAppDIRAC/actions?query=workflow%3A%22Basic+tests%22+branch%3Arel-v5r0
    :alt: Basic Tests Status
 
 Status integration branch (devel):
