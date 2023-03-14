@@ -6,7 +6,7 @@ from DIRAC import S_OK
 from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
-from DIRAC.Core.Tornado.Server.TornadoREST import authorization
+from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import authorization
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
