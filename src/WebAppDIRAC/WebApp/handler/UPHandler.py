@@ -1,12 +1,12 @@
 import base64
-import zlib
 import json
+import zlib
 
 from DIRAC import S_OK
-from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import authorization
+from DIRAC.Core.Utilities import DEncode
+from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
