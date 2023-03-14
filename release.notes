@@ -1,3 +1,8 @@
+[v5.0.6]
+
+FIX: (#731) WebHandler - make explicit import of TornadoResponse from BaseRequestHandler
+CHANGE: (#729) Display user access and refresh tokens with details (right click pop up window)
+
 [v5.0.5]
 
 FIX: (#719) UPHandler use correct web method when listing public states
