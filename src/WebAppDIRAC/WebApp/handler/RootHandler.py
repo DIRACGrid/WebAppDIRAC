@@ -24,13 +24,6 @@ class RootHandler(WebHandler):
         """
         return TornadoResponse().redirect(self.__change(group=to))  # pylint: disable=no-member
 
-    def web_changeSetup(self, to: str):
-        """Change setup
-
-        :return: TornadoResponse()
-        """
-        return TornadoResponse().redirect(self.__change(setup=to))  # pylint: disable=no-member
-
     def __change(self, setup: str = None, group: str = None) -> str:
         """Generate URL to change setup/group, set query"""
         root = Conf.rootURL().strip("/")

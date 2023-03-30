@@ -22,13 +22,13 @@ class SystemAdministrationHandler(WebHandler):
             return {"success": "false", "error": result.get("Message", "No system information found")}
 
         # Add the information about the extensions' versions, if available, to display along with the DIRAC version
-        for i in range(len(callback)):
-            callback[i]["Host"] = callback[i]["HostName"]
-            callback[i]["Timestamp"] = str(callback[i].get("Timestamp", "unknown"))
+        for _i, cb in enumerate(callback):
+            cb["Host"] = cb["HostName"]
+            cb["Timestamp"] = str(cb.get("Timestamp", "unknown"))
             # We have to keep the backward compatibility (this can heppen when we do not update one host to v6r15 ...
-            callback[i]["DIRAC"] = "{},{}".format(
-                callback[i].get("DIRACVersion", callback[i].get("DIRAC", "")),
-                callback[i].get("Extension", callback[i].get("Extensions", "")),
+            cb["DIRAC"] = "{},{}".format(
+                cb.get("DIRACVersion", cb.get("DIRAC", "")),
+                cb.get("Extension", cb.get("Extensions", "")),
             )
 
         return {"success": "true", "result": sorted(callback, key=lambda i: i["Host"]), "total": len(callback)}

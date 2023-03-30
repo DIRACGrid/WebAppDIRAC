@@ -82,11 +82,6 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
         me.addGroupsButton(),
         {
           xtype: "label",
-          text: "Setup:",
-        },
-        me.addSetupButton(),
-        {
-          xtype: "label",
           text: "Theme:",
         },
         me.addThemeButton(),
@@ -225,24 +220,6 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     }
 
     return new Ext.button.Button(button_group);
-  },
-  addSetupButton: function () {
-    var setup_data = {
-      text: GLOBAL.APP.configData["setup"],
-      menu: [],
-    };
-
-    for (var i = 0; i < GLOBAL.APP.configData["validSetups"].length; i++)
-      setup_data.menu.push({
-        text: GLOBAL.APP.configData["validSetups"][i],
-        handler: function () {
-          var me = this;
-
-          location.href = GLOBAL.BASE_URL + "changeSetup?to=" + me.text;
-        },
-      });
-
-    return new Ext.button.Button(setup_data);
   },
   addThemeButton: function () {
     var me = this;
