@@ -140,9 +140,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       name: "RescheduleTime",
     },
     {
-      name: "DIRACSetup",
-    },
-    {
       name: "FailedFlag",
     },
     {
@@ -449,12 +446,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
         renderer: Ext.util.Format.dateRenderer("Y-m-d H:i:s"),
         properties: {
           width: 150,
-        },
-      },
-      DIRACSetup: {
-        dataIndex: "DIRACSetup",
-        properties: {
-          hidden: true,
         },
       },
       FailedFlag: {
