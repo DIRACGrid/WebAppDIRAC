@@ -1,3 +1,9 @@
+[v5.1.0a7]
+
+FIX: (#728) Removed Setup from SystemAdministrator
+CHANGE: (#728) one WebApp for one DIRAC Setup
+FIX: (#714) remove OwnerDN from RMS
+
 [v5.1.0a6]
 
 FIX: (#733) WebHandler - make explicit import of TornadoResponse from BaseRequestHandler
