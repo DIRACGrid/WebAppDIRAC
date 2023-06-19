@@ -100,6 +100,7 @@ class HandlerMgr(metaclass=DIRACSingleton):
 
             # Set the base URL of the request
             handler.BASE_URL = handler_base_url
+            handler._fullComponentName = handler.__name__[: -len("Handler")]
 
             # CHeck it has AUTH_PROPS or DEFAULT_AUTHORIZATION
             if isinstance(handler.AUTH_PROPS, type(None)) and isinstance(handler.DEFAULT_AUTHORIZATION, type(None)):
