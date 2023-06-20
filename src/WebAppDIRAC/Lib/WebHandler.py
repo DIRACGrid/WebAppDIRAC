@@ -159,7 +159,7 @@ class WebHandler(TornadoREST):
         return urls
 
     @classmethod
-    def _getCSAuthorizarionSection(cls, handler):
+    def _getCSAuthorizationSection(cls, handler):
         """Search endpoint auth section.
 
         :param str handler: API name, see :py:meth:`_getFullComponentName`
