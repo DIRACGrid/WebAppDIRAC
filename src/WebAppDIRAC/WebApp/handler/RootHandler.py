@@ -159,7 +159,7 @@ class RootHandler(WebHandler):
         )
         return resp
 
-    def web_index(self, *, url_state="", theme="crisp", open_app="", **kwargs):
+    def web_index(self, *, url_state="", theme="", open_app="", **kwargs):
         """Index method
 
         :param str url_state: url state
@@ -178,6 +178,9 @@ class RootHandler(WebHandler):
                     welcome = f.read().replace("\n", "")
             except Exception:
                 gLogger.warn(f"Welcome page not found here: {welcomeFile}")
+
+        if not theme:
+            theme = Conf.getTheme()
 
         # pylint: disable=no-member
         return TornadoResponse().render(
