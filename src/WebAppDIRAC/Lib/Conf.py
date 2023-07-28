@@ -238,13 +238,12 @@ def getAuthSectionForHandler(route):
     return f"{BASECS}/Access/{route}"
 
 
-@deprecated("This funtion is deprecated, use 'tabs' instead.")
 def getTheme():
-    """Get theme
+    """Get theme from config or return default
 
     :return: str
     """
-    return "tabs"
+    return getCSValue("Theme", "crisp")
 
 
 def getIcon():
