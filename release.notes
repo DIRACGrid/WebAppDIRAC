@@ -1,3 +1,8 @@
+[v5.0.9]
+
+FIX: (#742) Align the parameter names between python and js for the FileCatalogHandler
+NEW: (#739) Re-add Theme setting
+
 [v5.0.8]
 
 
