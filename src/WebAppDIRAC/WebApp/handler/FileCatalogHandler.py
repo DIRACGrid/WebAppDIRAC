@@ -26,16 +26,16 @@ class FileCatalogHandler(WebHandler):
         self.vo = getVOForGroup(self.group)
         self.fc = FileCatalog(vo=self.vo)
 
-    def web_getSelectedFiles(self, archivePath=None, lfnPath=None):
+    def web_getSelectedFiles(self, archivePath=None, path=None):
         """Method to get the selected file(s)
 
         :param str archivePath: archive path
-        :param str lfnPath: path LFN
+        :param str path: path LFN
 
         :return: dict
         """
-        if lfnPath is None:
-            lfnPath = ""
+        if path is None:
+            path = ""
 
         # First pass: download files and check for the success
         if not archivePath:
@@ -44,7 +44,7 @@ class FileCatalogHandler(WebHandler):
             if not os.path.isdir(tmpdir):
                 os.makedirs(tmpdir)
             os.chdir(tmpdir)
-            for lfn in lfnPath.split(","):
+            for lfn in path.split(","):
                 gLogger.always(f"Data manager get file {lfn}")
                 last_slash = lfn.rfind("/")
                 pos_relative = lfn.find("/")
@@ -112,15 +112,15 @@ class FileCatalogHandler(WebHandler):
         gLogger.debug(f"getSelectorGrid: Resulting callback {callback}")
         return {"success": "true", "result": callback}
 
-    def web_getQueryData(self, lfnPath=None, **kwargs):
+    def web_getQueryData(self, path=None, **kwargs):
         """Method to read all the available options for a metadata field
 
-        :param str lfnPath: path LFN
+        :param str path: path LFN
 
         :return: dict
         """
-        if lfnPath is None:
-            lfnPath = "/"
+        if path is None:
+            path = "/"
 
         try:
             compat = {}
@@ -156,19 +156,19 @@ class FileCatalogHandler(WebHandler):
 
         gLogger.always(compat)
 
-        result = self.fc.getCompatibleMetadata(compat, lfnPath)
+        result = self.fc.getCompatibleMetadata(compat, path)
         gLogger.always(result)
 
         if not result["OK"]:
             return {"success": "false", "error": result["Message"]}
         return {"success": "true", "result": result["Value"]}
 
-    def web_getFilesData(self, limit=25, start=0, lfnPath=None, **kwargs):
+    def web_getFilesData(self, limit=25, start=0, path=None, **kwargs):
         """Get files data
 
         :param int limit: limit
         :param int start: start
-        :param str lfnPath: path
+        :param str path: path
 
         :return: dict
         """
@@ -208,8 +208,8 @@ class FileCatalogHandler(WebHandler):
                         req["selection"][name][logic] = value[1]
                     elif value[0] == "s":
                         req["selection"][name][logic] += value[1].split(":::")
-            if lfnPath:
-                req["path"] = lfnPath
+            if path:
+                req["path"] = path
 
         gLogger.debug(f"submit: incoming request {req}")
         result = self.fc.findFilesByMetadataWeb(req["selection"], req["path"], start, limit)
@@ -257,11 +257,11 @@ class FileCatalogHandler(WebHandler):
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
         return {"success": "true", "result": callback, "total": total, "date": timestamp}
 
-    def web_getMetadataFilesInFile(self, selection="", lfnPath=None):
+    def web_getMetadataFilesInFile(self, selection="", path=None):
         """Get metadata files
 
         :param str selection: selection
-        :param str lfnPath: path
+        :param str path: path
 
         :return: dict
         """
@@ -307,8 +307,8 @@ class FileCatalogHandler(WebHandler):
                         req["selection"][name][logic] = tmp[3]
                     elif tmp[2] == "s":
                         req["selection"][name][logic] += tmp[3].split(":::")
-            if lfnPath:
-                req["path"] = lfnPath
+            if path:
+                req["path"] = path
 
         gLogger.debug("submit: incoming request", req)
         result = self.fc.findFilesByMetadata(req["selection"], req["path"])
@@ -318,20 +318,20 @@ class FileCatalogHandler(WebHandler):
 
         return FileResponse("\n".join([fileName for fileName in result["Value"]]), str(req))
 
-    def web_getSubnodeFiles(self, lfnPath):
+    def web_getSubnodeFiles(self, path):
         """Get subnode files
 
-        :param str lfnPath: path
+        :param str path: path
 
         :return: dict
         """
-        result = self.fc.listDirectory(lfnPath, False)
+        result = self.fc.listDirectory(path, False)
         if not result["OK"]:
             gLogger.error("submit:", result["Message"])
             return {"success": "false", "error": result["Message"]}
 
-        filesData = result["Value"]["Successful"][lfnPath]["Files"]
-        dirData = result["Value"]["Successful"][lfnPath]["SubDirs"]
+        filesData = result["Value"]["Successful"][path]["Files"]
+        dirData = result["Value"]["Successful"][path]["SubDirs"]
 
         retData = []
 
