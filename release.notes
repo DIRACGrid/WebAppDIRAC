@@ -1,3 +1,10 @@
+[v5.1.0a8]
+
+FIX: (#743) Align the parameter names between python and js for the FileCatalogHandler
+NEW: (#741) Re-add Theme setting
+FIX: (#736) WebHandler - fix typo in the _getCSAuthorizationSection method name
+FIX: (#736) HandlerMgr - set the _fullComponentName class value
+
 [v5.1.0a7]
 
 FIX: (#728) Removed Setup from SystemAdministrator
