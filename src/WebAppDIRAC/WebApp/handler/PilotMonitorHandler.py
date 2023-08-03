@@ -3,7 +3,6 @@ import datetime
 
 from DIRAC import gConfig, S_OK, gLogger
 from DIRAC.Core.Utilities.Graphs.Palette import Palette
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForDN
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler
 
@@ -214,8 +213,6 @@ class PilotMonitorHandler(WebHandler):
             selector = "DestinationSite"
         elif statsField == "Owner Group":
             selector = "OwnerGroup"
-        elif statsField == "Owner":
-            selector = "OwnerDN"
         else:
             selector = statsField
 
@@ -232,9 +229,6 @@ class PilotMonitorHandler(WebHandler):
             statistics = {}
             if (result := RPC.getCounters("PilotAgents", [selector], req))["OK"]:
                 for status, count in result["Value"]:
-                    if "OwnerDN" in status:
-                        if (userName := getUsernameForDN(status["OwnerDN"]))["OK"]:
-                            status["OwnerDN"] = userName["Value"]
                     statistics[status[selector]] = count
 
             result = S_OK(statistics)
