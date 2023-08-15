@@ -23,7 +23,10 @@
 #app-dirac-loading .app-dirac-loading-indicator {
   background: none;
   color: #444;
-  font: bold 13px Helvetica, Arial, sans-serif;
+  font:
+    bold 13px Helvetica,
+    Arial,
+    sans-serif;
   height: auto;
   margin: 0;
   padding: 10px;
@@ -230,7 +233,11 @@
 }
 
 .ux-desktop-shortcut-text {
-  font: normal 10px tahoma, arial, verdana, sans-serif;
+  font:
+    normal 10px tahoma,
+    arial,
+    verdana,
+    sans-serif;
   text-decoration: none;
   padding-top: 5px;
   color: white;
