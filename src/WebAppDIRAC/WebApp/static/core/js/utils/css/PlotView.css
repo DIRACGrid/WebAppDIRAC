@@ -59,7 +59,10 @@
 
 #images-view .x-panel-body {
   background: white;
-  font: 11px Arial, Helvetica, sans-serif;
+  font:
+    11px Arial,
+    Helvetica,
+    sans-serif;
 }
 #images-view .thumb {
   background: #dddddd;
