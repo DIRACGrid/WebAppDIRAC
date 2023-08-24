@@ -107,9 +107,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       name: "Broker",
     },
     {
-      name: "OwnerDN",
-    },
-    {
       name: "GridSite",
     },
     {
@@ -381,12 +378,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       },
       Owner: {
         dataIndex: "Owner",
-        properties: {
-          hidden: true,
-        },
-      },
-      OwnerDN: {
-        dataIndex: "OwnerDN",
         properties: {
           hidden: true,
         },

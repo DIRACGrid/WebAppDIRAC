@@ -81,7 +81,7 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
       name: "EventsPerJob",
     },
     {
-      name: "AuthorDN",
+      name: "Author",
     },
     {
       name: "AuthorGroup",
@@ -553,8 +553,8 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           hidden: true,
         },
       },
-      AuthorDN: {
-        dataIndex: "AuthorDN",
+      Author: {
+        dataIndex: "Author",
         properties: {
           hidden: true,
         },
