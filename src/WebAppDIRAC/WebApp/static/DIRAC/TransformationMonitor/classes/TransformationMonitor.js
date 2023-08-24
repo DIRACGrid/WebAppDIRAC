@@ -297,7 +297,7 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
     var pagingToolbar = null;
 
     var toolButtons = {
-      Protected: [
+      Visible: [
         {
           text: "Start",
           handler: me.__oprTransformationAction,
@@ -305,7 +305,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to start the selected transformation(s)",
           },
-          property: "ProductionManagement",
         },
         {
           text: "Stop",
@@ -314,7 +313,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to stop the selected transformation(s)",
           },
-          property: "ProductionManagement",
         },
         {
           text: "Flush",
@@ -323,7 +321,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to flush the selected transformation(s)",
           },
-          property: "ProductionManagement",
         },
         {
           text: "Complete",
@@ -332,7 +329,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to complete the selected transformation(s)",
           },
-          property: "ProductionManagement",
         },
         {
           text: "Clean",
@@ -341,7 +337,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to clean the selected transformation(s)",
           },
-          property: "ProductionManagement",
         },
       ],
     };
@@ -640,7 +635,7 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
       ],
     };
     var actionSubMenu = {
-      Protected: [
+      Visible: [
         {
           text: "Start",
           handler: me.__oprTransformationAction,
@@ -648,7 +643,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to start the selected transformations(s)",
           },
-          property: "ProductionManagement",
         },
         {
           text: "Stop",
@@ -657,7 +651,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to stop the selected transformations(s)",
           },
-          property: "ProductionManagement",
         },
         {
           text: "Extend",
@@ -665,7 +658,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to extend the selected transformations(s)",
           },
-          property: "ProductionManagement",
         },
         {
           text: "Flush",
@@ -674,7 +666,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to flush the selected transformations(s)",
           },
-          property: "ProductionManagement",
         },
         {
           text: "Complete",
@@ -683,7 +674,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to complete the selected transformations(s)",
           },
-          property: "ProductionManagement",
         },
         {
           text: "Clean",
@@ -692,7 +682,6 @@ Ext.define("DIRAC.TransformationMonitor.classes.TransformationMonitor", {
           properties: {
             tooltip: "Click to clean the selected transformations(s)",
           },
-          property: "ProductionManagement",
         },
       ],
     };
