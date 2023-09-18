@@ -1,3 +1,7 @@
+[v5.0.10]
+
+NEW: (#740) Show transformation control buttons to all users.
+
 [v5.0.9]
 
 FIX: (#742) Align the parameter names between python and js for the FileCatalogHandler
