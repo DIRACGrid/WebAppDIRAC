@@ -1,4 +1,6 @@
+import os
 import pprint
+import shutil
 import tempfile
 
 from DIRAC import gConfig, gLogger
@@ -174,8 +176,6 @@ class JobLaunchpadHandler(WebHandler):
 
         if len(store) > 0:  # If there is a file(s) in sandbox
             clearFS = True
-            import shutil
-            import os
 
             storePath = tempfile.mkdtemp(prefix="DIRAC_")
             try:
