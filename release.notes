@@ -1,3 +1,7 @@
+[v5.0.11]
+
+NEW: (#748) Added OwnerGroup as a default to JobMonitor to account for the fact that DIRAC will soon be inherently multi-VO and hence the OwnerGroup of the Submitter will matter.
+
 [v5.0.10]
 
 NEW: (#740) Show transformation control buttons to all users.
