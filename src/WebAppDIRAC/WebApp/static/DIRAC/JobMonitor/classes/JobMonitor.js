@@ -507,9 +507,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       },
       OwnerGroup: {
         dataIndex: "OwnerGroup",
-        properties: {
-          hidden: true,
-        },
       },
     };
 
