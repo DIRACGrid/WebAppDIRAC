@@ -146,9 +146,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       name: "CPUTime",
     },
     {
-      name: "OwnerDN",
-    },
-    {
       name: "JobGroup",
     },
     {
@@ -201,9 +198,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
     {
       name: "StatusIcon",
       mapping: "Status",
-    },
-    {
-      name: "OwnerGroup",
     },
   ],
 
