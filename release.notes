@@ -1,3 +1,8 @@
+[v6.0.0a3]
+
+CHANGE: (#752) PilotAgents: from OwnerGroup to VO"
+NEW: (#751) Added OwnerGroup as a default to JobMonitor to account for the fact that DIRAC will soon be inherently multi-VO and hence the OwnerGroup of the Submitter will matter.
+
 [v6.0.0a2]
 [v6.0.0a1]
 
