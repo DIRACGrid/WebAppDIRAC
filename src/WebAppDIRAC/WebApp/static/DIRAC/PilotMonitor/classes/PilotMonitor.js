@@ -80,7 +80,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       name: "Status",
     },
     {
-      name: "OwnerGroup",
+      name: "VO",
     },
     {
       name: "LastUpdateTime",
@@ -185,7 +185,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       site: "Site",
       status: "Status",
       computingElement: "Computing Element",
-      ownerGroup: "Owner Group",
+      VO: "VO",
       owner: "Owner",
       broker: "Broker",
     };
@@ -205,7 +205,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       ["site", "site"],
       ["status", "status"],
       ["computingElement", "computingElement"],
-      ["ownerGroup", "ownerGroup"],
+      ["VO", "VO"],
       ["owner", "owner"],
       ["broker", "broker"],
     ];
@@ -382,8 +382,8 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
           hidden: true,
         },
       },
-      OwnerGroup: {
-        dataIndex: "OwnerGroup",
+      VO: {
+        dataIndex: "VO",
       },
       PilotID: {
         dataIndex: "PilotID",
@@ -452,7 +452,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["category"],
-        data: [["Status"], ["Site"], ["Computing Element"], ["Owner Group"], ["Owner"], ["Broker"]],
+        data: [["Status"], ["Site"], ["Computing Element"], ["VO"], ["Owner"], ["Broker"]],
       }),
       triggerAction: "all",
       value: "Status",

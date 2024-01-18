@@ -80,13 +80,13 @@ class PilotMonitorHandler(WebHandler):
                 gridtype = [["Nothing to display"]]
             callback["gridtype"] = gridtype
 
-            if "OwnerGroup" in result and len(result["OwnerGroup"]) > 0:
-                ownerGroup = []
-                for i in result["OwnerGroup"]:
-                    ownerGroup.append([str(i)])
+            if "VO" in result and len(result["VO"]) > 0:
+                VO = []
+                for i in result["VO"]:
+                    VO.append([str(i)])
             else:
-                ownerGroup = [["Nothing to display"]]
-            callback["ownerGroup"] = ownerGroup
+                VO = [["Nothing to display"]]
+            callback["VO"] = VO
 
             if "DestinationSite" in result and len(result["DestinationSite"]) > 0:
                 ce = []
@@ -159,9 +159,9 @@ class PilotMonitorHandler(WebHandler):
         if owner:
             req["Owner"] = owner
 
-        ownerGroup = list(json.loads(self.get_argument("ownerGroup", "[]")))
-        if ownerGroup:
-            req["OwnerGroup"] = ownerGroup
+        VO = list(json.loads(self.get_argument("VO", "[]")))
+        if VO:
+            req["VO"] = VO
 
         sort = json.loads(self.get_argument("sort", "[]"))
         if len(sort) > 0:
@@ -211,8 +211,8 @@ class PilotMonitorHandler(WebHandler):
             selector = "GridSite"
         elif statsField == "Computing Element":
             selector = "DestinationSite"
-        elif statsField == "Owner Group":
-            selector = "OwnerGroup"
+        elif statsField == "VO":
+            selector = "VO"
         else:
             selector = statsField
 
