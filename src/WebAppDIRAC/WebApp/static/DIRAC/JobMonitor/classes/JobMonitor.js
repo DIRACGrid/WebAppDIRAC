@@ -80,13 +80,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
   },
   dataFields: [
     {
-      name: "SystemPriority",
-      type: "float",
-    },
-    {
-      name: "ApplicationNumStatus",
-    },
-    {
       name: "JobID",
       type: "int",
     },
@@ -99,9 +92,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       name: "VerifiedFlag",
     },
     {
-      name: "RetrievedFlag",
-    },
-    {
       name: "Status",
     },
     {
@@ -112,9 +102,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
     {
       name: "RescheduleCounter",
       type: "int",
-    },
-    {
-      name: "JobSplitType",
     },
     {
       name: "MinorStatus",
@@ -131,12 +118,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       name: "JobType",
     },
     {
-      name: "MasterJobID",
-    },
-    {
-      name: "KilledFlag",
-    },
-    {
       name: "RescheduleTime",
     },
     {
@@ -150,12 +131,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
     },
     {
       name: "JobName",
-    },
-    {
-      name: "AccountedFlag",
-    },
-    {
-      name: "OSandboxReadyFlag",
     },
     {
       name: "LastUpdateTime",
@@ -174,19 +149,10 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       name: "OwnerGroup",
     },
     {
-      name: "ISandboxReadyFlag",
-    },
-    {
       name: "UserPriority",
     },
     {
       name: "Owner",
-    },
-    {
-      name: "DeletedFlag",
-    },
-    {
-      name: "TaskQueueID",
     },
     {
       name: "JobType",
@@ -478,26 +444,8 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           hidden: true,
         },
       },
-      AccountedFlag: {
-        dataIndex: "AccountedFlag",
-        properties: {
-          hidden: true,
-        },
-      },
-      OSandboxReadyFlag: {
-        dataIndex: "OSandboxReadyFlag",
-        properties: {
-          hidden: true,
-        },
-      },
       Owner: {
         dataIndex: "Owner",
-      },
-      TaskQueueID: {
-        dataIndex: "TaskQueueID",
-        properties: {
-          hidden: true,
-        },
       },
       OwnerGroup: {
         dataIndex: "OwnerGroup",
