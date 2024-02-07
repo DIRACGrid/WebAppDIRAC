@@ -1,3 +1,7 @@
+[v6.0.0a4]
+
+CHANGE: (#754) remove proxies persistency flag
+
 [v6.0.0a3]
 
 CHANGE: (#752) PilotAgents: from OwnerGroup to VO"
