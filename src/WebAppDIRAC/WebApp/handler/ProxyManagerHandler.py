@@ -65,13 +65,12 @@ class ProxyManagerHandler(WebHandler):
         sortField="UserName",
         username="[]",
         usergroup="[]",
-        persistent="",
         expiredBefore=0,
         expiredAfter=0,
     ):
         if self.getUserName().lower() == "anonymous":
             return {"success": "false", "error": "You are not authorize to access these data"}
-        req = self.__prepareParameters(username, usergroup, persistent, expiredBefore, expiredAfter)
+        req = self.__prepareParameters(username, usergroup, expiredBefore, expiredAfter)
         gLogger.info("!!!  S O R T : ", sort := [[sortField, sortDirection]])
         # pylint: disable=no-member
         result = gProxyManager.getDBContents(req, sort, start, limit)
@@ -89,7 +88,6 @@ class ProxyManagerHandler(WebHandler):
                     "UserDN": record[1],
                     "UserGroup": record[2],
                     "ExpirationTime": str(record[3]),
-                    "PersistentFlag": str(record[4]),
                 }
             )
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
@@ -147,14 +145,13 @@ class ProxyManagerHandler(WebHandler):
         elif day > 0:
             return f"{day} days"
 
-    def __prepareParameters(self, username, usergroup, persistent, expiredBefore, expiredAfter):
+    def __prepareParameters(self, username, usergroup, expiredBefore, expiredAfter):
         req = {}
         if users := list(json.loads(username)):
             req["UserName"] = users
         if usersgroup := list(json.loads(usergroup)):
             req["UserGroup"] = usersgroup
-        if usersgroup and persistent in ["True", "False"]:
-            req["PersistentFlag"] = persistent
+
         if expiredBefore > expiredAfter:
             expiredBefore, expiredAfter = expiredAfter, expiredBefore
         if expiredBefore:

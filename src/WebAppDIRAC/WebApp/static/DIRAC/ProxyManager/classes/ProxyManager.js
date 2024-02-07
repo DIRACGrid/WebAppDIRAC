@@ -61,9 +61,6 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
       type: "date",
       dateFormat: "Y-m-d H:i:s",
     },
-    {
-      name: "PersistentFlag",
-    },
   ],
 
   initComponent: function () {
@@ -195,13 +192,6 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
           } else {
             return '<span style="color:green">' + Ext.Date.format(record.data.ExpirationTime, "Y-m-d H:i:s") + "</span>";
           }
-        },
-      },
-      Persistent: {
-        dataIndex: "PersistentFlag",
-        properties: {
-          width: 100,
-          sortable: true,
         },
       },
     };
