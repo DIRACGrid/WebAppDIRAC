@@ -4,7 +4,6 @@ import datetime
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import DictCache
 from DIRAC.Core.Utilities.Graphs.Palette import Palette
-from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
 from DIRAC.WorkloadManagementSystem.Client.JobManagerClient import JobManagerClient
@@ -255,6 +254,10 @@ class JobMonitorHandler(WebHandler):
         ownerGroup = list(json.loads(self.get_argument("OwnerGroup", "[]")))
         if ownerGroup:
             req["OwnerGroup"] = ownerGroup
+
+        vo = list(json.loads(self.get_argument("vo", "[]")))
+        if vo:
+            req["vo"] = vo
 
         if self.get_argument("startDate", ""):
             req["FromDate"] = self.get_argument("startDate")
