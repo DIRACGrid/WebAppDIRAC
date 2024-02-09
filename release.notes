@@ -1,3 +1,7 @@
+[v6.0.0a5]
+
+CHANGE: (#753) Added VO selector to JobMonitor
+
 [v6.0.0a4]
 
 CHANGE: (#754) remove proxies persistency flag
