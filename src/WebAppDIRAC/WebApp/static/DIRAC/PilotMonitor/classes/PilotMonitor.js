@@ -94,9 +94,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       name: "GridType",
     },
     {
-      name: "TaskQueueID",
-    },
-    {
       name: "CurrentJobID",
     },
     {
@@ -188,17 +185,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       VO: "VO",
       owner: "Owner",
       broker: "Broker",
-    };
-
-    var textFields = {
-      taskQueueId: {
-        name: "Task Queue ID",
-        type: "number",
-      },
-      pilotId: {
-        name: "Pilot Job Reference",
-        type: "originalText",
-      },
     };
 
     var map = [
@@ -369,9 +355,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       },
       GridType: {
         dataIndex: "GridType",
-      },
-      TaskQueueID: {
-        dataIndex: "TaskQueueID",
       },
       BenchMark: {
         dataIndex: "BenchMark",

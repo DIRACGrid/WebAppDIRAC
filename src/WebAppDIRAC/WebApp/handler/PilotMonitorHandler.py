@@ -135,10 +135,6 @@ class PilotMonitorHandler(WebHandler):
         if site:
             req["GridSite"] = site
 
-        taskQueueId = list(json.loads(self.get_argument("taskQueueId", "[]")))
-        if taskQueueId:
-            req["TaskQueueID"] = taskQueueId
-
         pilotId = list(json.loads(self.get_argument("pilotId", "[]")))
         if pilotId:
             req["PilotJobReference"] = pilotId
