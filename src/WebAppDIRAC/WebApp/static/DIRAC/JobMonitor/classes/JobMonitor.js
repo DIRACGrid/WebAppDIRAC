@@ -80,13 +80,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
   },
   dataFields: [
     {
-      name: "SystemPriority",
-      type: "float",
-    },
-    {
-      name: "ApplicationNumStatus",
-    },
-    {
       name: "JobID",
       type: "int",
     },
@@ -97,9 +90,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
     },
     {
       name: "VerifiedFlag",
-    },
-    {
-      name: "RetrievedFlag",
     },
     {
       name: "Status",
@@ -114,9 +104,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       type: "int",
     },
     {
-      name: "JobSplitType",
-    },
-    {
       name: "MinorStatus",
     },
     {
@@ -129,12 +116,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
     },
     {
       name: "JobType",
-    },
-    {
-      name: "MasterJobID",
-    },
-    {
-      name: "KilledFlag",
     },
     {
       name: "RescheduleTime",
@@ -152,12 +133,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       name: "JobName",
     },
     {
-      name: "AccountedFlag",
-    },
-    {
-      name: "OSandboxReadyFlag",
-    },
-    {
       name: "LastUpdateTime",
       type: "date",
       dateFormat: "Y-m-d H:i:s",
@@ -171,22 +146,16 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       dateFormat: "Y-m-d H:i:s",
     },
     {
-      name: "OwnerGroup",
+      name: "VO",
     },
     {
-      name: "ISandboxReadyFlag",
+      name: "OwnerGroup",
     },
     {
       name: "UserPriority",
     },
     {
       name: "Owner",
-    },
-    {
-      name: "DeletedFlag",
-    },
-    {
-      name: "TaskQueueID",
     },
     {
       name: "JobType",
@@ -258,6 +227,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       appStatus: "Application Status",
       owner: "Owner",
       OwnerGroup: "OwnerGroup",
+      VO: "VO",
       jobGroup: "Job Group",
       jobType: "Job Type",
     };
@@ -283,6 +253,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       ["status", "status"],
       ["types", "jobType"],
       ["OwnerGroup", "OwnerGroup"],
+      ["VO", "VO"],
     ];
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -414,6 +385,9 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       Site: {
         dataIndex: "Site",
       },
+      VO: {
+        dataIndex: "VO",
+      },
       JobName: {
         dataIndex: "JobName",
         properties: {
@@ -478,26 +452,8 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           hidden: true,
         },
       },
-      AccountedFlag: {
-        dataIndex: "AccountedFlag",
-        properties: {
-          hidden: true,
-        },
-      },
-      OSandboxReadyFlag: {
-        dataIndex: "OSandboxReadyFlag",
-        properties: {
-          hidden: true,
-        },
-      },
       Owner: {
         dataIndex: "Owner",
-      },
-      TaskQueueID: {
-        dataIndex: "TaskQueueID",
-        properties: {
-          hidden: true,
-        },
       },
       OwnerGroup: {
         dataIndex: "OwnerGroup",
@@ -727,7 +683,7 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["category"],
-        data: [["Status"], ["Site"], ["Minor Status"], ["Application Status"], ["Owner"], ["Owner Group"], ["Job Group"], ["Job Type"]],
+        data: [["Status"], ["Site"], ["Minor Status"], ["Application Status"], ["Owner"], ["Owner Group"], ["VO"], ["Job Group"], ["Job Type"]],
       }),
       triggerAction: "all",
       value: "Status",
