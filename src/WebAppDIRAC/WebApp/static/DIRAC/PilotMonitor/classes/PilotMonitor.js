@@ -94,17 +94,11 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       name: "GridType",
     },
     {
-      name: "TaskQueueID",
-    },
-    {
       name: "CurrentJobID",
     },
     {
       name: "BenchMark",
       type: "float",
-    },
-    {
-      name: "Broker",
     },
     {
       name: "GridSite",
@@ -187,14 +181,9 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       computingElement: "Computing Element",
       VO: "VO",
       owner: "Owner",
-      broker: "Broker",
     };
 
     var textFields = {
-      taskQueueId: {
-        name: "Task Queue ID",
-        type: "number",
-      },
       pilotId: {
         name: "Pilot Job Reference",
         type: "originalText",
@@ -207,7 +196,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       ["computingElement", "computingElement"],
       ["VO", "VO"],
       ["owner", "owner"],
-      ["broker", "broker"],
     ];
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -361,17 +349,11 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       ComputingElement: {
         dataIndex: "DestinationSite",
       },
-      Broker: {
-        dataIndex: "Broker",
-      },
       CurrentJobID: {
         dataIndex: "CurrentJobID",
       },
       GridType: {
         dataIndex: "GridType",
-      },
-      TaskQueueID: {
-        dataIndex: "TaskQueueID",
       },
       BenchMark: {
         dataIndex: "BenchMark",
@@ -452,7 +434,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["category"],
-        data: [["Status"], ["Site"], ["Computing Element"], ["VO"], ["Owner"], ["Broker"]],
+        data: [["Status"], ["Site"], ["Computing Element"], ["VO"], ["Owner"]],
       }),
       triggerAction: "all",
       value: "Status",
