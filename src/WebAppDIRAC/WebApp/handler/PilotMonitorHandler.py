@@ -108,13 +108,6 @@ class PilotMonitorHandler(WebHandler):
             else:
                 site = [["Error during RPC call"]]
             callback["site"] = site
-            if "Broker" in result and len(result["Broker"]) > 0:
-                broker = []
-                for i in result["Broker"]:
-                    broker.append([str(i)])
-            else:
-                broker = [["Nothing to display"]]
-            callback["broker"] = broker
             if "Owner" in result and len(result["Owner"]) > 0:
                 owner = []
                 for i in result["Owner"]:
@@ -138,10 +131,6 @@ class PilotMonitorHandler(WebHandler):
         pilotId = list(json.loads(self.get_argument("pilotId", "[]")))
         if pilotId:
             req["PilotJobReference"] = pilotId
-
-        broker = list(json.loads(self.get_argument("broker", "[]")))
-        if broker:
-            req["broker"] = broker
 
         status = list(json.loads(self.get_argument("status", "[]")))
         if status:

@@ -101,9 +101,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       type: "float",
     },
     {
-      name: "Broker",
-    },
-    {
       name: "GridSite",
     },
     {
@@ -184,7 +181,13 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       computingElement: "Computing Element",
       VO: "VO",
       owner: "Owner",
-      broker: "Broker",
+    };
+
+    var textFields = {
+      pilotId: {
+        name: "Pilot Job Reference",
+        type: "originalText",
+      },
     };
 
     var map = [
@@ -193,7 +196,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       ["computingElement", "computingElement"],
       ["VO", "VO"],
       ["owner", "owner"],
-      ["broker", "broker"],
     ];
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -347,9 +349,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       ComputingElement: {
         dataIndex: "DestinationSite",
       },
-      Broker: {
-        dataIndex: "Broker",
-      },
       CurrentJobID: {
         dataIndex: "CurrentJobID",
       },
@@ -435,7 +434,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["category"],
-        data: [["Status"], ["Site"], ["Computing Element"], ["VO"], ["Owner"], ["Broker"]],
+        data: [["Status"], ["Site"], ["Computing Element"], ["VO"], ["Owner"]],
       }),
       triggerAction: "all",
       value: "Status",
