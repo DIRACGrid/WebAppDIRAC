@@ -51,19 +51,14 @@ class JobLaunchpadHandler(WebHandler):
     def __getProxyStatus(self):
         proxyManager = ProxyManagerClient()
 
-        group = self.getUserGroup()
-
-        if group == "visitor":
-            return {"success": "false", "error": "User is anonymous or is not registered in the system"}
-
         userDN = self.getUserDN()
 
         defaultSeconds = 24 * 3600 + 60  # 24H + 1min
         validSeconds = gConfig.getValue("/Registry/DefaultProxyLifeTime", defaultSeconds)
 
-        gLogger.info(f"\033[0;31m userHasProxy({userDN}, {group}, {validSeconds}) \033[0m")
+        gLogger.info(f"\033[0;31m userHasProxy({userDN}, {validSeconds}) \033[0m")
 
-        if (result := proxyManager.userHasProxy(userDN, group, validSeconds))["OK"]:
+        if (result := proxyManager.userHasProxy(userDN, validSeconds))["OK"]:
             return {"success": "true", "result": "true" if result["Value"] else "false"}
         return {"success": "false", "error": "false"}
 

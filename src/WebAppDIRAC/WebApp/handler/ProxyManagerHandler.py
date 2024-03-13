@@ -23,23 +23,14 @@ class ProxyManagerHandler(WebHandler):
             return {"success": "false", "error": result["Message"]}
         data = result["Value"]
         users = []
-        groups = []
         for record in data["Records"]:
             users.append(str(record[0]))
-            groups.append(str(record[2]))
-        # AL:
-        # for record in data["Dictionaries"]:
-        #   users.append(record['user'])
-        #   groups += record['groups']
+
         users = uniqueElements(users)
-        groups = uniqueElements(groups)
         users.sort()
-        groups.sort()
         users = [[x] for x in users]
-        groups = [[x] for x in groups]
 
         callback["username"] = users
-        callback["usergroup"] = groups
         result = gConfig.getOption("/WebApp/ProxyManagementMonitoring/TimeSpan", "86400,432000,604800,2592000")
         if result["OK"]:
             tmp = result["Value"]
@@ -64,17 +55,14 @@ class ProxyManagerHandler(WebHandler):
         sortDirection="ASC",
         sortField="UserName",
         username="[]",
-        usergroup="[]",
         expiredBefore=0,
         expiredAfter=0,
     ):
         if self.getUserName().lower() == "anonymous":
             return {"success": "false", "error": "You are not authorize to access these data"}
-        req = self.__prepareParameters(username, usergroup, expiredBefore, expiredAfter)
+        req = self.__prepareParameters(username, expiredBefore, expiredAfter)
         gLogger.info("!!!  S O R T : ", sort := [[sortField, sortDirection]])
-        # pylint: disable=no-member
         result = gProxyManager.getDBContents(req, sort, start, limit)
-        # result = gProxyManager.getDBContents(None, None, req, start, limit)
         gLogger.info(f"*!*!*!  RESULT: \n{result}")
         if not result["OK"]:
             return {"success": "false", "error": result["Message"]}
@@ -86,7 +74,6 @@ class ProxyManagerHandler(WebHandler):
                     "proxyid": f"{record[1]}@{record[2]}",
                     "UserName": str(record[0]),
                     "UserDN": record[1],
-                    "UserGroup": record[2],
                     "ExpirationTime": str(record[3]),
                 }
             )
@@ -101,8 +88,7 @@ class ProxyManagerHandler(WebHandler):
         for id in webIds:
             spl = id.split("@")
             dn = "@".join(spl[:-1])
-            group = spl[-1]
-            idList.append((dn, group))
+            idList.append((dn, ))
         retVal = gProxyManager.deleteProxyBundle(idList)
         # for uid in webIds:
         #   spl = uid.split("@")
@@ -145,12 +131,10 @@ class ProxyManagerHandler(WebHandler):
         elif day > 0:
             return f"{day} days"
 
-    def __prepareParameters(self, username, usergroup, expiredBefore, expiredAfter):
+    def __prepareParameters(self, username, expiredBefore, expiredAfter):
         req = {}
         if users := list(json.loads(username)):
             req["UserName"] = users
-        if usersgroup := list(json.loads(usergroup)):
-            req["UserGroup"] = usersgroup
 
         if expiredBefore > expiredAfter:
             expiredBefore, expiredAfter = expiredAfter, expiredBefore
