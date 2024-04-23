@@ -305,11 +305,8 @@ class WebHandler(TornadoREST):
         if "exc_info" in kwargs:
             ex = kwargs["exc_info"][1]
             trace = traceback.format_exception(*kwargs["exc_info"])
-            if not isinstance(ex, WErr):
-                data += "\n".join(trace)
-            else:
-                if self.settings.get("debug"):
-                    self.log.error("Request ended in error:\n  %s" % "\n  ".join(trace))
+            self.log.error("Request ended in error:\n  %s" % "\n  ".join(trace))
+            if isinstance(ex, WErr):
                 data = ex.msg
                 if isinstance(data, dict):
                     cType = "application/json"
