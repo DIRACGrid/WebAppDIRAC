@@ -21,7 +21,7 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT || github.token }}
       - run: |
@@ -29,7 +29,7 @@ jobs:
           git config --global user.email "ci@diracgrid.org"
           git config --global user.name "DIRACGrid CI"
           git clone https://github.com/DIRACGrid/DIRAC.git ../DIRAC
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Installing dependencies
