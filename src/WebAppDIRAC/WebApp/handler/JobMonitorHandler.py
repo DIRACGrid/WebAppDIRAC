@@ -4,7 +4,6 @@ import datetime
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import DictCache
 from DIRAC.Core.Utilities.Graphs.Palette import Palette
-from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
 from DIRAC.WorkloadManagementSystem.Client.JobManagerClient import JobManagerClient
@@ -284,6 +283,7 @@ class JobMonitorHandler(WebHandler):
         ids = [int(i) for i in ids]
 
         RPC = JobManagerClient()
+        result = None
         if self.get_argument("action") == "delete":
             result = RPC.deleteJob(ids)
         elif self.get_argument("action") == "kill":
