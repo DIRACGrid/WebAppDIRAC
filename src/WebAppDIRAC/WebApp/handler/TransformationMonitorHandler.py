@@ -213,6 +213,7 @@ class TransformationMonitorHandler(WebHandler):
 
     def __fileRetry(self, prodid, mode):
         tsClient = TransformationClient()
+        result = None
         if mode == "proc":
             result = tsClient.getTransformationFilesCount(prodid, "ErrorCount", {"Status": "Processed"})
         elif mode == "not":

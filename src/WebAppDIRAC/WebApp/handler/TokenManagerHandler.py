@@ -2,7 +2,7 @@ import json
 import datetime
 import jwt
 
-from DIRAC import gConfig, gLogger
+from DIRAC import gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getAllUsers
 from DIRAC.FrameworkSystem.Client.TokenManagerClient import TokenManagerClient
 
@@ -93,6 +93,7 @@ class TokenManagerHandler(WebHandler):
         :return: dict
         """
         if (result := self.tm.getTokensByUserID(userid))["OK"]:
+            res = ""
             if data_kind == "getAccessToken":
                 res = (
                     str(jwt.decode(result["Value"][0]["access_token"], options={"verify_signature": False}))

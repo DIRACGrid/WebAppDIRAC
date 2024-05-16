@@ -111,7 +111,7 @@ class VMDiracHandler(WebHandler):
             eTime = TimeUtilities.toEpoch(record[0])
             if eTime < olderThan:
                 rL = [eTime, record[1], int(record[2])]
-            data.append(rL)
+                data.append(rL)
         return {"success": "true", "data": data}
 
     def web_getRunningInstancesByRunningPodHistory(self, bucketSize=900, timespan=86400):
@@ -124,7 +124,7 @@ class VMDiracHandler(WebHandler):
             eTime = TimeUtilities.toEpoch(record[0])
             if eTime < olderThan:
                 rL = [eTime, record[1], int(record[2])]
-            data.append(rL)
+                data.append(rL)
         return {"success": "true", "data": data}
 
     def web_getRunningInstancesByImageHistory(self, bucketSize=900, timespan=86400):
@@ -137,5 +137,5 @@ class VMDiracHandler(WebHandler):
             eTime = TimeUtilities.toEpoch(record[0])
             if eTime < olderThan:
                 rL = [eTime, record[1], int(record[2])]
-            data.append(rL)
+                data.append(rL)
         return {"success": "true", "data": data}
