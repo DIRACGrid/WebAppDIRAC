@@ -203,7 +203,6 @@ class SessionData:
             "validGroups": [],
             # 'groupsStatuses': '',
             "setup": self.__setup,
-            "validSetups": gConfig.getSections("/DIRAC/Setups")["Value"],
             "extensions": self.__extensions,
             "extVersion": self.getExtJSVersion(),
         }
