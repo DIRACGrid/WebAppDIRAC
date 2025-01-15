@@ -63,17 +63,20 @@ def _checkDIRACVersion():
     """
     from importlib.metadata import requires, version  # pylint: disable=import-error,no-name-in-module
     from packaging.requirements import Requirement  # pylint: disable=no-name-in-module
+    from packaging.specifiers import SpecifierSet
 
     deps = [Requirement(x) for x in requires("WebAppDIRAC")]
     deps = [x for x in deps if x.name.lower() == "dirac"]
     if len(deps) != 1:
         raise NotImplementedError(f"This shouldn't be possible: {deps!r}")
+
     dirac_version = version("DIRAC")
-    dirac_spec = deps[0].specifier
+    dirac_spec = SpecifierSet(deps[0].specifier, prereleases=True)
+
     if dirac_version not in dirac_spec:
         raise RuntimeError(
             "WebAppDIRAC {} requires {} but {} is incompatible".format(
-                version("WebAppDIRAC"), dirac_version, dirac_spec
+                version("WebAppDIRAC"), dirac_spec, dirac_version
             )
         )
 
