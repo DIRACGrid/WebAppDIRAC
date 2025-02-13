@@ -61,9 +61,8 @@ class ProxyManagerHandler(WebHandler):
         if self.getUserName().lower() == "anonymous":
             return {"success": "false", "error": "You are not authorize to access these data"}
         req = self.__prepareParameters(username, expiredBefore, expiredAfter)
-        gLogger.info("!!!  S O R T : ", sort := [[sortField, sortDirection]])
+        sort = [[sortField, sortDirection]]
         result = gProxyManager.getDBContents(req, sort, start, limit)
-        gLogger.info(f"*!*!*!  RESULT: \n{result}")
         if not result["OK"]:
             return {"success": "false", "error": result["Message"]}
         svcData = result["Value"]
@@ -72,9 +71,9 @@ class ProxyManagerHandler(WebHandler):
             proxies.append(
                 {
                     "proxyid": f"{record[1]}@{record[2]}",
-                    "UserName": str(record[0]),
+                    "UserName": record[0],
                     "UserDN": record[1],
-                    "ExpirationTime": str(record[3]),
+                    "ExpirationTime": str(record[2]),
                 }
             )
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M [UTC]")
