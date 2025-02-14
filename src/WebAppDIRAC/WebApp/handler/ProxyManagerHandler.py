@@ -70,7 +70,7 @@ class ProxyManagerHandler(WebHandler):
         for record in svcData["Records"]:
             proxies.append(
                 {
-                    "proxyid": f"{record[1]}@{record[2]}",
+                    "proxyid": f"{record[1]}",
                     "UserName": record[0],
                     "UserDN": record[1],
                     "ExpirationTime": str(record[2]),
