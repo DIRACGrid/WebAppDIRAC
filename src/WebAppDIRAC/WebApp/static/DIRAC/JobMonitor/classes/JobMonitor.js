@@ -121,9 +121,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       name: "RescheduleTime",
     },
     {
-      name: "FailedFlag",
-    },
-    {
       name: "CPUTime",
     },
     {
@@ -416,12 +413,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           width: 150,
         },
       },
-      FailedFlag: {
-        dataIndex: "FailedFlag",
-        properties: {
-          hidden: true,
-        },
-      },
       RescheduleCounter: {
         dataIndex: "RescheduleCounter",
         properties: {
@@ -430,12 +421,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       },
       CPUTime: {
         dataIndex: "CPUTime",
-        properties: {
-          hidden: true,
-        },
-      },
-      OwnerDN: {
-        dataIndex: "OwnerDN",
         properties: {
           hidden: true,
         },
