@@ -107,9 +107,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       name: "PilotID",
     },
     {
-      name: "ParentID",
-    },
-    {
       name: "SubmissionTime",
       type: "date",
       dateFormat: "Y-m-d H:i:s",
@@ -369,12 +366,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       },
       PilotID: {
         dataIndex: "PilotID",
-        properties: {
-          hidden: true,
-        },
-      },
-      ParentID: {
-        dataIndex: "ParentID",
         properties: {
           hidden: true,
         },
