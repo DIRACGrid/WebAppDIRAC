@@ -5,10 +5,10 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import DictCache
 from DIRAC.Core.Utilities.Graphs.Palette import Palette
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
+from DIRAC.MonitoringSystem.Client.WebAppClient import WebAppClient
 from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
 from DIRAC.WorkloadManagementSystem.Client.JobManagerClient import JobManagerClient
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
-from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
 from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
@@ -22,7 +22,7 @@ class JobMonitorHandler(WebHandler):
     def web_getJobData(self):
         req = self._request()
 
-        result = JobMonitoringClient().getJobPageSummaryWeb(req, self.globalSort, self.pageNumber, self.numberOfJobs)
+        result = WebAppClient().getJobPageSummaryWeb(req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
         if not result["OK"]:
             return {"success": "false", "result": [], "total": 0, "error": result["Message"]}
@@ -375,12 +375,12 @@ class JobMonitorHandler(WebHandler):
                 return {"success": "false", "error": "StagerReport not available"}
             return {"success": "false", "error": result["Message"]}
         if data_kind == "getPilotStdOut":
-            if not (result := WMSAdministratorClient().getJobPilotOutput(id))["OK"]:
+            if not (result := WebAppClient().getJobPilotOutput(id))["OK"]:
                 return {"success": "false", "error": result["Message"]}
             if "StdOut" in result["Value"]:
                 return {"success": "true", "result": result["Value"]["StdOut"]}
         if data_kind == "getPilotStdErr":
-            if not (result := WMSAdministratorClient().getJobPilotOutput(id))["OK"]:
+            if not (result := WebAppClient().getJobPilotOutput(id))["OK"]:
                 return {"success": "false", "error": result["Message"]}
             if "StdErr" in result["Value"]:
                 return {"success": "true", "result": result["Value"]["StdErr"]}
