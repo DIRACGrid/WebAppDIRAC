@@ -64,37 +64,19 @@ class PilotMonitorHandler(WebHandler):
         if (result := WebAppClient().getPilotMonitorSelectors())["OK"]:
             result = result["Value"]
 
-            if "Status" in result and len(result["Status"]) > 0:
-                status = []
-                for i in result["Status"]:
-                    status.append([str(i)])
-            else:
-                status = [["Nothing to display"]]
-            callback["status"] = status
-
-            if "GridType" in result and len(result["GridType"]) > 0:
-                gridtype = []
-                for i in result["GridType"]:
-                    gridtype.append([str(i)])
-            else:
-                gridtype = [["Nothing to display"]]
-            callback["gridtype"] = gridtype
-
-            if "VO" in result and len(result["VO"]) > 0:
-                VO = []
-                for i in result["VO"]:
-                    VO.append([str(i)])
-            else:
-                VO = [["Nothing to display"]]
-            callback["VO"] = VO
-
-            if "DestinationSite" in result and len(result["DestinationSite"]) > 0:
-                ce = []
-                for i in result["DestinationSite"]:
-                    ce.append([str(i)])
-            else:
-                ce = [["Nothing to display"]]
-            callback["computingElement"] = ce
+            # Define the mapping of result keys to callback keys
+            fields = [
+                ("Status", "status"),
+                ("GridType", "gridtype"),
+                ("VO", "VO"),
+                ("DestinationSite", "computingElement"),
+            ]
+            for result_key, callback_key in fields:
+                if result_key in result and len(result[result_key]) > 0:
+                    values = [[str(i)] for i in result[result_key]]
+                else:
+                    values = [["Nothing to display"]]
+                callback[callback_key] = values
 
             if "GridSite" in result and len(result["GridSite"]) > 0:
                 tier1 = gConfig.getValue("/WebApp/PreferredSites", [])
@@ -108,13 +90,6 @@ class PilotMonitorHandler(WebHandler):
             else:
                 site = [["Error during RPC call"]]
             callback["site"] = site
-            if "Owner" in result and len(result["Owner"]) > 0:
-                owner = []
-                for i in result["Owner"]:
-                    owner.append([str(i)])
-            else:
-                owner = [["Nothing to display"]]
-            callback["owner"] = owner
 
         return callback
 
@@ -139,10 +114,6 @@ class PilotMonitorHandler(WebHandler):
         ce = list(json.loads(self.get_argument("computingElement", "[]")))
         if ce:
             req["DestinationSite"] = ce
-
-        owner = list(json.loads(self.get_argument("owner", "[]")))
-        if owner:
-            req["Owner"] = owner
 
         VO = list(json.loads(self.get_argument("VO", "[]")))
         if VO:

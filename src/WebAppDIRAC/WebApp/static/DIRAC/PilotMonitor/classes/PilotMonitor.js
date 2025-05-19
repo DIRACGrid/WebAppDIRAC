@@ -115,9 +115,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       name: "PilotJobReference",
     },
     {
-      name: "Owner",
-    },
-    {
       name: "StatusIcon",
       mapping: "Status",
     },
@@ -177,7 +174,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       status: "Status",
       computingElement: "Computing Element",
       VO: "VO",
-      owner: "Owner",
     };
 
     var textFields = {
@@ -192,7 +188,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       ["status", "status"],
       ["computingElement", "computingElement"],
       ["VO", "VO"],
-      ["owner", "owner"],
     ];
 
     me.leftPanel = Ext.create("Ext.dirac.utils.DiracBaseSelector", {
@@ -355,12 +350,6 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       BenchMark: {
         dataIndex: "BenchMark",
       },
-      Owner: {
-        dataIndex: "Owner",
-        properties: {
-          hidden: true,
-        },
-      },
       VO: {
         dataIndex: "VO",
       },
@@ -425,7 +414,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
       mode: "local",
       store: new Ext.data.ArrayStore({
         fields: ["category"],
-        data: [["Status"], ["Site"], ["Computing Element"], ["VO"], ["Owner"]],
+        data: [["Status"], ["Site"], ["Computing Element"], ["VO"]],
       }),
       triggerAction: "all",
       value: "Status",
