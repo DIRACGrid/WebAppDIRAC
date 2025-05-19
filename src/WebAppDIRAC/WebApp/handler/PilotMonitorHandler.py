@@ -3,7 +3,7 @@ import datetime
 
 from DIRAC import gConfig, S_OK, gLogger
 from DIRAC.Core.Utilities.Graphs.Palette import Palette
-from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
+from DIRAC.MonitoringSystem.Client.WebAppClient import WebAppClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler
 
 
@@ -13,7 +13,7 @@ class PilotMonitorHandler(WebHandler):
     def web_getPilotData(self):
         req = self.__request()
 
-        result = PilotManagerClient().getPilotMonitorWeb(req, self.globalSort, self.pageNumber, self.numberOfJobs)
+        result = WebAppClient().getPilotMonitorWeb(req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
         if not result["OK"]:
             return {"success": "false", "result": [], "total": 0, "error": result["Message"]}
@@ -61,7 +61,7 @@ class PilotMonitorHandler(WebHandler):
             tmp = {self.get_argument(i).replace('"', "") for i in self.request.arguments}
             callback["extra"] = list(tmp)
 
-        if (result := PilotManagerClient().getPilotMonitorSelectors())["OK"]:
+        if (result := WebAppClient().getPilotMonitorSelectors())["OK"]:
             result = result["Value"]
 
             if "Status" in result and len(result["Status"]) > 0:
@@ -168,7 +168,7 @@ class PilotMonitorHandler(WebHandler):
         return req
 
     def web_getJobInfoData(self, data):
-        RPC = PilotManagerClient()
+        RPC = WebAppClient()
         if self.get_argument("data_kind") == "getPilotOutput":
             if (result := RPC.getPilotOutput(data))["OK"]:
                 return {"success": "true", "result": result["Value"]["StdOut"]}
@@ -190,7 +190,7 @@ class PilotMonitorHandler(WebHandler):
 
         paletteColor = Palette()
 
-        RPC = PilotManagerClient()
+        RPC = WebAppClient()
 
         if statsField == "Site":
             selector = "GridSite"

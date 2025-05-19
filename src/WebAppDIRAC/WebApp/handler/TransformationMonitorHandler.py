@@ -6,7 +6,7 @@ import json
 
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import TimeUtilities
-from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from DIRAC.MonitoringSystem.Client.WebAppClient import WebAppClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
@@ -18,8 +18,8 @@ class TransformationMonitorHandler(WebHandler):
         if self.getUserName().lower() == "anonymous":
             return {"prod": [["Insufficient rights"]]}
 
-        tsClient = TransformationClient()
-        if (result := tsClient.getDistinctAttributeValues("Plugin", {}))["OK"]:
+        waClient = WebAppClient()
+        if (result := waClient.getDistinctAttributeValues("Plugin", {}))["OK"]:
             plugin = []
             if len(result["Value"]) > 0:
                 for i in result["Value"]:
@@ -30,7 +30,7 @@ class TransformationMonitorHandler(WebHandler):
             plugin = "Error during RPC call"
         callback = {"plugin": plugin}
 
-        if (result := tsClient.getDistinctAttributeValues("Status", {}))["OK"]:
+        if (result := waClient.getDistinctAttributeValues("Status", {}))["OK"]:
             status = []
             if len(result["Value"]) > 0:
                 for i in result["Value"]:
@@ -41,7 +41,7 @@ class TransformationMonitorHandler(WebHandler):
             status = "Error during RPC call"
         callback["prodStatus"] = status
 
-        if (result := tsClient.getDistinctAttributeValues("TransformationGroup", {}))["OK"]:
+        if (result := waClient.getDistinctAttributeValues("TransformationGroup", {}))["OK"]:
             group = []
             if len(result["Value"]) > 0:
                 for i in result["Value"]:
@@ -52,7 +52,7 @@ class TransformationMonitorHandler(WebHandler):
             group = "Error during RPC call"
         callback["transformationGroup"] = group
 
-        if (result := tsClient.getDistinctAttributeValues("AgentType", {}))["OK"]:
+        if (result := waClient.getDistinctAttributeValues("AgentType", {}))["OK"]:
             atype = []
             if len(result["Value"]) > 0:
                 for i in result["Value"]:
@@ -63,7 +63,7 @@ class TransformationMonitorHandler(WebHandler):
             atype = "Error during RPC call"
         callback["agentType"] = atype
 
-        if (result := tsClient.getDistinctAttributeValues("Type", {}))["OK"]:
+        if (result := waClient.getDistinctAttributeValues("Type", {}))["OK"]:
             transType = []
             if result["Value"]:
                 for i in result["Value"]:
@@ -116,8 +116,8 @@ class TransformationMonitorHandler(WebHandler):
             TransformationFamily,
         )
 
-        tsClient = TransformationClient(timeout=3600)
-        if not (result := tsClient.getTransformationSummaryWeb(params, self.globalSort, start, limit))["OK"]:
+        waClient = WebAppClient(timeout=3600)
+        if not (result := waClient.getTransformationSummaryWeb(params, self.globalSort, start, limit))["OK"]:
             return {"success": "false", "error": result["Message"]}
 
         data = result["Value"]
@@ -175,7 +175,7 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "false", "error": "Action is unknown!!!"}
 
     def web_executeOperation(self, action, ids):
-        tsClient = TransformationClient()
+        waClient = WebAppClient()
 
         agentType = "Manual"
         if action == "clean":
@@ -197,10 +197,10 @@ class TransformationMonitorHandler(WebHandler):
 
         for i in ids.split(","):
             try:
-                result = tsClient.setTransformationParameter(transid := int(i), "Status", status)
+                result = waClient.setTransformationParameter(transid := int(i), "Status", status)
                 if result["OK"]:
                     resString = f"ProdID: {transid} set to {action} successfully"
-                    result = tsClient.setTransformationParameter(transid, "AgentType", agentType)
+                    result = waClient.setTransformationParameter(transid, "AgentType", agentType)
                     if not result["OK"]:
                         resString = f"ProdID: {transid} failed to set to {action}: {result['Message']}"
                 else:
@@ -212,16 +212,16 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "true", "showResult": callback}
 
     def __fileRetry(self, prodid, mode):
-        tsClient = TransformationClient()
+        waClient = WebAppClient()
         result = None
         if mode == "proc":
-            result = tsClient.getTransformationFilesCount(prodid, "ErrorCount", {"Status": "Processed"})
+            result = waClient.getTransformationFilesCount(prodid, "ErrorCount", {"Status": "Processed"})
         elif mode == "not":
-            result = tsClient.getTransformationFilesCount(
+            result = waClient.getTransformationFilesCount(
                 prodid, "ErrorCount", {"Status": ["Unused", "Assigned", "Failed"]}
             )
         elif mode == "all":
-            result = tsClient.getTransformationFilesCount(prodid, "ErrorCount")
+            result = waClient.getTransformationFilesCount(prodid, "ErrorCount")
 
         if not result["OK"]:
             return {"success": "false", "error": result["Message"]}
@@ -238,12 +238,12 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "true", "result": resList}
 
     def __dataQuery(self, prodid):
-        tsClient = TransformationClient()
+        waClient = WebAppClient()
 
         # FIXME: getTransformationInputDataQuery has been replaced by getTransformationMetaQuery in DIRAC v7r0
-        result = tsClient.getTransformationMetaQuery(prodid, "Input")
+        result = waClient.getTransformationMetaQuery(prodid, "Input")
         if not result["OK"] and "Unknown method" in result["Message"]:
-            result = tsClient.getTransformationInputDataQuery(prodid)
+            result = waClient.getTransformationInputDataQuery(prodid)
 
         gLogger.debug("-= #######", result)
         if not result["OK"]:
@@ -253,20 +253,20 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "true", "result": back}
 
     def __additionalParams(self, prodid):
-        if not (result := TransformationClient().getAdditionalParameters(prodid))["OK"]:
+        if not (result := WebAppClient().getAdditionalParameters(prodid))["OK"]:
             return {"success": "false", "error": result["Message"]}
         data = result["Value"]
         back = [[i, data[i]] for i in sorted(data)]
         return {"success": "true", "result": back}
 
     def __workflowxml(self, transid):
-        tsClient = TransformationClient()
-        if not (result := tsClient.getTransformations({"TransformationID": transid}))["OK"]:
+        waClient = WebAppClient()
+        if not (result := waClient.getTransformations({"TransformationID": transid}))["OK"]:
             raise WErr.fromSERROR(result)
         return {"success": "true", "result": result["Value"][0]["Body"]}
 
     def __getLoggingInfo(self, transid):
-        if (result := TransformationClient().getTransformationLogging(transid))["OK"]:
+        if (result := WebAppClient().getTransformationLogging(transid))["OK"]:
             if len(data := result["Value"]) > 0:
                 callback = []
                 for i in data:
@@ -278,8 +278,8 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "false", "error": result["Message"]}
 
     def __transformationFileStatus(self, transid):
-        tsClient = TransformationClient()
-        if not (result := tsClient.getTransformationFilesCount(transid, "Status"))["OK"]:
+        waClient = WebAppClient()
+        if not (result := waClient.getTransformationFilesCount(transid, "Status"))["OK"]:
             return {"success": "false", "error": result["Message"]}
         resList = []
         if (total := result["Value"].pop("Total")) == 0:
@@ -293,8 +293,8 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "true", "result": resList}
 
     def __transformationDetail(self, prodid):
-        tsClient = TransformationClient()
-        if not (result := tsClient.getTransformationParameters(prodid, ["DetailedInfo"]))["OK"]:
+        waClient = WebAppClient()
+        if not (result := waClient.getTransformationParameters(prodid, ["DetailedInfo"]))["OK"]:
             return {"success": "false", "error": result["Message"]}
         if callback := result["Value"]:
             return {"success": "true", "result": callback}
@@ -303,7 +303,7 @@ class TransformationMonitorHandler(WebHandler):
 
     def __extendTransformation(self, transid, tasks):
         gLogger.info(f"Extend transformation ({transid}, {tasks})")
-        if (result := TransformationClient().extendTransformation(transid, tasks))["OK"]:
+        if (result := WebAppClient().extendTransformation(transid, tasks))["OK"]:
             resString = f"{transid} extended by {tasks} successfully"
         else:
             resString = f"{transid} failed to extend: {result['Message']}"
@@ -311,7 +311,7 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "true", "showResult": [resString], "result": resString}
 
     def web_showFileStatus(self, start: int, limit: int, transformationId, status):
-        result = TransformationClient().getTransformationFilesSummaryWeb(
+        result = WebAppClient().getTransformationFilesSummaryWeb(
             {"TransformationID": transformationId, "Status": status},
             [["FileID", "ASC"]],
             start,
@@ -353,7 +353,7 @@ class TransformationMonitorHandler(WebHandler):
 
     def web_setSite(self, TransformationId: int, RunNumber: int, Site):
         gLogger.info(f"\033[0;31m setTransformationRunsSite({TransformationId}, {RunNumber}, {Site}) \033[0m")
-        result = TransformationClient().setTransformationRunsSite(TransformationId, RunNumber, Site)
+        result = WebAppClient().setTransformationRunsSite(TransformationId, RunNumber, Site)
         if result["OK"]:
             return {"success": "true", "result": "true"}
         return {"success": "false", "error": result["Message"]}
@@ -375,7 +375,7 @@ class TransformationMonitorHandler(WebHandler):
         transformationGroup,
         TransformationFamily,
     ):
-        """Prepare a query dictionary which can be used with TransformationClient.getTransformationSummaryWeb
+        """Prepare a query dictionary which can be used with WebAppClient.getTransformationSummaryWeb
 
         Note: This method can be overridden by extensions
         """

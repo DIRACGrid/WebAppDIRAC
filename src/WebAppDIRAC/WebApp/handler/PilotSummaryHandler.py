@@ -2,7 +2,7 @@ import json
 import datetime
 
 from DIRAC import gConfig, gLogger
-from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
+from DIRAC.MonitoringSystem.Client.WebAppClient import WebAppClient
 from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler
 
@@ -13,7 +13,7 @@ class PilotSummaryHandler(WebHandler):
     def web_getPilotSummaryData(self):
         req = self.__request()
 
-        result = PilotManagerClient().getPilotSummaryWeb(req, self.globalSort, self.pageNumber, self.numberOfJobs)
+        result = WebAppClient().getPilotSummaryWeb(req, self.globalSort, self.pageNumber, self.numberOfJobs)
         if not result["OK"]:
             return {"success": "false", "result": [], "total": 0, "error": result["Message"]}
 

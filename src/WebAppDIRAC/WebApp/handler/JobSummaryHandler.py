@@ -2,7 +2,7 @@ import json
 from time import time
 
 from DIRAC import gLogger, gConfig
-from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
+from DIRAC.MonitoringSystem.Client.WebAppClient import WebAppClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler
 
@@ -262,7 +262,7 @@ class JobSummaryHandler(WebHandler):
     def web_getSelectionData(self):
         callback = {}
 
-        result = WMSAdministratorClient().getSiteSummarySelectors()
+        result = WebAppClient().getSiteSummarySelectors()
         gLogger.info(f"\x1b[0;31m ++++++: \x1b[0m {result}")
         if result["OK"]:
             result = result["Value"]
@@ -322,7 +322,7 @@ class JobSummaryHandler(WebHandler):
         pagestart = time()
         result = self.__request()
         gLogger.always(f"getSiteSummaryWeb({result},{self.globalSort},{self.pageNumber},{self.numberOfJobs})")
-        retVal = WMSAdministratorClient().getSiteSummaryWeb(result, [], self.pageNumber, self.numberOfJobs)
+        retVal = WebAppClient().getSiteSummaryWeb(result, [], self.pageNumber, self.numberOfJobs)
         gLogger.always("\033[0;31m YO: \033[0m", result)
         if retVal["OK"]:
             if retVal["Value"].get("TotalRecords", 0) > 0:
