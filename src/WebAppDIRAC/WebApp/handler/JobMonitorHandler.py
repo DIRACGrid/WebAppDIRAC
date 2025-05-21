@@ -412,7 +412,7 @@ class JobMonitorHandler(WebHandler):
         elif selector == "Job Type":
             selector = "JobType"
 
-        if (result := JobMonitoringClient().getJobStats(selector, req))["OK"]:
+        if (result := WebAppClient().getJobStats(selector, req))["OK"]:
             callback = []
             result = dict(result["Value"])
             keylist = sorted(result)
