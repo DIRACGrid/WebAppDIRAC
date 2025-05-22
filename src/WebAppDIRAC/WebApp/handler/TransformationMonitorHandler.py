@@ -7,6 +7,7 @@ import json
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import TimeUtilities
 from DIRAC.MonitoringSystem.Client.WebAppClient import WebAppClient
+from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
@@ -175,8 +176,6 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "false", "error": "Action is unknown!!!"}
 
     def web_executeOperation(self, action, ids):
-        waClient = WebAppClient()
-
         agentType = "Manual"
         if action == "clean":
             status = "Cleaning"
@@ -197,10 +196,10 @@ class TransformationMonitorHandler(WebHandler):
 
         for i in ids.split(","):
             try:
-                result = waClient.setTransformationParameter(transid := int(i), "Status", status)
+                result = TransformationClient().setTransformationParameter(transid := int(i), "Status", status)
                 if result["OK"]:
                     resString = f"ProdID: {transid} set to {action} successfully"
-                    result = waClient.setTransformationParameter(transid, "AgentType", agentType)
+                    result = TransformationClient().setTransformationParameter(transid, "AgentType", agentType)
                     if not result["OK"]:
                         resString = f"ProdID: {transid} failed to set to {action}: {result['Message']}"
                 else:
@@ -212,16 +211,15 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "true", "showResult": callback}
 
     def __fileRetry(self, prodid, mode):
-        waClient = WebAppClient()
         result = None
         if mode == "proc":
-            result = waClient.getTransformationFilesCount(prodid, "ErrorCount", {"Status": "Processed"})
+            result = TransformationClient().getTransformationFilesCount(prodid, "ErrorCount", {"Status": "Processed"})
         elif mode == "not":
-            result = waClient.getTransformationFilesCount(
+            result = TransformationClient().getTransformationFilesCount(
                 prodid, "ErrorCount", {"Status": ["Unused", "Assigned", "Failed"]}
             )
         elif mode == "all":
-            result = waClient.getTransformationFilesCount(prodid, "ErrorCount")
+            result = TransformationClient().getTransformationFilesCount(prodid, "ErrorCount")
 
         if not result["OK"]:
             return {"success": "false", "error": result["Message"]}
@@ -238,14 +236,7 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "true", "result": resList}
 
     def __dataQuery(self, prodid):
-        waClient = WebAppClient()
-
-        # FIXME: getTransformationInputDataQuery has been replaced by getTransformationMetaQuery in DIRAC v7r0
-        result = waClient.getTransformationMetaQuery(prodid, "Input")
-        if not result["OK"] and "Unknown method" in result["Message"]:
-            result = waClient.getTransformationInputDataQuery(prodid)
-
-        gLogger.debug("-= #######", result)
+        result = TransformationClient().getTransformationMetaQuery(prodid, "Input")
         if not result["OK"]:
             return {"success": "false", "error": result["Message"]}
         data = result["Value"]
@@ -253,20 +244,19 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "true", "result": back}
 
     def __additionalParams(self, prodid):
-        if not (result := WebAppClient().getAdditionalParameters(prodid))["OK"]:
+        if not (result := TransformationClient().getAdditionalParameters(prodid))["OK"]:
             return {"success": "false", "error": result["Message"]}
         data = result["Value"]
         back = [[i, data[i]] for i in sorted(data)]
         return {"success": "true", "result": back}
 
     def __workflowxml(self, transid):
-        waClient = WebAppClient()
-        if not (result := waClient.getTransformations({"TransformationID": transid}))["OK"]:
+        if not (result := TransformationClient().getTransformations({"TransformationID": transid}))["OK"]:
             raise WErr.fromSERROR(result)
         return {"success": "true", "result": result["Value"][0]["Body"]}
 
     def __getLoggingInfo(self, transid):
-        if (result := WebAppClient().getTransformationLogging(transid))["OK"]:
+        if (result := TransformationClient().getTransformationLogging(transid))["OK"]:
             if len(data := result["Value"]) > 0:
                 callback = []
                 for i in data:
@@ -278,8 +268,7 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "false", "error": result["Message"]}
 
     def __transformationFileStatus(self, transid):
-        waClient = WebAppClient()
-        if not (result := waClient.getTransformationFilesCount(transid, "Status"))["OK"]:
+        if not (result := TransformationClient().getTransformationFilesCount(transid, "Status"))["OK"]:
             return {"success": "false", "error": result["Message"]}
         resList = []
         if (total := result["Value"].pop("Total")) == 0:
@@ -293,8 +282,7 @@ class TransformationMonitorHandler(WebHandler):
         return {"success": "true", "result": resList}
 
     def __transformationDetail(self, prodid):
-        waClient = WebAppClient()
-        if not (result := waClient.getTransformationParameters(prodid, ["DetailedInfo"]))["OK"]:
+        if not (result := TransformationClient().getTransformationParameters(prodid, ["DetailedInfo"]))["OK"]:
             return {"success": "false", "error": result["Message"]}
         if callback := result["Value"]:
             return {"success": "true", "result": callback}
@@ -303,7 +291,7 @@ class TransformationMonitorHandler(WebHandler):
 
     def __extendTransformation(self, transid, tasks):
         gLogger.info(f"Extend transformation ({transid}, {tasks})")
-        if (result := WebAppClient().extendTransformation(transid, tasks))["OK"]:
+        if (result := TransformationClient().extendTransformation(transid, tasks))["OK"]:
             resString = f"{transid} extended by {tasks} successfully"
         else:
             resString = f"{transid} failed to extend: {result['Message']}"
@@ -353,7 +341,7 @@ class TransformationMonitorHandler(WebHandler):
 
     def web_setSite(self, TransformationId: int, RunNumber: int, Site):
         gLogger.info(f"\033[0;31m setTransformationRunsSite({TransformationId}, {RunNumber}, {Site}) \033[0m")
-        result = WebAppClient().setTransformationRunsSite(TransformationId, RunNumber, Site)
+        result = TransformationClient().setTransformationRunsSite(TransformationId, RunNumber, Site)
         if result["OK"]:
             return {"success": "true", "result": "true"}
         return {"success": "false", "error": result["Message"]}
