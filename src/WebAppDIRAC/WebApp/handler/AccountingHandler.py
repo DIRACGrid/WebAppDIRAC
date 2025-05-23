@@ -21,22 +21,6 @@ class AccountingHandler(WebHandler):
     # Key: (user, group, setup, accounting type)
     __keysCache = DictCache.DictCache()
 
-    # Reports client
-    repClient = None
-    # Transfer client
-    transClient = None
-
-    @classmethod
-    def initializeHandler(cls, serviceInfo):
-        """This may be overwritten when you write a DIRAC service handler
-        And it must be a class method. This method is called only one time,
-        at the first request
-
-        :param dict serviceInfo: infos about service
-        """
-        cls.repClient = ReportsClient()
-        cls.transClient = TransferClient("Accounting/ReportGenerator")
-
     def __getUniqueKeyValues(self, typeName):
         """Get unique key values for accounting type
 
@@ -47,7 +31,7 @@ class AccountingHandler(WebHandler):
         cacheKey = (self.getUserName(), self.getUserGroup(), self.getUserSetup(), typeName)
         data = AccountingHandler.__keysCache.get(cacheKey)
         if not data:
-            retVal = self.repClient.listUniqueKeyValues(typeName)
+            retVal = ReportsClient().listUniqueKeyValues(typeName)
             if "rpcStub" in retVal:
                 del retVal["rpcStub"]
             if not retVal["OK"]:
@@ -104,7 +88,7 @@ class AccountingHandler(WebHandler):
         # Cache for plotsList?
         data = AccountingHandler.__keysCache.get(f"reportsList:{typeName}")
         if not data:
-            retVal = self.repClient.listReports(typeName)
+            retVal = ReportsClient().listReports(typeName)
             if not retVal["OK"]:
                 return {"success": "false", "result": "", "error": retVal["Message"]}
             data = retVal["Value"]
@@ -206,7 +190,7 @@ class AccountingHandler(WebHandler):
         retVal = self.__parseFormParams(timeSelector, grouping=[grouping], typeName=typeName, **kwargs)
         if retVal["OK"]:
             start, end, pD, kwargs = retVal["Value"]
-            retVal = self.repClient.generateDelayedPlot(typeName, plotName, start, end, pD, grouping, kwargs)
+            retVal = ReportsClient().generateDelayedPlot(typeName, plotName, start, end, pD, grouping, kwargs)
         if retVal["OK"]:
             return {"success": True, "data": retVal["Value"]["plot"]}
         return {"success": False, "errors": retVal["Message"]}
@@ -225,7 +209,7 @@ class AccountingHandler(WebHandler):
         plotImageFile = os.path.normpath("/" + plotImageFile).lstrip("/")
 
         tempFile = tempfile.TemporaryFile()
-        retVal = self.transClient.receiveFile(tempFile, plotImageFile)
+        retVal = TransferClient("Accounting/ReportGenerator").receiveFile(tempFile, plotImageFile)
         if not retVal["OK"]:
             return {"success": "false", "error": retVal["Message"]}
 
@@ -260,7 +244,7 @@ class AccountingHandler(WebHandler):
 
         plotImageFile = retVal["Value"]["plot"]
         tempFile = tempfile.TemporaryFile()
-        retVal = self.transClient.receiveFile(tempFile, plotImageFile)
+        retVal = TransferClient("Accounting/ReportGenerator").receiveFile(tempFile, plotImageFile)
         if not retVal["OK"]:
             return {"success": "false", "error": retVal["Message"]}
 
@@ -283,7 +267,7 @@ class AccountingHandler(WebHandler):
             return {"success": "false", "error": retVal["Message"]}
         start, end, pD, kwargs = retVal["Value"]
         params = (typeName, plotName, start, end, pD, grouping, kwargs)
-        retVal = self.repClient.getReport(*params)
+        retVal = ReportsClient().getReport(*params)
         if not retVal["OK"]:
             return {"success": "false", "error": retVal["Message"]}
 
@@ -319,6 +303,6 @@ class AccountingHandler(WebHandler):
         retVal = self.__parseFormParams(timeSelector, grouping=[grouping], typeName=typeName, **kwargs)
         if retVal["OK"]:
             start, end, pD, kwargs = retVal["Value"]
-            retVal = self.repClient.getReport(typeName, plotName, start, end, pD, grouping, kwargs)
+            retVal = ReportsClient().getReport(typeName, plotName, start, end, pD, grouping, kwargs)
 
         return retVal["Value"] if retVal["OK"] else {"success": "false", "error": retVal["Message"]}
