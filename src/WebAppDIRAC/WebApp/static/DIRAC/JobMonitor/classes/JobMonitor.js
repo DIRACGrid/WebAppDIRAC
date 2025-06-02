@@ -121,9 +121,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       name: "RescheduleTime",
     },
     {
-      name: "CPUTime",
-    },
-    {
       name: "JobGroup",
     },
     {
@@ -415,12 +412,6 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
       },
       RescheduleCounter: {
         dataIndex: "RescheduleCounter",
-        properties: {
-          hidden: true,
-        },
-      },
-      CPUTime: {
-        dataIndex: "CPUTime",
         properties: {
           hidden: true,
         },
