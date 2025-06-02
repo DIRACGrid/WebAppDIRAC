@@ -282,7 +282,7 @@ class AccountingHandler(WebHandler):
             for timeSlot in range(timeStart, int(TimeUtilities.toEpoch(end)), granularity):
                 lineData = [str(timeSlot)]
                 for key in groupKeys:
-                    lineData.append(str(data[key][timeSlot]) if timeSlot in data[key] else "")
+                    lineData.append(str(data[key][str(timeSlot)]) if str(timeSlot) in data[key] else "")
                 strData += f"{','.join(lineData)}\n"
         else:
             strData = f"{','.join(groupKeys)}\n"
