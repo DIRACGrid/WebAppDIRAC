@@ -99,7 +99,7 @@ class JobMonitorHandler(WebHandler):
             callback = JobMonitorHandler.__dataCache.get(cacheKey)
             if not callback:
                 callback = {}
-                result = JobMonitoringClient().getJobGroups()
+                result = WebAppClient().getJobGroups()
                 if result["OK"]:
                     prod = []
                     prods = result["Value"]
@@ -109,11 +109,11 @@ class JobMonitorHandler(WebHandler):
                     else:
                         prod = [["Nothing to display"]]
                 else:
-                    gLogger.error(f"JobMonitoringClient().getJobGroups() return error: {result['Message']}")
+                    gLogger.error(f"WebAppClient().getJobGroups() return error: {result['Message']}")
                     prod = [["Error happened on service side"]]
                 callback["prod"] = prod
 
-                result = JobMonitoringClient().getSites()
+                result = WebAppClient().getSites()
                 if result["OK"]:
                     tier1 = gConfig.getValue("/WebApp/PreferredSites", [])  # Always return a list
                     site = []
@@ -127,11 +127,11 @@ class JobMonitorHandler(WebHandler):
                     else:
                         site = [["Nothing to display"]]
                 else:
-                    gLogger.error(f"JobMonitoringClient().getSites() return error: {result['Message']}")
+                    gLogger.error(f"WebAppClient().getSites() return error: {result['Message']}")
                     site = [["Error happened on service side"]]
                 callback["site"] = site
                 # ##
-                result = JobMonitoringClient().getStates()
+                result = WebAppClient().getStates()
                 if result["OK"]:
                     stat = []
                     if result["Value"]:
@@ -140,11 +140,11 @@ class JobMonitorHandler(WebHandler):
                     else:
                         stat = [["Nothing to display"]]
                 else:
-                    gLogger.error(f"JobMonitoringClient().getStates() return error: {result['Message']}")
+                    gLogger.error(f"WebAppClient().getStates() return error: {result['Message']}")
                     stat = [["Error happened on service side"]]
                 callback["status"] = stat
                 # ##
-                result = JobMonitoringClient().getMinorStates()
+                result = WebAppClient().getMinorStates()
                 if result["OK"]:
                     stat = []
                     if result["Value"]:
@@ -153,11 +153,11 @@ class JobMonitorHandler(WebHandler):
                     else:
                         stat = [["Nothing to display"]]
                 else:
-                    gLogger.error(f"JobMonitoringClient().getMinorStates() return error: {result['Message']}")
+                    gLogger.error(f"WebAppClient().getMinorStates() return error: {result['Message']}")
                     stat = [["Error happened on service side"]]
                 callback["minorstat"] = stat
                 # ##
-                result = JobMonitoringClient().getApplicationStates()
+                result = WebAppClient().getApplicationStates()
                 if result["OK"]:
                     app = []
                     if result["Value"]:
@@ -166,11 +166,11 @@ class JobMonitorHandler(WebHandler):
                     else:
                         app = [["Nothing to display"]]
                 else:
-                    gLogger.error(f"JobMonitoringClient().getApplicationstates() return error: {result['Message']}")
+                    gLogger.error(f"WebAppClient().getApplicationstates() return error: {result['Message']}")
                     app = [["Error happened on service side"]]
                 callback["app"] = app
                 # ##
-                result = JobMonitoringClient().getJobTypes()
+                result = WebAppClient().getJobTypes()
                 if result["OK"]:
                     types = []
                     if result["Value"]:
@@ -179,7 +179,7 @@ class JobMonitorHandler(WebHandler):
                     else:
                         types = [["Nothing to display"]]
                 else:
-                    gLogger.error(f"JobMonitoringClient().getJobTypes() return error: {result['Message']}")
+                    gLogger.error(f"WebAppClient().getJobTypes() return error: {result['Message']}")
                     types = [["Error happened on service side"]]
                 callback["types"] = types
                 # ##
@@ -187,7 +187,7 @@ class JobMonitorHandler(WebHandler):
                 if not self.isRegisteredUser():
                     callback["owner"] = [["Insufficient rights"]]
                 else:
-                    result = JobMonitoringClient().getOwners()
+                    result = WebAppClient().getOwners()
                     if result["OK"]:
                         owner = []
                         if result["Value"]:
@@ -199,11 +199,11 @@ class JobMonitorHandler(WebHandler):
                         owner = [[user]]
                         callback["owner"] = owner
                     else:
-                        gLogger.error(f"JobMonitoringClient().getOwners() return error: {result['Message']}")
+                        gLogger.error(f"WebAppClient().getOwners() return error: {result['Message']}")
                         owner = [["Error happened on service side"]]
                     callback["owner"] = owner
 
-                result = JobMonitoringClient().getOwnerGroup()
+                result = WebAppClient().getOwnerGroup()
                 if result["OK"]:
                     callback["OwnerGroup"] = [[group] for group in result["Value"]]
 

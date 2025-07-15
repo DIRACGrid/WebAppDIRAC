@@ -73,7 +73,7 @@ class PilotSummaryHandler(WebHandler):
         if self.getUserName() == "Anonymous":
             return {"success": "false", "result": [], "total": 0, "error": "Insufficient rights"}
 
-        if (result := JobMonitoringClient().getSites())["OK"]:
+        if (result := WebAppClient().getSites())["OK"]:
             tier1 = gConfig.getValue("/WebApp/PreferredSites", [])
             site = []
             if len(result["Value"]) > 0:
