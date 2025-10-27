@@ -15,7 +15,7 @@ on:
 jobs:
   deploy-pypi:
     name: PyPI deployment
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     permissions:
       id-token: write
@@ -25,21 +25,28 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - name: configure git
-        run: |
-          git fetch --prune --unshallow
-          git config --global user.email "ci@diracgrid.org"
-          git config --global user.name "DIRACGrid CI"
-      - name: Checkout Main repo
+      # Checkout your main repository properly
+      - name: Checkout main repository
         uses: actions/checkout@v5
         with:
-          token: ${{ secrets.PAT || github.token }}
+          token: ${{ secrets.PAT != '' && secrets.PAT || github.token }}
+          fetch-depth: 0  # get full history (so no need for "git fetch --unshallow")
+
+      # Configure git identity
+      - name: Configure git
+        run: |
+          git config --global user.email "ci@diracgrid.org"
+          git config --global user.name "DIRACGrid CI"
+
+      # Checkout the DIRAC dependency
       - name: Checkout DIRAC dependency
         uses: actions/checkout@v5
         with:
           repository: DIRACGrid/DIRAC
           path: ../DIRAC
-          token: ${{ secrets.PAT || github.token }}
+          token: ${{ secrets.PAT != '' && secrets.PAT || github.token }}
+
+      # Set up Python
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
