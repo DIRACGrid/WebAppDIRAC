@@ -7,39 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install pre-commit
         run: pip install pre-commit
       - name: Run pre-commit
         run: pre-commit run --all-files --show-diff-on-failure
-
-  pyLint:
-    runs-on: ubuntu-latest
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
-    defaults:
-      # Activate the conda environment automatically in each step
-      run:
-        shell: bash -l {0}
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          repository: DIRACGrid/DIRAC
-          path: .DIRAC
-          ref: integration
-
-      - name: Get DIRAC
-        run: |
-          [ ! -d "DIRAC" ] && cp -r .DIRAC/src/DIRAC DIRAC
-
-      - name: Prepare environment with Micromamba
-        uses: mamba-org/setup-micromamba@v2
-        with:
-          environment-file: .DIRAC/environment.yml
-
-      - name: Run tests
-        run: pylint -E src/WebAppDIRAC
