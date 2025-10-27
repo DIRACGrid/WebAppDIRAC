@@ -25,14 +25,20 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v5
+      - name: Main repo
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.PAT || github.token }}
-      - run: |
+      - name: Checkout DIRAC dependency
+        uses: actions/checkout@v5
+        with:
+          repository: DIRACGrid/DIRAC
+          path: ../DIRAC
+          token: ${{ secrets.PAT || github.token }}
+        run: |
           git fetch --prune --unshallow
           git config --global user.email "ci@diracgrid.org"
           git config --global user.name "DIRACGrid CI"
-          git clone https://github.com/DIRACGrid/DIRAC.git ../DIRAC
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
