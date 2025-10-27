@@ -25,7 +25,12 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - name: Main repo
+      - name: configure git
+        run: |
+          git fetch --prune --unshallow
+          git config --global user.email "ci@diracgrid.org"
+          git config --global user.name "DIRACGrid CI"
+      - name: Checkout Main repo
         uses: actions/checkout@v5
         with:
           token: ${{ secrets.PAT || github.token }}
@@ -35,10 +40,6 @@ jobs:
           repository: DIRACGrid/DIRAC
           path: ../DIRAC
           token: ${{ secrets.PAT || github.token }}
-        run: |
-          git fetch --prune --unshallow
-          git config --global user.email "ci@diracgrid.org"
-          git config --global user.name "DIRACGrid CI"
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
