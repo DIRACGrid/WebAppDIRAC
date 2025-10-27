@@ -29,7 +29,7 @@ jobs:
       - name: Checkout main repository
         uses: actions/checkout@v5
         with:
-          token: ${{ secrets.PAT != '' && secrets.PAT || github.token }}
+          token: ${{ github.token }}
           fetch-depth: 0  # get full history (so no need for "git fetch --unshallow")
 
       # Configure git identity
@@ -44,7 +44,7 @@ jobs:
         with:
           repository: DIRACGrid/DIRAC
           path: ../DIRAC
-          token: ${{ secrets.PAT != '' && secrets.PAT || github.token }}
+          token: ${{ github.token }}
 
       # Set up Python
       - uses: actions/setup-python@v6
