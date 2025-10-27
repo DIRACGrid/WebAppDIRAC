@@ -17,6 +17,10 @@ jobs:
     name: PyPI deployment
     runs-on: "ubuntu-latest"
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
+    permissions:
+      id-token: write
+      attestations: write
+      contents: write
     defaults:
       run:
         shell: bash -l {0}
@@ -41,7 +45,6 @@ jobs:
               readme_renderer \
               requests \
               setuptools_scm \
-              six
       - name: Validate README for PyPI
         run: |
           python -m readme_renderer README.rst -o /tmp/README.html
