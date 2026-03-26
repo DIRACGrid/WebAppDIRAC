@@ -1,3 +1,7 @@
+[v6.0.1]
+
+FIX: (#771) Allow pre-releases in the DIRAC version check when starting the WebAPP and allow pre-releases for development
+
 [v6.0.0]
 
 
