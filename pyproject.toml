@@ -10,7 +10,7 @@ git_describe_command = "git describe --dirty --tags --long --match *[0-9]* --exc
 
 [tool.black]
 line-length = 120
-target-version = ['py39']
+target-version = ['py311']
 
 [tool.pylint.basic]
 
@@ -63,7 +63,7 @@ signature-mutators = []
 max-line-length = 130
 
 [tool.pylint."messages control"]
-disable = ["R0903","I0011","c-extension-no-member"]
+disable = ["R0903", "I0011", "c-extension-no-member"]
 
 [tool.pylint.reports]
 # Set the output format. Available formats are text, parseable, colorized, json
