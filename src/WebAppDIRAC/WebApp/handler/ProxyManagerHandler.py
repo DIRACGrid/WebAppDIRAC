@@ -83,17 +83,8 @@ class ProxyManagerHandler(WebHandler):
         if not (webIds := list(json.loads(idList))):
             return {"success": "false", "error": "No valid id's specified"}
 
-        idList = []
-        for id in webIds:
-            spl = id.split("@")
-            dn = "@".join(spl[:-1])
-            idList.append((dn,))
-        retVal = gProxyManager.deleteProxyBundle(idList)
-        # for uid in webIds:
-        #   spl = uid.split("@")
-        #   dn = "@".join(spl[:-1])
-        #   idList.append(dn)
-        # retVal = yield self.threadTask(ProxyManagerClient().deleteProxy, idList)  # pylint: disable=no-member
+        retVal = gProxyManager.deleteProxyBundle(webIds)
+
         if retVal["OK"]:
             return {"success": "true", "result": retVal["Value"]}
         return {"success": "false", "error": retVal["Message"]}
