@@ -38,7 +38,7 @@ repos:
       - id: eslint
         additional_dependencies:
           - eslint@8.0.1
-          - http://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
+          - https://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
 
   - repo: https://github.com/ikamensh/flynt/
     rev: "0.77"
