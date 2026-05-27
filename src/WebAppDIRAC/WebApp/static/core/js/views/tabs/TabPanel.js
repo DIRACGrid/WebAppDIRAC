@@ -21,7 +21,7 @@ Ext.define("Ext.dirac.views.tabs.TabPanel", {
   renderTo: Ext.getBody(),
   defaults: {
     bodyPadding: 0,
-    scrollable: true,
+    scrollable: false,
   },
   bodyStyle: {
     background: "#AAAAAA",
