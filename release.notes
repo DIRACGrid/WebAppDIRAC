@@ -1,3 +1,10 @@
+[v6.0.3]
+
+FIX: (#795) Prefer https wherever possible, remove insecure iframe
+FIX: (#794) Hide top-level scrollbar on wrongly sized panels
+FIX: (#793) Correct logic in time selection panel
+FIX: (#792) Allow deletion of proxies without groups
+
 [v6.0.2]
 
 CHANGE: (#791) Only auto-reload webapp code in debug mode
