@@ -102,6 +102,7 @@ class App:
             cookie_secret=str(Conf.cookieSecret()),
             log_function=self._logRequest,
             autoreload=Conf.numProcesses() < 2,
+            websocket_ping_interval=15,
         )
 
         # please do no move this lines. The lines must be before the fork_processes
