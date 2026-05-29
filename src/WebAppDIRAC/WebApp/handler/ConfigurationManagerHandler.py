@@ -103,8 +103,11 @@ class ConfigurationManagerHandler(WebSocketHandler):
             sectionCfg = self.__configData["cfgData"].getCFG()
             for section in [section for section in sectionPath.split("/") if not section.strip() == ""]:
                 sectionCfg = sectionCfg[section]
-        except Exception as v:
-            self.log.exception("Section does not exist", f"{sectionPath} -> {v!r}")
+        except KeyError as err:
+            self.log.info("Client requested non-existent section", f"{sectionPath} -> {err!r}")
+            return False
+        except Exception as err:
+            self.log.exception("Error loading config section", f"{sectionPath} -> {err!r}")
             return False
 
         for entryName in sectionCfg.listAll():
