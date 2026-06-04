@@ -1,3 +1,8 @@
+[v6.0.4]
+
+FIX: (#797) Lower log level for KeyError in ConfigManager bulk config get
+FIX: (#796) Enabled websocket ping keepalive
+
 [v6.0.3]
 
 FIX: (#795) Prefer https wherever possible, remove insecure iframe
