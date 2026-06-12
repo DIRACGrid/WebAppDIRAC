@@ -230,7 +230,7 @@ Ext.define("Ext.dirac.utils.DiracTimeSearchPanel", {
 
     var iSpanValue = me.cmbTimeSpan.getValue();
 
-    if (iSpanValue == null && iSpanValue == 0) {
+    if (iSpanValue == null || iSpanValue == 0) {
       sStartDate = null;
       sStartTime = null;
       sEndDate = null;

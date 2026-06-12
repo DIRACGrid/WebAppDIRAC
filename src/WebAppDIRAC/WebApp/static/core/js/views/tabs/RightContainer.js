@@ -97,10 +97,12 @@ Ext.define("Ext.dirac.views.tabs.RightContainer", {
       layout: "fit",
       closable: false,
       xtype: "component",
+      /*
       autoEl: {
         tag: "iframe",
-        src: "http://diracgrid.org",
+        src: "https://diracgrid.org",
       },
+      */
     });
   },
   getStateData: function () {
