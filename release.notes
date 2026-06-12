@@ -1,3 +1,12 @@
+[v5.0.13]
+
+FIX: (#799) Replace pkg_resources with importlib
+FIX: (#798) Correct logic in time selection panel
+FIX: (#798) Hide top-level scrollbar on wrongly sized panels
+FIX: (#798) Prefer https wherever possible, remove insecure iframe
+FIX: (#798) Enabled websocket ping keepalive
+FIX: (#798) Lower log level for KeyError in ConfigManager bulk config get
+
 [v5.0.12]
 
 FIX: (#761) do not display the exception in the web browser
