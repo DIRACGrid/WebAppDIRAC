@@ -2,19 +2,16 @@
 """
 
 # Define Version
-from pkg_resources import get_distribution, DistributionNotFound
+import importlib.resources
 
 try:
-    __version__ = get_distribution(__name__).version
-    version = __version__
-except DistributionNotFound:
+    version = importlib.metadata.version(__name__)
+except importlib.metadata.PackageNotFoundError:
     # package is not installed
     version = "Unknown"
 
 
 def extension_metadata():
-    import importlib.resources  # pylint: disable=import-error,no-name-in-module
-
     return {
         "priority": 10,
         "web_resources": {
