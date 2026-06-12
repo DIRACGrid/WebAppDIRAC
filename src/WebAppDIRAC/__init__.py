@@ -2,6 +2,7 @@
 """
 
 # Define Version
+import importlib.metadata
 import importlib.resources
 
 try:
