@@ -1,3 +1,8 @@
+[v6.0.5]
+
+FIX: (#802) Add missing import in __init__
+FIX: (#800) Replace pkg_resources with importlib
+
 [v6.0.4]
 
 FIX: (#797) Lower log level for KeyError in ConfigManager bulk config get
