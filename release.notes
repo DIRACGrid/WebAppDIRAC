@@ -1,3 +1,7 @@
+[v5.0.14]
+
+FIX: (#801) Add missing import in __init__
+
 [v5.0.13]
 
 FIX: (#799) Replace pkg_resources with importlib
