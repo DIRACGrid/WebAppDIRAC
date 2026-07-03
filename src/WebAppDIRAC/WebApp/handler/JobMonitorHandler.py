@@ -390,7 +390,7 @@ class JobMonitorHandler(WebHandler):
             pilotClient = PilotManagerClient()
             if (retVal := pilotClient.getPilots(id))["OK"]:
                 pilotReference = list(retVal["Value"])[0]
-                if (retVal := pilotClient.getPilotLoggingInfo(pilotReference))["OK"]:
+                if (retVal := WebAppClient().getPilotLoggingInfo(pilotReference))["OK"]:
                     return {"success": "true", "result": retVal["Value"]}
                 return {"success": "false", "error": retVal["Message"]}
             return {"success": "false", "error": retVal["Message"]}
