@@ -140,7 +140,7 @@ class PilotMonitorHandler(WebHandler):
         return req
 
     def web_getJobInfoData(self, data):
-        RPC = PilotManagerClient()
+        RPC = WebAppClient()
         if self.get_argument("data_kind") == "getPilotOutput":
             if (result := RPC.getPilotOutput(data))["OK"]:
                 return {"success": "true", "result": result["Value"]["StdOut"]}
