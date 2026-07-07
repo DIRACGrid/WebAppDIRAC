@@ -1,3 +1,7 @@
+[v6.0.6]
+
+FIX: (#803) moved pilots CE interactions RPC calls
+
 [v6.0.5]
 
 FIX: (#802) Add missing import in __init__
