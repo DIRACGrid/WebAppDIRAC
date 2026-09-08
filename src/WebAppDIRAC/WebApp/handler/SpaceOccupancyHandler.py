@@ -1,10 +1,9 @@
-""" Handler for Space Occupancy web App
-"""
+"""Handler for Space Occupancy web App"""
 
 import json
 
 from DIRAC import gLogger
-from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
@@ -12,7 +11,7 @@ class SpaceOccupancyHandler(WebHandler):
     DEFAULT_AUTHORIZATION = "authenticated"
 
     def initializeRequest(self):
-        self.rmc = ResourceManagementClient()
+        self.pc = PublisherClient()
 
     def web_getSelectionData(self, **kwargs):
         callback = {
@@ -21,7 +20,7 @@ class SpaceOccupancyHandler(WebHandler):
 
         gLogger.info("Arguments to web_getSelectionData", kwargs)
 
-        if (result := self.rmc.selectSpaceTokenOccupancyCache())["OK"]:
+        if (result := self.pc.selectSpaceTokenOccupancyCache())["OK"]:
             for space in result["Value"]:
                 callback["StorageElement"].add(space[1])
 
@@ -35,7 +34,7 @@ class SpaceOccupancyHandler(WebHandler):
     def web_getSpaceOccupancyData(self, StorageElement="null"):
         se = json.loads(StorageElement)
 
-        result = self.rmc.selectSpaceTokenOccupancyCache(None, list(se) if se else se)
+        result = self.pc.selectSpaceTokenOccupancyCache(list(se) if se else se)
         if not result["OK"]:
             raise WErr.fromSERROR(result)
 
