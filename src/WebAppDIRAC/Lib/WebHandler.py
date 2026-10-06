@@ -5,20 +5,22 @@ import json
 import pprint
 import datetime
 import traceback
+import inspect
 from hashlib import md5
 from concurrent.futures import ThreadPoolExecutor
 
 import tornado.web
 import tornado.websocket
-from tornado import gen
-from tornado.web import HTTPError
+from tornado.web import HTTPError, url as TornadoURL
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.Core.Utilities.Decorators import deprecated
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST
-from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import TornadoResponse
+from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import (
+    BaseRequestHandler,
+    TornadoResponse,
+)
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 from WebAppDIRAC.Lib import Conf
@@ -120,7 +122,7 @@ def defaultEncoder(data):
     raise TypeError(f"Object of type {data.__class__.__name__} is not JSON serializable")
 
 
-class WebHandler(TornadoREST):
+class WebHandler(BaseRequestHandler):
     DEFAULT_AUTHENTICATION = ["SSL", "SESSION", "VISITOR"]
     # Auth requirements DEFAULT_AUTHORIZATION
     DEFAULT_AUTHORIZATION = None
@@ -142,6 +144,9 @@ class WebHandler(TornadoREST):
     LOCATION = ""
     AUTH_PROPS = None
 
+    # Never use the activity monitoring
+    activityMonitoringReporter = False
+
     # pylint: disable=no-member
     @classmethod
     def _pre_initialize(cls):
@@ -152,11 +157,89 @@ class WebHandler(TornadoREST):
         cls.DEFAULT_LOCATION = cls.DEFAULT_LOCATION or cls.LOCATION
         cls.DEFAULT_AUTHORIZATION = cls.DEFAULT_AUTHORIZATION or cls.AUTH_PROPS
 
-        # Get tornado URLs
-        urls = super()._pre_initialize()
-        # Define base path regex to know setup/group
+        # Derive location from class name if not explicitly set
+        if not cls.DEFAULT_LOCATION:
+            location = cls.__name__[: -len("Handler")] if cls.__name__.endswith("Handler") else cls.__name__
+            cls.LOCATION = location
+            cls.DEFAULT_LOCATION = location
+        else:
+            location = cls.DEFAULT_LOCATION
+
+        # Generate per-method URLs (TornadoREST style)
+        urls = []
+        prefix = cls.METHOD_PREFIX.lower()
+        for mName, mObj in inspect.getmembers(cls, lambda x: callable(x) and x.__name__.startswith(prefix)):
+            methodName = mName[len(prefix) :]
+
+            # Build method URL path
+            if location == "/":
+                method_path = "" if methodName == "index" else methodName
+            else:
+                method_path = f"{location}/{methodName}"
+
+            # Combine with BASE_URL (which contains setup/group regex groups)
+            # BASE_URL is like: /DIRAC/?(?:s:([\w-]*)/?)?(?:g:([\w.-]*)/?)?
+            base = cls.BASE_URL.rstrip("/")
+            if method_path:
+                url = f"{base}/{method_path}/?$"
+            else:
+                url = f"{base}/?$"
+
+            # Inspect method signature for argument types
+            mObj.var_kwargs = False
+            args = []
+            kwargs = {}
+            signature = inspect.signature(mObj)
+            for name in list(signature.parameters)[1:]:  # skip `self`
+                kind = signature.parameters[name].kind
+                default = signature.parameters[name].default
+                _type = (
+                    signature.parameters[name].annotation
+                    if signature.parameters[name].annotation is not inspect.Parameter.empty
+                    else type(default)
+                    if default is not inspect.Parameter.empty and default is not None
+                    else None
+                )
+                if kind in [
+                    inspect.Parameter.POSITIONAL_ONLY,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                ]:
+                    args.append(_type)
+                    # Add regex group for positional arg
+                    is_optional = (
+                        kind == inspect.Parameter.POSITIONAL_OR_KEYWORD or default is not inspect.Parameter.empty
+                    )
+                    if _type is int:
+                        url += r"(?:/([+-]?\d+)?)?" if is_optional else r"/([+-]?\d+)"
+                    elif _type is float:
+                        url += r"(?:/([+-]?\d*\.?\d+)?)?" if is_optional else r"/([+-]?\d*\.?\d+)"
+                    elif _type is bool:
+                        url += r"(?:/([01]|[A-z]+)?)?" if is_optional else r"/([01]|[A-z]+)"
+                    else:
+                        url += r"(?:/([\w%.-]+)?)?" if is_optional else r"/([\w%.-]+)"
+                if kind in [
+                    inspect.Parameter.KEYWORD_ONLY,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                ]:
+                    kwargs[name] = _type
+                if kind == inspect.Parameter.VAR_KEYWORD:
+                    mObj.var_kwargs = True
+                    url += r"(?:[?&].+=.+)*"
+
+            mObj.keyword_kwarg_types = kwargs
+            mObj.positional_arg_types = args
+
+            sLog.verbose(f" - Route {url} ->  {cls.__name__}.{mName}")
+            urls.append(TornadoURL(url, cls, dict(method=methodName)))
+
+        # PATH_RE for extracting setup/group from request path (uses BASE_URL pattern)
         cls.PATH_RE = re.compile(f"{cls.BASE_URL}(.*)")
+
         return urls
+
+    @classmethod
+    def _getComponentInfoDict(cls, fullComponentName: str, fullURL: str) -> dict:
+        return {}
 
     @classmethod
     def _getCSAuthorizationSection(cls, handler):
@@ -168,6 +251,51 @@ class WebHandler(TornadoREST):
         """
         return Conf.getAuthSectionForHandler(handler)
 
+    def _getMethod(self):
+        prefix = self.METHOD_PREFIX or f"{self.request.method.lower()}_"
+        # Method comes from URLSpec kwargs
+        methodName = self._init_kwargs.get("method", "index")
+        result = getattr(self, f"{prefix}{methodName}", None)
+        sLog.debug(f"_getMethod: prefix={prefix}, methodName={methodName}, result={result}")
+        return result
+
+    def _getMethodArgs(self, args: tuple, kwargs: dict):
+        """Decode args. The first 3 positional args are the URL regex capture groups
+        (setup, group, location) and should be ignored. Actual method arguments
+        are extracted from the request body/query parameters.
+
+        :return: tuple(list, dict)
+        """
+        from urllib.parse import unquote
+
+        keywordArguments = {}
+        positionalArguments = []
+
+        # args[3:] skips the URL capture groups
+        for i, _type in enumerate(self.methodObj.positional_arg_types[: len(args) - 3]):
+            if arg := args[i + 3]:
+                positionalArguments.append(_type(unquote(arg)) if _type else unquote(arg))
+
+        if self.request.headers.get("Content-Type") == "application/json" and self.request.body:
+            try:
+                decoded = json.loads(self.request.body)
+                if isinstance(decoded, list):
+                    return (positionalArguments + decoded, {})
+                elif isinstance(decoded, dict):
+                    return (positionalArguments, decoded)
+            except json.JSONDecodeError:
+                pass
+
+        for name in self.request.arguments:
+            if name == "method":
+                continue
+            if name in self.methodObj.keyword_kwarg_types or self.methodObj.var_kwargs:
+                _type = self.methodObj.keyword_kwarg_types.get(name)
+                value = self.get_arguments(name) if _type in (tuple, list, set) else self.get_argument(name)
+                keywordArguments[name] = _type(value) if _type else value
+
+        return positionalArguments, keywordArguments
+
     @staticmethod
     def encode(inData):
         """Encode data.
@@ -177,13 +305,6 @@ class WebHandler(TornadoREST):
         :return: encoded data
         """
         return json.dumps(inData, default=defaultEncoder)
-
-    def _getMethodArgs(self, args: tuple, kwargs: dict):
-        """Decode args.
-
-        :return: tuple(list, dict)
-        """
-        return super()._getMethodArgs(args=args[3:], kwargs=kwargs)
 
     async def prepare(self):
         """Prepare the request. It reads certificates and check authorizations.
@@ -318,7 +439,10 @@ class WebHandler(TornadoREST):
     def finishWithImage(self, data, plotImageFile, disableCaching=False):
         # Set headers
         self.set_header("Content-Type", "image/png")
-        self.set_header("Content-Disposition", f'attachment; filename="{md5(plotImageFile.encode()).hexdigest()}.png"')
+        self.set_header(
+            "Content-Disposition",
+            f'attachment; filename="{md5(plotImageFile.encode()).hexdigest()}.png"',
+        )
         self.set_header("Content-Length", len(data))
         self.set_header("Content-Transfer-Encoding", "Binary")
         if disableCaching:
@@ -346,10 +470,51 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
         cls.DEFAULT_LOCATION = cls.DEFAULT_LOCATION or cls.LOCATION
         cls.DEFAULT_AUTHORIZATION = cls.DEFAULT_AUTHORIZATION or cls.AUTH_PROPS
 
+        # Derive location from class name if not explicitly set
+        if not cls.DEFAULT_LOCATION:
+            location = cls.__name__[: -len("Handler")] if cls.__name__.endswith("Handler") else cls.__name__
+            cls.LOCATION = location
+            cls.DEFAULT_LOCATION = location
+        else:
+            location = cls.DEFAULT_LOCATION
+
         # Define base path regex to know setup/group
-        cls.PATH_RE = re.compile(url := f"{cls.BASE_URL}({cls.LOCATION})")
-        sLog.verbose(f" - WebSocket {cls.LOCATION} -> {cls.__name__}")
+        cls.PATH_RE = re.compile(url := f"{cls.BASE_URL}({location})")
+        sLog.verbose(f" - WebSocket {location} -> {cls.__name__}")
         sLog.debug(f"  * {url}")
+
+        # Inspect web methods for argument type attributes
+        prefix = cls.METHOD_PREFIX.lower()
+        for mName, mObj in inspect.getmembers(cls, lambda x: callable(x) and x.__name__.startswith(prefix)):
+            mObj.var_kwargs = False
+            args = []
+            kwargs = {}
+            signature = inspect.signature(mObj)
+            for name in list(signature.parameters)[1:]:
+                kind = signature.parameters[name].kind
+                default = signature.parameters[name].default
+                _type = (
+                    signature.parameters[name].annotation
+                    if signature.parameters[name].annotation is not inspect.Parameter.empty
+                    else type(default)
+                    if default is not inspect.Parameter.empty and default is not None
+                    else None
+                )
+                if kind in [
+                    inspect.Parameter.POSITIONAL_ONLY,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                ]:
+                    args.append(_type)
+                if kind in [
+                    inspect.Parameter.KEYWORD_ONLY,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                ]:
+                    kwargs[name] = _type
+                if kind == inspect.Parameter.VAR_KEYWORD:
+                    mObj.var_kwargs = True
+            mObj.keyword_kwarg_types = kwargs
+            mObj.positional_arg_types = args
+
         return [(url, cls)]
 
     def open(self, *args, **kwargs):
