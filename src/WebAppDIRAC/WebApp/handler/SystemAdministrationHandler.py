@@ -4,6 +4,8 @@
 import json
 
 from DIRAC import gConfig, gLogger, S_ERROR
+from DIRAC.Core.Security import Properties
+from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import authorization
 from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
@@ -122,9 +124,11 @@ class SystemAdministrationHandler(WebHandler):
 
         return {"success": "true", "result": log.replace("\n", "<br>")}
 
+    @authorization([Properties.CSAdministrator, Properties.ServiceAdministrator])
     def web_hostAction(self, host=None, action=None, version=None):
         """
         Restart all DIRAC components on a given host
+        Requires CSAdministrator or ServiceAdministrator property
         """
 
         if not host:
@@ -166,10 +170,12 @@ class SystemAdministrationHandler(WebHandler):
 
         return self.aftermath(actionSuccess, actionFailed, action, "Host")
 
+    @authorization([Properties.CSAdministrator, Properties.ServiceAdministrator])
     def web_componentAction(self, action=None, **kwargs):
         """
         Actions which should be done on components. The only parameters is an action
         to perform.
+        Requires CSAdministrator or ServiceAdministrator property
         Returns standard JSON response structure with with service response
         or error messages
         """
