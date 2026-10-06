@@ -2,7 +2,7 @@ import json
 import pprint
 from urllib.parse import urlparse
 
-from tornado.escape import xhtml_escape
+from tornado.escape import xhtml_escape, json_encode
 from tornado import template
 
 from DIRAC import gLogger
@@ -31,6 +31,24 @@ class RootHandler(WebHandler):
         group = group or self.getUserGroup() or ""
         query = ((ref := self.request.headers.get("Referer")) and urlparse(ref).query) or ""
         return f"/{root}/s:{setup}/g:{group}/?{query}"
+
+    def __validateNextURL(self, url):
+        """Validate redirect URL to prevent open redirect and XSS attacks.
+
+        Only allows URLs that start with the configured root URL path.
+        """
+        rootURL = Conf.rootURL().strip("/")
+        parsed = urlparse(url)
+        # Reject URLs with schemes (javascript:, data:, etc.)
+        if parsed.scheme and parsed.scheme.lower() not in ("http", "https"):
+            return rootURL + "/"
+        # Reject URLs with different netloc (different host)
+        if parsed.netloc:
+            return rootURL + "/"
+        # Ensure path starts with root URL
+        if not parsed.path.startswith(rootURL):
+            return rootURL + "/"
+        return url
 
     def web_getConfigData(self, **kwargs) -> dict:
         """Get session data"""
@@ -61,6 +79,9 @@ class RootHandler(WebHandler):
 
         :return: TornadoResponse()
         """
+        # Validate next URL to prevent open redirect
+        next = self.__validateNextURL(next)
+
         if not (result := self._idps.getIdProvider("DIRACWeb"))["OK"]:
             raise WErr(500, result["Message"])
         cli = result["Value"]
@@ -77,10 +98,10 @@ class RootHandler(WebHandler):
 
         resp = TornadoResponse()
         # pylint: disable=no-member
-        resp.set_secure_cookie("webauth_session", json.dumps(session), secure=True, httponly=True)
+        resp.set_secure_cookie("webauth_session", json.dumps(session), secure=True, httponly=True, samesite="Lax")
 
         # Redirect to authorization server
-        resp.set_cookie("authGrant", "Visitor")  # pylint: disable=no-member
+        resp.set_cookie("authGrant", "Visitor", samesite="Lax")  # pylint: disable=no-member
         return resp.redirect(uri)  # pylint: disable=no-member
 
     def web_loginComplete(self, code: str, state: str, **kwargs):
@@ -96,10 +117,10 @@ class RootHandler(WebHandler):
         <meta charset="utf-8" />
       </head>
       <body>
-        {{message}}
+        {{ message }}
         <script>
-          sessionStorage.setItem("access_token", "{{access_token}}");
-          window.location = "{{next}}";
+          sessionStorage.setItem("access_token", {% raw json_encode(access_token) %});
+          window.location = {% raw json_encode(next) %};
         </script>
       </body>
     </html>"""
@@ -109,16 +130,19 @@ class RootHandler(WebHandler):
             return resp.redirect("/")  # pylint: disable=no-member
         authSession = json.loads(authSession)
 
+        # Validate next URL to prevent open redirect and XSS
+        nextURL = self.__validateNextURL(authSession.get("next", "/DIRAC"))
+
         if not (result := self._idps.getIdProvider("DIRACWeb"))["OK"]:
             # pylint: disable=no-member
-            resp.finish(t.generate(next=authSession["next"], access_token="", message=result["Message"]).decode())
+            resp.finish(t.generate(next=nextURL, access_token="", message=result["Message"], json_encode=json_encode).decode())
             return resp
         cli = result["Value"]
 
         result = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get("code_verifier"))
         if not result["OK"]:
             # pylint: disable=no-member
-            resp.finish(t.generate(next=authSession["next"], access_token="", message=result["Message"]).decode())
+            resp.finish(t.generate(next=nextURL, access_token="", message=result["Message"], json_encode=json_encode).decode())
             return resp
         token = result["Value"]
 
@@ -128,27 +152,21 @@ class RootHandler(WebHandler):
         # Create session to work through portal
         self.log.debug("Tokens received:\n", pprint.pformat(token))
         # pylint: disable=no-member
-        resp.set_secure_cookie("session_id", json.dumps(dict(token)), secure=True, httponly=True)
-        resp.set_cookie("authGrant", "Session")  # pylint: disable=no-member
+        resp.set_secure_cookie("session_id", json.dumps(dict(token)), secure=True, httponly=True, samesite="Lax")
+        resp.set_cookie("authGrant", "Session", samesite="Lax")  # pylint: disable=no-member
 
         if not (result := cli.researchGroup())["OK"]:
             # pylint: disable=no-member
             return resp.finish(
-                t.generate(next=authSession["next"], access_token="", message=result["Message"]).decode()
+                t.generate(next=nextURL, access_token="", message=result["Message"], json_encode=json_encode).decode()
             )
-        self.request.headers["Referer"] = authSession["next"]
-        nextURL = self.__change(group=result["Value"].get("group"))
+        self.request.headers["Referer"] = nextURL
+        redirectURL = self.__change(group=result["Value"].get("group"))
 
         # Save token and go to main page
-        # with document('DIRAC authentication') as html:
-        #   dom.div('Authorization is done.',
-        #           style='display:flex;justify-content:center;align-items:center;padding:28px;font-size:28px;')
-        #   dom.script("sessionStorage.setItem('access_token','%s');window.location='%s'" % (access_token, nextURL),
-        #              type="text/javascript")
-        # return template.Template(html.render()).generate()
         # pylint: disable=no-member
         resp.finish(
-            t.generate(next=nextURL, access_token=token["access_token"], message="Authorization is done").decode()
+            t.generate(next=redirectURL, access_token=token["access_token"], message="Authorization is done", json_encode=json_encode).decode()
         )
         return resp
 
