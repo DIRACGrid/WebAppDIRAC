@@ -2,13 +2,31 @@ import base64
 import json
 import zlib
 
-from DIRAC import S_OK
+from DIRAC import S_OK, gLogger
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import authorization
 from DIRAC.Core.Utilities import DEncode
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
+
+
+def _safeDecode(data):
+    """Safely decode stored state data.
+
+    Tries JSON first (secure), falls back to DEncode only for backward
+    compatibility with legacy stored data. DEncode uses eval() internally
+    and should not be used for new data.
+    """
+    raw = zlib.decompress(base64.b64decode(data))
+    try:
+        return json.loads(raw)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        # Legacy data encoded with DEncode - decode but validate it's a simple type
+        decoded = DEncode.decode(raw)[0]
+        if not isinstance(decoded, (dict, list, str, int, float, bool, type(None))):
+            raise ValueError("Stored data contains unsupported types after DEncode decode")
+        return decoded
 
 
 class UPHandler(WebHandler):
@@ -32,7 +50,8 @@ class UPHandler(WebHandler):
         :return: dict
         """
         up = UserProfileClient(f"Web/{obj}/{app}")
-        data = base64.b64encode(zlib.compress(DEncode.encode(state), 9))
+        # Use JSON instead of DEncode for security - DEncode uses eval() internally
+        data = base64.b64encode(zlib.compress(json.dumps(state).encode(), 9))
         # before we save the state (modify the state) we have to remember the actual access: ReadAccess and PublishAccess
         result = up.getVarPermissions(name)
         access = {
@@ -84,7 +103,7 @@ class UPHandler(WebHandler):
         if not result["OK"]:
             return result
         data = result["Value"]
-        return DEncode.decode(zlib.decompress(base64.b64decode(data)))[0]
+        return _safeDecode(data)
 
     def web_loadUserAppState(self, obj, app, user, group, name):
         """Load user application state
@@ -102,7 +121,7 @@ class UPHandler(WebHandler):
         if not result["OK"]:
             return result
         data = result["Value"]
-        return DEncode.decode(zlib.decompress(base64.b64decode(data)))[0]
+        return _safeDecode(data)
 
     @authorization(["all"])
     def web_listAppState(self, obj, app):
@@ -119,7 +138,7 @@ class UPHandler(WebHandler):
             return result
         data = result["Value"]
         # Unpack data
-        return {k: json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data[k])))[0]) for k in data}
+        return {k: _safeDecode(data[k]) for k in data}
 
     def web_delAppState(self, obj, app, name):
         """Delete application state
@@ -155,15 +174,13 @@ class UPHandler(WebHandler):
             if not result["OK"]:
                 return result
             if result["Value"]["ReadAccess"] == "ALL":
-                print(i["UserName"], i["Group"], i)
+                gLogger.debug(f"Loading public desktop state for {i['UserName']} / {i['desktop']}")
                 result = up.retrieveVarFromUser(i["UserName"], i["Group"], i["desktop"])
                 if not result["OK"]:
                     return result
                 if i["UserName"] not in sharedDesktops:
                     sharedDesktops[i["UserName"]] = {}
-                sharedDesktops[i["UserName"]][i["desktop"]] = json.loads(
-                    DEncode.decode(zlib.decompress(base64.b64decode(result["Value"])))[0]
-                )
+                sharedDesktops[i["UserName"]][i["desktop"]] = _safeDecode(result["Value"])
                 sharedDesktops[i["UserName"]]["Metadata"] = i
         return sharedDesktops
 
@@ -199,10 +216,13 @@ class UPHandler(WebHandler):
         if not result["OK"]:
             return result
         data = result["Value"]
-        oDesktop = json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data)))[0])
+        oDesktop = _safeDecode(data)
+        if not isinstance(oDesktop, dict):
+            raise WErr(400, "Invalid desktop state format")
         oDesktop["view"] = str(view)
         oDesktop = json.dumps(oDesktop)
-        data = base64.b64encode(zlib.compress(DEncode.encode(oDesktop), 9))
+        # Use JSON for encoding instead of DEncode
+        data = base64.b64encode(zlib.compress(json.dumps(oDesktop).encode(), 9))
         return up.storeVar(desktop, data)
 
     @authorization(["all"])
