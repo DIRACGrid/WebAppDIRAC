@@ -105,12 +105,14 @@ class ProxyUploadHandler(WebHandler):
             tmp = "".join(random.choice(string.ascii_letters) for x in range(10))
             keyDict[j] = os.path.join(storePath, tmp)
 
-        cmdCert = f"openssl pkcs12 -clcerts -nokeys -in {name} -out {keyDict['pub']} -password file:{p12}"
-        cmdKey = f"openssl pkcs12 -nocerts -in {name} -out {keyDict['private']} -passout file:{keyDict['pem']} -password file:{p12}"
+        # Use subprocess directly with argument lists to prevent command injection
+        # shellCall interprets the command through a shell, which is dangerous
+        cmdCert = ["openssl", "pkcs12", "-clcerts", "-nokeys", "-in", name, "-out", keyDict["pub"], "-passin", f"file:{p12}"]
+        cmdKey = ["openssl", "pkcs12", "-nocerts", "-in", name, "-out", keyDict["private"], "-passout", f"file:{keyDict['pem']}", "-passin", f"file:{p12}"]
 
         for cmd in cmdCert, cmdKey:
-            result = Subprocess.shellCall(900, cmd)
-            gLogger.debug(f"Command is: {cmd}")
+            result = Subprocess.systemCall(900, cmd)
+            gLogger.debug(f"Command is: {' '.join(cmd)}")
             gLogger.debug(f"Result is: {result}")
             if not result["OK"]:
                 shutil.rmtree(storePath)
