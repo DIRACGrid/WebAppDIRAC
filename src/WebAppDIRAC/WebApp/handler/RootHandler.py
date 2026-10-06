@@ -186,7 +186,14 @@ class RootHandler(WebHandler):
         if welcomeFile:
             try:
                 with open(welcomeFile) as f:
-                    welcome = f.read().replace("\n", "")
+                    rawWelcome = f.read().replace("\n", "")
+                # Sanitize HTML to prevent XSS - template has autoescape disabled
+                try:
+                    import bleach
+                    welcome = bleach.clean(rawWelcome, tags=["b", "i", "u", "em", "strong", "p", "br", "a", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "img", "div", "span"], attributes={"a": ["href", "title"], "img": ["src", "alt", "width", "height"]})
+                except ImportError:
+                    # Fallback: escape all HTML if bleach not available
+                    welcome = xhtml_escape(rawWelcome)
             except Exception:
                 gLogger.warn(f"Welcome page not found here: {welcomeFile}")
 
