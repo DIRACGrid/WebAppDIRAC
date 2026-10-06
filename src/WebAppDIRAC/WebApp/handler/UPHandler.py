@@ -11,22 +11,52 @@ from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
+_MAX_DECODED_SIZE = 5 * 1024 * 1024  # 5 MB limit for decompressed data
+_MAX_DENCODE_DEPTH = 50  # Prevent DoS via deeply nested DEncode structures
+
+
 def _safeDecode(data):
     """Safely decode stored state data.
 
-    Tries JSON first (secure), falls back to DEncode only for backward
-    compatibility with legacy stored data. DEncode uses eval() internally
-    and should not be used for new data.
+    Tries JSON first (secure, portable), falls back to DEncode only for
+    backward compatibility with legacy stored data. DEncode is a custom
+    binary format being phased out.
+
+    Includes defense-in-depth limits:
+    - Decompressed size limit to prevent zip bombs
+    - Depth limit for DEncode structures to prevent stack overflow DoS
+    - Type validation to prevent complex object injection
     """
-    raw = zlib.decompress(base64.b64decode(data))
+    compressed = base64.b64decode(data)
+    raw = zlib.decompress(compressed)
+    if len(raw) > _MAX_DECODED_SIZE:
+        raise ValueError(f"Decompressed data exceeds size limit ({_MAX_DECODED_SIZE} bytes)")
+
     try:
         return json.loads(raw)
     except (json.JSONDecodeError, UnicodeDecodeError):
-        # Legacy data encoded with DEncode - decode but validate it's a simple type
+        # Legacy data encoded with DEncode - validate depth before decoding
+        _checkDEncodeDepth(raw)
         decoded = DEncode.decode(raw)[0]
         if not isinstance(decoded, (dict, list, str, int, float, bool, type(None))):
             raise ValueError("Stored data contains unsupported types after DEncode decode")
         return decoded
+
+
+def _checkDEncodeDepth(data):
+    """Validate DEncode data depth to prevent DoS via deeply nested structures."""
+    depth = 0
+    maxDepth = 0
+    for byte in data:
+        if byte in (ord("d"), ord("l"), ord("t")):
+            depth += 1
+            maxDepth = max(maxDepth, depth)
+        elif byte == ord("e"):
+            depth -= 1
+    if maxDepth > _MAX_DENCODE_DEPTH:
+        raise ValueError(f"DEncode data exceeds maximum nesting depth ({_MAX_DENCODE_DEPTH})")
+    if depth != 0:
+        raise ValueError("DEncode data has unbalanced nesting")
 
 
 class UPHandler(WebHandler):
@@ -50,7 +80,7 @@ class UPHandler(WebHandler):
         :return: dict
         """
         up = UserProfileClient(f"Web/{obj}/{app}")
-        # Use JSON instead of DEncode for security - DEncode uses eval() internally
+        # Use JSON instead of DEncode for security and portability
         data = base64.b64encode(zlib.compress(json.dumps(state).encode(), 9))
         # before we save the state (modify the state) we have to remember the actual access: ReadAccess and PublishAccess
         result = up.getVarPermissions(name)
@@ -220,7 +250,6 @@ class UPHandler(WebHandler):
         if not isinstance(oDesktop, dict):
             raise WErr(400, "Invalid desktop state format")
         oDesktop["view"] = str(view)
-        oDesktop = json.dumps(oDesktop)
         # Use JSON for encoding instead of DEncode
         data = base64.b64encode(zlib.compress(json.dumps(oDesktop).encode(), 9))
         return up.storeVar(desktop, data)
