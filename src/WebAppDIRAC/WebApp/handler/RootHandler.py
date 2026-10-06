@@ -135,14 +135,18 @@ class RootHandler(WebHandler):
 
         if not (result := self._idps.getIdProvider("DIRACWeb"))["OK"]:
             # pylint: disable=no-member
-            resp.finish(t.generate(next=nextURL, access_token="", message=result["Message"], json_encode=json_encode).decode())
+            resp.finish(
+                t.generate(next=nextURL, access_token="", message=result["Message"], json_encode=json_encode).decode()
+            )
             return resp
         cli = result["Value"]
 
         result = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get("code_verifier"))
         if not result["OK"]:
             # pylint: disable=no-member
-            resp.finish(t.generate(next=nextURL, access_token="", message=result["Message"], json_encode=json_encode).decode())
+            resp.finish(
+                t.generate(next=nextURL, access_token="", message=result["Message"], json_encode=json_encode).decode()
+            )
             return resp
         token = result["Value"]
 
@@ -166,7 +170,12 @@ class RootHandler(WebHandler):
         # Save token and go to main page
         # pylint: disable=no-member
         resp.finish(
-            t.generate(next=redirectURL, access_token=token["access_token"], message="Authorization is done", json_encode=json_encode).decode()
+            t.generate(
+                next=redirectURL,
+                access_token=token["access_token"],
+                message="Authorization is done",
+                json_encode=json_encode,
+            ).decode()
         )
         return resp
 
@@ -190,7 +199,33 @@ class RootHandler(WebHandler):
                 # Sanitize HTML to prevent XSS - template has autoescape disabled
                 try:
                     import bleach
-                    welcome = bleach.clean(rawWelcome, tags=["b", "i", "u", "em", "strong", "p", "br", "a", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "img", "div", "span"], attributes={"a": ["href", "title"], "img": ["src", "alt", "width", "height"]})
+
+                    welcome = bleach.clean(
+                        rawWelcome,
+                        tags=[
+                            "b",
+                            "i",
+                            "u",
+                            "em",
+                            "strong",
+                            "p",
+                            "br",
+                            "a",
+                            "ul",
+                            "ol",
+                            "li",
+                            "h1",
+                            "h2",
+                            "h3",
+                            "h4",
+                            "h5",
+                            "h6",
+                            "img",
+                            "div",
+                            "span",
+                        ],
+                        attributes={"a": ["href", "title"], "img": ["src", "alt", "width", "height"]},
+                    )
                 except ImportError:
                     # Fallback: escape all HTML if bleach not available
                     welcome = xhtml_escape(rawWelcome)

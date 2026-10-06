@@ -107,8 +107,31 @@ class ProxyUploadHandler(WebHandler):
 
         # Use subprocess directly with argument lists to prevent command injection
         # shellCall interprets the command through a shell, which is dangerous
-        cmdCert = ["openssl", "pkcs12", "-clcerts", "-nokeys", "-in", name, "-out", keyDict["pub"], "-passin", f"file:{p12}"]
-        cmdKey = ["openssl", "pkcs12", "-nocerts", "-in", name, "-out", keyDict["private"], "-passout", f"file:{keyDict['pem']}", "-passin", f"file:{p12}"]
+        cmdCert = [
+            "openssl",
+            "pkcs12",
+            "-clcerts",
+            "-nokeys",
+            "-in",
+            name,
+            "-out",
+            keyDict["pub"],
+            "-passin",
+            f"file:{p12}",
+        ]
+        cmdKey = [
+            "openssl",
+            "pkcs12",
+            "-nocerts",
+            "-in",
+            name,
+            "-out",
+            keyDict["private"],
+            "-passout",
+            f"file:{keyDict['pem']}",
+            "-passin",
+            f"file:{p12}",
+        ]
 
         for cmd in cmdCert, cmdKey:
             result = Subprocess.systemCall(900, cmd)
