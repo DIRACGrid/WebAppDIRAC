@@ -1,6 +1,5 @@
 import os
-import time
-import random
+import tempfile
 import shutil
 import zipfile
 import datetime
@@ -18,6 +17,9 @@ class FileCatalogHandler(WebHandler):
 
     # Supported operands
     __operands = ["in", "nin", "=", "!=", ">=", "<=", ">", "<"]
+
+    # Store temp directory path for validating archivePath in second pass
+    __tempDir = None
 
     def initializeRequest(self):
         """Called at every request, may be overwritten in your handler."""
@@ -39,10 +41,10 @@ class FileCatalogHandler(WebHandler):
 
         # First pass: download files and check for the success
         if not archivePath:
-            tmpdir = "/tmp/" + str(time.time()) + str(random.random())
+            # Use tempfile.mkdtemp() for secure temporary directory creation
+            tmpdir = tempfile.mkdtemp(prefix="DIRAC_FC_")
+            FileCatalogHandler.__tempDir = tmpdir
             dataMgr = DataManager(vo=self.vo)
-            if not os.path.isdir(tmpdir):
-                os.makedirs(tmpdir)
             os.chdir(tmpdir)
             for lfn in path.split(","):
                 gLogger.always(f"Data manager get file {lfn}")
@@ -59,12 +61,12 @@ class FileCatalogHandler(WebHandler):
                 result = dataMgr.getFile(str(lfn), destinationDir=str(tmpPathInZip))
                 if not result["OK"]:
                     gLogger.error("Error getting while getting files", result["Message"])
-                    shutil.rmtree(tmpdir)
+                    shutil.rmtree(tmpdir, ignore_errors=True)
                     return {"success": "false", "error": result["Message"], "lfn": lfn}
 
             # make zip file
             zipname = tmpdir.split("/")[-1] + ".zip"
-            archivePath = "/tmp/" + zipname
+            archivePath = os.path.join(tempfile.gettempdir(), zipname)
             zFile = zipfile.ZipFile(archivePath, "w")
             gLogger.always("zip file", archivePath)
             gLogger.always("start walk in tmpdir", tmpdir)
@@ -82,16 +84,29 @@ class FileCatalogHandler(WebHandler):
                     gLogger.always(f"relativePath {relativePath}, file {filename}")
                     zFile.write(os.path.join(absolutePath, filename))
             zFile.close()
-            shutil.rmtree(tmpdir)
+            shutil.rmtree(tmpdir, ignore_errors=True)
             return {"success": "true", "archivePath": archivePath}
 
         # Second pass: deliver the requested archive
+        # Validate archivePath to prevent path traversal attacks
+        realArchivePath = os.path.realpath(archivePath)
+        tempDir = tempfile.gettempdir()
+        if not realArchivePath.startswith(tempDir + os.sep) and realArchivePath != tempDir:
+            gLogger.error(f"Path traversal attempt detected: {archivePath}")
+            return {"success": "false", "error": "Invalid archive path"}
+
+        if not os.path.isfile(realArchivePath):
+            return {"success": "false", "error": "Archive file not found"}
+
         # read zip file
-        with open(archivePath, "rb") as archive:
+        with open(realArchivePath, "rb") as archive:
             data = archive.read()
         # cleanup
-        os.remove(archivePath)
-        return FileResponse(data, os.path.basename(archivePath))
+        try:
+            os.remove(realArchivePath)
+        except OSError:
+            pass
+        return FileResponse(data, os.path.basename(realArchivePath))
 
     def web_getMetadataFields(self):
         """Method to read all the available fields possible for defining a query
