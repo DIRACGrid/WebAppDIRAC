@@ -1,3 +1,7 @@
+[v6.0.7]
+
+FIX: (#806) Adapt to removal of TornadoREST
+
 [v6.0.6]
 
 FIX: (#803) moved pilots CE interactions RPC calls
