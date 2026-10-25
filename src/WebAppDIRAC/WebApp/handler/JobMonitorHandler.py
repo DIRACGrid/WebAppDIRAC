@@ -1,5 +1,6 @@
 import json
 import datetime
+from urllib.parse import quote
 
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import DictCache
@@ -474,10 +475,13 @@ class JobMonitorHandler(WebHandler):
         if check:
             return {"success": "true"}
 
+        if sandbox not in ("Input", "Output", "Check"):
+            return {"success": "false", "error": "Invalid sandbox type"}
+
         data = result["Value"]
         fname = f"{str(jobID)}_{sandbox}Sandbox.tar"
         self.set_header("Content-type", "application/x-tar")
-        self.set_header("Content-Disposition", f'attachment; filename="{fname}"')
+        self.set_header("Content-Disposition", f"attachment; filename*=UTF-8''{quote(fname)}")
         self.set_header("Content-Length", len(data))
         self.set_header("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
         self.set_header("Pragma", "no-cache")
