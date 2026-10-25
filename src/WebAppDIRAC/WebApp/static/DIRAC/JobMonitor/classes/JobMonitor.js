@@ -1218,7 +1218,9 @@ Ext.define("DIRAC.JobMonitor.classes.JobMonitor", {
           width: 140,
           height: 28,
           renderer: function (toolTip, record, ctx) {
-            toolTip.setHtml(record.get("key") + ": " + record.get("value"));
+            toolTip.setHtml(
+              Ext.util.Format.htmlEncode(record.get("key") + ": " + record.get("value"))
+            );
           },
         },
       },
