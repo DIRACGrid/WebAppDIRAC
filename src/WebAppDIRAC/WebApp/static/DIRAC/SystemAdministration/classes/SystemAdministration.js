@@ -408,6 +408,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         },
       ],
       rendererChkBox: function (val) {
+        val = Ext.util.Format.htmlEncode(val);
         return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
       },
       rendererValueBar: function (value) {
@@ -770,6 +771,7 @@ Ext.define("DIRAC.SystemAdministration.classes.SystemAdministration", {
         },
       ],
       rendererChkBox: function (val) {
+        val = Ext.util.Format.htmlEncode(val);
         return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
       },
       rendererUptime: function (value, record) {
