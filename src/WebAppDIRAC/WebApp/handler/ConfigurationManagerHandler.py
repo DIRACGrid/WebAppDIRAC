@@ -1,4 +1,5 @@
 import json
+import tornado.escape
 import datetime
 
 from diraccfg import CFG
@@ -517,7 +518,8 @@ class ConfigurationManagerHandler(WebSocketHandler):
                 diffList.append(("", diffLine[1:], diffLine[1:], lineNumber))
                 lineNumber = lineNumber + 1
 
-        return {"diff": diffList, "lines": linesDiffList, "totalLines": lineNumber}
+        escList = [(k, tornado.escape.xhtml_escape(a), tornado.escape.xhtml_escape(b), n) for (k, a, b, n) in diffList]
+        return {"diff": escList, "lines": linesDiffList, "totalLines": lineNumber}
 
     def __showCurrentDiff(self):
         if not self.__authorizeAction():
