@@ -91,7 +91,10 @@ class FileCatalogHandler(WebHandler):
         # Validate archivePath to prevent path traversal attacks
         realArchivePath = os.path.realpath(archivePath)
         tempDir = tempfile.gettempdir()
-        if not realArchivePath.startswith(tempDir + os.sep) and realArchivePath != tempDir:
+        base = os.path.basename(realArchivePath)
+        if realArchivePath != os.path.join(tempDir, base) or not (
+            base.startswith("DIRAC_FC_") and base.endswith(".zip")
+        ):
             gLogger.error(f"Path traversal attempt detected: {archivePath}")
             return {"success": "false", "error": "Invalid archive path"}
 
