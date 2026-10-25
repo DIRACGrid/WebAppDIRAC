@@ -56,8 +56,10 @@ class FileCatalogHandler(WebHandler):
                 pathInZip = lfn[pos_relative:last_slash]
                 tmpPathInZip = tmpdir + pathInZip
                 gLogger.always(f"path in zip {tmpPathInZip}")
-                if not os.path.isdir(tmpPathInZip):
-                    os.makedirs(tmpPathInZip)
+                if ".." in pathInZip.split(os.sep):
+                    shutil.rmtree(tmpdir, ignore_errors=True)
+                    return {"success": "false", "error": "Invalid path", "lfn": lfn}
+                os.makedirs(tmpPathInZip, exist_ok=True)
                 result = dataMgr.getFile(str(lfn), destinationDir=str(tmpPathInZip))
                 if not result["OK"]:
                     gLogger.error("Error getting while getting files", result["Message"])
