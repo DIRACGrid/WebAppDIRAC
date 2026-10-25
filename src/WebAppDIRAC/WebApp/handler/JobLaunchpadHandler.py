@@ -175,9 +175,12 @@ class JobLaunchpadHandler(WebHandler):
             storePath = tempfile.mkdtemp(prefix="DIRAC_")
             try:
                 for fileObj in store:
-                    name = os.path.join(storePath, fileObj.filename.lstrip(os.sep))
+                    basename = os.path.basename(fileObj.filename)
+                    if not basename or basename in (".", ".."):
+                        raise ValueError(f"Invalid upload filename: {fileObj.filename!r}")
+                    name = os.path.join(storePath, basename)
 
-                    tFile = open(name, "w")
+                    tFile = open(name, "xb")
                     tFile.write(fileObj.body)
                     tFile.close()
 
