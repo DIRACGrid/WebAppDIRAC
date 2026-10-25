@@ -331,7 +331,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
           });
         } else {
           var tooltipRenderer = function (value, metaData) {
-            metaData.tdAttr = Ext.String.format('data-qtip="{0}"', value);
+            metaData.tdAttr = Ext.String.format('data-qtip="{0}"', Ext.util.Format.htmlEncode(value));
             return value;
           };
           Ext.apply(oColumn, {
