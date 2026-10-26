@@ -1,3 +1,8 @@
+[v6.0.8]
+
+FIX: (#808) Collection of minor webapp fixes
+FIX: (#807) Use correct sysadmin property constants
+
 [v6.0.7]
 
 FIX: (#806) Adapt to removal of TornadoREST
