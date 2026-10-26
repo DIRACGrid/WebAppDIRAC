@@ -124,7 +124,7 @@ class SystemAdministrationHandler(WebHandler):
 
         return {"success": "true", "result": log.replace("\n", "<br>")}
 
-    @authorization([Properties.CSAdministrator, Properties.ServiceAdministrator])
+    @authorization([Properties.CS_ADMINISTRATOR, Properties.SERVICE_ADMINISTRATOR])
     def web_hostAction(self, host=None, action=None, version=None):
         """
         Restart all DIRAC components on a given host
@@ -170,7 +170,7 @@ class SystemAdministrationHandler(WebHandler):
 
         return self.aftermath(actionSuccess, actionFailed, action, "Host")
 
-    @authorization([Properties.CSAdministrator, Properties.ServiceAdministrator])
+    @authorization([Properties.CS_ADMINISTRATOR, Properties.SERVICE_ADMINISTRATOR])
     def web_componentAction(self, action=None, **kwargs):
         """
         Actions which should be done on components. The only parameters is an action

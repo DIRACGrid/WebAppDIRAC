@@ -95,17 +95,16 @@ class TokenManagerHandler(WebHandler):
         if (result := self.tm.getTokensByUserID(userid))["OK"]:
             res = ""
             if data_kind == "getAccessToken":
-                # Use get_unverified_claims to explicitly indicate we're reading
-                # the payload for display only, not verifying authenticity
+                # Read the payload for display only, not verifying authenticity
                 res = (
-                    str(jwt.get_unverified_claims(result["Value"][0]["access_token"]))
+                    str(jwt.decode(result["Value"][0]["access_token"], options={"verify_signature": False}))
                     .replace("{", "{\n")
                     .replace(", ", ",\n")
                     .replace("}", "\n}")
                 )
             elif data_kind == "getRefreshToken":
                 res = (
-                    str(jwt.get_unverified_claims(result["Value"][0]["refresh_token"]))
+                    str(jwt.decode(result["Value"][0]["refresh_token"], options={"verify_signature": False}))
                     .replace("{", "{\n")
                     .replace(", ", ",\n")
                     .replace("}", "\n}")
