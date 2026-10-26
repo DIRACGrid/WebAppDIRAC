@@ -1,3 +1,7 @@
+[v5.0.15]
+
+FIX: (#809) Collection of minor webapp fixes
+
 [v5.0.14]
 
 FIX: (#801) Add missing import in __init__
