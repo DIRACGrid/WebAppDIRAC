@@ -6,7 +6,7 @@
 Ext.define("DIRAC.Notepad.classes.Notepad", {
   extend: "Ext.dirac.core.Module",
 
-  requires: ["Ext.form.field.HtmlEditor"],
+  requires: ["Ext.form.field.TextArea"],
 
   initComponent: function () {
     var me = this;
@@ -16,8 +16,11 @@ Ext.define("DIRAC.Notepad.classes.Notepad", {
     me.launcher.width = 400;
     me.launcher.height = 400;
 
-    me.editor = new Ext.form.field.HtmlEditor({
-      value: ['Some <b>rich</b> <font color="red">text</font> goes <u>here</u><br>', "Give it a try!"].join(""),
+    me.editor = new Ext.form.field.TextArea({
+      value: ["Some text goes here.", "Give it a try!"].join("\n"),
+      grow: true,
+      growMin: 200,
+      enableKeyEvents: true,
     });
 
     Ext.apply(me, {
@@ -32,10 +35,10 @@ Ext.define("DIRAC.Notepad.classes.Notepad", {
     var me = this;
 
     if ("helptext" in data) {
-      me.editor.setValue(data["helptext"]);
+      me.editor.setValue(String(data["helptext"] || ""));
     }
     if ("text" in data) {
-      me.editor.setValue(data["text"]);
+      me.editor.setValue(String(data["text"] || ""));
     }
   },
 

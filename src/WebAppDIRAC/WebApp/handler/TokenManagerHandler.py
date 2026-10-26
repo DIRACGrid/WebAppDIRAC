@@ -95,6 +95,7 @@ class TokenManagerHandler(WebHandler):
         if (result := self.tm.getTokensByUserID(userid))["OK"]:
             res = ""
             if data_kind == "getAccessToken":
+                # Read the payload for display only, not verifying authenticity
                 res = (
                     str(jwt.decode(result["Value"][0]["access_token"], options={"verify_signature": False}))
                     .replace("{", "{\n")

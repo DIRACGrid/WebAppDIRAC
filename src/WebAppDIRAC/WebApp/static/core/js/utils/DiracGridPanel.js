@@ -331,7 +331,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
           });
         } else {
           var tooltipRenderer = function (value, metaData) {
-            metaData.tdAttr = Ext.String.format('data-qtip="{0}"', value);
+            metaData.tdAttr = Ext.String.format('data-qtip="{0}"', Ext.util.Format.htmlEncode(value));
             return value;
           };
           Ext.apply(oColumn, {
@@ -383,6 +383,7 @@ Ext.define("Ext.dirac.utils.DiracGridPanel", {
    * @param{Number} val it is the column value
    */
   rendererChkBox: function (val) {
+    val = Ext.util.Format.htmlEncode(val);
     return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
   },
   /*************************************************************************
