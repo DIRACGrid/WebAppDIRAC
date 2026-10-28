@@ -11,22 +11,101 @@ from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
 
+_MAX_DECODED_SIZE = 5 * 1024 * 1024  # 5 MB limit for decompressed data
+_MAX_DENCODE_DEPTH = 50  # Prevent DoS via deeply nested DEncode structures
+
+
 def _safeDecode(data):
     """Safely decode stored state data.
 
-    Tries JSON first (secure), falls back to DEncode only for backward
-    compatibility with legacy stored data. DEncode uses eval() internally
-    and should not be used for new data.
+    Tries JSON first (secure, portable), falls back to DEncode only for
+    backward compatibility with legacy stored data. DEncode is a custom
+    binary format being phased out.
+
+    Includes defense-in-depth limits:
+    - Decompressed size limit to prevent zip bombs
+    - Depth limit for DEncode structures to prevent stack overflow DoS
+    - Type validation to prevent complex object injection
     """
-    raw = zlib.decompress(base64.b64decode(data))
+    compressed = base64.b64decode(data)
+    raw = zlib.decompress(compressed)
+    if len(raw) > _MAX_DECODED_SIZE:
+        raise ValueError(f"Decompressed data exceeds size limit ({_MAX_DECODED_SIZE} bytes)")
+
     try:
         return json.loads(raw)
     except (json.JSONDecodeError, UnicodeDecodeError):
-        # Legacy data encoded with DEncode - decode but validate it's a simple type
+        # Legacy data encoded with DEncode - validate depth before decoding
+        _checkDEncodeDepth(raw)
         decoded = DEncode.decode(raw)[0]
         if not isinstance(decoded, (dict, list, str, int, float, bool, type(None))):
             raise ValueError("Stored data contains unsupported types after DEncode decode")
         return decoded
+
+
+def _checkDEncodeDepth(data):
+    """Validate DEncode data depth to prevent DoS via deeply nested structures.
+
+    Walks the DEncode stream token by token so that only real containers
+    (d/l/t) contribute to the nesting depth. String payloads
+    (``s<len>:payload``) are skipped, since their content is arbitrary bytes
+    and must not be interpreted as structure: counting container-like
+    characters inside payloads falsely triggers the depth and balance checks
+    on perfectly valid legacy data.
+    """
+    depth = 0
+    maxDepth = 0
+    i = 0
+    while i < len(data):
+        byte = data[i]
+        if byte in (ord("d"), ord("l"), ord("t")):
+            depth += 1
+            maxDepth = max(maxDepth, depth)
+            if maxDepth > _MAX_DENCODE_DEPTH:
+                raise ValueError(f"DEncode data exceeds maximum nesting depth ({_MAX_DENCODE_DEPTH})")
+            i += 1
+        elif byte == ord("e"):
+            depth -= 1
+            if depth < 0:
+                raise ValueError("DEncode data has unbalanced nesting")
+            i += 1
+        elif byte in (ord("s"), ord("u")):
+            # String: s/u <length> ':' <payload>. Skip the payload bytes.
+            i += 1
+            digitsStart = i
+            while i < len(data) and ord("0") <= data[i] <= ord("9"):
+                i += 1
+            if i == digitsStart or i >= len(data) or data[i] != ord(":"):
+                raise ValueError("Malformed DEncode string")
+            i += 1 + int(data[digitsStart:i])
+            if i > len(data):
+                raise ValueError("Malformed DEncode string")
+        elif byte in (ord("i"), ord("I"), ord("f")):
+            # Numeric values terminated by 'e'. Floats may contain an
+            # exponent "e+/-..." which is not the terminator (see DEncode.decodeFloat)
+            end = data.find(b"e", i + 1)
+            if end < 0:
+                raise ValueError("Malformed DEncode number")
+            if byte == ord("f") and end + 1 < len(data) and data[end + 1] in (ord("+"), ord("-")):
+                end = data.find(b"e", end + 1)
+                if end < 0:
+                    raise ValueError("Malformed DEncode number")
+            i = end + 1
+        elif byte == ord("b"):
+            # Boolean: b0 or b1, no terminator
+            i += 2
+        elif byte == ord("n"):
+            # None, no terminator
+            i += 1
+        elif byte == ord("z"):
+            # Datetime: 'z' followed by 'a'/'d'/'t' and the encoded tuple
+            if i + 1 >= len(data) or data[i + 1] not in (ord("a"), ord("d"), ord("t")):
+                raise ValueError("Malformed DEncode datetime")
+            i += 2
+        else:
+            raise ValueError("Malformed DEncode data")
+    if depth != 0:
+        raise ValueError("DEncode data has unbalanced nesting")
 
 
 class UPHandler(WebHandler):
@@ -50,7 +129,7 @@ class UPHandler(WebHandler):
         :return: dict
         """
         up = UserProfileClient(f"Web/{obj}/{app}")
-        # Use JSON instead of DEncode for security - DEncode uses eval() internally
+        # Use JSON instead of DEncode for security and portability
         data = base64.b64encode(zlib.compress(json.dumps(state).encode(), 9))
         # before we save the state (modify the state) we have to remember the actual access: ReadAccess and PublishAccess
         result = up.getVarPermissions(name)
@@ -137,8 +216,15 @@ class UPHandler(WebHandler):
         if not result["OK"]:
             return result
         data = result["Value"]
-        # Unpack data
-        return {k: _safeDecode(data[k]) for k in data}
+        # Unpack data. Skip vars that cannot be decoded instead of failing
+        # the whole listing because of a single corrupt or unreadable entry.
+        decoded = {}
+        for k in data:
+            try:
+                decoded[k] = _safeDecode(data[k])
+            except Exception as e:
+                gLogger.error(f"Failed to decode application state {k!r}: {e}")
+        return decoded
 
     def web_delAppState(self, obj, app, name):
         """Delete application state
@@ -220,7 +306,6 @@ class UPHandler(WebHandler):
         if not isinstance(oDesktop, dict):
             raise WErr(400, "Invalid desktop state format")
         oDesktop["view"] = str(view)
-        oDesktop = json.dumps(oDesktop)
         # Use JSON for encoding instead of DEncode
         data = base64.b64encode(zlib.compress(json.dumps(oDesktop).encode(), 9))
         return up.storeVar(desktop, data)
