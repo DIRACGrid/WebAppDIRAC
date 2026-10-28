@@ -33,14 +33,26 @@ def _safeDecode(data):
         raise ValueError(f"Decompressed data exceeds size limit ({_MAX_DECODED_SIZE} bytes)")
 
     try:
-        return json.loads(raw)
+        decoded = json.loads(raw)
     except (json.JSONDecodeError, UnicodeDecodeError):
         # Legacy data encoded with DEncode - validate depth before decoding
         _checkDEncodeDepth(raw)
         decoded = DEncode.decode(raw)[0]
         if not isinstance(decoded, (dict, list, str, int, float, bool, type(None))):
             raise ValueError("Stored data contains unsupported types after DEncode decode")
-        return decoded
+
+    # Older encodings can wrap the actual JSON document in an extra string
+    # layer: legacy data is stored as a DEncode-encoded JSON text, and data
+    # saved between v6.0.7 and v6.0.8 was double-encoded (json.dumps() was
+    # applied to an already serialized JSON text). Unwrap these string
+    # layers, mirroring the historic json.loads(DEncode.decode(...)[0])
+    # behavior, until a real structure or a plain non-JSON string is reached.
+    while isinstance(decoded, str):
+        try:
+            decoded = json.loads(decoded)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            break
+    return decoded
 
 
 def _checkDEncodeDepth(data):
@@ -129,8 +141,11 @@ class UPHandler(WebHandler):
         :return: dict
         """
         up = UserProfileClient(f"Web/{obj}/{app}")
-        # Use JSON instead of DEncode for security and portability
-        data = base64.b64encode(zlib.compress(json.dumps(state).encode(), 9))
+        # The client sends the state as an already serialized JSON text
+        # (Ext.JSON.encode on the browser side). Store it as is; calling
+        # json.dumps() on it would double-encode it.
+        raw = state if isinstance(state, str) else json.dumps(state)
+        data = base64.b64encode(zlib.compress(raw.encode(), 9))
         # before we save the state (modify the state) we have to remember the actual access: ReadAccess and PublishAccess
         result = up.getVarPermissions(name)
         access = {
