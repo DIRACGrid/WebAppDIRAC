@@ -44,17 +44,66 @@ def _safeDecode(data):
 
 
 def _checkDEncodeDepth(data):
-    """Validate DEncode data depth to prevent DoS via deeply nested structures."""
+    """Validate DEncode data depth to prevent DoS via deeply nested structures.
+
+    Walks the DEncode stream token by token so that only real containers
+    (d/l/t) contribute to the nesting depth. String payloads
+    (``s<len>:payload``) are skipped, since their content is arbitrary bytes
+    and must not be interpreted as structure: counting container-like
+    characters inside payloads falsely triggers the depth and balance checks
+    on perfectly valid legacy data.
+    """
     depth = 0
     maxDepth = 0
-    for byte in data:
+    i = 0
+    while i < len(data):
+        byte = data[i]
         if byte in (ord("d"), ord("l"), ord("t")):
             depth += 1
             maxDepth = max(maxDepth, depth)
+            if maxDepth > _MAX_DENCODE_DEPTH:
+                raise ValueError(f"DEncode data exceeds maximum nesting depth ({_MAX_DENCODE_DEPTH})")
+            i += 1
         elif byte == ord("e"):
             depth -= 1
-    if maxDepth > _MAX_DENCODE_DEPTH:
-        raise ValueError(f"DEncode data exceeds maximum nesting depth ({_MAX_DENCODE_DEPTH})")
+            if depth < 0:
+                raise ValueError("DEncode data has unbalanced nesting")
+            i += 1
+        elif byte in (ord("s"), ord("u")):
+            # String: s/u <length> ':' <payload>. Skip the payload bytes.
+            i += 1
+            digitsStart = i
+            while i < len(data) and ord("0") <= data[i] <= ord("9"):
+                i += 1
+            if i == digitsStart or i >= len(data) or data[i] != ord(":"):
+                raise ValueError("Malformed DEncode string")
+            i += 1 + int(data[digitsStart:i])
+            if i > len(data):
+                raise ValueError("Malformed DEncode string")
+        elif byte in (ord("i"), ord("I"), ord("f")):
+            # Numeric values terminated by 'e'. Floats may contain an
+            # exponent "e+/-..." which is not the terminator (see DEncode.decodeFloat)
+            end = data.find(b"e", i + 1)
+            if end < 0:
+                raise ValueError("Malformed DEncode number")
+            if byte == ord("f") and end + 1 < len(data) and data[end + 1] in (ord("+"), ord("-")):
+                end = data.find(b"e", end + 1)
+                if end < 0:
+                    raise ValueError("Malformed DEncode number")
+            i = end + 1
+        elif byte == ord("b"):
+            # Boolean: b0 or b1, no terminator
+            i += 2
+        elif byte == ord("n"):
+            # None, no terminator
+            i += 1
+        elif byte == ord("z"):
+            # Datetime: 'z' followed by 'a'/'d'/'t' and the encoded tuple
+            if i + 1 >= len(data) or data[i + 1] not in (ord("a"), ord("d"), ord("t")):
+                raise ValueError("Malformed DEncode datetime")
+            i += 2
+        else:
+            raise ValueError("Malformed DEncode data")
     if depth != 0:
         raise ValueError("DEncode data has unbalanced nesting")
 
@@ -167,8 +216,15 @@ class UPHandler(WebHandler):
         if not result["OK"]:
             return result
         data = result["Value"]
-        # Unpack data
-        return {k: _safeDecode(data[k]) for k in data}
+        # Unpack data. Skip vars that cannot be decoded instead of failing
+        # the whole listing because of a single corrupt or unreadable entry.
+        decoded = {}
+        for k in data:
+            try:
+                decoded[k] = _safeDecode(data[k])
+            except Exception as e:
+                gLogger.error(f"Failed to decode application state {k!r}: {e}")
+        return decoded
 
     def web_delAppState(self, obj, app, name):
         """Delete application state
