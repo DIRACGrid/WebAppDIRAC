@@ -1,6 +1,0 @@
-alsoTargeting:integration:
-- '*'
-- '**/*'
-- '.*'
-- '.*/*'
-- '.*/**/*'
