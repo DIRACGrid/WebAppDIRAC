@@ -23,7 +23,7 @@ repos:
     hooks:
       - id: black
 
-  - repo: https://github.com/pre-commit/mirrors-prettier
+  - repo: https://github.com/pre-commit/mirrors-prettier # zizmor: ignore[archived-uses] pinned and functional; no maintained replacement
     rev: v3.0.1
     hooks:
       - id: prettier
@@ -36,7 +36,7 @@ repos:
           - eslint@8.0.1
           - https://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
 
-  - repo: https://github.com/ikamensh/flynt/
+  - repo: https://github.com/ikamensh/flynt
     rev: "0.77"
     hooks:
       - id: flynt
@@ -46,3 +46,9 @@ repos:
     hooks:
       - id: pyupgrade
         args: ["--py311-plus"]
+
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.32.0
+    hooks:
+      - id: zizmor
+        args: ["--no-online-audits"]

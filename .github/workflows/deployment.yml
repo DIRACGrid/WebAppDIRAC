@@ -12,6 +12,14 @@ on:
       version:
         description: "Override the release version number (e.g. 5.0.0a5)"
 
+# Don't cancel: a queued run may be a release waiting to publish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
   deploy-pypi:
     name: PyPI deployment
@@ -27,7 +35,9 @@ jobs:
     steps:
       # Checkout your main repository properly
       - name: Checkout main repository
-        uses: actions/checkout@v5
+        # The release notes commit is pushed back with the persisted credentials.
+        # zizmor: ignore[artipacked] required to push the release notes commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # get full history (so no need for "git fetch --unshallow")
 
@@ -39,13 +49,14 @@ jobs:
 
       # Checkout the DIRAC dependency
       - name: Checkout DIRAC dependency
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: DIRACGrid/DIRAC
           path: DIRAC
+          persist-credentials: false
 
       # Set up Python
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.11"
       - name: Installing dependencies
@@ -61,6 +72,9 @@ jobs:
         run: |
           python -m readme_renderer README.rst -o /tmp/README.html
       - name: Prepare release notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -xeuo pipefail
           IFS=$'\n\t'
@@ -68,22 +82,27 @@ jobs:
           REFERENCE_BRANCH=${GITHUB_REF#refs/heads/}
           echo "Making release notes for ${REFERENCE_BRANCH} since ${PREV_VERSION}"
           ./DIRAC/docs/diracdoctools/scripts/dirac-docs-get-release-notes.py \
-              --token "${{ secrets.GITHUB_TOKEN }}" \
+              --token "${GITHUB_TOKEN}" \
               --sinceTag "${PREV_VERSION}" \
               --branches "${REFERENCE_BRANCH}" \
-              --repo "${{ github.repository }}" \
+              --repo "${GH_REPO}" \
               > release.notes.new
           cat release.notes.new
       - name: Create tag if required
         id: check-tag
+        env:
+          REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.event.ref }}
+          VERSION_INPUT: ${{ github.event.inputs.version }}
         run: |
           set -xeuo pipefail
           IFS=$'\n\t'
-          if [[ "${{ github.repository }}" == "DIRACGrid/WebAppDIRAC" ]]; then
-            if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-              if [[ "${{ github.event.ref }}" =~ ^refs/heads/(integration|rel-v([5-9]|[1-9][0-9]+)r[0-9]+)$ ]]; then
+          if [[ "${REPO}" == "DIRACGrid/WebAppDIRAC" ]]; then
+            if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+              if [[ "${EVENT_REF}" =~ ^refs/heads/(integration|rel-v([5-9]|[1-9][0-9]+)r[0-9]+)$ ]]; then
                 echo "Will create a real release"
-                export NEW_VERSION="v${{ github.event.inputs.version }}"
+                export NEW_VERSION="v${VERSION_INPUT}"
                 if [[ "${NEW_VERSION}" == "v" ]]; then
                   NEW_VERSION=v$(python -m setuptools_scm | sed 's@Guessed Version @@g' | sed -E 's@(\.dev|\+g).+@@g')
                   export NEW_VERSION
@@ -120,15 +139,18 @@ jobs:
           retention-days: 5
       - name: Make release on GitHub
         if: steps.check-tag.outputs.create-release == 'true'
+        env:
+          NEW_VERSION: ${{ steps.check-tag.outputs.new-version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -e
-          export NEW_VERSION=${{ steps.check-tag.outputs.new-version }}
           echo "Pushing tagged release notes to ${GITHUB_REF#refs/heads/}"
           git push "origin" "${GITHUB_REF#refs/heads/}"
           echo "Making GitHub release for ${NEW_VERSION}"
           ./DIRAC/.github/workflows/make_release.py \
-            --repo="${{ github.repository }}" \
-            --token="${{ secrets.GITHUB_TOKEN }}" \
+            --repo="${GH_REPO}" \
+            --token="${GITHUB_TOKEN}" \
             --version="${NEW_VERSION}" \
             --rev="$(git rev-parse HEAD)" \
             --release-notes-fn="release.notes.new"
