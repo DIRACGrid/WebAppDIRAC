@@ -2,13 +2,24 @@ name: Basic tests
 
 on: [push, pull_request]
 
+# A new push to the same PR cancels the previous run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   pre-commit:
+    name: pre-commit
     runs-on: ubuntu-latest
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.11"
       - name: Install pre-commit
@@ -17,6 +28,7 @@ jobs:
         run: pre-commit run --all-files --show-diff-on-failure
 
   pyLint:
+    name: pyLint
     runs-on: ubuntu-latest
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
     defaults:
@@ -25,19 +37,22 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: DIRACGrid/DIRAC
           path: .DIRAC
           ref: rel-v8r0
+          persist-credentials: false
 
       - name: Get DIRAC
         run: |
           [ ! -d "DIRAC" ] && cp -r .DIRAC/src/DIRAC DIRAC
 
       - name: Prepare environment with Micromamba
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2
         with:
           environment-file: .DIRAC/environment.yml
 
