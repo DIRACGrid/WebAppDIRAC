@@ -24,8 +24,48 @@ in your pull-request and commit messages with `#[issue-id]`.
 For the python code:
 
 - You should follow the [DIRAC Coding Conventions](https://dirac.readthedocs.io/en/latest/DeveloperGuide/CodingConvention/index.html).
-- Your code should not introduce any new pylint warnings, and fix as many existing warnings as possible.
+- Your code should not introduce any new pylint warnings, and fix as many existing warnings as possible. See [Running the pylint check locally](#running-the-pylint-check-locally) for how to run it with the same environment as the CI.
 - Use autopep8
+
+## Running the pylint check locally
+
+The CI `pyLint` job (`.github/workflows/codestyle.yml`) runs in a locked
+[pixi](https://pixi.sh) environment declared in `pixi.toml` and pinned in the
+committed `pixi.lock`: DIRAC's runtime dependencies (from the `integration`
+branch, which this branch lints against) plus pylint.
+
+1. [Install pixi](https://pixi.sh/latest/#installation), then from the root of
+   this repository:
+
+   ```bash
+   pixi install
+   ```
+
+2. Check out DIRAC (`integration` branch) next to this repository and install
+   it, including its `dirac-common` subpackage (which holds `DIRACCommon`),
+   into the pixi environment. `--no-deps` because the dependencies come from
+   the pixi environment; `--no-build-isolation` so the build backends come
+   from the lock file too:
+
+   ```bash
+   git clone https://github.com/DIRACGrid/DIRAC.git ../DIRAC
+   pixi run python -m pip install --no-deps --no-build-isolation -e ../DIRAC/dirac-common -e ../DIRAC
+   ```
+
+3. Run the linter exactly as the CI does:
+
+   ```bash
+   pixi run pylint -E src/WebAppDIRAC
+   ```
+
+### Updating dependencies
+
+Dependencies are declared in `pixi.toml`; `pixi.lock` is committed and kept up
+to date by Renovate, so do not hand-edit the lock file. If you change
+`pixi.toml`, run `pixi lock` and commit the updated `pixi.lock` together with
+your change. Note that `exclude-newer = "7d"` in `pixi.toml` enforces a 7-day
+release-age cooldown at solve time, so a package version released less than a
+week ago is not picked up.
 
 ## Git workflow
 
