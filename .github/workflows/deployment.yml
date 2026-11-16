@@ -17,6 +17,11 @@ jobs:
     name: PyPI deployment
     runs-on: "ubuntu-latest"
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
+    permissions:
+      contents: write # push the release notes commit and create the GitHub release
+    outputs:
+      create-release: ${{ steps.check-tag.outputs.create-release }}
+      new-version: ${{ steps.check-tag.outputs.new-version }}
     defaults:
       run:
         shell: bash -l {0}
@@ -96,6 +101,13 @@ jobs:
       - name: Build distributions
         run: |
           python -m build
+      - name: Upload Artifact
+        if: steps.check-tag.outputs.create-release == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: webappdirac-dist
+          path: dist/
+          retention-days: 5
       - name: Make release on GitHub
         if: steps.check-tag.outputs.create-release == 'true'
         run: |
@@ -110,9 +122,23 @@ jobs:
             --version="${NEW_VERSION}" \
             --rev="$(git rev-parse HEAD)" \
             --release-notes-fn="release.notes.new"
-      - name: Publish package on PyPI
-        if: steps.check-tag.outputs.create-release == 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
+
+  # Only this job talks to PyPI; the deployment above runs without any PyPI credential.
+  publish:
+    name: Publish package on PyPI
+    needs: deploy-pypi
+    if: needs.deploy-pypi.outputs.create-release == 'true'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # IMPORTANT: this permission is mandatory for trusted publishing on pypi
+    steps:
+      - name: Download the distribution packages
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          name: webappdirac-dist
+          path: dist/
+      # Use trusted publisher for pypi
+      # https://docs.pypi.org/trusted-publishers/
+      - name: Publish package on PyPI
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
