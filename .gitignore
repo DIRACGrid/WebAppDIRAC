@@ -62,7 +62,8 @@ src/WebAppDIRAC/WebApp/static/extjs/
 !src/WebAppDIRAC/Lib/
 *.gz
 
-# pixi environments and local DIRAC checkouts used by the lint CI
-.pixi/
-.DIRAC/
-DIRAC/
+# pixi environments and local DIRAC checkouts used by the CI (root only:
+# src/WebAppDIRAC/WebApp/static/DIRAC/ is tracked)
+/.pixi/
+/.DIRAC/
+/DIRAC/

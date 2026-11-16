@@ -1,9 +1,9 @@
 # Pixi environment used by the CI pylint job (.github/workflows/codestyle.yml).
 # The dependency set mirrors DIRAC's environment.yml on the rel-v8r0 branch
 # (the DIRAC version this branch targets): conda packages plus the pip-only
-# pieces (the DIRACGrid tornado forks and Authlib). The DIRAC sources
-# themselves are provided by the workflow (checked out and importable from the
-# working directory). Renovate keeps pixi.lock fresh.
+# pieces (the DIRACGrid tornado forks and Authlib), plus DIRAC's build
+# backend so the workflow can install the DIRAC checkout editable with
+# --no-deps --no-build-isolation. Renovate keeps pixi.lock fresh.
 
 [workspace]
 channels = ["https://conda.anaconda.org/diracgrid", "https://conda.anaconda.org/conda-forge"]
@@ -27,7 +27,9 @@ fts3 = "*"
 gitpython = ">=2.1.0"
 invoke = "*"
 m2crypto = ">=0.50"
-matplotlib = "*"
+# matplotlib-base: the full matplotlib pulls the conda tornado, which would
+# be installed next to the tornado fork from [pypi-dependencies]
+matplotlib-base = "*"
 numpy = "*"
 pexpect = ">=4.0.1"
 pillow = "*"
@@ -55,6 +57,10 @@ importlib_resources = "*"
 typing_extensions = ">=4.3.0"
 pylint = "*"
 pyparsing = ">=2.0.6"
+# Build backend for the editable DIRAC install
+setuptools = ">=42"
+setuptools-scm = ">=3.4"
+wheel = "*"
 
 [pypi-dependencies]
 Authlib = ">=1.0.0.a2"
