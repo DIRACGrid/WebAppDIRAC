@@ -50,12 +50,13 @@ jobs:
         with:
           cache: false
 
-      # DIRAC is installed editable (no transitive dependencies: they come
-      # from the pixi environment) so that `import DIRAC` resolves for pylint.
+      # DIRAC (and its dirac-common subpackage, which holds DIRACCommon) is
+      # installed editable (no transitive dependencies: they come from the
+      # pixi environment) so that `import DIRAC` resolves for pylint.
       - name: Install DIRAC
         env:
-          SETUPTOOLS_SCM_PRETEND_VERSION_FOR_DIRAC: 9.1.23
-        run: pixi run python -m pip install --no-deps -e .DIRAC
+          SETUPTOOLS_SCM_PRETEND_VERSION: 9.1.23
+        run: pixi run python -m pip install --no-deps -e .DIRAC/dirac-common -e .DIRAC
 
       - name: Run tests
         run: pixi run pylint -E src/WebAppDIRAC
