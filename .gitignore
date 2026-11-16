@@ -61,3 +61,8 @@ coverage.xml
 src/WebAppDIRAC/WebApp/static/extjs/
 !src/WebAppDIRAC/Lib/
 *.gz
+
+# pixi environments and local DIRAC checkouts used by the lint CI
+.pixi/
+.DIRAC/
+DIRAC/
