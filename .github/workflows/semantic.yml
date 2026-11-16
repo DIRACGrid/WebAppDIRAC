@@ -25,7 +25,7 @@ jobs:
         # zizmor: ignore[archived-uses] no maintained equivalent at the moment
         uses: gsactions/commit-message-checker@16fa2d5de096ae0d35626443bcd24f1e756cafee # v2
         with:
-          pattern: '^((docs|feat|fix|refactor|style|test|sweep)( ?\(.*\))?: .+|Revert ".+")$'
+          pattern: '^((docs|feat|fix|chore|refactor|style|test|sweep)( ?\(.*\))?: .+|Revert ".+")$'
           excludeDescription: "true" # optional: this excludes the description body of a pull request
           excludeTitle: "true" # optional: this excludes the title of a pull request
           checkAllCommitMessages: "true" # optional: this checks all commits associated with a pull request
