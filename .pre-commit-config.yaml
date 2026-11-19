@@ -15,7 +15,7 @@ exclude: |
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -23,7 +23,7 @@ repos:
       - id: check-added-large-files
 
   - repo: https://github.com/psf/black
-    rev: 23.7.0
+    rev: 26.10.1
     hooks:
       - id: black
 
@@ -33,7 +33,7 @@ repos:
       - id: prettier
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.47.0
+    rev: v10.14.0
     hooks:
       - id: eslint
         additional_dependencies:
@@ -41,7 +41,7 @@ repos:
           - https://diracproject.web.cern.ch/diracproject/externalLibraries/@sencha_eslint-plugin-extjs.7.0.0.tgz
 
   - repo: https://github.com/ikamensh/flynt
-    rev: "0.77"
+    rev: "1.0.6"
     hooks:
       - id: flynt
 
