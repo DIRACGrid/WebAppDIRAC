@@ -62,7 +62,7 @@ class ProxyUploadHandler(WebHandler):
         import tempfile
         import shutil
         import os
-        import random
+        import secrets
         import string
 
         storePath = tempfile.mkdtemp(prefix="DIRAC_")
@@ -71,7 +71,7 @@ class ProxyUploadHandler(WebHandler):
         try:
             descriptionDict = dict()
             for i in "name", "p12", "pem":
-                tmp = "".join(random.choice(string.ascii_letters) for x in range(10))
+                tmp = "".join(secrets.choice(string.ascii_letters) for x in range(10))
                 descriptionDict[i] = os.path.join(storePath, tmp)
 
             with open(descriptionDict["name"], "wb") as tmpFile:
@@ -80,7 +80,7 @@ class ProxyUploadHandler(WebHandler):
             with open(descriptionDict["p12"], "w") as tmpFile:
                 tmpFile.write(fileObject.p12)
 
-            pemPassword = "".join(random.choice(string.ascii_letters) for x in range(10))
+            pemPassword = "".join(secrets.choice(string.ascii_letters) for x in range(10))
 
             with open(descriptionDict["pem"], "w") as tmpFile:
                 tmpFile.write(pemPassword)
@@ -102,7 +102,7 @@ class ProxyUploadHandler(WebHandler):
         keyDict["pem"] = descriptionDict["pem"]
 
         for j in "pub", "private":
-            tmp = "".join(random.choice(string.ascii_letters) for x in range(10))
+            tmp = "".join(secrets.choice(string.ascii_letters) for x in range(10))
             keyDict[j] = os.path.join(storePath, tmp)
 
         # Use subprocess directly with argument lists to prevent command injection

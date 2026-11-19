@@ -340,7 +340,7 @@ class SystemAdministrationHandler(WebHandler):
         """
         try:
             text = text.decode("utf-8", "replace")
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
         gLogger.debug(text := text.encode("utf-8"))
