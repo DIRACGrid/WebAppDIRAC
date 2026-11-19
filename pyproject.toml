@@ -70,3 +70,13 @@ disable = ["R0903", "I0011", "c-extension-no-member"]
 # and msvs (visual studio). You can also give a reporter class, e.g.
 # mypackage.mymodule.MyReporterClass.
 output-format = "colorized"
+
+[tool.bandit]
+exclude_dirs = [".github", "docs", "test", "tests"]
+skips = [
+  # Legacy web application code, being superseded by diracx-web.
+  "B106", # hardcoded_password_funcarg - empty placeholder passwords in handler calls
+  "B110", # try_except_pass - best-effort error handling in the handlers
+  "B311", # blacklist - pseudo-random used for temporary names, not for secrets
+  "B324", # hashlib - MD5 used for cache keys/etags, not for security
+]
