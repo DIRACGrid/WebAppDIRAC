@@ -199,7 +199,7 @@ class FileCatalogHandler(WebHandler):
             gLogger.error("request:", result["Message"])
         else:
             filemeta, dirmeta = result["Value"]
-            meta = [k for k in dirmeta]
+            meta = [*dirmeta]
             gLogger.always("request: metafields:", meta)
 
             for param in kwargs:
@@ -291,7 +291,7 @@ class FileCatalogHandler(WebHandler):
             gLogger.error("request:", result["Message"])
         else:
             filemeta, dirmeta = result["Value"]
-            meta = [k for k in dirmeta]
+            meta = [*dirmeta]
             gLogger.always("request: metafields: ", meta)
 
             selectionElems = selection.split("<|>")
@@ -336,7 +336,7 @@ class FileCatalogHandler(WebHandler):
             gLogger.error(f"submit: {result['Message']}")
             return {"success": "false", "error": result["Message"]}
 
-        return FileResponse("\n".join([fileName for fileName in result["Value"]]), str(req))
+        return FileResponse("\n".join([*result["Value"]]), str(req))
 
     def web_getSubnodeFiles(self, path):
         """Get subnode files
