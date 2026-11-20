@@ -27,8 +27,10 @@ jobs:
     name: PyPI deployment
     runs-on: ubuntu-latest
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/WebAppDIRAC'
+    # Only a release (workflow_dispatch) gets the environment that holds the deploy key.
+    environment: ${{ github.event_name == 'workflow_dispatch' && 'release' || '' }}
     permissions:
-      contents: write # push the release notes commit and create the GitHub release
+      contents: write # create the GitHub release on the tag pushed with the deploy key
     outputs:
       create-release: ${{ steps.check-tag.outputs.create-release }}
     defaults:
@@ -37,11 +39,10 @@ jobs:
     steps:
       # Checkout your main repository properly
       - name: Checkout main repository
-        # The release notes commit is pushed back with the persisted credentials.
-        # zizmor: ignore[artipacked] required to push the release notes commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # get full history (so no need for "git fetch --unshallow")
+          persist-credentials: false
 
       # Configure git identity
       - name: Configure git
@@ -145,10 +146,19 @@ jobs:
           NEW_VERSION: ${{ steps.check-tag.outputs.new-version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          # Write deploy key: the only actor allowed past the branch and tag rulesets.
+          RELEASE_DEPLOY_KEY: ${{ secrets.RELEASE_DEPLOY_KEY }}
         run: |
           set -e
-          echo "Pushing tagged release notes to ${GITHUB_REF#refs/heads/}"
-          git push "origin" "${GITHUB_REF#refs/heads/}"
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          install -m 600 /dev/null "${RUNNER_TEMP}/release_key"
+          printf '%s\n' "${RELEASE_DEPLOY_KEY}" > "${RUNNER_TEMP}/release_key"
+          # GitHub's SSH host key, from https://api.github.com/meta
+          echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" > "${RUNNER_TEMP}/known_hosts"
+          export GIT_SSH_COMMAND="ssh -i ${RUNNER_TEMP}/release_key -o IdentitiesOnly=yes -o UserKnownHostsFile=${RUNNER_TEMP}/known_hosts"
+          echo "Pushing the release notes and the ${NEW_VERSION} tag to ${BRANCH}"
+          git push --atomic "git@github.com:${GH_REPO}.git" "HEAD:refs/heads/${BRANCH}" "refs/tags/${NEW_VERSION}"
+          rm -f "${RUNNER_TEMP}/release_key"
           echo "Making GitHub release for ${NEW_VERSION}"
           ./DIRAC/.github/workflows/make_release.py \
             --repo="${GH_REPO}" \
