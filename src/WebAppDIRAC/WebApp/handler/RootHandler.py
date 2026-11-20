@@ -136,7 +136,9 @@ class RootHandler(WebHandler):
         if not (result := self._idps.getIdProvider("DIRACWeb"))["OK"]:
             # pylint: disable=no-member
             resp.finish(
-                t.generate(next=nextURL, access_token="", message=result["Message"], json_encode=json_encode).decode()
+                t.generate(
+                    next=nextURL, access_token="", message=result["Message"], json_encode=json_encode
+                ).decode()  # nosec B106
             )
             return resp
         cli = result["Value"]
@@ -145,7 +147,9 @@ class RootHandler(WebHandler):
         if not result["OK"]:
             # pylint: disable=no-member
             resp.finish(
-                t.generate(next=nextURL, access_token="", message=result["Message"], json_encode=json_encode).decode()
+                t.generate(
+                    next=nextURL, access_token="", message=result["Message"], json_encode=json_encode
+                ).decode()  # nosec B106
             )
             return resp
         token = result["Value"]
@@ -162,7 +166,9 @@ class RootHandler(WebHandler):
         if not (result := cli.researchGroup())["OK"]:
             # pylint: disable=no-member
             return resp.finish(
-                t.generate(next=nextURL, access_token="", message=result["Message"], json_encode=json_encode).decode()
+                t.generate(
+                    next=nextURL, access_token="", message=result["Message"], json_encode=json_encode
+                ).decode()  # nosec B106
             )
         self.request.headers["Referer"] = nextURL
         redirectURL = self.__change(group=result["Value"].get("group"))

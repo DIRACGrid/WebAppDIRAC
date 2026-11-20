@@ -159,7 +159,7 @@ class JobLaunchpadHandler(WebHandler):
                 if self.request.files[key][0].filename:
                     gLogger.info(f"\x1b[0;31m file - {self.request.files[key][0].filename} \x1b[0m ")
                     store.append(self.request.files[key][0])
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
         gLogger.info(f"\x1b[0;31m *** {params} \x1b[0m ")

@@ -70,3 +70,6 @@ disable = ["R0903", "I0011", "c-extension-no-member"]
 # and msvs (visual studio). You can also give a reporter class, e.g.
 # mypackage.mymodule.MyReporterClass.
 output-format = "colorized"
+
+[tool.bandit]
+exclude_dirs = [".github", "docs", "test", "tests"]
