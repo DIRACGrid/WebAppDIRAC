@@ -804,7 +804,7 @@ Ext.define("DIRAC.PilotMonitor.classes.PilotMonitor", {
   formPlotSettings: function () {
     var me = this;
 
-    if (!"plotSettings" in me) me.plotSettings = {};
+    if ((!"plotSettings") in me) me.plotSettings = {};
 
     me.plotSettings.txtPlotTitle = Ext.create("Ext.form.field.Text", {
       fieldLabel: "Title",
