@@ -2,5 +2,20 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": "Adopts the shared DIRACGrid Renovate policy (see DIRACGrid/.github renovate-config.json).",
   "extends": ["local>DIRACGrid/.github//renovate-config"],
-  "baseBranchPatterns": ["$default", "rel-v5r0"]
+  "baseBranchPatterns": ["$default", "rel-v5r0"],
+  "packageRules": [
+    {
+      "description": "We use the DIRACGrid forks of tornado and tornado_m2crypto: never bump them from PyPI.",
+      "matchDatasources": ["pypi"],
+      "matchPackageNames": ["tornado", "tornado-m2crypto"],
+      "enabled": false
+    },
+    {
+      "description": "rel-v5r0 always depends on dirac ~=8.0.0 (the DIRAC v8 series): never take major dirac bumps there. The integration branch tracks the latest DIRAC version.",
+      "matchDepNames": ["dirac"],
+      "matchUpdateTypes": ["major"],
+      "matchBaseBranches": ["rel-v5r0"],
+      "enabled": false
+    }
+  ]
 }
