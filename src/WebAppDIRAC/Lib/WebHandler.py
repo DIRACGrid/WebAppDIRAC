@@ -54,7 +54,7 @@ class FileResponse(TornadoResponse):
         name, _ext = os.path.splitext(fileName)
         self.ext = (ext or _ext).lower()
         # Generate file name
-        self.fileHash = md5(name.encode()).hexdigest()  # MD5 take a bytes
+        self.fileHash = md5(name.encode(), usedforsecurity=False).hexdigest()  # MD5 take a bytes
         self.cache = cache
         super().__init__(payload, 200)
 
@@ -441,7 +441,7 @@ class WebHandler(BaseRequestHandler):
         self.set_header("Content-Type", "image/png")
         self.set_header(
             "Content-Disposition",
-            f'attachment; filename="{md5(plotImageFile.encode()).hexdigest()}.png"',
+            f'attachment; filename="{md5(plotImageFile.encode(), usedforsecurity=False).hexdigest()}.png"',
         )
         self.set_header("Content-Length", len(data))
         self.set_header("Content-Transfer-Encoding", "Binary")
