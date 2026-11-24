@@ -6,7 +6,7 @@
 # --no-deps --no-build-isolation. Renovate keeps pixi.lock fresh.
 
 [workspace]
-channels = ["https://conda.anaconda.org/diracgrid", "https://conda.anaconda.org/conda-forge"]
+channels = ["diracgrid", "conda-forge"]
 platforms = ["linux-64"]
 # Enforce the release-age cooldown at solve time (Renovate's lockfile
 # maintenance skips minimumReleaseAge; see DIRACGrid/.github#7).
