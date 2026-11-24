@@ -20,13 +20,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # keep 3.11 until Renovate updates pyupgrade (v3.10.1 predates the
+      # removal of ast.Str in Python 3.12)
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.11"
+      # Not pre-commit/action: it calls actions/cache by tag, which the organization policy rejects.
       - name: Install pre-commit
-        run: pip install pre-commit
+        run: pip install pre-commit==4.7.0
       - name: Run pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure
+        run: pre-commit run --all-files --show-diff-on-failure --color=always
 
   pyLint:
     name: pyLint

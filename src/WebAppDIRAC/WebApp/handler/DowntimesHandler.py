@@ -1,5 +1,4 @@
-""" WebApp handler for Downtimes WebApp
-"""
+"""WebApp handler for Downtimes WebApp"""
 
 import json
 from datetime import datetime
