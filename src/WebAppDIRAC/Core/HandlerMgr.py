@@ -1,5 +1,4 @@
-""" Basic modules for loading handlers
-"""
+"""Basic modules for loading handlers"""
 
 import os
 import collections

@@ -1,5 +1,4 @@
-""" Handler for TransformationMonitor page
-"""
+"""Handler for TransformationMonitor page"""
 
 import datetime
 import json

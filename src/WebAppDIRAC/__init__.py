@@ -1,5 +1,4 @@
-""" WebAppDIRAC
-"""
+"""WebAppDIRAC"""
 
 # Define Version
 import importlib.metadata

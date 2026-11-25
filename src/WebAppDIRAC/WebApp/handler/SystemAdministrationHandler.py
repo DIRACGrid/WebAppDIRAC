@@ -1,5 +1,4 @@
-""" Handler for SystemAdministration WebApp
-"""
+"""Handler for SystemAdministration WebApp"""
 
 import json
 
