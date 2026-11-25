@@ -26,7 +26,6 @@ from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
 
-
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
 sLog = gLogger.getSubLogger(__name__)
@@ -196,9 +195,7 @@ class WebHandler(BaseRequestHandler):
                 _type = (
                     signature.parameters[name].annotation
                     if signature.parameters[name].annotation is not inspect.Parameter.empty
-                    else type(default)
-                    if default is not inspect.Parameter.empty and default is not None
-                    else None
+                    else type(default) if default is not inspect.Parameter.empty and default is not None else None
                 )
                 if kind in [
                     inspect.Parameter.POSITIONAL_ONLY,
@@ -496,9 +493,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
                 _type = (
                     signature.parameters[name].annotation
                     if signature.parameters[name].annotation is not inspect.Parameter.empty
-                    else type(default)
-                    if default is not inspect.Parameter.empty and default is not None
-                    else None
+                    else type(default) if default is not inspect.Parameter.empty and default is not None else None
                 )
                 if kind in [
                     inspect.Parameter.POSITIONAL_ONLY,

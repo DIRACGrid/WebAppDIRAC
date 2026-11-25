@@ -1,5 +1,4 @@
-""" Handler for Space Occupancy web App
-"""
+"""Handler for Space Occupancy web App"""
 
 import json
 

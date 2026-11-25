@@ -10,7 +10,6 @@ from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 
 from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
 
-
 _MAX_DECODED_SIZE = 5 * 1024 * 1024  # 5 MB limit for decompressed data
 _MAX_DENCODE_DEPTH = 50  # Prevent DoS via deeply nested DEncode structures
 

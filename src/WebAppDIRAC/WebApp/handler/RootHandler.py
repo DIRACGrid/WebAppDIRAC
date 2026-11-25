@@ -109,8 +109,7 @@ class RootHandler(WebHandler):
 
         :return: TornadoResponse()
         """
-        t = template.Template(
-            """<!DOCTYPE html>
+        t = template.Template("""<!DOCTYPE html>
     <html>
       <head>
         <title>Authentication</title>
@@ -123,8 +122,7 @@ class RootHandler(WebHandler):
           window.location = {% raw json_encode(next) %};
         </script>
       </body>
-    </html>"""
-        )
+    </html>""")
         resp = TornadoResponse()
         if not (authSession := self.get_secure_cookie("webauth_session")):
             return resp.redirect("/")  # pylint: disable=no-member

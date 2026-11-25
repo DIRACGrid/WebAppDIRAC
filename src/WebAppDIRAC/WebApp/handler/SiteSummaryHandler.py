@@ -1,5 +1,4 @@
-""" Get Site Summary page content
-"""
+"""Get Site Summary page content"""
 
 import json
 
