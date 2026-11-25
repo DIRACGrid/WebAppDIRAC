@@ -6,6 +6,7 @@ Usage: check_release_version.py VERSION [BRANCH]
 With BRANCH, also check that VERSION may be released from it: any version from
 integration, only X.Y.* from rel-vXrY.
 """
+
 import sys
 
 from packaging.version import Version
