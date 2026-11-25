@@ -24,7 +24,6 @@ from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
 
-
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
 sLog = gLogger.getSubLogger(__name__)
